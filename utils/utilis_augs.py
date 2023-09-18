@@ -25,7 +25,8 @@ def get_mean_and_std(dataset, opt):
 def get_processing(dataset, opt):
     return transforms.Compose(
         [transforms.ToTensor(),
-         transforms.Normalize(*get_mean_and_std(dataset, opt))])
+         transforms.Normalize(*get_mean_and_std(dataset, opt)),
+         AddGaussianNoise(0., 0.05),])
 
 
 def select_Augment(opt):
@@ -39,6 +40,23 @@ def select_Augment(opt):
         return transforms.AugMix()
     else:
         return None
+
+class AddGaussianNoise(object):
+    def __init__(self, mean=0., std=1.):
+        self.std = std
+        self.mean = mean
+
+    def __call__(self, tensor):
+        """
+        Args:
+            tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
+        Returns:
+            Tensor: Normalized Tensor image.
+        """
+        return tensor + torch.randn(tensor.size()) * self.std + self.mean
+
+    def __repr__(self):
+        return self.__class__.__name__ + '(mean={0}, std={1})'.format(self.mean, self.std)
 
 def get_dataprocessing(dataset, opt, preprocess=None):
     if not preprocess:
@@ -56,6 +74,7 @@ def get_dataprocessing(dataset, opt, preprocess=None):
             #transforms.Resize((int(opt.image_size + opt.image_size * 0.1))),
              transforms.CenterCrop((opt.image_size, opt.image_size)),
              transforms.RandomHorizontalFlip(),
+             transforms.RandomRotation(degrees=10),
              preprocess
              ])
     else:
