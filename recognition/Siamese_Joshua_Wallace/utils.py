@@ -8,7 +8,8 @@ class Config() :
             epochs=10, 
             batch_size=32, 
             root_dir='./AD_CN',
-            gpu = 'cuda'
+            gpu = 'cuda',
+            savepath = './models/siamese'
     ) -> None :
         
         self.lr = lr
@@ -16,6 +17,7 @@ class Config() :
         self.epochs = epochs
         self.batch_size = batch_size
         self.root_dir = root_dir
+        self.savepath = savepath
 
         if gpu == 'cuda' :
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

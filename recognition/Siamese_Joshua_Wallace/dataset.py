@@ -1,4 +1,4 @@
-from torchvision import transforms
+import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 
@@ -10,6 +10,7 @@ class Dataset():
     transform = transforms.Compose([
         transforms.Resize((256, 256)),
         transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
     def __init__(self, batch_size = 32, root_dir = './AD_NC') :

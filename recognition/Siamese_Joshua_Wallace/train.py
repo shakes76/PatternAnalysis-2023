@@ -5,21 +5,27 @@ import torch.nn.functional as F
 from modules import Siamese
 from utils import Config
 from dataset import Dataset
+import matplotlib.pyplot as plt
 
 class Train() :
     
     def __init__(self, model: nn.Module, dataset: Dataset, config: Config) :
 
+        self.savepath = config.savepath
         # Optimisation parameters
         self.lr = config.lr
         self.wd = config.wd
         self.epochs = config.epochs
-        self.device = config.device
 
+        self.device = config.device
         self.model = model.to(self.device)
         self.dataset = dataset
         self.optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)
         self.criterion = nn.BCEWithLogitsLoss().to(self.device)
+
+        
+        self.losses = []
+        self.accuracies = []
 
     def train(self) -> None :
         self.dataset.load_train()
@@ -27,16 +33,19 @@ class Train() :
 
         for epoch in range(self.epochs) :
             start = time.time()
-            for batch_idx, (data, target) in enumerate(self.dataset.get_train()) :
+            epoch_loss = 0
+            for i, (data, target) in enumerate(self.dataset.get_train()) :
                 self.optimiser.zero_grad()
                 output = self.model(data[0], data[1])
-                loss = self.criterion(output.squeeze(), target)
+                loss = self.criterion(output.squeeze(), target.float())
                 loss.backward()
                 self.optimiser.step()
-                if batch_idx % 10 == 0 :
-                    print(f"Epoch: {epoch+1}/{self.epochs} Batch: {batch_idx+1}/{len(self.dataset.get_train())} Loss: {loss.item():.6f}")
+                epoch_loss += loss.item()
+                if i % 10 == 0 :
+                    print(f"Epoch: {epoch+1}/{self.epochs} Batch: {i+1}/{len(self.dataset.get_train())} Loss: {loss.item():.6f}")
             end = time.time()
-            print(f"Time: {end-start:.2f}s")
+            self.losses.append(epoch_loss / len(self.dataset.get_train()))
+            print(f"Time: {end - start:.2f}s")
 
     def test(self) -> None :
         self.dataset.load_test()
@@ -44,10 +53,20 @@ class Train() :
         test_loss = 0
         correct = 0
         with torch.no_grad() :
-            for batch_idx, (data, target) in enumerate(self.dataset.get_test()) :
+            for i, (data, target) in enumerate(self.dataset.get_test()) :
                 output = self.model(data[0], data[1])
                 test_loss += self.criterion(output.squeeze(), target).item()
                 pred = torch.round(torch.sigmoid(output))
                 correct += (pred == target).float().sum()
         test_loss /= len(self.dataset.dataset)
         print(f"Test loss: {test_loss:.4f}, Accuracy: {correct}/{len(self.dataset.dataset.get_test())} ({100.*correct/len(self.dataset.get_test()):.0f}%)")
+
+    def plot_loss(self) -> None :
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.losses, label='Loss')
+        plt.title('Training Epochs against BCE Loss')
+        plt.xlabel('Epochs')
+        plt.ylabel('BCE Loss')
+        plt.legend()
+        plt.grid(True)
+        plt.savefig(self.savepath + '_training_loss.png')
