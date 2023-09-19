@@ -1,0 +1,1 @@
+A multi-layer graph-covolutional network (GCN) that performs a semi supervised multi-class node classification of the Facebook Large Page-Page Network dataset.
