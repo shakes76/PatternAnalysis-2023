@@ -5,7 +5,7 @@ from torchvision import datasets, transforms
 
 class Dataset():
     transform = transforms.Compose([
-        transforms.Resize(256),
+        transforms.Resize((256, 256)),
         transforms.ToTensor(),
     ])
 

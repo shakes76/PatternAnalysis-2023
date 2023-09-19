@@ -6,9 +6,10 @@ from train import Train
 
 if __name__ == '__main__':
     net = Siamese()
-    dataset = Dataset()
-    dataset.load_train()
     config = Config()
-    trainer = Train(net, dataset.get_train(), config)
+    dataset = Dataset()
+    trainer = Train(net, dataset, config)
+    
     trainer.train()
+    trainer.test()
     
