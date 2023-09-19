@@ -1,24 +1,27 @@
 import torch
 import time
+import torch.nn as nn
 import torch.nn.functional as F
-# import Siamese from modules
-# import Config from utils
+from modules import Siamese
+from utils import Config
+from dataset import Dataset
 
 class Train() :
     
-    def __init__(self, model, dataset: Dataset, config) :
-        self.model = model
-        self.dataset = dataset
+    def __init__(self, model: nn.Module, dataset: Dataset, config: Config) :
 
         # Optimisation parameters
         self.lr = config.lr
         self.wd = config.wd
         self.epochs = config.epochs
+        self.device = config.device
 
+        self.model = model.to(self.device)
+        self.dataset = dataset
         self.optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)
-        self.criterion = torch.nn.BCEWithLogitsLoss()
+        self.criterion = nn.BCEWithLogitsLoss().to(self.device)
 
-    def train(self) :
+    def train(self) -> None :
         self.dataset.load_train()
         self.model.train()
 
@@ -34,9 +37,8 @@ class Train() :
                     print(f"Epoch: {epoch+1}/{self.epochs} Batch: {batch_idx+1}/{len(self.dataset.get_train())} Loss: {loss.item():.6f}")
             end = time.time()
             print(f"Time: {end-start:.2f}s")
-            self.test()
 
-    def test(self) :
+    def test(self) -> None :
         self.dataset.load_test()
         self.model.eval()
         test_loss = 0
