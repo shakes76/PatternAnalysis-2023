@@ -11,8 +11,6 @@ class Train() :
         self.dataloader = dataloader
 
         # Optimisation parameters
-        self.best = config.best
-        self.best
         self.lr = config.lr
         self.wd = config.wd
         self.epochs = config.epochs
