@@ -23,7 +23,7 @@ class Siamese(nn.Module):
         self.relu3 = nn.ReLU(inplace=True)
         self.relu4 = nn.ReLU(inplace=True)
 
-        self.fc1 = nn.Linear(144, 512)
+        self.fc1 = nn.Linear(128*24*24, 512)
         self.fc2 = nn.Linear(512, 1)
 
         self.sigmoid = nn.Sigmoid()

@@ -35,7 +35,6 @@ class Train() :
             start = time.time()
             epoch_loss = 0
             for i, (data, target) in enumerate(self.dataset.get_train()) :
-                print(data[0].shape, data[1].shape)
                 self.optimiser.zero_grad()
                 output = self.model(data[0], data[1])
                 loss = self.criterion(output, target.view(-1, 1))
