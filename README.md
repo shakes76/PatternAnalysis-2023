@@ -1,5 +1,4 @@
-
-Task 9 - Stable Diffusion on OASIS Dataset
+Stable Diffusion on OASIS Dataset
 ===
 
 > The readme file should contain a title, a description of the algorithm and the problem that it solves(approximately a paragraph), how it works in a paragraph and a figure/visualisation.
@@ -35,11 +34,23 @@ Task 9 - Stable Diffusion on OASIS Dataset
 
 ## Perceptual Image Compression
 
-#### ResNet
+#### Swish
+> [SEARCHING FOR ACTIVATION FUNCTIONS, ICLR 2018 workshop](https://arxiv.org/pdf/1710.05941.pdf)
+
+Swish is an activation, which is defined as $f(x) = x \cdot \sigma ( \beta x)$.
+
+In our code, we set $\beta = 1$ in all the Swish activation, and which is also known as "Sigmoid Linear Unit (SiLU)".
+
+* Update: Pytorch has implementation of [SiLU](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html)
+
+![](report_imgs/swish.png)
+> The swish function 
 
 #### Group Normalization
 
 #### Linear Attention
+
+#### ResNet
 
 #### Reparameterization trick on VAE
 
