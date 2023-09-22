@@ -26,29 +26,23 @@ class Dataset(data.Dataset):
         self._transform = torchvision.transforms.Compose(
             [
                 torchvision.transforms.ToTensor(),
-                torchvision.transforms.Resize(64),
+                #torchvision.transforms.Resize(64),
                 torchvision.transforms.Normalize(self._mean, self._std_dev),
             ]
         )
 
-        self._x = torchvision.datasets.ImageFolder(
+        self._dataset = torchvision.datasets.ImageFolder(
             root=f"./debug/{self._dataset_type}",
             transform=self._transform,
         )
 
-        print(self._x.imgs)
+        self._train_loader = data.DataLoader(
+            dataset=self._dataset, batch_size=128, shuffle=True,
+        )
 
 
-    def __len__(self):
-        return len(self._x.imgs)
-    
-    
-    def __getitem__(self, i):
-        return self._x.loader(self._x.imgs[i][0]), self._x.imgs[i][1]
-    
-
-    def shape(self):
-        return self._x.shape
+    def train_loader(self):
+        return self._train_loader
 
 
 
@@ -56,22 +50,8 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device, flush=True)
 
-    transform = torchvision.transforms.Compose(
-            [
-                torchvision.transforms.ToTensor(),
-                torchvision.transforms.Resize(64),
-                #torchvision.transforms.Normalize(mean, std_dev),
-            ]
-        )
-
-    train_dataset = torchvision.datasets.ImageFolder(
-            root="./debug/train/",
-            transform=transform,
-        )
-
-    train_loader = data.DataLoader(
-        dataset=train_dataset, batch_size=128, shuffle=False,
-    )
+    dataset = Dataset(train=True)
+    train_loader = dataset.train_loader()
 
     for images, labels in train_loader:
 
@@ -79,8 +59,6 @@ def main():
         plt.show()
 
         print(labels[4], flush=True)
-
-        #print(images[0].shape)
 
         sys.exit()
 
