@@ -13,7 +13,7 @@ class ResnetBlock(nn.Module):
     '''
 
     def __init__(self, *, in_channels, out_channels=None, conv_shortcut=False,
-                 dropout, time_emb_size=512):
+                 dropout, time_emb_size=None):
         super().__init__()
 
         # Record useful arguments
@@ -30,7 +30,7 @@ class ResnetBlock(nn.Module):
         )
 
         # Define Time Embedding
-        if time_emb_size > 0:
+        if time_emb_size:
             self.time_emb = nn.Sequential(
                 nn.Linear(time_emb_size, out_channels),
                 nn.SiLU(),
@@ -48,13 +48,15 @@ class ResnetBlock(nn.Module):
         if self.in_channels != self.out_channels:
             self.shortcut = nn.Conv2d(in_channels, out_channels, 1, 1, 0)
 
-    def forward(self, x, time_encode):
+    def forward(self, x, time_encode=None):
         h = x
 
         # Pass block 1
         h = self.block1(h)
         # Add time embedding / encoding
         if time_encode is not None:
+            if self.time_emb is None:
+                raise ValueError("This resblock has no time embedding.")
             h = h + self.time_emb(time_encode)[:, :, None, None]
         # Pass block 2
         h = self.block2(h)
