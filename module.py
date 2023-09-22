@@ -2,7 +2,16 @@ import torch
 import torch.nn as nn
 from einops import rearrange
 
+
 class ResnetBlock(nn.Module):
+    '''
+        Resblock:
+                      (w/o Dropout)    (with Dropout)
+            Input ->    Conv2d ------------> Conv2d ------> Output
+                \\       Time Embedding /            /
+                 \\----------------------------------
+    '''
+
     def __init__(self, *, in_channels, out_channels=None, conv_shortcut=False,
                  dropout, time_emb_size=512):
         super().__init__()
@@ -57,6 +66,10 @@ class ResnetBlock(nn.Module):
 
 
 class AttnBlock(nn.Module):
+    '''
+        Do Self-attention & residual.
+    '''
+
     def __init__(self, in_channels):
         super().__init__()
         self.in_channels = in_channels
@@ -89,11 +102,11 @@ class AttnBlock(nn.Module):
         # Reshape matrix for calculate W=QK
         Q = rearrange(Q, "b c h w -> b (h w) c")
         K = rearrange(K, "b c h w -> b c (h w)")
-        W = torch.bmm(Q, K)     
+        W = torch.bmm(Q, K)
         # w.shape=(b,hw,hw),  w[b,i,j] = sum_c q[b,i,c]k[b,c,j], j->key, i->it's value pair
 
         # Normalize the score
-        W = nn.functional.softmax(W * (int(c)**(-0.5)) , dim=2)
+        W = nn.functional.softmax(W * (int(c)**(-0.5)), dim=2)
 
         # attend to values
         V = rearrange(V, "b c h w -> b c (h w)")
@@ -107,3 +120,25 @@ class AttnBlock(nn.Module):
 
         # Skip connection
         return X+H
+
+
+class Downsample(nn.Module):
+    '''
+        Do downsample. Shape should change from [2n, 2n] -> [n, n]
+    '''
+
+    def __init__(self, in_channels, with_conv):
+        super().__init__()
+        if with_conv:
+            # Note that original papper do:
+            # 1. pad (0, 1, 0, 1) and go through nn.Conv2d(inc, inc, 3, 2, 0)
+            # 2. nn.Conv2d(inc, inc, 3, 2, 0)
+
+            # Here we use nn.Conv2d(inc, inc, 3, 2, 1) to instead.
+            # You can see the diffenece between these two in playground/conv_padding
+            self.layer = torch.nn.Conv2d(in_channels, in_channels, 3, 2, 1)
+        else:
+            self.layer = torch.nn.AvgPool2d(2)
+
+    def forward(self, x):
+        return self.layer(x)
