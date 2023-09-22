@@ -43,10 +43,22 @@ In our code, we set $\beta = 1$ in all the Swish activation, and which is also k
 
 * Update: Pytorch has implementation of [SiLU](https://pytorch.org/docs/stable/generated/torch.nn.SiLU.html)
 
-![](report_imgs/swish.png)
-> The swish function 
+![Swish Function](report_imgs/swish.png)
 
 #### Group Normalization
+> [Group Normalization, ECCV 2018](https://arxiv.org/abs/1803.08494)
+
+![](report_imgs/group_normalization.png)
+
+Normalization: A method to train model faster and more stable through normalization of tinputs by re-centering and re-scaling.
+* Batch normalization: Normalization for each channel.
+* Layer normalization: Normalization for each sample.
+* Instance normalization: Normalization for each sample and each channel.
+* Group normalization: Normalization for each sample group.
+
+> Note: If batch size is large enough, the performance: BN > GN > LN > IN
+> However, BN has GPU memory issue and cannot set large batch size sometimes.
+> Thus, we do GN in this task.
 
 #### Linear Attention
 
