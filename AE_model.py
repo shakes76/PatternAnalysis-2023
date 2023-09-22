@@ -5,7 +5,7 @@ import torch.nn.functional as F
 from einops import rearrange
 
 # Self defined modules
-from module import ResnetBlock, AttnBlock, Downsample
+from module import ResnetBlock, AttnBlock, Downsample, Upsample
 
 
 class Encoder(nn.Module):
@@ -90,6 +90,75 @@ class Encoder(nn.Module):
         h = self.end(h)
         return h
 
+class Decoder(nn.Module):
+    def __init__(self, *, ch, out_ch, ch_mult=(1,2,4,8), num_res_blocks,
+                 attn_resolutions, dropout=0.0, resamp_with_conv=True,
+                 resolution, z_channels, give_pre_end=False, tanh_out=False):
+        super().__init__()
+        self.ch = ch
+        self.num_resolutions = len(ch_mult)
+        self.num_res_blocks = num_res_blocks
+        self.give_pre_end = give_pre_end
+        self.tanh_out = tanh_out
+
+        # Calculate block_in & current resolution
+        block_in = ch*ch_mult[-1]
+        curr_res = resolution // 2**(self.num_resolutions-1)
+
+        # z to block_in
+        self.conv_in = torch.nn.Conv2d(z_channels, block_in, 3, 1, 1)
+
+
+        # middle
+        self.mid = nn.Sequential(
+            ResnetBlock(in_channels=block_in, out_channels=block_in, dropout=dropout),
+            AttnBlock(block_in),
+            ResnetBlock(in_channels=block_in, out_channels=block_in, dropout=dropout)
+        )
+
+        # upsampling
+        self.up = nn.Sequential()
+
+        # Travel in reversed order.
+        for i_level in reversed(range(self.num_resolutions)):
+            blocks = nn.Sequential()
+            block_out = ch*ch_mult[i_level]
+            for i_block in range(self.num_res_blocks+1):
+                blocks.append(ResnetBlock(in_channels=block_in,
+                                         out_channels=block_out,
+                                         dropout=dropout))
+                if curr_res in attn_resolutions:
+                    blocks.append(AttnBlock(block_out))
+                block_in = block_out
+            if i_level != 0:
+                blocks.append(Upsample(block_in, resamp_with_conv))
+                curr_res = curr_res * 2
+            self.up.append(blocks) 
+
+        # end
+        self.end = nn.Sequential(
+            nn.GroupNorm(32, block_in),
+            nn.SiLU(),
+            nn.Conv2d(block_in, out_ch, 3, 1, 1)
+        )
+
+    def forward(self, z):
+        # z to block_in
+        h = self.conv_in(z)
+
+        # middle
+        h = self.mid(h)
+
+        # upsampling
+        h = self.up(h)
+
+        # end
+        if self.give_pre_end:
+            return h
+        h = self.end(h)
+        if self.tanh_out:
+            h = torch.tanh(h)
+        return h
 
 if __name__ == '__main__':
     net = Encoder(double_z=True, z_channels=16, resolution=256, in_channels=1, ch=64, ch_mult=[
@@ -97,3 +166,10 @@ if __name__ == '__main__':
 
     summary(net, input_size=(16, 1, 256, 256))
     print(net(torch.randn([16, 1, 256, 256]).cuda()).shape)
+
+    net = Decoder(z_channels=16, resolution=256, ch=64, out_ch=1, ch_mult=[
+                1, 1, 2, 2, 4], num_res_blocks=2, attn_resolutions=[16], dropout=0.0).cuda()
+
+    summary(net, input_size=(16, 16, 16, 16))
+    print(net(torch.randn([16, 16, 16, 16]).cuda()).shape)
+
