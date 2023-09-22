@@ -1,4 +1,6 @@
+import torch
 import torch.nn as nn
+from einops import rearrange
 
 class ResnetBlock(nn.Module):
     def __init__(self, *, in_channels, out_channels=None, conv_shortcut=False,
@@ -52,3 +54,56 @@ class ResnetBlock(nn.Module):
             x = self.shortcut(x)
 
         return x+h
+
+
+class AttnBlock(nn.Module):
+    def __init__(self, in_channels):
+        super().__init__()
+        self.in_channels = in_channels
+
+        # Input normalization
+        self.norm = nn.GroupNorm(num_groups=32, num_channels=in_channels)
+
+        # Crucial weights of three vectors
+        self.q = nn.Conv2d(in_channels, in_channels, 1, 1, 0)
+        self.k = nn.Conv2d(in_channels, in_channels, 1, 1, 0)
+        self.v = nn.Conv2d(in_channels, in_channels, 1, 1, 0)
+
+        # Projection after attention
+        self.proj_out = nn.Conv2d(in_channels, in_channels, 1, 1, 0)
+
+    def forward(self, X):
+
+        # Copy vector for skip connection
+        H = X
+        b, c, h, w = X.shape
+
+        # Do normalization before self-attention
+        H = self.norm(H)
+
+        # Compute three crucial vectors.
+        Q = self.q(H)
+        K = self.k(H)
+        V = self.v(H)
+
+        # Reshape matrix for calculate W=QK
+        Q = rearrange(Q, "b c h w -> b (h w) c")
+        K = rearrange(K, "b c h w -> b c (h w)")
+        W = torch.bmm(Q, K)     
+        # w.shape=(b,hw,hw),  w[b,i,j] = sum_c q[b,i,c]k[b,c,j], j->key, i->it's value pair
+
+        # Normalize the score
+        W = nn.functional.softmax(W * (int(c)**(-0.5)) , dim=2)
+
+        # attend to values
+        V = rearrange(V, "b c h w -> b c (h w)")
+        W = rearrange(K, "b hw_q hw_k -> b hw_k hw_q")
+        H = torch.bmm(V, W)
+        # b, c,hw (hw of q) h_[b,c,j] = sum_i v[b,c,i] W[b,i,j], j->key
+
+        # rearrange output and projection
+        H = rearrange(H, "b c (h w) -> b c h w", h=h)
+        H = self.proj_out(H)
+
+        # Skip connection
+        return X+H

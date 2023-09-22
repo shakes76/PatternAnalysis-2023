@@ -56,8 +56,8 @@ Normalization: A method to train model faster and more stable through normalizat
 * Instance normalization: Normalization for each sample and each channel.
 * Group normalization: Normalization for each sample group.
 
-> Note: If batch size is large enough, the performance: BN > GN > LN > IN
-> However, BN has GPU memory issue and cannot set large batch size sometimes.
+> Note: If batch size is large enough, the performance: BN > GN > LN > IN 
+> However, BN has GPU memory issue and cannot set large batch size sometimes. 
 > Thus, we do GN in this task.
 
 #### ResNet
@@ -68,8 +68,25 @@ Normalization: A method to train model faster and more stable through normalizat
 A popular module to very learn deep model by residual learning.
 
 #### Self-Attention
+> [Attention Is All You Need, NIPS 2017](https://arxiv.org/abs/1706.03762)
+Self-attention, also known as scaled dot-product attention, is a crucial concept in the field of natural language processing (NLP) and deep learning, particularly within the context of transformer-based models. In stable diffusion, authors employ self-attention in each feature map. Next, we will introduce what self-attention is.
 
+Self-attention involves three key vectors for executing "attention to itself":
 
+1. Query vectors: These query other elements in the sequence.
+2. Key vectors: These define the importance relative to the current element.
+3. Value vectors: These generate the output vectors.
+
+After generating these three vectors, we follow these steps for each element:
+
+1. Calculate the attention score, which is $W_{current, i} = K_{current} \cdot Q_{i}$, where $i \in [1, C]$, and $C$ is the input size.
+2. Normalize and softmax the score, which means $W_{current} = \text{softmax}\left(\frac{W_{current}}{\sqrt C}\right)$.
+3. Generate the output, $H_{current} = W_{current} * V$.
+
+Finally, in stable diffusion, this paper introduces a skip connection between the input and its self-attention's output, which means that the output of self-attention will be $X + \text{proj}(\text{ATTN}(X))$, where "proj" is a one-by-one convolutional layer.
+
+![](https://miro.medium.com/v2/resize:fit:1400/1*1je5TwhVAwwnIeDFvww3ew.gif)
+> Flow chart of Self-Attention
 
 #### Reparameterization trick on VAE
 
