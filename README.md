@@ -60,9 +60,16 @@ Normalization: A method to train model faster and more stable through normalizat
 > However, BN has GPU memory issue and cannot set large batch size sometimes.
 > Thus, we do GN in this task.
 
-#### Linear Attention
-
 #### ResNet
+> [Deep Residual Learning for Image Recognition, CVPR 2016](https://arxiv.org/pdf/1512.03385.pdf)
+
+![](report_imgs/residual_block.png)
+
+A popular module to very learn deep model by residual learning.
+
+#### Self-Attention
+
+
 
 #### Reparameterization trick on VAE
 
