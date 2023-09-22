@@ -1,0 +1,3 @@
+# Ignore datasets and models
+data/
+models/
