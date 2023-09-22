@@ -24,6 +24,7 @@ class SiameseNetwork(nn.Module):
             nn.Flatten(),
             nn.Linear(layers[-1] * 16 * 15, 256)
         )
+        self.dense = nn.Linear(256, 1)
         
     def forward_once(self, x):
         for block in self.blocks:
@@ -33,7 +34,10 @@ class SiameseNetwork(nn.Module):
         return x
     
     def forward(self, x1, x2):
-        output1 = self.forward_once(x1)
-        output2 = self.forward_once(x2)
-        return output1, output2
+        embedding1 = self.forward_once(x1)
+        embedding2 = self.forward_once(x2)
+        distance = torch.abs(embedding1 - embedding2)
+        output = self.dense(distance)
+        output = F.sigmoid(output)
+        return embedding1, embedding2, output
     
