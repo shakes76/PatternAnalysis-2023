@@ -189,7 +189,11 @@ class Autoencoder(nn.Module):
         return h
 
     def reparameterization(self, z):
+        # The detail of reparameterization trick is documented in README.md
+
+        # Split two parts: mean and std
         z_mean, z_logvar = torch.chunk(z, 2, dim=1)
+        # Clamp z_logvar to avoid strange problem.
         z_logvar = torch.clamp(z_logvar, -30.0, 20.0)
         z_std = torch.exp(0.5 * z_logvar)
         z_var = torch.exp(z_logvar)
