@@ -4,6 +4,7 @@ from dataset import *
 import torch
 import torch.nn as nn 
 import time
+import numpy as np
 
 # Device Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -15,7 +16,7 @@ if not torch.cuda.is_available():
 #########################
 
 # Training Parameters
-NUM_EPOCHS = 50
+NUM_EPOCHS = 15
 LEARNING_RATE = 0.0001
 WEIGHT_DECAY = 0
 BATCH_SIZE = 32
@@ -52,8 +53,14 @@ def main():
     total_step = len(dataloader)
     print("> Training")
     start = time.time()
+    epoch_train_loss = []
+    epoch_valid_loss = []
+    epoch_train_acc = []
+    epoch_valid_acc = []
     for epoch in range(NUM_EPOCHS):
         model.train()
+        total_train_correct = 0
+        total_train_loss = 0.0
         for i, (images1, images2, labels) in enumerate(dataloader):
             images1 = images1.to(device)
             images2 = images2.to(device)
@@ -62,6 +69,7 @@ def main():
             # Forward pass
             pred = model(images1, images2)
             loss = criterion(pred, labels[:, None])
+            total_train_loss += loss.item()
             
             # Backward and optimize
             optimizer.zero_grad()
@@ -71,21 +79,25 @@ def main():
             pred = torch.Tensor.int(torch.round(pred)) 
             labels = torch.Tensor.int(labels)[:, None]
             
-            correct = (pred == labels).sum()/len(labels)
+            correct = (pred == labels).sum()
+            total_train_correct += correct
             
             # Print batch accuracy and loss
-            if (i % 10) == 0:
+            if (i % 100) == 0:
                 print("Epoch [{}/{}], Step [{}/{}]  loss: {:.5f}, acc: {:.5f}".format(
                     epoch+1, NUM_EPOCHS, 
                     i+1, total_step,
                     loss.item(),
-                    correct.item()))
-
+                    correct.item()/len(labels)))
+        
+        train_accuracy = total_train_correct/len(valid_dataloader.dataset)
+        
         #######################   
         #   Evaluate Epoch:   #
         #######################
         model.eval()
-        total_correct = 0
+        total_valid_correct = 0
+        total_valid_loss = 0.0
         for i, (images1, images2, labels) in enumerate(valid_dataloader):
             images1 = images1.to(device)
             images2 = images2.to(device)
@@ -93,20 +105,40 @@ def main():
             
             # Forward pass
             pred = model(images1, images2)
+            loss = criterion(pred, labels[:, None])
+            total_valid_loss += loss.item()
             
             pred = torch.Tensor.int(torch.round(pred))
             labels = torch.Tensor.int(labels)[:, None]
-
-            total_correct += (pred == labels).sum()
             
+            total_valid_correct += (pred == labels).sum()
+            
+        valid_accuracy = total_valid_correct/len(valid_dataloader.dataset)
         print("Epoch [{}] Finished: val acc: {:.5f}".format(
                     epoch+1, 
-                    total_correct/len(valid_dataloader.dataset)))
+                    valid_accuracy))
+    
+        epoch_train_loss.append(total_train_loss)
+        epoch_valid_loss.append(total_valid_loss)
+        epoch_valid_acc.append(valid_accuracy)
+        epoch_train_acc.append(train_accuracy)
+        
+        torch.save(model.state_dict(), "./" + MODEL_NAME + "_EPOCH_5" + ".pt")
+        
+    np.savetxt('epoch_train_loss.csv', epoch_train_loss, delimiter=',')
+    np.savetxt('epoch_valid_loss.csv', epoch_valid_loss, delimiter=',')
+    np.savetxt('epoch_valid_acc.csv', epoch_valid_acc, delimiter=',')
+    np.savetxt('epoch_train_acc.csv', epoch_train_acc, delimiter=',')
     
     end = time.time()
     elapsed = end - start
     print("Training took ", str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
     print("END")
+    
+    ###########################
+    #   Save Model Weights:   #
+    ###########################
+    torch.save(model.state_dict(), "./" + MODEL_NAME + "_EPOCH_15" + ".pt")
     
 if __name__ == "__main__":
     main()

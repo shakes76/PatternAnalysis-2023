@@ -27,9 +27,7 @@ class SiameseNetwork(nn.Module):
         
     def forward_once(self, x):
         for block in self.blocks:
-            print(x.shape)
             x = block(x)
-        print(x.shape)
         x = self.linear(x)
         x = F.sigmoid(x)
         return x
