@@ -178,6 +178,10 @@ class Autoencoder(nn.Module):
         self.conv_after_reparm = torch.nn.Conv2d(embed_dim, z_channels, 1)
         self.decoder = Decoder(**params)
 
+        # For convienient purpose, store the z-shape.
+        latent_wh = resolution // 2 ** (len(ch_mult)-1)
+        self.z_shape = [z_channels, latent_wh, latent_wh]
+
     def encode(self, x):
         h = self.encoder(x)
         h = self.conv_before_reparm(h)
@@ -187,6 +191,13 @@ class Autoencoder(nn.Module):
         h = self.conv_after_reparm(z)
         h = self.decoder(h)
         return h
+
+    def sample(self, batch_size):
+        # Get current device
+        device = next(self.parameters()).device
+        # Generate z space from randn.
+        z = torch.randn([batch_size, *self.z_shape]).to(device=device)
+        return self.decode(z)
 
     def reparameterization(self, z):
         # The detail of reparameterization trick is documented in README.md
