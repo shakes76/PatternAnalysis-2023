@@ -5,6 +5,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
 from tqdm import tqdm
+from einops import rearrange, repeat
 
 # ==== import from this folder ==== #
 from AE_model import Autoencoder
@@ -37,38 +38,43 @@ reset_dir('model_ckpt/VAE')
 
 
 def visualize_recon(net, dataloader, folder):
-    gen_num = 32
 
+    # Clean Directory
     reset_dir(folder)
-    cur_idx = 0
+
+    # Reconstruct the given data
+    recon_imgs, brain_indices = [], []
     for now_step, batch_data in enumerate(dataloader):
-        raw_img, seg_img = batch_data
-        raw_img = raw_img.to(DEVICE)
+        raw_img, seg_img, brain_idx, z_idx = [
+            data.to(DEVICE) for data in batch_data]
         recon_img, latent, kld_loss = net(raw_img)
+        # Record reconstructed images (for visualization) and brain indices (for labeling)
+        recon_imgs.append(recon_img.detach().cpu())
+        brain_indices.append(brain_idx.detach().cpu())
 
-        for idx, inf_img in enumerate(recon_img.detach().cpu().numpy()):
-            plt.imsave(f'{folder}/recon_{cur_idx + idx}.png',
-                       inf_img[0], cmap='gray')
+    recon_imgs, brain_indices = torch.concat(
+        recon_imgs, 0), torch.concat(brain_indices, 0)
 
-        # Only sample gen_num images
-        if cur_idx > gen_num:
-            break
-        cur_idx += raw_img.shape[0]
+    # Reshape same brain but different z-index into one image
+    recon_imgs = rearrange(recon_imgs, ' ( I Z ) C H W -> I Z C H W', Z=32)
+    # Image should be 4 * 8 of brains
+    recon_imgs = rearrange(
+        recon_imgs, ' I (HZ WZ) C H W -> I (HZ H) (WZ W) C', HZ=4)
+    # Repeat channel to 3 (from graysacle to RGB shape)
+    recon_imgs = repeat(
+        recon_imgs, 'I H W C -> I H W (repeat C)', repeat=3).numpy()
 
+    for idx, brain_idx in enumerate(brain_indices[::32]):
+        plt.imsave(f'{folder}/recon_{brain_idx}.png',
+                   recon_imgs[idx] * 0.5 + 0.5, cmap='gray')
+
+    # Generate images from randn
     cur_idx = 0
     for i in range(32):
-        raw_img, seg_img = batch_data
-        raw_img = raw_img.to(DEVICE)
-        recon_img, latent, kld_loss = net(raw_img)
-
-        for idx, inf_img in enumerate(recon_img.detach().cpu().numpy()):
-            plt.imsave(f'{folder}/recon_{cur_idx + idx}.png',
-                       inf_img[0], cmap='gray')
-
         gen_img = net.sample(raw_img.shape[0])
         for idx, inf_img in enumerate(gen_img.detach().cpu().numpy()):
             plt.imsave(f'{folder}/gen_{cur_idx + idx}.png',
-                       inf_img[0], cmap='gray')
+                       inf_img[0] * 0.5 + 0.5, cmap='gray')
 
         # Only sample 32 images
         if cur_idx > 32:
@@ -77,22 +83,22 @@ def visualize_recon(net, dataloader, folder):
 
 
 cur_iter = 0
+
+
 def run_epoch(net, dataloader, update=True):
     global cur_iter
     total_num, recon_total_loss, kld_total_loss, G_total_loss, D_total_loss = 0, 0, 0, 0, 0
     for now_step, batch_data in tqdm(enumerate(dataloader), total=len(dataloader)):
+        raw_img, seg_img, brain_idx, z_idx = [
+            data.to(DEVICE) for data in batch_data]
 
         # Count current iter
         cur_iter += 1
 
         # Train Generator
         opt_ae.zero_grad()
-        raw_img, seg_img = batch_data
-        raw_img = raw_img.to(DEVICE)
-        seg_img = seg_img.to(DEVICE)
 
         recon_img, latent, kld_loss = net(raw_img)
-        recon_img = torch.tanh(recon_img)
 
         recon_loss = torch.abs(raw_img.contiguous() - recon_img.contiguous())
         logits_fake = discriminator(recon_img.contiguous())
@@ -128,7 +134,7 @@ def run_epoch(net, dataloader, update=True):
         total_num += len(raw_img)
 
         # Checkpoint
-        if update and cur_iter % 100 == 0:
+        if update and cur_iter % 500 == 0:
 
             # Change eval mode
             net.eval()
