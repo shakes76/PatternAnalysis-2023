@@ -35,12 +35,14 @@ class Dataset(data.Dataset):
         """ load image data from specified path to dataset """
         self._dataset = torchvision.datasets.ImageFolder(
             root=f"{self._dataset_path}{self._dataset}{self._dataset_subdir}{self._dataset_type}",
+            #root=f"./debug/{self._dataset_type}",
             transform=self._transform,
+            target_transform=self.to_one_hot,
         )
 
         """ create a pytorch dataloader for the dataset """
         self._loader = data.DataLoader(
-            dataset=self._dataset, batch_size=128, shuffle=True,
+            dataset=self._dataset, batch_size=16, shuffle=True
         )
 
         """ display parameters associated with the dataset """
@@ -52,6 +54,13 @@ class Dataset(data.Dataset):
         
         """
         return self._loader
+    
+    def to_one_hot(self, target):
+        
+        one_hot = [0] * len(self._dataset.class_to_idx)
+        one_hot[target] = 1
+        return torch.Tensor(one_hot)
+
 
 
 def main():
@@ -78,6 +87,7 @@ def main():
         plt.title(labels[i], size=8)
 
     plt.savefig("./outputs/train.png")
+    #plt.savefig("./debug/train.png")
 
     """ test dataset """
     test_loader = Dataset(train=False).loader()
@@ -95,6 +105,7 @@ def main():
         plt.title(labels[i], size=8)
 
     plt.savefig("./outputs/test.png")
+    #plt.savefig("./debug/test.png")
 
 
 if __name__ == "__main__":
