@@ -89,7 +89,21 @@ Finally, in stable diffusion, this paper introduces a skip connection between th
 ![](https://miro.medium.com/v2/resize:fit:1400/1*1je5TwhVAwwnIeDFvww3ew.gif)
 > Flow chart of Self-Attention
 
+
+
+
 #### Reparameterization trick on VAE
+
+#### LPIPS
+#### VAE GAN
+#### PatchGAN
+
+####  Overview
+
+* Construct an Unet-like autoencoder, and it used some module like Swish, Self-attention and resnetblock
+* Use reparameterization in latent space to calculate KL divergence.
+* Use GAN (or discriminator) with LPIPS score to optimize decoder.
+
 
 
 ## Latent Diffusion Models
