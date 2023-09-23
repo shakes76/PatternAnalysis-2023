@@ -106,7 +106,7 @@ def run_epoch(net, dataloader, update=True):
             net.eval()
             vis_folder = f"VAE_vis/iter_{cur_iter}"
             visualize_recon(net, test_dataloader, vis_folder)
-            torch.save(net, 'model_ckpt/VAE/iter_{cur_iter}.pt')
+            torch.save(net, f'model_ckpt/VAE/iter_{cur_iter}.pt')
 
             # Change train mode
             net.train()
