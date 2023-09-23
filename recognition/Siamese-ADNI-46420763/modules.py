@@ -3,12 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class ConvBlock(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, kernel_size):
         super(ConvBlock, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(out_channels),
             nn.MaxPool2d(2, stride=2)
         )
         
@@ -16,19 +15,21 @@ class ConvBlock(nn.Module):
         return self.conv(x)
     
 class SiameseNetwork(nn.Module):
-    def __init__(self, layers : tuple = [1, 32, 64, 128, 256]):
+    def __init__(self, layers = [1, 32, 64, 128], kernel_sizes = [10, 7, 4, 4]):
         super(SiameseNetwork, self).__init__()
         self.layers = layers
-        self.blocks = nn.ModuleList([ConvBlock(layers[i], layers[i+1]) for i in range(len(layers) - 1)])
+        self.blocks = nn.ModuleList([ConvBlock(layers[i], layers[i+1], kernel_size=kernel_sizes[i]) for i in range(len(layers) - 1)])
         self.linear = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(layers[-1] * 16 * 15, 256)
+            nn.Linear(128*25*27, 512)
         )
-        self.dense = nn.Linear(256, 1)
+        self.dense = nn.Linear(512, 1)
         
     def forward_once(self, x):
         for block in self.blocks:
+            print(x.shape)
             x = block(x)
+        print(x.shape)
         x = self.linear(x)
         x = F.sigmoid(x)
         return x
@@ -39,5 +40,5 @@ class SiameseNetwork(nn.Module):
         distance = torch.abs(embedding1 - embedding2)
         output = self.dense(distance)
         output = F.sigmoid(output)
-        return embedding1, embedding2, output
+        return output
     
