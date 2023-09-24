@@ -21,8 +21,23 @@ def get_train_dataloader(shuffle=True):
         transforms.ToTensor(),
     ])
 
-    AD_dataset = ImageFolder(root=AD_dir, transform=transform)
-    NC_dataset = ImageFolder(root=NC_dir, transform=transform)
+    AD_dataset = ImageFolder(root=AD_train_dir, transform=transform)
+    NC_dataset = ImageFolder(root=NC_train_dir, transform=transform)
+
+    # use both AD and NC samples to train model
+    dataset = ConcatDataset([AD_dataset, NC_dataset])
+
+    # Create a data loader to iterate through the dataset
+    return DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle)
+
+
+def get_test_dataloader(shuffle=True):
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+    ])
+
+    AD_dataset = ImageFolder(root=AD_test_dir, transform=transform)
+    NC_dataset = ImageFolder(root=NC_test_dir, transform=transform)
 
     # use both AD and NC samples to train model
     dataset = ConcatDataset([AD_dataset, NC_dataset])
@@ -64,5 +79,3 @@ def save_dimensions(data_loader):
         plt.close()
         
         break  # Stop after the first batch to print/display only the first pair of images
-
-get_train_dataloader()

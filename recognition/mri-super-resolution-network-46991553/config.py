@@ -14,8 +14,10 @@ original_height = 240
 image_dir = "imgs/"
 
 # Path to image folders - use both AD and NC when training
-AD_dir = "data/AD_NC/train/AD-parent/"  # AD = Alzheimer’s disease
-NC_dir = "data/AD_NC/train/NC-parent/"  # CN = Cognitive Normal
+AD_train_dir = "data/AD_NC/train/AD-parent/"  # AD = Alzheimer’s disease
+NC_train_dir = "data/AD_NC/train/NC-parent/"  # CN = Cognitive Normal
+AD_test_dir = "data/AD_NC/test/AD-parent/"  # AD = Alzheimer’s disease
+NC_test_dir = "data/AD_NC/test/NC-parent/"  # CN = Cognitive Normal
 
 # Images per batch
 batch_size = 128
