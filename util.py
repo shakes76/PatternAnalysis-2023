@@ -18,8 +18,6 @@ def reset_dir(folder):
     os.mkdir(folder)
 
 
-
-
 def compact_large_image(imgs, HZ=4, WZ=8):
     # Reshape same brain but different z-index into one image
     imgs = rearrange(imgs, ' ( I Z ) C H W -> I Z C H W', Z=HZ*WZ)
@@ -36,7 +34,6 @@ def weight_scheduler(cur_iter=0, end=50000, change_cycle=500, disc_start=250):
     cur_iter = min(cur_iter, end)
     w_recon = 1
     w_perceptual = 0.5
-
 
     # https://github.com/haofuml/cyclical_annealing
     # Cyclical Annealing Schedule: A Simple Approach to Mitigating KL Vanishing (NAACL 2019):

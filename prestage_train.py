@@ -1,3 +1,10 @@
+'''
+TODO: 
+1. Log in util
+2. Continue Train
+3. Merge eval & train
+'''
+
 # ==== import from package ==== #
 import torch
 import torch.nn as nn
@@ -97,7 +104,7 @@ def run_epoch(net, dataloader, update=True):
             data.to(DEVICE) for data in batch_data]
 
         # Get weight of each loss
-        w_recon, w_perceptual, w_kld, w_dis = weight_scheduler(cur_iter)
+        w_recon, w_perceptual, w_kld, w_dis = weight_scheduler(cur_iter, change_cycle=ITER_PER_EPOCH)
         # Count current iter
         cur_iter += 1
 
@@ -117,12 +124,16 @@ def run_epoch(net, dataloader, update=True):
         kld_loss = torch.sum(kld_loss) / kld_loss.shape[0]
 
         # Adjust discriminator weight
-        recon_grads = torch.autograd.grad(
-            recon_loss, net.get_last_layer(), retain_graph=True)[0]
-        g_grads = torch.autograd.grad(
-            g_loss, net.get_last_layer(), retain_graph=True)[0]
-        d_weight = torch.norm(recon_grads) / (torch.norm(g_grads) + 1e-4)
-        d_weight = torch.clamp(d_weight, 0.0, 1e2).detach()
+        # If eval mode, we just set d_weight = 1 (for fast computing)
+        if update:
+            recon_grads = torch.autograd.grad(
+                recon_loss, net.get_last_layer(), retain_graph=True)[0]
+            g_grads = torch.autograd.grad(
+                g_loss, net.get_last_layer(), retain_graph=True)[0]
+            d_weight = torch.norm(recon_grads) / (torch.norm(g_grads) + 1e-4)
+            d_weight = torch.clamp(d_weight, 0.0, 1e2).detach()
+        else:
+            d_weight = 1
 
         # 1e-4, 0.5 is hyperparameters for loss combination
         loss = w_recon * recon_loss + w_kld * kld_loss + w_dis * d_weight * g_loss
@@ -159,7 +170,7 @@ def run_epoch(net, dataloader, update=True):
         total_num += len(raw_img)
 
         # Checkpoint
-        if update and cur_iter == ITER_PER_EPOCH + 1:
+        if update and cur_iter % ITER_PER_EPOCH == 1 and cur_iter != 1:
 
             # Change eval mode
             net.eval()
@@ -172,6 +183,7 @@ def run_epoch(net, dataloader, update=True):
             net.train()
             return recon_total_loss / total_num, kld_total_loss / total_num, G_total_loss / total_num, D_total_loss / total_num
 
+    return recon_total_loss / total_num, kld_total_loss / total_num, G_total_loss / total_num, D_total_loss / total_num
 
 debug = False
 if debug:
@@ -189,6 +201,7 @@ for epoch in range(300):
     net.train()
     train_loss = run_epoch(net, train_dataloader, update=True)
     net.eval()
-    valid_loss = run_epoch(net, valid_dataloader, update=False)
+    with torch.no_grad():
+        valid_loss = run_epoch(net, valid_dataloader, update=False)
     print('epoch {:>3d}: train loss: {:6.4f}/{:6.4f}/{:6.4f}/{:6.4f} valid loss: {:6.4f}/{:6.4f}/{:6.4f}/{:6.4f}'.format(
         epoch, *train_loss, *valid_loss))
