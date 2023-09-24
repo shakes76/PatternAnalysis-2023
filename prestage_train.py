@@ -21,10 +21,9 @@ net = Autoencoder().to(device=DEVICE)
 discriminator = NLayerDiscriminator(
     input_nc=1, n_layers=3).apply(weights_init).to(device=DEVICE)
 
-learning_rate = 4.5e-06
-opt_ae = optim.Adam(net.parameters(), lr=4.5e-06, betas=(0.5, 0.9))
-opt_d = torch.optim.Adam(discriminator.parameters(),
-                         lr=learning_rate, betas=(0.5, 0.9))
+learning_rate = 2e-4
+opt_ae = optim.Adam(net.parameters(), lr=learning_rate, betas=(0.5, 0.9))
+opt_d = torch.optim.Adam(discriminator.parameters(), lr=learning_rate, betas=(0.5, 0.9))
 
 # Reset visualization folder
 reset_dir('VAE_vis')
