@@ -45,7 +45,7 @@ class Data:
         Constructs all the necessary attributes for the Data model.
         """
         # import data here 
-        self.dataset = self.openData("v1/semantic_MRs_anon/*", 
+        self.dataset = self.open_data("v1/semantic_MRs_anon/*", 
                       "v1/semantic_labels_anon/*")
         # split the dataset
         self.train, self.validation, self.test = torch.utils.data.random_split(self.dataset, [179, 16, 16])
@@ -53,7 +53,11 @@ class Data:
         self.train_dataset = self.train.map(self.load_image_train, num_parallel_calls=tf.data.AUTOTUNE)
         self.test_dataset = self.test.map(self.load_image_test, num_parallel_calls=tf.data.AUTOTUNE)
 
-    def openData(self, imagePath, maskPath):
+    def open_data(self, imagePath, maskPath):
+        ''' Opens data from image and mask path and creates a tensor representation
+            Parameters:
+                imagePath: path to images
+                maskPath: path to mask'''
         self.inputs = []
         self.masks = []
         #retrieve path from dataset
@@ -68,6 +72,12 @@ class Data:
     
     #open files
     def __getitem__(self, idx): 
+        ''' Given an item index, uses the nib label library to open nii files
+            Parameters:
+                idx: image index
+            
+            Returns:
+                image and mask at index'''
         image_p = self.inputs[idx]
         mask_p = self.masks[idx]
 
