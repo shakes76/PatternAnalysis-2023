@@ -18,3 +18,8 @@ NC_dir = "data/AD_NC/train/NC-parent/"  # CN = Cognitive Normal
 
 # Images per batch
 batch_size = 128
+# Number of epochs
+num_epochs = 10
+
+# Name to save the model as a file
+model_save_filename = "super_resolution_model.pth"
