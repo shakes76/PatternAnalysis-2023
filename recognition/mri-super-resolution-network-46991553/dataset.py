@@ -5,6 +5,7 @@ import torch
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader, ConcatDataset
+import matplotlib.pyplot as plt
 from config import *
 
 
@@ -28,3 +29,37 @@ def get_dataloader():
 
     # Create a data loader to iterate through the dataset
     return DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
+
+
+def save_dimensions(data_loader):
+    for original, _ in data_loader:
+        print('original.shape', original.shape)
+
+        # Look at the first image
+        output = original[0]
+        # Downsample to get input
+        input = downsample_tensor(output)
+
+        all_inputs = downsample_tensor(original)
+        print('batch inputs shape:', all_inputs.shape)
+        
+        input_dims = input.shape
+        output_dims = output.shape
+        
+        # Display the input image
+        plt.figure(figsize=(12, 6))
+        plt.subplot(1, 2, 1)
+        plt.imshow(input.permute(1, 2, 0))  # Convert tensor to numpy format (C, H, W) -> (H, W, C)
+        plt.title(f"Input Image Dimensions: {input_dims}")
+        plt.axis('off')  # Turn off axis labels
+        
+        # Display the first output image
+        plt.subplot(1, 2, 2)
+        plt.imshow(torch.clamp(output.permute(1, 2, 0), 0, 1))  # Convert tensor to numpy format (C, H, W) -> (H, W, C)
+        plt.title(f"Output Image Dimensions: {output_dims}")
+        plt.axis('off') # Turn off axis labels
+        
+        plt.savefig(image_dir + 'dimensions.png')
+        # plt.show()
+        
+        break  # Stop after the first batch to print/display only the first pair of images
