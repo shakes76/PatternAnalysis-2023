@@ -28,7 +28,7 @@ net = Autoencoder().to(device=DEVICE)
 discriminator = NLayerDiscriminator(
     input_nc=1, n_layers=3).apply(weights_init).to(device=DEVICE)
 
-learning_rate = 1e-4
+learning_rate = 5e-5
 opt_ae = optim.Adam(net.parameters(), lr=learning_rate, betas=(0.5, 0.9))
 opt_d = torch.optim.Adam(discriminator.parameters(),
                          lr=learning_rate, betas=(0.5, 0.9))
@@ -131,7 +131,7 @@ def run_epoch(net, dataloader, update=True):
             g_grads = torch.autograd.grad(
                 g_loss, net.get_last_layer(), retain_graph=True)[0]
             d_weight = torch.norm(recon_grads) / (torch.norm(g_grads) + 1e-4)
-            d_weight = torch.clamp(d_weight, 0.0, 1e2).detach()
+            d_weight = torch.clamp(d_weight, 0.0, 10.0).detach()
         else:
             d_weight = 1
 
