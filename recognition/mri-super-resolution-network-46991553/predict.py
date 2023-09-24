@@ -6,9 +6,10 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from dataset import *
 from config import *
+from modules import SuperResolutionModel
 
 
-def save_model_output(model: nn.Module, data_loader: DataLoader, prefix: str, device='cpu'):
+def generate_model_output(model: nn.Module, data_loader: DataLoader, prefix='', device='cpu', show=False):
     with torch.no_grad():
         for expected_outputs, _ in data_loader:
             inputs = downsample_tensor(expected_outputs)
@@ -55,8 +56,27 @@ def save_model_output(model: nn.Module, data_loader: DataLoader, prefix: str, de
             
             filename = image_dir + prefix + 'output.png'
 
-            plt.savefig(filename)
-            print("Saved model output to", filename)
+            if show:
+                plt.show()
+            else:
+                plt.savefig(filename)
+                print("Saved model output to", filename)
             plt.close()
             
             break  # Stop after the first batch to print/display only the first pair of images
+
+
+def main():
+    model = SuperResolutionModel()
+    try:
+        model.load_state_dict(torch.load(model_filename, map_location=torch.device('cpu')))
+    except IOError:
+        print("Couldn't load model from file:", model_filename)
+        exit(1)
+
+    data_loader = get_test_dataloader()
+    generate_model_output(model, data_loader, show=True)
+
+
+if __name__ == '__main__':
+    main()
