@@ -11,7 +11,7 @@ from einops import rearrange, repeat
 from AE_model import Autoencoder
 from Discriminator import NLayerDiscriminator, weights_init
 from dataset import get_dataloader
-from util import reset_dir
+from util import reset_dir, weight_scheduler, compact_large_image
 
 DEVICE = torch.device("cuda")
 print("DEVICE:", DEVICE)
@@ -21,9 +21,10 @@ net = Autoencoder().to(device=DEVICE)
 discriminator = NLayerDiscriminator(
     input_nc=1, n_layers=3).apply(weights_init).to(device=DEVICE)
 
-learning_rate = 2e-4
+learning_rate = 1e-4
 opt_ae = optim.Adam(net.parameters(), lr=learning_rate, betas=(0.5, 0.9))
-opt_d = torch.optim.Adam(discriminator.parameters(), lr=learning_rate, betas=(0.5, 0.9))
+opt_d = torch.optim.Adam(discriminator.parameters(),
+                         lr=learning_rate, betas=(0.5, 0.9))
 
 # Reset visualization folder
 reset_dir('VAE_vis')
@@ -49,43 +50,54 @@ def visualize_recon(net, dataloader, folder):
     recon_imgs, brain_indices = torch.concat(
         recon_imgs, 0), torch.concat(brain_indices, 0)
 
-    # Reshape same brain but different z-index into one image
-    recon_imgs = rearrange(recon_imgs, ' ( I Z ) C H W -> I Z C H W', Z=32)
-    # Image should be 4 * 8 of brains
-    recon_imgs = rearrange(
-        recon_imgs, ' I (HZ WZ) C H W -> I (HZ H) (WZ W) C', HZ=4)
-    # Repeat channel to 3 (from graysacle to RGB shape)
-    recon_imgs = repeat(
-        recon_imgs, 'I H W C -> I H W (repeat C)', repeat=3).numpy()
-
+    recon_imgs = compact_large_image(recon_imgs, HZ=4, WZ=8)
     for idx, brain_idx in enumerate(brain_indices[::32]):
         plt.imsave(f'{folder}/recon_{brain_idx}.png',
                    recon_imgs[idx] * 0.5 + 0.5, cmap='gray')
 
     # Generate images from randn
     cur_idx = 0
-    for i in range(32):
+    # Sample number of img_limit brains
+    img_limit = 32
+    # For big image format, img_limit should be multiple of 32.
+    assert img_limit % 32 == 0, "img_limit should %32 == 0"
+    imgs = []
+    for _ in range((img_limit-1) // raw_img.shape[0] + 1):
         gen_img = net.sample(raw_img.shape[0])
+        imgs.append(gen_img.detach().cpu())
         for idx, inf_img in enumerate(gen_img.detach().cpu().numpy()):
             plt.imsave(f'{folder}/gen_{cur_idx + idx}.png',
                        inf_img[0] * 0.5 + 0.5, cmap='gray')
 
-        # Only sample 32 images
-        if cur_idx > 32:
+        # Only sample img_limit images
+        if cur_idx > img_limit:
             break
         cur_idx += raw_img.shape[0]
 
+    # Gerneate one big image contain 32 brains
+    imgs = torch.concat(imgs, 0)[:img_limit]
+    imgs = compact_large_image(imgs, HZ=4, WZ=8)
+    for idx in range(imgs.shape[0]):
+        plt.imsave(f'{folder}/gen_large_{idx}.png',
+                   imgs[idx] * 0.5 + 0.5, cmap='gray')
+
 
 cur_iter = 0
+
+# We define 500 iterations as an epoch.
+ITER_PER_EPOCH = 500
 
 
 def run_epoch(net, dataloader, update=True):
     global cur_iter
     total_num, recon_total_loss, kld_total_loss, G_total_loss, D_total_loss = 0, 0, 0, 0, 0
-    for now_step, batch_data in tqdm(enumerate(dataloader), total=len(dataloader)):
+    total = min(ITER_PER_EPOCH, len(dataloader)) if update else len(dataloader)
+    for now_step, batch_data in tqdm(enumerate(dataloader), total=total):
         raw_img, seg_img, brain_idx, z_idx = [
             data.to(DEVICE) for data in batch_data]
 
+        # Get weight of each loss
+        w_recon, w_perceptual, w_kld, w_dis = weight_scheduler(cur_iter)
         # Count current iter
         cur_iter += 1
 
@@ -95,22 +107,25 @@ def run_epoch(net, dataloader, update=True):
         recon_img, latent, kld_loss = net(raw_img)
 
         recon_loss = torch.abs(raw_img.contiguous() - recon_img.contiguous())
-        perceptual_loss = discriminator.LPIPS(recon_img.contiguous(), raw_img.contiguous())
+        perceptual_loss = discriminator.LPIPS(
+            recon_img.contiguous(), raw_img.contiguous())
         logits_fake = discriminator(recon_img.contiguous())
         g_loss = -torch.mean(logits_fake)
 
-        # 1.0 of perceptual loss is hyperparameter.
-        recon_loss = torch.sum(recon_loss + 1.0 * perceptual_loss) / recon_loss.shape[0]
+        recon_loss = torch.sum(
+            recon_loss + w_perceptual * perceptual_loss) / recon_loss.shape[0]
         kld_loss = torch.sum(kld_loss) / kld_loss.shape[0]
 
         # Adjust discriminator weight
-        recon_grads = torch.autograd.grad(recon_loss, net.get_last_layer(), retain_graph=True)[0]
-        g_grads = torch.autograd.grad(g_loss, net.get_last_layer(), retain_graph=True)[0]
+        recon_grads = torch.autograd.grad(
+            recon_loss, net.get_last_layer(), retain_graph=True)[0]
+        g_grads = torch.autograd.grad(
+            g_loss, net.get_last_layer(), retain_graph=True)[0]
         d_weight = torch.norm(recon_grads) / (torch.norm(g_grads) + 1e-4)
-        d_weight = torch.clamp(d_weight, 0.0, 1e4).detach()
+        d_weight = torch.clamp(d_weight, 0.0, 1e2).detach()
 
-        # 1e-6, 0.5 is hyperparameters for loss combination
-        loss = recon_loss + 1e-6 * kld_loss +  0.5 * d_weight * g_loss
+        # 1e-4, 0.5 is hyperparameters for loss combination
+        loss = w_recon * recon_loss + w_kld * kld_loss + w_dis * d_weight * g_loss
 
         if update:
             loss.backward()
@@ -123,7 +138,8 @@ def run_epoch(net, dataloader, update=True):
         recon_img = recon_img.detach()
         logits_real = discriminator(raw_img.contiguous().detach())
         logits_fake = discriminator(recon_img.contiguous().detach())
-        perceptual_loss = discriminator.LPIPS(recon_img.contiguous(), raw_img.contiguous())
+        perceptual_loss = discriminator.LPIPS(
+            recon_img.contiguous(), raw_img.contiguous())
 
         loss_real = torch.mean(F.relu(1. - logits_real))
         loss_fake = torch.mean(F.relu(1. + logits_fake))
@@ -143,7 +159,7 @@ def run_epoch(net, dataloader, update=True):
         total_num += len(raw_img)
 
         # Checkpoint
-        if update and cur_iter % 500 == 0:
+        if update and cur_iter == ITER_PER_EPOCH + 1:
 
             # Change eval mode
             net.eval()
@@ -154,8 +170,7 @@ def run_epoch(net, dataloader, update=True):
 
             # Change train mode
             net.train()
-
-    return recon_total_loss / total_num, kld_total_loss / total_num, G_total_loss / total_num, D_total_loss / total_num
+            return recon_total_loss / total_num, kld_total_loss / total_num, G_total_loss / total_num, D_total_loss / total_num
 
 
 debug = False
