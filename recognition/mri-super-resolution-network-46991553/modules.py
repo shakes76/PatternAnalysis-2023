@@ -11,11 +11,13 @@ class SuperResolutionModel(nn.Module):
         self.inputs = nn.Sequential(
             nn.Conv2d(channels, 64, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
+            nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(128, 64, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
             nn.Conv2d(64, 64, kernel_size=3, padding=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(64, 32, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(32, channels * (upscale_factor ** 2), kernel_size=3, padding=1),
+            nn.Conv2d(64, channels * (upscale_factor ** 2), kernel_size=3, padding=1),
         )
         # PixelShuffle input shape:     (*, C x r^2, H, W)
         # PixelShuffle output shape:    (*, C, H x r, W x r)
