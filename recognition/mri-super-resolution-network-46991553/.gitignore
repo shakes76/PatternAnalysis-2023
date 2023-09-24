@@ -1,2 +1,4 @@
 data/
 imgs/*.png
+
+__pycache__/
