@@ -23,6 +23,9 @@ class Data:
 
     Methods
     -------
+    open_data(self, imagePath, maskPath):
+        Opens data from image and mask path and creates a tensor representation
+
     load_image_train(self, datapoint):
         Loads image data set for training and performs preprocessing.
 
@@ -45,13 +48,27 @@ class Data:
         Constructs all the necessary attributes for the Data model.
         """
         # import data here 
-        self.dataset = self.open_data("v1/semantic_MRs_anon/*", 
-                      "v1/semantic_labels_anon/*")
+        self.dataset = self.open_data("data/semantic_MRs_anon/*", 
+                      "data/semantic_labels_anon/*")
         # split the dataset
         self.train, self.validation, self.test = torch.utils.data.random_split(self.dataset, [179, 16, 16])
         # build input pipeline with data using map()
         self.train_dataset = self.train.map(self.load_image_train, num_parallel_calls=tf.data.AUTOTUNE)
         self.test_dataset = self.test.map(self.load_image_test, num_parallel_calls=tf.data.AUTOTUNE)
+
+        # create batches
+        BATCH_SIZE = 64
+        BUFFER_SIZE = 1000
+        self.train_batches = self.train_dataset.cache().shuffle(BUFFER_SIZE).batch(BATCH_SIZE).repeat()
+        self.train_batches = self.train_batches.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
+        self.validation_batches = self.test_dataset.take(3000).batch(BATCH_SIZE)
+        self.test_batches = self.test_dataset.skip(3000).take(669).batch(BATCH_SIZE)
+
+        # sample display:
+        self.sample_batch = next(iter(self.train_batches))
+        self.random_index = np.random.choice(self.sample_batch[0].shape[0])
+        self.sample_image, self.sample_mask = self.sample_batch[0][self.random_index], self.sample_batch[1][self.random_index]
+        self.display([self.sample_image, self.sample_mask])
 
     def open_data(self, imagePath, maskPath):
         ''' Opens data from image and mask path and creates a tensor representation
@@ -167,3 +184,18 @@ class Data:
         input_image = tf.cast(input_image, tf.float32) / 255.0
         input_mask -= 1
         return input_image, input_mask
+
+    def display(self, display_list):
+        ''' Display images 
+            Parameters:
+                display_list: list of images and masks to display'''
+
+        plt.figure(figsize=(15, 15))
+        title = ["Input Image", "True Mask", "Predicted Mask"]
+        for i in range(len(display_list)):
+        plt.subplot(1, len(display_list), i+1)
+        plt.title(title[i])
+        plt.imshow(tf.keras.utils.array_to_img(display_list[i]))
+        plt.axis("off")
+        plt.show()
+
