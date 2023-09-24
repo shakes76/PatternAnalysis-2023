@@ -159,6 +159,10 @@ class Decoder(nn.Module):
         if self.tanh_out:
             h = torch.tanh(h)
         return h
+    
+    def get_last_layer(self):
+        # This function is for adpative loss for discriminator.
+        return self.end[-1].weight
 
 
 class Autoencoder(nn.Module):
@@ -225,6 +229,9 @@ class Autoencoder(nn.Module):
         recon = self.decode(z)
         return recon, latent, kl_dis
 
+    def get_last_layer(self):
+        # This function is for adpative loss for discriminator.
+        return self.decoder.get_last_layer()
 
 if __name__ == '__main__':
     # net = Encoder(double_z=True, z_channels=16, resolution=256, in_channels=1, ch=64, ch_mult=[
@@ -241,4 +248,6 @@ if __name__ == '__main__':
 
     net = Autoencoder().cuda()
     summary(net, input_size=(16, 1, 256, 256))
-    print([out.shape for out in net(torch.randn([16, 1, 256, 256]).cuda())])
+    X = torch.randn([16, 1, 256, 256]).cuda()
+    print([out.shape for out in net(X)])
+    print(net.get_last_layer().shape)

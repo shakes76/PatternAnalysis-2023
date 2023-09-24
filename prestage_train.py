@@ -26,11 +26,6 @@ opt_ae = optim.Adam(net.parameters(), lr=4.5e-06, betas=(0.5, 0.9))
 opt_d = torch.optim.Adam(discriminator.parameters(),
                          lr=learning_rate, betas=(0.5, 0.9))
 
-# Get dataloader
-train_dataloader = get_dataloader(mode='train', batch_size=6)
-valid_dataloader = get_dataloader(mode='validate', batch_size=6)
-test_dataloader = get_dataloader(mode='test', batch_size=6)
-
 # Reset visualization folder
 reset_dir('VAE_vis')
 # Reset checkpoint folder
@@ -101,27 +96,40 @@ def run_epoch(net, dataloader, update=True):
         recon_img, latent, kld_loss = net(raw_img)
 
         recon_loss = torch.abs(raw_img.contiguous() - recon_img.contiguous())
+        perceptual_loss = discriminator.LPIPS(recon_img.contiguous(), raw_img.contiguous())
         logits_fake = discriminator(recon_img.contiguous())
         g_loss = -torch.mean(logits_fake)
 
-        recon_loss = torch.sum(recon_loss) / recon_loss.shape[0]
+        # 1.0 of perceptual loss is hyperparameter.
+        recon_loss = torch.sum(recon_loss + 1.0 * perceptual_loss) / recon_loss.shape[0]
         kld_loss = torch.sum(kld_loss) / kld_loss.shape[0]
-        loss = recon_loss + kld_loss * 1e-6 + 0.5 * g_loss
+
+        # Adjust discriminator weight
+        recon_grads = torch.autograd.grad(recon_loss, net.get_last_layer(), retain_graph=True)[0]
+        g_grads = torch.autograd.grad(g_loss, net.get_last_layer(), retain_graph=True)[0]
+        d_weight = torch.norm(recon_grads) / (torch.norm(g_grads) + 1e-4)
+        d_weight = torch.clamp(d_weight, 0.0, 1e4).detach()
+
+        # 1e-6, 0.5 is hyperparameters for loss combination
+        loss = recon_loss + 1e-6 * kld_loss +  0.5 * d_weight * g_loss
 
         if update:
             loss.backward()
             opt_ae.step()
 
         # Train Discriminator
-        opt_d.zero_grad
+        opt_d.zero_grad()
 
         logits_real = discriminator(raw_img.contiguous().detach())
         logits_fake = discriminator(recon_img.contiguous().detach())
+        perceptual_loss = discriminator.LPIPS(recon_img.contiguous(), raw_img.contiguous())
 
         loss_real = torch.mean(F.relu(1. - logits_real))
         loss_fake = torch.mean(F.relu(1. + logits_fake))
+        loss_p = torch.mean(perceptual_loss)
+
         # First 0.5 is discriminator factor, Second 0.5 is from hinge loss
-        d_loss = 0.5 * 0.5 * (loss_real + loss_fake)
+        d_loss = 0.5 * 0.5 * (loss_real + loss_fake) - loss_p
 
         if update:
             d_loss.backward()
@@ -148,6 +156,10 @@ def run_epoch(net, dataloader, update=True):
 
     return recon_total_loss / total_num, kld_total_loss / total_num, G_total_loss / total_num, D_total_loss / total_num
 
+# Get dataloader
+train_dataloader = get_dataloader(mode='train', batch_size=6)
+valid_dataloader = get_dataloader(mode='validate', batch_size=6)
+test_dataloader = get_dataloader(mode='test', batch_size=6)
 
 for epoch in range(300):
     net.train()
