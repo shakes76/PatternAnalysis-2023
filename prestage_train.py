@@ -120,6 +120,8 @@ def run_epoch(net, dataloader, update=True):
         # Train Discriminator
         opt_d.zero_grad()
 
+        # We should detach or it'll backprop generator side. (It'll occurs error that said we should retain_graph)
+        recon_img = recon_img.detach()
         logits_real = discriminator(raw_img.contiguous().detach())
         logits_fake = discriminator(recon_img.contiguous().detach())
         perceptual_loss = discriminator.LPIPS(recon_img.contiguous(), raw_img.contiguous())
@@ -157,7 +159,7 @@ def run_epoch(net, dataloader, update=True):
     return recon_total_loss / total_num, kld_total_loss / total_num, G_total_loss / total_num, D_total_loss / total_num
 
 
-debug = True
+debug = False
 if debug:
     tiny_dataloader = get_dataloader(mode='train', batch_size=6, limit=32)
     net.train()
