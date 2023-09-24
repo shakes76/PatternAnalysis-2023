@@ -156,6 +156,14 @@ def run_epoch(net, dataloader, update=True):
 
     return recon_total_loss / total_num, kld_total_loss / total_num, G_total_loss / total_num, D_total_loss / total_num
 
+
+debug = True
+if debug:
+    tiny_dataloader = get_dataloader(mode='train', batch_size=6, limit=32)
+    net.train()
+    run_epoch(net, tiny_dataloader, update=True)
+
+
 # Get dataloader
 train_dataloader = get_dataloader(mode='train', batch_size=6)
 valid_dataloader = get_dataloader(mode='validate', batch_size=6)

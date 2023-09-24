@@ -9,14 +9,21 @@ import torchvision.transforms as transforms
 
 class MyDataset(torch.utils.data.Dataset):
 
-    def __init__(self, folder_name, seg_folder_name):
+    def __init__(self, folder_name, seg_folder_name, limit=None):
+        '''
+            folder_name: folder save brain
+            seg_folder_name: folder save seg
+            limit: only load limit data
+        '''
         self.raw_img = []
         self.seg_img = []
         self.brain_index = []
         # Get images
         raw_paths = sorted(glob(f'{folder_name}/*.png'))
         seg_paths = sorted(glob(f'{seg_folder_name}/*.png'))
-        for img_path, seg_path in tqdm(zip(raw_paths, seg_paths), total=len(raw_paths)):
+
+        total = limit if limit else len(raw_paths) 
+        for img_path, seg_path in tqdm(zip(raw_paths, seg_paths), total=total):
             # check if the image is paired
             assert tuple(img_path.split(
                 '_')[-3:]) == tuple(seg_path.split('_')[-3:])
@@ -51,13 +58,18 @@ class MyDataset(torch.utils.data.Dataset):
             self.seg_img.append(seg_img)
             self.brain_index.append((brain_index, z_index))
 
-            # Sorted the images by brain_index
-            tmp = sorted([(j, k, i)
-                         for i, (j, k) in enumerate(self.brain_index)])
-            # Get rank given index in self.brain_index
-            self.inv_index_dict = {i: i2 for i2, (j, k, i) in enumerate(tmp)}
-            # Get index in self.brain_index given rank
-            self.index_dict = {v: k for k, v in self.inv_index_dict.items()}
+            # Only load limit images if limit has been set
+            if limit and len(self.raw_img) == limit:
+                break 
+
+        # Sorted the images by brain_index
+        tmp = sorted([(j, k, i)
+                        for i, (j, k) in enumerate(self.brain_index)])
+        # Get rank given index in self.brain_index
+        self.inv_index_dict = {i: i2 for i2, (j, k, i) in enumerate(tmp)}
+        # Get index in self.brain_index given rank
+        self.index_dict = {v: k for k, v in self.inv_index_dict.items()}
+
 
         self.raw_transform = transforms.Compose([
             transforms.ToTensor(),
@@ -79,11 +91,11 @@ class MyDataset(torch.utils.data.Dataset):
         return raw_img_tensor, (seg_img_tensor*3).long(), brain_idx, z_idx
 
 
-def get_dataloader(mode='train', batch_size=8):
+def get_dataloader(mode='train', batch_size=8, limit=None):
     assert mode in ['train', 'test', 'validate']
     dataset = MyDataset(
         f'../keras_png_slices_data/keras_png_slices_data/keras_png_slices_{mode}',
-        f'../keras_png_slices_data/keras_png_slices_data/keras_png_slices_seg_{mode}')
+        f'../keras_png_slices_data/keras_png_slices_data/keras_png_slices_seg_{mode}', limit=limit)
 
     dataloader = torch.utils.data.DataLoader(
         dataset,
@@ -95,7 +107,7 @@ def get_dataloader(mode='train', batch_size=8):
 
 if __name__ == '__main__':
     DEVICE = 'cuda'
-    dataloader = get_dataloader('test')
+    dataloader = get_dataloader('test', limit=32)
     recon_imgs, brain_indices = [], []
     for now_step, batch_data in enumerate(dataloader):
         raw_img, seg_img, brain_idx, z_idx = [
