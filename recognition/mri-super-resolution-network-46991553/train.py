@@ -10,8 +10,17 @@ from dataset import *
 from modules import SuperResolutionModel
 from predict import save_model_output
 
-data_loader = get_train_dataloader()
-model = SuperResolutionModel(upscale_factor=dimension_reduce_factor)
+print("PyTorch Version:", torch.__version__)
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print("Using device:", device)
+sys.stdout.flush()
+
+train_loader = get_train_dataloader()
+# Don't shuffle test so that the model output is generated from a fixed sample
+test_loader = get_test_dataloader(shuffle=False)
+
+model = SuperResolutionModel(upscale_factor=dimension_reduce_factor).to(device)
 
 # Define the loss function (MSE) and optimizer (Adam)
 criterion = nn.MSELoss()
@@ -21,10 +30,10 @@ start = time.time()
 print("Starting training...")
 sys.stdout.flush()
 
-n = len(data_loader) # number of batches
+n = len(train_loader) # number of batches
 
 # Save initial output
-save_model_output(model, data_loader, f"[{1},{num_epochs}][{0},{n}]")
+save_model_output(model, test_loader, f"[{1},{num_epochs}][{0},{n}]", device=device)
 
 losses = []
 iters = 0
@@ -33,8 +42,11 @@ for epoch in range(num_epochs):
     running_loss = 0.0
     batch = 0
 
-    for expected_outputs, _ in data_loader:
+    for expected_outputs, _ in train_loader:
         inputs = downsample_tensor(expected_outputs)
+
+        inputs = inputs.to(device)
+        expected_outputs = expected_outputs.to(device)
         
         # Zero the parameter gradients
         optimizer.zero_grad()
@@ -56,7 +68,7 @@ for epoch in range(num_epochs):
             print(f"Finished [{batch},{n}] loss: {loss.item()}")
             sys.stdout.flush()
         if batch % 40 == 0 or (batch == 1 and epoch == 0):
-            save_model_output(model, data_loader, f"[{epoch + 1},{num_epochs}][{batch},{n}]")
+            save_model_output(model, test_loader, f"[{epoch + 1},{num_epochs}][{batch},{n}]", device=device)
             sys.stdout.flush()
         
         if iters % 10 == 0: # Only append every 10th loss
@@ -65,7 +77,7 @@ for epoch in range(num_epochs):
         iters +=1
 
     # Print the average loss for the epoch
-    average_loss = running_loss / len(data_loader)
+    average_loss = running_loss / len(train_loader)
     print(f"Epoch [{epoch + 1},{num_epochs}] Loss: {average_loss:.4f}")
     sys.stdout.flush()
 
@@ -78,7 +90,7 @@ torch.save(model.state_dict(), model_filename)
 print(f"Model saved to {model_filename}")
 
 # Save the final output
-save_model_output(model, data_loader, f"[{num_epochs},{num_epochs}][{n},{n}]")
+save_model_output(model, test_loader, f"[{num_epochs},{num_epochs}][{n},{n}]", device=device)
 print("Finished training!")
 
 plt.title("Model loss over iterations")
