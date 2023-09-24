@@ -70,24 +70,9 @@ class Data:
         self.sample_image, self.sample_mask = self.sample_batch[0][self.random_index], self.sample_batch[1][self.random_index]
         self.display([self.sample_image, self.sample_mask])
 
-    def open_data(self, imagePath, maskPath):
-        ''' Opens data from image and mask path and creates a tensor representation
-            Parameters:
-                imagePath: path to images
-                maskPath: path to mask'''
-        self.inputs = []
-        self.masks = []
-        #retrieve path from dataset
-        for f in sorted(glob.iglob(image_path)): 
-            self.inputs.append(f)
-        for f in sorted(glob.iglob(mask_path)):
-            self.masks.append(f)
-        self.totensor = transforms.ToTensor()
-
     def __len__(self):
         return len(self.inputs)
     
-    #open files
     def __getitem__(self, idx): 
         ''' Given an item index, uses the nib label library to open nii files
             Parameters:
@@ -114,6 +99,19 @@ class Data:
         
         return image, mask
 
+    def open_data(self, imagePath, maskPath):
+        ''' Opens data from image and mask path and creates a tensor representation
+            Parameters:
+                imagePath: path to images
+                maskPath: path to mask'''
+        self.inputs = []
+        self.masks = []
+        #retrieve path from dataset
+        for f in sorted(glob.iglob(image_path)): 
+            self.inputs.append(f)
+        for f in sorted(glob.iglob(mask_path)):
+            self.masks.append(f)
+        self.totensor = transforms.ToTensor()
 
     def load_image_train(self, datapoint):
         ''' Loads image data set for training and performs preprocessing.
