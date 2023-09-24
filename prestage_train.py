@@ -16,7 +16,7 @@ from einops import rearrange, repeat
 
 # ==== import from this folder ==== #
 from AE_model import Autoencoder
-from Discriminator import NLayerDiscriminator, weights_init
+from discriminator import NLayerDiscriminator, weights_init
 from dataset import get_dataloader
 from util import reset_dir, weight_scheduler, compact_large_image
 
