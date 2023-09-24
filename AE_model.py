@@ -94,11 +94,12 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, *, ch, out_ch, ch_mult=(1, 2, 4, 8), num_res_blocks,
                  attn_resolutions, dropout=0.0, resamp_with_conv=True,
-                 resolution, z_channels, **ignores):
+                 resolution, z_channels, tanh_out=False, **ignores):
         super().__init__()
         self.ch = ch
         self.num_resolutions = len(ch_mult)
         self.num_res_blocks = num_res_blocks
+        self.tanh_out = tanh_out
 
         # Calculate block_in & current resolution
         block_in = ch*ch_mult[-1]
@@ -154,7 +155,14 @@ class Decoder(nn.Module):
 
         # end
         h = self.end(h)
+
+        if self.tanh_out:
+            h = torch.tanh(h)
         return h
+    
+    def get_last_layer(self):
+        # This function is for adpative loss for discriminator.
+        return self.end[-1].weight
 
 
 class Autoencoder(nn.Module):
@@ -176,7 +184,7 @@ class Autoencoder(nn.Module):
         self.encoder = Encoder(**params)
         self.conv_before_reparm = torch.nn.Conv2d(2*z_channels, 2*embed_dim, 1)
         self.conv_after_reparm = torch.nn.Conv2d(embed_dim, z_channels, 1)
-        self.decoder = Decoder(**params)
+        self.decoder = Decoder(tanh_out=True, **params)
 
         # For convienient purpose, store the z-shape.
         latent_wh = resolution // 2 ** (len(ch_mult)-1)
@@ -221,6 +229,9 @@ class Autoencoder(nn.Module):
         recon = self.decode(z)
         return recon, latent, kl_dis
 
+    def get_last_layer(self):
+        # This function is for adpative loss for discriminator.
+        return self.decoder.get_last_layer()
 
 if __name__ == '__main__':
     # net = Encoder(double_z=True, z_channels=16, resolution=256, in_channels=1, ch=64, ch_mult=[
@@ -237,4 +248,6 @@ if __name__ == '__main__':
 
     net = Autoencoder().cuda()
     summary(net, input_size=(16, 1, 256, 256))
-    print([out.shape for out in net(torch.randn([16, 1, 256, 256]).cuda())])
+    X = torch.randn([16, 1, 256, 256]).cuda()
+    print([out.shape for out in net(X)])
+    print(net.get_last_layer().shape)
