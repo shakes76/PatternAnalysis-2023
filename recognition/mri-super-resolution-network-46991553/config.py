@@ -1,6 +1,7 @@
 """
 Hyperparameters and other meaningful constants
 """
+import os
 
 # Factor to reduce the width and height of the images by
 dimension_reduce_factor = 2  # downsample factor of 4
@@ -22,4 +23,4 @@ batch_size = 128
 num_epochs = 10
 
 # Name to save the model as a file
-model_save_filename = "super_resolution_model.pth"
+model_filename = "super_resolution_model.pth"

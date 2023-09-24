@@ -54,5 +54,6 @@ def save_model_output(model: nn.Module, data_loader: DataLoader, prefix: str):
 
             plt.savefig(filename)
             print("Saved model output to", filename)
+            plt.close()
             
             break  # Stop after the first batch to print/display only the first pair of images

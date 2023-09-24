@@ -16,7 +16,7 @@ def downsample_tensor(original: torch.Tensor):
     ],antialias=True)(original)
 
 
-def get_dataloader():
+def get_train_dataloader(shuffle=True):
     transform = transforms.Compose([
         transforms.ToTensor(),
     ])
@@ -28,7 +28,7 @@ def get_dataloader():
     dataset = ConcatDataset([AD_dataset, NC_dataset])
 
     # Create a data loader to iterate through the dataset
-    return DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
+    return DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle)
 
 
 def save_dimensions(data_loader):
@@ -61,5 +61,8 @@ def save_dimensions(data_loader):
         
         plt.savefig(image_dir + 'dimensions.png')
         # plt.show()
+        plt.close()
         
         break  # Stop after the first batch to print/display only the first pair of images
+
+get_train_dataloader()
