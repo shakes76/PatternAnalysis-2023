@@ -14,7 +14,6 @@ def reset_dir(folder):
     except Exception as e:
         # This folder is not exist.
         pass
-
     os.mkdir(folder)
 
 
