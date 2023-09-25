@@ -25,17 +25,17 @@ train_loader = get_train_loader()
 test_loader = get_test_loader()
 
 # Vizualise some of the training data
-real_batch = next(iter(train_loader))
+image = next(iter(train_loader))[0][0]
 plt.figure(figsize=(12,6))
 plt.subplot(1,2,1)
 plt.axis("off")
 plt.title("Sample Training Image - Original")
-plt.imshow(np.transpose(torchvision.utils.make_grid(real_batch[0].to(device)[:1], padding=2, normalize=True).cpu(),(1,2,0)))
+plt.imshow(image.permute(1,2,0))
 
 plt.subplot(1,2,2)
 plt.axis("off")
-plt.title("Sample Training Image - Downscaled")
-plt.imshow(np.transpose(torchvision.utils.make_grid(downscale(real_batch[0]).to(device)[:1], padding=2, normalize=True).cpu(),(1,2,0)))
+plt.title("Sample Training Image - Downsampled")
+plt.imshow(downscale(image).permute(1,2,0))
 
 plt.savefig("sample_input.png")
 
@@ -55,6 +55,8 @@ scheduler = torch.optim.lr_scheduler.OneCycleLR(optimiser,
 criterion = torch.nn.functional.mse_loss
 total_step = len(train_loader)
 
+losses = []
+
 # Training Loop
 model.train()
 print("> Training")
@@ -73,7 +75,7 @@ for epoch in range(epochs):
         # Forward pass of model
         outputs = model(new_data)
         loss = criterion(outputs, data)
-
+        losses.append(loss)
         # Optimization step
         optimiser.zero_grad()
         loss.backward()
@@ -123,3 +125,11 @@ sys.stdout.flush()
 
 # Save trained Model
 torch.save(model, "model.pth")
+
+# Plot loss per step
+plt.figure(figsize=(10,5))
+plt.title("MSE Loss during training")
+plt.plot(losses)
+plt.xlabel("step")
+plt.ylabel("loss")
+plt.savefig("losses.png")
