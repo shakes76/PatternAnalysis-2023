@@ -41,7 +41,7 @@ plt.savefig("sample_input.png")
 
 
 # Get Model
-model = ESPCN(1, 2)
+model = ESPCN(3, 2)
 model = model.to(device)
 
 # Training Parameters
