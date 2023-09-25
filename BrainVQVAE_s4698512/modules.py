@@ -40,47 +40,110 @@ class ResBlock(nn.Module):
 class VectorQuantizedVAE(nn.Module):
     """
     Takes a tensor and quantises/discretises it
+    Input image > Hidden Dimension -> Output mean and standard deviation with parametrisation trick
+    > Take that to the decoder > Output image
     """
 
-    def __init__(self, input_dim, dim, K=512):
+    def __init__(self, input_dim, hidden_dim=200, z_dim=20, K=512):
+        # Call parent
         super().__init__()
-        self.encoder = nn.Sequential(
-            nn.Conv2d(input_dim, dim, 4, 2, 1),
-            nn.BatchNorm2d(dim),
-            nn.ReLU(True),
-            nn.Conv2d(dim, dim, 4, 2, 1),
-            ResBlock(dim),
-            ResBlock(dim),
-        )
 
-        self.codebook = VQEmbedding(K, dim)
+        # Encoder
+        self.img_to_hidden = nn.Linear(input_dim, hidden_dim)
 
-        self.decoder = nn.Sequential(
-            ResBlock(dim),
-            ResBlock(dim),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(dim, dim, 4, 2, 1),
-            nn.BatchNorm2d(dim),
-            nn.ReLU(True),
-            nn.ConvTranspose2d(dim, input_dim, 4, 2, 1),
-            nn.Tanh()
-        )
+        # Parametrisation
+        self.hidden_to_mu = nn.Linear(hidden_dim, z_dim)
+        self.hidden_to_sigma = nn.Linear(hidden_dim, z_dim)
 
-        self.apply(weights_init)
+        # Decoder (pretty much opposite of encoder)
+        self.z_to_hidden = nn.Linear(z_dim, hidden_dim)
+        self.hidden_to_img = nn.Linear(hidden_dim, input_dim)
+
+        self.relu = nn.ReLU()
+
+        # self.encoder = nn.Sequential(
+        #     nn.Conv2d(input_dim, dim, 4, 2, 1),
+        #     nn.BatchNorm2d(dim),
+        #     nn.ReLU(True),
+        #     nn.Conv2d(dim, dim, 4, 2, 1),
+        #     ResBlock(dim),
+        #     ResBlock(dim),
+        # )
+
+        # self.codebook = VQEmbedding(K, dim)
+
+        # self.decoder = nn.Sequential(
+        #     ResBlock(dim),
+        #     ResBlock(dim),
+        #     nn.ReLU(True),
+        #     nn.ConvTranspose2d(dim, dim, 4, 2, 1),
+        #     nn.BatchNorm2d(dim),
+        #     nn.ReLU(True),
+        #     nn.ConvTranspose2d(dim, input_dim, 4, 2, 1),
+        #     nn.Tanh()
+        # )
+
+        # self.apply(weights_init)
 
     def encode(self, x):
-        z_e_x = self.encoder(x)
-        latents = self.codebook(z_e_x)
-        return latents
+        """
+        q_phi(z|x)
+        Encoder network
+        """
 
-    def decode(self, latents):
-        z_q_x = self.codebook.embedding(
-            latents).permute(0, 3, 1, 2)  # (B, D, H, W)
-        x_tilde = self.decoder(z_q_x)
-        return x_tilde
+        h = self.relu(self.img_to_hidden(x))
+
+        mu, sigma = self.hidden_to_mu(h), self.hidden_to_sigma(h)
+        return mu, sigma
+
+        # z_e_x = self.encoder(x)
+        # latents = self.codebook(z_e_x)
+        # return latents
+
+    def decode(self, z):
+        """
+        send in the latent image and try to recover the original
+        p_theta(x|z)
+        """
+
+        # take in z
+        h = self.relu(self.z_to_hidden(z))
+
+        # Ensure decode is between 0 and 1 by using sigmoid
+        return torch.sigmoid(self.hidden_to_img(h))
+
+        # z_q_x = self.codebook.embedding(
+        #     latents).permute(0, 3, 1, 2)  # (B, D, H, W)
+        # x_tilde = self.decoder(z_q_x)
+        # return x_tilde
 
     def forward(self, x):
-        z_e_x = self.encoder(x)
-        z_q_x_st, z_q_x = self.codebook.straight_through(z_e_x)
-        x_tilde = self.decoder(z_q_x_st)
-        return x_tilde, z_e_x, z_q_x
+        """
+        Combines encoder and decoder in the forward pass
+        """
+
+        # Generate mu and sigma
+        mu, sigma = self.encode(x)
+        epsilon = torch.rand_like(sigma)
+        z_reparam = mu + sigma * epsilon
+        # gaussian model ^^
+
+        # Decode
+        x_recon = self.decode(z_reparam)
+        return x_recon, mu, sigma
+
+        # z_e_x = self.encoder(x)
+        # z_q_x_st, z_q_x = self.codebook.straight_through(z_e_x)
+        # x_tilde = self.decoder(z_q_x_st)
+        # return x_tilde, z_e_x, z_q_x
+
+
+# test case
+if __name__ == "__main__":
+    batch_size = 4
+    img_x, img_y = 28, 28
+
+    x = torch.rand(batch_size, img_x * img_y)
+    vae = VectorQuantizedVAE(input_dim=img_x * img_y)
+    x_recon, mu, sigma = vae(x)
+    print(x_recon.shape, mu.shape, sigma.shape)
