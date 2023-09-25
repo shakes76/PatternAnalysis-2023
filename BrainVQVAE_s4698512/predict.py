@@ -32,7 +32,7 @@ K = 32      # Size of the codebook
 model = VectorQuantizedVAE(input_channels=num_channels,
                            output_channels=num_channels, hidden_channels=hidden_dim, num_embeddings=K)
 # Load the saved model
-model.load_state_dict(torch.load('./ModelParams/best.pt')
+model.load_state_dict(torch.load(os.path.join(".", "ModelParams", "best.pt"))
                       )  # Update the path accordingly
 # Move model to CUDA GPU
 model = model.to(device)
@@ -55,21 +55,28 @@ oasis = OASIS(oasis_data_path, transform=transform)
 sample_loader = oasis.test_loader
 
 # Get a batch of data for generating samples
-fixed_images, _ = next(iter(sample_loader))
+sample_images, _ = next(iter(sample_loader))
 
 # Generate samples
 with torch.no_grad():
     # Replace your_fixed_images with actual data
-    fixed_images = generate_samples(fixed_images, model, device)
+    fake_images = generate_samples(sample_images, model, device)
 
 # Create the "OASIS_generated" directory if it doesn't exist
 output_dir = './OASIS_generated'
 os.makedirs(output_dir, exist_ok=True)
 
+# Generate and save each sample
+for i in range(len(fake_images)):
+    sample = fake_images[i].cpu().numpy().squeeze()
+    sample_filename = os.path.join(output_dir, f'fake_{i + 1:03d}.png')
+    plt.imsave(sample_filename, sample, cmap='gray')
+
+
 # Visualize and save the generated samples
 fig, axes = plt.subplots(nrows=8, ncols=8, figsize=(12, 12))
 for i, ax in enumerate(axes.flat):
-    ax.imshow(fixed_images[i].cpu().numpy().squeeze(), cmap='gray')
+    ax.imshow(fake_images[i].cpu().numpy().squeeze(), cmap='gray')
     ax.axis('off')
 
 plt.tight_layout()
