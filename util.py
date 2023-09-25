@@ -37,7 +37,7 @@ def weight_scheduler(cur_iter=0, end=50000, change_cycle=500, disc_start=250):
 
     # https://github.com/haofuml/cyclical_annealing
     # Cyclical Annealing Schedule: A Simple Approach to Mitigating KL Vanishing (NAACL 2019):
-    w_kld = 2.5
+    w_kld = 10
     # first half is linear, end half is constant
     iter_in_cycle = cur_iter % change_cycle
     if iter_in_cycle < change_cycle // 2:
