@@ -7,6 +7,16 @@ Differs from VAE in two main ways
 
 AutoEncoders and Variational AutoEncoders
 
+AutoEncoder simply projects input down onto Latent Space
+Then reprojects (upscales) it back to (hopefully) get back to the same image
+
+A Variational AutoEncoder (VAE) introduces a stochastic nature to the AE so that it
+is now capable of generating new samples rather than just reproducing existing samples from the latent space
+
+In a Vector Quantised Variational AutoEncoder (VQ-VAE), the continuous values learned by the encoder
+are discretised into a set of finite vectors. These are drawn from a pre-defined codebook. The codebook
+is like a dictionary of possible features or patterns.
+
 KL Divergence
 Trying to maximise elbow
 =
