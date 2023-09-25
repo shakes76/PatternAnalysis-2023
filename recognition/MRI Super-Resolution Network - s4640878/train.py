@@ -1,6 +1,7 @@
 import sys, os, time
 import torch, torchvision
 from traceback import format_exc
+from matplotlib import pyplot as plt
 
 from dataset import Dataset
 from modules import ResNet18, ResNet34
@@ -45,6 +46,28 @@ def main():
         for i, (images, labels) in enumerate(train_loader):
             images = images.to(device)
             labels = labels.to(device)
+            downsampled = torchvision.transforms.Resize(60, antialias=True)(images[i]).to(device)
+
+            if i == 0:
+                plt.subplot(1, 2, 1)
+                plt.imshow(
+                    (
+                        (images[i] - torch.min(images[i])) / (torch.max(images[i]) - torch.min(images[i]))
+                    ).permute(1, 2, 0).cpu()
+                )
+                plt.title(labels[i], size=8)
+                plt.subplot(1, 2, 2)
+                plt.imshow(
+                    (
+                        (downsampled - torch.min(downsampled)) / (torch.max(downsampled) - torch.min(downsampled))
+                    ).permute(1, 2, 0).cpu()
+                )
+                plt.title("downsampled", size=8)
+
+                print(f"{images[i].shape = }, {downsampled.shape = }")  # images[i].shape = torch.Size([3, 240, 256]), downsampled.shape = torch.Size([3, 60, 64])
+
+                plt.savefig("./outputs/downsample.png")
+                sys.exit()
 
             """ forward pass """
             outputs = model(images)

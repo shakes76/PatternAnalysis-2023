@@ -31,7 +31,6 @@ class Dataset(data.Dataset):
                 torchvision.transforms.Normalize(self._mean, self._std_dev),
             ]
         )
-
         """ load image data from specified path to dataset """
         self._dataset = torchvision.datasets.ImageFolder(
             root=f"{self._dataset_path}{self._dataset}{self._dataset_subdir}{self._dataset_type}",
@@ -79,11 +78,15 @@ def main():
         images = images.to(device)
         labels = labels.to(device)
 
-        if i == 0: print(f"train: {images.shape = }, {labels.shape = }, {torch.max(images) = }, {torch.min(images) = }")
-        if i >= 9: break
+        t_min, t_max = torch.min(images[i]), torch.max(images[i])
+        image = (images[i] - t_min) / (t_max - t_min)
+        print(t_max - t_min)
 
+        if i == 0: print(f"train: {images.shape = }, {labels.shape = }, {t_min = }, {t_max = }")
+        if i >= 9: break
+        
         plt.subplot(3, 3, i + 1)
-        plt.imshow(images[i].permute(1, 2, 0).cpu())
+        plt.imshow(image.permute(1, 2, 0).cpu())
         plt.title(labels[i], size=8)
 
     plt.savefig("./outputs/train.png")
@@ -97,11 +100,14 @@ def main():
         images = images.to(device)
         labels = labels.to(device)
 
-        if i == 0: print(f"train: {images.shape = }, {labels.shape = }, {torch.max(images) = }, {torch.min(images) = }")
+        t_min, t_max = torch.min(images[i]), torch.max(images[i])
+        image = (images[i] - t_min) / (t_max - t_min)
+
+        if i == 0: print(f"train: {images.shape = }, {labels.shape = }, {t_min = }, {t_max = }")
         if i >= 9: break
 
         plt.subplot(3, 3, i + 1)
-        plt.imshow(images[i].permute(1, 2, 0).cpu())
+        plt.imshow(image.permute(1, 2, 0).cpu())
         plt.title(labels[i], size=8)
 
     plt.savefig("./outputs/test.png")
