@@ -126,5 +126,7 @@ with torch.no_grad():
         psnrs.append(PSNR(mse, 1))
 
 print("Average PSNR on Test Set: "+ np.mean(psnrs))
-
 sys.stdout.flush()
+
+# Save trained Model
+torch.save(model, "model.pth")
