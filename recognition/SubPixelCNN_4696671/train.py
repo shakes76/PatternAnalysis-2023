@@ -26,23 +26,25 @@ test_loader = get_test_loader()
 
 # Function to Downscale images for input
 original_size = (240, 256) # original image size
-def downscale(images, factor=4):
-    return Resize((60, 64), antialias=True)(images)
+def downscale(images, factor=2):
+    return Resize(tuple(map(lambda x: x//factor, original_size)), antialias=True)(images)
 
 # Vizualise some of the training data
 real_batch = next(iter(train_loader))
-plt.figure(figsize=(8,8))
+plt.figure(figsize=(12,6))
+plt.subplot(1,2,1)
 plt.axis("off")
-plt.title("Training Images - Targets")
-plt.imshow(np.transpose(torchvision.utils.make_grid(real_batch[0].to(device)[:64], padding=2, normalize=True).cpu(),(1,2,0)))
-plt.savefig("train_target.png")
+plt.title("Sample Training Image - Original")
+plt.imshow(np.transpose(torchvision.utils.make_grid(real_batch[0].to(device)[:1], padding=2, normalize=True).cpu(),(1,2,0)))
 
-# Vizualise some of the downscaled training data
-plt.figure(figsize=(8,8))
+plt.subplot(1,2,2)
 plt.axis("off")
-plt.title("Training Images - Downscaled")
-plt.imshow(np.transpose(torchvision.utils.make_grid(downscale(real_batch[0]).to(device)[:64], padding=2, normalize=True).cpu(),(1,2,0)))
-plt.savefig("train_down.png")
+plt.title("Sample Training Image - Downscaled")
+plt.imshow(np.transpose(torchvision.utils.make_grid(downscale(real_batch[0]).to(device)[:1], padding=2, normalize=True).cpu(),(1,2,0)))
+print(real_batch[0].shape)
+print(downscale(real_batch[0]).shape)
+
+plt.savefig("sample_input.png")
 
 # Get Model
 model = ESPCN(1, 4)
