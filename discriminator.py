@@ -1,7 +1,7 @@
 # reference: https://huggingface.co/spaces/danurahul/gan/blob/main/taming-transformers/taming/modules/discriminator/model.py
 import torch
 import torch.nn as nn
-
+from module import AttnBlock
 
 def weights_init(m):
     classname = m.__class__.__name__
@@ -72,12 +72,15 @@ class NLayerDiscriminator(nn.Module):
             )
             for conv in self.convs
         ])
+        
+        self.attn = AttnBlock(512)
 
     def forward(self, input):
         """Standard forward."""
         h = input
         for conv in self.convs:
             h = conv(h)
+        h = self.attn(h)
         h = self.conv_out(h)
         return h
     

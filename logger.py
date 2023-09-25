@@ -60,24 +60,38 @@ class Logger:
             Y.append(cur / min(i+1, window))
         return Y
 
-    def show_plot(self, start=0, smooth_window=5, xlabel='iteration', ylabel='loss'):
+    def show_plot(self, start=None, smooth_window=5, xlabel='iteration', ylabel='loss'):
+        L = len(self.data['recon_loss'])
+        if start is None:
+            start = min(L//2, 50)
+
         # mapping function
         m_f = lambda v: self.smooth_num(v, window=smooth_window)[start:]
 
-        L = len(self.data['recon_loss'])
         X = np.arange(L)[start:]
 
         plt.subplot(2, 2, 1)
-        plt.plot(X, m_f(self.data['recon_loss']), label='Reconstruction Loss')
+        plt.plot(X, m_f(self.data['recon_loss']), label='Reconstruction Loss', c='blue')
         plt.legend()
+
         plt.subplot(2, 2, 2)
-        plt.plot(X, m_f(self.data['kld_loss']), label='KL Divergence Loss')
+        plt.plot(X, m_f(self.data['kld_loss']), label='KL Divergence Loss', c='orange')
         plt.legend()
+
         plt.subplot(2, 2, 3)
-        plt.plot(X, m_f(self.data['fake_recon_loss']), label='Reconstruction D Loss')
-        plt.plot(X, m_f(self.data['fake_sample_loss']), label='Sample D Loss')
-        plt.plot(X, m_f(self.data['discriminator_loss']), label='Discriminator Toatal Loss')
+        plt.plot(X, m_f(self.data['fake_recon_loss']), label='Reconstruction D Loss', c='blue')
+        plt.plot(X, m_f(self.data['fake_sample_loss']), label='Sample D Loss', c='red')
+        plt.plot(X, m_f(self.data['discriminator_loss']), label='Discriminator Toatal Loss', c='purple')
+        plt.title("Discriminator Loss")
         plt.legend()
+
+        plt.subplot(2, 2, 4)
+        plt.plot(X, m_f(self.data['w_kld']), label='KLD loss weight', c='orange')
+        plt.plot(X, m_f(self.data['w_recon']), label='Discriminator(Recon) weight', c='blue')
+        plt.plot(X, m_f(self.data['w_sample']), label='Discriminator(Sample) weight', c='red')
+        plt.legend()
+        plt.title("Weight for Each Loss")
+
         plt.show()
 
     def get_range_status(self, start=0, end=None):

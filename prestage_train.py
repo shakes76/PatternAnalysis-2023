@@ -56,7 +56,7 @@ def train_epoch(net, dataloader):
 
         # Get weight of each loss
         w_recon, w_perceptual, w_kld, w_dis = weight_scheduler(
-            cur_iter, change_cycle=ITER_PER_EPOCH)
+            cur_iter, change_cycle=100)
 
         # Train Generator
         opt_ae.zero_grad()
@@ -86,8 +86,8 @@ def train_epoch(net, dataloader):
             g2_loss, net.get_last_layer(), retain_graph=True)[0]
         d1_weight = torch.norm(recon_grads) / (torch.norm(g1_grads) + 1e-4)
         d2_weight = torch.norm(recon_grads) / (torch.norm(g2_grads) + 1e-4)
-        d1_weight = torch.clamp(d1_weight, 0.0, 1e4).detach()
-        d2_weight = torch.clamp(d2_weight, 0.0, 1e4).detach()
+        d1_weight = torch.clamp(d1_weight, 0.0, 1e2).detach()
+        d2_weight = torch.clamp(d2_weight, 0.0, 1e2).detach()
 
         # 1e-4, 0.5 is hyperparameters for loss combination
         loss = w_recon * recon_loss + w_kld * kld_loss + w_dis * \
@@ -124,7 +124,12 @@ def train_epoch(net, dataloader):
             'kld_loss' : kld_loss.item(),
             'fake_recon_loss' : g1_loss.item(),
             'fake_sample_loss' : g2_loss.item(),
-            'discriminator_loss' : d_loss.item()
+            'discriminator_loss' : d_loss.item(),
+            # 'w_recon': w_recon,
+            # 'w_perceptual': w_perceptual,
+            'w_kld': w_kld,
+            "w_recon" : w_dis * d1_weight,
+            "w_sample" : w_dis * d2_weight,
         }
 
         # record epoch info
@@ -136,6 +141,8 @@ def train_epoch(net, dataloader):
         logger.update_dict(cur_info)
         cur_iter += 1
 
+        if now_step % ITER_PER_EPOCH == 0 and now_step != 0:
+            break
     # Mean the info
     for k in epoch_info:
         if k != 'total_num':
