@@ -36,9 +36,9 @@ class Logger:
             for variable_name, variable in data_dict.items():
                 if variable_name not in self.data:
                     self.data[variable_name] = []
+                if save:
+                    print(f'{variable_name}|{float(variable)}', file=fout)
                 self.data[variable_name].append(variable)
-            if save:
-                print(f'{variable_name}|{float(variable)}', file=fout)
 
     def load(self, file_name) -> None:
         # Clear the dict
