@@ -36,6 +36,7 @@ def get_test_loader():
     return test_loader
 
 
-
-
-
+# Function to Downscale images for input
+original_size = (240, 256) # original image size
+def downscale(images, factor=2):
+    return transforms.Resize(tuple(map(lambda x: x//factor, original_size)), antialias=True)(images)

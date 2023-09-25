@@ -3,7 +3,7 @@ TRAINING LOOP
 """
 
 # Imports
-from dataset import get_test_loader, get_train_loader
+from dataset import get_test_loader, get_train_loader, downscale
 from modules import ESPCN
 import torch
 import torchvision.utils
@@ -23,13 +23,6 @@ sys.stdout.flush()
 # Get data loaders
 train_loader = get_train_loader()
 test_loader = get_test_loader()
-
-
-
-# Function to Downscale images for input
-original_size = (240, 256) # original image size
-def downscale(images, factor=2):
-    return Resize(tuple(map(lambda x: x//factor, original_size)), antialias=True)(images)
 
 # Vizualise some of the training data
 real_batch = next(iter(train_loader))
