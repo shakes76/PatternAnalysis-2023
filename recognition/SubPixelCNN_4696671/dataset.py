@@ -15,7 +15,8 @@ batch_size = 128
 
 # Create Data Transform
 transform = transforms.Compose([
-    transforms.ToTensor()
+    transforms.ToTensor(),
+    transforms.Grayscale(num_output_channels=1)
 ])
 
 # Function to get dataloader from other files

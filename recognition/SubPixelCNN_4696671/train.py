@@ -41,7 +41,7 @@ plt.savefig("sample_input.png")
 
 
 # Get Model
-model = ESPCN(3, 2)
+model = ESPCN(1, 2)
 model = model.to(device)
 
 # Training Parameters
@@ -83,7 +83,7 @@ for epoch in range(epochs):
 
         if (i+1) % 100 == 0:
             print("Epoch [{}/{}], Step [{}/{}], Loss: {:.5f}"
-                  .format(epoch+1, epochs, i+1, total_step))
+                  .format(epoch+1, epochs, i+1, total_step, loss))
             sys.stdout.flush()
 
         # Decay Learning Rate using Scheduler            
