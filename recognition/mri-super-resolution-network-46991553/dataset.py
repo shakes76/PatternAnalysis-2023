@@ -18,6 +18,7 @@ def downsample_tensor(original: torch.Tensor):
 
 def get_train_dataloader(shuffle=True):
     transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
     ])
 

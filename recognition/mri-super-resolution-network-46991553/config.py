@@ -4,7 +4,7 @@ Hyperparameters and other meaningful constants
 import os
 
 # Factor to reduce the width and height of the images by
-dimension_reduce_factor = 2  # downsample factor of 4
+dimension_reduce_factor = 4  # downsample factor of 4
 
 # Original dimensions
 original_width = 256
