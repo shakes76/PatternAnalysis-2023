@@ -30,12 +30,12 @@ plt.figure(figsize=(12,6))
 plt.subplot(1,2,1)
 plt.axis("off")
 plt.title("Sample Training Image - Original")
-plt.imshow(image.permute(1,2,0))
+plt.imshow(image.permute(1,2,0), cmap='gray')
 
 plt.subplot(1,2,2)
 plt.axis("off")
 plt.title("Sample Training Image - Downsampled")
-plt.imshow(downscale(image).permute(1,2,0))
+plt.imshow(downscale(image).permute(1,2,0), cmap='gray')
 
 plt.savefig("sample_input.png")
 
