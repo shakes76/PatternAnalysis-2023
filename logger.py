@@ -63,7 +63,7 @@ class Logger:
     def show_plot(self, smooth_window=5, xlabel='iteration', ylabel='loss'):
         print("!")
         for k, v in self.data.items():
-            plt.plot(np.arange(len(v)), self.smooth_num(v, window=smooth_window), label=k)
+            plt.plot(np.arange(len(v)), np.log(self.smooth_num(v, window=smooth_window)), label=k)
         plt.xlabel(xlabel)
         plt.ylabel(ylabel)
         plt.legend()
