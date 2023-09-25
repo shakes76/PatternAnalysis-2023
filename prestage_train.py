@@ -24,11 +24,11 @@ DEVICE = torch.device("cuda")
 print("DEVICE:", DEVICE)
 
 
-net = Autoencoder().to(device=DEVICE)
+net = Autoencoder(embed_dim=16).to(device=DEVICE)
 discriminator = NLayerDiscriminator(
     input_nc=1, n_layers=3).apply(weights_init).to(device=DEVICE)
 
-learning_rate = 5e-5
+learning_rate = 2e-4
 opt_ae = optim.Adam(net.parameters(), lr=learning_rate, betas=(0.5, 0.9))
 opt_d = torch.optim.Adam(discriminator.parameters(),
                          lr=learning_rate, betas=(0.5, 0.9))
@@ -104,9 +104,8 @@ def run_epoch(net, dataloader, update=True):
             data.to(DEVICE) for data in batch_data]
 
         # Get weight of each loss
-        w_recon, w_perceptual, w_kld, w_dis = weight_scheduler(cur_iter, change_cycle=ITER_PER_EPOCH)
-        # Count current iter
-        cur_iter += 1
+        w_recon, w_perceptual, w_kld, w_dis = weight_scheduler(
+            cur_iter, change_cycle=ITER_PER_EPOCH)
 
         # Train Generator
         opt_ae.zero_grad()
@@ -131,7 +130,7 @@ def run_epoch(net, dataloader, update=True):
             g_grads = torch.autograd.grad(
                 g_loss, net.get_last_layer(), retain_graph=True)[0]
             d_weight = torch.norm(recon_grads) / (torch.norm(g_grads) + 1e-4)
-            d_weight = torch.clamp(d_weight, 0.0, 10.0).detach()
+            d_weight = torch.clamp(d_weight, 0.0, 1e4).detach()
         else:
             d_weight = 1
 
@@ -170,7 +169,7 @@ def run_epoch(net, dataloader, update=True):
         total_num += len(raw_img)
 
         # Checkpoint
-        if update and cur_iter % ITER_PER_EPOCH == 1 and cur_iter != 1:
+        if update and cur_iter % ITER_PER_EPOCH == 0 and cur_iter != 0:
 
             # Change eval mode
             net.eval()
@@ -181,9 +180,15 @@ def run_epoch(net, dataloader, update=True):
 
             # Change train mode
             net.train()
+
+            cur_iter += 1
             return recon_total_loss / total_num, kld_total_loss / total_num, G_total_loss / total_num, D_total_loss / total_num
 
+        # Only if update should count cur_iter
+        if update:
+            cur_iter += 1
     return recon_total_loss / total_num, kld_total_loss / total_num, G_total_loss / total_num, D_total_loss / total_num
+
 
 debug = False
 if debug:
