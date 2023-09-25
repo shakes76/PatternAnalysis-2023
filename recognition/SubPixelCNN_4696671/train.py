@@ -66,16 +66,18 @@ start = time.time()
 for epoch in range(epochs):
     for i, (data, _) in enumerate(train_loader):
         
+        # Generate model inputs via downsampling
+        new_data = downscale(data)
+
         # Send data to device
         data = data.to(device)
-
-        # Downscale images by factor of 4
-        new_data = downscale(data)
+        new_data = new_data.to(device)
 
         # Forward pass of model
         outputs = model(new_data)
         loss = criterion(outputs, data)
-        losses.append(loss)
+        losses.append(loss.item())
+        
         # Optimization step
         optimiser.zero_grad()
         loss.backward()
@@ -83,7 +85,7 @@ for epoch in range(epochs):
 
         if (i+1) % 100 == 0:
             print("Epoch [{}/{}], Step [{}/{}], Loss: {:.5f}"
-                  .format(epoch+1, epochs, i+1, total_step, loss))
+                  .format(epoch+1, epochs, i+1, total_step, loss.item()))
             sys.stdout.flush()
 
         # Decay Learning Rate using Scheduler            
@@ -96,9 +98,11 @@ print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins i
 
 # Testing
 print("> Testing")
+sys.stdout.flush()
+
+
 start = time.time()
 model.eval()
-
 psnrs = []
 
 def PSNR(mse, maxi = 1):
@@ -107,7 +111,7 @@ def PSNR(mse, maxi = 1):
 
 with torch.no_grad():
     
-    for i, data in enumerate(test_loader, 0):
+    for i, (data, _) in enumerate(test_loader):
 
         data = data.to(device)
 
