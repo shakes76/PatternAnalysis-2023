@@ -90,3 +90,32 @@ elapsed = end - start
 print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
 
 
+# Testing
+print("> Testing")
+start = time.time()
+model.eval()
+
+psnrs = []
+
+def PSNR(mse, maxi = 1):
+    # Calculate PSNR (default maxi is 1 because float representation of color)
+    return 10 * math.log(maxi^2 / mse, 10)
+
+with torch.no_grad():
+    
+    for i, data in enumerate(test_loader, 0):
+
+        data = data.to(device)
+
+        # Downscale data by factor of 4
+        new_data = downscale(data, 4)
+
+        # Forward model pass
+        outputs = model(new_data)
+        mse = criterion(outputs, data)
+
+        psnrs.append(PSNR(mse, 1))
+
+print("Average PSNR on Test Set: "+ np.mean(psnrs))
+
+sys.stdout.flush()
