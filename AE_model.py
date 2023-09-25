@@ -188,7 +188,7 @@ class Autoencoder(nn.Module):
 
         # For convienient purpose, store the z-shape.
         latent_wh = resolution // 2 ** (len(ch_mult)-1)
-        self.z_shape = [z_channels, latent_wh, latent_wh]
+        self.z_shape = [embed_dim, latent_wh, latent_wh]
 
     def encode(self, x):
         h = self.encoder(x)

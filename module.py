@@ -112,7 +112,7 @@ class AttnBlock(nn.Module):
 
         # attend to values
         V = rearrange(V, "b c h w -> b c (h w)")
-        W = rearrange(K, "b hw_q hw_k -> b hw_k hw_q")
+        W = rearrange(W, "b hw_q hw_k -> b hw_k hw_q")
         H = torch.bmm(V, W)
         # b, c,hw (hw of q) h_[b,c,j] = sum_i v[b,c,i] W[b,i,j], j->key
 
