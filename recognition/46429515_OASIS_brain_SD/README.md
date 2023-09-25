@@ -11,12 +11,12 @@ model operates by gradually adding noise to an input image in a forward process
 and then retrieves the original image by denoising (backwards process).
 
 
-#Dependencies
+##Dependencies
 
 
-#Usage Example
+##Usage Example
 
 
-#Justification
+##Justification
 
 
