@@ -24,9 +24,10 @@ sys.stdout.flush()
 train_loader = get_train_loader()
 test_loader = get_test_loader()
 
-# downscale
+# Function to Downscale images for input
+original_size = (240, 256) # original image size
 def downscale(images, factor=4):
-    return torch.tensor(map(lambda x: Resize(tuple(map(lambda y: y // factor, original_size)))(x),images))
+    return Resize((60, 64), antialias=True)(images)
 
 # Vizualise some of the training data
 real_batch = next(iter(train_loader))
@@ -34,7 +35,14 @@ plt.figure(figsize=(8,8))
 plt.axis("off")
 plt.title("Training Images - Targets")
 plt.imshow(np.transpose(torchvision.utils.make_grid(real_batch[0].to(device)[:64], padding=2, normalize=True).cpu(),(1,2,0)))
-plt.show()
+plt.savefig("train_target.png")
+
+# Vizualise some of the downscaled training data
+plt.figure(figsize=(8,8))
+plt.axis("off")
+plt.title("Training Images - Downscaled")
+plt.imshow(np.transpose(torchvision.utils.make_grid(downscale(real_batch[0]).to(device)[:64], padding=2, normalize=True).cpu(),(1,2,0)))
+plt.savefig("train_down.png")
 
 # Get Model
 model = ESPCN(1, 4)
@@ -51,7 +59,7 @@ scheduler = torch.optim.lr_scheduler.OneCycleLR(optimiser,
 criterion = torch.nn.functional.mse_loss
 total_step = len(train_loader)
 
-original_size = (240, 256)
+
 
 
 # Training Loop
