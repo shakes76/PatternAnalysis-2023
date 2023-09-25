@@ -77,7 +77,7 @@ for epoch in range(epochs):
         outputs = model(new_data)
         loss = criterion(outputs, data)
         losses.append(loss.item())
-        
+
         # Optimization step
         optimiser.zero_grad()
         loss.backward()
@@ -107,7 +107,7 @@ psnrs = []
 
 def PSNR(mse, maxi = 1):
     # Calculate PSNR (default maxi is 1 because float representation of color)
-    return 10 * math.log(maxi^2 / mse, 10)
+    return 10 * math.log(maxi**2 / mse, 10)
 
 with torch.no_grad():
     
@@ -116,19 +116,19 @@ with torch.no_grad():
         data = data.to(device)
 
         # Downscale data by factor of 4
-        new_data = downscale(data, 4)
+        new_data = downscale(data)
 
         # Forward model pass
         outputs = model(new_data)
-        mse = criterion(outputs, data)
+        mse = criterion(outputs, data).item()
 
         psnrs.append(PSNR(mse, 1))
 
-print("Average PSNR on Test Set: "+ np.mean(psnrs))
+print("Average PSNR on Test Set: " + str(np.mean(psnrs)))
 sys.stdout.flush()
 
 # Save trained Model
-torch.save(model, "model.pth")
+torch.save(model.state_dict(), "model.pth")
 
 # Plot loss per step
 plt.figure(figsize=(10,5))

@@ -4,6 +4,7 @@ EXAMPLE USAGE
 # Imports
 import torch
 from dataset import get_test_loader, downscale
+from modules import ESPCN
 import matplotlib.pyplot as plt
 
 # PyTorch setup
@@ -12,8 +13,8 @@ print(torch.cuda.is_available())
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Load Model
-model = torch.load("model.pth")
-model.eval()
+model = ESPCN(1, 2)
+model.load_state_dict(torch.load("model.pth"))
 
 # Get testing data
 test_loader = get_test_loader()
