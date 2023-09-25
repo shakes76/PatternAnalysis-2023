@@ -8,16 +8,16 @@ import torch.nn as nn
 # Model Definition
 class ESPCN(nn.Module):
 
-    def __init__(self, in_channels, upscaling_factor=4):
+    def __init__(self, in_channels, upscaling_factor=2):
         super(ESPCN, self).__init__()
 
         self.activation = nn.Tanh()
 
-        self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=5)
-        self.conv2 = nn.Conv2d(64, 64, kernel_size=3)
-        self.conv3 = nn.Conv2d(64, 32, kernel_size=3)
-        self.conv4 = nn.Conv2d(32, in_channels * (upscaling_factor ** 2), kernel_size=3)
-        self.out = nn.functional.pixel_shuffle
+        self.conv1 = nn.Conv2d(in_channels, 64, kernel_size=5, padding=2)
+        self.conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1)
+        self.conv3 = nn.Conv2d(64, 32, kernel_size=3, padding=1)
+        self.conv4 = nn.Conv2d(32, in_channels * (upscaling_factor ** 2), kernel_size=3, padding=1)
+        self.out = lambda x: nn.functional.pixel_shuffle(x, upscaling_factor)
 
     def forward(self, x):
         x = self.conv1(x)
