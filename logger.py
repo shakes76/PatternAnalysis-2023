@@ -60,12 +60,23 @@ class Logger:
             Y.append(cur / min(i+1, window))
         return Y
 
-    def show_plot(self, smooth_window=5, xlabel='iteration', ylabel='loss'):
-        print("!")
-        for k, v in self.data.items():
-            plt.plot(np.arange(len(v)), np.log(self.smooth_num(v, window=smooth_window)), label=k)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
+    def show_plot(self, start=0, smooth_window=5, xlabel='iteration', ylabel='loss'):
+        # mapping function
+        m_f = lambda v: self.smooth_num(v, window=smooth_window)[start:]
+
+        L = len(self.data['recon_loss'])
+        X = np.arange(L)[start:]
+
+        plt.subplot(2, 2, 1)
+        plt.plot(X, m_f(self.data['recon_loss']), label='Reconstruction Loss')
+        plt.legend()
+        plt.subplot(2, 2, 2)
+        plt.plot(X, m_f(self.data['kld_loss']), label='KL Divergence Loss')
+        plt.legend()
+        plt.subplot(2, 2, 3)
+        plt.plot(X, m_f(self.data['fake_recon_loss']), label='Reconstruction D Loss')
+        plt.plot(X, m_f(self.data['fake_sample_loss']), label='Sample D Loss')
+        plt.plot(X, m_f(self.data['discriminator_loss']), label='Discriminator Toatal Loss')
         plt.legend()
         plt.show()
 

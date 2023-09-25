@@ -1,7 +1,8 @@
 '''
 TODO: 
 1. Log Visualization
-2. Merge eval & train
+2. Deploy VQ-VAE
+?. Time encoding for VAE
 '''
 
 # ==== import from package ==== #
