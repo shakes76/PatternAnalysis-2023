@@ -70,11 +70,11 @@ def main():
     # GPU Device Config
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    dataset = "MNIST"   # ADNI, OASIS
+    dataset = "OASIS"   # ADNI, OASIS
 
     # Hyper parameters
-    learning_rate = 2e-4
-    num_epochs = 50
+    learning_rate = 3e-4
+    num_epochs = 10
     beta = 1.0
 
     dataset_path = os.path.join(".", "datasets", dataset)
@@ -82,6 +82,19 @@ def main():
     if dataset == "OASIS":
         # Load OASIS Dataset
         num_channels = 1
+
+        oasis_data_path = os.path.join(".", "datasets", "OASIS")
+        # Define a transformation to apply to the images (e.g., resizing)
+        transform = transforms.Compose([
+            transforms.Resize((256, 256)),  # Adjust the size as needed
+            transforms.ToTensor(),
+        ])
+        oasis = OASIS(oasis_data_path, transform=transform)
+
+        train_loader = oasis.train_loader
+        test_loader = oasis.test_loader
+        validate_loader = oasis.validate_loader
+
     elif dataset == "ADNI":
         # Load ADNI dataset
         num_channels = 1
@@ -115,11 +128,6 @@ def main():
 
     # Dataset Imported
     print(f"{dataset} Dataset Imported :)\n------\n")
-
-    # Data Loaders
-    # train_loader = torch.utils.DataLoader()
-    # validation_loader = torch.utils.DataLoader()
-    # test_loader = torch.utils.DataLoader()
 
     # Define Model and move to GPU
     model = VectorQuantizedVAE(input_dim, hidden_dim, z_dim)

@@ -15,6 +15,7 @@ from torch.utils.data import DataLoader, random_split
 
 TYPE = "seg_"       # "seg_" for segmented, or "" for non-segmented
 
+COPIED = True
 TRAIN_BATCH_SIZE = 128
 TEST_BATCH_SIZE = 128
 VALIDATE_BATCH_SIZE = 128
@@ -31,72 +32,101 @@ class OASIS():
         self.root_dir = root_dir
         self.transfrom = transform
 
-        # TRAIN_PATH = [os.path.join(self.root_dir, "keras_png_slices_seg_train"),
-        #               os.path.join(self.root_dir, "keras_png_slices_train")][TYPE]
-        # TEST_PATH = [os.path.join(self.root_dir, "keras_png_slices_seg_test"),
-        #              os.path.join(self.root_dir, "keras_png_slices_test")][TYPE]
-        # VALID_PATH = [os.path.join(self.root_dir, "keras_png_slices_seg_validate"),
-        #               os.path.join(self.root_dir, "keras_png_slices_validate")][TYPE]
+        # Copies imagess into their own case folder if not already done
+        if not COPIED:
+            for fold in FOLDS:
+                source_dir = os.path.join(
+                    self.root_dir, OASIS_FOLD_PATH[(TYPE, fold)])
 
-        for fold in FOLDS:
-            source_dir = os.path.join(
-                self.root_dir, OASIS_FOLD_PATH[(TYPE, fold)])
+                for filename in os.listdir(source_dir):
+                    if not filename.endswith(".png"):
+                        continue    # skip file
+                    # print(filename)
+                    # Assumes the format 'seg_xxx_slice_y.nii.png'
+                    patient_id = filename.split("_")[1]
+                    # print(patient_id)
 
-            for filename in os.listdir(source_dir):
-                if not filename.endswith(".png"):
-                    continue    # skip file
-                # print(filename)
-                # Assumes the format 'seg_xxx_slice_y.nii.png'
-                patient_id = filename.split("_")[1]
-                # print(patient_id)
+                    # Define the destination directory for this patient
+                    destination_dir = os.path.join(
+                        OASIS_TRANS_DIR, OASIS_FOLD_PATH[(TYPE, fold)], patient_id)
+                    # print(destination_dir)
 
-                # Define the destination directory for this patient
-                destination_dir = os.path.join(
-                    OASIS_TRANS_DIR, OASIS_FOLD_PATH[(TYPE, fold)], patient_id)
-                # print(destination_dir)
+                    # Create the destination directory if it doesn't exist
+                    os.makedirs(destination_dir, exist_ok=True)
+                    print("made directory", destination_dir)
+                    # Define the source and destination file paths
+                    source_filepath = os.path.join(source_dir, filename)
+                    destination_filepath = os.path.join(
+                        destination_dir, filename)
 
-                # Create the destination directory if it doesn't exist
-                os.makedirs(destination_dir, exist_ok=True)
-                print("made directory", destination_dir)
-                # Define the source and destination file paths
-                source_filepath = os.path.join(source_dir, filename)
-                destination_filepath = os.path.join(destination_dir, filename)
+                    # Copy the image from source to destination
+                    shutil.copy(source_filepath, destination_filepath)
+                    print("copying", source_dir, "to", destination_dir)
 
-                # Copy the image from source to destination
-                shutil.copy(source_filepath, destination_filepath)
-                print("copying", source_dir, "to", destination_dir)
+        # New file paths
+        TRAIN_DIR = os.path.join(
+            OASIS_TRANS_DIR, OASIS_FOLD_PATH[(TYPE, "train")])
+        TEST_DIR = os.path.join(
+            OASIS_TRANS_DIR, OASIS_FOLD_PATH[(TYPE, "test")])
+        VALIDATE_DIR = os.path.join(
+            OASIS_TRANS_DIR, OASIS_FOLD_PATH[(TYPE, "validate")])
 
-        # self.train_image_paths = [os.path.join(
-        #     TRAIN_PATH, filename) for filename in os.listdir(TRAIN_PATH)]
+        # Load Dataset
+        self.train_dataset = ImageFolder(TRAIN_DIR, transform=transform)
+        self.test_dataset = ImageFolder(TEST_DIR, transform=transform)
+        self.validate_dataset = ImageFolder(VALIDATE_DIR, transform=transform)
 
-        # self.valid_image_paths = [os.path.join(
-        #     VALID_PATH, filename) for filename in os.listdir(VALID_PATH)]
+        self.train_loader = DataLoader(
+            self.train_dataset, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
+        self.test_loader = DataLoader(
+            self.test_dataset, batch_size=TEST_BATCH_SIZE, shuffle=False)
+        self.validate_loader = DataLoader(
+            self.validate_dataset, batch_size=VALIDATE_BATCH_SIZE, shuffle=False)
 
-        # self.test_image_paths = [os.path.join(
-        #     TEST_PATH, filename) for filename in os.listdir(TEST_PATH)]
+        # print("Testing train loader")
+        # Iterate through the DataLoader to get a batch of data
+        # for batch_idx, data in enumerate(self.train_loader):
+        #     # "data" will contain a tuple (or dictionary) of inputs and labels, if applicable
+        #     inputs, labels = data  # Modify this if your DataLoader provides different data structure
 
-        # # Load Dataset
-        # train_dataset = ImageFolder(os.path.join(
-        #     self.root_dir, TEST_PATH), transform=transform)
-        # test_dataset = ImageFolder(os.path.join(
-        #     self.root_dir, TRAIN_PATH), transform=transform)
-        # validate_dataset = ImageFolder(os.path.join(
-        #     self.root_dir, VALID_PATH), transform=transform)
+        #     # Print information about the batch
+        #     print(f"Batch {batch_idx + 1}:")
+        #     # Number of samples in the batch
+        #     print(f"Batch size: {len(inputs)}")
 
-        # train_loader = DataLoader(
-        #     train_dataset, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
-        # test_loader = DataLoader(
-        #     test_dataset, batch_size=TEST_BATCH_SIZE, shuffle=False)
-        # validate_loader = DataLoader(
-        #     validate_dataset, batch_size=VALIDATE_BATCH_SIZE, shuffle=False)
+        #     # Print or process the data as needed
+        #     # Shape of the input data (e.g., [batch_size, channels, height, width])
+        #     print("Input data shape:", inputs.shape)
 
-        print("Here, loaded")
+        #     # Optionally, print or process labels if your dataset has labels
+        #     if labels is not None:
+        #         # Shape of the labels (e.g., [batch_size])
+        #         print("Labels shape:", labels.shape)
+
+        #     # Optionally, visualize or inspect a few samples from the batch
+        #     # For example, if you are working with image data:
+        #     import matplotlib.pyplot as plt
+
+        #     # Plot the first few images from the batch
+        #     num_samples_to_plot = 4
+        #     for i in range(min(num_samples_to_plot, len(inputs))):
+        #         plt.subplot(1, num_samples_to_plot, i + 1)
+        #         # Assuming channels-last format for images
+        #         plt.imshow(inputs[i].permute(1, 2, 0).numpy())
+        #         plt.title(f"Sample {i + 1}")
+        #         plt.axis("off")
+
+        #     plt.show()
+
+        #     # Break the loop if you only want to inspect the first batch
+        #     break
 
     def __len__(self):
         """
-        Returns the number of images in the dataset
+        Returns the number of images in the train, test and validate sets as tuple
         """
-        pass
+
+        return len(self.train_dataset), len(self.test_dataset), len(self.validate_dataset)
 
     def __get__item(self, index):
         """
