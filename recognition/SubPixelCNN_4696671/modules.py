@@ -1,0 +1,3 @@
+"""
+DEFINITION OF THE MODEL
+"""
