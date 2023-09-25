@@ -9,12 +9,17 @@ import torchvision.transforms as transforms
 
 class MyDataset(torch.utils.data.Dataset):
 
-    def __init__(self, folder_name, seg_folder_name, limit=None):
+    def __init__(self, mode, limit=None):
         '''
             folder_name: folder save brain
             seg_folder_name: folder save seg
             limit: only load limit data
         '''
+        assert mode in ['train', 'test', 'validate']
+
+        # folder_name
+        folder_name = f'../keras_png_slices_data/keras_png_slices_data/keras_png_slices_{mode}'
+        seg_folder_name = f'../keras_png_slices_data/keras_png_slices_data/keras_png_slices_seg_{mode}'
         self.raw_img = []
         self.seg_img = []
         self.brain_index = []
@@ -22,7 +27,7 @@ class MyDataset(torch.utils.data.Dataset):
         raw_paths = sorted(glob(f'{folder_name}/*.png'))
         seg_paths = sorted(glob(f'{seg_folder_name}/*.png'))
 
-        total = limit if limit else len(raw_paths) 
+        total = limit if limit else len(raw_paths)
         for img_path, seg_path in tqdm(zip(raw_paths, seg_paths), total=total):
             # check if the image is paired
             assert tuple(img_path.split(
@@ -60,16 +65,15 @@ class MyDataset(torch.utils.data.Dataset):
 
             # Only load limit images if limit has been set
             if limit and len(self.raw_img) == limit:
-                break 
+                break
 
         # Sorted the images by brain_index
         tmp = sorted([(j, k, i)
-                        for i, (j, k) in enumerate(self.brain_index)])
+                      for i, (j, k) in enumerate(self.brain_index)])
         # Get rank given index in self.brain_index
         self.inv_index_dict = {i: i2 for i2, (j, k, i) in enumerate(tmp)}
         # Get index in self.brain_index given rank
         self.index_dict = {v: k for k, v in self.inv_index_dict.items()}
-
 
         self.raw_transform = transforms.Compose([
             transforms.ToTensor(),
@@ -92,11 +96,15 @@ class MyDataset(torch.utils.data.Dataset):
 
 
 def get_dataloader(mode='train', batch_size=8, limit=None):
-    assert mode in ['train', 'test', 'validate']
-    dataset = MyDataset(
-        f'../keras_png_slices_data/keras_png_slices_data/keras_png_slices_{mode}',
-        f'../keras_png_slices_data/keras_png_slices_data/keras_png_slices_seg_{mode}', limit=limit)
+    assert mode in ['train', 'test', 'validate', 'train_and_validate']
 
+    # Build concat dataset
+    if mode == 'train_and_validate':
+        train_dataset = MyDataset(mode='train', limit=limit)
+        validate_dataset = MyDataset(mode='validate', limit=limit)
+        dataset = torch.utils.data.ConcatDataset([train_dataset, validate_dataset])
+    else:
+        dataset = MyDataset(mode=mode, limit=limit)
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
