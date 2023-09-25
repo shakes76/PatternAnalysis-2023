@@ -92,19 +92,6 @@ class VectorQuantizedVAE(nn.Module):
         # Call parent
         super().__init__()
 
-        # # Encoder
-        # self.img_to_hidden = nn.Linear(input_channels, hidden_channels)
-
-        # # Parametrisation
-        # self.hidden_to_mu = nn.Linear(hidden_channels, z_dim)
-        # self.hidden_to_sigma = nn.Linear(hidden_channels, z_dim)
-
-        # # Decoder (pretty much opposite of encoder)
-        # self.z_to_hidden = nn.Linear(z_dim, hidden_channels)
-        # self.hidden_to_img = nn.Linear(hidden_channels, input_channels)
-
-        # self.relu = nn.ReLU()
-
         self.encoder = nn.Sequential(
             nn.Conv2d(input_channels, hidden_channels,
                       kernel_size=4, stride=2, padding=1),

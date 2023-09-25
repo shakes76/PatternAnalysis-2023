@@ -58,7 +58,6 @@ def train(train_loader: DataLoader, model: VectorQuantizedVAE, optimiser: torch.
         fin_loss.backward()
 
         optimiser.step()
-    print("1 Training loop done")
 
 
 def test(test_loader: DataLoader, model: VectorQuantizedVAE, device: torch.device):
@@ -89,11 +88,8 @@ def test(test_loader: DataLoader, model: VectorQuantizedVAE, device: torch.devic
 
 
 def generate_samples(images, model, device):
-    print(f"Generating samples on {device}")
     with torch.no_grad():
-        print(f"Passing images to {device}")
         images = images.to(device)
-        print(f"Images on {device}")
 
         # Invoke forward pass on model
         x_tilde, _, _ = model(images)
@@ -111,7 +107,7 @@ def main():
 
     # Hyper parameters
     learning_rate = 3e-4
-    num_epochs = 10
+    num_epochs = 100
     beta = 1.0
 
     dataset_path = os.path.join(".", "datasets", dataset)
@@ -196,19 +192,16 @@ def main():
     print("Retrieving first batch of images from test loader")
     fixed_images, _ = next(iter(test_loader))
     print(f"{len(fixed_images)} images loaded")
-    fixed_grid = make_grid(fixed_images, nrow=8, range=(-1, 1), normalize=True)
-    print("Fixed Grid computed")
 
     # Generate the samples first once
     reconstruction = generate_samples(fixed_images, model, device)
-    grid = make_grid(reconstruction.cpu(), nrow=8,
-                     range=(-1, 1), normalize=True)
+    print("Reconstruction Complete")
 
-    print("Reconstruction Done")
-
+    # Initialise Directory to save model to
     save_filename = os.path.join(".", "ModelParams")
     if not os.path.exists(save_filename):
         os.makedirs(save_filename)
+
     # Keep track of best loss so far and initialise to arbitrary -1
     best_loss = -1.
 
@@ -233,13 +226,13 @@ def main():
             torch.save(model.state_dict(), f)
 
     # Visualize the generated samples using matplotlib
-    fig, axes = plt.subplots(nrows=8, ncols=8, figsize=(12, 12))
-    for i, ax in enumerate(axes.flat):
-        ax.imshow(reconstruction[i].cpu().numpy().squeeze(), cmap='gray')
-        ax.axis('off')
+    # fig, axes = plt.subplots(nrows=8, ncols=8, figsize=(12, 12))
+    # for i, ax in enumerate(axes.flat):
+    #     ax.imshow(reconstruction[i].cpu().numpy().squeeze(), cmap='gray')
+    #     ax.axis('off')
 
-    plt.tight_layout()
-    plt.show()
+    # plt.tight_layout()
+    # plt.show()
 
 
 def inference(digit, model, dataset):
