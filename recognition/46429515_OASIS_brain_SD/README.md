@@ -108,15 +108,29 @@ The neural network cannot distinguish between each timesteps as the network has 
 shared across time but it is required to filter out noise of varying intensities. This is worked
 around by using positional embeddings which stores the noise intensity information. The positions
 index are calculated using sine and cosine: $P(k, 2i) = sin(k/(n^{2i/d}))$, $P(k, 2i + 1) = cos(k/(n^{2i/d}))$
-These are added as additional input alongside the noisy image.
+These are added as additional input alongside the noisy image. The following code is used in
+the U-Net model:
 
 ```
-insert positional embedding here
+self.time_mlp = nn.Sequential(
+            PositionalEmbedding(time_emb_dim),
+            nn.Linear(time_emb_dim, time_emb_dim),
+            nn.ReLU()
+        )
 ```
 
 
 
-### Loss Function
+### Loss Function - train.py
+
+Diffusion models calculate the distance of the predicted noise and actual noise in the image
+to determine the loss (denoising score similarity equivalent to variational inference). The
+loss function is simply used in the training process as follows:
+
+```
+loss = get_loss(model, images, t)
+loss.backward()
+```
 
 
 ## Justification
