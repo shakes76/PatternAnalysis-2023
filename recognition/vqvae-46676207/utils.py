@@ -13,6 +13,7 @@ from PIL import Image
 from torch.utils.data.sampler import SubsetRandomSampler
 import matplotlib.pyplot as plt
 
+# IO Paths
 DATA_PATH = '/Users/samson/Documents/UQ/COMP3710/data/keras_png_slices_data/'                     # root of data dir
 TRAIN_INPUT_PATH = DATA_PATH + 'keras_png_slices_train/'         # train input
 VALID_INPUT_PATH = DATA_PATH + 'keras_png_slices_validate/'      # valid input
@@ -25,4 +26,12 @@ TRAIN_TXT = './oasis_train.txt'     # info of img for train
 VALID_TXT = './oasis_valid.txt'     # info of img for valid
 TEST_TXT = './oasis_test.txt'       # info of img for test
 GENERATED_IMG_PATH = 'gened_imgs/'
+
+# Configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+INPUT_DIM = 256*256 # dimension of Input
+Z_DIM = 10          # dimension of Latent Space
+H_DIM = 1600        # dimension of Hidden Layer
+NUM_EPOCHS = 20     # number of epoch
+LR_RATE = 3e-4      # learning rate
 
