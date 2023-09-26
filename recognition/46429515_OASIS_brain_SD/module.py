@@ -96,6 +96,7 @@ class PositionalEmbedding(nn.Module):
     def forward(self, time):
         half_dim = self.dim // 2
         embeddings = math.log(10000) / (half_dim - 1)
+        ###NEED TO FIX
         embeddings = torch.exp(torch.arange(half_dim, device) * -embeddings)
         embeddings = time[:, None] * embeddings[None, :]
         embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
@@ -135,7 +136,7 @@ class UNet(nn.Module):
                                                time_emb_dim=time_emb_dim, up=True)
                                          for i in range(len(down_ch) - 1)])
         
-        self.output = nn.Conv2d(up_ch[-1], out_dim, 3)
+        self.output = nn.Conv2d(up_ch[-1], out_dim, 1)
         
     def forward(self, x, timestep):
         # Embed time
@@ -155,3 +156,4 @@ class UNet(nn.Module):
             x = torch.cat((x, residual_x), dim=1)
             x = up(x, t)
         return self.output(x)
+    
