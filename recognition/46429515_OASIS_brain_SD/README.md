@@ -38,6 +38,7 @@ from PIL import Image
 With a custom dataset class created (OASISDataset), this will enable the images to be transformed
 as desired, as well as implement the dataset into a dataloader to be used for our task, where our
 specified root_path is the path to the parent folder of images and the batch size is 32.
+
 ```
 train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', transform=transform)
 test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', transform=transform)
@@ -52,7 +53,43 @@ validate_loader = DataLoader(validate_data, batch_size=batch_size)
 
 In this process, we build more gradually noisy images to be inputted into our model. Here,
 noise-levels/varianes are pre-computed and we sample each timestep image separately
-(Sums of Gaussians = Gaussian)
+(Sums of Gaussians = Gaussian). The output of the noisy images can be seen as follows 
+(code referenced from https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL):
+
+```
+def show_tensor_image(image):
+    reverse_transforms = transforms.Compose([
+        transforms.Lambda(lambda t: (t + 1) / 2),
+        transforms.Lambda(lambda t: t.permute(1, 2, 0)),
+        transforms.Lambda(lambda t: t * 255),
+        transforms.Lambda(lambda t: t.numpy().astype(np.uint8)),
+        transforms.ToPILImage()
+    ])
+    
+    if len(image.shape) == 4:
+        image = image[0, :, :, :]
+    plt.imshow(reverse_transforms(image))
+
+image = next(iter(train_loader))[0]
+
+plt.figure(figsize=(15, 15))
+plt.axis('off')
+num_images = 10
+step = int(T/num_images)
+
+for idx in range(0, T, step):
+    t = torch.Tensor([idx]).type(torch.int64)
+    plt.subplot(1, num_images+1, int(idx/step) + 1)
+    img, noise = forward_diffusion_sample(image, t)
+    show_tensor_image(img)
+```
+
+
+### U-Net (Backwards Process) - module.py
+
+
+### Loss Function
+
 
 ## Justification
 
