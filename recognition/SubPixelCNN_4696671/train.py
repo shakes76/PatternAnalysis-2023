@@ -4,9 +4,8 @@ TRAINING LOOP
 
 # Imports
 from dataset import get_test_loader, get_train_loader, downscale
-from modules import ESPCN, CustomESPCN
+from modules import ESPCN
 import torch
-import torchvision.utils
 from torchvision.transforms import Resize
 import matplotlib.pyplot as plt
 import numpy as np

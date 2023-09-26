@@ -4,7 +4,7 @@ EXAMPLE USAGE
 # Imports
 import torch
 from dataset import get_test_loader, downscale
-from modules import ESPCN, CustomESPCN
+from modules import ESPCN
 import matplotlib.pyplot as plt
 
 # Constants
