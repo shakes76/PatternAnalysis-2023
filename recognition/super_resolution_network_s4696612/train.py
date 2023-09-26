@@ -69,7 +69,7 @@ model = SuperResolution()
 model.to(device)
 model.train()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-criterion = nn.MSELoss()
+criterion = nn.L1Loss()#nn.MSELoss()
 
 print("> Training.")
 
