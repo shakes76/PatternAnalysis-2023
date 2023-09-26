@@ -5,7 +5,7 @@ import torch
 import torch.nn as nn 
 import time
 import numpy as np
-from utils import ContrastiveLoss
+import matplotlib.pyplot as plt
 
 # Device Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -18,7 +18,7 @@ if not torch.cuda.is_available():
 
 # Training Parameters
 NUM_EPOCHS = 30
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 0.00005
 WEIGHT_DECAY = 1e-3
 BATCH_SIZE = 32
 
@@ -30,6 +30,9 @@ MODEL_NAME = "ADNI-SiameseNetwork"
 DATASET_DIR = "recognition/Siamese-ADNI-46420763/data/AD_NC"
 LOAD_MODEL = False
 MODEL_DIR = None
+
+LOG = True
+VISUALIZE = False
 
 def main():
     ######################    
@@ -131,12 +134,15 @@ def main():
         epoch_valid_loss.append(total_valid_loss/len(valid_dataloader))
         epoch_valid_acc.append(valid_accuracy)
         epoch_train_acc.append(train_accuracy)
-            
 
-    np.savetxt('epoch_train_loss.csv', epoch_train_loss, delimiter=',')
-    np.savetxt('epoch_valid_loss.csv', epoch_valid_loss, delimiter=',')
-    np.savetxt('epoch_valid_acc.csv', epoch_valid_acc, delimiter=',')
-    np.savetxt('epoch_train_acc.csv', epoch_train_acc, delimiter=',')
+    if LOG == True:
+        np.savetxt('epoch_train_loss.csv', epoch_train_loss, delimiter=',')
+        np.savetxt('epoch_valid_loss.csv', epoch_valid_loss, delimiter=',')
+        np.savetxt('epoch_valid_acc.csv', epoch_valid_acc, delimiter=',')
+        np.savetxt('epoch_train_acc.csv', epoch_train_acc, delimiter=',')
+    
+    if VISUALIZE == True:
+        visualize(epoch_train_acc, epoch_valid_acc, epoch_train_loss, epoch_valid_loss)
     
     end = time.time()
     elapsed = end - start
@@ -147,6 +153,19 @@ def main():
     #   Save Model Weights:   #
     ###########################
     torch.save(model.state_dict(), "./" + MODEL_NAME + ".pt")
+    
+    
+def visualize(epoch_train_acc, epoch_valid_acc, epoch_train_loss, epoch_valid_loss):
+    plt.plot(range(len(epoch_train_acc)), epoch_train_acc, label = "Training Accuracy")
+    plt.plot(range(len(epoch_valid_acc)), epoch_valid_acc, label = "Validation Accuracy")
+    plt.plot(range(len(epoch_train_loss)), epoch_train_loss, label = "Training Loss")
+    plt.plot(range(len(epoch_valid_loss)), epoch_valid_loss, label = "Validation Loss")
+    plt.grid(True)
+    plt.ylabel("Accuracy/Loss")
+    plt.xlabel("Epoch #")
+    plt.title("Training Loss and Accuracy")
+    plt.legend()
+    plt.show()
     
 if __name__ == "__main__":
     main()
