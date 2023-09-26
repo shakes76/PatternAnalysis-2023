@@ -13,9 +13,9 @@ class ImageDataset(Dataset):
     
     def __getitem__(self, index):
         image_path = os.path.join(self.directory, self.data[index])
-        image = Image.open(image_path)
+        label = Image.open(image_path)
+        image = label.resize((64,60))
         if self.transform:
+            label = self.transform(label)
             image = self.transform(image)
-        label = image
-        result = image.resize((60, 64))
-        return result, label
+        return image, label

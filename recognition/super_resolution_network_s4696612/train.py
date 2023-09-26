@@ -3,6 +3,9 @@ import torch
 from dataset import *
 from modules import *
 import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
+import torchvision
+import numpy as np
 
 #-------------
 # Device Configuration
@@ -16,17 +19,16 @@ print()
 
 #---------------
 # Hyper Parameters
-learning_rate = 0.001
-num_epochs = 4
+learning_rate = 0.0001
+num_epochs = 1
 path = r"c:\Users\rotax\OneDrive\Desktop\COMP3710\AD_NC"
 
 
 #-----------------
 # Data
-batch_size = 32
-
-train_path = path + "\train\AD"
-test_path = path + "\test\AD"
+batch_size = 64
+train_path = path + "\\train\\AD"
+test_path = path + "\\test\\AD"
 
 transform = transforms.Compose([
     transforms.ToTensor(),
@@ -43,3 +45,53 @@ test_data = ImageDataset(directory=test_path,
 test_loader = torch.utils.data.DataLoader(test_data,
                                           batch_size=batch_size,
                                           shuffle=True)
+n_total_steps = len(train_loader)
+
+
+#-----------------
+# Plot starting and goal images
+real_batch = next(iter(train_loader))
+plt.figure(figsize=(8,8))
+plt.axis('off')
+plt.title('Starting Images')
+plt.imshow(np.transpose(torchvision.utils.make_grid(real_batch[0].to(device)[:64], padding=2,normalize=True).cpu(), (1,2,0)))
+plt.show()
+
+plt.figure(figsize=(8,8))
+plt.axis('off')
+plt.title('Goal Images')
+plt.imshow(np.transpose(torchvision.utils.make_grid(real_batch[1].to(device)[:64], padding=2,normalize=True).cpu(), (1,2,0)))
+plt.show()
+
+#----------------------------
+#Training
+model = SuperResolution()
+model.to(device)
+model.train()
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+criterion = nn.MSELoss()
+
+print("> Training.")
+
+for epoch in range(num_epochs):
+    for i, (images, labels) in enumerate(train_loader):
+        images = images.to(device)
+        labels = labels.to(device)
+
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        print(loss.item())
+
+        if (i + 1) % 10 == 0:
+            print(f"Epoch [{epoch + 1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item()}")
+            x = real_batch[0].to(device)[:64]
+            y = model(x)
+            plt.figure(figsize=(8,8))
+            plt.axis('off')
+            plt.title('Training Images')
+            plt.imshow(np.transpose(torchvision.utils.make_grid(y, padding=2,normalize=True).cpu(), (1,2,0)))
+            plt.show()
