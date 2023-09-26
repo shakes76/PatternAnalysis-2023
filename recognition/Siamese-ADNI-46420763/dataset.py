@@ -32,6 +32,7 @@ def get_dataloader(dir, batch_size, split):
     # Load into SiameseADNIDataset to create pairs
     train_dataset = SiameseADNIDataset(train_dataset)
     valid_dataset = SiameseADNIDataset(valid_dataset)
+    test_dataset = SiameseADNIDataset(test_dataset)
     
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     valid_dataloader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)

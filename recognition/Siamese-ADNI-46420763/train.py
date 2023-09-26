@@ -38,7 +38,7 @@ def main():
     ######################    
     #   Retrieve Data:   #
     ######################
-    train_dataloader, valid_dataloader, _ = get_dataloader(DATASET_DIR, BATCH_SIZE, [0.6, 0.2, 0.2])
+    train_dataloader, valid_dataloader, test_dataloader = get_dataloader(DATASET_DIR, BATCH_SIZE, [0.6, 0.2, 0.2])
     
     #########################   
     #   Initialize Model:   #
@@ -135,15 +135,6 @@ def main():
         epoch_valid_acc.append(valid_accuracy)
         epoch_train_acc.append(train_accuracy)
 
-    if LOG == True:
-        np.savetxt('epoch_train_loss.csv', epoch_train_loss, delimiter=',')
-        np.savetxt('epoch_valid_loss.csv', epoch_valid_loss, delimiter=',')
-        np.savetxt('epoch_valid_acc.csv', epoch_valid_acc, delimiter=',')
-        np.savetxt('epoch_train_acc.csv', epoch_train_acc, delimiter=',')
-    
-    if VISUALIZE == True:
-        visualize(epoch_train_acc, epoch_valid_acc, epoch_train_loss, epoch_valid_loss)
-    
     end = time.time()
     elapsed = end - start
     print("Training took ", str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
@@ -153,6 +144,45 @@ def main():
     #   Save Model Weights:   #
     ###########################
     torch.save(model.state_dict(), "./" + MODEL_NAME + ".pt")
+    
+    if LOG == True:
+        np.savetxt('epoch_train_loss.csv', epoch_train_loss, delimiter=',')
+        np.savetxt('epoch_valid_loss.csv', epoch_valid_loss, delimiter=',')
+        np.savetxt('epoch_valid_acc.csv', epoch_valid_acc, delimiter=',')
+        np.savetxt('epoch_train_acc.csv', epoch_train_acc, delimiter=',')
+    
+    if VISUALIZE == True:
+        visualize(epoch_train_acc, epoch_valid_acc, epoch_train_loss, epoch_valid_loss)
+    
+    
+    ######################  
+    #   Evaluate Test:   #
+    ######################
+    model.eval()
+    total_test_correct = 0
+    total_test_loss = 0.0
+    for i, (images1, images2, labels) in enumerate(test_dataloader):
+        images1 = images1.to(device)
+        images2 = images2.to(device)
+        labels = labels.to(device)
+        
+        # Forward pass
+        pred = model(images1, images2)
+        loss = criterion(pred, labels[:, None])
+        total_test_loss += loss.item()
+        
+        pred = torch.Tensor.int(torch.round(pred))
+        labels = torch.Tensor.int(labels)[:, None]
+        
+        total_test_correct += (pred == labels).sum().item()
+        
+    test_accuracy = total_test_correct/len(test_dataloader.dataset)
+    
+    print("Test loss: {:.5f} Test acc: {:.5f}".format(
+                epoch+1, 
+                total_test_loss/len(test_dataloader),
+                test_accuracy
+                ))
     
     
 def visualize(epoch_train_acc, epoch_valid_acc, epoch_train_loss, epoch_valid_loss):
