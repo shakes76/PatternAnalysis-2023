@@ -6,8 +6,12 @@ from PIL import Image
 root_path = 'data/keras_png_slices_data'
 
 # Define data transformations
-transform = transforms.Compose([transforms.Resize((224, 224)),
-                               transforms.ToTensor()])
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.RandomHorizontalFlip(),                      
+    transforms.ToTensor(),
+    transforms.Lambda(lambda t: (t * 2) - 1)
+])
 
 # Define batch size of data
 batch_size = 32
@@ -36,7 +40,8 @@ class OASISDataset(Dataset):
         if self.transform:
             image = self.transform(image)
         return image
-
+    
+    
 # Specifying paths to train, test and validate directories
 train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', transform=transform)
 test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', transform=transform)
