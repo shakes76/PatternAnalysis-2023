@@ -11,6 +11,9 @@ root_path = 'data/keras_png_slices_data'
 transform = transforms.Compose([transforms.Resize((224, 224)),
                                transforms.ToTensor()])
 
+# Define batch size of data
+batch_size = 32
+
 class OASISDataset(Dataset):
     def __init__(self, root, transform=None):
         self.root_dir = root
@@ -41,7 +44,6 @@ test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', transform=tr
 validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', transform=transform)
 
 # Create data loaders for each set
-batch_size = 32
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_data, batch_size=batch_size)
 validate_loader = DataLoader(validate_data, batch_size=batch_size)
