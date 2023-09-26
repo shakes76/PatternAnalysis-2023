@@ -4,7 +4,7 @@ TRAINING LOOP
 
 # Imports
 from dataset import get_test_loader, get_train_loader, downscale
-from modules import ESPCN
+from modules import ESPCN, CustomESPCN
 import torch
 import torchvision.utils
 from torchvision.transforms import Resize
@@ -13,6 +13,10 @@ import numpy as np
 import sys
 import time
 import math
+
+# Constants
+CHANNELS = 3
+FACTOR = 4
 
 # PyTorch setup
 print("PyTorch Version:", torch.__version__)
@@ -35,13 +39,13 @@ plt.imshow(image.permute(1,2,0), cmap='gray')
 plt.subplot(1,2,2)
 plt.axis("off")
 plt.title("Sample Training Image - Downsampled")
-plt.imshow(downscale(image).permute(1,2,0), cmap='gray')
+plt.imshow(downscale(image, FACTOR).permute(1,2,0), cmap='gray')
 
 plt.savefig("sample_input.png")
 
 
 # Get Model
-model = ESPCN(3, 2)
+model = CustomESPCN(CHANNELS, FACTOR)
 model = model.to(device)
 
 # Training Parameters
@@ -67,7 +71,7 @@ for epoch in range(epochs):
     for i, (data, _) in enumerate(train_loader):
         
         # Generate model inputs via downsampling
-        new_data = downscale(data)
+        new_data = downscale(data, FACTOR)
 
         # Send data to device
         data = data.to(device)
@@ -83,7 +87,7 @@ for epoch in range(epochs):
         loss.backward()
         optimiser.step()
 
-        if (i+1) % 100 == 0:
+        if (i+1) % 30 == 0:
             print("Epoch [{}/{}], Step [{}/{}], Loss: {:.5f}"
                   .format(epoch+1, epochs, i+1, total_step, loss.item()))
             sys.stdout.flush()
@@ -115,8 +119,8 @@ with torch.no_grad():
 
         data = data.to(device)
 
-        # Downscale data by factor of 4
-        new_data = downscale(data)
+        # Downscale data by factor
+        new_data = downscale(data, FACTOR)
 
         # Forward model pass
         outputs = model(new_data)

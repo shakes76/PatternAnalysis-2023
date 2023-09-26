@@ -7,13 +7,17 @@ from dataset import get_test_loader, downscale
 from modules import ESPCN
 import matplotlib.pyplot as plt
 
+# Constants
+CHANNELS = 3
+FACTOR = 4
+
 # PyTorch setup
 print("PyTorch Version:", torch.__version__)
 print(torch.cuda.is_available())
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Load Model
-model = ESPCN(3, 2)
+model = ESPCN(CHANNELS, FACTOR)
 model.load_state_dict(torch.load("model.pth"))
 model.eval()
 
