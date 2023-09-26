@@ -21,7 +21,19 @@ will be using a U-Net for the backwards process
 
 
 ##Usage Example
+### Dataset Creation
+With a custom dataset class created (OASISDataset), this will enable the images to be transformed
+as desired, as well as implement the dataset into a dataloader to be used for our task, where our
+specified root_path is the path to the parent folder of images and the batch size is 32.
+```
+train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', transform=transform)
+test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', transform=transform)
+validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', transform=transform)
 
+train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(test_data, batch_size=batch_size)
+validate_loader = DataLoader(validate_data, batch_size=batch_size)
+```
 
 ##Justification
 
