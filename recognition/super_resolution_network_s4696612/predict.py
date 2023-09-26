@@ -36,15 +36,14 @@ test_loader = torch.utils.data.DataLoader(test_data,
 
 trained_model = SuperResolution()
 trained_model.to(device)
+trained_model.eval()
 trained_model.load_state_dict(torch.load(save_path))
 batch = next(iter(test_loader))
 trained_model.eval()
 torch.save(trained_model.state_dict(), save_path)
 
 x = batch[0].to(device)[:64]
-print(222)
 y = trained_model(x)
-print(444)
 plt.figure(figsize=(8,8))
 plt.axis('off')
 plt.title('Model Images')

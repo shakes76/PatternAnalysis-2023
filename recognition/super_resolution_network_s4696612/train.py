@@ -19,8 +19,8 @@ print()
 
 #---------------
 # Hyper Parameters
-learning_rate = 0.0001
-num_epochs = 1
+learning_rate = 0.0005
+num_epochs = 10
 path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\AD_NC"
 save_path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\PatternAnalysis-2023\recognition\super_resolution_network_s4696612\saved_model.pth"
 
@@ -39,29 +39,9 @@ train_data = ImageDataset(directory=train_path,
 train_loader = torch.utils.data.DataLoader(train_data,
                                            batch_size=batch_size,
                                            shuffle=True)
-
-test_data = ImageDataset(directory=test_path,
-                         transform=transform)
-test_loader = torch.utils.data.DataLoader(test_data,
-                                          batch_size=batch_size,
-                                          shuffle=True)
 n_total_steps = len(train_loader)
 
-
-#-----------------
-# Plot starting and goal images from test set
-real_batch = next(iter(test_loader))
-plt.figure(figsize=(8,8))
-plt.axis('off')
-plt.title('Starting Images')
-plt.imshow(np.transpose(torchvision.utils.make_grid(real_batch[0].to(device)[:64], padding=2,normalize=True).cpu(), (1,2,0)))
-plt.show()
-
-plt.figure(figsize=(8,8))
-plt.axis('off')
-plt.title('Goal Images')
-plt.imshow(np.transpose(torchvision.utils.make_grid(real_batch[1].to(device)[:64], padding=2,normalize=True).cpu(), (1,2,0)))
-plt.show()
+batch = next(iter(train_loader))
 
 #----------------------------
 #Training
@@ -91,7 +71,7 @@ for epoch in range(num_epochs):
 model.eval()
 torch.save(model.state_dict(), save_path)
 
-x = real_batch[0].to(device)[:64]
+x = batch[0].to(device)[:64]
 y = model(x)
 plt.figure(figsize=(8,8))
 plt.axis('off')
@@ -102,5 +82,5 @@ plt.show()
 plt.figure(figsize=(8,8))
 plt.axis('off')
 plt.title('Goal Images')
-plt.imshow(np.transpose(torchvision.utils.make_grid(real_batch[1].to(device)[:64], padding=2,normalize=True).cpu(), (1,2,0)))
+plt.imshow(np.transpose(torchvision.utils.make_grid(batch[1].to(device)[:64], padding=2,normalize=True).cpu(), (1,2,0)))
 plt.show()
