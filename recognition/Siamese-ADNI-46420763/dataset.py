@@ -3,37 +3,30 @@ from torch.utils.data import DataLoader, Dataset, random_split
 import torch
 import random
 
-def train_transforms():
+def dataset_transforms():
     """
     Transforms to be applied to the training dataset
     """
-    return transforms.Compose([transforms.Grayscale(), transforms.ToTensor(), transforms.Normalize(0.1155, 0.2254)])
+    return transforms.Compose([transforms.Grayscale(), transforms.Resize((120, 128)), transforms.ToTensor()])
 
-def test_transforms():
-    """
-    Transforms to be applied to the test dataset
-    """
-    return transforms.Compose([transforms.Grayscale(), transforms.ToTensor(), transforms.Normalize(0.1155, 0.2254)])
-
-def train_dataloader(dir, batch_size, validation_split):
-    dataset = SiameseADNIDataset(dir + "/train", transform=train_transforms())
-    train_dataset, valid_dataset = random_split(dataset, [1 - validation_split, validation_split])
+def get_dataloader(dir, batch_size, split):
+    dataset = datasets.ImageFolder(root = dir, transform=dataset_transforms())
+    train_dataset, valid_dataset, test_dataset = random_split(dataset, split, generator=torch.Generator().manual_seed(46420763))
+    train_dataset = SiameseADNIDataset(train_dataset)
+    valid_dataset = SiameseADNIDataset(valid_dataset)
     
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     valid_dataloader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
-    return train_dataloader, valid_dataloader
-    
-def test_dataloader(dir, batch_size):
-    test_dataset = SiameseADNIDataset(dir + "/test", transform=test_transforms())
-    test_dataloader = DataLoader(test_dataset, batch_size=batch_size)
-    return test_dataloader
+    test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+    return train_dataloader, valid_dataloader, test_dataloader
 
 class SiameseADNIDataset(Dataset):
     """
     ADNI Dataset for Siamese Network
     """
-    def __init__(self, dir, transform):
-        self.dataset = datasets.ImageFolder(root = dir, transform=transform)
+    def __init__(self, dataset):
+        self.dataset = dataset
         
     def __getitem__(self, index):
         x1, x1_class = self.dataset[index]
