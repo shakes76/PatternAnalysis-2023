@@ -27,6 +27,8 @@ def forward_diffusion_sample(x_0, t, device=device):
     """
     Takes image and timestep as input to return the image w/ noise
     q(x_t|x_0) = N(x_t;sqrt(alpha_t)*x_0, (1-alpha_t)I)
+    x_0 is initial image, x_t is the noisy image at timestep t
+    x_t = sqrt(alpha_cumprod_t) * x_0 + sqrt(1 - alpha_cumprod_t) * noise
     """
     noise = torch.randn_like(x_0)
     sqrt_alphas_cumprod_t = get_index_from_list(sqrt_alphas_cumprod, t, x_0.shape)
@@ -50,6 +52,37 @@ sqrt_one_minus_alphas_cumprod = torch.sqrt(1. - alphas_cumprod)
 posterior_variance = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod)
 
 
-
 # U-Net (Backwards Process)
+
+class Block(nn.Module):
+    def __init__(self, in_channel, out_channel, time_emb_dim, up=False):
+        super().__init__()
+        self.time_mlp = nn.Linear(time_emb_dim, out_channel)
+        # UNet section (for downsampling/upsampling)
+        if up:
+            self.conv1 = nn.Conv2d(2 * in_channel, out_channel, 3, padding=1)
+            self.transform = nn.ConvTranspose2d(out_channel, out_channel, 4, 2, 1)
+        else:
+            self.conv1 = nn.Conv2d(in_channel, out_channel, 3, padding=1)
+            self.transform = nn.Conv2d(out_channel, out_channel, 4, 2, 1)
+        self.conv2 = nn.Conv2d(out_channel, out_channel, 3, padding=1)
+        self.bnorm1 = nn.BatchNorm2d(out_channel)
+        self.bnorm2 = nn.BatchNorm2d(out_channel)
+        self.relu = nn.ReLU()
+        
+    def forward(self, x, t, ):
+        # First convolution
+        h = self.bnorm1(self.relu(self.conv1(x)))
+        # Time embedding
+        time_emb = self.relu(self.time_mlp(t))
+        # Extend last 2 dimensions
+        time_emb = time_emb[(...,) + (None, ) * 2]
+        # Add time channel
+        h = h + time_emb
+        # Second Conv
+        h = self.bnorm2(self.relu(self.conv2(h)))
+        # Down/Upsample
+        return self.transform(h)
+    
+
 
