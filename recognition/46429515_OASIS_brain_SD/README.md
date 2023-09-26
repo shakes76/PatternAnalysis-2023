@@ -8,7 +8,13 @@ that uses a technique similar to how a generative model would work. The diffusio
 
 model operates by gradually adding noise to an input image in a forward process
 
-and then retrieves the original image by denoising (backwards process).
+and then retrieves the original image by denoising (backwards process). In the
+
+(parametrized) backwards process, the model predicts the noise added in each of image 
+
+and generates new datapoints using a neural network. This diffusion model
+
+will be using a U-Net for the backwards process
 
 
 ##Dependencies
