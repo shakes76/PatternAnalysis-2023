@@ -3,6 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class ConvBlock(nn.Module):
+    """
+    Basic Convlutional Block
+    """
     def __init__(self, in_channels, out_channels, kernel_size):
         super(ConvBlock, self).__init__()
         self.conv = nn.Sequential(
@@ -15,6 +18,9 @@ class ConvBlock(nn.Module):
         return self.conv(x)
     
 class SiameseNetwork(nn.Module):
+    """
+    Siamese Network Model
+    """
     def __init__(self, layers = [1, 64, 128, 128, 256], kernel_sizes = [10, 7, 4, 4]):
         super(SiameseNetwork, self).__init__()
         self.layers = layers
@@ -27,6 +33,9 @@ class SiameseNetwork(nn.Module):
         self.dense = nn.Linear(256, 1)
         
     def forward_once(self, x):
+        """
+        Creates embedding vector of input image
+        """
         for i, block in enumerate(self.blocks):
             x = block(x)
             if i != len(self.blocks) - 1:
@@ -39,6 +48,7 @@ class SiameseNetwork(nn.Module):
         embedding1 = self.forward_once(x1)
         embedding2 = self.forward_once(x2)
         distance = torch.abs(embedding1 - embedding2)
+        
         output = self.dense(distance)
         output = F.sigmoid(output)
         return output

@@ -80,9 +80,11 @@ def main():
             loss.backward()
             optimizer.step()     
             
+            # Predict similarity
             pred = torch.Tensor.int(torch.round(pred)) 
             labels = torch.Tensor.int(labels)[:, None]
             
+            # Evaluate prediction
             correct = (pred == labels).sum()
             total_train_correct += correct.item()
             

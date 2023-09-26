@@ -37,6 +37,7 @@ def main():
     dataset_targets = test_dataloader.dataset.dataset.targets
     test_indices = test_dataloader.dataset.indices
 
+    # Get the len of each class in the dataset
     num_AD, num_NC = np.bincount([dataset_targets[i] for i in test_indices])
     total_AD_correct = 0
     total_NC_correct = 0
@@ -62,22 +63,26 @@ def main():
         images = images.to(device)
         labels = labels.to(device)
         
+        # Reapeat the queires to match batch size
         AD_query_batch = AD_query.repeat(images.shape[0], 1, 1, 1)
         NC_query_batch = NC_query.repeat(images.shape[0], 1, 1, 1)   
         
-        # Predict Similarity for AD and NC
+        # Predict similarity for AD and NC
         AD_sim = model(images, AD_query_batch)
         NC_sim = model(images, NC_query_batch)
         
+        # Find class with most similarity
         sim = torch.stack([AD_sim, NC_sim], dim = 1)
         pred = torch.Tensor.argmin(sim, dim = 1)
 
+        # Get number of correct predictions
         labels = torch.Tensor.int(labels)[:, None]
-        AD_mask, NC_mask = (labels == 0), (labels == 1)
-        accuracy = (pred == labels)
+        correct = (pred == labels)
 
-        total_AD_correct += (accuracy * AD_mask).sum()
-        total_NC_correct += (accuracy * NC_mask).sum()
+        # Find number of correct predictions for each class
+        AD_mask, NC_mask = (labels == 0), (labels == 1)
+        total_AD_correct += (correct * AD_mask).sum()
+        total_NC_correct += (correct * NC_mask).sum()
         
     print("Test Accuracy {:.2f} %, AD Accuracy {:.2f} %, NC Accuracy {:.2f} %".format(
             (total_AD_correct + total_NC_correct)/len(test_dataloader.dataset) * 100, 
