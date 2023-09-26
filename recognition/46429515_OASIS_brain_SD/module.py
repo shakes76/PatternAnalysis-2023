@@ -5,7 +5,9 @@ from torch import nn
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-## Code referenced from https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL
+## Code referenced from: 
+# https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL
+# https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/annotated_diffusion.ipynb
 
 # Noise Scheduler (Forward Process)
 
@@ -18,7 +20,7 @@ def get_index_from_list(vals, t, x_shape):
     vals while considering batch dimension
     """
     batch_size = t.shape[0]
-    out = vals.gather(-1, t.device())
+    out = vals.gather(-1, t.cpu())
     return out.reshape(batch_size, *((1,) * (len(x_shape) - 1))).to(device)
 
 def forward_diffusion_sample(x_0, t, device=device):
