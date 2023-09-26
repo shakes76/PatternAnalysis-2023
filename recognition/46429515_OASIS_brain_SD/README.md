@@ -19,9 +19,22 @@ will be using a U-Net for the backwards process
 
 ##Dependencies
 
+* PyTorch: '>=2.0.1'
+* Numpy: '>=1.24.3'
+* Pillow (PIL): '>=10.0.0'
+* Torchvision: '>=0.15.2'
+* Matplotlib: '>=3.7.2'
+
+import os
+import torchvision.transforms as transforms
+from torchvision.datasets import ImageFolder
+from torch.utils.data import DataLoader, Dataset
+from PIL import Image
 
 ##Usage Example
+
 ### Dataset Creation
+
 With a custom dataset class created (OASISDataset), this will enable the images to be transformed
 as desired, as well as implement the dataset into a dataloader to be used for our task, where our
 specified root_path is the path to the parent folder of images and the batch size is 32.
