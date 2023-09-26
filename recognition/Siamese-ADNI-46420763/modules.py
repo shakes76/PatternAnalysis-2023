@@ -41,4 +41,4 @@ class SiameseNetwork(nn.Module):
         distance = torch.abs(embedding1 - embedding2)
         output = self.dense(distance)
         output = F.sigmoid(output)
-        return embedding1, embedding2, output
+        return output
