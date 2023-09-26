@@ -37,7 +37,7 @@ from PIL import Image
 
 With a custom dataset class created (OASISDataset), this will enable the images to be transformed
 as desired, as well as implement the dataset into a dataloader to be used for our task, where our
-specified root_path is the path to the parent folder of images and the batch size is 32.
+specified root_path is the path to the parent folder of images of the dataset and the batch size is 32.
 
 ```
 train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', transform=transform)
@@ -86,6 +86,34 @@ for idx in range(0, T, step):
 
 
 ### U-Net (Backwards Process) - module.py
+
+In the backwards process, we create a U-Net model to predict the nose in the image where
+the input is a noisy image (coming from forward process) and the output is the noise
+in the image. For the U-Net, it is a simple network which consists of a downsampling,
+residual sampling (via sinusoidal position embedding) and upsampling of data. To create
+a model of the network:
+
+```
+model = UNet()
+```
+
+The number of parameters in the model can be found as follows (output included):
+
+```
+print("Num params: ", sum(p.numel() for p in model.parameters()))
+output -> Num params:  21277921
+```
+
+The neural network cannot distinguish between each timesteps as the network has its parameters
+shared across time but it is required to filter out noise of varying intensities. This is worked
+around by using positional embeddings which stores the noise intensity information. The positions
+index are calculated using sine and cosine: $P(k, 2i) = sin(k/(n^{2i/d}))$, $P(k, 2i + 1) = cos(k/(n^{2i/d}))$
+These are added as additional input alongside the noisy image.
+
+```
+insert positional embedding here
+```
+
 
 
 ### Loss Function
