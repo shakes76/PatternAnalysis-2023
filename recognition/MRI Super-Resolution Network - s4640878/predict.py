@@ -8,6 +8,9 @@ from modules import Model
 
 def main():
 
+    try: n = int(sys.argv[1]); n = n if n < 5 else 5
+    except Exception: n = 3
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device, flush=True)
 
@@ -15,7 +18,7 @@ def main():
     model = Model().to(device)
     print(f"params: {sum([p.nelement() for p in model.parameters()])}", flush=True)
 
-    """ load datasets """
+    """ load testing dataset """
     test_loader = Dataset(train=False).loader()
 
     with open(file="models/sr_model.pt", mode="rb") as f:
@@ -23,51 +26,46 @@ def main():
             state_dict=torch.load(f=f, map_location=torch.device('cpu')),
         )
 
+    model.eval()
     for i, (images, labels) in enumerate(test_loader):
         images = images.to(device)
         labels = labels.to(device)
         downsampled = torchvision.transforms.Resize(60, antialias=True)(images).to(device)
 
-        if i == 0:
+        with torch.no_grad():
+            outputs = model(downsampled)
 
-            with torch.no_grad():
-                outputs = model(downsampled)
+        plt.subplot(n, 3, i*3 + 1)
+        plt.imshow(
+            (
+                (images[0] - torch.min(images[0])) / (torch.max(images[0]) - torch.min(images[0]))
+            ).permute(1, 2, 0).cpu()
+        )
+        plt.title("original", size=8)
 
-            plt.subplot(1, 3, 1)
-            plt.imshow(
-                (
-                    (images[i] - torch.min(images[i])) / (torch.max(images[i]) - torch.min(images[i]))
-                ).permute(1, 2, 0).cpu()
-            )
-            plt.title("original", size=8)
+        plt.subplot(n, 3, i*3 + 2)
+        plt.imshow(
+            (
+                (downsampled[0] - torch.min(downsampled[0])) / (torch.max(downsampled[0]) - torch.min(downsampled[0]))
+            ).permute(1, 2, 0).cpu()
+        )
+        plt.title("downsampled", size=8)
 
-            plt.subplot(1, 3, 2)
-            plt.imshow(
-                (
-                    (downsampled[i] - torch.min(downsampled[i])) / (torch.max(downsampled[i]) - torch.min(downsampled[i]))
-                ).permute(1, 2, 0).cpu()
-            )
-            plt.title("downsampled", size=8)
+        plt.subplot(n, 3, i*3 + 3)
+        plt.imshow(
+            (
+                (outputs[0] - torch.min(outputs[0])) / (torch.max(outputs[0]) - torch.min(outputs[0]))
+            ).permute(1, 2, 0).cpu()
+        )
+        plt.title("reconstructed", size=8)
 
-            plt.subplot(1, 3, 3)
-            plt.imshow(
-                (
-                    (outputs[i] - torch.min(outputs[i])) / (torch.max(outputs[i]) - torch.min(outputs[i]))
-                ).permute(1, 2, 0).cpu()
-            )
-            plt.title("upsampled", size=8)
+        if i == n - 1: break
 
-            # print(f"{images[i].shape = }, {downsampled[i].shape = }")  # images[i].shape = torch.Size([3, 240, 256]), downsampled.shape = torch.Size([3, 60, 64])
-
-            plt.tight_layout()
-
-            if machine == "local":
-                plt.savefig("./debug/predict.png")
-            elif machine == "rangpur":
-                plt.savefig("./outputs/predict.png")
-
-            sys.exit()
-
+    plt.tight_layout()
+    if machine == "local": 
+        plt.show()
+    elif machine == "rangpur":
+        plt.savefig("./outputs/predict.png")
 
 
 if __name__ == "__main__":
