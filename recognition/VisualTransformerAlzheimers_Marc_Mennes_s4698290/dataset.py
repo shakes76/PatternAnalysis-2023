@@ -45,13 +45,16 @@ class ADNI(torch.utils.data.Dataset):
         return image, ADLabel #ADLabel = 1 means alzheimer's, 0 means normal
     
 #calculate norm and std of the dataset
-def find_mean_std(path):
-    dataset = ADNI(path)
+def find_mean_std(path, transform = None):
+    device = torch.device("cuda")
+    dataset = ADNI(path, transform=transform)
 
-    allImages = torch.cat([dataset.__getitem__(i)[0] for i in range(len(dataset))])
+    allImages = torch.cat([dataset.__getitem__(i)[0].to(device) for i in range(len(dataset))])
 
     print(allImages)
     print(allImages.size())
-    
-    return allImages.mean(dtype=torch.float32), allImages.std(dtype=torch.float32)
+
+    return allImages.mean(dtype=torch.float32), allImages.float().std()
+#cropped outputs(tensor(41.0344, device='cuda:0'), tensor(64.2557, device='cuda:0'))
+
 
