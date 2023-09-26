@@ -7,7 +7,7 @@ def dataset_transforms():
     """
     Transforms to be applied to the training dataset
     """
-    return transforms.Compose([transforms.Grayscale(), transforms.Resize((120, 128)), transforms.ToTensor()])
+    return transforms.Compose([transforms.Grayscale(), transforms.Resize((128, 120)), transforms.ToTensor()])
 
 def get_dataloader(dir, batch_size, split):
     dataset = datasets.ImageFolder(root = dir, transform=dataset_transforms())
