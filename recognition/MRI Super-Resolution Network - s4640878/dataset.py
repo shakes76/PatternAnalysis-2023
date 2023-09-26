@@ -1,8 +1,13 @@
-import sys, os, time
 import torch, torchvision
 from torch.utils import data
 from matplotlib import pyplot as plt
-from traceback import format_exc
+
+
+try:
+    open("./README.md")
+    machine = "local"
+except FileNotFoundError as err:
+    machine = "rangpur"
 
 
 class Dataset(data.Dataset):
@@ -31,12 +36,16 @@ class Dataset(data.Dataset):
                 torchvision.transforms.Normalize(self._mean, self._std_dev),
             ]
         )
+
+        """ specify path to dataset """
+        if machine == "local":
+            path = f"./debug/{self._dataset_type}"
+        elif machine == "rangpur":
+            path = f"{self._dataset_path}{self._dataset}{self._dataset_subdir}{self._dataset_type}"
+
         """ load image data from specified path to dataset """
         self._dataset = torchvision.datasets.ImageFolder(
-            root=f"{self._dataset_path}{self._dataset}{self._dataset_subdir}{self._dataset_type}",
-            #root=f"./debug/{self._dataset_type}",
-            transform=self._transform,
-            target_transform=self.to_one_hot,
+            root=path, transform=self._transform, target_transform=self.to_one_hot,
         )
 
         """ create a pytorch dataloader for the dataset """
@@ -89,8 +98,11 @@ def main():
         plt.imshow(image.permute(1, 2, 0).cpu())
         plt.title(labels[i], size=8)
 
-    plt.savefig("./outputs/train.png")
-    #plt.savefig("./debug/train.png")
+    """ save training batch """
+    if machine == "local":
+        plt.savefig("./debug/train.png")
+    elif machine == "rangpur":
+        plt.savefig("./outputs/train.png")
 
     """ test dataset """
     test_loader = Dataset(train=False).loader()
@@ -110,9 +122,12 @@ def main():
         plt.imshow(image.permute(1, 2, 0).cpu())
         plt.title(labels[i], size=8)
 
-    plt.savefig("./outputs/test.png")
-    #plt.savefig("./debug/test.png")
-
+    """ save testing batch """
+    if machine == "local":
+        plt.savefig("./debug/test.png")
+    elif machine == "rangpur":
+        plt.savefig("./outputs/test.png")
+    
 
 if __name__ == "__main__":
     main()

@@ -1,10 +1,8 @@
-import sys, os, time
+import time
 import torch, torchvision
-from traceback import format_exc
-from matplotlib import pyplot as plt
 
-from dataset import Dataset
-from modules import ResNet18, ResNet34
+from dataset import Dataset, machine
+from modules import Model
 
 
 def main():
@@ -14,18 +12,17 @@ def main():
 
     """ training params """
     lr = 1e-3
-    epochs = 1
+    epochs = 300 if machine == "rangpur" else 3
 
     """ load datasets """
     train_loader = Dataset(train=True).loader()
-    test_loader = Dataset(train=False).loader()
 
     """ model """
-    model = ResNet18().to(device)
+    model = Model().to(device)
     print(f"params: {sum([p.nelement() for p in model.parameters()])}", flush=True)
 
     """ loss function """
-    loss_function = torch.nn.CrossEntropyLoss()
+    loss_function = torch.nn.MSELoss()
 
     """ optimizer """
     optimizer = torch.optim.SGD(
@@ -46,33 +43,11 @@ def main():
         for i, (images, labels) in enumerate(train_loader):
             images = images.to(device)
             labels = labels.to(device)
-            downsampled = torchvision.transforms.Resize(60, antialias=True)(images[i]).to(device)
-
-            if i == 0:
-                plt.subplot(1, 2, 1)
-                plt.imshow(
-                    (
-                        (images[i] - torch.min(images[i])) / (torch.max(images[i]) - torch.min(images[i]))
-                    ).permute(1, 2, 0).cpu()
-                )
-                plt.title(labels[i], size=8)
-                plt.subplot(1, 2, 2)
-                plt.imshow(
-                    (
-                        (downsampled - torch.min(downsampled)) / (torch.max(downsampled) - torch.min(downsampled))
-                    ).permute(1, 2, 0).cpu()
-                )
-                plt.title("downsampled", size=8)
-
-                print(f"{images[i].shape = }, {downsampled.shape = }")  # images[i].shape = torch.Size([3, 240, 256]), downsampled.shape = torch.Size([3, 60, 64])
-
-                plt.savefig("./outputs/downsample.png")
-                sys.exit()
+            downsampled = torchvision.transforms.Resize(60, antialias=True)(images).to(device)
 
             """ forward pass """
-            outputs = model(images)
-            if i == 0: print(f"{outputs = }\n{labels = }", flush=True)
-            loss = loss_function(outputs, labels)
+            outputs = model(downsampled)
+            loss = loss_function(outputs, images)
 
             """ backwards pass """
             optimizer.zero_grad()
@@ -80,7 +55,7 @@ def main():
             optimizer.step()
 
             """ print loss results """
-            if (i + 1) % 10 == 0:
+            if (i + 1) % 300 == 0 or ((i + 1) % 10 == 0 and machine == "local"):
                 print (
                     f"epoch: {epoch + 1}/{epochs}, step: {i + 1}/{len(train_loader)}, loss: {round(loss.item(), 5)}",
                     flush=True,
@@ -89,35 +64,13 @@ def main():
             """ step the lr scheduler """
             lr_scheduler.step()
 
+        """ save the model """
+        if (epoch + 1) % 30 == 0 or (machine == "local" and epoch + 1 == epochs):
+            with open(
+                file="models/sr_model_%03d.pt" % (epoch + 1), mode="wb") as f:
+                torch.save(obj=model.state_dict(), f=f)
+
     print(f"training time: {round((time.time() - start) / 60)} mins", flush=True)
-
-    """ save the model """
-    with open(file=f"models/model_test.pt", mode="wb") as f:
-        torch.save(obj=model.state_dict(), f=f)
-
-
-    """ test the model """
-    model.eval()
-    with torch.no_grad():
-        correct, total = 0, 0
-        for i, (images, labels) in enumerate(test_loader):
-            images = images.to(device)
-            labels = labels.to(device)
-
-            outputs = model(images)
-
-            predicted = torch.max(outputs.data, 1)[1]
-            expected = torch.max(labels.data, 1)[1]
-            total += labels.size(0)
-
-            if i == 0: print(
-                f"{outputs = }\n{predicted = }\n{labels = }\n{expected = }",
-                flush=True,
-            )
-
-            correct += (predicted == expected).sum().item()
-
-        print(f"test accuracy: {100 * correct / total} %", flush=True)
 
 
 if __name__ == "__main__":
