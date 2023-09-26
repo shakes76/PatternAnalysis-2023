@@ -45,7 +45,7 @@ plt.savefig("sample_input.png")
 
 
 # Get Model
-model = CustomESPCN(CHANNELS, FACTOR)
+model = ESPCN(CHANNELS, FACTOR)
 model = model.to(device)
 
 # Training Parameters
@@ -108,6 +108,7 @@ sys.stdout.flush()
 start = time.time()
 model.eval()
 psnrs = []
+test_losses = []
 
 def PSNR(mse, maxi = 1):
     # Calculate PSNR (default maxi is 1 because float representation of color)
@@ -125,10 +126,12 @@ with torch.no_grad():
         # Forward model pass
         outputs = model(new_data)
         mse = criterion(outputs, data).item()
-
+        
+        test_losses.append(mse)
         psnrs.append(PSNR(mse, 1))
 
 print("Average PSNR on Test Set: " + str(np.mean(psnrs)))
+print("Average Loss on Test Set: " + str(np.mean(test_losses)))
 sys.stdout.flush()
 
 # Save trained Model

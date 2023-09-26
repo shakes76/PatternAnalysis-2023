@@ -4,7 +4,7 @@ EXAMPLE USAGE
 # Imports
 import torch
 from dataset import get_test_loader, downscale
-from modules import ESPCN
+from modules import ESPCN, CustomESPCN
 import matplotlib.pyplot as plt
 
 # Constants
@@ -26,7 +26,7 @@ test_loader = get_test_loader()
 
 # Get input image
 input = next(iter(test_loader))[0][0]
-input_down = downscale(input)
+input_down = downscale(input, FACTOR)
 
 # Get model prediction
 prediction = model(input_down)

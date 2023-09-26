@@ -37,7 +37,6 @@ class ESPCN(nn.Module):
         x = self.activation(x)
 
         x = self.conv4(x)
-        x = self.activation(x)
 
         x = self.out(x)
         return x
