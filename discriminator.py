@@ -17,7 +17,7 @@ class NLayerDiscriminator(nn.Module):
         --> see https://github.com/junyanz/pytorch-CycleGAN-and-pix2pix/blob/master/models/networks.py
     """
 
-    def __init__(self, input_nc=3, ndf=64, n_layers=3):
+    def __init__(self, input_nc=3, ndf=64, n_layers=3, attn=True):
         """Construct a PatchGAN discriminator
         Parameters:
             input_nc (int)  -- the number of channels in input images
@@ -73,14 +73,21 @@ class NLayerDiscriminator(nn.Module):
             for conv in self.convs
         ])
         
-        self.attn = AttnBlock(512)
+        if attn:
+            self.attn = AttnBlock(512)
+        else:
+            self.attn = None
 
     def forward(self, input):
         """Standard forward."""
         h = input
         for conv in self.convs:
             h = conv(h)
-        h = self.attn(h)
+    
+        # Only if attn block is defined we pass through attn block
+        if self.attn:
+            h = self.attn(h)
+    
         h = self.conv_out(h)
         return h
     

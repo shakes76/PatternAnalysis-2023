@@ -90,6 +90,9 @@ class Encoder(nn.Module):
         h = self.end(h)
         return h
 
+    def get_last_layer(self):
+        # This function is for adpative loss for discriminator.
+        return self.end[-1].weight
 
 class Decoder(nn.Module):
     def __init__(self, *, ch, out_ch, ch_mult=(1, 2, 4, 8), num_res_blocks,
@@ -229,9 +232,13 @@ class Autoencoder(nn.Module):
         recon = self.decode(z)
         return recon, latent, kl_dis
 
-    def get_last_layer(self):
+    def get_decoder_last_layer(self):
         # This function is for adpative loss for discriminator.
         return self.decoder.get_last_layer()
+
+    def get_encoder_last_layer(self):
+        # This function is for adpative loss for discriminator.
+        return self.encoder.get_last_layer()
 
 if __name__ == '__main__':
     # net = Encoder(double_z=True, z_channels=16, resolution=256, in_channels=1, ch=64, ch_mult=[
