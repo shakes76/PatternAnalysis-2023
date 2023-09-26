@@ -26,7 +26,7 @@ print("DEVICE:", DEVICE)
 # logger for record losses
 logger = Logger(file_name='VAE_log.txt', reset=True)
 
-net = Autoencoder(embed_dim=16).to(device=DEVICE)
+net = Autoencoder().to(device=DEVICE)
 discriminator = NLayerDiscriminator(
     input_nc=1, n_layers=3).apply(weights_init).to(device=DEVICE)
 
@@ -56,7 +56,7 @@ def train_epoch(net, dataloader):
 
         # Get weight of each loss
         w_recon, w_perceptual, w_kld, w_dis = weight_scheduler(
-            cur_iter, change_cycle=100)
+            cur_iter, change_cycle=ITER_PER_EPOCH)
 
         # Train Generator
         opt_ae.zero_grad()
@@ -73,26 +73,29 @@ def train_epoch(net, dataloader):
         g2_loss = -torch.mean(logits_gen)
 
         recon_loss = torch.sum(
-            recon_loss + w_perceptual * perceptual_loss) / recon_loss.shape[0]
+            recon_loss + w_dis * w_perceptual * perceptual_loss) / recon_loss.shape[0]
         kld_loss = torch.sum(kld_loss) / kld_loss.shape[0]
 
         # Adjust discriminator weight
-        # If eval mode, we just set d_weight = 1 (for fast computing)
-        recon_grads = torch.autograd.grad(
-            recon_loss, net.get_last_layer(), retain_graph=True)[0]
-        g1_grads = torch.autograd.grad(
-            g1_loss, net.get_last_layer(), retain_graph=True)[0]
-        g2_grads = torch.autograd.grad(
-            g2_loss, net.get_last_layer(), retain_graph=True)[0]
-        d1_weight = torch.norm(recon_grads) / (torch.norm(g1_grads) + 1e-4)
-        d2_weight = torch.norm(recon_grads) / (torch.norm(g2_grads) + 1e-4)
-        d1_weight = torch.clamp(d1_weight, 0.0, 1e2).detach()
-        d2_weight = torch.clamp(d2_weight, 0.0, 1e2).detach()
+        recon_grads = torch.norm(torch.autograd.grad(
+            recon_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
+        g1_grads = torch.norm(torch.autograd.grad(
+            g1_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
+        g2_grads = torch.norm(torch.autograd.grad(
+            g2_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
+        kl_grads = torch.norm(torch.autograd.grad(
+            kld_loss, net.get_encoder_last_layer(), retain_graph=True)[0]).detach()
 
-        # 1e-4, 0.5 is hyperparameters for loss combination
-        loss = w_recon * recon_loss + w_kld * kld_loss + w_dis * \
-            0.5 * (d1_weight * g1_loss + d2_weight * g2_loss)
-
+        kl_weight = 0.01 * recon_grads / (kl_grads + 1e-4)
+        d1_weight = 0.01 * recon_grads / (g1_grads + 1e-4)
+        d2_weight = 0.01 * recon_grads / (g2_grads + 1e-4)
+        d1_weight = torch.clamp(d1_weight, 0.0, 1e4).detach()
+        d2_weight = torch.clamp(d2_weight, 0.0, 1e4).detach()
+        
+        loss = w_recon * recon_loss + kl_weight * w_kld * kld_loss +  \
+            w_dis * d1_weight * g1_loss + \
+            w_dis * d2_weight * g2_loss
+        
         loss.backward()
         opt_ae.step()
 
@@ -114,6 +117,7 @@ def train_epoch(net, dataloader):
 
         # First 0.5 is discriminator factor, Second 0.5 is from hinge loss
         d_loss = 0.5 * 0.5 * (loss_real + loss_fake + loss_gen) - loss_p
+        # d_loss = 0.5 * 0.5 * (loss_real + loss_fake ) - loss_p
 
         d_loss.backward()
         opt_d.step()
@@ -125,9 +129,9 @@ def train_epoch(net, dataloader):
             'fake_recon_loss' : g1_loss.item(),
             'fake_sample_loss' : g2_loss.item(),
             'discriminator_loss' : d_loss.item(),
-            # 'w_recon': w_recon,
-            # 'w_perceptual': w_perceptual,
-            'w_kld': w_kld,
+            'w_recon': w_recon,
+            'w_perceptual': w_perceptual,
+            'w_kld': w_kld * kl_weight,
             "w_recon" : w_dis * d1_weight,
             "w_sample" : w_dis * d2_weight,
         }
@@ -219,7 +223,7 @@ for epoch in range(300):
     def fmt(epoch_info):
         ks = ['recon_loss', 'kld_loss', 'fake_recon_loss',
               'fake_sample_loss', 'discriminator_loss']
-        return ' '.join(f"{k[:-5]}: {epoch_info[k]:6.4f}" for k in ks)
+        return ' '.join(f"{k[:-5]}: {epoch_info[k]:6.4f}" for k in ks if k in epoch_info)
 
     net.train()
     train_info = train_epoch(net, train_dataloader)
