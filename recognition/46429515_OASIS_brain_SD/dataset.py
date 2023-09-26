@@ -7,10 +7,10 @@ root_path = 'data/keras_png_slices_data'
 
 # Define data transformations
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),
+    transforms.Resize((64, 64)),
     transforms.RandomHorizontalFlip(),                      
-    transforms.ToTensor(),
-    transforms.Lambda(lambda t: (t * 2) - 1)
+    transforms.ToTensor(), # Data is scaled into [0, 1]
+    transforms.Lambda(lambda t: (t * 2) - 1) # Scale between [-1, 1]
 ])
 
 # Define batch size of data
