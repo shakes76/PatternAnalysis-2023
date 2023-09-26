@@ -55,6 +55,6 @@ def find_mean_std(path, transform = None):
     print(allImages.size())
 
     return allImages.mean(dtype=torch.float32), allImages.float().std()
-#cropped outputs(tensor(41.0344, device='cuda:0'), tensor(64.2557, device='cuda:0'))
+#cropped outputs for a 0-255 format image (tensor(41.0344, device='cuda:0'), tensor(64.2557, device='cuda:0'))
 
 
