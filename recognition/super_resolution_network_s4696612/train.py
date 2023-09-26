@@ -20,7 +20,7 @@ print()
 #---------------
 # Hyper Parameters
 learning_rate = 0.0001
-num_epochs = 0
+num_epochs = 1
 path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\AD_NC"
 save_path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\PatternAnalysis-2023\recognition\super_resolution_network_s4696612\saved_model.pth"
 
@@ -49,8 +49,8 @@ n_total_steps = len(train_loader)
 
 
 #-----------------
-# Plot starting and goal images
-real_batch = next(iter(train_loader))
+# Plot starting and goal images from test set
+real_batch = next(iter(test_loader))
 plt.figure(figsize=(8,8))
 plt.axis('off')
 plt.title('Starting Images')
@@ -88,6 +88,7 @@ for epoch in range(num_epochs):
         if (i + 1) % 10 == 0:
             print(f"Epoch [{epoch + 1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item()}")
 
+model.eval()
 torch.save(model.state_dict(), save_path)
 
 x = real_batch[0].to(device)[:64]
