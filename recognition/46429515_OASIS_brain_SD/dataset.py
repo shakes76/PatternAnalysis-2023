@@ -1,7 +1,5 @@
 import os
-import torch
 import torchvision.transforms as transforms
-from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader, Dataset
 from PIL import Image
 
@@ -14,6 +12,7 @@ transform = transforms.Compose([transforms.Resize((224, 224)),
 # Define batch size of data
 batch_size = 32
 
+# Custom OASIS brain dataset class referenced from ChatGPT3.5: how to create custom dataset class for OASIS
 class OASISDataset(Dataset):
     def __init__(self, root, transform=None):
         self.root_dir = root
@@ -44,6 +43,6 @@ test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', transform=tr
 validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', transform=transform)
 
 # Create data loaders for each set
-train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True) # Image shape [32, 1, 224, 224]
 test_loader = DataLoader(test_data, batch_size=batch_size)
 validate_loader = DataLoader(validate_data, batch_size=batch_size)
