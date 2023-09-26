@@ -20,9 +20,9 @@ print()
 #---------------
 # Hyper Parameters
 learning_rate = 0.0001
-num_epochs = 1
-path = r"c:\Users\rotax\OneDrive\Desktop\COMP3710\AD_NC"
-
+num_epochs = 0
+path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\AD_NC"
+save_path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\PatternAnalysis-2023\recognition\super_resolution_network_s4696612\saved_model.pth"
 
 #-----------------
 # Data
@@ -69,7 +69,7 @@ model = SuperResolution()
 model.to(device)
 model.train()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
-criterion = nn.L1Loss()#nn.MSELoss()
+criterion = nn.MSELoss()
 
 print("> Training.")
 
@@ -84,14 +84,22 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        print(loss.item())
 
         if (i + 1) % 10 == 0:
             print(f"Epoch [{epoch + 1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item()}")
-            x = real_batch[0].to(device)[:64]
-            y = model(x)
-            plt.figure(figsize=(8,8))
-            plt.axis('off')
-            plt.title('Training Images')
-            plt.imshow(np.transpose(torchvision.utils.make_grid(y, padding=2,normalize=True).cpu(), (1,2,0)))
-            plt.show()
+
+torch.save(model.state_dict(), save_path)
+
+x = real_batch[0].to(device)[:64]
+y = model(x)
+plt.figure(figsize=(8,8))
+plt.axis('off')
+plt.title('Model Images')
+plt.imshow(np.transpose(torchvision.utils.make_grid(y, padding=2,normalize=True).cpu(), (1,2,0)))
+plt.show()
+
+plt.figure(figsize=(8,8))
+plt.axis('off')
+plt.title('Goal Images')
+plt.imshow(np.transpose(torchvision.utils.make_grid(real_batch[1].to(device)[:64], padding=2,normalize=True).cpu(), (1,2,0)))
+plt.show()
