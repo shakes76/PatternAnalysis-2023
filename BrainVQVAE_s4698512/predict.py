@@ -16,7 +16,7 @@ from torchvision import transforms
 from dataset import OASIS
 # Replace with the actual module where your model is defined
 from modules import VectorQuantisedVAE
-from train import generate_samples
+# from train import generate_samples
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -30,6 +30,9 @@ image_x, image_y = 256, 256
 # Size/dimensions within latent space
 hidden_dim = 32     # Number of neurons in each layer
 K = 32      # Size of the codebook
+
+# Peturbance
+noise_scale = 0.001
 
 # Define model.
 model = VectorQuantisedVAE(input_channels=num_channels,
@@ -60,10 +63,22 @@ sample_loader = oasis.test_loader
 # Get a batch of data for generating samples
 sample_images, _ = next(iter(sample_loader))
 
+
+def generate_peturbed_samples(images, model, device, noise_scale=0.1):
+    with torch.no_grad():
+        images = images.to(device)
+
+        # Invoke forward pass on model
+        x_tilde, _, _ = model.forward_peturb(images, noise_scale)
+
+    return x_tilde
+
+
 # Generate samples
 with torch.no_grad():
     # Replace your_fixed_images with actual data
-    fake_images = generate_samples(sample_images, model, device)
+    fake_images = generate_peturbed_samples(
+        sample_images, model, device, noise_scale=noise_scale)
 
 # Create the "OASIS_generated" directory if it doesn't exist
 output_dir = './OASIS_generated'
