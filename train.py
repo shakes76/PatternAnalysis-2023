@@ -14,6 +14,7 @@ import matplotlib.pyplot as plt
 learning_rate = 0.001
 batch_size = 32
 num_epochs = 50
+num_workers = 2
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print ("device: ", device)
 
@@ -28,7 +29,7 @@ data_transforms = transforms.Compose([
 
 # DATASET 
 # Initialize the dataset
-root_dir = './data/AD_NC'
+root_dir = 'home/groups/comp3710/ADNI/AD_NC'
 train_dataset = ADNIDataset(root_dir=root_dir, subset='train', transform=data_transforms)
 
 # Test dataset

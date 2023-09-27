@@ -19,7 +19,7 @@ class ADNIDataset(Dataset):
 
         # build a list of all the file paths
         self.data_paths = []
-        for label_class in ['AC', 'NC']:
+        for label_class in ['AD', 'NC']:
             class_dir = os.path.join(root_dir, self.subset, label_class)
             for filename in os.listdir(class_dir):
                 if os.path.isfile(os.path.join(class_dir, filename)):
