@@ -15,7 +15,7 @@ from torchvision.utils import make_grid
 from torchvision import transforms
 from dataset import OASIS
 # Replace with the actual module where your model is defined
-from modules import VectorQuantizedVAE
+from modules import VectorQuantisedVAE
 from train import generate_samples
 
 # Device configuration
@@ -23,13 +23,16 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Hyperparameters. These can be arbitrary as it's actually read from the save file
 num_channels = 1
+
+# Input image resolution
 image_x, image_y = 256, 256
+
 # Size/dimensions within latent space
 hidden_dim = 32     # Number of neurons in each layer
 K = 32      # Size of the codebook
 
 # Define model.
-model = VectorQuantizedVAE(input_channels=num_channels,
+model = VectorQuantisedVAE(input_channels=num_channels,
                            output_channels=num_channels, hidden_channels=hidden_dim, num_embeddings=K)
 # Load the saved model
 model.load_state_dict(torch.load(os.path.join(".", "ModelParams", "best.pt"))
