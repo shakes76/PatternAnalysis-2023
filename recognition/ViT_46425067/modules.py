@@ -52,3 +52,34 @@ class PatchEmbedding(nn.Module):
         if not self.linear_mode:
             x = x.flatten(2).transpose(1, 2)
         return x
+
+class Attention(nn.Module):
+    def __init__(self, dim, num_heads=12, qkv_bias=True, attn_drop_prob=0.1, proj_drop_prob=0.1):
+        """initialise the self-attention mechanism for the transformEncoder
+
+        Args:
+            dim (int):              input, output dimension per feature
+            num_heads (int):        number of attention heads
+            qkv_bias (bool):        if we include bias in qkv projections
+            attn_drop_prob (float): dropout probability for qkv 
+            proj_drop_prob (float): dropout probability for output 
+        params
+            scale (float):          normalising constant for dot product
+            qkv (nn.Linear):        linear projection for query, key, value
+            proj (nn.Linear):       linear mapping of concatenated attention head output to 
+        """
+        self.dim = dim
+        self.num_heads = num_heads
+        # Makes the multi-head attention output dim the same as input dim
+        self.head_dim = dim // num_heads
+        # prevents small gradients 
+        self.scale = self.head_dim ** -0.5
+        # could do the query, key, value separately
+        self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
+        
+        #dropout for attention and project layers
+        self.attn_drop = nn.Dropout(attn_drop_prob)
+        self.proj_drop = nn.Dropout(proj_drop_prob)
+        
+        # maps the multi-head attention output to a new space
+        self.proj = nn.Linear(dim, dim) 
