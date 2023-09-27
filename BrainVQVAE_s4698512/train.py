@@ -109,7 +109,7 @@ def main():
 
     # Hyper parameters
     learning_rate = 0.8e-4
-    num_epochs = 200
+    num_epochs = 160
     beta = 0.8
 
     dataset_path = os.path.join(".", "datasets", dataset)
