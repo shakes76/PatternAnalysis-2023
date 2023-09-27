@@ -14,11 +14,9 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms, datasets        # Will test on MNIST first
-from torchvision.utils import save_image, make_grid
+from torchvision.utils import save_image
 from tqdm import tqdm
 import os
-import matplotlib.pyplot as plt
-
 
 from modules import VectorQuantisedVAE
 from dataset import OASIS, ADNI
@@ -49,7 +47,7 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
 
         # Vector Quantised Objective Function
         # We need to detach the gradient becuse gradients won't work in disctete space for backpropagation
-        vq_loss = F.mse_loss(z_q_x, z_e_x.detach())
+        # vq_loss = F.mse_loss(z_q_x, z_e_x.detach())
 
         # Commitment objective
         commit_loss = F.mse_loss(z_e_x, z_q_x.detach())
@@ -107,12 +105,12 @@ def main():
     # GPU Device Config
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    dataset = "OASIS"   # ADNI, OASIS
+    dataset = "OASIS"   # ADNI, OASIS, MNIST
 
     # Hyper parameters
-    learning_rate = 3e-4
-    num_epochs = 100
-    beta = 1.0
+    learning_rate = 0.8e-4
+    num_epochs = 200
+    beta = 0.8
 
     dataset_path = os.path.join(".", "datasets", dataset)
 
@@ -120,28 +118,38 @@ def main():
         # Load OASIS Dataset
         # Greyscale data. Observe below in the transform I set num_output_channels = num_channels
         num_channels = 1
+
+        # Image size
         image_x, image_y = 256, 256
+
+        # Number of neurons in each inner layer of the neural network
+        hidden_dim = 32
+
         # Size/dimensions within latent space
-        hidden_dim = 32     # Number of neurons in each layer
         K = 32      # Size of the codebook
         # Dimensions of each vector within latent space
-        z_dim = 8
 
-        oasis_data_path = os.path.join(".", "datasets", "OASIS")
+        # beta Trade off between reconstruction loss and commitment loss
+        beta = 0.75
 
         # Define a transformation to apply to the images (e.g., resizing)
         transform = transforms.Compose([
-            transforms.Resize((image_x, image_y)),  # Adjust the size as needed
+            # Images already 256x256 but can't hurt to ensure size is correct
+            transforms.Resize((image_x, image_y)),
+
+            # Convert images to single channel greyscale
             transforms.Grayscale(num_output_channels=num_channels),
+
+            # Finally convert images into Tensor
             transforms.ToTensor(),
         ])
 
-        oasis = OASIS(oasis_data_path, transform=transform)
+        # Define data loader object
+        oasis = OASIS(dataset_path, transform=transform)
 
         train_loader = oasis.train_loader
         test_loader = oasis.test_loader
         validate_loader = oasis.validate_loader
-
     elif dataset == "ADNI":
         # Load ADNI dataset
         num_channels = 1
@@ -221,9 +229,9 @@ def main():
             with open(f'{save_filename}/best.pt', 'wb') as f:
                 torch.save(model.state_dict(), f)
 
-        # Generate and display samples
-        with torch.no_grad():
-            reconstruction = generate_samples(fixed_images, model, device)
+        # # Generate and display samples
+        # with torch.no_grad():
+        #     reconstruction = generate_samples(fixed_images, model, device)
 
         # Save the model at each epoch
         with open(f'{save_filename}/model_{epoch + 1}.pt', 'wb') as f:
