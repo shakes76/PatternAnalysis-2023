@@ -11,7 +11,7 @@ TEST_DATA_PATH = Path("./data/AD_NC/test/")
 BATCH_SIZE = 32
 
 # resize images
-IMAGE_SIZE = (224, 224)
+IMAGE_SIZE = (224, 224) #TODO: change this value to make training faster
 
 def load_data():
     """
@@ -30,7 +30,7 @@ def load_data():
         transforms.Resize(IMAGE_SIZE),
         transforms.ToTensor(),
         transforms.Grayscale(num_output_channels=1),
-        transforms.Normalize(mean=0.5, std=0.5, inplace=True),
+        transforms.Normalize(mean=0.5, std=0.5, inplace=True), #TODO: does normalising do anything to the data?
     ])
 
     # Load images in using ImageFolder
