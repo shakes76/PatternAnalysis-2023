@@ -144,7 +144,7 @@ class VectorQuantisedVAE(nn.Module):
 
     """
 
-    def __init__(self, input_channels, output_channels, num_embeddings=512, hidden_channels=200, z_dim=20):
+    def __init__(self, input_channels: int, output_channels: int, num_embeddings: int = 512, hidden_channels: int = 200, z_dim: int = 20) -> None:
         # Call parent constructor
         super().__init__()
 
@@ -197,6 +197,7 @@ class VectorQuantisedVAE(nn.Module):
         Returns:
         - latents: Encoded latent codes.
         """
+
         # Forward pass through the encoder
         z_e_x = self.encoder(x)
         # Quantize the latent codes using the codebook
@@ -215,6 +216,7 @@ class VectorQuantisedVAE(nn.Module):
         Returns:
         - x_tilde: Reconstructed image tensor.
         """
+
         # Decode the latent codes and generate the reconstructed image
         z_q_x = self.codebook.embedding(
             z).permute(0, 3, 1, 2)  # (B, D, H, W)
@@ -235,12 +237,47 @@ class VectorQuantisedVAE(nn.Module):
         - z_e_x: Encoded latent codes.
         - z_q_x: Discretized latent codes.
         """
+
         # Forward pass through the encoder
         z_e_x = self.encoder(x)
         # Perform vector quantization using the codebook
         z_q_x_st, z_q_x = self.codebook.straight_through(z_e_x)
         # Decode the quantized latent codes to generate the output image
         x_tilde = self.decoder(z_q_x_st)
+        return x_tilde, z_e_x, z_q_x
+
+    def forward_peturb(self, x, noise_scale: int = 0.1):
+        """
+        Forward Pass
+
+        Combines the encoder and decoder in the forward pass to produce the output.
+        Adds peturbance / noise to the codebook in order to generate a new / different 
+        sample
+
+        Parameters:
+        - x: Input image tensor.
+
+        Returns:
+        - x_tilde: Reconstructed or generated image tensor.
+        - z_e_x: Encoded latent codes.
+        - z_q_x: Discretized latent codes.
+        """
+
+        # Forward pass through the encoder
+        z_e_x = self.encoder(x)
+        # Perform vector quantization using the codebook
+        z_q_x_st, z_q_x = self.codebook.straight_through(z_e_x)
+
+        # Generate random noise
+        rand_noise = torch.randn_like(z_q_x_st) * noise_scale
+
+        # Add noise to z_q_x_st
+        z_q_x_st_noisy = z_q_x_st + rand_noise
+
+        # Decode the now noisy quantised latent codes to generate the output image
+        # the output image will now be a perturbed version of the input
+        x_tilde = self.decoder(z_q_x_st_noisy)
+
         return x_tilde, z_e_x, z_q_x
 
 

@@ -87,22 +87,16 @@ def test(test_loader: DataLoader, model: VectorQuantisedVAE, device: torch.devic
         return recon_loss.item(), vq_loss.item()
 
 
-def generate_samples(images, model, device, noise_scale=0.1):
+def generate_samples(images, model, device):
+    """
+    Generates image samples using model without any noise. Best for training
+    """
+
     with torch.no_grad():
         images = images.to(device)
 
-        # Invoke forward pass on model to obtain latent codes
-        _, _, z_q_x = model(images)
-
         # Invoke forward pass on model
         x_tilde, _, _ = model(images)
-
-        # # Add random noise to the latent codes
-        # noise = torch.randn_like(z_q_x) * noise_scale
-        # z_q_x_noisy = z_q_x + noise
-
-        # # Decode the noisy latent codes to generate variations
-        # x_tilde = model.decode(z_q_x_noisy)
 
     return x_tilde
 
