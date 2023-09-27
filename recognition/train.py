@@ -43,8 +43,7 @@ epochs = 1
 losses = []
 for epoch in range(epochs):
     print(f"Training Epoch {epoch + 1}/{epochs}...")
-    for images, targets in train_loader:
-        # Skip the batch if images or targets is None
+    for iteration, (images, targets) in enumerate(train_loader):
         if images is None or targets is None:
             continue
         optimizer.zero_grad()
@@ -55,10 +54,13 @@ for epoch in range(epochs):
         optimizer.step()
         losses.append(loss.item())
 
+        # Print the training loss for each iteration
+        print(f"Iteration {iteration + 1}: Training Loss = {loss.item():.4f}")
+
 
 
 # path to save model
-path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\Save_Model'
+path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\Save Model\\mask_rcnn_model.pth'
 torch.save(model.state_dict(), path_to_saved_model)
 
 # Plotting losses
