@@ -346,7 +346,7 @@ class VectorQuantisationStraightThrough(Function):
         return (codes, indices_flatten)
 
     @staticmethod
-    def backward(ctx, grad_output):
+    def backward(ctx, grad_output, _):
         # Initialise gradient variables
         grad_inputs, grad_codebook = None, None
 
