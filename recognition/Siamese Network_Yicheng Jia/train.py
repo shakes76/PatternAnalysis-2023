@@ -1,10 +1,13 @@
+import os
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
+from torchvision.datasets import ImageFolder
 
-from dataset import train_dataset, test_dataset
+from dataset import train_dataset, test_dataset, SiameseNetworkDataset, transform
 from modules import SiameseResNet
 
 # Check if CUDA is available and set the device accordingly
@@ -31,10 +34,21 @@ net.train()
 
 # Initialize the best loss to a very large number
 best_loss = float('inf')
+
 # Number of epochs to wait for improvement
 patience = 5
+
 # Number of epochs with no improvement after which training will be stopped
 no_improve_epochs = 0
+
+# Create the validation directory
+val_dir = ImageFolder(root=os.path.join(os.getcwd(), "AD_NC/val"))
+
+# Create the validation dataset
+val_dataset = SiameseNetworkDataset(imageFolderDataset=val_dir, transform=transform)
+
+# Create the validation data loader
+val_dataloader = DataLoader(val_dataset, shuffle=True, num_workers=8, batch_size=8)
 
 # Training loop with early stopping
 for epoch in range(0, 50):

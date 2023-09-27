@@ -22,6 +22,9 @@ class SiameseResNet(nn.Module):
             # The input size is 2048 because the output of ResNet50 is a 2048-dimensional vector.
             nn.Linear(2048, 1024),
 
+            # Batch normalization layer to normalize the output of the previous layer.
+            nn.BatchNorm1d(1024),
+
             # ReLU activation function
             nn.ReLU(inplace=True),
 
@@ -30,6 +33,9 @@ class SiameseResNet(nn.Module):
 
             # The input size is 1024 because the output of the previous layer is a 1024-dimensional vector.
             nn.Linear(1024, 512),
+
+            # Batch normalization layer to normalize the output of the previous layer.
+            nn.BatchNorm1d(512),
 
             # ReLU activation function
             nn.ReLU(inplace=True),

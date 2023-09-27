@@ -11,13 +11,11 @@ from torchvision.datasets import ImageFolder
 
 class SiameseNetworkDataset(Dataset):
 
-    def __init__(self, imageFolderDataset, transform=None, should_invert=True):
+    def __init__(self, imageFolderDataset, transform=None):
         # Initialize the dataset.
         self.imageFolderDataset = imageFolderDataset
         # Apply the transformations to the images.
         self.transform = transform
-        # Whether to invert the images.
-        self.should_invert = should_invert
 
     # Get a pair of images from the dataset.
     def __getitem__(self, index):
@@ -44,14 +42,12 @@ class SiameseNetworkDataset(Dataset):
                 if img0_tuple[1] != img1_tuple[1]:
                     break
 
-        # Load the two images without converting to grayscale.
-        # This is because the pretrained ResNet model expects 3-channel images.
+        # Load the two images.
         img0 = Image.open(img0_tuple[0])
         img1 = Image.open(img1_tuple[0])
 
         # Apply the transforms to the images.
         if self.transform is not None:
-
             img0 = self.transform(img0)
             img1 = self.transform(img1)
 
@@ -64,7 +60,14 @@ class SiameseNetworkDataset(Dataset):
 
 
 # Define the transformations to be applied on the images.
-transform = transforms.Compose([transforms.Resize((100, 100)), transforms.ToTensor()])
+transform = transforms.Compose([
+    transforms.Lambda(lambda x: x.convert('RGB')),  # Convert grayscale image to RGB
+    transforms.RandomResizedCrop(100, scale=(0.8, 1.0), ratio=(1, 1)),  # Randomly crop and resize the image to 100x100, keeping the aspect ratio to 1:1
+    transforms.RandomRotation(10),  # Randomly rotate the image by up to 10 degrees
+    transforms.RandomHorizontalFlip(),  # Randomly flip the image horizontally
+    transforms.Resize((100, 100)),  # Resize the image to 100x100
+    transforms.ToTensor()  # Convert the image to a PyTorch tensor
+])
 
 # Use relative paths to specify the directories.
 train_dir = ImageFolder(root=os.path.join(os.getcwd(), "AD_NC/train"))
