@@ -20,16 +20,16 @@ import os
 import matplotlib.pyplot as plt
 
 
-from modules import VectorQuantizedVAE
+from modules import VectorQuantisedVAE
 from dataset import OASIS, ADNI
 
 
-def train(train_loader: DataLoader, model: VectorQuantizedVAE, optimiser: torch.optim.Adam, device: torch.device, beta: int):
+def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.optim.Adam, device: torch.device, beta: int):
     """
     Inside of the training loop for the VQ-VAE
     Args:
         train_loader (DataLoader): the loader for the trainind data
-        model (VectorQuantizedVAE): the VQ-VAE Model
+        model (VectorQuantisedVAE): the VQ-VAE Model
         optimiser (torch.optim.Adam): The learning rate optimiser
         device (torch.device): the device that the training runs on
         beta (int): loss weight
@@ -60,7 +60,7 @@ def train(train_loader: DataLoader, model: VectorQuantizedVAE, optimiser: torch.
         optimiser.step()
 
 
-def test(test_loader: DataLoader, model: VectorQuantizedVAE, device: torch.device):
+def test(test_loader: DataLoader, model: VectorQuantisedVAE, device: torch.device):
     """
     Tests the model with testing set
 
@@ -87,12 +87,22 @@ def test(test_loader: DataLoader, model: VectorQuantizedVAE, device: torch.devic
         return recon_loss.item(), vq_loss.item()
 
 
-def generate_samples(images, model, device):
+def generate_samples(images, model, device, noise_scale=0.1):
     with torch.no_grad():
         images = images.to(device)
 
+        # Invoke forward pass on model to obtain latent codes
+        _, _, z_q_x = model(images)
+
         # Invoke forward pass on model
         x_tilde, _, _ = model(images)
+
+        # # Add random noise to the latent codes
+        # noise = torch.randn_like(z_q_x) * noise_scale
+        # z_q_x_noisy = z_q_x + noise
+
+        # # Decode the noisy latent codes to generate variations
+        # x_tilde = model.decode(z_q_x_noisy)
 
     return x_tilde
 
@@ -173,7 +183,7 @@ def main():
     print(f"{dataset} Dataset Imported :)\n------\n")
 
     # Define Model and move to GPU
-    model = VectorQuantizedVAE(input_channels=num_channels,
+    model = VectorQuantisedVAE(input_channels=num_channels,
                                output_channels=num_channels, hidden_channels=hidden_dim, num_embeddings=K)
     model = model.to(device)
     print("Model defined", model)
