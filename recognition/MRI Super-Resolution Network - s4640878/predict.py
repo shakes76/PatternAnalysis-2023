@@ -3,7 +3,7 @@ import torch, torchvision
 from matplotlib import pyplot as plt
 
 from dataset import Dataset, machine
-from modules import Model
+from modules import Model_Generator
 
 
 def main():
@@ -15,7 +15,7 @@ def main():
     print(device, flush=True)
 
     """ model """
-    model = Model().to(device)
+    model = Model_Generator().to(device)
     print(f"params: {sum([p.nelement() for p in model.parameters()])}", flush=True)
 
     """ load testing dataset """

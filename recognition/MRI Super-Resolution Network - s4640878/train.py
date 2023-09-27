@@ -2,40 +2,55 @@ import time
 import torch, torchvision
 
 from dataset import Dataset, machine
-from modules import Model
+from modules import Model_Generator, Model_Discriminator
 
 
 def main():
-    
+
+    model_type = "gan"
+
+    """ pytorch exe device """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device, flush=True)
 
     """ training params """
     lr = 1e-3
-    epochs = 100 if machine == "rangpur" else 3
+    epochs = 300 if machine == "rangpur" else 3
 
     """ load training dataset """
     train_loader = Dataset(train=True).loader()
 
-    """ model """
-    model = Model().to(device)
-    print(f"params: {sum([p.nelement() for p in model.parameters()])}", flush=True)
+    """ models """
+    generator = Model_Generator().to(device)
+    discriminator = Model_Discriminator().to(device)
+    print(f"generator params: {sum([p.nelement() for p in generator.parameters()])}", flush=True)
+    print(f"discriminator params: {sum([p.nelement() for p in discriminator.parameters()])}", flush=True)
 
     """ loss function """
-    loss_function = torch.nn.MSELoss()
+    loss_function = torch.nn.MSELoss(
+    ) if model_type == "cnn" else torch.nn.BCELoss(
+    ) if model_type == "gan" else None
 
-    """ optimizer """
-    optimizer = torch.optim.SGD(
-        params=model.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4,
+    """ optimizers """
+    optimizer_generator = torch.optim.SGD(
+        params=generator.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4,
+    )
+    optimizer_discriminator = torch.optim.SGD(
+        params=discriminator.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4,
     )
 
-    """ variable learning rate scheduller """
-    lr_scheduler = torch.optim.lr_scheduler.OneCycleLR(
-        optimizer, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs,
+    """ variable learning rate schedullers """
+    lr_scheduler_generator = torch.optim.lr_scheduler.OneCycleLR(
+        optimizer_generator, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs,
+    )
+    lr_scheduler_discriminator = torch.optim.lr_scheduler.OneCycleLR(
+        optimizer_discriminator, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs,
     )
 
     """ train the model """
-    model.train()
+    generator.train()
+    discriminator.train()
+
     start = time.time()
     print("training...", flush=True)
 
@@ -43,32 +58,65 @@ def main():
         for i, (images, labels) in enumerate(train_loader):
             images = images.to(device)
             labels = labels.to(device)
+
             downsampled = torchvision.transforms.Resize(60, antialias=True)(images).to(device)
+            upsampled = generator(downsampled)
+            
+            """ train discriminator """
+            if model_type == "gan": 
+                discriminator_original = discriminator(images)
+                discriminator_original_loss = loss_function(
+                    discriminator_original, torch.ones_like(discriminator_original),
+                )
+                discriminator_upsampled = discriminator(upsampled)
+                discriminator_upsampled_loss = loss_function(
+                    discriminator_upsampled, torch.zeros_like(discriminator_upsampled),
+                )
+                discriminator_loss = (discriminator_original_loss + discriminator_upsampled_loss) / 2
+                
+                """ discriminator backward pass """
+                discriminator.zero_grad()
+                discriminator_loss.backward(retain_graph=True)
+                optimizer_discriminator.step()
 
-            """ forward pass """
-            outputs = model(downsampled)
-            loss = loss_function(outputs, images)
+            """ train generator """
+            if model_type == "gan": outputs = discriminator(upsampled)
+            if model_type == "cnn": outputs = upsampled
+            generator_loss = loss_function(
+                outputs, images
+            ) if model_type == "cnn" else loss_function(
+                outputs, torch.ones_like(outputs)
+            ) if model_type == "gan" else None
 
-            """ backwards pass """
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
+            """ generator backwards pass """
+            optimizer_generator.zero_grad()
+            generator_loss.backward()
+            optimizer_generator.step()
 
             """ print loss results """
             if (i + 1) % 300 == 0 or ((i + 1) % 10 == 0 and machine == "local"):
-                print (
-                    f"epoch: {epoch + 1}/{epochs}, step: {i + 1}/{len(train_loader)}, loss: {round(loss.item(), 5)}",
-                    flush=True,
-                )
-
-            """ step the lr scheduler """
-            lr_scheduler.step()
+                if model_type == "gan": print (
+                        "epoch: %d/%d, step: %d/%d, d loss: %.5f, g loss: %.5f" % (
+                            epoch + 1, epochs, i + 1, len(train_loader), 
+                            discriminator_loss.item(), generator_loss.item(),
+                        ), flush=True,
+                    )
+                if model_type == "cnn": print (
+                        "epoch: %d/%d, step: %d/%d, loss: %.5f" % (
+                            epoch + 1, epochs, i + 1, len(train_loader), 
+                            generator_loss.item(),
+                        ), flush=True,
+                    )
+         
+            """ step the lr schedulers """
+            lr_scheduler_generator.step()
+            if model_type == "gan": lr_scheduler_discriminator.step()
 
         """ save the model """
-        if (epoch + 1) % 10 == 0 or (machine == "local" and epoch + 1 == epochs):
+        if (epoch + 1) % 30 == 0 or (machine == "local" and epoch + 1 == epochs):
             with open(
                 file="models/sr_model_%03d.pt" % (epoch + 1), mode="wb") as f:
-                torch.save(obj=model.state_dict(), f=f)
+                torch.save(obj=generator.state_dict(), f=f)
 
     print(f"training time: {round((time.time() - start) / 60)} mins", flush=True)
 
