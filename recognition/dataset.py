@@ -25,14 +25,18 @@ class ISICDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.image_files[idx])
-        mask_path = os.path.join(self.mask_dir, self.image_files[idx].replace('.jpg', '.png'))
+        mask_path = os.path.join(self.mask_dir, self.image_files[idx].replace('.jpg', '_superpixels.png'))
 
-        image = Image.open(img_path).convert("RGB")
-        mask = Image.open(mask_path).convert("L")
+        try:
+            image = Image.open(img_path).convert("RGB")
+            mask = Image.open(mask_path).convert("L")
+        except FileNotFoundError:
+            return None, None
 
         if self.transform:
             image = self.transform(image)
             mask = self.transform(mask)
+            mask = mask.to(dtype=torch.int64)
 
         # Compute bounding boxes from masks
         pos = np.where(np.array(mask) > 0)
