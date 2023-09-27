@@ -158,6 +158,8 @@ def main():
     ######################  
     #   Evaluate Test:   #
     ######################
+    print("> Testing")
+    start = time.time()
     model.eval()
     total_test_correct = 0
     total_test_loss = 0.0
@@ -179,10 +181,14 @@ def main():
     test_accuracy = total_test_correct/len(test_dataloader.dataset)
     
     print("Test loss: {:.5f} Test acc: {:.5f}".format(
-                epoch+1, 
                 total_test_loss/len(test_dataloader),
                 test_accuracy
                 ))
+    
+    end = time.time()
+    elapsed = end - start
+    print("Testing took ", str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
+    print("END")
     
     
 def visualize(epoch_train_acc, epoch_valid_acc, epoch_train_loss, epoch_valid_loss):
