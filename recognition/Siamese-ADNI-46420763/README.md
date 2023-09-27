@@ -32,11 +32,12 @@ The following plot shows the loss and accuracy for both the training and validat
 
 We can see that the model reaches good training and validation accuracy at around 6 epochs and continue to perform well, staying above 0.8 accuracy except for two times. At 30 epochs, the model has decent training and validation performance and when evaluating the test set we also get great performance as seen below:
 
-<img src="./images/test_acc.png" width="350">
+<img src="./images/test_acc.PNG" width="350">
 
 
 ### Prediction
 Predicting the class of image requires a 'query' image from each class which will be tested for similarity against the input image. The following plots are two examples predicting the class of an image.
+
 <img src="./images/prediction-1.png" width="500">
 <img src="./images/prediction-2.png" width="500">
 
