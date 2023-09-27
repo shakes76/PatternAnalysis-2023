@@ -5,6 +5,8 @@ from modules import get_maskrcnn_model
 from dataset import ISICDataset
 import matplotlib.pyplot as plt
 
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
 model = get_maskrcnn_model(num_classes=2)  # 1 class (lesion) + 1 background
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
@@ -14,9 +16,9 @@ transform = transforms.Compose([
 ])
 
 # path to train images
-img_train_dir = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project\\ISIC-2017_Training_Data'
+img_train_dir = 'ISIC-2017_Training_Data'
 # path to train masks
-mask_train_dir = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project\\ISIC-2017_Training_Data'
+mask_train_dir = 'ISIC-2017_Test_v2_Part1_GroundTruth'
 
 train_dataset = ISICDataset(img_dir=img_train_dir, mask_dir=mask_train_dir, transform=transform)
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
@@ -38,7 +40,7 @@ for epoch in range(epochs):
 
 
 # path to save model
-path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project\\Save_Model'
+path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710_Project\\Save_Model\\mask_rcnn_model.pth'
 torch.save(model.state_dict(), path_to_saved_model)
 
 # Plotting losses
@@ -46,4 +48,3 @@ plt.plot(losses)
 plt.xlabel('Iterations')
 plt.ylabel('Loss')
 plt.show()
-
