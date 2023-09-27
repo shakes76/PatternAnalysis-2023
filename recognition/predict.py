@@ -5,7 +5,7 @@ from torchvision.transforms import transforms
 
 model = get_maskrcnn_model(num_classes=2)
 
-# Add your path to the saved model here
+# Path to the saved model here
 path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project\\Save_Model'
 model.load_state_dict(torch.load(path_to_saved_model))
 model.eval()
@@ -23,4 +23,3 @@ with torch.no_grad():
 
 # Print results or visualize predictions
 print(predictions)
-
