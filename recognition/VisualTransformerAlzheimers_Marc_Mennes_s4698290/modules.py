@@ -87,7 +87,7 @@ class ADNITransformer(torch.nn.Module):
 
         classPrediction = self.mlpClassifier(transformedClassToken)
 
-        print(classPrediction.size())
+        return classPrediction
 
 
 
