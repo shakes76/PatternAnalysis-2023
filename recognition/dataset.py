@@ -8,8 +8,6 @@ import os
 from PIL import Image
 import torchvision.transforms as T
 
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-
 def get_transform(train):
     transforms = []
     transforms.append(T.PILToTensor())
@@ -56,4 +54,3 @@ class ISICDataset(Dataset):
         }
 
         return image, target
-
