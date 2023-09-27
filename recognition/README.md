@@ -1,10 +1,6 @@
-# Recognition Tasks
-Various recognition tasks solved in deep learning frameworks.
+# Detect lesions within the ISIC data set with the Mask RCNN
 
-Tasks may include:
-* Image Segmentation
+
+Tasks include:
 * Object detection
-* Graph node classification
-* Image super resolution
-* Disease classification
-* Generative modelling with StyleGAN and Stable Diffusion
+
