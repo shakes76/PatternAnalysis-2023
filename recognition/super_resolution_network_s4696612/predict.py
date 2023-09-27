@@ -42,8 +42,15 @@ batch = next(iter(test_loader))
 trained_model.eval()
 torch.save(trained_model.state_dict(), save_path)
 
-x = batch[0].to(device)[:64]
+x = batch[0].to(device)[:32]
 y = trained_model(x)
+a = [y[0], batch[1].to(device)[0]]
+plt.figure(figsize=(8,8))
+plt.axis('off')
+plt.title('Comparison')
+plt.imshow(np.transpose(torchvision.utils.make_grid(a, padding=2,normalize=True).cpu(), (1,2,0)))
+plt.show()
+
 plt.figure(figsize=(8,8))
 plt.axis('off')
 plt.title('Model Images')
@@ -53,5 +60,5 @@ plt.show()
 plt.figure(figsize=(8,8))
 plt.axis('off')
 plt.title('Goal Images')
-plt.imshow(np.transpose(torchvision.utils.make_grid(batch[1].to(device)[:64], padding=2,normalize=True).cpu(), (1,2,0)))
+plt.imshow(np.transpose(torchvision.utils.make_grid(batch[0].to(device)[:32], padding=2,normalize=True).cpu(), (1,2,0)))
 plt.show()

@@ -19,19 +19,20 @@ print()
 
 #---------------
 # Hyper Parameters
-learning_rate = 0.0005
+learning_rate = 0.00005
 num_epochs = 10
 path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\AD_NC"
 save_path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\PatternAnalysis-2023\recognition\super_resolution_network_s4696612\saved_model.pth"
 
 #-----------------
 # Data
-batch_size = 64
+batch_size = 16
 train_path = path + "\\train\\AD"
 test_path = path + "\\test\\AD"
 
 transform = transforms.Compose([
     transforms.ToTensor(),
+    transforms.Normalize(0.5, 0.5)
 ])
 
 train_data = ImageDataset(directory=train_path,
