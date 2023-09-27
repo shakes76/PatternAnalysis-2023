@@ -5,15 +5,16 @@ import torch.nn.functional as F
 class SuperResolution(nn.Module):
     def __init__(self):
         super().__init__()
-        self.up1 = nn.Upsample(scale_factor=4, mode="bicubic")
-        self.conv1 = nn.Conv2d(1, 64, kernel_size=5, padding=1, padding_mode='replicate')
-        self.conv2 = nn.Conv2d(64, 32, kernel_size=1, padding=2, padding_mode='replicate')
-        self.conv3 = nn.Conv2d(32, 1, kernel_size=3, padding=0, padding_mode='replicate')
+        self.conv1 = nn.Conv2d(1, 128, 7, 1, 2)
+        self.conv2 = nn.Conv2d(128, 128, 5, 1, 2)
+        self.conv3 = nn.Conv2d(128, 64, 5, 1, 2)
+        self.conv4 = nn.Conv2d(64, 4 ** 2, 3, 1, 2)
+        self.pixel = nn.PixelShuffle(4)
         
     
     def forward(self, x):
-        x = self.up1(x)
         x = F.relu(self.conv1(x))
         x = F.relu(self.conv2(x))
-        x = self.conv3(x)
+        x = F.relu(self.conv3(x))
+        x = self.pixel(self.conv4(x))
         return x

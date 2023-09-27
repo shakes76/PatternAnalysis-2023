@@ -20,13 +20,13 @@ print()
 #---------------
 # Hyper Parameters
 learning_rate = 0.00005
-num_epochs = 10
+num_epochs = 2
 path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\AD_NC"
 save_path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\PatternAnalysis-2023\recognition\super_resolution_network_s4696612\saved_model.pth"
 
 #-----------------
 # Data
-batch_size = 16
+batch_size = 32
 train_path = path + "\\train\\AD"
 test_path = path + "\\test\\AD"
 
