@@ -6,12 +6,12 @@ from torchvision.transforms import transforms
 model = get_maskrcnn_model(num_classes=2)
 
 # Path to the saved model here
-path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project\\Save_Model'
+path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710_Project\\Save_Model\\mask_rcnn_model.pth'
 model.load_state_dict(torch.load(path_to_saved_model))
 model.eval()
 
 # Load an image and make predictions
-path_to_image = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project\\ISIC-2017_Training_Data'
+path_to_image = 'ISIC-2017_Training_Data'
 image = Image.open(path_to_image).convert("RGB")
 transform = transforms.Compose([
     transforms.Resize((256, 256)),
