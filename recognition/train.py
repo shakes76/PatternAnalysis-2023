@@ -20,9 +20,11 @@ transform = transforms.Compose([
 # Custom collate function to handle None values
 def custom_collate(batch):
     batch = list(filter(lambda x: x[0] is not None and x[1] is not None, batch))
-    if len(batch) == 0:  # Check if the batch is empty after filtering
+    if len(batch) == 0:
         return None, None
     return torch.utils.data.dataloader.default_collate(batch)
+
+
 # For training
 img_train_dir = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\ISIC-2017_Training_Data'
 mask_train_dir = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\ISIC-2017_Test_v2_Part1_GroundTruth'
@@ -35,7 +37,7 @@ train_dataset = ISICDataset(img_dir=img_train_dir, mask_dir=mask_train_dir, tran
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, collate_fn=custom_collate)
 
 # Define the number of epochs
-epochs = 10
+epochs = 1
 
 # Training loop
 losses = []
@@ -56,7 +58,7 @@ for epoch in range(epochs):
 
 
 # path to save model
-path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710_Project\\Save_Model\\mask_rcnn_model.pth'
+path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\Save_Model'
 torch.save(model.state_dict(), path_to_saved_model)
 
 # Plotting losses
