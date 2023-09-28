@@ -120,3 +120,30 @@ class Attention(nn.Module):
         x = self.proj_drop(x)
         
         return x
+
+
+class FeedForward(nn.Module):
+    """
+    MLP layer in the transform encoder block
+    """
+    def __init__(self, in_features:int, hidden_units:int, out_features:int, drop_prob=0.1):
+        """intialise the MLP layer
+
+        Args:
+            in_features (int): dimension of the input
+            hidden_units (int): number of hiddent units used in linear layer        
+            out_features (int): dimension of the output
+            drop_prob (float, optional): dropout probabilitiy. Defaults to 0.1.
+        """
+        super().__init()
+        self.net = nn.Sequential(
+            nn.LayerNorm(in_features),
+            nn.Linear(in_features, hidden_units),
+            nn.GELU(),
+            nn.Dropout(drop_prob),
+            nn.Linear(hidden_units, out_features),
+            nn.Dropout(drop_prob),
+        )
+        
+    def forward(self, x):
+        return self.net(x)
