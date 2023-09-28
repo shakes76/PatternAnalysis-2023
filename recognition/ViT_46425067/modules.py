@@ -56,15 +56,14 @@ class PatchEmbedding(nn.Module):
         return x
 
 class Attention(nn.Module):
-    def __init__(self, dim, num_heads=12, qkv_bias=True, attn_drop_prob=0.1, proj_drop_prob=0.1):
+    def __init__(self, dim, num_heads=12, qkv_bias=True, drop_prob=0.1):
         """initialise the self-attention mechanism for the transformEncoder
 
         Args:
             dim (int):              input, output dimension per feature
             num_heads (int):        number of attention heads
             qkv_bias (bool):        if we include bias in qkv projections
-            attn_drop_prob (float): dropout probability for qkv 
-            proj_drop_prob (float): dropout probability for output 
+            drop_prob (float):      dropout probability
         params
             scale (float):          normalising constant for dot product
             qkv (nn.Linear):        linear projection for query, key, value
@@ -80,8 +79,8 @@ class Attention(nn.Module):
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         
         #dropout for attention and project layers
-        self.attn_drop = nn.Dropout(attn_drop_prob)
-        self.proj_drop = nn.Dropout(proj_drop_prob)
+        self.attn_drop = nn.Dropout(drop_prob)
+        self.proj_drop = nn.Dropout(drop_prob)
         
         # maps the multi-head attention output to a new space
         self.proj = nn.Linear(dim, dim) 
@@ -147,8 +146,7 @@ class FeedForward(nn.Module):
     def forward(self, x):
         return self.net(x)
     
-    
-    
+
 class TransformEncoder(nn.Module):
     """transformer encoder block
     """
@@ -167,7 +165,7 @@ class TransformEncoder(nn.Module):
         self.attention_block = Attention(dim=dim,
                               num_heads=num_heads,
                               qkv_bias=qkv_bias,
-                              attn_drop_prob=drop_prob)
+                              drop_prob=drop_prob)
         
         self.layer_norm2 = nn.LayerNorm(dim, eps=1e-6)
         
@@ -187,5 +185,62 @@ class TransformEncoder(nn.Module):
         """
         x = self.attention_block(self.layer_norm1(x)) + x
         x = self.feed_forward(self.layer_norm2(x)) + x
+        
+        return x
+    
+    
+class ViT(nn.Module):
+    def __init__(self, img_size,
+                    patch_size,
+                    img_channels,
+                    num_classes,
+                    embed_dim,
+                    depth,
+                    num_heads,
+                    mlp_ratio=4.,
+                    qkv_bias=True,
+                    drop_prob=0.1):
+        super().__init__()
+        
+        self.patch_embed = PatchEmbedding(img_size=img_size,
+                                            patch_size=patch_size,
+                                            embed_dim=embed_dim,
+                                            in_channels=img_channels,
+                                            linear_mode=False) #TODO: try changing to linear mode
+        #class token to determine which class the image belongs to
+        self.class_token = nn.Parameter(torch.zeros(1, 1, embed_dim)) #zeros or randn
+        #positional information of patches
+        self.pos_embed = nn.Parameters(torch.zeros(1, self.patch_embed.num_patches, embed_dim))
+        self.pos_drop = nn.Dropout(p=drop_prob)
+        
+        #transform encoder blocks
+        self.encoders = nn.ModuleList([]) #TODO: move this into the transform encoder class
+        for _ in range(depth):
+            self.encoders.append(TransformEncoder(dim=embed_dim,
+                                                    num_heads=num_heads,
+                                                    mlp_ratio=mlp_ratio,
+                                                    qkv_bias=qkv_bias,
+                                                    drop_prob=drop_prob))
+        self.norm_layer = nn.LayerNorm(embed_dim, eps=1e-6)
+        self.head = nn.Linear(embed_dim, num_classes)
+        
+    def forward(self, x):
+        num_batch = x.shape[0]
+        # convert images into patches
+        x = self.patch_embed(x)
+        # concate the class token
+        class_token = self.class_token.expand(num_batch, -1, -1)
+        x = torch.cat((class_token, x), dim=1)
+        x = x + self.pos_embed
+        x = self.pos_drop(x)
+        
+        #pass x through encoders
+        for encoder in self.encoders:
+            x = encoder(x)
+        x = self.norm(x)
+        
+        #get only the class token for output
+        output = x[:, 0] 
+        x = self.head(output)
         
         return x
