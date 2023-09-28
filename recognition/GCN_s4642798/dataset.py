@@ -15,7 +15,7 @@ X = torch.Tensor(features)
 y = torch.Tensor(target)
 
 # Cast tensors that contain integer values to integer type
-X = X.to(torch.int64)
+edges = edges.to(torch.int64)
 y = y.to(torch.int64)
 
 # Print Shape of Tensors
