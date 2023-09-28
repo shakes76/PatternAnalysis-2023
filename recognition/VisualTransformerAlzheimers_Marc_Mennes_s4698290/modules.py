@@ -58,7 +58,8 @@ class ADNITransformer(torch.nn.Module):
                 classifiernetwork.append(torch.nn.Linear(layer, classifierHiddenLayers[i + 1]))
                 classifiernetwork.append(torch.nn.GELU())
             else:
-                classifiernetwork.append(torch.nn.Linear(layer, 2))
+                classifiernetwork.append(torch.nn.Linear(layer, 1))
+                classifiernetwork.append(torch.nn.Sigmoid())
 
         #the mlp classifier that takes in the class token and outputs the class of the image
         self.mlpClassifier = torch.nn.Sequential(*classifiernetwork)
@@ -70,10 +71,11 @@ class ADNITransformer(torch.nn.Module):
         #lines the patches up along a single dimension
         imagePatches = torch.flatten(imagePatches, start_dim=1, end_dim=2)
 
+        embeddedImagePatches = torch.zeros_like(imagePatches)
         #linearly embed each of the image patches
         for i in range(self.nPatches):
             #add on positional embeddings
-            imagePatches[:, i, :] = self.linEmbed(imagePatches[:, i, :]) + i + 1 
+            embeddedImagePatches[:, i, :] = self.linEmbed(imagePatches[:, i, :]) + i + 1
 
         #expand the class token to all samples in batch
         batchedClassToken = self.classToken.expand(imagePatches.size()[0], -1, -1)
