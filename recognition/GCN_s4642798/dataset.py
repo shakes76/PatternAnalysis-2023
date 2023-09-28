@@ -1,3 +1,4 @@
+from torch_geometric.datasets.yelp import Yelp
 import numpy as np
 import torch
 
@@ -11,10 +12,40 @@ target = facebook_data["target"]
 
 # Convert Numpy Arrays to Tensors
 edges = torch.Tensor(edges)
-features = torch.Tensor(features)
-target = torch.Tensor(target)
+X = torch.Tensor(features)
+y = torch.Tensor(target)
+
+# Cast tensors that contain integer values to integer type
+X = X.to(torch.int64)
+y = y.to(torch.int64)
 
 # Print Shape of Tensors
-print("Edges Shapes: {}".format(edges.shape))
-print("Features Shapes: {}".format(features.shape))
-print("Target Shapes: {}".format(target.shape))
+print("Edges Shape: {}".format(edges.shape))
+print("X Shape: {}".format(X.shape))
+print("Y Shape: {}".format(y.shape))
+
+# Save and output data information
+sample_size = int(X.size(0))
+number_features = int(X.size(1))
+number_classes = len(torch.unique(y))
+print("Sample Size: {}".format(sample_size))
+print("Number of Features: {}".format(number_features))
+print("Number of Classes: {}".format(number_classes))
+
+# Generate training and testing mask
+train_split = 0.7
+train_size = int(train_split * sample_size)
+
+rand_indicies = torch.randperm(sample_size)
+train_indicies = rand_indicies[:train_size]
+test_indicies = rand_indicies[train_size:]
+
+train_mask = torch.zeros(sample_size, dtype=torch.bool)
+train_mask[train_indicies] = True
+
+test_mask = torch.zeros(sample_size, dtype=torch.bool)
+test_mask[test_indicies] = True
+
+# Outputing size of training and testing set
+print("Size of Training Set: {}".format(torch.sum(train_mask).item()))
+print("Size of Test Set: {}".format(torch.sum(test_mask).item()))
