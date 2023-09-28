@@ -72,6 +72,7 @@ class Attention(nn.Module):
             qkv (nn.Linear):        linear projection for query, key, value
             proj (nn.Linear):       linear mapping of concatenated attention head output to 
         """
+        super().__init__()
         self.dim = dim
         self.num_heads = num_heads
         # Makes the multi-head attention output dim the same as input dim
@@ -136,7 +137,7 @@ class FeedForward(nn.Module):
             hidden_units (int): number of hiddent units used in linear layer        
             drop_prob (float, optional): dropout probabilitiy. Defaults to 0.1.
         """
-        super().__init()
+        super().__init__()
         self.net = nn.Sequential(
             nn.LayerNorm(in_out_features),
             nn.Linear(in_out_features, hidden_units),
@@ -213,7 +214,7 @@ class ViT(nn.Module):
         #class token to determine which class the image belongs to
         self.class_token = nn.Parameter(torch.zeros(1, 1, embed_dim)) #zeros or randn
         #positional information of patches
-        self.pos_embed = nn.Parameters(torch.zeros(1, self.patch_embed.num_patches, embed_dim))
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.patch_embed.num_patches, embed_dim))
         self.pos_drop = nn.Dropout(p=drop_prob)
         
         #transform encoder blocks
