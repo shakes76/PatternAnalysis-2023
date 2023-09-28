@@ -30,8 +30,8 @@ def load_data(batch_size, image_size):
     ])
 
     # Load images in using ImageFolder
-    train_dataset = datasets.ImageFolder(root=TRAIN_DATA_PATH, transform=train_transforms)
-    test_dataset = datasets.ImageFolder(root=TEST_DATA_PATH, transform=test_transforms)
+    train_dataset = datasets.ImageFolder(root="E:/UNI 2023 SEM 2/COMP3710/Lab3/recognition/ViT_46425067/data/AD_NC/train", transform=train_transforms)
+    test_dataset = datasets.ImageFolder(root="E:/UNI 2023 SEM 2/COMP3710/Lab3/recognition/ViT_46425067/data/AD_NC/test", transform=test_transforms)
 
     train_loader = DataLoader(dataset=train_dataset,
                                 batch_size=batch_size,
