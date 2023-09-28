@@ -7,7 +7,7 @@ import torch
 CROPSIZE = 210
 PATHTODATASET = "/home/marc/Documents/PatternAnalysisReport/PatternAnalysis-2023/recognition/VisualTransformerAlzheimers_Marc_Mennes_s4698290/ADNI_AD_NC_2D"
 ENCODERDENSELAYERS = [[10000]]
-LR = 0.001
+LR = 0.0001
 BATCHSIZE = 128
 EPOCHS = 10
 
@@ -28,7 +28,7 @@ transform = torchvision.transforms.Compose(
 trainData = dataset.ADNI(PATHTODATASET, transform=transform)
 testData = dataset.ADNI(PATHTODATASET, transform=transform, test=True)
 trainLoader = DataLoader(trainData, batch_size=BATCHSIZE, shuffle=True)
-testLoader = DataLoader(testData, batch_size=BATCHSIZE, shuffle=False)
+testLoader = DataLoader(testData, batch_size=BATCHSIZE, shuffle=True)
 
 transformer = modules.ADNITransformer(9, 70, 5, 0, [10000], ENCODERDENSELAYERS).to(device)
 
@@ -47,7 +47,6 @@ for epoch in range(EPOCHS):
     for batch in trainLoader:
 
         images, labels = batch[0].to(device), batch[1].to(device)
-        print(labels)
 
         outputs = transformer(images)
         l = loss(outputs[:, 0], labels.double())
@@ -58,9 +57,21 @@ for epoch in range(EPOCHS):
 
         #gather training statistics
         predictions = torch.round(outputs[:, 0].detach()).to(torch.uint8)
-        trainAccuracy = torch.sum(predictions == labels)/labels.size()[0]
+        trainAccuracy = torch.sum(predictions == labels)/(labels.size()[0])
         batchAccuracies.append(trainAccuracy)
         
     epochAccuracies.append(sum(batchAccuracies)/len(batchAccuracies))
 
     print("Epoch: {}/{}, final batch loss: {}, average accuracy: {}".format(epoch+1, EPOCHS, l.item(), epochAccuracies[-1]))
+
+torch.no_grad()
+transformer.eval()
+
+for batch in testLoader:
+
+    images, labels = batch[0].to(device), batch[1].to(device)
+
+    predictions = torch.round(transformer(images)[:, 0]).to(torch.uint8)
+    testAccuracy = torch.sum(predictions == labels)/(labels.size()[0])
+
+    print(testAccuracy)
