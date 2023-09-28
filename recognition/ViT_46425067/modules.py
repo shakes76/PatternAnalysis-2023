@@ -146,3 +146,46 @@ class FeedForward(nn.Module):
         
     def forward(self, x):
         return self.net(x)
+    
+    
+    
+class TransformEncoder(nn.Module):
+    """transformer encoder block
+    """
+    def __init__(self, dim:int, num_heads:int, mlp_ratio=4.0, qkv_bias=True, drop_prob=0.1):
+        """intialise the transformer encoder block
+
+        Args:
+            dim (int):          the input dimension
+            num_heads (int):    number of attention heads
+            mlp_ratio (float):  ratio of hidden units to dim of the feed forward layer
+            qkv_bias (bool):    if we want a bias term in q,k,v projections
+            drop_prob (float):  drop out probability
+        """
+        super().__init__()
+        self.layer_norm1 = nn.LayerNorm(dim, eps=1e-6)
+        self.attention_block = Attention(dim=dim,
+                              num_heads=num_heads,
+                              qkv_bias=qkv_bias,
+                              attn_drop_prob=drop_prob)
+        
+        self.layer_norm2 = nn.LayerNorm(dim, eps=1e-6)
+        
+        #initialise feed forward layer
+        hidden_units = int(dim * mlp_ratio)
+        self.feed_forward = FeedForward(in_out_features=dim,
+                                        hidden_units=hidden_units)
+        
+    def forward(self, x):
+        """forward pass
+
+        Args:
+            x (torch.Tensor): input shape (n_batch, n_patch + 1, dim)
+        
+        Returns:
+            (torch.Tensor): output shape (n_batch, n_patch + 1, dim)
+        """
+        x = self.attention_block(self.layer_norm1(x)) + x
+        x = self.feed_forward(self.layer_norm2(x)) + x
+        
+        return x
