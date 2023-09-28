@@ -1,5 +1,5 @@
 # Brain Image Generation
-My model will attempt to produce accurate looking brain images using the OASIS brain dataset
+My model will attempt to produce accurate looking brain images using the ADNI brain dataset
 
 ## Project Structure
 
