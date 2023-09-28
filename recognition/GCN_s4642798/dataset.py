@@ -1,4 +1,3 @@
-from torch_geometric.datasets.yelp import Yelp
 import numpy as np
 import torch
 
