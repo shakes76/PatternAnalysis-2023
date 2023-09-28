@@ -17,6 +17,8 @@ class PatchEmbedding(nn.Module):
             linear_mode (bool): whether to use linear projection method or convolution
         """
         super().__init__()
+        #TODO: check img_size is a squre number
+        #TODO: check patch_size is a sqaure number
         self.img_size = img_size
         self.patch_size = patch_size
         self.num_patches = (img_size // patch_size) ** 2
@@ -83,3 +85,38 @@ class Attention(nn.Module):
         
         # maps the multi-head attention output to a new space
         self.proj = nn.Linear(dim, dim) 
+        
+    def forward(self, x):
+        """forward pass
+
+        Args:
+            x (torch.Tensor): input tensor with shape (num_batches, num_patches + 1, dim) #TODO: CHECK THAT THIS DIM IS embeded dim?
+                the + 1 indicates the cls token added to the patch embeddings
+        Return:
+            (torch.Tensor): tensor of shape (num_batches, num_patches + 1, dim)
+        """
+        num_batches, num_patches, dim = x.shape
+        print(x.shape)
+        if dim != self.dim:
+            raise ValueError
+        
+        #generate queries, keys, values
+        qkv = self.qkv(x) # (num_batches, n_patches + 1, 3 * dim)
+        qkv = qkv.reshape(num_batches, num_patches, 3 ,self.num_heads, self.head_dim)
+        qkv = qkv.permute(2, 0, 3, 1, 4) #(3, n_batch, n_heads, n_patch, head_dim)
+        q, k, v = qkv[0], qkv[1], qkv[2] 
+        dot_prod = torch.matmul(q, k.transpose(-2, -1)) * self.scale #(batch, heads, patch, patch)
+        
+        #calculate probabilities
+        attn = self.attend(dot_prod)
+        attn = self.attn_drop(attn)
+        
+        #calculate weighted average
+        weighted_avg = torch.matmul(attn, v).transpose(1, 2) # (batch, patch, heads, head_dim)
+        weighted_avg = weighted_avg.flatten(2) # (batch, patches, dim)
+        
+        # linearly project onto new space
+        x = self.proj(weighted_avg)
+        x = self.proj_drop(x)
+        
+        return x
