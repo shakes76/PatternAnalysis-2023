@@ -5,7 +5,8 @@ from torch.utils.data import DataLoader
 import torch
 import time
 
-CROPSIZE = 210
+CROPSIZE = 180
+RESIZE = 99
 PATHTODATASET = "/home/marc/Documents/PatternAnalysisReport/PatternAnalysis-2023/recognition/VisualTransformerAlzheimers_Marc_Mennes_s4698290/ADNI_AD_NC_2D"
 ENCODERDENSELAYERS = [[10000]]
 LR = 0.0001
@@ -19,9 +20,10 @@ print('cuda' if torch.cuda.is_available() else 'cpu')
 
 transform = torchvision.transforms.Compose(
     [torchvision.transforms.CenterCrop(CROPSIZE),
+     torchvision.transforms.Resize(RESIZE, antialias=False),
      torchvision.transforms.Lambda(lambda x: x/255), #use the format of image data between 0 and 1 not 0 and 255
      torchvision.transforms.Normalize(41.0344/255, 64.2557/255), #normalize the image (values determined from function in dataset.py)
-     torchvision.transforms.Lambda(lambda x: x.unfold(1,CROPSIZE//3, CROPSIZE//3).unfold(2,CROPSIZE//3, CROPSIZE//3)),#split the image into 9 patches
+     torchvision.transforms.Lambda(lambda x: x.unfold(1,RESIZE//3, RESIZE//3).unfold(2,RESIZE//3, RESIZE//3)),#split the image into 9 patches
      torchvision.transforms.Lambda(lambda x: x[0])#removes the color channel dimension as this is greyscale
     ]
 )
@@ -31,7 +33,7 @@ testData = dataset.ADNI(PATHTODATASET, transform=transform, test=True)
 trainLoader = DataLoader(trainData, batch_size=BATCHSIZE, shuffle=True)
 testLoader = DataLoader(testData, batch_size=BATCHSIZE, shuffle=True)
 
-transformer = modules.ADNITransformer(9, 70, 5, 0, [10000], ENCODERDENSELAYERS).to(device)
+transformer = modules.ADNITransformer(9, 33, 9, 0, [10000], ENCODERDENSELAYERS).to(device)
 
 loss = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(transformer.parameters(), lr=LR)
