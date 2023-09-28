@@ -3,6 +3,7 @@ import modules
 import torchvision
 from torch.utils.data import DataLoader
 import torch
+import time
 
 CROPSIZE = 210
 PATHTODATASET = "/home/marc/Documents/PatternAnalysisReport/PatternAnalysis-2023/recognition/VisualTransformerAlzheimers_Marc_Mennes_s4698290/ADNI_AD_NC_2D"
@@ -38,7 +39,8 @@ optimizer = torch.optim.Adam(transformer.parameters(), lr=LR)
 transformer.train()
 
 epochAccuracies = []
-
+startTime = time.time()
+print("training...")
 #train the model
 for epoch in range(EPOCHS):
     
@@ -64,9 +66,14 @@ for epoch in range(EPOCHS):
 
     print("Epoch: {}/{}, final batch loss: {}, average accuracy: {}".format(epoch+1, EPOCHS, l.item(), epochAccuracies[-1]))
 
+print("done.")
+endTime = time.time()
+print("took", (endTime-startTime), "seconds")
+
 torch.no_grad()
 transformer.eval()
 
+print("testing...")
 for batch in testLoader:
 
     images, labels = batch[0].to(device), batch[1].to(device)
