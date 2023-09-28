@@ -193,13 +193,13 @@ class TransformEncoder(nn.Module):
     
     
 class ViT(nn.Module):
-    def __init__(self, img_size,
-                    patch_size,
-                    img_channels,
-                    num_classes,
-                    embed_dim,
-                    depth,
-                    num_heads,
+    def __init__(self, img_size:int,
+                    patch_size:int,
+                    img_channels:int,
+                    num_classes:int,
+                    embed_dim:int,
+                    depth:int,
+                    num_heads:int,
                     mlp_ratio=4.,
                     qkv_bias=True,
                     drop_prob=0.1):
