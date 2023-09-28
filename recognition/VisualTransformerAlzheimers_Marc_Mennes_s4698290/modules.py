@@ -78,12 +78,12 @@ class ADNITransformer(torch.nn.Module):
             embeddedImagePatches[:, i, :] = self.linEmbed(imagePatches[:, i, :]) + i + 1
 
         #expand the class token to all samples in batch
-        batchedClassToken = self.classToken.expand(imagePatches.size()[0], -1, -1)
+        batchedClassToken = self.classToken.expand(embeddedImagePatches.size()[0], -1, -1)
         
         #add the class token to the token sequence
-        imagePatches = torch.cat((batchedClassToken, imagePatches), dim=1)
+        embeddingsAndClassTokens = torch.cat((batchedClassToken, embeddedImagePatches), dim=1)
 
-        y = self.encoderBlock(imagePatches)
+        y = self.encoderBlock(embeddingsAndClassTokens)
         
         transformedClassToken = y[:,0]
 
