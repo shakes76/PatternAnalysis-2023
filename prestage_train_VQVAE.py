@@ -15,7 +15,7 @@ from tqdm import tqdm
 from einops import rearrange, repeat
 from collections import defaultdict
 # ==== import from this folder ==== #
-from AE_model import Autoencoder
+from VQVAE_model import VQVAE
 from discriminator import NLayerDiscriminator, weights_init
 from dataset import get_dataloader
 from util import reset_dir, weight_scheduler, compact_large_image
@@ -23,28 +23,29 @@ from logger import Logger
 DEVICE = torch.device("cuda")
 print("DEVICE:", DEVICE)
 
-# logger for record losses
-logger = Logger(file_name='VAE_log.txt', reset=True)
-
-net = Autoencoder().to(device=DEVICE)
+net = VQVAE().to(device=DEVICE)
 discriminator = NLayerDiscriminator(
     input_nc=1, n_layers=3).apply(weights_init).to(device=DEVICE)
 
 learning_rate = 2e-4
-opt_ae = optim.Adam(net.parameters(), lr=learning_rate, betas=(0.5, 0.9))
+opt_vqvae = optim.Adam(net.parameters(), lr=learning_rate, betas=(0.5, 0.9))
 opt_d = torch.optim.Adam(discriminator.parameters(),
                          lr=learning_rate, betas=(0.5, 0.9))
 
+# logger for record losses
+logger = Logger(file_name='VQVAE_log.txt', reset=True)
 # Reset visualization folder
-reset_dir('VAE_vis')
+vis_folder = 'VQVAE_vis'
+ckpt_folder = 'model_ckpt_VQVAE'
+reset_dir(vis_folder)
 # Reset checkpoint folder
-reset_dir('model_ckpt/VAE')
-
+reset_dir(ckpt_folder)
 
 cur_iter = 0
 
 # We define 500 iterations as an epoch.
 ITER_PER_EPOCH = 500
+batch_size = 6
 
 
 def train_epoch(net, dataloader):
@@ -59,45 +60,44 @@ def train_epoch(net, dataloader):
             cur_iter, change_cycle=ITER_PER_EPOCH)
 
         # Train Generator
-        opt_ae.zero_grad()
+        opt_vqvae.zero_grad()
 
-        recon_img, latent, kld_loss = net(raw_img)
-        gen_img = net.sample(raw_img.shape[0])
+        recon_img, diff_loss, ind = net(raw_img)
+        # gen_img = net.sample(raw_img.shape[0])
 
         recon_loss = torch.abs(raw_img.contiguous() - recon_img.contiguous())
         perceptual_loss = discriminator.LPIPS(
             recon_img.contiguous(), raw_img.contiguous())
         logits_fake = discriminator(recon_img.contiguous())
-        logits_gen = discriminator(gen_img.contiguous())
+        # logits_gen = discriminator(gen_img.contiguous())
         g1_loss = -torch.mean(logits_fake)
-        g2_loss = -torch.mean(logits_gen)
+        # g2_loss = -torch.mean(logits_gen)
 
         recon_loss = torch.sum(
             recon_loss + w_dis * w_perceptual * perceptual_loss) / recon_loss.shape[0]
-        kld_loss = torch.sum(kld_loss) / kld_loss.shape[0]
 
         # Adjust discriminator weight
         recon_grads = torch.norm(torch.autograd.grad(
             recon_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
         g1_grads = torch.norm(torch.autograd.grad(
             g1_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
-        g2_grads = torch.norm(torch.autograd.grad(
-            g2_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
-        kl_grads = torch.norm(torch.autograd.grad(
-            kld_loss, net.get_encoder_last_layer(), retain_graph=True)[0]).detach()
+        # g2_grads = torch.norm(torch.autograd.grad(
+        #     g2_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
 
-        kl_weight = 0.01 * recon_grads / (kl_grads + 1e-4)
-        d1_weight = 0.01 * recon_grads / (g1_grads + 1e-4)
-        d2_weight = 0.01 * recon_grads / (g2_grads + 1e-4)
+        d1_weight = recon_grads / (g1_grads + 1e-4)
+        # d2_weight = 0.01 * recon_grads / (g2_grads + 1e-4)
         d1_weight = torch.clamp(d1_weight, 0.0, 1e4).detach()
-        d2_weight = torch.clamp(d2_weight, 0.0, 1e4).detach()
-        
-        loss = w_recon * recon_loss + kl_weight * w_kld * kld_loss +  \
-            w_dis * d1_weight * g1_loss + \
-            w_dis * d2_weight * g2_loss
-        
+        # d2_weight = torch.clamp(d2_weight, 0.0, 1e4).detach()
+
+        # loss = w_recon * recon_loss + kl_weight * w_kld * kld_loss +  \
+        #     w_dis * d1_weight * g1_loss + \
+        #     w_dis * d2_weight * g2_loss
+
+        loss = w_recon * recon_loss + 1.0 * diff_loss.mean() + w_dis * \
+            d1_weight * g1_loss
+
         loss.backward()
-        opt_ae.step()
+        opt_vqvae.step()
 
         # Train Discriminator
         opt_d.zero_grad()
@@ -106,34 +106,33 @@ def train_epoch(net, dataloader):
         recon_img = recon_img.detach()
         logits_real = discriminator(raw_img.contiguous().detach())
         logits_fake = discriminator(recon_img.contiguous().detach())
-        logits_gen = discriminator(gen_img.contiguous().detach())
+        # logits_gen = discriminator(gen_img.contiguous().detach())
         perceptual_loss = discriminator.LPIPS(
             recon_img.contiguous(), raw_img.contiguous())
 
         loss_real = torch.mean(F.relu(1. - logits_real))
         loss_fake = torch.mean(F.relu(1. + logits_fake))
-        loss_gen = torch.mean(F.relu(1. + logits_gen))
+        # loss_gen = torch.mean(F.relu(1. + logits_gen))
         loss_p = torch.mean(perceptual_loss)
 
         # First 0.5 is discriminator factor, Second 0.5 is from hinge loss
-        d_loss = 0.5 * 0.5 * (loss_real + loss_fake + loss_gen) - loss_p
-        # d_loss = 0.5 * 0.5 * (loss_real + loss_fake ) - loss_p
+        # d_loss = 0.5 * 0.5 * (loss_real + loss_fake + loss_gen) - loss_p
+        d_loss = 0.5 * 0.5 * (loss_real + loss_fake) - loss_p
 
         d_loss.backward()
         opt_d.step()
 
         # info to dict
         cur_info = {
-            'recon_loss' : recon_loss.item(),
-            'kld_loss' : kld_loss.item(),
-            'fake_recon_loss' : g1_loss.item(),
-            'fake_sample_loss' : g2_loss.item(),
-            'discriminator_loss' : d_loss.item(),
+            'recon_loss': recon_loss.item(),
+            'diff_loss': diff_loss.item(),
+            'fake_recon_loss': g1_loss.item(),
+            # 'fake_sample_loss' : g2_loss.item(),
+            'discriminator_loss': d_loss.item(),
             'w_recon': w_recon,
             'w_perceptual': w_perceptual,
-            'w_kld': w_kld * kl_weight,
-            "w_recon" : w_dis * d1_weight,
-            "w_sample" : w_dis * d2_weight,
+            "w_recon": w_dis * d1_weight,
+            # "w_sample": w_dis * d2_weight,
         }
 
         # record epoch info
@@ -165,7 +164,7 @@ def test_epoch(net, dataloader, folder):
     for now_step, batch_data in enumerate(dataloader):
         raw_img, seg_img, brain_idx, z_idx = [
             data.to(DEVICE) for data in batch_data]
-        recon_img, latent, kld_loss = net(raw_img)
+        recon_img, diff, info = net(raw_img)
         # Record reconstructed images (for visualization) and brain indices (for labeling)
         recon_imgs.append(recon_img.detach().cpu())
         brain_indices.append(brain_idx.detach().cpu())
@@ -204,8 +203,6 @@ def test_epoch(net, dataloader, folder):
         plt.imsave(f'{folder}/gen_large_{idx}.png',
                    imgs[idx] * 0.5 + 0.5, cmap='gray')
 
-
-batch_size = 3
 debug = False
 if debug:
     tiny_dataloader = get_dataloader(
@@ -215,13 +212,14 @@ if debug:
 
 
 # Get dataloader
-train_dataloader = get_dataloader(mode='train_and_validate', batch_size=batch_size)
+train_dataloader = get_dataloader(
+    mode='train_and_validate', batch_size=batch_size)
 test_dataloader = get_dataloader(mode='test', batch_size=batch_size)
 
 for epoch in range(300):
     # The format string parse epoch info
     def fmt(epoch_info):
-        ks = ['recon_loss', 'kld_loss', 'fake_recon_loss',
+        ks = ['recon_loss', 'diff_loss', 'fake_recon_loss',
               'fake_sample_loss', 'discriminator_loss']
         return ' '.join(f"{k[:-5]}: {epoch_info[k]:6.4f}" for k in ks if k in epoch_info)
 
@@ -229,9 +227,9 @@ for epoch in range(300):
     train_info = train_epoch(net, train_dataloader)
     net.eval()
     with torch.no_grad():
-        test_epoch(net, test_dataloader, f'VAE_vis/epoch_{epoch}')
+        test_epoch(net, test_dataloader, f'{vis_folder}/epoch_{epoch}')
     # Save the model
-    torch.save(net, f'model_ckpt/VAE/epoch_{epoch}.pt')
+    torch.save(net, f'{ckpt_folder}/epoch_{epoch}.pt')
 
     print('{:=^100s}'.format(f' epoch {epoch:>3d} '))
     print(fmt(train_info))
