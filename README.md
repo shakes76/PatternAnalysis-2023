@@ -13,6 +13,20 @@ Stable Diffusion on OASIS Dataset
 
 # Project Overview
 
+## Run
+
+#### Pretrain Stage
+
+##### Train
+* For VAE, `prestage_train_AE.py`
+* For VQVAE, `prestage_train_VQVAE.py`
+##### Logger
+* Use `logger.py` can see the loss curve.
+##### Files
+* `model_ckpt\*`: put models checkpoint
+* `log\*`: put log when training. (Can use logger.py to visualize it.)
+* `*_vis\*`: visualization of images when training.
+
 ## Results
 
 ## Diffusion Process GIF
