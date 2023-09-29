@@ -5,11 +5,16 @@ from modules import ViT
 from dataset import load_data
 from types import SimpleNamespace
 from tqdm.auto import tqdm
-
+import wandb
 #setup random seeds
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
+WANDB = True
 
+def accuracy(y_pred, y):
+    y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
+    train_acc = (y_pred_class == y).sum().item() / len(y_pred)
+    return train_acc
 
 def train_epoch(model: nn.Module, 
                 data_loader: torch.utils.data.DataLoader,
@@ -24,12 +29,20 @@ def train_epoch(model: nn.Module,
         y_pred = model(X)
         loss = loss_fn(y_pred, y)
         train_loss += loss.item()
-        train_acc += accuracy(y_pred, y)
+        acc = accuracy(y_pred, y)
+        train_acc += acc
         #backpropagation
         optimiser.zero_grad()
         loss.backward()
         optimiser.step()
-
+        
+        #batch loss
+        wandb.log({
+            "train/batch/loss": loss.item(),
+            "train/batch/acc": acc,
+            "train/batch/batch_number": batch + 1,
+        })
+        
     train_acc = train_acc / len(data_loader)
     train_loss = train_loss / len(data_loader)
     return train_loss, train_acc
@@ -46,15 +59,17 @@ def test_epoch(model: nn.Module,
             y_pred = model(X)
             loss = loss_fn(y_pred, y)
             test_loss += loss.item()
-            test_acc += accuracy(y_pred, y)
+            acc =  accuracy(y_pred, y)
+            test_acc += acc
+            
+            wandb.log({
+            "test/batch/loss": loss.item(),
+            "train/batch/acc": acc,
+            "test/batch/batch_number": batch + 1,
+            })
     test_loss = test_loss / len(data_loader)
     test_acc = test_acc / len(data_loader)
     return test_loss, test_acc
-
-def accuracy(y_pred, y):
-    y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
-    train_acc = (y_pred_class == y).sum().item() / len(y_pred)
-    return train_acc
 
 def train_model(model: nn.modules,
                 train_loader: torch.utils.data.DataLoader,
@@ -76,11 +91,18 @@ def train_model(model: nn.modules,
                                             loss_fn=loss_fn,
                                             optimiser=optimiser,
                                             device=device)
+
         # testing loss and accuracy
         test_loss, test_acc = test_epoch(model=model,
                                             data_loader=test_loader,
                                             loss_fn=loss_fn,
                                             device=device)
+        wandb.log({"train/epoch/loss": train_loss,
+                    "train/epoch/acc": train_acc,
+                    "train/epoch/epoch_num": epoch + 1,
+                    "test/epoch/loss": test_loss,
+                    "test/epoch/acc": test_acc,
+                    "test/epoch/epoch_num": epoch + 1})
         # save results
         results["train_loss"].append(train_loss)
         results["train_acc"].append(train_acc)
@@ -89,6 +111,12 @@ def train_model(model: nn.modules,
     return results
 
 if __name__ == "__main__":
+    
+    if WANDB:
+        #Login into wandb
+        wandb.login(anonymous="allow")
+    
+    
     #device agnostic code
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
@@ -126,6 +154,8 @@ if __name__ == "__main__":
     loss_fn = nn.CrossEntropyLoss()
     optimiser = optim.AdamW(model.parameters(), lr=config.lr)
     
+    if WANDB:
+        wandb.init(project="ViT", job_type="Train", config=config)
     #Train the model and store the results
     results = train_model(model=model,
                             train_loader=train_loader,
@@ -134,4 +164,5 @@ if __name__ == "__main__":
                             loss_fn=loss_fn,
                             device=device,
                             config=config)
-    print(results)
+    if WANDB:
+        wandb.finish()
