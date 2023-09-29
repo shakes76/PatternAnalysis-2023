@@ -3,6 +3,8 @@ import torch
 from torch.utils.data import DataLoader
 import torchvision
 import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
+
 
 '''
 Builder class for the ADNI dataset
@@ -43,23 +45,51 @@ class ADNI_Dataset:
         test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=True)
         return test_loader 
     
+    # image starts off at 3x240x256 need to convert to 1x240x240
     def get_transformation(self, type):
         if type == "train":
             transform_method = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomCrop(32, padding=4, padding_mode='reflect'),
+            transforms.CenterCrop(240),
+            transforms.Grayscale(num_output_channels=1)
+            #maybe add a random crop of decent size
             ])
         else:
-            transform_method = transforms.Compose(
-            [transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+            transform_method = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.CenterCrop(240),
+            transforms.Grayscale(num_output_channels=1)
+            ])
             
         return transform_method
+    
+    #method to visialise the images contianed by class
+    def visualise(self, loader):    
+        displayed_count = 0
+        for batch in loader:
+            images, labels = batch 
 
-dataset = ADNI_Dataset()
-train_loader = dataset.get_train_loader()
-test_loader = dataset.get_test_loader()
+            # Iterate through the images
+            for image in images:
+                # Display the image and its shape
+                plt.imshow(image.permute(1, 2, 0))
+                plt.title(f"Image Shape: {image.shape}")
+                plt.axis('off')
+                plt.show()
+
+                displayed_count += 1
+
+                # Max 10 images to be shown
+                if displayed_count >= 10:
+                    break
+            # Max 10 images to be shown
+            if displayed_count >= 10:
+                break
+
+
+#dataset = ADNI_Dataset()
+#train_loader = dataset.get_train_loader()
+#test_loader = dataset.get_test_loader()
+#dataset.visualise(train_loader)
 
 
