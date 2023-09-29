@@ -18,9 +18,18 @@ ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
 def get_transforms_training():
     return transforms.Compose([
         transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
+        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.5], [0.5])  # Adjust these values if needed, for 1 channel
     ])
+
+
+def get_transforms_testing():
+    return transforms.Compose([
+        transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
+        transforms.ToTensor(),
+        transforms.Normalize([0.5], [0.5])  # Adjust these values if needed, for 1 channel
+    ]) 
 
 #--------- CREATE DATASET CLASS --------------------
 
@@ -67,7 +76,7 @@ class SiameseDataset(Dataset):
             idx2 = random.choice(class_indices[label2])
             img2 = self.data.imgs[idx2][0]
             pairs.append([img1, img2])
-            # The label 0 denotes that the two images in the pair are from the same class.
+            # The label 1 denotes that the two images in the pair are from the different class.
             labels.append(1)
         
         return pairs, labels
