@@ -31,6 +31,13 @@ print("Sample Size: {}".format(sample_size))
 print("Number of Features: {}".format(number_features))
 print("Number of Classes: {}".format(number_classes))
 
+#adding self loops to the tensor
+self_loops = torch.eye(sample_size)
+sparse_self_loops = torch.nonzero(self_loops, as_tuple=False)
+condition = edges[:, 0] != edges[:, 1]
+edges = edges[condition]
+edges = torch.cat((edges, sparse_self_loops, sparse_self_loops), 0)
+
 # Generate training and testing mask
 train_split = 0.7
 train_size = int(train_split * sample_size)
