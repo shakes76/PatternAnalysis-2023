@@ -63,10 +63,18 @@ class ADNI_Dataset:
             
         return transform_method
     
+    
+'''
+Seperate class to visualise models in different ways
+'''
+class Model_Visualiser:
+    def __init__(self, loader) -> None:
+        self._loader = loader
+    
     #method to visialise the images contianed by class
-    def visualise(self, loader):    
+    def visualise(self):    
         displayed_count = 0
-        for batch in loader:
+        for batch in self._loader:
             images, labels = batch 
 
             # Iterate through the images
@@ -87,9 +95,10 @@ class ADNI_Dataset:
                 break
 
 
+
 #dataset = ADNI_Dataset()
 #train_loader = dataset.get_train_loader()
 #test_loader = dataset.get_test_loader()
-#dataset.visualise(train_loader)
+v#isuals = Model_Visualiser(train_loader); visuals.visualise()
 
 
