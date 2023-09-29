@@ -66,15 +66,14 @@ def train_epoch(net, dataloader):
         # gen_img = net.sample(raw_img.shape[0])
 
         recon_loss = torch.abs(raw_img.contiguous() - recon_img.contiguous())
-        perceptual_loss = discriminator.LPIPS(
-            recon_img.contiguous(), raw_img.contiguous())
+        # perceptual_loss = discriminator.LPIPS(
+        #     recon_img.contiguous(), raw_img.contiguous())
         logits_fake = discriminator(recon_img.contiguous())
         # logits_gen = discriminator(gen_img.contiguous())
         g1_loss = -torch.mean(logits_fake)
         # g2_loss = -torch.mean(logits_gen)
 
-        recon_loss = torch.sum(
-            recon_loss + w_dis * w_perceptual * perceptual_loss) / recon_loss.shape[0]
+        recon_loss = torch.sum(recon_loss) / recon_loss.shape[0]
 
         # Adjust discriminator weight
         recon_grads = torch.norm(torch.autograd.grad(
@@ -107,17 +106,18 @@ def train_epoch(net, dataloader):
         logits_real = discriminator(raw_img.contiguous().detach())
         logits_fake = discriminator(recon_img.contiguous().detach())
         # logits_gen = discriminator(gen_img.contiguous().detach())
-        perceptual_loss = discriminator.LPIPS(
-            recon_img.contiguous(), raw_img.contiguous())
+        # perceptual_loss = discriminator.LPIPS(
+        #     recon_img.contiguous(), raw_img.contiguous())
 
         loss_real = torch.mean(F.relu(1. - logits_real))
         loss_fake = torch.mean(F.relu(1. + logits_fake))
         # loss_gen = torch.mean(F.relu(1. + logits_gen))
-        loss_p = torch.mean(perceptual_loss)
+        # loss_p = torch.mean(perceptual_loss)
 
         # First 0.5 is discriminator factor, Second 0.5 is from hinge loss
         # d_loss = 0.5 * 0.5 * (loss_real + loss_fake + loss_gen) - loss_p
-        d_loss = 0.5 * 0.5 * (loss_real + loss_fake) - loss_p
+        # d_loss = 0.5 * 0.5 * (loss_real + loss_fake) - loss_p
+        d_loss = 0.5 * 0.5 * (loss_real + loss_fake) 
 
         d_loss.backward()
         opt_d.step()
@@ -131,13 +131,13 @@ def train_epoch(net, dataloader):
             'discriminator_loss': d_loss.item(),
             'w_recon': w_recon,
             'w_perceptual': w_perceptual,
-            "w_recon": w_dis * d1_weight,
+            "w_dis": w_dis * d1_weight,
             # "w_sample": w_dis * d2_weight,
         }
 
         # record epoch info
         for k, v in cur_info.items():
-            epoch_info[k] += v
+            epoch_info[k] += v * len(raw_img)
         epoch_info['total_num'] += len(raw_img)
 
         # Only if update should count cur_iter and count log

@@ -87,7 +87,8 @@ class Logger:
 
         plt.subplot(2, 2, 4)
         # plt.plot(X, m_f(self.data['w_kld']), label='KLD loss weight', c='orange')
-        plt.plot(X, m_f(self.data['w_recon']), label='Discriminator(Recon) weight', c='blue')
+        plt.plot(X, m_f(self.data['w_recon']), label='Recon weight', c='blue')
+        plt.plot(X, m_f(self.data['w_dis']), label='Discriminator(for Recon) weight', c='blue')
         # plt.plot(X, m_f(self.data['w_sample']), label='Discriminator(Sample) weight', c='red')
         plt.legend()
         plt.title("Weight for Each Loss")
