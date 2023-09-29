@@ -14,6 +14,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #hyperparmeters
 config = SimpleNamespace(
+    epochs=1,
     batch_size=32,
     img_size=(224, 224),
     patch_size=16,
@@ -69,7 +70,7 @@ def train_epoch(model: nn.Module,
 
     train_acc = train_acc / len(data_loader)
     train_loss = train_loss / len(data_loader)
-    return train_acc, train_loss
+    return train_loss, train_acc
 
 def test_epoch(model: nn.Module, 
                 data_loader: torch.utils.data.DataLoader,
@@ -92,3 +93,37 @@ def accuracy(y_pred, y):
     y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
     train_acc = (y_pred_class == y).sum().item() / len(y_pred)
     return train_acc
+
+def train_model(model: nn.modules,
+                train_loader: torch.utils.data.DataLoader,
+                test_loader: torch.utils.data.DataLoader,
+                optimiser: optim.Optimizer,
+                loss_fn: nn.modules,
+                device: str,
+                config):
+    # track results of training
+    results  = {"train_loss": [],
+               "train_acc": [],
+               "test_loss": [],
+               "test_acc":  [],}
+    # main training loop
+    for epoch in tqdm(range(config.epochs)):
+        #training loss and accuracu
+        train_loss, train_acc = train_epoch(model=model,
+                                            data_loader=train_loader,
+                                            loss_fn=loss_fn,
+                                            optimiser=optimiser,
+                                            device=device)
+        # testing loss and accuracy
+        test_loss, test_acc = test_epoch(model=model,
+                                            data_loader=test_loader,
+                                            loss_fn=loss_fn,
+                                            device=device)
+        
+        # save results
+        results["train_loss"].append(train_loss)
+        results["train_acc"].append(train_acc)
+        results["test_loss"].append(test_loss)
+        results["test_acc"].append(test_acc)
+        
+    return results
