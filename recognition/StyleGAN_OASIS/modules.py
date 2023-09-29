@@ -159,3 +159,29 @@ class ConcatStdDev(nn.Module):
         std = torch.std(x, dim=0)
         mean = torch.mean(std)
         return torch.cat((x, mean.repeat(size)), dim=1)
+    
+    
+"""
+Define the StyleGAN Mapping Network as a PyTorch module. This aims to learn a
+manifold of latent z, expressed as w.
+     in_ch      The dimension of z
+     out_ch     The dimension of w
+     depth      The mapping network depth, usually set to size 8
+"""
+class MappingNetwork(nn.Module):
+    def __init__(self, in_ch, out_ch, depth=8):
+        super(MappingNetwork, self).__init__()
+        self.mappingNetwork = nn.ModuleList()
+        
+        ch = in_ch
+        for i in range(depth):
+            self.mappingNetwork.append(LinearHe(ch, out_ch, f=1)) # Try f=0.01
+            ch = out_ch
+        
+        self.relu = torch.nn.LeakyReLU(0.2)
+    
+    def forward(self, x):
+        for fc in self.mappingNetwork:
+            x = self.relu(fc(x))
+            
+        return x
