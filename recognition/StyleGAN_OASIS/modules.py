@@ -11,6 +11,7 @@ Purpose: Contains the necessary components for the Style GAN model. This include
 """
 
 import numpy as np
+import torch
 from torch import nn, optim
 from torchvision import datasets, transforms
 import torch.nn.functional as F
@@ -141,3 +142,20 @@ Extend the HeLayer to define an equalised Linear module
 class LinearHe(HeLayer):
     def __init__(self, in_ch, out_ch, f=1.0):
         HeLayer.__init__(self, nn.Linear(in_ch, out_ch, bias=True), bias_fill=0, f=0.01)
+
+"""
+Define a PyTorch module that concatenates the mean standard deviation to the
+layer output. This is a technique that aims to improve control, diversity, and
+regularisation.
+"""
+class ConcatStdDev(nn.Module):
+    def __init__(self):
+        super(ConcatStdDev, self).__init__()
+    
+    def forward(self, x):
+        size = list(x.size())
+        size[1] = 1
+        
+        std = torch.std(x, dim=0)
+        mean = torch.mean(std)
+        return torch.cat((x, mean.repeat(size)), dim=1)
