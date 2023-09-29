@@ -26,7 +26,7 @@ def get_processing(dataset, opt):
     return transforms.Compose(
         [transforms.ToTensor(),
          transforms.Normalize(*get_mean_and_std(dataset, opt)),
-         AddGaussianNoise(0., 0.05),])
+         ])
 
 
 def select_Augment(opt):
@@ -75,44 +75,30 @@ def get_dataprocessing(dataset, opt, preprocess=None):
              transforms.CenterCrop((opt.image_size, opt.image_size)),
              transforms.RandomHorizontalFlip(),
              transforms.RandomRotation(degrees=10),
-             preprocess
+             preprocess,
+             AddGaussianNoise(0., 0.05),
              ])
     else:
         train_transform = transforms.Compose(
             [transforms.Resize((int(opt.image_size + opt.image_size * 0.1))),
              transforms.RandomCrop((opt.image_size, opt.image_size)),
              augment,
-             preprocess
+             preprocess,
              ])
 
-    if opt.test_tta:
-        val_transform = transforms.Compose([
-            transforms.Resize((int(opt.image_size + opt.image_size * 0.1))),
-            transforms.TenCrop((opt.image_size, opt.image_size)),
-            transforms.Lambda(lambda crops: torch.stack([preprocess(crop) for crop in crops]))
-        ])
-    else:
-        val_transform = transforms.Compose([
-            transforms.Grayscale(num_output_channels=1),
-            #transforms.Resize((opt.image_size)),
-            transforms.CenterCrop((opt.image_size, opt.image_size)),
-            preprocess
-        ])
+
+    val_transform = transforms.Compose([
+        transforms.Grayscale(num_output_channels=1),
+        transforms.CenterCrop((opt.image_size, opt.image_size)),
+        preprocess
+    ])
 
     return train_transform, val_transform
 
 def get_dataprocessing_teststage(train_opt, opt, preprocess):
-    if opt.test_tta:
-        test_transform = transforms.Compose([
-            transforms.Resize((int(train_opt.image_size + train_opt.image_size * 0.1))),
-            transforms.TenCrop((train_opt.image_size, train_opt.image_size)),
-            transforms.Lambda(lambda crops: torch.stack([preprocess(crop) for crop in crops]))
-        ])
-    else:
-        test_transform = transforms.Compose([
-            transforms.Grayscale(num_output_channels=1),
-            #transforms.Resize((train_opt.image_size)),
-            transforms.CenterCrop((train_opt.image_size, train_opt.image_size)),
-            preprocess
-        ])
+    test_transform = transforms.Compose([
+        transforms.Grayscale(num_output_channels=1),
+        transforms.CenterCrop((train_opt.image_size, train_opt.image_size)),
+        preprocess
+    ])
     return test_transform

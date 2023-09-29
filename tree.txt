@@ -1,0 +1,31 @@
+卷 学习 的文件夹 PATH 列表
+卷序列号为 2A4E-5B22
+E:.
+│  dataset.py
+│  LICENSE
+│  modules.py
+│  predict.py
+│  processing.py
+│  README.md
+│  train.py
+│  tree.txt
+│  
+├─config
+│  │  config.py
+│  │  
+│  └─__pycache__
+├─model
+│  │  resnet.py
+│  │  vit.py
+│  │  __init__.py
+│  │  
+│  └─__pycache__
+└─utils
+    │  utilis_.py
+    │  utilis_augs.py
+    │  utils_fit.py
+    │  utils_loss.py
+    │  utils_model.py
+    │  __init__.py
+    │  
+    └─__pycache__
