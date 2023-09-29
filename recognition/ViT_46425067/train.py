@@ -4,6 +4,7 @@ import torch.optim as optim
 from modules import ViT
 from dataset import load_data
 from types import SimpleNamespace
+from tqdm.auto import tqdm
 
 #setup random seeds
 torch.manual_seed(42)
@@ -54,6 +55,7 @@ def train_epoch(model: nn.Module,
                 device: str):
     train_loss, train_acc = 0, 0
     model.train()
+    
     for batch, (X, y) in enumerate(data_loader):
         X, y = X.to(device), y.to(device)
         y_pred = model(X)
@@ -69,6 +71,22 @@ def train_epoch(model: nn.Module,
     train_loss = train_loss / len(data_loader)
     return train_acc, train_loss
 
+def test_epoch(model: nn.Module, 
+                data_loader: torch.utils.data.DataLoader,
+                loss_fn: nn.Module,
+                device: str):
+    test_loss, test_acc = 0, 0
+    model.eval()
+    with torch.inference_mode():
+        for batch, (X, y) in enumerate(data_loader):
+            X, y = X.to(device), y.to(device)
+            y_pred = model(X)
+            loss = loss_fn(y_pred, y)
+            test_loss += loss.item()
+            test_acc += accuracy(y_pred, y)
+    test_loss = test_loss / len(data_loader)
+    test_acc = test_acc / len(data_loader)
+    return test_loss, test_acc
 
 def accuracy(y_pred, y):
     y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
