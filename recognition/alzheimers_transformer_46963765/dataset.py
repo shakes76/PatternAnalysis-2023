@@ -93,12 +93,36 @@ class Model_Visualiser:
             # Max 10 images to be shown
             if displayed_count >= 10:
                 break
+            
+    def getMeanAndStd(self):
+        mean = 0
+        std = 0
+        samples = 0
+        
+        for batch in self._loader:
+            images = batch
+            batch_samples = images.size(0)
+            # reshape to be an array
+            images = images.view(batch_samples, images.size(1), -1) 
+
+            mean += images.mean(2).sum(0)
+            std += images.std(2).sum(0)
+            samples += batch_samples
+        
+        mean /= samples
+        std /= samples
+        
+        return mean, std
+
+    
 
 
 
-#dataset = ADNI_Dataset()
-#train_loader = dataset.get_train_loader()
-#test_loader = dataset.get_test_loader()
-v#isuals = Model_Visualiser(train_loader); visuals.visualise()
+dataset = ADNI_Dataset()
+train_loader = dataset.get_train_loader()
+test_loader = dataset.get_test_loader()
+visuals = Model_Visualiser(train_loader); 
+mean, std = visuals.getMeanAndStd()
+print(mean); print(std)
 
 
