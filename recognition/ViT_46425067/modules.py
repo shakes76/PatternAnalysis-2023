@@ -82,6 +82,7 @@ class Attention(nn.Module):
         # could do the query, key, value separately
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         
+        self.attend = nn.Softmax(dim= -1)
         #dropout for attention and project layers
         self.attn_drop = nn.Dropout(drop_prob)
         self.proj_drop = nn.Dropout(drop_prob)
@@ -99,7 +100,6 @@ class Attention(nn.Module):
             (torch.Tensor): tensor of shape (num_batches, num_patches + 1, dim)
         """
         num_batches, num_patches, dim = x.shape
-        print(x.shape)
         if dim != self.dim:
             raise ValueError
         
@@ -214,7 +214,7 @@ class ViT(nn.Module):
         #class token to determine which class the image belongs to
         self.class_token = nn.Parameter(torch.zeros(1, 1, embed_dim)) #zeros or randn
         #positional information of patches
-        self.pos_embed = nn.Parameter(torch.zeros(1, self.patch_embed.num_patches, embed_dim))
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.patch_embed.num_patches + 1, embed_dim))
         self.pos_drop = nn.Dropout(p=drop_prob)
         
         #transform encoder blocks
@@ -241,10 +241,9 @@ class ViT(nn.Module):
         #pass x through encoders
         for encoder in self.encoders:
             x = encoder(x)
-        x = self.norm(x)
+        x = self.norm_layer(x)
         
         #get only the class token for output
         output = x[:, 0] 
         x = self.head(output)
-        
         return x

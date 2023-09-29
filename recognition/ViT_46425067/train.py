@@ -31,7 +31,7 @@ config = SimpleNamespace(
 train_loader, test_load, _, _ = load_data(config.batch_size, config.img_size)
 
 #create model
-model = ViT(img_size=config.img_size,
+model = ViT(img_size=config.img_size[0],
             patch_size=config.patch_size,
             img_channels=config.img_channel,
             num_classes=config.num_classes,
@@ -43,6 +43,34 @@ model = ViT(img_size=config.img_size,
             drop_prob=config.drop_prob).to(device)
 
 #loss function + optimiser
-loss_fn = nn.BCEWithLogitsLoss()
+loss_fn = nn.CrossEntropyLoss()
 optimiser = optim.AdamW(model.parameters(), lr=config.lr)
 
+
+def train_epoch(model: nn.Module, 
+                data_loader: torch.utils.data.DataLoader,
+                loss_fn: nn.Module,
+                optimiser: optim.Optimizer,
+                device: str):
+    train_loss, train_acc = 0, 0
+    model.train()
+    for batch, (X, y) in enumerate(data_loader):
+        X, y = X.to(device), y.to(device)
+        y_pred = model(X)
+        loss = loss_fn(y_pred, y)
+        train_loss += loss.item()
+        train_acc += accuracy(y_pred, y)
+        #backpropagation
+        optimiser.zero_grad()
+        loss.backward()
+        optimiser.step()
+
+    train_acc = train_acc / len(data_loader)
+    train_loss = train_loss / len(data_loader)
+    return train_acc, train_loss
+
+
+def accuracy(y_pred, y):
+    y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
+    train_acc = (y_pred_class == y).sum().item() / len(y_pred)
+    return train_acc
