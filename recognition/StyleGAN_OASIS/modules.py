@@ -11,6 +11,9 @@ Purpose: Contains the necessary components for the Style GAN model. This include
 """
 
 import numpy as np
+from torch import nn, optim
+from torchvision import datasets, transforms
+import torch.nn.functional as F
 
 """
 Define an alpha scheduler:
@@ -85,3 +88,16 @@ class AlphaScheduler():
     """
     def is_fade(self):
         return self.is_fade
+
+"""
+Define a PyTorch module that can normalise using RMS
+
+Notes: A very small epsilon=1e-8 is added prior to taking the square root
+       to avoid a potential sqrt(0) error.
+"""
+class RMS(nn.Module):
+    def __init__(self):
+        super(RMS, self).__init__()
+        
+    def forward(self, x):
+        return x / (((x**2).mean(dim=1, keepdim=True) + 1e-8).sqrt())
