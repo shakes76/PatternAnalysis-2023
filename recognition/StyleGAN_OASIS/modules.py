@@ -89,6 +89,9 @@ class AlphaScheduler():
     def is_fade(self):
         return self.is_fade
 
+
+
+
 """
 Define a PyTorch module that can normalise using RMS
 
@@ -101,3 +104,40 @@ class RMS(nn.Module):
         
     def forward(self, x):
         return x / (((x**2).mean(dim=1, keepdim=True) + 1e-8).sqrt())
+    
+  
+"""
+Define a PyTorch module that can equalise a Linear/Conv module using
+the He constant
+     bias_fill  Set the module bias, typical values are 0 or 1
+     f          Factor to scale the He constant, typical values are 1 or 0.01
+"""
+class HeLayer(nn.Module):
+    
+    def __init__(self, module, bias_fill, f=1.0):
+        super(HeLayer, self).__init__()
+        self.module = module
+        self.module.bias.data.fill_(bias_fill)
+        self.module.weight.data.normal_(0,1)
+        self.module.weight.data /= f
+        HeConst = (2.0/np.prod(module.weight.size()[1:]))**0.5
+        self.weight = HeConst*f
+           
+    def forward(self, x):
+        x = self.module(x)
+        x *= self.weight
+        return x
+
+"""
+Extend the HeLayer to define an equalised Conv2d module
+"""
+class Conv2dHe(HeLayer):
+    def __init__(self, in_ch, out_ch, kernel_size=3, stride=1, padding=1):
+        HeLayer.__init__(self, nn.Conv2d(in_ch, out_ch, kernel_size=kernel_size, stride=stride, padding=padding, bias=True), bias_fill=0)
+
+"""
+Extend the HeLayer to define an equalised Linear module
+"""
+class LinearHe(HeLayer):
+    def __init__(self, in_ch, out_ch, f=1.0):
+        HeLayer.__init__(self, nn.Linear(in_ch, out_ch, bias=True), bias_fill=0, f=0.01)
