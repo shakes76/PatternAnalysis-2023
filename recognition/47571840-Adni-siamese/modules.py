@@ -2,6 +2,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
+# Referred and modified from: https://github.com/shakes76/PatternFlow/blob/topic-recognition/recognition/s4642283-ADNI-SIAMESE/modules.py
+
 class EmbeddingNetwork(nn.Module):
     def __init__(self, input_shape):
         super(EmbeddingNetwork, self).__init__()
