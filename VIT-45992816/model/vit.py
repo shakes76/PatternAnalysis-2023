@@ -54,8 +54,8 @@ class PatchEmbed(nn.Module):
         self.img_size = img_size
         self.patch_size = patch_size
         self.grid_size = (img_size[0] // patch_size[0], img_size[1] // patch_size[1])  # 14x14(224/16)
-        self.num_patches = self.grid_size[0] * self.grid_size[1] #paches 数目16x16=196
-        # 当处理large或者huge模型时embed_dim会发生变化
+        self.num_patches = self.grid_size[0] * self.grid_size[1] #paches number: 16x16=196
+
         self.proj = nn.Conv2d(in_c, embed_dim, kernel_size=patch_size, stride=patch_size)
 
         self.norm = norm_layer(embed_dim) if norm_layer else nn.Identity()
@@ -74,7 +74,7 @@ class PatchEmbed(nn.Module):
 
 class Attention(nn.Module):
     def __init__(self,
-                 dim,   # 输入token的dim 相当于kernal
+                 dim,   # the dimension of the input token similar as the kernel
                  num_heads=8,
                  qkv_bias=False,
                  qk_scale=None,
@@ -82,8 +82,8 @@ class Attention(nn.Module):
                  proj_drop_ratio=0.):
         super(Attention, self).__init__()
         self.num_heads = num_heads
-        head_dim = dim // num_heads  # 每一个head对应的queries对应的个数
-        self.scale = qk_scale or head_dim ** -0.5  # 根号下dk分之一
+        head_dim = dim // num_heads
+        self.scale = qk_scale or head_dim ** -0.5  # 1/sqrt(dk)
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
         self.attn_drop = nn.Dropout(attn_drop_ratio)
         self.proj = nn.Linear(dim, dim)
@@ -103,7 +103,7 @@ class Attention(nn.Module):
         # transpose: -> [batch_size, num_heads, embed_dim_per_head, num_patches + 1]
         # @: multiply -> [batch_size, num_heads, num_patches + 1, num_patches + 1]
         attn = (q @ k.transpose(-2, -1)) * self.scale
-        attn = attn.softmax(dim=-1)  # 每一行进行操作
+        attn = attn.softmax(dim=-1)
         attn = self.attn_drop(attn)
 
         # @: multiply -> [batch_size, num_heads, num_patches + 1, embed_dim_per_head]
@@ -167,7 +167,7 @@ class Block(nn.Module):
 
 class VisionTransformer(nn.Module):
     def __init__(self, img_size=224, patch_size=16, in_c=1, num_classes=1000,
-                 embed_dim=768, depth=12  # 重复堆叠transformer encoder的次数
+                 embed_dim=768, depth=12  # the number of attention blocks
                  , num_heads=12, mlp_ratio=4.0, qkv_bias=True,
                  qk_scale=None, representation_size=None, distilled=False, drop_ratio=0.,
                  attn_drop_ratio=0., drop_path_ratio=0., embed_layer=PatchEmbed, norm_layer=None,
@@ -200,7 +200,7 @@ class VisionTransformer(nn.Module):
         act_layer = act_layer or nn.GELU
 
         self.patch_embed = embed_layer(img_size=img_size, patch_size=patch_size, in_c=in_c, embed_dim=embed_dim)
-        num_patches = self.patch_embed.num_patches  # patches个数
+        num_patches = self.patch_embed.num_patches  # number of patches
 
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim))
         self.dist_token = nn.Parameter(torch.zeros(1, 1, embed_dim)) if distilled else None
@@ -218,7 +218,7 @@ class VisionTransformer(nn.Module):
         self.norm = norm_layer(embed_dim)
 
         # Representation layer
-        if representation_size and not distilled: ## 是否加入pre-logits
+        if representation_size and not distilled: ## if add the pre-logits
             self.has_logits = True
             self.num_features = representation_size
             self.pre_logits = nn.Sequential(OrderedDict([
@@ -257,8 +257,8 @@ class VisionTransformer(nn.Module):
         x = self.blocks(x)
         x = self.norm(x)
         if self.dist_token is None:
-            return self.pre_logits(x[:, 0]) # 所有batchsize的class 因为一开始将class放在最前面
-        else: #与另一个算法有关
+            return self.pre_logits(x[:, 0]) # the class of all batch size
+        else:
             return x[:, 0], x[:, 1]
 
     def forward(self, x):
@@ -295,7 +295,7 @@ def _init_vit_weights(m):
 
 
 
-def vit_base_patch16_224_in21k(num_classes: int = 21843, pretrained: bool = True,has_logits: bool = True):
+def vit_base_patch16_224(num_classes: int = 21843, pretrained: bool = True,has_logits: bool = True):
     """
     ViT-Base model (ViT-B/16) from original paper (https://arxiv.org/abs/2010.11929).
     ImageNet-21k weights @ 224x224, source https://github.com/google-research/vision_transformer.
@@ -316,7 +316,7 @@ def vit_base_patch16_224_in21k(num_classes: int = 21843, pretrained: bool = True
 
     return model
 
-def vit_base_patch16_224_in21k2(num_classes: int = 21843, pretrained: bool = True,has_logits: bool = True):
+def vit_base_patch16_224_2(num_classes: int = 21843, pretrained: bool = True,has_logits: bool = True):
     """
     ViT-Base model (ViT-B/16) from original paper (https://arxiv.org/abs/2010.11929).
     ImageNet-21k weights @ 224x224, source https://github.com/google-research/vision_transformer.
@@ -337,7 +337,7 @@ def vit_base_patch16_224_in21k2(num_classes: int = 21843, pretrained: bool = Tru
 
     return model
 
-def vit_base_patch32_224_in21k(num_classes: int = 21843, pretrained: bool = True, has_logits: bool = True):
+def vit_base_patch32_224(num_classes: int = 21843, pretrained: bool = True, has_logits: bool = True):
     """
     ViT-Base model (ViT-B/32) from original paper (https://arxiv.org/abs/2010.11929).
     ImageNet-21k weights @ 224x224, source https://github.com/google-research/vision_transformer.

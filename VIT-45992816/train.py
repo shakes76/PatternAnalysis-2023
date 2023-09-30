@@ -24,7 +24,7 @@ def set_seed(seed):
 
 def parse_opt():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', type=str, default='vit_base_patch16_224_in21k', help='model name')
+    parser.add_argument('--model_name', type=str, default='vit_base_patch16_224', help='model name')
     parser.add_argument('--pretrained', action="store_true", help='using pretrain weight')
     parser.add_argument('--weight', type=str, default='', help='loading weight path')
     parser.add_argument('--config', type=str, default='config/config.py', help='config path')
