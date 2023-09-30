@@ -1,6 +1,9 @@
 import torch.nn as nn
 import torch.nn.functional as F
+import dataset as ds
+import torch
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 #Resnet Class (50 maybe or 25)
 class BasicBlock(nn.Module):
     expansion =1
@@ -30,17 +33,16 @@ class BasicBlock(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self,  block, num_blocks, num_classes=10):
+    def __init__(self,  block, num_blocks):
         super(ResNet, self).__init__()
-        self.in_planes = 64
+        self.in_planes = 100
         
-        self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
-        self.bn1 = nn.BatchNorm2d(64)
-        self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
-        self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
-        self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
-        self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
-        self.linear = nn.Linear(512*block.expansion, num_classes)
+        self.conv1 = nn.Conv2d(1, 100, kernel_size=3, stride=1, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(100)
+        self.layer1 = self._make_layer(block, 100, num_blocks[0], stride=1)
+        self.layer2 = self._make_layer(block, 250, num_blocks[1], stride=2)
+        self.layer3 = self._make_layer(block, 300, num_blocks[2], stride=2)
+        self.layer4 = self._make_layer(block, 750, num_blocks[3], stride=2)
         
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
@@ -59,10 +61,25 @@ class ResNet(nn.Module):
         
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
-        out = self.linear(out)
         return out
+    
+    def ResNet34():
+        return ResNet(BasicBlock, [2, 2, 2, 2])
 
 
+network = ResNet.ResNet34()
+network.to(device=device)
+
+dataset = ds.ADNI_Dataset()
+train_loader = dataset.get_train_loader()
+
+network.train()
+for j, (images, labels) in  enumerate(train_loader):
+    images = images.to(device)
+    labels = labels.to(device)
+    outputs = network(images)
+    print(outputs.shape)
+    break
 # Perceiver class (or import)
 
 #make ADNI class that merges the previous two

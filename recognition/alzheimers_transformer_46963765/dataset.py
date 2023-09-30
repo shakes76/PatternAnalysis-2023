@@ -11,7 +11,7 @@ Builder class for the ADNI dataset
 '''
 class ADNI_Dataset:
     
-    def __init__(self, batch_size=32):
+    def __init__(self, batch_size=16):
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.batch_size = batch_size
         self._train_root = "./recognition/alzheimers_transformer_46963765/data/train"
@@ -121,10 +121,10 @@ class Model_Visualiser:
 
 
 
-dataset = ADNI_Dataset()
-train_loader = dataset.get_train_loader()
-test_loader = dataset.get_test_loader()
-visuals = Model_Visualiser(train_loader); visuals.visualise()
+#dataset = ADNI_Dataset()
+#train_loader = dataset.get_train_loader()
+#test_loader = dataset.get_test_loader()
+#visuals = Model_Visualiser(train_loader); visuals.visualise()
 #mean, std = visuals.getMeanAndStd()
 #print(mean); print(std)
 
