@@ -315,6 +315,8 @@ main components are:
         [d]: Upsample -> Conv + B(Noise) -> + AdaIN(w) -> Conv + B(Noise) -> + AdaIN(w)
     RGB Output [d]: Conv (channels to RGB channels)
 
+Purpose: Generator an image from latent z
+
 Parameters:
     z_size      Size of latent z
     w_size      Size of manifold w
@@ -364,3 +366,88 @@ class Generator(nn.Module):
         
         # Map to a pixel value
         return torch.tanh(rgb_out)
+    
+
+"""
+Scaling Convolutional block of the StyleGAN discriminator, which is composed of
+two equalised convolution blocks
+"""
+class ConvBlock(nn.Module):
+    def __init__(self, ch_in, ch_out):
+        super(ConvBlock, self).__init__()
+        self.conv1 = Conv2dHe(ch_in, ch_out)
+        self.conv2 = Conv2dHe(ch_out, ch_out)
+        self.leaky = nn.LeakyReLU(0.2)
+
+    def forward(self, x):
+        x = self.leaky(self.conv1(x))
+        x = self.leaky(self.conv2(x))
+        return x
+
+ 
+"""
+A PyTorch module implementation of the style-based discriminator architecture. The
+main components are that from a progressive GAN.
+
+Purpose: Classify an image image as being real or fake
+
+Parameters:
+    rgb_ch      Number of RGB channels (3 for this project, 1 for grayscale)
+    channels    np.array[d] for channels at layer d
+    alphaSched  The AlphaScheduler object for managing the progresive GAN fading
+"""   
+class Discriminator(nn.Module):
+    def __init__(self, rgb_ch, channels, alphaSched):
+        super(Discriminator, self).__init__()
+        ch_in = channels[0]
+        self.alphaSched = alphaSched
+        self.synthesis_network = nn.ModuleList([])
+        self.leaky = nn.LeakyReLU(0.2)
+        self.stddev = ConcatStdDev()
+        self.rgbInput = nn.ModuleList()
+
+        self.rgbInput.append(Conv2dHe(rgb_ch, ch_in, kernel_size=1, stride=1, padding=0))
+        for i in range(len(channels) - 1, 0, -1):
+            conv_in = int(channels[i])
+            conv_out = int(channels[i - 1])
+            self.synthesis_network.append(ConvBlock(conv_in, conv_out))
+            self.rgbInput.append(Conv2dHe(rgb_ch, conv_in, kernel_size=1, stride=1, padding=0))
+
+        
+        self.avg_pool = nn.AvgPool2d(kernel_size=2, stride=2)  
+
+        self.classifier = nn.Sequential(
+            Conv2dHe(ch_in + 1, ch_in, kernel_size=3, padding=1),
+            nn.LeakyReLU(0.2),
+            Conv2dHe(ch_in, ch_in, kernel_size=4, padding=0, stride=1),
+            nn.LeakyReLU(0.2),
+            Conv2dHe(ch_in, 1, kernel_size=1, padding=0, stride=1 ),
+            nn.Sigmoid()
+        )
+
+    """
+    Feed forward:
+        x   The image data, either real or fake.
+    """
+    def forward(self, x):
+        depth = len(self.synthesis_network) - self.alphaSched.depth
+
+        out = self.leaky(self.rgbInput[depth](x))
+
+        if self.alphaSched.depth == 0:
+            out = self.stddev(out)
+            return self.classifier(out).view(out.shape[0], -1)
+
+        downscaled = self.leaky(self.rgbInput[depth + 1](self.avg_pool(x)))
+        out = self.avg_pool(self.synthesis_network[depth](out))
+
+        out = self.alphaSched.alpha * out + (1 - self.alphaSched.alpha) * downscaled
+
+        for step in range(depth + 1, len(self.synthesis_network)):
+            out = self.synthesis_network[step](out)
+            out = self.avg_pool(out)
+
+        out = self.stddev(out)
+        
+        return self.classifier(out).view(out.shape[0], -1)
+    
