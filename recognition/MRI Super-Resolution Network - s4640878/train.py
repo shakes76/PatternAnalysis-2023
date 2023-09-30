@@ -15,7 +15,7 @@ def main():
 
     """ training params """
     lr = 1e-3
-    epochs = 300 if machine == "rangpur" else 3
+    epochs = 1000 if machine == "rangpur" else 3
 
     """ load training dataset """
     train_loader = Dataset(train=True).loader()
@@ -113,7 +113,7 @@ def main():
             if model_type == "gan": lr_scheduler_discriminator.step()
 
         """ save the model """
-        if (epoch + 1) % 30 == 0 or (machine == "local" and epoch + 1 == epochs):
+        if (epoch + 1) % 100 == 0 or (machine == "local" and epoch + 1 == epochs):
             with open(
                 file="models/sr_model_%03d.pt" % (epoch + 1), mode="wb") as f:
                 torch.save(obj=generator.state_dict(), f=f)
