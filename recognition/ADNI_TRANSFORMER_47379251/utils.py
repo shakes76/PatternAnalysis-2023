@@ -4,6 +4,13 @@
     
 # -*- coding: utf-8 -*-
 import random
+import os
+import sys
+import time
+import math
+
+import torch.nn as nn
+import torch.nn.init as init
 
 import PIL, PIL.ImageOps, PIL.ImageEnhance, PIL.ImageDraw
 import numpy as np
@@ -274,13 +281,7 @@ class RandAugment:
     - msr_init: net parameter initialization.
     - progress_bar: progress bar mimic xlua.progress.
 '''
-import os
-import sys
-import time
-import math
 
-import torch.nn as nn
-import torch.nn.init as init
 
 
 def get_mean_and_std(dataset):
@@ -313,10 +314,8 @@ def init_params(net):
                 init.constant(m.bias, 0)
 
 
-try:
-	_, term_width = os.popen('stty size', 'r').read().split()
-except:
-	term_width = 80
+
+term_width = 80
 term_width = int(term_width)
 
 TOTAL_BAR_LENGTH = 65.

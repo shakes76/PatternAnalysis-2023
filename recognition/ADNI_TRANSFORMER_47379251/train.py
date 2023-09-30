@@ -22,86 +22,104 @@ import time
 from modules import *
 from dataset import *
 from utils import *
-from utils import progress_bar
-from utils import RandAugment
-from modules import ViT
-from modules import ConvMixer
 
 ## Make sure to plot the losses and metrics during training
 
 # Model factory..
 print('==> Building model..')
-# net = VGG('VGG19')
-if args.net=="vit_small":
-    from models.vit_small import ViT
+# if args.net=="vit_small":
+#     from models.vit_small import ViT
+#     net = ViT(
+#     image_size = size,
+#     patch_size = args.patch,
+#     num_classes = 2,
+#     dim = int(args.dimhead),
+#     depth = 6,
+#     heads = 8,
+#     mlp_dim = 512,
+#     dropout = 0.1,
+#     emb_dropout = 0.1
+# )
+# elif args.net=="vit_tiny":
+#     from models.vit_small import ViT
+#     net = ViT(
+#     image_size = size,
+#     patch_size = args.patch,
+#     num_classes = 2,
+#     dim = int(args.dimhead),
+#     depth = 4,
+#     heads = 6,
+#     mlp_dim = 256,
+#     dropout = 0.1,
+#     emb_dropout = 0.1
+# )
+# elif args.net=="simplevit":
+#     from models.simplevit import SimpleViT
+#     net = SimpleViT(
+#     image_size = size,
+#     patch_size = args.patch,
+#     num_classes = 2,
+#     dim = int(args.dimhead),
+#     depth = 6,
+#     heads = 8,
+#     mlp_dim = 512
+# )
+# elif args.net=="vit":
+#     net = ViT(
+#     image_size = size,
+#     patch_size = args.patch,
+#     num_classes = 2,
+#     dim = int(args.dimhead),
+#     depth = 6,
+#     heads = 8,
+#     mlp_dim = 3072,
+#     dropout = 0.1,
+#     emb_dropout = 0.1
+# )
+# elif args.net=="vit_timm":
+#     import timm
+#     net = timm.create_model("vit_base_patch16_384", pretrained=True)
+#     net.head = nn.Linear(net.head.in_features, 10)
+
+if args.net=="vit":
+    # net = ViT(
+    # image_size = size,
+    # patch_size = args.patch,
+    # num_classes = 2,
+    # dim = int(args.dimhead),
+    # depth = 6,
+    # heads = 8,
+    # mlp_dim = 3072,
+    # dropout = 0.1,
+    # emb_dropout = 0.1
     net = ViT(
     image_size = size,
     patch_size = args.patch,
-    num_classes = 10,
+    num_classes = 2,
     dim = int(args.dimhead),
     depth = 6,
-    heads = 8,
-    mlp_dim = 512,
+    heads = 16,
+    mlp_dim = 2048,
     dropout = 0.1,
     emb_dropout = 0.1
 )
-elif args.net=="vit_tiny":
-    from models.vit_small import ViT
-    net = ViT(
-    image_size = size,
-    patch_size = args.patch,
-    num_classes = 10,
-    dim = int(args.dimhead),
-    depth = 4,
-    heads = 6,
-    mlp_dim = 256,
-    dropout = 0.1,
-    emb_dropout = 0.1
-)
-elif args.net=="simplevit":
-    from models.simplevit import SimpleViT
-    net = SimpleViT(
-    image_size = size,
-    patch_size = args.patch,
-    num_classes = 10,
-    dim = int(args.dimhead),
-    depth = 6,
-    heads = 8,
-    mlp_dim = 512
-)
-elif args.net=="vit":
-    # ViT for cifar10
-    net = ViT(
-    image_size = size,
-    patch_size = args.patch,
-    num_classes = 10,
-    dim = int(args.dimhead),
-    depth = 6,
-    heads = 8,
-    mlp_dim = 512,
-    dropout = 0.1,
-    emb_dropout = 0.1
-)
-elif args.net=="vit_timm":
-    import timm
-    net = timm.create_model("vit_base_patch16_384", pretrained=True)
-    net.head = nn.Linear(net.head.in_features, 10)
 
 # For Multi-GPU
 if 'cuda' in device:
     print(device)
     print("using data parallel")
-    net = torch.nn.DataParallel(net) # make parallel
-    cudnn.benchmark = True
+    torch.cuda.empty_cache()
+    # net = torch.nn.DataParallel(net) # make parallel
+    # cudnn.benchmark = True
 
-if args.resume:
-    # Load checkpoint.
-    print('==> Resuming from checkpoint..')
-    assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
-    checkpoint = torch.load('./checkpoint/{}-ckpt.t7'.format(args.net))
-    net.load_state_dict(checkpoint['net'])
-    best_acc = checkpoint['acc']
-    start_epoch = checkpoint['epoch']
+# if args.resume:
+#     # Load checkpoint.
+#     print('==> Resuming from checkpoint..')
+#     assert os.path.isdir('checkpoint'), 'Error: no checkpoint directory found!'
+#     checkpoint = torch.load('./checkpoint/{}-ckpt.t7'.format(args.net))
+#     net.load_state_dict(checkpoint['net'])
+#     best_acc = checkpoint['acc']
+#     start_epoch = checkpoint['epoch']
 
 # Loss is CE
 criterion = nn.CrossEntropyLoss()
