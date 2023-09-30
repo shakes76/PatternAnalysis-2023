@@ -37,11 +37,11 @@ def train_epoch(model: nn.Module,
         optimiser.step()
         
         #batch loss
-        wandb.log({
-            "train/batch/loss": loss.item(),
-            "train/batch/acc": acc,
-            "train/batch/batch_number": batch + 1,
-        })
+        # wandb.log({
+        #     "train/batch/loss": loss.item(),
+        #     "train/batch/acc": acc,
+        #     "train/batch/batch_number": batch + 1,
+        # })
         
     train_acc = train_acc / len(data_loader)
     train_loss = train_loss / len(data_loader)
@@ -62,11 +62,11 @@ def test_epoch(model: nn.Module,
             acc =  accuracy(y_pred, y)
             test_acc += acc
             
-            wandb.log({
-            "test/batch/loss": loss.item(),
-            "train/batch/acc": acc,
-            "test/batch/batch_number": batch + 1,
-            })
+            # wandb.log({
+            # "test/batch/loss": loss.item(),
+            # "train/batch/acc": acc,
+            # "test/batch/batch_number": batch + 1,
+            # })
     test_loss = test_loss / len(data_loader)
     test_acc = test_acc / len(data_loader)
     return test_loss, test_acc
@@ -111,15 +111,11 @@ def train_model(model: nn.modules,
     return results
 
 if __name__ == "__main__":
-    
     if WANDB:
         #Login into wandb
         wandb.login(anonymous="allow")
-    
-    
     #device agnostic code
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
     #hyperparmeters
     config = SimpleNamespace(
         epochs=1,
