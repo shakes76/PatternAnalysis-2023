@@ -7,13 +7,14 @@ import torchvision.transforms as transforms
 import torch
 import numpy as np
 from torchvision.datasets import ImageFolder
+from transformers.image_transforms import convert_to_rgb
 
 
 class SiameseNetworkDataset(Dataset):
 
-    def __init__(self, imageFolderDataset, transform=None):
+    def __init__(self, root_dir, transform=None):
         # Initialize the dataset.
-        self.imageFolderDataset = imageFolderDataset
+        self.imageFolderDataset = ImageFolder(root=root_dir)
         # Apply the transformations to the images.
         self.transform = transform
 
@@ -61,7 +62,7 @@ class SiameseNetworkDataset(Dataset):
 
 # Define the transformations to be applied on the images.
 transform = transforms.Compose([
-    transforms.Lambda(lambda x: x.convert('RGB')),  # Convert grayscale image to RGB
+    transforms.Lambda(convert_to_rgb),  # Convert grayscale image to RGB
     transforms.RandomResizedCrop(100, scale=(0.8, 1.0), ratio=(1, 1)),  # Randomly crop and resize the image to 100x100, keeping the aspect ratio to 1:1
     transforms.RandomRotation(10),  # Randomly rotate the image by up to 10 degrees
     transforms.RandomHorizontalFlip(),  # Randomly flip the image horizontally
@@ -73,6 +74,6 @@ transform = transforms.Compose([
 train_dir = ImageFolder(root=os.path.join(os.getcwd(), "AD_NC/train"))
 test_dir = ImageFolder(root=os.path.join(os.getcwd(), "AD_NC/test"))
 
-# Create the datasets.
-train_dataset = SiameseNetworkDataset(imageFolderDataset=train_dir, transform=transform)
-test_dataset = SiameseNetworkDataset(imageFolderDataset=test_dir, transform=transform)
+# Use relative paths to specify the directories.
+train_dataset = SiameseNetworkDataset(root_dir=os.path.join(os.getcwd(), "AD_NC/train"), transform=transform)
+test_dataset = SiameseNetworkDataset(root_dir=os.path.join(os.getcwd(), "AD_NC/test"), transform=transform)

@@ -1,12 +1,13 @@
 import torch.nn as nn
 import torchvision.models as models
+from torchvision.models import ResNet50_Weights
 
 
 class SiameseResNet(nn.Module):
     def __init__(self):
         super(SiameseResNet, self).__init__()
         # Use pretrained ResNet50 as the backbone of our model.
-        self.resnet = models.resnet50(pretrained=True)
+        self.resnet = models.resnet50(weights=ResNet50_Weights.DEFAULT)
         """
        The last layer of ResNet50 is a fully connected layer.
         We need to remove the fully connected layer, and we have to use our own classifier. 
@@ -56,7 +57,7 @@ class SiameseResNet(nn.Module):
         return x
 
     # Forward pass for a pair of images. This is the main function of siamese network.
-    def forward_image_pairs(self, input1, input2):
+    def forward(self, input1, input2):
         # Pass the first image through the network.
         output1 = self.forward_image_single(input1)
         # Pass the second image through the network.
