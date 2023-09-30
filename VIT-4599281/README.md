@@ -10,7 +10,6 @@ This project utilises a modified dataset sourced from [ADXI dataset for Alzheime
 ## How it works
 ### Documents detail
 │  dataset.py  
-│  LICENSE  
 │  modules.py  
 │  predict.py  
 │  processing.py  
