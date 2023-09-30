@@ -4,8 +4,8 @@ import torchvision.transforms as transforms
 from pathlib import Path
 
 # Create paths to images
-TRAIN_DATA_PATH = Path("./data/AD_NC/train/")
-TEST_DATA_PATH = Path("./data/AD_NC/test/")
+TRAIN_DATA_PATH = Path("./AD_NC/train/")
+TEST_DATA_PATH = Path("./AD_NC/test/")
 
 
 
@@ -19,19 +19,19 @@ def load_data(batch_size, image_size):
         transforms.Resize(image_size), 
         transforms.ToTensor(),
         transforms.Grayscale(num_output_channels=1),
-        transforms.Normalize(mean=0.5, std=0.5, inplace=True),
+        transforms.Normalize(mean=(0.1156), std=(0.2198), inplace=True),
     ])
 
     test_transforms = transforms.Compose([
         transforms.Resize(image_size),
         transforms.ToTensor(),
         transforms.Grayscale(num_output_channels=1),
-        transforms.Normalize(mean=0.5, std=0.5, inplace=True), #TODO: does normalising do anything to the data?
+        transforms.Normalize(mean=(0.1156), std=(0.2198), inplace=True), #TODO: does normalising do anything to the data?
     ])
 
     # Load images in using ImageFolder
-    train_dataset = datasets.ImageFolder(root="E:/UNI 2023 SEM 2/COMP3710/Lab3/recognition/ViT_46425067/data/AD_NC/train", transform=train_transforms)
-    test_dataset = datasets.ImageFolder(root="E:/UNI 2023 SEM 2/COMP3710/Lab3/recognition/ViT_46425067/data/AD_NC/test", transform=test_transforms)
+    train_dataset = datasets.ImageFolder(root=TRAIN_DATA_PATH, transform=train_transforms)
+    test_dataset = datasets.ImageFolder(root=TEST_DATA_PATH, transform=test_transforms)
 
     train_loader = DataLoader(dataset=train_dataset,
                                 batch_size=batch_size,
