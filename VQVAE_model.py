@@ -3,10 +3,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from einops import rearrange
-
+from tqdm import tqdm
 # Self defined modules
 from module import ResnetBlock, AttnBlock, Downsample, Upsample, VectorQuantizer2
-
+from torch.utils.data import WeightedRandomSampler
 
 class Encoder(nn.Module):
     def __init__(self, *, ch, ch_mult=(1, 2, 4, 8), num_res_blocks,
@@ -170,7 +170,7 @@ class Decoder(nn.Module):
 
 class VQVAE(nn.Module):
     def __init__(self, *, ch=64, ch_mult=[1, 1, 2, 2, 4], num_res_blocks=2,
-                 attn_resolutions=[16], dropout=0.0, resamp_with_conv=True, resolution=256, z_channels=16, embed_dim=8, n_embed=16384):
+                 attn_resolutions=[16], dropout=0.0, resamp_with_conv=True, resolution=256, z_channels=16, embed_dim=8, n_embed=256):
         super().__init__()
         params = {
             'ch': ch,
@@ -196,6 +196,8 @@ class VQVAE(nn.Module):
         # For convienient purpose, store the z-shape.
         latent_wh = resolution // 2 ** (len(ch_mult)-1)
         self.z_shape = [latent_wh, latent_wh]
+        # Weight sampler is just a sampler and shouldn't be backprop
+        self.weight_sampler = torch.ones(self.z_shape + [n_embed]).detach()
 
     def encode(self, x):
         h = self.encoder(x)
@@ -210,10 +212,16 @@ class VQVAE(nn.Module):
     def sample(self, batch_size):
         # Get current device
         # Generate z space from randn.
-        device = next(self.parameters()).device
-        z_q = torch.randint(low=0, high=self.n_embed, size=[batch_size, *self.z_shape]).to(device=device).long()
-        z_q = self.quantize.embedding(z_q)
-        z_q = rearrange(z_q, 'b h w c -> b c h w')
+        DEVICE = next(self.parameters()).device
+
+        with torch.no_grad():
+            w, h, n_embed = self.weight_sampler.shape
+            weight_sampler = rearrange(self.weight_sampler, 'w h nE -> (w h) nE')
+            ind = torch.tensor(list(WeightedRandomSampler(weight_sampler, num_samples=batch_size))).detach()
+            ind = rearrange(ind, '(w h) nE -> w h nE', w=w)
+            ind = ind.to(DEVICE)
+        z_q = self.quantize.embedding(ind)
+        z_q = rearrange(z_q, 'w h b c -> b c h w')
         return self.decode(z_q)
 
     def forward(self, x):
@@ -229,6 +237,9 @@ class VQVAE(nn.Module):
     def get_encoder_last_layer(self):
         # This function is for adpative loss for discriminator.
         return self.encoder.get_last_layer()
+    
+    def update_sampler(self, weight_sampler):
+        self.weight_sampler = weight_sampler.detach()
 
 if __name__ == '__main__':
     # net = Encoder(double_z=True, z_channels=16, resolution=256, in_channels=1, ch=64, ch_mult=[

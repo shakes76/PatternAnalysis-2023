@@ -94,17 +94,24 @@ class MyDataset(torch.utils.data.Dataset):
         brain_idx, z_idx = self.brain_index[idx]
         return raw_img_tensor, (seg_img_tensor*3).long(), brain_idx, z_idx
 
+__DATASET__ = {}
 
 def get_dataloader(mode='train', batch_size=8, limit=None):
+    print("called", mode, batch_size, limit)
     assert mode in ['train', 'test', 'validate', 'train_and_validate']
-
-    # Build concat dataset
-    if mode == 'train_and_validate':
+    # To some issue, we may call get_dataloader twice.
+    if (mode, limit) in __DATASET__:
+        print("Call multiple times get_dataloader on same dataset. Reuse dataset")
+        dataset = __DATASET__[(mode, limit)]
+    elif mode == 'train_and_validate':
+        # Build concat dataset
         train_dataset = MyDataset(mode='train', limit=limit)
         validate_dataset = MyDataset(mode='validate', limit=limit)
         dataset = torch.utils.data.ConcatDataset([train_dataset, validate_dataset])
     else:
         dataset = MyDataset(mode=mode, limit=limit)
+        
+    __DATASET__[(mode, limit)] = dataset
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
