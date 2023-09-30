@@ -15,7 +15,7 @@ from tqdm import tqdm
 from einops import rearrange, repeat, reduce
 from collections import defaultdict
 # ==== import from this folder ==== #
-from VQVAE_model import VQVAE
+from model_VQVAE import VQVAE
 from discriminator import NLayerDiscriminator, weights_init
 from dataset import get_dataloader
 from util import reset_dir, weight_scheduler, compact_large_image

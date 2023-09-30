@@ -15,7 +15,7 @@ from tqdm import tqdm
 from einops import rearrange, repeat
 from collections import defaultdict
 # ==== import from this folder ==== #
-from AE_model import Autoencoder
+from model_AE import Autoencoder
 from discriminator import NLayerDiscriminator, weights_init
 from dataset import get_dataloader
 from util import reset_dir, weight_scheduler, compact_large_image
