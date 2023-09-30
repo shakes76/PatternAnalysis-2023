@@ -51,7 +51,8 @@ class ADNI_Dataset:
             transform_method = transforms.Compose([
             transforms.ToTensor(),
             transforms.CenterCrop(240),
-            transforms.Grayscale(num_output_channels=1)
+            transforms.Grayscale(num_output_channels=1),
+            transforms.Normalize((0.1232,), (0.2307,))
             #maybe add a random crop of decent size
             ])
         else:
@@ -100,17 +101,19 @@ class Model_Visualiser:
         samples = 0
         
         for batch in self._loader:
-            images = batch
-            batch_samples = images.size(0)
-            # reshape to be an array
-            images = images.view(batch_samples, images.size(1), -1) 
+            images, labels = batch
+            batch_size = images.size(0)
+            samples += 1
+            
+            # Calculate the sum of pixel values for each channel
+            mean += images.mean()
+            
+            # Calculate the sum of squares of pixel values for each channel
+            std += images.std()
 
-            mean += images.mean(2).sum(0)
-            std += images.std(2).sum(0)
-            samples += batch_samples
-        
-        mean /= samples
-        std /= samples
+        # Calculate the mean and std for each channel
+        mean = mean / samples
+        std = std / samples
         
         return mean, std
 
@@ -121,8 +124,8 @@ class Model_Visualiser:
 dataset = ADNI_Dataset()
 train_loader = dataset.get_train_loader()
 test_loader = dataset.get_test_loader()
-visuals = Model_Visualiser(train_loader); 
-mean, std = visuals.getMeanAndStd()
-print(mean); print(std)
+visuals = Model_Visualiser(train_loader); visuals.visualise()
+#mean, std = visuals.getMeanAndStd()
+#print(mean); print(std)
 
 
