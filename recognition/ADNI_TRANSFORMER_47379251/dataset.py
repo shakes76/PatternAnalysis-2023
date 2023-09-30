@@ -97,6 +97,6 @@ trainloader = torch.utils.data.DataLoader(trainset, batch_size=bs, shuffle=True)
 
 testset = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
 # testset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
-testloader = torch.utils.data.DataLoader(testset, batch_size=bs, shuffle=False)
+testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
 
 classes = ('NC', 'AD')
