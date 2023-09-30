@@ -62,14 +62,13 @@ def parse_opt():
 
     # Data Processing parameters
     parser.add_argument('--imagenet_meanstd', action="store_true", help='using ImageNet Mean and Std')
-    parser.add_argument('--mixup', type=str, choices=['mixup', 'cutmix', 'none'], default='none', help='MixUp Methods')
     parser.add_argument('--Augment', type=str,
                         choices=['RandAugment', 'AutoAugment', 'TrivialAugmentWide', 'AugMix', 'none'], default='none',
                         help='Data Augment')
-    parser.add_argument('--test_tta', action="store_true", help='using TTA')
 
     opt = parser.parse_known_args()[0]
 
+    # load the parameter for resuming the training phase
     if opt.resume:
         opt.resume = True
         if not os.path.exists(os.path.join(opt.save_path, 'last.pt')):
@@ -159,6 +158,7 @@ if __name__ == '__main__':
         n_lr = optimizer.param_groups[2]['lr']
         lr_scheduler.step()
 
+        # store the parameter of best epoch
         if best_metrice is None:
             best_metrice = metrice[0]
             save_model(
@@ -182,7 +182,7 @@ if __name__ == '__main__':
                     }
                 )
                 save_epoch = epoch
-    #
+        # save the parameter for last epoch
         save_model(
             os.path.join(opt.save_path, 'last.pt'),
             **{

@@ -12,10 +12,11 @@ def fitting(model, loss, optimizer, train_dataset, test_dataset, CLASS_NUM, DEVI
             pred = model(x)
             l = loss(pred, y)
                     
-
+        # calculate loss and acc
         metrice.update_loss(float(l.data))
         metrice.update_y(y, pred)
-        
+
+        # update parameter
         scaler.scale(l).backward()
 
         scaler.step(optimizer)
@@ -30,14 +31,8 @@ def fitting(model, loss, optimizer, train_dataset, test_dataset, CLASS_NUM, DEVI
             x, y = x.to(DEVICE).float(), y.to(DEVICE).long()
 
             with torch.cuda.amp.autocast(opt.amp):
-                if opt.test_tta:
-                    bs, ncrops, c, h, w = x.size()
-                    pred = model_eval(x.view(-1, c, h, w))
-                    pred = pred.view(bs, ncrops, -1).mean(1)
-                    l = loss(pred, y)
-                else:
-                    pred = model_eval(x)
-                    l = loss(pred, y)
+                pred = model_eval(x)
+                l = loss(pred, y)
                 
             metrice.update_loss(float(l.data), isTest=True)
             metrice.update_y(y, pred, isTest=True)

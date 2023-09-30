@@ -30,6 +30,7 @@ class CrossEntropyLoss(nn.Module):
     def forward(self, input: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
         return self.cross_entropy(input, target)
 
+
 class FocalLoss(nn.Module):
     def __init__(self, label_smoothing:float = 0.0, weight: torch.Tensor = None, gamma:float = 2.0):
         super(FocalLoss, self).__init__()

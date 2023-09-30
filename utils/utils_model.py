@@ -18,15 +18,11 @@ def select_model(name, num_classes, input_shape=None, channels=None, pretrained=
         raise 'Unsupported Model Name.'
 
     if input_shape and channels:
-    # 计算参数量和flops
+    # calculate parameter values and flops
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         dummy_input = torch.randn(1, channels, input_shape[0], input_shape[1]).to(device)
         flops, params = profile(model.to(device), (dummy_input,), verbose=False)
-        #--------------------------------------------------------#
-        #   flops * 2是因为profile没有将卷积作为两个operations
-        #   有些论文将卷积算乘法、加法两个operations。此时乘2
-        #   有些论文只考虑乘法的运算次数，忽略加法。此时不乘2
-        # --------------------------------------------------------#
+
         # flops = flops * 2
         flops, params = clever_format([flops, params], "%.3f")
         print('Select Model: {}'.format(name))

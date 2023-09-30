@@ -48,8 +48,9 @@ def parse_opt():
     model = Model_Inference(DEVICE, opt)
     print('found checkpoint from {}, model type:{}\n{}'.format(opt.save_path, ckpt['model'].name,
                                                                dict_to_PrettyTable(ckpt['best_metrice'], 'Best Metrice')))
-
+    # get test transformation
     test_transform = get_test_transform(train_opt,opt)
+
 
     save_path = os.path.join(opt.save_path, opt.task,
                              datetime.datetime.strftime(datetime.datetime.now(), '%Y_%m_%d_%H_%M_%S'))
@@ -73,17 +74,9 @@ if __name__ == '__main__':
     with torch.inference_mode():
         for x, y, path in tqdm.tqdm(test_dataset, desc='Test Stage'):
             x = (x.half().to(DEVICE) if opt.half else x.to(DEVICE))
-            if opt.test_tta:
-                bs, ncrops, c, h, w = x.size()
-                pred = model(x.view(-1, c, h, w))
-                pred = pred.view(bs, ncrops, -1).mean(1)
-                if opt.tsne:
-                    pred_feature = model.forward_features(x.view(-1, c, h, w))
-                    pred_feature = pred_feature.view(bs, ncrops, -1).mean(1)
-            else:
-                pred = model(x)
-                if opt.tsne:
-                    pred_feature = model.forward_features(x)
+            pred = model(x)
+            if opt.tsne:
+                pred_feature = model.forward_features(x)
             try:
                 pred = torch.softmax(pred, 1)
             except:

@@ -8,8 +8,8 @@ def get_mean_and_std(dataset, opt):
         return [0.485, 0.456, 0.406], [0.229, 0.224, 0.225]
     else:
         print('Calculate the mean and variance of the dataset...')
-        mean = torch.zeros(1)
-        std = torch.zeros(1)
+        mean = torch.zeros(opt.image_channel)
+        std = torch.zeros(opt.image_channel)
 
         for inputs, targets in tqdm.tqdm(dataset):
             inputs = transforms.ToTensor()(inputs)
