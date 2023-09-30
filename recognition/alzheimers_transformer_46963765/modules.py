@@ -77,9 +77,10 @@ network.train()
 for j, (images, labels) in  enumerate(train_loader):
     images = images.to(device)
     labels = labels.to(device)
+
     outputs = network(images)
     print(outputs.shape)
-    break
+
 # Perceiver class (or import)
 
 #make ADNI class that merges the previous two

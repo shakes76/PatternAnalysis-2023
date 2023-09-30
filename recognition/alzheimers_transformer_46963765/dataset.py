@@ -52,14 +52,15 @@ class ADNI_Dataset:
             transforms.ToTensor(),
             transforms.CenterCrop(240),
             transforms.Grayscale(num_output_channels=1),
-            transforms.Normalize((0.1232,), (0.2307,))
+            transforms.Normalize((0.12385,), (0.2308,))
             #maybe add a random crop of decent size
             ])
         else:
             transform_method = transforms.Compose([
             transforms.ToTensor(),
             transforms.CenterCrop(240),
-            transforms.Grayscale(num_output_channels=1)
+            transforms.Grayscale(num_output_channels=1),
+            transforms.Normalize((0.12385,), (0.2308,))
             ])
             
         return transform_method
@@ -102,18 +103,15 @@ class Model_Visualiser:
         
         for batch in self._loader:
             images, labels = batch
-            batch_size = images.size(0)
+            
             samples += 1
+            mean += torch.mean(images, dim=[0,2,3])
+            std +=  torch.mean(images**2, dim=[0,2,3])
             
-            # Calculate the sum of pixel values for each channel
-            mean += images.mean()
-            
-            # Calculate the sum of squares of pixel values for each channel
-            std += images.std()
 
         # Calculate the mean and std for each channel
         mean = mean / samples
-        std = std / samples
+        std = torch.sqrt(std / samples - mean ** 2)
         
         return mean, std
 
@@ -121,11 +119,8 @@ class Model_Visualiser:
 
 
 
-#dataset = ADNI_Dataset()
-#train_loader = dataset.get_train_loader()
-#test_loader = dataset.get_test_loader()
-#visuals = Model_Visualiser(train_loader); visuals.visualise()
-#mean, std = visuals.getMeanAndStd()
-#print(mean); print(std)
-
+dataset = ADNI_Dataset()
+train_loader = dataset.get_train_loader()
+test_loader = dataset.get_test_loader()
+visuals = Model_Visualiser(train_loader); visuals.visualise()
 
