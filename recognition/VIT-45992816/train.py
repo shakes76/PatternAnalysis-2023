@@ -58,7 +58,7 @@ def parse_opt():
     parser.add_argument('--warmup_minlr', type=float, default=1e-6,
                         help='minimum lr in warmup(also as minimum lr in training)')
     parser.add_argument('--metrice', type=str, choices=['loss', 'acc', 'mean_acc'], default='acc', help='best.pt save relu')
-    parser.add_argument('--patience', type=int, default=30, help='EarlyStopping patience (--metrice without improvement)')
+    parser.add_argument('--patience', type=int, default=20, help='EarlyStopping patience (--metrice without improvement)')
 
     # Data Processing parameters
     parser.add_argument('--imagenet_meanstd', action="store_true", help='using ImageNet Mean and Std')

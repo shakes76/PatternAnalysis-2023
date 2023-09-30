@@ -21,7 +21,7 @@ def preprocessing_train_loader(opt,train_transform):
     # load train data
     train_data = torchvision.datasets.ImageFolder(opt.train_path, transform=train_transform)
     batch_size = opt.batch_size
-    class_weight = np.ones_like(np.unique(train_data.targets))
+    class_weight = np.array((2,1))#np.ones_like(np.unique(train_data.targets))
     train_dataset = torch.utils.data.DataLoader(train_data, batch_size, shuffle=True, num_workers=opt.workers)
     return train_dataset,class_weight
 
