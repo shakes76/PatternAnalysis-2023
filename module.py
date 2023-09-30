@@ -10,7 +10,7 @@ class ResnetBlock(nn.Module):
                       (w/o Dropout)    (with Dropout)
             Input ->    Conv2d ------------> Conv2d ------> Output
                 \\       Time Embedding /            /
-                 \\----------------------------------
+                 \\--(shortcut if size not fit)------
     '''
 
     def __init__(self, *, in_channels, out_channels=None, conv_shortcut=False,
@@ -61,7 +61,7 @@ class ResnetBlock(nn.Module):
             h = h + self.time_emb(time_encode)[:, :, None, None]
         # Pass block 2
         h = self.block2(h)
-        # If size not match, add shortcut.
+        # If size not match, add shortcut to make shortcut(x).shape = resblock(x).shape.
         if self.in_channels != self.out_channels:
             x = self.shortcut(x)
 
