@@ -6,8 +6,8 @@ from dataset import load_data
 from types import SimpleNamespace
 from tqdm.auto import tqdm
 import wandb
-import premodel
-import mild
+# import premodel
+# import mild
 import torchinfo
 from torchinfo import summary
 #setup random seeds
@@ -16,9 +16,10 @@ torch.cuda.manual_seed(42)
 WANDB = True
 
 def accuracy(y_pred, y):
-    y_pred_class = torch.argmax(torch.softmax(y_pred, dim=1), dim=1)
-    train_acc = (y_pred_class == y).sum().item() / len(y_pred)
-    return train_acc
+    y_pred_label = torch.round(torch.sigmoid(y_pred))
+    correct = torch.eq(y, y_pred_label).sum().item()
+    acc = (correct / len(y))
+    return acc
 
 def train_epoch(model: nn.Module, 
                 data_loader: torch.utils.data.DataLoader,
@@ -29,23 +30,16 @@ def train_epoch(model: nn.Module,
     model.train()
     
     for batch, (X, y) in enumerate(tqdm(data_loader)):
-        X, y = X.to(device), y.to(device)
-        y_pred = model(X).flatten(0)
-        loss = loss_fn(y_pred, y)
+        X, y = X.to(device), y.float().to(device)
+        y_pred_logits = model(X).squeeze()
+        loss = loss_fn(y_pred_logits, y)
         train_loss += loss.item()
-        acc = accuracy(y_pred, y)
+        acc = accuracy(y_pred_logits, y)
         train_acc += acc
         #backpropagation
         optimiser.zero_grad()
         loss.backward()
         optimiser.step()
-        
-        #batch loss
-        # wandb.log({
-        #     "train/batch/loss": loss.item(),
-        #     "train/batch/acc": acc,
-        #     "train/batch/batch_number": batch + 1,
-        # })
         
     train_acc = train_acc / len(data_loader)
     train_loss = train_loss / len(data_loader)
@@ -65,12 +59,6 @@ def test_epoch(model: nn.Module,
             test_loss += loss.item()
             acc =  accuracy(y_pred, y)
             test_acc += acc
-            
-            # wandb.log({
-            # "test/batch/loss": loss.item(),
-            # "train/batch/acc": acc,
-            # "test/batch/batch_number": batch + 1,
-            # })
     test_loss = test_loss / len(data_loader)
     test_acc = test_acc / len(data_loader)
     return test_loss, test_acc
@@ -83,10 +71,12 @@ def train_model(model: nn.modules,
                 device: str,
                 config):
     # track results of training
-    results  = {"train_loss": [],
-               "train_acc": [],
-               "test_loss": [],
-               "test_acc":  [],}
+    results  = {
+                "train_loss": [],
+                "train_acc": [],
+                "test_loss": [], 
+                "test_acc":  [],
+                }
     # main training loop
     for epoch in tqdm(range(config.epochs)):
         #training loss and accuracu
@@ -95,7 +85,6 @@ def train_model(model: nn.modules,
                                             loss_fn=loss_fn,
                                             optimiser=optimiser,
                                             device=device)
-
         # testing loss and accuracy
         test_loss, test_acc = test_epoch(model=model,
                                             data_loader=test_loader,
@@ -126,14 +115,14 @@ if __name__ == "__main__":
     #hyperparmeters
     config = SimpleNamespace(
         epochs=100,
-        batch_size=64,
+        batch_size=8,
         img_size=(224, 224),
         patch_size=16,  
         img_channel=1,
         num_classes=1,  
         embed_dim=768,  #patch embedding dimension
-        depth=16,        #number of transform encoders
-        num_heads=16,    #attention heads
+        depth=1,        #number of transform encoders
+        num_heads=3,    #attention heads
         mlp_ratio=4,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
         qkv_bias=True,  #bias for q, v, k calculations
         drop_prob=0.0,  #dropout prob used in the ViT network
@@ -144,16 +133,16 @@ if __name__ == "__main__":
     #load dataloaders
     train_loader, test_loader, _, _ = load_data(config.batch_size, config.img_size)
     #create model
-    # model = ViT(img_size=config.img_size[0],
-    #             patch_size=config.patch_size,
-    #             img_channels=config.img_channel,
-    #             num_classes=config.num_classes,
-    #             embed_dim=config.embed_dim,
-    #             depth=config.depth,
-    #             num_heads=config.num_heads,
-    #             mlp_ratio=config.mlp_ratio,
-    #             qkv_bias=config.qkv_bias,
-    #             drop_prob=config.drop_prob).to(device)
+    model = ViT(img_size=config.img_size[0],
+                patch_size=config.patch_size,
+                img_channels=config.img_channel,
+                num_classes=config.num_classes,
+                embed_dim=config.embed_dim,
+                depth=config.depth,
+                num_heads=config.num_heads,
+                mlp_ratio=config.mlp_ratio,
+                qkv_bias=config.qkv_bias,
+                drop_prob=config.drop_prob).to(device)
     # model = premodel.ViT(
     #                     image_size=config.img_size[0],
     #                     patch_size=config.patch_size,
@@ -164,20 +153,20 @@ if __name__ == "__main__":
     #                     mlp_dim=1024,
     #                     dropout=0.1,
     #                     emb_dropout=0.1).to(device)
-    model = mild.VisionTransformer(img_size=config.img_size[0],
-                                    patch_size=config.patch_size,
-                                    in_chans=config.img_channel,
-                                    n_classes=config.num_classes,
-                                    embed_dim=config.embed_dim,
-                                    depth=config.depth,
-                                    n_heads=config.num_heads,
-                                    mlp_ratio=config.mlp_ratio,
-                                    qkv_bias=True,
-                                    p=0.1,attn_p=0.1).to(device)
+    # model = mild.VisionTransformer(img_size=config.img_size[0],
+    #                                 patch_size=config.patch_size,
+    #                                 in_chans=config.img_channel,
+    #                                 n_classes=config.num_classes,
+    #                                 embed_dim=config.embed_dim,
+    #                                 depth=config.depth,
+    #                                 n_heads=config.num_heads,
+    #                                 mlp_ratio=config.mlp_ratio,
+    #                                 qkv_bias=True,
+    #                                 p=0.1,attn_p=0.1).to(device)
     
     # loss function + optimiser
     summary(model, input_size=(1, 1, 224, 224), device=device)
-    loss_fn = nn.BCELoss()
+    loss_fn = nn.BCEWithLogitsLoss()
     # optimiser = optim.AdamW(model.parameters(), lr=config.lr)
     optimiser = optim.Adam(model.parameters(), lr=config.lr)
     if WANDB:
