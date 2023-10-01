@@ -52,22 +52,21 @@ the train, validation and test datasets.
 Included are some getter functions for returning the specified dataloader.
 """
 class OASISDataloader():
-
-    current_dir = os.getcwd()
-    OASIS_train_path = current_dir + '\keras_png_slices_train'
-    OASIS_validate_path = current_dir + '\keras_png_slices_validate'
-    OASIS_test_path = current_dir + '\keras_png_slices_test'
-
     def __init__(self):
         p = Parameters()
-        self.train = OASISDataset(self.OASIS_train_path)
-        self.validate = OASISDataset(self.OASIS_validate_path)
-        self.test = OASISDataset(self.OASIS_test_path)
+        current_dir = os.getcwd()
+        OASIS_train_path = current_dir + '\keras_png_slices_train'
+        OASIS_validate_path = current_dir + '\keras_png_slices_validate'
+        OASIS_test_path = current_dir + '\keras_png_slices_test'
+        self.train = OASISDataset(OASIS_train_path)
+        self.validate = OASISDataset(OASIS_validate_path)
+        self.test = OASISDataset(OASIS_test_path)
         self.batch_size = p.batch_size
+        self.train_dataloader =  DataLoader(self.train, batch_size = self.batch_size, shuffle = True, drop_last= True)
 
     def get_train(self):
-        train_dataloader =  DataLoader(self.train, batch_size = self.batch_size, shuffle = True, drop_last= True)
-        return train_dataloader
+        self.train_dataloader =  DataLoader(self.train, batch_size = self.batch_size, shuffle = True, drop_last= True)
+        return self.train_dataloader
     
     def get_validate(self):
         validate_dataloader =  DataLoader(self.validate, batch_size = self.batch_size, shuffle = False)
@@ -76,4 +75,4 @@ class OASISDataloader():
     def get_test(self):
         test_dataloader =  DataLoader(self.test, batch_size = self.batch_size, shuffle = False)
         return test_dataloader
-
+    
