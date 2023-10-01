@@ -28,13 +28,28 @@ The improved U-Net differs from traditional U-Net in the following ways:
 - Survival prediction based of radiomics
 - The testing procedure segments an entire patient at once to overcome potential problems with tile-based segmentation
 
+//////////////////
 
-Process:
+ARCHITECTURE:
+- 
 
-Data Preprocessing:
-- Normalization is performed to standardize MRI intensity values across different data sources.
-- Each patient's modality is normalized independently by subtracting the mean and dividing by the standard deviation of the brain region.
-- Images are clipped at [−5, 5] to remove outliers and rescaled to [0, 1], with the non-brain region set to 0.
+PROCESS:
+
+DATA PREPROCESSING:
+- Each modality of each patient's data is normalized independently by subtracting the mean and dividing by the standard deviation of the brain region.
+- The normalized images are clipped at [−5,5] to remove outliers and are rescaled to [0,1], setting the non-brain region to 0.
+
+Training:
+- training data composed of randomly sampled patches size 128 x 128 x 128 voxels with a batch size of 2
+- trained over 300 epochs (1 epoch = iteration over 100 batches)
+- Adam optimiser used with initial learning rate of 5 * 10^(-4), following a learning rate sec of the initial learning rate * 0.985^(epoch) and a l2 weight decay of 10^(-5)
+- Multi-class Dice loss function used
+​- A variety of data augmentation techniques are applied on-the-fly during training to prevent overfitting. These include random rotations, random scaling, random elastic deformations, gamma correction augmentation, and mirroring.
+
+Testing:
+- At test time, the entire patient data is segmented at once, leveraging the fully convolutional nature of the network
+- Test-time data augmentation is performed by mirroring the images and averaging the softmax outputs over several dropout samples
+ 
 
 
 
