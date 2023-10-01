@@ -20,6 +20,19 @@ from torchvision.utils import make_grid
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+"""
+Define the hyperparameters used for the model.
+"""
+class Parameters():
+    def __init__(self):
+        self.batch_size = 128
+        self.num_training_updates = 15000
+        self.num_hiddens = 128
+        self.num_residual_hiddens = 32
+        self.embedding_dim = 64
+        self.num_embeddings = 512
+        self.commitment_cost = 0.25
+        self.learn_rate = 2e-4
     
 """
 Residual layer containing [ReLU, 3x3 conv, ReLU, 1x1 conv]
@@ -172,24 +185,27 @@ class VectorQuantizer(nn.Module):
         return loss, quantized.permute(0, 3, 1, 2).contiguous(), perplexity, encodings
 
     
-
+"""
+Class that build model using other classes such as Encoder, 
+VectorQuantizer and Decoder. Feeds in the hyperparameters that 
+are initialised above. 
+"""
 class VQVAEModel(nn.Module):
-    def __init__(self, num_hiddens, num_residual_hiddens, 
-                 num_embeddings, embedding_dim, commitment_cost):
+    def __init__(self):
         super(VQVAEModel, self).__init__()
-        
-        self.encoder = Encoder(3, num_hiddens, 
-                                num_residual_hiddens)
-        self.conv_layer = nn.Conv2d(in_channels=num_hiddens, 
-                                      out_channels=embedding_dim,
+        p = Parameters()
+        self.encoder = Encoder(3, p.num_hiddens, 
+                                p.num_residual_hiddens)
+        self.conv_layer = nn.Conv2d(in_channels=p.num_hiddens, 
+                                      out_channels=p.embedding_dim,
                                       kernel_size=1, 
                                       stride=1)
         
-        self.quantizer = VectorQuantizer(num_embeddings, embedding_dim,
-                                           commitment_cost)
-        self.decoder = Decoder(embedding_dim,
-                                num_hiddens, 
-                                num_residual_hiddens)
+        self.quantizer = VectorQuantizer(p.num_embeddings, p.embedding_dim,
+                                           p.commitment_cost)
+        self.decoder = Decoder(p.embedding_dim,
+                                p.num_hiddens, 
+                                p.num_residual_hiddens)
 
     def forward(self, x):
         x = self.encoder(x)
@@ -199,20 +215,12 @@ class VQVAEModel(nn.Module):
 
         return loss, x_recon, perplexity
 
+"""
+Class for initialising an Adam Optimizer for VQVAE model
+"""
+class Optimizer():
+    def __init__(self):
+        model = VQVAEModel()
+        p = Parameters()
+        self.Adam = optim.Adam(model.parameters(), p.learn_rate)
 
-
-batch_size = 128
-num_training_updates = 15000
-
-num_hiddens = 128
-num_residual_hiddens = 32
-num_residual_layers = 2
-
-embedding_dim = 64
-num_embeddings = 512
-
-commitment_cost = 0.25
-
-decay = 0.99
-
-learning_rate = 2e-4
