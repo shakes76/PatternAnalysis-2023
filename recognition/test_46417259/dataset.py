@@ -48,11 +48,29 @@ print(f'testset has classes {testset.class_to_idx} and {len(testset)} images')
 
 # Plot some training images
 train_batch = next(iter(trainloader))
+# train_batch = train_batch[:25]
+print(len(train_batch))
 # print(type(train_batch))
 # print(len(train_batch))
 # print(type(train_batch[0]))
-plt.figure(figsize=(8,8))
-plt.axis("off")
-plt.title("Training Images")
-plt.imshow(np.transpose(vutils.make_grid(train_batch[0].to(device)[:64], padding=2, normalize=True).cpu(),(1,2,0)))
+# plt.figure(figsize=(8,8))
+# plt.axis("off")
+# plt.title("Training Images")
+# plt.imshow(np.transpose(vutils.make_grid(train_batch[0].to(device)[:64], padding=2, normalize=True).cpu(),(1,2,0)))
+# plt.show()
+
+# the following data visualisation code is modified based on code at
+# https://github.com/pytorch/tutorials/blob/main/beginner_source/basics/data_tutorial.py
+# published under the BSD 3-Clause "New" or "Revised" License
+# full text of the license can be found in this project at BSD_new.txt
+figure = plt.figure(figsize=(8, 8))
+cols, rows = 5, 5
+
+labels_map = {0: 'AD', 1: 'NC'}
+
+for i in range(1, cols * rows + 1):
+    figure.add_subplot(rows, cols, i)
+    plt.title(labels_map[train_batch[1][i].tolist()])
+    plt.axis("off")
+    plt.imshow(np.transpose(train_batch[0][i].squeeze(), (1,2,0)), cmap="gray")
 plt.show()
