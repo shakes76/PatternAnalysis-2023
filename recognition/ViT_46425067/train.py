@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from modules import ViT
+from modules import ViT, ViT_torch
 from dataset import load_data
 from types import SimpleNamespace
 from tqdm.auto import tqdm
@@ -13,7 +13,7 @@ from torchinfo import summary
 #setup random seeds
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
-WANDB = True
+WANDB = False
 
 def accuracy(y_pred, y):
     y_pred_label = torch.round(torch.sigmoid(y_pred))
@@ -115,25 +115,36 @@ if __name__ == "__main__":
     #hyperparmeters
     config = SimpleNamespace(
         epochs=100,
-        batch_size=256,
+        batch_size=8,
         img_size=(224, 224),
         patch_size=16,  
         img_channel=1,
         num_classes=1,  
         embed_dim=768,  #patch embedding dimension
-        depth=12,        #number of transform encoders
+        depth=6,        #number of transform encoders
         num_heads=12,    #attention heads
         mlp_ratio=4,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
         qkv_bias=True,  #bias for q, v, k calculations
         drop_prob=0.0,  #dropout prob used in the ViT network
         lr=1e-3,
-        loss="ADAM"         
+        loss="ADAM",
+        linear_embed=True        
     )
     
     #load dataloaders
     train_loader, test_loader, _, _ = load_data(config.batch_size, config.img_size)
     #create model
-    model = ViT(img_size=config.img_size[0],
+    # model = ViT(img_size=config.img_size[0],
+    #             patch_size=config.patch_size,
+    #             img_channels=config.img_channel,
+    #             num_classes=config.num_classes,
+    #             embed_dim=config.embed_dim,
+    #             depth=config.depth,
+    #             num_heads=config.num_heads,
+    #             mlp_ratio=config.mlp_ratio,
+    #             qkv_bias=config.qkv_bias,
+    #             drop_prob=config.drop_prob).to(device)
+    model = ViT_torch(img_size=config.img_size[0],
                 patch_size=config.patch_size,
                 img_channels=config.img_channel,
                 num_classes=config.num_classes,
@@ -142,28 +153,9 @@ if __name__ == "__main__":
                 num_heads=config.num_heads,
                 mlp_ratio=config.mlp_ratio,
                 qkv_bias=config.qkv_bias,
-                drop_prob=config.drop_prob).to(device)
-    # model = premodel.ViT(
-    #                     image_size=config.img_size[0],
-    #                     patch_size=config.patch_size,
-    #                     num_classes=config.num_classes,
-    #                     dim=config.embed_dim,
-    #                     depth=config.depth,
-    #                     heads=config.num_heads,
-    #                     mlp_dim=1024,
-    #                     dropout=0.1,
-    #                     emb_dropout=0.1).to(device)
-    # model = mild.VisionTransformer(img_size=config.img_size[0],
-    #                                 patch_size=config.patch_size,
-    #                                 in_chans=config.img_channel,
-    #                                 n_classes=config.num_classes,
-    #                                 embed_dim=config.embed_dim,
-    #                                 depth=config.depth,
-    #                                 n_heads=config.num_heads,
-    #                                 mlp_ratio=config.mlp_ratio,
-    #                                 qkv_bias=True,
-    #                                 p=0.1,attn_p=0.1).to(device)
-    
+                drop_prob=config.drop_prob,
+                linear_embed=config.linear_embed).to(device)
+
     # loss function + optimiser
     summary(model, input_size=(1, 1, 224, 224), device=device)
     loss_fn = nn.BCEWithLogitsLoss()

@@ -8,7 +8,7 @@ from einops.layers.torch import Rearrange
 class PatchEmbedding(nn.Module):
     """Split images into patches
     """
-    def __init__(self, img_size: int, patch_size:int, embed_dim=768, in_channels=1, linear_mode=False):
+    def __init__(self, img_size: int, patch_size:int, embed_dim=768, in_channels=1, linear_mode=True):
         """
         initialise patch embedding layer for the ViT
 
@@ -22,6 +22,7 @@ class PatchEmbedding(nn.Module):
         super().__init__()
         #TODO: check img_size is a squre number
         #TODO: check patch_size is a sqaure number
+        
         self.img_size = img_size
         self.patch_size = patch_size
         self.num_patches = (img_size // patch_size) ** 2
@@ -37,9 +38,9 @@ class PatchEmbedding(nn.Module):
             self.projection = nn.Sequential(
                 Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', 
                             p1=self.patch_size, p2=self.patch_size),
-                # TODO: add layerNorm?
-                nn.Linear(self.patch_size * self.patch_size * in_channels, embed_dim)
-                # TODO: add LayerNorm?
+                nn.LayerNorm(self.patch_size * self.patch_size * in_channels),
+                nn.Linear(self.patch_size * self.patch_size * in_channels, embed_dim),
+                nn.LayerNorm(embed_dim)
             )
         
     def forward(self, x):
@@ -105,7 +106,7 @@ class Attention(nn.Module):
         
         #generate queries, keys, values
         qkv = self.qkv(x) # (num_batches, n_patches + 1, 3 * dim)
-        qkv = qkv.reshape(num_batches, num_patches, 3 ,self.num_heads, self.head_dim)
+        qkv = qkv.reshape(num_batches, num_patches, 3 , self.num_heads, self.head_dim)
         qkv = qkv.permute(2, 0, 3, 1, 4) #(3, n_batch, n_heads, n_patch, head_dim)
         q, k, v = qkv[0], qkv[1], qkv[2] 
         dot_prod = torch.matmul(q, k.transpose(-2, -1)) * self.scale #(batch, heads, patch, patch)
@@ -123,8 +124,7 @@ class Attention(nn.Module):
         x = self.proj_drop(x)
         
         return x
-
-
+        
 class FeedForward(nn.Module):
     """
     MLP layer in the transform encoder block
@@ -246,4 +246,63 @@ class ViT(nn.Module):
         #get only the class token for output
         output = x[:, 0] 
         x = self.head(output)
+        return x
+    
+    
+class ViT_torch(nn.Module):
+    def __init__(self, img_size:int,
+                    patch_size:int,
+                    img_channels:int,
+                    num_classes:int,
+                    embed_dim:int,
+                    depth:int,
+                    num_heads:int,
+                    mlp_ratio=4.,
+                    qkv_bias=True,
+                    drop_prob=0.1,
+                    linear_embed=False):
+        super().__init__()
+        
+        self.patch_embed = PatchEmbedding(img_size=img_size,
+                                            patch_size=patch_size,
+                                            embed_dim=embed_dim,
+                                            in_channels=img_channels,
+                                            linear_mode=linear_embed) #TODO: try changing to linear mode
+        #class token to determine which class the image belongs to
+        self.class_token = nn.Parameter(torch.randn(1, 1, embed_dim)) #zeros or randn
+        #positional information of patches
+        self.pos_embed = nn.Parameter(torch.randn(1, self.patch_embed.num_patches + 1, embed_dim))
+        self.pos_drop = nn.Dropout(p=drop_prob)
+        
+        #transform encoder blocks
+        encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim,
+                                                    nhead=num_heads,
+                                                    dim_feedforward=embed_dim*mlp_ratio,
+                                                    activation='gelu',
+                                                    batch_first=True,
+                                                    norm_first=True, 
+                                                    layer_norm_eps=1e-6)
+        
+        self.transform_encoder = nn.TransformerEncoder(encoder_layer=encoder_layer,
+                                                        num_layers=depth)
+        
+        self.norm_layer = nn.LayerNorm(embed_dim, eps=1e-6)
+        self.head = nn.Linear(embed_dim, num_classes)
+        
+    def forward(self, x):
+        num_batch = x.shape[0]
+        # convert images into patches
+        x = self.patch_embed(x)
+        # concate the class token
+        class_token = self.class_token.expand(num_batch, -1, -1)
+        x = torch.cat((class_token, x), dim=1)
+        x = x + self.pos_embed
+        x = self.pos_drop(x)
+        
+        #pass x through encoders
+        x = self.transform_encoder(x)
+        
+        #get only the class token for output
+        output = x[:, 0]
+        x = self.head(self.norm_layer(output))
         return x
