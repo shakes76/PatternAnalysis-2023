@@ -12,34 +12,34 @@ class Model_Generator(torch.nn.Module):
 
         self._model = torch.nn.Sequential(
 
-            self.make_layer(    # input layer
+            self.make_layer(    # conv 1: input layer
                 "input", num_channels, num_channels**2, batch_norm=True, activation_type="relu",
             ),
 
             
-            self.make_layer(    # intermediate layer
+            self.make_layer(    # conv 2: intermediate layer
                 "intermediate", num_channels**2, num_channels**2, batch_norm=True, activation_type="relu",
             ),
-            self.make_layer(    # upsampling layer: 60 x 64 -> 120 x 128
+            self.make_layer(    # conv 3: upsampling layer (60 x 64 -> 120 x 128)
                 "upsample", num_channels**2, num_channels**3, batch_norm=True, activation_type="relu",
             ),
-            self.make_layer(    # intermediate layer
+            self.make_layer(    # conv 4: intermediate layer
                 "intermediate", num_channels**3, num_channels**3, batch_norm=True, activation_type="relu",
             ),
 
             
-            self.make_layer(    # intermediate layer
+            self.make_layer(    # conv 5: intermediate layer
                 "intermediate", num_channels**3, num_channels**3, batch_norm=True, activation_type="relu",
             ),
-            self.make_layer(    # upsampling layer: 120 x 128 -> 240 x 256
+            self.make_layer(    # conv 6: upsampling layer (120 x 128 -> 240 x 256)
                 "upsample", num_channels**3, num_channels**2, batch_norm=True, activation_type="relu",
             ),
-            self.make_layer(    # intermediate layer
+            self.make_layer(    # conv 7: intermediate layer
                 "intermediate", num_channels**2, num_channels**2, batch_norm=True, activation_type="relu",
             ),
 
             
-            self.make_layer(    # output layer
+            self.make_layer(    # conv 8: output layer
                 "output", num_channels**2, num_channels, batch_norm=False, activation_type="tanh",
             ),
         )
