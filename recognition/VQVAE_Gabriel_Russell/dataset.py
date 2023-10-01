@@ -16,17 +16,12 @@ from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 from PIL import Image
 from torch.utils.data import Dataset
+from modules import Parameters
 
-#Get the current working directoy
-current_dir = os.getcwd()
-
-#Setting up paths for each folder required from the OASIS dataset
-OASIS_train_path = current_dir + "\keras_png_slices_train"
-OASIS_validate_path = current_dir + '\keras_png_slices_validate'
-OASIS_test_path = current_dir + '\keras_png_slices_test'
-
-#This class takes the downloaded data from a specific path, performs the required 
-#transformation to all images and returns it ready to be loaded into a dataloader
+"""
+This class takes the downloaded data from a specific path, performs the required 
+transformation to all images and returns it ready to be loaded into a dataloader
+"""
 class OASISDataset(Dataset):
     #Define the transform as a class attribute
 
@@ -51,9 +46,11 @@ class OASISDataset(Dataset):
         img = self.transform(img)
         return img
 
-#This class calls the OASISDataset Class in it's initialisations to set up 
-#the train, validation and test datasets.
-#Included are some getter functions for returning the specified dataloader.
+"""
+This class calls the OASISDataset Class in it's initialisations to set up 
+the train, validation and test datasets.
+Included are some getter functions for returning the specified dataloader.
+"""
 class OASISDataloader():
 
     current_dir = os.getcwd()
@@ -62,10 +59,11 @@ class OASISDataloader():
     OASIS_test_path = current_dir + '\keras_png_slices_test'
 
     def __init__(self):
-        self.train = OASISDataset(OASIS_train_path)
-        self.validate = OASISDataset(OASIS_validate_path)
-        self.test = OASISDataset(OASIS_test_path)
-        self.batch_size = 64
+        p = Parameters()
+        self.train = OASISDataset(self.OASIS_train_path)
+        self.validate = OASISDataset(self.OASIS_validate_path)
+        self.test = OASISDataset(self.OASIS_test_path)
+        self.batch_size = p.batch_size
 
     def get_train(self):
         train_dataloader =  DataLoader(self.train, batch_size = self.batch_size, shuffle = True, drop_last= True)
