@@ -18,7 +18,6 @@ import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torchvision.utils import make_grid
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 """
 Define the hyperparameters used for the model.
@@ -100,7 +99,7 @@ class Encoder(nn.Module):
         inputs = self.conv_2(inputs)
         inputs = F.relu(inputs)
         
-        inputs = self.reidual_block(inputs)
+        inputs = self.residual_block(inputs)
         return inputs
     
 
@@ -194,7 +193,7 @@ class VQVAEModel(nn.Module):
     def __init__(self):
         super(VQVAEModel, self).__init__()
         p = Parameters()
-        self.encoder = Encoder(3, p.num_hiddens, 
+        self.encoder = Encoder(1, p.num_hiddens, 
                                 p.num_residual_hiddens)
         self.conv_layer = nn.Conv2d(in_channels=p.num_hiddens, 
                                       out_channels=p.embedding_dim,
