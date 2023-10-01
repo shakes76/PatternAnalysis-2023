@@ -53,11 +53,11 @@ def test_epoch(model: nn.Module,
     model.eval()
     with torch.inference_mode():
         for batch, (X, y) in enumerate(data_loader):
-            X, y = X.to(device), y.to(device)
-            y_pred = model(X)
-            loss = loss_fn(y_pred, y)
+            X, y = X.to(device), y.float().to(device)
+            y_pred_logits = model(X).squeeze()
+            loss = loss_fn(y_pred_logits, y)
             test_loss += loss.item()
-            acc =  accuracy(y_pred, y)
+            acc =  accuracy(y_pred_logits, y)
             test_acc += acc
     test_loss = test_loss / len(data_loader)
     test_acc = test_acc / len(data_loader)
@@ -115,14 +115,14 @@ if __name__ == "__main__":
     #hyperparmeters
     config = SimpleNamespace(
         epochs=100,
-        batch_size=8,
+        batch_size=256,
         img_size=(224, 224),
         patch_size=16,  
         img_channel=1,
         num_classes=1,  
         embed_dim=768,  #patch embedding dimension
-        depth=1,        #number of transform encoders
-        num_heads=3,    #attention heads
+        depth=12,        #number of transform encoders
+        num_heads=12,    #attention heads
         mlp_ratio=4,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
         qkv_bias=True,  #bias for q, v, k calculations
         drop_prob=0.0,  #dropout prob used in the ViT network
