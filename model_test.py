@@ -15,7 +15,7 @@ class PatchEmbed(nn.Module):
    or_j : nn.Conv2d: convolutional layer that splits image into patches
    """
 
-    def __init__(self, image_size, patch_size, in_channels=3, embed_dim=768):
+    def __init__(self, image_size, patch_size, in_channels=1, embed_dim=768):
         super().__init__()
         self.image_size = image_size
         self.patch_size = patch_size
@@ -164,7 +164,7 @@ class Block(nn.Module):
         super().__init__()
         self.norm1 = nn.LayerNorm(dim, eps=1e-6) # eps is a small value added to the denominator for numerical stability
         # layerNorm note: 
-        self.attn = Attention(dim, n_heads = n_heads, qkv_bias=qkv_bias, attn_p=attn_p, proj_p=p)
+        self.attn = Attention(dim, heads = n_heads, qkv_bias=qkv_bias, attn_p=attn_p, proj_p=p)
         self.norm2 = nn.LayerNorm(dim, eps=1e-6)
         hidden_features = int(dim * mlp_ratio) # calculating abs value of hidden features
         self.mlp = MLP(in_features=dim, hidden_features=hidden_features, out_features=dim, p=p)
@@ -206,9 +206,9 @@ class VisionTransformer(nn.Module):
         head: linear layer
     """
 
-    def __init__(self, img_size=384, patch_size=16, in_channels=3, n_classes=1000, embed_dim=768, depth=12, n_heads=12, mlp_ratio=4., qkv_bias=True, p=0., attn_p=0.):
+    def __init__(self, img_size=384, patch_size=16, in_channels=1, n_classes=1000, embed_dim=768, depth=12, n_heads=12, mlp_ratio=4., qkv_bias=True, p=0., attn_p=0.):
         super().__init__()
-        self.patch_embed = PatchEmbed(img_size=img_size, patch_size=patch_size, in_channels=in_channels, embed_dim=embed_dim)
+        self.patch_embed = PatchEmbed(image_size=img_size, patch_size=patch_size, in_channels=in_channels, embed_dim=embed_dim)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim)) # 1st 1 is batch size, 2nd 1 is number of patches; both are for convenience. 3rd is embedding dim
         self.pos_embed = nn.Parameter(torch.zeros(1, 1 + self.patch_embed.n_patches, embed_dim)) # 1st 1 is batch size, 2nd 1 is number of patches, 3rd is embedding dim
         # above goal is to determine where in the image the patch is coming from. Also want to learn positional encoding for class token - hence +1

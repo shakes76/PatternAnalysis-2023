@@ -34,7 +34,7 @@ class ADNIDataset(Dataset):
         img_path, label_class = self.data_paths[idx]
         image = Image.open(img_path).convert('L')  # Convert image to grayscale
 
-        label = 1 if label_class == 'AC' else 0  # 1 for Alzheimer's (AC), 0 for normal control (NC)
+        label = 1 if label_class == 'AD' else 0  # 1 for Alzheimer's (AC), 0 for normal control (NC)
 
         if self.transform:
             image = self.transform(image)
