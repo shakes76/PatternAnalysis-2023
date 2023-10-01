@@ -51,16 +51,16 @@ class ADNI_Dataset:
             transform_method = transforms.Compose([
             transforms.ToTensor(),
             transforms.CenterCrop(240),
-            transforms.Grayscale(num_output_channels=1),
-            transforms.Normalize((0.12385,), (0.2308,))
+            transforms.Grayscale(num_output_channels=3),
+            transforms.Normalize((0.1232,), (0.2308,))
             #maybe add a random crop of decent size
             ])
         else:
             transform_method = transforms.Compose([
             transforms.ToTensor(),
             transforms.CenterCrop(240),
-            transforms.Grayscale(num_output_channels=1),
-            transforms.Normalize((0.12385,), (0.2308,))
+            transforms.Grayscale(num_output_channels=3),
+            transforms.Normalize((0.1232,), (0.2308,))
             ])
             
         return transform_method
@@ -119,8 +119,8 @@ class Model_Visualiser:
 
 
 
-dataset = ADNI_Dataset()
-train_loader = dataset.get_train_loader()
-test_loader = dataset.get_test_loader()
-visuals = Model_Visualiser(train_loader); visuals.visualise()
+#dataset = ADNI_Dataset()
+#train_loader = dataset.get_train_loader()
+#test_loader = dataset.get_test_loader()
+#visuals = Model_Visualiser(train_loader); visuals.visualise()
 

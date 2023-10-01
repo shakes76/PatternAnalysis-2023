@@ -2,6 +2,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import dataset as ds
 import torch
+import torchvision.models as models
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 #Resnet Class (50 maybe or 25)
@@ -67,7 +69,12 @@ class ResNet(nn.Module):
         return ResNet(BasicBlock, [2, 2, 2, 2])
 
 
-network = ResNet.ResNet34()
+
+
+network = models.resnet34(pretrained=False)
+resnet = torch.nn.Sequential(*list(network.children())[:-1])
+
+
 network.to(device=device)
 
 dataset = ds.ADNI_Dataset()
@@ -79,7 +86,7 @@ for j, (images, labels) in  enumerate(train_loader):
     labels = labels.to(device)
 
     outputs = network(images)
-    print(outputs.shape)
+    print(outputs)
 
 # Perceiver class (or import)
 
