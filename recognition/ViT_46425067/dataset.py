@@ -2,11 +2,16 @@ import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 from pathlib import Path
+import platform
 
+OS = platform.system()
 # Create paths to images
-TRAIN_DATA_PATH = Path("./AD_NC/train/")
-TEST_DATA_PATH = Path("./AD_NC/test/")
-
+if OS == "Windows":
+    TRAIN_DATA_PATH = Path("E:/UNI 2023 SEM 2/COMP3710/Lab3/recognition/ViT_46425067/AD_NC/train")
+    TEST_DATA_PATH = Path("E:/UNI 2023 SEM 2/COMP3710/Lab3/recognition/ViT_46425067/AD_NC/test")
+else:
+    TRAIN_DATA_PATH = Path("./AD_NC/train/")
+    TEST_DATA_PATH = Path("./AD_NC/test/")
 
 
 def load_data(batch_size, image_size):
