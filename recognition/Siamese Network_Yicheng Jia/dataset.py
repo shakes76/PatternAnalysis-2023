@@ -63,10 +63,9 @@ class SiameseNetworkDataset(Dataset):
 # Define the transformations to be applied on the images.
 transform = transforms.Compose([
     transforms.Lambda(convert_to_rgb),  # Convert grayscale image to RGB
-    transforms.RandomResizedCrop(100, scale=(0.8, 1.0), ratio=(1, 1)),  # Randomly crop and resize the image to 100x100, keeping the aspect ratio to 1:1
+    transforms.RandomResizedCrop((256,240), scale=(0.8, 1.0), ratio=(1, 1)),  # UDATE: NO need to resize it.
     transforms.RandomRotation(10),  # Randomly rotate the image by up to 10 degrees
     transforms.RandomHorizontalFlip(),  # Randomly flip the image horizontally
-    transforms.Resize((100, 100)),  # Resize the image to 100x100
     transforms.ToTensor()  # Convert the image to a PyTorch tensor
 ])
 
