@@ -38,7 +38,7 @@ if __name__ == '__main__':
         for i, val in enumerate(train_loader):
             # img0, img1 , label = data
             data, label = val
-            model(data)
+            print(model(data, data).shape)
 
             break
         

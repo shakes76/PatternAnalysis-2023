@@ -13,6 +13,7 @@ def load_train_data():
     transform_train = transforms.Compose([
         transforms.Resize(105),
         transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
     # transform_train = transforms.Compose([
@@ -33,7 +34,6 @@ def load_train_data():
     num_channels = images.size(1)
     print(f"Number of channels in the first image: {num_channels}")
 
-
     return train_loader
 
 def load_test_data():
@@ -49,7 +49,7 @@ def load_test_data():
     # Data transformation
     transform_test = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize(0.5, 0.5) # standard scaling for normalize, doesn't know much on the status of the entire dataset
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) # standard scaling for normalize, doesn't know much on the status of the entire dataset
     ])
 
     testset = torchvision.datasets.ImageFolder(root=path, transform=transform_test)
