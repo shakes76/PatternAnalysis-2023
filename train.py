@@ -24,17 +24,18 @@ learning_rate = 0.075
 
 optimiser_choice = "SGD"
 scheduler_active = True
-batch_size = 16
-num_epochs = 25
+batch_size = 128
+num_epochs = 30
 img_size = 256
 num_workers = 2
 momentum = 0.9
-depth = 12  # Decreased Depth - from 12
-n_heads = 12  # Modified Number of Heads
-mlp_ratio = 6.0  # Modified MLP Ratio
+depth = 2  # Decreased Depth - from 12
+n_heads = 2  # Modified Number of Heads
+mlp_ratio = 2.0  # Modified MLP Ratio
+embed_dim = 256 
 max_patience = 7  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
 #update 1st oct 1.55pm - changed patience to 10 from 7
-test_num = 15
+test_num = 22
 optim_path_dict = {"AdamW": "AdamW/", "Radam": "RAdam/", "SGD": ""}
 optim_add_path = optim_path_dict[optimiser_choice]
 save_model_as = "{}saved_models/best_model_{}".format(optim_add_path, test_num)
@@ -56,6 +57,9 @@ print ("max patience: ", max_patience)
 print ("depth: ", depth)
 print ("n_heads: ", n_heads)
 print ("mlp_ratio: ", mlp_ratio)
+print ("embed_dim: ", embed_dim)
+
+
 
 # Visualize Attention - for end
 def visualize_attention(data, attention_map, idx):
@@ -144,7 +148,7 @@ model = VisionTransformer(
     patch_size=16, 
     in_channels=1, 
     n_classes=1, 
-    embed_dim=768,
+    embed_dim=embed_dim,
     depth=depth,  # Increased Depth
     n_heads=n_heads,  # Modified Number of Heads
     mlp_ratio=mlp_ratio,  # Modified MLP Ratio
