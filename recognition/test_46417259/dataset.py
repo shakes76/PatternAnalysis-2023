@@ -48,11 +48,7 @@ print(f'testset has classes {testset.class_to_idx} and {len(testset)} images')
 
 # Plot some training images
 train_batch = next(iter(trainloader))
-# train_batch = train_batch[:25]
-print(len(train_batch))
-# print(type(train_batch))
-# print(len(train_batch))
-# print(type(train_batch[0]))
+print(train_batch[0][0].shape)
 # plt.figure(figsize=(8,8))
 # plt.axis("off")
 # plt.title("Training Images")
