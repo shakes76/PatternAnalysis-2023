@@ -20,19 +20,19 @@ torch.cuda.manual_seed_all(0)
 print ("note: trying out new lr scheduler and optimiser from  StepLR")
 
 # Hyperparameters and configurations
-learning_rate = 0.075
+learning_rate = 0.03
 
 optimiser_choice = "SGD"
 scheduler_active = True
-batch_size = 128
+batch_size = 256
 num_epochs = 30
 img_size = 256
 num_workers = 2
 momentum = 0.9
-depth = 2  # Decreased Depth - from 12
-n_heads = 2  # Modified Number of Heads
+depth = 4  # Decreased Depth - from 12
+n_heads = 4  # Modified Number of Heads
 mlp_ratio = 2.0  # Modified MLP Ratio
-embed_dim = 256 
+embed_dim = 512 
 max_patience = 7  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
 #update 1st oct 1.55pm - changed patience to 10 from 7
 test_num = 22
