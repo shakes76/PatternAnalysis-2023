@@ -47,25 +47,31 @@ model.load_state_dict(torch.load(model_path))
 model = model.to(device)
 
 # 5. Visualize Attention
-def visualize_attention(data, attention_map):
-    # Create directory if it doesn't exist
-    directory = f'eval/{model_num}'
-    if not os.path.exists(directory):
-        os.makedirs(directory)
+def visualize_attention(data, attention_map, idx):
+    # Make sure the directory exists
+    os.makedirs(f'eval/{model_num}', exist_ok=True)
+
+    # Normalize the image tensor and convert it to NumPy array
+    image = data[0].squeeze().cpu().numpy()
+    image = (image - image.min()) / (image.max() - image.min())
+
+    # Select the first head's attention map for the first patch
+    # Assuming you want the attention weights from the first block and the first sample in the batch
+    attn_map = attention_map[0][0, 0, :, :].cpu().detach().numpy()
 
     fig, axs = plt.subplots(1, 2, figsize=(20, 10))
 
-    # Visualize the first image in the batch
-    img = data[0].cpu().squeeze().numpy()
-    axs[0].imshow(img, cmap='gray')
+    # Plot original image
+    axs[0].imshow(image, cmap='gray')
     axs[0].set_title('Original Image')
 
-    # Visualize the attention map for the first image in the batch
-    attn_map = attention_map[0].cpu().squeeze().numpy()
+    # Plot attention map
     axs[1].imshow(attn_map, cmap='viridis')
     axs[1].set_title('Attention Map')
 
-    plt.savefig(f'{directory}/attention_visualization_{idx}.png')
+    plt.savefig(f'eval/{model_num}/attention_visualization_{idx}.png')
+    plt.close()
+
 
 # Testing the Final Model
 print ("~~~ TESTING ~~~")
@@ -83,7 +89,7 @@ with torch.no_grad():  # No need to track gradients
         outputs, attn_weights = model(data)
 
         # Visualize attention for the first batch (you can choose other batches)
-        if (idx % 10 == 0):
+        if (idx % 10 == 0) and idx < 51:
             visualize_attention(data, attn_weights, idx)
         
         # Apply sigmoid to get probabilities
