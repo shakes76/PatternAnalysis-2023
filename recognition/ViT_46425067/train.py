@@ -81,6 +81,9 @@ def test_epoch(model: nn.Module,
             
             #model accuracy
             acc =  accuracy(y_pred_logits, y)
+            if batch % 10 == 0:
+                wandb.log({"test/batch/loss": test_loss,
+                            "test/batch/acc": acc,})
             test_acc += acc
             
     # average loss, accuracy over epoch
