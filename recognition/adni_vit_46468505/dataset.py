@@ -1,3 +1,17 @@
+import tensorflow as tf
+import os
+import cv2
+import numpy as np
+from tensorflow import keras
+import matplotlib.pyplot as plt
+import random
+
+batch_size = 256
+image_size = 128  # We'll resize input images to this size
+patch_size = image_size // 8  # Size of the patches to be extract from the input images
+num_patches = (image_size // patch_size) ** 2
+#input_shape = (input_size,input_size,1)
+
 def load_and_preprocess_image(image_path,image_size=(image_size,image_size)):
     image = cv2.imread(image_path)
     # Convert to grayscale
