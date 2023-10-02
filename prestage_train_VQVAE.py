@@ -249,8 +249,8 @@ def test_epoch(net, dataloader, folder):
     return total_ssim / len(dataloader.dataset)
 # Get dataloader
 train_dataloader = get_dataloader(
-    mode='train_and_validate', batch_size=batch_size, limit=32)
-test_dataloader = get_dataloader(mode='test', batch_size=16, limit=32)
+    mode='train_and_validate', batch_size=batch_size)
+test_dataloader = get_dataloader(mode='test', batch_size=16)
 
 start_auxiliary = False
 for epoch in range(start_epoch, 50):
@@ -258,7 +258,7 @@ for epoch in range(start_epoch, 50):
         print(
             f"To adapt auxiliary, we shrink the batch size from {batch_size} -> {batch_size // 2}")
         train_dataloader = get_dataloader(
-            mode='train_and_validate', batch_size=batch_size // 2, limit=32)
+            mode='train_and_validate', batch_size=batch_size // 2)
         start_auxiliary = True
 
     # The format string parse epoch info

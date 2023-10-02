@@ -115,7 +115,7 @@ def get_dataloader(mode='train', batch_size=8, limit=None):
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=(mode == 'train'))
+        shuffle=(mode == 'train' or mode == 'train_and_validate'))
 
     return dataloader
 
