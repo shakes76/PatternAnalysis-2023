@@ -24,14 +24,17 @@ learning_rate = 0.075
 
 optimiser_choice = "SGD"
 scheduler_active = True
-batch_size = 32
-num_epochs = 50
+batch_size = 16
+num_epochs = 25
 img_size = 256
 num_workers = 2
-momentum = 0.05
-max_patience = 30  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
+momentum = 0.9
+depth = 8  # Decreased Depth - from 12
+n_heads = 16  # Modified Number of Heads
+mlp_ratio = 6.0  # Modified MLP Ratio
+max_patience = 7  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
 #update 1st oct 1.55pm - changed patience to 10 from 7
-test_num = 13
+test_num = 14
 optim_path_dict = {"AdamW": "AdamW/", "Radam": "RAdam/", "SGD": ""}
 optim_add_path = optim_path_dict[optimiser_choice]
 save_model_as = "{}saved_models/best_model_{}".format(optim_add_path, test_num)
@@ -50,6 +53,9 @@ print ("optimiser: ", optimiser_choice)
 print ("scheduler?: ", scheduler_active)
 print ("momentum: ", momentum)
 print ("max patience: ", max_patience)
+print ("depth: ", depth)
+print ("n_heads: ", n_heads)
+print ("mlp_ratio: ", mlp_ratio)
 
 
 # TRANSFORMS
@@ -108,7 +114,20 @@ test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num
 
 # MODEL INIT
 
-model = VisionTransformer()
+# model = VisionTransformer()
+model = VisionTransformer(
+    img_size=256, 
+    patch_size=16, 
+    in_channels=1, 
+    n_classes=1, 
+    embed_dim=768,
+    depth=depth,  # Increased Depth
+    n_heads=n_heads,  # Modified Number of Heads
+    mlp_ratio=mlp_ratio,  # Modified MLP Ratio
+    qkv_bias=True, 
+    p=0., 
+    attn_p=0.,  # attention dropout probability
+)
 model = model.to(device)  # Move the model to the device (CPU or GPU)
 
 # LOSS FUNC & OPTIM
