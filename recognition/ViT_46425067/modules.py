@@ -258,7 +258,6 @@ class ViT_torch(nn.Module):
                     depth:int,
                     num_heads:int,
                     mlp_ratio=4.,
-                    qkv_bias=True,
                     drop_prob=0.1,
                     linear_embed=False):
         super().__init__()
