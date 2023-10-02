@@ -27,4 +27,61 @@ class ADNI_Transformer(nn.Module):
         return output
 
 
+class CrossAttention(nn.Module):
+    
+    def __init__(self) -> None:
+        super().__init__()
+        
+        
+        
+    def forward(self, latent, image):
+        pass
+
+class LatentTransformer(nn.Module):
+    
+    def __init__(self) -> None:
+        super().__init__()
+        
+        
+        
+    def forward(self, latent, image):
+        pass
+    
+    
+class Classifier(nn.Module):
+    
+    def __init__(self) -> None:
+        super().__init__()
+        
+        
+        
+    def forward(self, latent, image):
+        pass
+
+
+
+class Perceiver(nn.Module):
+    
+    
+    
+    def __init__(self, latent_dim, embed_dim, depth) -> None:
+        super().__init__()
+        
+        LATENT_DIM = 128
+        LATENT_EMB = 64
+        
+        self.latent = torch.empty(LATENT_DIM, LATENT_EMB)
+        self._depth = depth
+        
+        self._crossAttention = CrossAttention()
+        self._latentTransformer = LatentTransformer()
+        self._classifier = Classifier()
+        
+
+        
+        
+        
+    def forward(self, latent, image):
+        pass
+
 
