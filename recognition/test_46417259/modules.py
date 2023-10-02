@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-import torchvision
+# import torchvision
 # import torchvision.transforms.v2 as transforms
 import torch.nn.functional as F
 
@@ -32,6 +32,36 @@ class SiameseTwin(nn.Module):
         out = F.sigmoid(self.fc(out))
         return out
     
+class SiameseNeuralNet(nn.Module):
+    def __init__(self) -> None:
+        super(SiameseNeuralNet, self).__init__()
+
+        self.twin1 = SiameseTwin()
+        self.twin2 = SiameseTwin()
+        self.fc = nn.Linear(4096, 1)
+
+    def forward(self, x, y):
+        x_features = self.twin1(x)
+        y_features = self.twin2(y)
+        # out = F.pairwise_distance(x_features, y_features, keepdim=True)
+        out = torch.absolute(pairwise_subtraction(x_features, y_features))
+        out = F.sigmoid(self.fc(out))
+        return out
+    
+def pairwise_subtraction(x:torch.Tensor, y:torch.Tensor):
+    if x.shape != y.shape:
+        raise NotImplementedError("X and Y must be the same shape")
+    pass
+
+    out = torch.zeros(x.shape)
+
+    for i in range(x.shape[0]):
+        for j in range(x.shape[1]):
+            out[i,j] = x[i,j] - y[i,j]
+    return out
+
+    # return torch.as_tensor([a - b for a,b in zip(x,y)])
+
 
 # testing
 def test_one_twin():
@@ -42,4 +72,32 @@ def test_one_twin():
     x = test(input)
     print(x.shape)
 
-test_one_twin()
+def test_entire_net():
+    net = SiameseNeuralNet()
+    print(net)
+    input1 = torch.rand(2, 3, 240, 256)
+    input2 = torch.rand(2, 3, 240, 256)
+    x = net(input1, input2)
+    print(x.shape)
+    print(x)
+
+def test_pairwise_subtraction():
+    x = torch.rand(2, 4)
+    y = torch.rand(2, 4)
+    print(x)
+    print(y)
+    print(pairwise_subtraction(x, y))
+    print(F.pairwise_distance(x, y))
+
+def test_pairwise_subtraction_unequal_shape():
+    x = torch.rand(1, 4)
+    y = torch.rand(2, 4)
+    print(x)
+    print(y)
+    print(pairwise_subtraction(x, y))
+
+# test_one_twin()
+test_entire_net()
+# test_pairwise_subtraction_unequal_shape()
+# test_pairwise_subtraction()
+
