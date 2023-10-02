@@ -107,7 +107,7 @@ class Attention(nn.Module):
         x = self.proj(weighted_abg)
         x = self.proj_drop(x)
 
-        return x, attns # returning attention weights for visualisation
+        return x, attn # returning attention weights for visualisation
     
 class MLP(nn.Module):
     """
