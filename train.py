@@ -29,12 +29,12 @@ num_epochs = 25
 img_size = 256
 num_workers = 2
 momentum = 0.9
-depth = 8  # Decreased Depth - from 12
-n_heads = 16  # Modified Number of Heads
+depth = 12  # Decreased Depth - from 12
+n_heads = 12  # Modified Number of Heads
 mlp_ratio = 6.0  # Modified MLP Ratio
 max_patience = 7  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
 #update 1st oct 1.55pm - changed patience to 10 from 7
-test_num = 14
+test_num = 15
 optim_path_dict = {"AdamW": "AdamW/", "Radam": "RAdam/", "SGD": ""}
 optim_add_path = optim_path_dict[optimiser_choice]
 save_model_as = "{}saved_models/best_model_{}".format(optim_add_path, test_num)
@@ -57,7 +57,31 @@ print ("depth: ", depth)
 print ("n_heads: ", n_heads)
 print ("mlp_ratio: ", mlp_ratio)
 
+# Visualize Attention - for end
+def visualize_attention(data, attention_map, idx):
+    # Make sure the directory exists
+    os.makedirs(f'train_visuals/{test_num}', exist_ok=True)
 
+    # Normalize the image tensor and convert it to NumPy array
+    image = data[0].squeeze().cpu().numpy()
+    image = (image - image.min()) / (image.max() - image.min())
+
+    # Select the first head's attention map for the first patch
+    # Assuming you want the attention weights from the first block and the first sample in the batch
+    attn_map = attention_map[0][0, 0, :, :].cpu().detach().numpy()
+
+    fig, axs = plt.subplots(1, 2, figsize=(20, 10))
+
+    # Plot original image
+    axs[0].imshow(image, cmap='gray')
+    axs[0].set_title('Original Image')
+
+    # Plot attention map
+    axs[1].imshow(attn_map, cmap='viridis')
+    axs[1].set_title('Attention Map')
+
+    plt.savefig(f'train_visuals/{test_num}/attention_visualization_{idx}.png')
+    plt.close()
 # TRANSFORMS
 # Adding more augmentations relevant to 3D brain scans such as vertical and horizontal flips
 data_transforms = transforms.Compose([
@@ -247,12 +271,16 @@ correct = 0
 total = 0
 
 with torch.no_grad():  # No need to track gradients
-    for data, labels in test_loader:
+     for idx, (data, labels) in enumerate(test_loader):
         data, labels = data.to(device), labels.to(device)
         labels = labels.view(-1, 1).float()  # Reshaping from [32] to [32, 1]
 
         # Forward pass
-        outputs = model(data)
+        outputs, attn_weights = model(data)
+
+        # Visualize attention for the first batch (you can choose other batches)
+        if (idx % 10 == 0) and idx < 50:
+            visualize_attention(data, attn_weights, idx)
         
         # Apply sigmoid to get probabilities
         outputs = torch.sigmoid(outputs)
