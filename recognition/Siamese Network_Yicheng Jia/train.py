@@ -9,36 +9,53 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from torchvision.datasets import ImageFolder
 from torch.nn.functional import pairwise_distance
+from tqdm import tqdm
 
-from dataset import train_dataset, test_dataset, SiameseNetworkDataset, transform
-from modules import SiameseResNet
+from dataset import test_dataset, SiameseNetworkDataset, transform
+from modules import SiameseResNet, SiameseVGG
+
+
+class ContrastiveLoss(nn.Module):
+    def __init__(self, margin=1.0):
+        super(ContrastiveLoss, self).__init__()
+        self.margin = margin
+
+    def forward(self, output1, output2, label):
+        euclidean_distance = nn.functional.pairwise_distance(output1, output2)
+        loss_contrastive = torch.mean((1-label) * torch.pow(euclidean_distance, 2) +
+                                      (label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
+        return loss_contrastive
 
 
 if __name__ == '__main__':
     # Check if CUDA is available and set the device accordingly
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # Create data loaders for training and testing datasets
-    train_dataloader = DataLoader(train_dataset, shuffle=True, num_workers=4, batch_size=32)
-    test_dataloader = DataLoader(test_dataset, shuffle=True, num_workers=4, batch_size=16)
+    if torch.cuda.is_available():
+        device = torch.device("cuda")
+        torch.cuda.empty_cache()
+    else:
+        device = torch.device("cpu")
 
     # Initialize tensorboard writer
     writer = SummaryWriter()
 
     # Initialize the Siamese network and move it to the appropriate device
     net = SiameseResNet().to(device)
+    #net = SiameseVGG().to(device)
 
     # Define the loss function
-    criterion = nn.BCEWithLogitsLoss()
+    criterion = ContrastiveLoss()
 
-    # Define the optimizer
-    optimizer = optim.Adam(net.parameters(), lr=0.0005)
+    # Define the optimizer using SGD
+    optimizer = optim.SGD(net.parameters(), lr=0.01, momentum=0.9)
+
+    # Define the learning rate scheduler, using StepLR
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=3, factor=0.1)
 
     # Set the network to training mode
     net.train()
 
     # Initialize the best loss to a very large number
-    best_loss = float('inf')
+    best_val_loss = float('inf')
 
     # Number of epochs to wait for improvement
     patience = 5
@@ -88,7 +105,7 @@ if __name__ == '__main__':
 
     # Create data loaders for training and testing datasets AFTER re-instantiating train_dataset
     train_dataloader = DataLoader(train_dataset, shuffle=True, num_workers=4, batch_size=32)
-    test_dataloader = DataLoader(test_dataset, shuffle=True, num_workers=4, batch_size=16)
+    test_dataloader = DataLoader(test_dataset, shuffle=True, num_workers=4, batch_size=32)
 
     # Create the validation dataset
     val_dataset = SiameseNetworkDataset(root_dir=val_dir, transform=transform)
@@ -97,10 +114,14 @@ if __name__ == '__main__':
     val_dataloader = DataLoader(val_dataset, shuffle=True, num_workers=4, batch_size=32)
 
     # Training loop with early stopping
-    for epoch in range(0, 10):
+    for epoch in range(0, 20):
         # Initialize the running loss to 0
         running_loss = 0.0
-        for i, data in enumerate(train_dataloader, 0):
+        correct = 0
+        total = 0
+
+        # Progress bar
+        for i, data in tqdm(enumerate(train_dataloader), total=len(train_dataloader)):
             # Get the images and labels from the data
             img0, img1, label = data
 
@@ -113,14 +134,8 @@ if __name__ == '__main__':
             # Forward pass: Compute predicted outputs by passing inputs to the model
             output1, output2 = net(img0, img1)
 
-            # Compute the pairwise distance between output1 and output2
-            distance = pairwise_distance(output1, output2)
-
-            # Reshape the distance tensor to match the shape of the label tensor
-            distance = distance.view(-1, 1)
-
             # Calculate the loss
-            loss = criterion(distance, label)
+            loss = criterion(output1, output2, label)
 
             # Backward pass: Compute gradient of the loss with respect to model parameters
             loss.backward()
@@ -131,28 +146,51 @@ if __name__ == '__main__':
             # Write the loss value to tensorboard
             running_loss += loss.item()
 
+            # Calculate the Euclidean distance between the two outputs
+            distance = pairwise_distance(output1, output2).view(-1, 1)
+
+            # Calculate the accuracy
+            predicted = (torch.sigmoid(distance) > 0.5).float()
+            total += label.size(0)
+            correct += (predicted == label).sum().item()
+
         # Calculate the average loss over the entire training data
         avg_loss = running_loss / len(train_dataloader)
-        # Print the average loss value
-        print("Epoch: {}, Loss: {}".format(epoch, avg_loss))
+        accuracy = 100 * correct / total
+        print(f"Epoch: {epoch}, Loss: {avg_loss:.4f}, Accuracy: {accuracy:.2f}%")
+
         # Write the average loss value to tensorboard
         writer.add_scalar('Training Loss', avg_loss, epoch)
+        writer.add_scalar('Training Accuracy', accuracy, epoch)
+
+        # Validation loop
+        val_loss = 0.0
+        for i, data in enumerate(val_dataloader):
+            img0, img1, label = data
+            img0, img1, label = img0.to(device), img1.to(device), label.to(device)
+            with torch.no_grad():
+                output1, output2 = net(img0, img1)
+                loss = criterion(output1, output2, label)
+            val_loss += loss.item()
+
+        avg_val_loss = val_loss / len(val_dataloader)
+        print(f"Validation - Epoch: {epoch}, Loss: {avg_val_loss:.4f}")
 
         # Early stopping
         # If the current loss is less than the best loss, set the best loss to the current loss
-        if avg_loss < best_loss:
-            # Save the model parameters
-            best_loss = avg_loss
-            # Reset the number of epochs with no improvement
+        # Early stopping based on validation loss
+        if avg_val_loss < best_val_loss:
+            best_val_loss = avg_val_loss
             no_improve_epochs = 0
         else:
-            # Otherwise increment the number of epochs with no improvement
             no_improve_epochs += 1
 
-        # If the number of epochs with no improvement has reached the patience limit, stop training
         if no_improve_epochs >= patience:
             print("Early stopping!")
             break
+
+        # Step the scheduler
+        scheduler.step(avg_val_loss)
 
     # Save the trained model
     torch.save(net.state_dict(), "model.pth")

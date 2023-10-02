@@ -62,12 +62,16 @@ class SiameseNetworkDataset(Dataset):
 
 # Define the transformations to be applied on the images.
 transform = transforms.Compose([
-    transforms.Lambda(convert_to_rgb),  # Convert grayscale image to RGB
-    transforms.RandomResizedCrop((256,240), scale=(0.8, 1.0), ratio=(1, 1)),  # UDATE: NO need to resize it.
-    transforms.RandomRotation(10),  # Randomly rotate the image by up to 10 degrees
+    transforms.Resize((224, 224)),  # Resize the image to 224x224 pixels to fix VGG16 input size.
+    transforms.Lambda(convert_to_rgb),  # Convert the image to RGB if it is a grayscale image.
+    transforms.CenterCrop(125),  # Crop the central part of the image to focus on the brain
+    transforms.RandomResizedCrop(224, scale=(0.8, 1.2)),  # Randomly resize the cropped image
+    transforms.RandomRotation(15),  # Randomly rotate the image by 30 degrees
     transforms.RandomHorizontalFlip(),  # Randomly flip the image horizontally
-    transforms.ToTensor()  # Convert the image to a PyTorch tensor
+    transforms.ColorJitter(brightness=0.2, contrast=0.2),  # Randomly change the brightness and contrast of an image
+    transforms.ToTensor()  # Convert the image to PyTorch tensor data type
 ])
+
 
 # Use relative paths to specify the directories.
 train_dir = ImageFolder(root=os.path.join(os.getcwd(), "AD_NC/train"))
