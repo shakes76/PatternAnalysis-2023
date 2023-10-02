@@ -26,7 +26,8 @@ def train_epoch(model: nn.Module,
                 scheduler: optim.Optimizer,
                 grad_scaler,
                 device: str,
-                mix_precision: bool):
+                mix_precision: bool,
+                lr_scheduler: bool):
     #setup for training
     train_loss, train_acc = 0, 0
     model.train()
@@ -35,7 +36,7 @@ def train_epoch(model: nn.Module,
     for batch, (X, y) in enumerate(tqdm(data_loader)):
         # mixed precision
         X, y = X.to(device), y.float().to(device)
-        with torch.cuda.amp.autocast(device_type='cuda', dtype=torch.float16, enabled=mix_precision):
+        with torch.cuda.amp.autocast(enabled=mix_precision, dtype=torch.float16):
             # model prediction
             y_pred_logits = model(X).squeeze()
             loss = loss_fn(y_pred_logits, y)
@@ -49,8 +50,9 @@ def train_epoch(model: nn.Module,
         #backpropagation
         optimiser.zero_grad()
         grad_scaler.scale(loss).backward()
-        grad_scaler.setp(optimiser)
-        scheduler.step()
+        grad_scaler.step(optimiser)
+        if lr_scheduler:
+            scheduler.step()
         grad_scaler.update()
     # loss, accuracy average over 1 epoch
     train_acc = train_acc / len(data_loader)
@@ -60,6 +62,7 @@ def train_epoch(model: nn.Module,
 def test_epoch(model: nn.Module, 
                 data_loader: torch.utils.data.DataLoader,
                 loss_fn: nn.Module,
+                mix_precision: bool,
                 device: str):
     # test setup
     test_loss, test_acc = 0, 0
@@ -70,7 +73,7 @@ def test_epoch(model: nn.Module,
         for batch, (X, y) in enumerate(data_loader):
             X, y = X.to(device), y.float().to(device)
             # mixed precision
-            with torch.autocast(device_type='cuda', dtype=torch.float16):
+            with torch.cuda.amp.autocast(dtype=torch.float16, enabled=mix_precision,):
                 y_pred_logits = model(X).squeeze()
                 loss = loss_fn(y_pred_logits, y)
             # save loss
@@ -111,12 +114,14 @@ def train_model(model: nn.modules,
                                             scheduler=scheduler,
                                             grad_scaler=grad_scaler,
                                             device=device,
-                                            mix_precision=config.mix_precision)
+                                            mix_precision=config.mix_precision,
+                                            lr_scheduler=config.lr_scheduler)
         # testing loss and accuracy
         test_loss, test_acc = test_epoch(model=model,
                                             data_loader=test_loader,
                                             loss_fn=loss_fn,
-                                            device=device)
+                                            device=device, 
+                                            mix_precision=config.mix_precision)
         wandb.log({"train/epoch/loss": train_loss,
                     "train/epoch/acc": train_acc,
                     "train/epoch/epoch_num": epoch + 1,
@@ -139,27 +144,27 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # hyperparmeters
     config = SimpleNamespace(
-        epochs=5,
-        batch_size=512,
-        img_size=(224, 224),
-        patch_size=32,  
+        epochs=100,
         img_channel=1,
         num_classes=1,  
+        batch_size=800,
+        img_size=(224, 224),
+        patch_size=16,  
         embed_dim=32,  #patch embedding dimension
         depth=6,        #number of transform encoders
-        num_heads=2,    #attention heads
-        mlp_ratio=2,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
+        num_heads=8,    #attention heads
+        mlp_ratio=4,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
         # qkv_bias=True,  #bias for q, v, k calculations
-        drop_prob=0.2,  #dropout prob used in the ViT network
+        drop_prob=0.1,  #dropout prob used in the ViT network
         lr=1e-3,
-        max_lr=0.1,
-        optimiser="SGD",
+        optimiser="ADAM",
         linear_embed=True,
-        data_augments=["flip", "crop"],
-        weight_decay=1e-4,
-        mix_precision=True,        
+        data_augments=[],
+        weight_decay=1e-6,
+        mix_precision=True,  
+        lr_scheduler=True,      
+        max_lr=0.01,
     )
-    
     # load dataset
     train_loader, test_loader, _, _ = load_data(config.batch_size, config.img_size)
     # create model
