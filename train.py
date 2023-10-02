@@ -20,23 +20,36 @@ torch.cuda.manual_seed_all(0)
 print ("note: trying out new lr scheduler and optimiser from  StepLR")
 
 # Hyperparameters and configurations
-learning_rate = 0.05
-save_model_as = "saved_models/best_model_9"
-save_fig_name = "training_and_validation_loss_9"
+learning_rate = 0.075
+
+optimiser_choice = "SGD"
+scheduler_active = True
 batch_size = 32
 num_epochs = 50
 img_size = 256
 num_workers = 2
-max_patience = 7  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
+momentum = 0.05
+max_patience = 30  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
+#update 1st oct 1.55pm - changed patience to 10 from 7
+test_num = 13
+optim_path_dict = {"AdamW": "AdamW/", "Radam": "RAdam/", "SGD": ""}
+optim_add_path = optim_path_dict[optimiser_choice]
+save_model_as = "{}saved_models/best_model_{}".format(optim_add_path, test_num)
+save_fig_name = "{}training_and_validation_loss_{}".format(optim_add_path, test_num)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print ("~~~ CONFIG ~~~")
+print ("test num: ", test_num)
 print ("device: ", device)
 print ("batch_size: ", batch_size)
 print ("num_epochs: ", num_epochs)
 print ("learning_rate: ", learning_rate)
 print ("model save file name: ", save_model_as)
 print ("model save fig name: ", save_fig_name)
+print ("optimiser: ", optimiser_choice)
+print ("scheduler?: ", scheduler_active)
+print ("momentum: ", momentum)
+print ("max patience: ", max_patience)
 
 
 # TRANSFORMS
@@ -100,10 +113,21 @@ model = model.to(device)  # Move the model to the device (CPU or GPU)
 
 # LOSS FUNC & OPTIM
 criterion = nn.BCEWithLogitsLoss() # since doing binary classification between 2 classes (AD and NC)
-optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=0.0005)
+
+if optimiser_choice == 'SGD':
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=0.0005)
+elif optimiser_choice == 'AdamW':
+    optimizer = optim.AdamW(model.parameters(), lr=learning_rate, weight_decay=0.0005)
+else:
+    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=momentum, weight_decay=0.0005)
 
 # Learning Rate Scheduler
-scheduler = CyclicLR(optimizer, base_lr=0.0001, max_lr=learning_rate, step_size_up=200)
+if scheduler_active:
+    if optimiser_choice == "AdamW":
+        scheduler = CyclicLR(optimizer, base_lr=0.0001, max_lr=learning_rate, step_size_up=200, cycle_momentum=False)
+    else:
+        scheduler = CyclicLR(optimizer, base_lr=0.0001, max_lr=learning_rate, step_size_up=200)
+
 
 
 
@@ -129,7 +153,7 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()  # Reset gradients
         
         # Forward pass
-        outputs = model(data)
+        outputs, attn_weights = model(data)
         loss = criterion(outputs, labels)
         train_loss += loss.item()
         
@@ -138,7 +162,8 @@ for epoch in range(num_epochs):
         optimizer.step()
     
     # Update learning rate
-    scheduler.step()
+    if scheduler_active:
+        scheduler.step()
 
     # Validation
     model.eval()  # Set the model to evaluation mode
@@ -149,7 +174,7 @@ for epoch in range(num_epochs):
             labels = labels.view(-1, 1).float()  # Reshaping from [32] to [32, 1]
             
             # Forward pass
-            outputs = model(data)
+            outputs, _ = model(data)
             
             # Compute the loss and accuracy
             loss = criterion(outputs, labels)

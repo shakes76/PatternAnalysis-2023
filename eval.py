@@ -11,6 +11,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 
+
+
 # locking in seed
 random.seed(0)
 torch.manual_seed(0)
@@ -44,6 +46,27 @@ model = VisionTransformer()
 model.load_state_dict(torch.load(model_path))
 model = model.to(device)
 
+# 5. Visualize Attention
+def visualize_attention(data, attention_map):
+    # Create directory if it doesn't exist
+    directory = f'eval/{model_num}'
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+    fig, axs = plt.subplots(1, 2, figsize=(20, 10))
+
+    # Visualize the first image in the batch
+    img = data[0].cpu().squeeze().numpy()
+    axs[0].imshow(img, cmap='gray')
+    axs[0].set_title('Original Image')
+
+    # Visualize the attention map for the first image in the batch
+    attn_map = attention_map[0].cpu().squeeze().numpy()
+    axs[1].imshow(attn_map, cmap='viridis')
+    axs[1].set_title('Attention Map')
+
+    plt.savefig(f'{directory}/attention_visualization_{idx}.png')
+
 # Testing the Final Model
 print ("~~~ TESTING ~~~")
 model.eval()  # Set the model to evaluation mode
@@ -52,12 +75,16 @@ correct = 0
 total = 0
 
 with torch.no_grad():  # No need to track gradients
-    for data, labels in test_loader:
+    for idx, (data, labels) in enumerate(test_loader):
         data, labels = data.to(device), labels.to(device)
         labels = labels.view(-1, 1).float()  # Reshaping from [32] to [32, 1]
 
         # Forward pass
-        outputs = model(data)
+        outputs, attn_weights = model(data)
+
+        # Visualize attention for the first batch (you can choose other batches)
+        if (idx % 10 == 0):
+            visualize_attention(data, attn_weights, idx)
         
         # Apply sigmoid to get probabilities
         outputs = torch.sigmoid(outputs)

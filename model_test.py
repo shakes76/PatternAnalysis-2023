@@ -22,6 +22,7 @@ class PatchEmbed(nn.Module):
         self.in_channels = in_channels
         self.embed_dim = embed_dim
         self.n_patches = (image_size // patch_size) ** 2
+
         self.proj = nn.Conv2d(
             in_channels, 
             embed_dim, 
@@ -67,6 +68,7 @@ class Attention(nn.Module):
         super().__init__()
         self.heads = heads
         self.head_dim = dim // heads
+        self.dim = dim
         self.scale = self.heads ** -0.5 # not feeding small values into softmax - leading to exploding gradients
 
         self.qkv = nn.Linear(dim, dim * 3, bias=qkv_bias)
@@ -82,8 +84,8 @@ class Attention(nn.Module):
         Output:
             tensor after attention (B, n_patches + 1, embed_dim)
         """
-        
         n_samples, n_tokens, dim = x.shape
+        
 
         if dim != self.dim: # if input dimension is not equal to dimension of query and key
             raise ValueError
@@ -105,7 +107,7 @@ class Attention(nn.Module):
         x = self.proj(weighted_abg)
         x = self.proj_drop(x)
 
-        return x
+        return x, attns # returning attention weights for visualisation
     
 class MLP(nn.Module):
     """
@@ -164,7 +166,7 @@ class Block(nn.Module):
         super().__init__()
         self.norm1 = nn.LayerNorm(dim, eps=1e-6) # eps is a small value added to the denominator for numerical stability
         # layerNorm note: 
-        self.attn = Attention(dim, heads = n_heads, qkv_bias=qkv_bias, attn_p=attn_p, proj_p=p)
+        self.attn = Attention(dim=dim, heads = n_heads, qkv_bias=qkv_bias, attn_p=attn_p, proj_p=p)
         self.norm2 = nn.LayerNorm(dim, eps=1e-6)
         hidden_features = int(dim * mlp_ratio) # calculating abs value of hidden features
         self.mlp = MLP(in_features=dim, hidden_features=hidden_features, out_features=dim, p=p)
@@ -177,10 +179,12 @@ class Block(nn.Module):
         Output:
             tensor after transformer block (B, n_patches + 1, embed_dim)
         """
-        x = x + self.attn(self.norm1(x)) # residual block
+        x_res = x # residual connection
+        x, attn = self.attn(self.norm1(x)) # get attn weights
+        x = x + x_res # add residual back
         x = x + self.mlp(self.norm2(x)) 
 
-        return x
+        return x, attn # return attn weights for visualisation
 
 class VisionTransformer(nn.Module):
     """
@@ -206,7 +210,7 @@ class VisionTransformer(nn.Module):
         head: linear layer
     """
 
-    def __init__(self, img_size=384, patch_size=16, in_channels=1, n_classes=1000, embed_dim=768, depth=12, n_heads=12, mlp_ratio=4., qkv_bias=True, p=0., attn_p=0.):
+    def __init__(self, img_size=256, patch_size=16, in_channels=1, n_classes=1, embed_dim=768, depth=12, n_heads=12, mlp_ratio=4., qkv_bias=True, p=0., attn_p=0.):
         super().__init__()
         self.patch_embed = PatchEmbed(image_size=img_size, patch_size=patch_size, in_channels=in_channels, embed_dim=embed_dim)
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dim)) # 1st 1 is batch size, 2nd 1 is number of patches; both are for convenience. 3rd is embedding dim
@@ -235,19 +239,24 @@ class VisionTransformer(nn.Module):
 
         cls_token = self.cls_token.expand(n_samples, -1, -1) # expand to match batch size - replicate over sample dim
         x = torch.cat((cls_token, x), dim=1) # concatenate along patch dim
+        
+
         x = x + self.pos_embed # add positional embedding
         x = self.pos_drop(x)
 
+        attns_weights = []
+
         for block in self.blocks:
-            x = block(x) # define forward pass for block in Block class
-        
+            x, attn = block(x) # define forward pass for block in Block class
+            attns_weights.append(attn)
+
         x = self.norm(x)
 
         cls_token_final = x[:, 0] # just taking the cls token
         x = self.head(cls_token_final)
 
         # we hope that embedding encodes enough info about the image that we can just use the cls token to classify the image
-        return x
+        return x, attns_weights # attn_weights returned for visualisation
 
 
 
