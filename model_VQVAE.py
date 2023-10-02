@@ -14,7 +14,7 @@ class Encoder(nn.Module):
                  resolution, z_channels, double_z=True, **ignores):
         '''
             ch: base number of all channels, int
-            ch_mult: channal number of each blocks, [int...]
+            ch_mult: channel number of each blocks, [int...]
             num_res_blocks: numbers of resblocks in each block, int.
             attn_resolutions: Do self-attention when current resolution is in attn_resolutions, [int...]
             dropout: droupout ratio in resblock, float ~ [0, 1]
