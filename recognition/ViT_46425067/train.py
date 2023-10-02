@@ -6,14 +6,12 @@ from dataset import load_data
 from types import SimpleNamespace
 from tqdm.auto import tqdm
 import wandb
-# import premodel
-# import mild
 import torchinfo
 from torchinfo import summary
+
 #setup random seeds
 torch.manual_seed(42)
 torch.cuda.manual_seed(42)
-WANDB = False
 
 def accuracy(y_pred, y):
     y_pred_label = torch.round(torch.sigmoid(y_pred))
@@ -25,22 +23,36 @@ def train_epoch(model: nn.Module,
                 data_loader: torch.utils.data.DataLoader,
                 loss_fn: nn.Module,
                 optimiser: optim.Optimizer,
-                device: str):
+                scheduler: optim.Optimizer,
+                grad_scaler,
+                device: str,
+                mix_precision: bool):
+    #setup for training
     train_loss, train_acc = 0, 0
     model.train()
     
+    # training loop
     for batch, (X, y) in enumerate(tqdm(data_loader)):
+        # mixed precision
         X, y = X.to(device), y.float().to(device)
-        y_pred_logits = model(X).squeeze()
-        loss = loss_fn(y_pred_logits, y)
+        with torch.cuda.amp.autocast(device_type='cuda', dtype=torch.float16, enabled=mix_precision):
+            # model prediction
+            y_pred_logits = model(X).squeeze()
+            loss = loss_fn(y_pred_logits, y)
+        # save loss
         train_loss += loss.item()
+        
+        # model accuracy
         acc = accuracy(y_pred_logits, y)
         train_acc += acc
+        
         #backpropagation
         optimiser.zero_grad()
-        loss.backward()
-        optimiser.step()
-        
+        grad_scaler.scale(loss).backward()
+        grad_scaler.setp(optimiser)
+        scheduler.step()
+        grad_scaler.update()
+    # loss, accuracy average over 1 epoch
     train_acc = train_acc / len(data_loader)
     train_loss = train_loss / len(data_loader)
     return train_loss, train_acc
@@ -49,16 +61,26 @@ def test_epoch(model: nn.Module,
                 data_loader: torch.utils.data.DataLoader,
                 loss_fn: nn.Module,
                 device: str):
+    # test setup
     test_loss, test_acc = 0, 0
     model.eval()
+    
+    # testing loop
     with torch.inference_mode():
         for batch, (X, y) in enumerate(data_loader):
             X, y = X.to(device), y.float().to(device)
-            y_pred_logits = model(X).squeeze()
-            loss = loss_fn(y_pred_logits, y)
+            # mixed precision
+            with torch.autocast(device_type='cuda', dtype=torch.float16):
+                y_pred_logits = model(X).squeeze()
+                loss = loss_fn(y_pred_logits, y)
+            # save loss
             test_loss += loss.item()
+            
+            #model accuracy
             acc =  accuracy(y_pred_logits, y)
             test_acc += acc
+            
+    # average loss, accuracy over epoch
     test_loss = test_loss / len(data_loader)
     test_acc = test_acc / len(data_loader)
     return test_loss, test_acc
@@ -68,6 +90,8 @@ def train_model(model: nn.modules,
                 test_loader: torch.utils.data.DataLoader,
                 optimiser: optim.Optimizer,
                 loss_fn: nn.modules,
+                scheduler: optim.Optimizer,
+                grad_scaler,
                 device: str,
                 config):
     # track results of training
@@ -84,7 +108,10 @@ def train_model(model: nn.modules,
                                             data_loader=train_loader,
                                             loss_fn=loss_fn,
                                             optimiser=optimiser,
-                                            device=device)
+                                            scheduler=scheduler,
+                                            grad_scaler=grad_scaler,
+                                            device=device,
+                                            mix_precision=config.mix_precision)
         # testing loss and accuracy
         test_loss, test_acc = test_epoch(model=model,
                                             data_loader=test_loader,
@@ -107,43 +134,35 @@ def save_model(path, model):
     pass
 
 if __name__ == "__main__":
-    if WANDB:
-        #Login into wandb
-        wandb.login(anonymous="allow")
+    WANDB = True
     #device agnostic code
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    #hyperparmeters
+    # hyperparmeters
     config = SimpleNamespace(
-        epochs=100,
-        batch_size=8,
+        epochs=5,
+        batch_size=512,
         img_size=(224, 224),
-        patch_size=16,  
+        patch_size=32,  
         img_channel=1,
         num_classes=1,  
-        embed_dim=768,  #patch embedding dimension
+        embed_dim=32,  #patch embedding dimension
         depth=6,        #number of transform encoders
-        num_heads=12,    #attention heads
-        mlp_ratio=4,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
-        qkv_bias=True,  #bias for q, v, k calculations
-        drop_prob=0.0,  #dropout prob used in the ViT network
+        num_heads=2,    #attention heads
+        mlp_ratio=2,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
+        # qkv_bias=True,  #bias for q, v, k calculations
+        drop_prob=0.2,  #dropout prob used in the ViT network
         lr=1e-3,
-        loss="ADAM",
-        linear_embed=True        
+        max_lr=0.1,
+        optimiser="SGD",
+        linear_embed=True,
+        data_augments=["flip", "crop"],
+        weight_decay=1e-4,
+        mix_precision=True,        
     )
     
-    #load dataloaders
+    # load dataset
     train_loader, test_loader, _, _ = load_data(config.batch_size, config.img_size)
-    #create model
-    # model = ViT(img_size=config.img_size[0],
-    #             patch_size=config.patch_size,
-    #             img_channels=config.img_channel,
-    #             num_classes=config.num_classes,
-    #             embed_dim=config.embed_dim,
-    #             depth=config.depth,
-    #             num_heads=config.num_heads,
-    #             mlp_ratio=config.mlp_ratio,
-    #             qkv_bias=config.qkv_bias,
-    #             drop_prob=config.drop_prob).to(device)
+    # create model
     model = ViT_torch(img_size=config.img_size[0],
                 patch_size=config.patch_size,
                 img_channels=config.img_channel,
@@ -152,25 +171,53 @@ if __name__ == "__main__":
                 depth=config.depth,
                 num_heads=config.num_heads,
                 mlp_ratio=config.mlp_ratio,
-                qkv_bias=config.qkv_bias,
                 drop_prob=config.drop_prob,
                 linear_embed=config.linear_embed).to(device)
-
-    # loss function + optimiser
+    
+    # summarise model architecture
     summary(model, input_size=(1, 1, 224, 224), device=device)
+    
+    # loss function 
     loss_fn = nn.BCEWithLogitsLoss()
-    # optimiser = optim.AdamW(model.parameters(), lr=config.lr)
-    optimiser = optim.Adam(model.parameters(), lr=config.lr)
+    
+    # optimiser
+    optimiser = optim.SGD(model.parameters(),
+                            lr=config.lr,
+                            momentum=0.9,
+                            weight_decay=config.weight_decay)
+    if config.optimiser == "ADAM":
+        optimiser = optim.Adam(model.parameters(),
+                                lr=config.lr,
+                                weight_decay=config.weight_decay)
+    elif config.optimiser == "ADAMW":
+        optimiser = optim.AdamW(model.parameters(),
+                                lr=config.lr,
+                                weight_decay=config.weight_decay)
+        
+    # Learning rate scheduler
+    scheduler = optim.lr_scheduler.OneCycleLR(optimizer=optimiser,
+                                                max_lr=config.max_lr,
+                                                steps_per_epoch=len(train_loader),
+                                                epochs=config.epochs)
+    # grad scaler for mixed precision
+    grad_scaler = torch.cuda.amp.GradScaler(enabled=config.mix_precision)
+    
+    # logging
     if WANDB:
-        wandb.init(project="ViT", job_type="Train", config=config)
-    #Train the model and store the results
+        wandb.init(project="ViT", job_type="Train", config=config)        #Login into wandb
+        wandb.login(anonymous="allow")
+    
+    # Train the model and store the results
     results = train_model(model=model,
                             train_loader=train_loader,
                             test_loader=test_loader,
                             optimiser=optimiser,
                             loss_fn=loss_fn,
+                            scheduler=scheduler,
+                            grad_scaler=grad_scaler,
                             device=device,
                             config=config)
     
+    #end logging
     if WANDB:
         wandb.finish()
