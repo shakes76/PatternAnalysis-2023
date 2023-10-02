@@ -20,6 +20,7 @@ from discriminator import NLayerDiscriminator, weights_init
 from dataset import get_dataloader
 from util import reset_dir, weight_scheduler, compact_large_image
 from logger import Logger
+from SSIM import ssim
 DEVICE = torch.device("cuda")
 print("DEVICE:", DEVICE)
 
@@ -37,7 +38,7 @@ vis_folder = 'VQVAE_vis'
 ckpt_folder = 'model_ckpt/VQVAE'
 
 # Keep training if epoch is not zero
-start_epoch = 0
+start_epoch = 51
 if start_epoch != 0:
     # For example, if we start at epoch 7 and we need to load epoch 6.
     try:
@@ -200,6 +201,7 @@ def test_epoch(net, dataloader, folder):
     reset_dir(folder)
 
     # Reconstruct the given data
+    total_ssim = 0
     recon_imgs, brain_indices = [], []
     for now_step, batch_data in enumerate(dataloader):
         raw_img, seg_img, brain_idx, z_idx = [
@@ -208,6 +210,7 @@ def test_epoch(net, dataloader, folder):
         # Record reconstructed images (for visualization) and brain indices (for labeling)
         recon_imgs.append(recon_img.detach().cpu())
         brain_indices.append(brain_idx.detach().cpu())
+        total_ssim += ssim(raw_img* 0.5 + 0.5, recon_img * 0.5 + 0.5).item() * raw_img.shape[0]
 
     recon_imgs, brain_indices = torch.concat(
         recon_imgs, 0), torch.concat(brain_indices, 0)
@@ -243,18 +246,19 @@ def test_epoch(net, dataloader, folder):
         plt.imsave(f'{folder}/gen_large_{idx}.png',
                    imgs[idx] * 0.5 + 0.5, cmap='gray')
 
+    return total_ssim / len(dataloader.dataset)
 # Get dataloader
 train_dataloader = get_dataloader(
-    mode='train_and_validate', batch_size=batch_size)
-test_dataloader = get_dataloader(mode='test', batch_size=batch_size)
+    mode='train_and_validate', batch_size=batch_size, limit=32)
+test_dataloader = get_dataloader(mode='test', batch_size=16, limit=32)
 
 start_auxiliary = False
-for epoch in range(start_epoch, 300):
+for epoch in range(start_epoch, 50):
     if not start_auxiliary and epoch >= auxiliary_start_epoch:
         print(
             f"To adapt auxiliary, we shrink the batch size from {batch_size} -> {batch_size // 2}")
         train_dataloader = get_dataloader(
-            mode='train_and_validate', batch_size=batch_size // 2)
+            mode='train_and_validate', batch_size=batch_size // 2, limit=32)
         start_auxiliary = True
 
     # The format string parse epoch info
@@ -267,11 +271,11 @@ for epoch in range(start_epoch, 300):
     net.eval()
     with torch.no_grad():
         calculate_weight_sampler(net, train_dataloader)
-        test_epoch(net, test_dataloader, f'{vis_folder}/epoch_{epoch}')
+        ssim_score = test_epoch(net, test_dataloader, f'{vis_folder}/epoch_{epoch}')
 
     # Save the model
     torch.save(net, f'{ckpt_folder}/epoch_AE_{epoch}.pt')
     torch.save(discriminator, f'{ckpt_folder}/epoch_D_{epoch}.pt')
 
-    print('{:=^100s}'.format(f' epoch {epoch:>3d} '))
-    print(fmt(train_info))
+    print('{:=^110s}'.format(f' epoch {epoch:>3d} '))
+    print(fmt(train_info), f' Test SSIM: {ssim_score:2.4f}')
