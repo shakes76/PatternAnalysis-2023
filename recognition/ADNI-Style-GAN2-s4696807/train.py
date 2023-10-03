@@ -43,6 +43,16 @@ beta1 = 0.5
 # Number of GPUs available. Use 0 for CPU mode.
 ngpu = 1
 
+DATASET                 = "./AD_NC"
+DEVICE                  = "cuda" if torch.cuda.is_available() else "cpu"
+EPOCHS                  = 300
+LEARNING_RATE           = 1e-3
+BATCH_SIZE              = 128
+LOG_RESOLUTION          = 7 #for 128*128
+Z_DIM                   = 256
+W_DIM                   = 256
+LAMBDA_GP               = 10
+
 # Initialize your custom dataset and data loader
 data_root = './AD_NC'  # Adjust this to your dataset directory
 batch_size = 128
@@ -56,5 +66,5 @@ transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,)),  # Mean and std for single-channel images
 ])
 
-train_dataset = ADNIDataset(root=data_root, split='train', transform=transform)
-train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=workers)
+train_dataset = ADNIDataset(root=DATASET, split='train', transform=transform)
+train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=workers)
