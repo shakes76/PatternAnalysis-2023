@@ -37,7 +37,7 @@ validationLoader = DataLoader(validationData, batch_size=BATCHSIZE, shuffle=True
 
 transformer = modules.ADNITransformer(100, 21, 9, 0, [512, 1024, 512], ENCODERDENSELAYERS).to(device)
 
-loss = torch.nn.CrossEntropyLoss()
+loss = torch.nn.BCELoss()
 optimizer = torch.optim.Adam(transformer.parameters(), lr=LR)
 
 transformer.train()

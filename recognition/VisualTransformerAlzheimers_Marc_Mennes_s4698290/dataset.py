@@ -5,12 +5,12 @@ import torch
 #turns the ADNI raw data into a pytorch dataset to be used with a dataloader
 
 class ADNI(torch.utils.data.Dataset):
-
-    def __init__(self, path, transform=None, test=False, validationSplit = 0.2, validation=False):
+    #1076 unique patients, 20 scans each, so take top 216 patients as the validation set, 108 healthy, 108 alzheimers
+    def __init__(self, path, transform=None, test=False, validation=False):
         self.path = path #path not ending with a /
         self.transform = transform
         self.isTest = test
-        self.validation = validation
+        self.isVal = validation
 
         #get a list of image names
         if not test:
@@ -24,53 +24,44 @@ class ADNI(torch.utils.data.Dataset):
         self.data = AD + NC
         self.lastAD = len(AD) - 1
 
-        validationSamples = len(self.data) * validationSplit
-        self.validationMap = {}
-        self.trainMap = {}
-        
-        if test == False:
+        if self.isVal and not self.isTest:
+            self.lastAD = 108*20 - 1
 
-            patientNumbers = []
-            #get a list of patient numbers
-            for fileName in self.data:
-                patientNumber = fileName.split("_")[0]
-                patientNumbers.append(patientNumber)
+        if not self.isTest:
+            self.validationData = []
+            validationPatients = [""]*108
+            count = 0
+            for imageset in [AD, NC]:
+                for image in imageset:
+                    patientNumber = image.split("_")[0]
+                    if patientNumber not in validationPatients and count != 108:
+                        validationPatients[count] = patientNumber
+                        count += 1
 
-            validationPatients = []
-            valCounter = 0
-            trainCounter = 0
-            for i, patient in enumerate(patientNumbers):
+                    if patientNumber in validationPatients:
+                        self.validationData.append(image)
+                        self.data.pop(self.data.index(image))
 
-                if patient not in validationPatients and valCounter < validationSamples:
-                    #add image to validation set and keep track of patient name
-                    validationPatients.append(patient)
-                    self.validationMap[valCounter] = i
-                    valCounter += 1
-                else:
-                    self.trainMap[trainCounter] = i
-                    trainCounter += 1
 
                 
     def __len__(self):
-        if self.validation and not self.isTest:
-            return len(self.validationMap)
-        elif not self.validation and not self.isTest:
-            return len(self.trainMap)
+        if self.isVal and not self.isTest:
+            return len(self.validationData)
+        elif not self.isVal and not self.isTest:
+            return len(self.data)
         else:
             return len(self.data)
          
     def __getitem__(self, idx):
-        index = idx
-        if self.validation == True and self.isTest == False:
-            index = self.validationMap[idx]
-        elif self.validation == False and self.isTest == False:
-            index = self.trainMap[idx]
         
-        imageName = self.data[index]
+        imageName = self.data[idx]
+        if not self.isTest and self.isVal:
+            imageName = self.validationData[idx]
+
         ADLabel = 0
 
         #build the path to the image and find the label
-        if index <= self.lastAD:
+        if idx <= self.lastAD:
             pathToImage = self.path + "/AD_NC" + ("/test" if self.isTest else "/train") + "/AD/"
             ADLabel = 1
         else:
