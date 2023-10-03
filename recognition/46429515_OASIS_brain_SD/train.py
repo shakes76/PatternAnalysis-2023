@@ -87,9 +87,9 @@ def reverse_transform_image(image, epoch, step, output_dir):
 @torch.no_grad()
 def sample_save_image(epoch, output_dir):
     # Sample noise
-    img_size = 64
+    img_size = 256
     img = torch.randn((1, 1, img_size, img_size), device=device)
-    num_images=10
+    num_images = 10
     stepsize = int(module.T/num_images)
     
     for i in range(0, module.T)[::-1]:
