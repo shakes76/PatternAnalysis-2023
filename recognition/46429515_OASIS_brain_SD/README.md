@@ -40,9 +40,10 @@ as desired, as well as implement the dataset into a dataloader to be used for ou
 specified root_path is the path to the parent folder of images of the dataset and the batch size is 32.
 
 ```
-train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', transform=transform)
-test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', transform=transform)
-validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', transform=transform)
+train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', label_path=f'{root_path}/keras_png_slices_seg_train', transform=transform)
+test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', label_path=f'{root_path}/keras_png_slices_seg_test', transform=transform)
+validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', label_path=f'{root_path}/keras_png_slices_seg_validate', transform=transform)
+
 
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
 test_loader = DataLoader(test_data, batch_size=batch_size)
