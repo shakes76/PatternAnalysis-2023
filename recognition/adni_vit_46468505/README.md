@@ -12,6 +12,10 @@ The ADNI Dataset consists of brain MRIs of patients with Alzheimers, as well as 
 
 ## Vision Transformers
 
+The negative space is cropped from the borders of each image, which has the effect of focusing the model on the brain only as well as rescaling and centring the brains in-frame. Each image is analysed in patches.
 
+![Cropped Brain](images/crop.png) ![Patched Brain](images/patch.png)
+
+**Cropping Negative Space and Splitting Image into Patches**
 
 ## Model Training
