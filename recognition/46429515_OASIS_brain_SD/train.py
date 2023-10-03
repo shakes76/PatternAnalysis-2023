@@ -107,7 +107,7 @@ for epoch in range(epochs):
     for step, batch_image in enumerate(dataset.train_loader):
         image, label = batch_image
         optimizer.zero_grad()
-        print(image.shape)
+        # print(image.shape)
         batch_size = image.shape[0]
         batch = image.to(device)
         
