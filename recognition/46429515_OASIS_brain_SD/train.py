@@ -40,9 +40,13 @@ def get_loss(model, x_0, t):
     x_0: image
     """
     x_noise, noise = module.forward_diffusion_sample(x_0, t, device)
+    batch_size = x_noise.shape[0]
     x_noise = x_noise.unsqueeze(1)
-    noise = noise.unqueeze(1)
+    noise = noise.unsqueeze(1)
     noise_pred = model(x_noise, t)
+    
+    # Replicate noise along batch dimension to match batch size of noise_pred
+    noise = noise.repeat(batch_size, 1, 1, 1)
     return F.l1_loss(noise, noise_pred)
 
 
@@ -108,6 +112,7 @@ validate_every_n_epochs = 5 # Variable to validate state of model every 5 epochs
 for epoch in range(epochs):
     
     # Training Loop
+    model.train()
     for step, batch_image in enumerate(dataset.train_loader):
         image, label = batch_image
         optimizer.zero_grad()
