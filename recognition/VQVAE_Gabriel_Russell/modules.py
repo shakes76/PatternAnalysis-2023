@@ -32,6 +32,7 @@ class Parameters():
         self.num_embeddings = 512
         self.commitment_cost = 0.25
         self.learn_rate = 2e-4
+        self.grey_channel = 1
     
 """
 Residual layer containing [ReLU, 3x3 conv, ReLU, 1x1 conv]
@@ -110,7 +111,8 @@ with stride 2 and kernel size 4x4.
 class Decoder(nn.Module):
     def __init__(self, in_channels, num_hiddens, num_residual_hiddens):
         super(Decoder, self).__init__()
-        
+        p = Parameters()
+
         self.residual_block = ResidualBlock(in_channels=in_channels,
                                              num_hiddens=num_hiddens,
                                              num_residual_hiddens=num_residual_hiddens)
@@ -121,7 +123,7 @@ class Decoder(nn.Module):
                                                 stride=2, padding=1)
         
         self.transposed_conv_2 = nn.ConvTranspose2d(in_channels=num_hiddens//2, 
-                                                out_channels=3,
+                                                out_channels=p.grey_channel,
                                                 kernel_size=4, 
                                                 stride=2, padding=1)
 
@@ -193,7 +195,7 @@ class VQVAEModel(nn.Module):
     def __init__(self):
         super(VQVAEModel, self).__init__()
         p = Parameters()
-        self.encoder = Encoder(1, p.num_hiddens, 
+        self.encoder = Encoder(p.grey_channel, p.num_hiddens, 
                                 p.num_residual_hiddens)
         self.conv_layer = nn.Conv2d(in_channels=p.num_hiddens, 
                                       out_channels=p.embedding_dim,
