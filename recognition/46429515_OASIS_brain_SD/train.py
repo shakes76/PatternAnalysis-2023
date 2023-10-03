@@ -21,6 +21,7 @@ epochs = 100
 
 # Create a model instance from module.py
 model = module.UNet()
+model = model.to(device)
 
 # Adam Optimizer for training the model
 optimizer = Adam(model.parameters(), lr=0.001)
@@ -39,6 +40,8 @@ def get_loss(model, x_0, t):
     x_0: image
     """
     x_noise, noise = module.forward_diffusion_sample(x_0, t, device)
+    x_noise = x_noise.unsqueeze(1)
+    noise = noise.unqueeze(1)
     noise_pred = model(x_noise, t)
     return F.l1_loss(noise, noise_pred)
 
