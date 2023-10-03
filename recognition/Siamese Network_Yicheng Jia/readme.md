@@ -33,12 +33,32 @@ This project uses a Siamese Network to classify Alzheimer's disease based on ima
     - `predict.py`: This will use the trained model to make predictions on the test set.
 4. After running the above script, your AD_NC directory structure should be as follows:
 AD_NC/
+
+
 |-- test/
+
+
 |   |-- AD/
+
+
 |   |-- NC/
+
+
 |-- train/
+
+
 |   |-- AD/
+
+
 |   |-- NC/
+
+
 |-- val/
+
+
 |   |-- AD/
+
+
 |   |-- NC/
+
+
