@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import torchvision
 import numpy as np
 
+
 #-------------
 # Device Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -15,11 +16,10 @@ else:
     print("Warning, CUDA not found. Using CPU.")
 print()
 
-
 #---------------
 # Hyper Parameters
 learning_rate = 0.00005
-num_epochs = 2
+num_epochs = 1
 
 #-----------------
 # Data
