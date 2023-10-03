@@ -14,7 +14,7 @@ BATCHSIZE = 128
 EPOCHS = 5
 
 #use gpu if available
-device = torch.device('cpu' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(torch.version.cuda)
 print('cuda' if torch.cuda.is_available() else 'cpu')
 
