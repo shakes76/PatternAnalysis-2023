@@ -6,7 +6,7 @@ This project uses a Siamese Network to classify Alzheimer's disease based on ima
 
 1. **modules.py**: 
     - Contains the Siamese Network architecture.
-    - Uses a pre-trained ResNet50 as the backbone.
+    - Uses a pre-trained ResNet18 as the backbone.
     - Defines the forward pass for single images and image pairs.
 
 2. **dataset.py**: 
