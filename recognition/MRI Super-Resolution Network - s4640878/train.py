@@ -14,8 +14,8 @@ def main():
     print(device, flush=True)
 
     """ training params """
-    lr = 1e-3
-    epochs = 1000 if machine == "rangpur" else 3
+    lr = 3e-5
+    epochs = 300 if machine == "rangpur" else 3
 
     """ load training dataset """
     train_loader = Dataset(train=True).loader()
@@ -32,20 +32,26 @@ def main():
     ) if model_type == "gan" else None
 
     """ optimizers """
-    optimizer_generator = torch.optim.SGD(
-        params=generator.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4,
+    #optimizer_generator = torch.optim.SGD(
+    #    params=generator.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4,
+    #)
+    #optimizer_discriminator = torch.optim.SGD(
+    #    params=discriminator.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4,
+    #)
+    optimizer_generator = torch.optim.Adam(
+        params=generator.parameters(), lr=lr, betas=(0.5, 0.999),
     )
-    optimizer_discriminator = torch.optim.SGD(
-        params=discriminator.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4,
+    optimizer_discriminator = torch.optim.Adam(
+        params=discriminator.parameters(), lr=lr, betas=(0.5, 0.999),
     )
 
     """ variable learning rate schedullers """
-    lr_scheduler_generator = torch.optim.lr_scheduler.OneCycleLR(
-        optimizer_generator, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs,
-    )
-    lr_scheduler_discriminator = torch.optim.lr_scheduler.OneCycleLR(
-        optimizer_discriminator, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs,
-    )
+    #lr_scheduler_generator = torch.optim.lr_scheduler.OneCycleLR(
+    #    optimizer_generator, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs,
+    #)
+    #lr_scheduler_discriminator = torch.optim.lr_scheduler.OneCycleLR(
+    #    optimizer_discriminator, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs,
+    #)
 
     """ train the model """
     generator.train()
@@ -109,11 +115,11 @@ def main():
                     )
          
             """ step the lr schedulers """
-            lr_scheduler_generator.step()
-            if model_type == "gan": lr_scheduler_discriminator.step()
+            #lr_scheduler_generator.step()
+            #if model_type == "gan": lr_scheduler_discriminator.step()
 
         """ save the model """
-        if (epoch + 1) % 100 == 0 or (machine == "local" and epoch + 1 == epochs):
+        if (epoch + 1) % 30 == 0 or (machine == "local" and epoch + 1 == epochs):
             with open(
                 file="models/sr_model_%03d.pt" % (epoch + 1), mode="wb") as f:
                 torch.save(obj=generator.state_dict(), f=f)

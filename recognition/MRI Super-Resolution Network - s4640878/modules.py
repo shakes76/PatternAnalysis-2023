@@ -15,22 +15,20 @@ class Model_Generator(torch.nn.Module):
             self.make_layer(    # conv 1: input layer
                 "input", num_channels, num_channels**2, batch_norm=True, activation_type="relu",
             ),
-
-            
             self.make_layer(    # conv 2: intermediate layer
                 "intermediate", num_channels**2, num_channels**2, batch_norm=True, activation_type="relu",
             ),
+
             self.make_layer(    # conv 3: upsampling layer (60 x 64 -> 120 x 128)
                 "upsample", num_channels**2, num_channels**3, batch_norm=True, activation_type="relu",
             ),
             self.make_layer(    # conv 4: intermediate layer
                 "intermediate", num_channels**3, num_channels**3, batch_norm=True, activation_type="relu",
             ),
-
-            
             self.make_layer(    # conv 5: intermediate layer
                 "intermediate", num_channels**3, num_channels**3, batch_norm=True, activation_type="relu",
             ),
+
             self.make_layer(    # conv 6: upsampling layer (120 x 128 -> 240 x 256)
                 "upsample", num_channels**3, num_channels**2, batch_norm=True, activation_type="relu",
             ),
@@ -38,7 +36,6 @@ class Model_Generator(torch.nn.Module):
                 "intermediate", num_channels**2, num_channels**2, batch_norm=True, activation_type="relu",
             ),
 
-            
             self.make_layer(    # conv 8: output layer
                 "output", num_channels**2, num_channels, batch_norm=False, activation_type="tanh",
             ),
@@ -81,58 +78,25 @@ class Model_Discriminator(torch.nn.Module):
 
         self._model = torch.nn.Sequential(
 
-            
             self.make_layer(    # input layer
-                "input", num_channels, num_channels**2, max_pooling=False, activation_type="relu",
+                "input", num_channels, num_channels**2, batch_norm=False, activation_type="leaky-relu",
             ),
 
-            
-            self.make_layer(    # intermediate layer
-                "intermediate", num_channels**2, num_channels**3, max_pooling=False, activation_type="relu",
+            self.make_layer(    # downsampling layer: 240 x 256 -> 120 x 128
+                "downsample", num_channels**2, num_channels**2, batch_norm=True, activation_type="leaky-relu",
             ),
-            self.make_layer(    # convolutional downsampling layer: 240 x 256 -> 120 x 128
-                "downsample", num_channels**3, num_channels**3, max_pooling=False, activation_type="relu",
+            self.make_layer(    # downsampling layer: 120 x 128 -> 60 x 64
+                "downsample", num_channels**2, num_channels**2, batch_norm=True, activation_type="leaky-relu",
             ),
-            self.make_layer(    # intermediate layer
-                "intermediate", num_channels**3, num_channels**3, max_pooling=False, activation_type="relu",
+            self.make_layer(    # downsampling layer: 60 x 64 -> 30 x 32
+                "downsample", num_channels**2, num_channels**2, batch_norm=True, activation_type="leaky-relu",
             ),
-
-            
-            self.make_layer(    # intermediate layer
-                "intermediate", num_channels**3, num_channels**3, max_pooling=False, activation_type="relu",
-            ),
-            self.make_layer(    # max pooling downsampling layer: 120 x 128 -> 60 x 64
-                "max_pooling", num_channels**3, num_channels**3, max_pooling=True, activation_type="relu",
-            ),
-            self.make_layer(    # intermediate layer
-                "intermediate", num_channels**3, num_channels**3, max_pooling=False, activation_type="relu",
+            self.make_layer(    # downsampling layer: 30 x 32 -> 15 x 16
+                "downsample", num_channels**2, num_channels**2, batch_norm=True, activation_type="leaky-relu",
             ),
 
-            
-            self.make_layer(    # intermediate layer
-                "intermediate", num_channels**3, num_channels**3, max_pooling=False, activation_type="relu",
-            ),
-            self.make_layer(    # convolutional downsampling layer: 60 x 64 -> 30 x 32
-                "downsample", num_channels**3, num_channels**3, max_pooling=False, activation_type="relu",
-            ),
-            self.make_layer(    # intermetiate layer
-                "intermediate", num_channels**3, num_channels**3, max_pooling=False, activation_type="relu",
-            ),
-
-            
-            self.make_layer(    # intermetiate layer
-                "intermediate", num_channels**3, num_channels**3, max_pooling=False, activation_type="relu",
-            ),
-            self.make_layer(    # max pooling downsampling layer: 30 x 32 -> 15 x 16
-                "max_pooling", num_channels**3, num_channels**3, max_pooling=True, activation_type="relu",
-            ),
-            self.make_layer(    # intermetiate layer
-                "intermediate", num_channels**3, num_channels**2, max_pooling=False, activation_type="relu",
-            ),
-
-            
             self.make_layer(    # output layer
-                "output", num_channels**2, num_channels, max_pooling=False, activation_type="relu",
+                "output", num_channels**2, num_channels, batch_norm=True, activation_type="leaky-relu",
             ),
 
             # additional fully-connected output layers for classification
@@ -143,7 +107,7 @@ class Model_Discriminator(torch.nn.Module):
 
     def make_layer(
         self, layer_type, in_channels, out_channels, 
-        max_pooling=True, activation_type="relu",
+        batch_norm=True, activation_type="relu",
     ):
         
         if layer_type == "downsample":
@@ -155,11 +119,11 @@ class Model_Discriminator(torch.nn.Module):
                 in_channels, out_channels, kernel_size=3, stride=1, padding=1,
             )
 
-        activation = torch.nn.ReLU() if activation_type == "relu" else torch.nn.Tanh()
+        activation = torch.nn.LeakyReLU(0.2) if activation_type == "leaky-relu" else torch.nn.ReLU()
 
         return torch.nn.Sequential(
-            layer, torch.nn.MaxPool2d(kernel_size=2), activation,
-        ) if max_pooling else torch.nn.Sequential(
+            layer, torch.nn.BatchNorm2d(out_channels), activation,
+        ) if batch_norm else torch.nn.Sequential(
             layer, activation,
         )
 
