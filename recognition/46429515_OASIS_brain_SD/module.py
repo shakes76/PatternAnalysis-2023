@@ -40,7 +40,7 @@ def forward_diffusion_sample(x_0, t, device=device):
         + sqrt_one_minus_alphas_cumprod_t.to(device) * noise.to(device), noise.to(device)
 
 # Define beta schedule
-T = 200
+T = 500
 betas = quadratic_beta_schedule(timesteps=T)
 
 # Pre-calculate different terms for closed form
@@ -78,8 +78,8 @@ class Block(nn.Module):
         h = self.bnorm1(self.relu(self.conv1(x)))
         # Time embedding
         time_emb = self.relu(self.time_mlp(t))
-        # Extend last 2 dimensions
-        time_emb = time_emb[(...,) + (None, ) * 2]
+        # Extend last 2 dimension
+        time_emb = time_emb.unsqueeze(-1).unsqueeze(-1)
         # Add time channel
         h = h + time_emb
         # Second Conv - Provides representation of both time step + image information
@@ -97,7 +97,7 @@ class PositionalEmbedding(nn.Module):
         half_dim = self.dim // 2
         embeddings = math.log(10000) / (half_dim - 1)
         ###NEED TO FIX
-        embeddings = torch.exp(torch.arange(half_dim, device) * -embeddings)
+        embeddings = torch.exp(torch.arange(half_dim, device=device) * -embeddings)
         embeddings = time[:, None] * embeddings[None, :]
         embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
         # Check ordering here        
@@ -124,7 +124,7 @@ class UNet(nn.Module):
         )
         
         # Initial projection
-        self.conv0 = nn.Conv2d(img_ch, down_ch[0], 1, padding=1)
+        self.conv0 = nn.Conv2d(img_ch, down_ch[0], 3, padding=1)
         
         # Downsampling
         self.downsample = nn.ModuleList([Block(down_ch[i], down_ch[i + 1], 
@@ -132,9 +132,9 @@ class UNet(nn.Module):
                                          for i in range(len(down_ch) - 1)])
         
         # Upsampling
-        self.downsample = nn.ModuleList([Block(up_ch[i], up_ch[i + 1], 
+        self.upsample = nn.ModuleList([Block(up_ch[i], up_ch[i + 1], 
                                                time_emb_dim=time_emb_dim, up=True)
-                                         for i in range(len(down_ch) - 1)])
+                                         for i in range(len(up_ch) - 1)])
         
         self.output = nn.Conv2d(up_ch[-1], out_dim, 1)
         
