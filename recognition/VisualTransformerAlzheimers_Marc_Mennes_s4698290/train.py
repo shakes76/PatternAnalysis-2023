@@ -10,11 +10,11 @@ RESIZE = 210
 PATHTODATASET = "/home/marc/Documents/PatternAnalysisReport/PatternAnalysis-2023/recognition/VisualTransformerAlzheimers_Marc_Mennes_s4698290/ADNI_AD_NC_2D"
 ENCODERDENSELAYERS = [[512, 1024, 512]]*3
 LR = 0.00001
-BATCHSIZE = 1
-EPOCHS = 1
+BATCHSIZE = 128
+EPOCHS = 5
 
 #use gpu if available
-device = torch.device('cpu' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(torch.version.cuda)
 print('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -65,7 +65,7 @@ for epoch in range(EPOCHS):
         predictions = torch.round(outputs[:, 0].detach()).to(torch.uint8)
         trainAccuracy = torch.sum(predictions == labels)/(labels.size()[0])
         batchAccuracies.append(trainAccuracy)
-        break
+        
         
     epochAccuracies.append(sum(batchAccuracies)/len(batchAccuracies))
 
@@ -79,7 +79,7 @@ for epoch in range(EPOCHS):
         predictions = torch.round(transformer(images)[:, 0]).to(torch.uint8)
         valAccuracy = torch.sum(predictions == labels)/(labels.size()[0])
         valAccuracies.append(valAccuracy)
-        break
+        
 
     torch.enable_grad()
     transformer.train()
@@ -102,6 +102,6 @@ for batch in testLoader:
     predictions = torch.round(transformer(images)[:, 0]).to(torch.uint8)
     testAccuracy = torch.sum(predictions == labels)/(labels.size()[0])
     testAccuracies.append(testAccuracy)
-    break
+    
 
 print(sum(testAccuracies)/len(testAccuracies))
