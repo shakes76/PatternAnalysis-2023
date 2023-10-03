@@ -96,7 +96,14 @@ def sample_save_image(epoch, output_dir):
         if i % stepsize == 0:
             reverse_transform_image(img.detach().cpu(), epoch, output_dir)
 
+
+best_loss = float('inf')  # Initialize with a high value
+best_model_state_dict = None  # Variable to store the state_dict of the best model
+validate_every_n_epochs = 5 # Variable to validate state of model every 5 epochs
+
 for epoch in range(epochs):
+    
+    # Training Loop
     for step, batch_image in enumerate(dataset.train_loader):
         image, label = batch_image
         optimizer.zero_grad()
@@ -112,3 +119,32 @@ for epoch in range(epochs):
         if epoch % 10 == 0 and step == 0:
             print(f"Epoch {epoch} | step {step:03d} Loss: {loss.item()}")
             sample_save_image(epoch, output_dir)
+            
+    # Validation loop (Written by ChatGPT3.5)
+    if epoch % validate_every_n_epochs == 0:
+        model.eval()  # Set the model to evaluation mode
+        total_validation_loss = 0.0
+        total_validation_samples = 0
+        
+        with torch.no_grad():
+            for batch_image in dataset.validation_loader:
+                image, label = batch_image
+                batch_size = image.shape[0]
+                batch = image.to(device)
+                t = torch.randint(0, module.T, (batch_size,), device=device).long()
+                validation_loss = get_loss(model, batch[0], t)
+                total_validation_loss += validation_loss.item() * batch_size
+                total_validation_samples += batch_size
+
+        # Calculate average validation loss
+        average_validation_loss = total_validation_loss / total_validation_samples
+
+        # Check if the current model has a lower validation loss than the best so far
+        if average_validation_loss < best_loss:
+            best_loss = average_validation_loss  # Update the best loss
+            best_model_state_dict = model.state_dict()  # Save the state_dict of the best model
+
+            torch.save(best_model_state_dict, 'best_model.pth')
+        
+        # Print validation results
+        print(f"Epoch {epoch} | Validation Loss: {average_validation_loss}")
