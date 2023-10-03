@@ -346,10 +346,10 @@ def vit_base_patch32_224(num_classes: int = 21843, pretrained: bool = True, has_
     """
     model = VisionTransformer(img_size=224,
                               patch_size=32,
-                              embed_dim=768,
-                              depth=12,
-                              num_heads=12,
-                              representation_size=768 if has_logits else None,
+                              embed_dim=400,
+                              depth=6,
+                              num_heads=8,
+                              representation_size=400 if has_logits else None,
                               num_classes=num_classes)
     if pretrained:
         print("Used pretrain")
@@ -359,3 +359,24 @@ def vit_base_patch32_224(num_classes: int = 21843, pretrained: bool = True, has_
         model = load_weights_from_state_dict(model, state_dict)
     return model
 
+def vit_base_patch8_224(num_classes: int = 21843, pretrained: bool = True, has_logits: bool = True):
+    """
+    ViT-Base model (ViT-B/32) from original paper (https://arxiv.org/abs/2010.11929).
+    ImageNet-21k weights @ 224x224, source https://github.com/google-research/vision_transformer.
+    weights ported from official Google JAX impl:
+    https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vitjx/jx_vit_base_patch32_224_in21k-8db57226.pth
+    """
+    model = VisionTransformer(img_size=224,
+                              patch_size=8,
+                              embed_dim=256,
+                              depth=6,
+                              num_heads=8,
+                              representation_size=256 if has_logits else None,
+                              num_classes=num_classes)
+    if pretrained:
+        print("Used pretrain")
+        state_dict = load_state_dict_from_url("https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vitjx/jx_vit_base_patch32_224_in21k-8db57226.pth",
+                                              progress=True)
+        #pre_dict = {k: v for k, v in state_dict.items() if model.state_dict()[k].numel() == v.numel()}
+        model = load_weights_from_state_dict(model, state_dict)
+    return model
