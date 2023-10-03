@@ -6,10 +6,11 @@ import torch
 
 class ADNI(torch.utils.data.Dataset):
 
-    def __init__(self, path, transform=None, test=False):
+    def __init__(self, path, transform=None, test=False, validationSplit = 0.2, validation=False):
         self.path = path #path not ending with a /
         self.transform = transform
         self.isTest = test
+        self.validation = validation
 
         #get a list of image names
         if not test:
@@ -23,15 +24,53 @@ class ADNI(torch.utils.data.Dataset):
         self.data = AD + NC
         self.lastAD = len(AD) - 1
 
+        validationSamples = len(self.data) * validationSplit
+        self.validationMap = {}
+        self.trainMap = {}
+        
+        if test == False:
+
+            patientNumbers = []
+            #get a list of patient numbers
+            for fileName in self.data:
+                patientNumber = fileName.split("_")[0]
+                patientNumbers.append(patientNumber)
+
+            validationPatients = []
+            valCounter = 0
+            trainCounter = 0
+            for i, patient in enumerate(patientNumbers):
+
+                if patient not in validationPatients and valCounter < validationSamples:
+                    #add image to validation set and keep track of patient name
+                    validationPatients.append(patient)
+                    self.validationMap[valCounter] = i
+                    valCounter += 1
+                else:
+                    self.trainMap[trainCounter] = i
+                    trainCounter += 1
+
+                
     def __len__(self):
-        return len(self.data)
-    
+        if self.validation and not self.isTest:
+            return len(self.validationMap)
+        elif not self.validation and not self.isTest:
+            return len(self.trainMap)
+        else:
+            return len(self.data)
+         
     def __getitem__(self, idx):
-        imageName = self.data[idx]
+        index = idx
+        if self.validation == True and self.isTest == False:
+            index = self.validationMap[idx]
+        elif self.validation == False and self.isTest == False:
+            index = self.trainMap[idx]
+        
+        imageName = self.data[index]
         ADLabel = 0
 
         #build the path to the image and find the label
-        if idx <= self.lastAD:
+        if index <= self.lastAD:
             pathToImage = self.path + "/AD_NC" + ("/test" if self.isTest else "/train") + "/AD/"
             ADLabel = 1
         else:
