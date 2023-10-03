@@ -33,7 +33,7 @@ def test(mask):
 val_acc = []
 train_acc = []
 
-for epoch in range(1, 5):
+for epoch in range(1, 101):
     loss = train()
     val_acc.append(test(dataset.val_mask))
     train_acc.append(test(dataset.train_mask))
@@ -49,7 +49,7 @@ plt.xlabel("Epochs")
 plt.ylabel("Accurarcy")
 plt.title("Training and Validation Accuracy")
 plt.legend(loc="lower right", fontsize="x-large")
-plt.savefig("recognition/GCN_s4642798/gcn_loss.png")
+plt.savefig("gcn_loss.png")
 plt.show()
 
-torch.save(model.state_dict(), "recognition/GCN_s4642798/best_model.pt")
+torch.save(model.state_dict(), "best_model.pt")

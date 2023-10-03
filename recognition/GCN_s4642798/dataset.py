@@ -2,7 +2,7 @@ import numpy as np
 import torch
 
 # Load data file
-facebook_data = np.load("recognition/GCN_s4642798/facebook.npz")
+facebook_data = np.load("facebook.npz")
 
 # Extract individual numpy arrays
 edges = facebook_data["edges"]
