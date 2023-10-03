@@ -38,9 +38,9 @@ class PatchEmbedding(nn.Module):
             self.projection = nn.Sequential(
                 Rearrange('b c (h p1) (w p2) -> b (h w) (p1 p2 c)', 
                             p1=self.patch_size, p2=self.patch_size),
-                nn.LayerNorm(self.patch_size * self.patch_size * in_channels),
+                # nn.LayerNorm(self.patch_size * self.patch_size * in_channels),
                 nn.Linear(self.patch_size * self.patch_size * in_channels, embed_dim),
-                nn.LayerNorm(embed_dim)
+                # nn.LayerNorm(embed_dim)
             )
         
     def forward(self, x):
@@ -202,7 +202,7 @@ class ViT(nn.Module):
                     depth:int,
                     num_heads:int,
                     mlp_ratio=4.,
-                    qkv_bias=True,
+                    qkv_bias=False,
                     drop_prob=0.1):
         super().__init__()
         
@@ -212,9 +212,9 @@ class ViT(nn.Module):
                                             in_channels=img_channels,
                                             linear_mode=False) #TODO: try changing to linear mode
         #class token to determine which class the image belongs to
-        self.class_token = nn.Parameter(torch.zeros(1, 1, embed_dim)) #zeros or randn
+        self.class_token = nn.Parameter(torch.randn(1, 1, embed_dim)) #zeros or randn
         #positional information of patches
-        self.pos_embed = nn.Parameter(torch.zeros(1, self.patch_embed.num_patches + 1, embed_dim))
+        self.pos_embed = nn.Parameter(torch.randn(1, self.patch_embed.num_patches + 1, embed_dim))
         self.pos_drop = nn.Dropout(p=drop_prob)
         
         #transform encoder blocks
@@ -268,9 +268,9 @@ class ViT_torch(nn.Module):
                                             in_channels=img_channels,
                                             linear_mode=linear_embed) #TODO: try changing to linear mode
         #class token to determine which class the image belongs to
-        self.class_token = nn.Parameter(torch.randn(1, 1, embed_dim)) #zeros or randn
+        self.class_token = nn.Parameter(torch.zeros(1, 1, embed_dim)) #zeros or randn
         #positional information of patches
-        self.pos_embed = nn.Parameter(torch.randn(1, self.patch_embed.num_patches + 1, embed_dim))
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.patch_embed.num_patches + 1, embed_dim))
         self.pos_drop = nn.Dropout(p=drop_prob)
         
         #transform encoder blocks
@@ -303,5 +303,6 @@ class ViT_torch(nn.Module):
         
         #get only the class token for output
         output = x[:, 0]
-        x = self.head(self.norm_layer(output))
-        return x
+        output = self.norm_layer(output)
+        output = self.head(output)
+        return output
