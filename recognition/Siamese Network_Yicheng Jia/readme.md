@@ -36,31 +36,20 @@ This project uses a Siamese Network to classify Alzheimer's disease based on ima
 
 AD_NC/
 
-
 |-- test/
-
 
 |   |-- AD/
 
-
 |   |-- NC/
-
 
 |-- train/
 
-
 |   |-- AD/
 
-
 |   |-- NC/
-
 
 |-- val/
 
-
 |   |-- AD/
 
-
 |   |-- NC/
-
-
