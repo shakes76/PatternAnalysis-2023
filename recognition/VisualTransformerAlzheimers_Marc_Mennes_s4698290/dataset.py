@@ -26,13 +26,13 @@ class ADNI(torch.utils.data.Dataset):
 
         if not self.isTest:
             self.validationData = []
-            validationPatients = [""]*108
-            count = 0
-            for imageset in [AD, NC]:
+            validationPatients = [""]*216
+            for i, imageset in enumerate([AD, NC]):
+                count = 0
                 for image in imageset:
                     patientNumber = image.split("_")[0]
                     if patientNumber not in validationPatients and count != 108:
-                        validationPatients[count] = patientNumber
+                        validationPatients[count * (i+1)] = patientNumber
                         count += 1
 
                     if patientNumber in validationPatients:
@@ -44,6 +44,7 @@ class ADNI(torch.utils.data.Dataset):
 
             if self.isVal:
                 self.lastAD = 108*20 - 1
+            print(count)
 
 
 
