@@ -2,6 +2,8 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
 
+import tensorflow_addons as tfa;
+
 from dataset import image_size
 num_classes = 2
 
@@ -14,8 +16,11 @@ transformer_units = [
     projection_dim * 2,
     projection_dim,
 ]  # Size of the transformer layers
-transformer_layers = 8
+transformer_layers = 16
 mlp_head_units = [2048, 1024]  # Size of the dense layers of the final classifier
+
+learning_rate = 0.001
+weight_decay = 0.0001
 
 data_augmentation = keras.Sequential(
     [
@@ -106,4 +111,19 @@ def create_vit_classifier():
     logits = layers.Dense(num_classes)(features)
     # Create the Keras model.
     model = keras.Model(inputs=inputs, outputs=logits)
+    return model
+
+def model_compile(model):
+    optimizer = tfa.optimizers.AdamW(
+        learning_rate=learning_rate, weight_decay=weight_decay
+    )
+
+    model.compile(
+        optimizer=optimizer,
+        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=[
+            keras.metrics.SparseCategoricalAccuracy(name="accuracy"),
+            #keras.metrics.SparseTopKCategoricalAccuracy(5, name="top-5-accuracy"),
+        ],
+    )
     return model

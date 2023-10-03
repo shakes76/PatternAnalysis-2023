@@ -4,13 +4,11 @@ import matplotlib.pyplot as plt
 import tensorflow_addons as tfa;
 
 from dataset import parse_data, tf_dataset
-from modules import create_vit_classifier
+from modules import create_vit_classifier, model_compile
 from dataset import batch_size, image_size
 
-learning_rate = 0.001
-weight_decay = 0.0001
-num_epochs = 25
 
+num_epochs = 25
 input_size = 256
 
 #input_shape = (input_size,input_size,1)
@@ -23,20 +21,9 @@ train_set = tf_dataset(x_train,y_train,batch_size=batch_size)
 #test_set = tf_dataset(x_test,y_test,batch_size =len(y_test))
 
 def run_experiment(model):
-    optimizer = tfa.optimizers.AdamW(
-        learning_rate=learning_rate, weight_decay=weight_decay
-    )
+    model = model_compile(model)
 
-    model.compile(
-        optimizer=optimizer,
-        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
-        metrics=[
-            keras.metrics.SparseCategoricalAccuracy(name="accuracy"),
-            #keras.metrics.SparseTopKCategoricalAccuracy(5, name="top-5-accuracy"),
-        ],
-    )
-
-    checkpoint_filepath = "/kaggle/working/checkpoint"
+    checkpoint_filepath = "./recognition/adni_vit_46468505/model_checkpoints/"
     checkpoint_callback = keras.callbacks.ModelCheckpoint(
         checkpoint_filepath,
         monitor="val_accuracy",
@@ -62,5 +49,5 @@ history = run_experiment(vit_classifier)
 #loss,acc = vit_classifier.evaluate(test_set)
 loss,acc = vit_classifier.evaluate(train_set)
 
-fl = f"/kaggle/working/model_{image_size}bit_acc{acc:.4f}.h5"
+fl = f"./recognition/adni_vit_46468505/model_checkpoints/model_{image_size}bit_acc{acc:.4f}.h5"
 vit_classifier.save_weights(fl)

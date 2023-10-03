@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import random
 
 batch_size = 256
-image_size = 128  # We'll resize input images to this size
+image_size = 256  # We'll resize input images to this size
 
 def load_and_preprocess_image(image_path,image_size=(image_size,image_size)):
     image = cv2.imread(image_path)
