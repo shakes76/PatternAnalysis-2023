@@ -46,7 +46,11 @@ def train_epoch(model: nn.Module,
         # model accuracy
         acc = accuracy(y_pred_logits, y)
         train_acc += acc
-        
+        # if batch % 5 == 0:
+        #     wandb.log({"train/batch/loss": loss.item(),
+        #                 "train/batch/acc": acc,
+        #                 "train/batch/loss_avg": train_loss / (batch + 1),
+        #                 "train/batch/accuracy_avg": train_acc / (batch+1)})
         #backpropagation
         optimiser.zero_grad()
         grad_scaler.scale(loss).backward()
@@ -81,61 +85,100 @@ def test_epoch(model: nn.Module,
             
             #model accuracy
             acc =  accuracy(y_pred_logits, y)
-            if batch % 10 == 0:
-                wandb.log({"test/batch/loss": test_loss,
-                            "test/batch/acc": acc,})
             test_acc += acc
+            # if batch % 5 == 0:
+            #     wandb.log({"test/batch/loss": loss.item(),
+            #                 "test/batch/acc": acc,
+            #                 "test/batch/loss_avg": test_loss / (batch + 1),
+            #                 "test/batch/accuracy_avg": test_acc / (batch+1)})
             
-    # average loss, accuracy over epoch
-    test_loss = test_loss / len(data_loader)
-    test_acc = test_acc / len(data_loader)
+        # average loss, accuracy over epoch
+        test_loss = test_loss / len(data_loader)
+        test_acc = test_acc / len(data_loader)
     return test_loss, test_acc
 
-def train_model(model: nn.modules,
-                train_loader: torch.utils.data.DataLoader,
-                test_loader: torch.utils.data.DataLoader,
-                optimiser: optim.Optimizer,
-                loss_fn: nn.modules,
-                scheduler: optim.Optimizer,
-                grad_scaler,
-                device: str,
-                config):
-    # track results of training
-    results  = {
-                "train_loss": [],
-                "train_acc": [],
-                "test_loss": [], 
-                "test_acc":  [],
-                }
-    # main training loop
-    for epoch in tqdm(range(config.epochs)):
-        #training loss and accuracu
-        train_loss, train_acc = train_epoch(model=model,
-                                            data_loader=train_loader,
-                                            loss_fn=loss_fn,
-                                            optimiser=optimiser,
-                                            scheduler=scheduler,
-                                            grad_scaler=grad_scaler,
-                                            device=device,
-                                            mix_precision=config.mix_precision,
-                                            lr_scheduler=config.lr_scheduler)
-        # testing loss and accuracy
-        test_loss, test_acc = test_epoch(model=model,
-                                            data_loader=test_loader,
-                                            loss_fn=loss_fn,
-                                            device=device, 
-                                            mix_precision=config.mix_precision)
-        wandb.log({"train/epoch/loss": train_loss,
-                    "train/epoch/acc": train_acc,
-                    "train/epoch/epoch_num": epoch + 1,
-                    "test/epoch/loss": test_loss,
-                    "test/epoch/acc": test_acc,
-                    "test/epoch/epoch_num": epoch + 1})
-        # save results
-        results["train_loss"].append(train_loss)
-        results["train_acc"].append(train_acc)
-        results["test_loss"].append(test_loss)
-        results["test_acc"].append(test_acc)
+def train_model(config):
+    with wandb.init(config=config):
+        config = wandb.config
+        # load dataset
+        train_loader, test_loader, _, _ = load_data(config.batch_size, config.img_size)
+        # create model
+        model = ViT_torch(img_size=config.img_size,
+                    patch_size=config.patch_size,
+                    img_channels=config.img_channel,
+                    num_classes=config.num_classes,
+                    embed_dim=config.embed_dim,
+                    depth=config.depth,
+                    num_heads=config.num_heads,
+                    mlp_ratio=config.mlp_ratio,
+                    drop_prob=config.drop_prob,
+                    linear_embed=config.linear_embed).to(device)
+        
+        # summarise model architecture
+        summary(model, input_size=(1, 1, 224, 224), device=device)
+        
+        # loss function 
+        loss_fn = nn.BCEWithLogitsLoss()
+        
+        # optimiser
+        optimiser = optim.SGD(model.parameters(),
+                                lr=config.lr,
+                                momentum=0.9,
+                                weight_decay=config.weight_decay)
+        if config.optimiser == "ADAM":
+            optimiser = optim.Adam(model.parameters(),
+                                    lr=config.lr,
+                                    weight_decay=config.weight_decay,
+                                    maximize=True)
+        elif config.optimiser == "ADAMW":
+            optimiser = optim.AdamW(model.parameters(),
+                                    lr=config.lr,
+                                    weight_decay=config.weight_decay)
+        
+        # Learning rate scheduler
+        scheduler = optim.lr_scheduler.OneCycleLR(optimizer=optimiser,
+                                                    max_lr=config.max_lr,
+                                                    steps_per_epoch=len(train_loader),
+                                                    epochs=config.epochs)
+        # grad scaler for mixed precision
+        grad_scaler = torch.cuda.amp.GradScaler(enabled=config.mix_precision)
+        
+        # track results of training
+        results  = {
+                    "train_loss": [],
+                    "train_acc": [],
+                    "test_loss": [], 
+                    "test_acc":  [],
+                    }
+        # main training loop
+        for epoch in tqdm(range(config.epochs)):
+            #training loss and accuracu
+            train_loss, train_acc = train_epoch(model=model,
+                                                data_loader=train_loader,
+                                                loss_fn=loss_fn,
+                                                optimiser=optimiser,
+                                                scheduler=scheduler,
+                                                grad_scaler=grad_scaler,
+                                                device=device,
+                                                mix_precision=config.mix_precision,
+                                                lr_scheduler=config.lr_scheduler)
+            # testing loss and accuracy
+            test_loss, test_acc = test_epoch(model=model,
+                                                data_loader=test_loader,
+                                                loss_fn=loss_fn,
+                                                device=device, 
+                                                mix_precision=config.mix_precision)
+            wandb.log({"train/epoch/loss": train_loss,
+                        "train/epoch/acc": train_acc,
+                        "train/epoch/epoch_num": epoch + 1,
+                        "test/epoch/loss": test_loss,
+                        "test/epoch/acc": test_acc,
+                        "test/epoch/epoch_num": epoch + 1})
+            # save results
+            results["train_loss"].append(train_loss)
+            results["train_acc"].append(train_acc)
+            results["test_loss"].append(test_loss)
+            results["test_acc"].append(test_acc)
     return results
 
 def save_model(path, model):
@@ -147,85 +190,34 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # hyperparmeters
     config = SimpleNamespace(
-        epochs=100,
+        epochs=10,
         img_channel=1,
         num_classes=1,  
-        batch_size=800,
-        img_size=(224, 224),
-        patch_size=16,  
-        embed_dim=32,  #patch embedding dimension
-        depth=6,        #number of transform encoders
+        batch_size=512,
+        img_size=224,
+        patch_size=16,  #try 8 
+        embed_dim=128,  #patch embedding dimension
+        depth=12,        #number of transform encoders
         num_heads=8,    #attention heads
         mlp_ratio=4,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
         # qkv_bias=True,  #bias for q, v, k calculations
         drop_prob=0.1,  #dropout prob used in the ViT network
-        lr=1e-3,
+        lr=1e-3, #2e-5,
         optimiser="ADAM",
         linear_embed=True,
         data_augments=[],
-        weight_decay=1e-6,
+        weight_decay=0.0,
         mix_precision=True,  
-        lr_scheduler=True,      
+        lr_scheduler=False,      
         max_lr=0.01,
     )
-    # load dataset
-    train_loader, test_loader, _, _ = load_data(config.batch_size, config.img_size)
-    # create model
-    model = ViT_torch(img_size=config.img_size[0],
-                patch_size=config.patch_size,
-                img_channels=config.img_channel,
-                num_classes=config.num_classes,
-                embed_dim=config.embed_dim,
-                depth=config.depth,
-                num_heads=config.num_heads,
-                mlp_ratio=config.mlp_ratio,
-                drop_prob=config.drop_prob,
-                linear_embed=config.linear_embed).to(device)
-    
-    # summarise model architecture
-    summary(model, input_size=(1, 1, 224, 224), device=device)
-    
-    # loss function 
-    loss_fn = nn.BCEWithLogitsLoss()
-    
-    # optimiser
-    optimiser = optim.SGD(model.parameters(),
-                            lr=config.lr,
-                            momentum=0.9,
-                            weight_decay=config.weight_decay)
-    if config.optimiser == "ADAM":
-        optimiser = optim.Adam(model.parameters(),
-                                lr=config.lr,
-                                weight_decay=config.weight_decay)
-    elif config.optimiser == "ADAMW":
-        optimiser = optim.AdamW(model.parameters(),
-                                lr=config.lr,
-                                weight_decay=config.weight_decay)
-        
-    # Learning rate scheduler
-    scheduler = optim.lr_scheduler.OneCycleLR(optimizer=optimiser,
-                                                max_lr=config.max_lr,
-                                                steps_per_epoch=len(train_loader),
-                                                epochs=config.epochs)
-    # grad scaler for mixed precision
-    grad_scaler = torch.cuda.amp.GradScaler(enabled=config.mix_precision)
-    
+
     # logging
     if WANDB:
-        wandb.init(project="ViT", job_type="Train", config=config)        #Login into wandb
+        #Login into wandb
         wandb.login(anonymous="allow")
-    
+        # wandb.init(config=config)  
+        wandb.agent(sweep_id="rodxiang2/ViT_Sweep/sunevdai", function=train_model, count=20)
     # Train the model and store the results
-    results = train_model(model=model,
-                            train_loader=train_loader,
-                            test_loader=test_loader,
-                            optimiser=optimiser,
-                            loss_fn=loss_fn,
-                            scheduler=scheduler,
-                            grad_scaler=grad_scaler,
-                            device=device,
-                            config=config)
-    
-    #end logging
-    if WANDB:
-        wandb.finish()
+    else:
+        results = train_model(config=config)
