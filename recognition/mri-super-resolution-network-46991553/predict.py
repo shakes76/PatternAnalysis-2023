@@ -67,11 +67,11 @@ def generate_model_output(model: nn.Module, data_loader: DataLoader, prefix='', 
 
 
 def main():
-    model = SuperResolutionModel()
+    model = SuperResolutionModel(upscale_factor=dimension_reduce_factor)
     try:
         model.load_state_dict(torch.load(model_filename, map_location=torch.device('cpu')))
-    except IOError:
-        print("Couldn't load model from file:", model_filename)
+    except IOError as err:
+        print("Couldn't load model from file:", model_filename, err)
         exit(1)
 
     data_loader = get_test_dataloader()

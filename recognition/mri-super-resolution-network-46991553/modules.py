@@ -5,23 +5,23 @@ import torch.nn as nn
 
 
 class SuperResolutionModel(nn.Module):
-    def __init__(self, upscale_factor=2, channels=3):
+    def __init__(self, upscale_factor=4, channels=3):
         super(SuperResolutionModel, self).__init__()
         
         self.inputs = nn.Sequential(
             nn.Conv2d(channels, 64, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(inplace=True),
             nn.Conv2d(64, 128, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(inplace=True),
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(inplace=True),
             nn.Conv2d(128, 128, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(128, 64, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(64, 64, kernel_size=3, padding=1),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(64, channels * (upscale_factor ** 2), kernel_size=3, padding=1),
+            nn.LeakyReLU(inplace=True),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.LeakyReLU(inplace=True),
+            nn.Conv2d(128, 128, kernel_size=3, padding=1),
+            nn.LeakyReLU(inplace=True),
+            nn.Conv2d(128, channels * (upscale_factor ** 2), kernel_size=3, padding=1),
         )
         # PixelShuffle input shape:     (*, C x r^2, H, W)
         # PixelShuffle output shape:    (*, C, H x r, W x r)
