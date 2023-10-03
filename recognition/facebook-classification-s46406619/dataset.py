@@ -24,17 +24,6 @@ def load_data(batch_size=150):
     X_train, y_train, X_test, y_test = train_test_split(features, target, test_size=0.2, random_state=42)
     print('X dataset shape:', X_train.shape, X_test.shape)
     print('y dataset shape:', y_train.shape, y_test.shape)
+    print('Edges matrix shape:', edges.shape)
 
-    # convert to tensors
-    X_train = torch.Tensor(X_train)
-    y_train = torch.Tensor(y_train)
-    X_test = torch.Tensor(X_test)
-    y_test = torch.Tensor(y_test)
-
-    # construct dataloaders
-    train = data.TensorDataset(X_train, y_train)
-    test = data.TensorDataset(X_test, y_test)
-    trainloader = data.DataLoader(train, batch_size=batch_size, shuffle=False)
-    testloader = data.DataLoader(test, batch_size=batch_size, shuffle=False)
-
-    return trainloader, testloader
+    return X_train, y_train, X_test, y_test, edges
