@@ -1,7 +1,8 @@
 import dataset
 import modules
 import torch
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 model = modules.GCN(
     dataset.sample_size, dataset.number_features, dataset.number_classes, 16
@@ -20,18 +21,35 @@ def train():
     return loss
 
 
-def test():
+def test(mask):
     model.eval()
     out = model(dataset.X, dataset.edges_sparse)
     pred = out.argmax(dim=1)
-    test_correct = pred[dataset.test_mask] == dataset.y[dataset.test_mask]
-    test_acc = int(test_correct.sum()) / int(dataset.test_mask.sum())
+    test_correct = pred[mask] == dataset.y[mask]
+    test_acc = int(test_correct.sum()) / int(mask.sum())
     return test_acc
 
 
-for epoch in range(1, 101):
+val_acc = []
+train_acc = []
+
+for epoch in range(1, 5):
     loss = train()
+    val_acc.append(test(dataset.val_mask))
+    train_acc.append(test(dataset.train_mask))
     print(f"Epoch: {epoch:03d}, Loss: {loss:.4f}")
 
-test_acc = test()
+test_acc = test(dataset.test_mask)
 print(f"Test Accuracy: {test_acc:.4f}")
+
+plt.figure(figsize=(12, 8))
+plt.plot(np.arange(1, len(val_acc) + 1), val_acc, label="Validation accuracy", c="blue")
+plt.plot(
+    np.arange(1, len(train_acc) + 1), train_acc, label="Training accuracy", c="red"
+)
+plt.xlabel("Epochs")
+plt.ylabel("Accurarcy")
+plt.title("Training and Validation Accuracy")
+plt.legend(loc="lower right", fontsize="x-large")
+plt.savefig("gcn_loss.png")
+plt.show()

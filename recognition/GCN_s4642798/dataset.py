@@ -46,14 +46,20 @@ edges_sparse = torch.sparse_coo_tensor(
 
 # Generate training and testing mask
 train_split = 0.7
+val_split = 0.15
 train_size = int(train_split * sample_size)
+val_size = int(val_split * sample_size)
 
 rand_indicies = torch.randperm(sample_size)
 train_indicies = rand_indicies[:train_size]
-test_indicies = rand_indicies[train_size:]
+val_indicies = rand_indicies[train_size : (train_size + val_size)]
+test_indicies = rand_indicies[(train_size + val_size) :]
 
 train_mask = torch.zeros(sample_size, dtype=torch.bool)
 train_mask[train_indicies] = True
+
+val_mask = torch.zeros(sample_size, dtype=torch.bool)
+val_mask[val_indicies] = True
 
 test_mask = torch.zeros(sample_size, dtype=torch.bool)
 test_mask[test_indicies] = True
