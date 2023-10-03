@@ -17,7 +17,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 output_dir = './image_output'
 
 # Number of Epochs for training
-epochs = 100
+epochs = 1000
 
 # Create a model instance from module.py
 model = module.UNet()
@@ -45,6 +45,7 @@ def get_loss(model, x_0, t):
     noise_pred = model(x_noise, t)
     return F.l1_loss(noise, noise_pred)
 
+
 # Sampling
 @torch.no_grad()
 def sample_timestep(x, t):
@@ -70,7 +71,7 @@ def sample_timestep(x, t):
         return model_mean + torch.sqrt(posterior_variance_t) * noise
     
 
-def reverse_transform_image(image, epoch, output_dir):
+def reverse_transform_image(image, epoch, step, output_dir):
     reverse_transforms = transforms.Compose([
         transforms.Lambda(lambda t: (t + 1) / 2),
         transforms.Lambda(lambda t: t.permute(1, 2, 0)),
@@ -80,7 +81,7 @@ def reverse_transform_image(image, epoch, output_dir):
     ])
     
     # save image here
-    image_path = os.path.join(output_dir, f'epoch_{epoch:03d}_generated.png')
+    image_path = os.path.join(output_dir, f'epoch_{epoch:03d}_step_{step:03d}_generated.png')
     vutils.save_image(image, image_path)
 
 @torch.no_grad()
@@ -97,7 +98,7 @@ def sample_save_image(epoch, output_dir):
         # Maintain natural range of distribution
         img = torch.clamp(img, -1, 1)
         if i % stepsize == 0:
-            reverse_transform_image(img.detach().cpu(), epoch, output_dir)
+            reverse_transform_image(img.detach().cpu(), epoch, i, output_dir)
 
 
 best_loss = float('inf')  # Initialize with a high value
