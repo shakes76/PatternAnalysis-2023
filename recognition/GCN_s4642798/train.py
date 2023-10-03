@@ -43,13 +43,13 @@ test_acc = test(dataset.test_mask)
 print(f"Test Accuracy: {test_acc:.4f}")
 
 plt.figure(figsize=(12, 8))
-plt.plot(np.arange(1, len(val_acc) + 1), val_acc, label="Validation accuracy", c="blue")
-plt.plot(
-    np.arange(1, len(train_acc) + 1), train_acc, label="Training accuracy", c="red"
-)
+plt.plot(np.arange(1, len(val_acc) + 1), val_acc, label="Validation Accuracy")
+plt.plot(np.arange(1, len(train_acc) + 1), train_acc, label="Training Accuracy")
 plt.xlabel("Epochs")
 plt.ylabel("Accurarcy")
 plt.title("Training and Validation Accuracy")
 plt.legend(loc="lower right", fontsize="x-large")
-plt.savefig("gcn_loss.png")
+plt.savefig("recognition/GCN_s4642798/gcn_loss.png")
 plt.show()
+
+torch.save(model.state_dict(), "recognition/GCN_s4642798/best_model.pt")
