@@ -14,6 +14,7 @@ save_path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\PatternAnalysis-2023\
 batch_size = 64
 train_path = path + "\\train\\AD"
 test_path = path + "\\test\\AD"
+
 #-------------
 # Device Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -26,12 +27,14 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
+# Load images for testing
 test_data = ImageDataset(directory=test_path,
                          transform=transform)
 test_loader = torch.utils.data.DataLoader(test_data,
                                           batch_size=batch_size,
                                           shuffle=True)
 
+# Load saved model
 trained_model = SuperResolution()
 trained_model.to(device)
 trained_model.eval()
@@ -40,34 +43,36 @@ batch = next(iter(test_loader))
 trained_model.eval()
 torch.save(trained_model.state_dict(), save_path)
 
-
+# Show images
 fig = plt.figure(figsize=(8,8))
 x = batch[0].to(device)[:32]
 y = trained_model(x)
 
+# Plot a brain, showing the original image, the model generated image, and the goal image
 fig.add_subplot(1,3,1)
 plt.axis('off')
-plt.title('Comparison')
+plt.title('Low Res')
 plt.imshow(np.transpose(torchvision.utils.make_grid(batch[0].to(device)[0], padding=2,normalize=True).cpu(), (1,2,0)))
 
 fig.add_subplot(1,3,2)
 plt.axis('off')
-plt.title('Comparison')
+plt.title('Model Generated')
 plt.imshow(np.transpose(torchvision.utils.make_grid(y[0], padding=2,normalize=True).cpu(), (1,2,0)))
 
 fig.add_subplot(1,3,3)
 plt.axis('off')
-plt.title('Comparison')
+plt.title('High Res')
 plt.imshow(np.transpose(torchvision.utils.make_grid(batch[1].to(device)[0], padding=2,normalize=True).cpu(), (1,2,0)))
 plt.show()
 
-
+# Plot a range of model generated images
 plt.figure(figsize=(8,8))
 plt.axis('off')
 plt.title('Model Images')
 plt.imshow(np.transpose(torchvision.utils.make_grid(y, padding=2,normalize=True).cpu(), (1,2,0)))
 plt.show()
 
+# Plot a range of goal images
 plt.figure(figsize=(8,8))
 plt.axis('off')
 plt.title('Goal Images')
