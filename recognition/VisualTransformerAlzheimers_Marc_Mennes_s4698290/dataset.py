@@ -22,7 +22,7 @@ class ADNI(torch.utils.data.Dataset):
         
         #map the images to indices for __getitem__
         self.data = AD + NC
-        lastAD = len(AD) - 1
+        self.lastAD = len(AD) - 1
 
         if not self.isTest:
             self.validationData = []
@@ -40,9 +40,7 @@ class ADNI(torch.utils.data.Dataset):
                         self.data.pop(self.data.index(image))
 
                         if imageset == AD:
-                            lastAD -= 1
-
-            self.lastAD = lastAD 
+                            self.lastAD -= 1
 
             if self.isVal:
                 self.lastAD = 108*20 - 1
