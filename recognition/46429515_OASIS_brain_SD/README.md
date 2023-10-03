@@ -132,6 +132,12 @@ loss = get_loss(model, images, t)
 loss.backward()
 ```
 
+### Sampling - train.py
+
+
+
+### Training - train.py
+
 
 ## Justification
 
