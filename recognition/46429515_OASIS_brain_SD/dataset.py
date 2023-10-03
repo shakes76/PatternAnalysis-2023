@@ -18,34 +18,38 @@ batch_size = 32
 
 # Custom OASIS brain dataset class referenced from ChatGPT3.5: how to create custom dataset class for OASIS
 class OASISDataset(Dataset):
-    def __init__(self, root, transform=None):
+    def __init__(self, root, label_path, transform=None):
         self.root_dir = root
+        self.label_path = label_path
         self.transform = transform
 
-        # List all image files in root directory
-        self.image_files = [f for f in os.listdir(root) if os.path.isfile(os.path.join(root, f))]
+        # List all image files and label files in root and label path directory
+        self.image_files = [f for f in os.listdir(self.root_dir) if os.path.isfile(os.path.join(self.root_dir, f))]
+        self.label_files = [f for f in os.listdir(self.label_path) if os.path.isfile(os.path.join(self.label_path, f))]
     
     def __len__(self):
         return len(self.image_files)
     
     def __getitem__(self, index):
         image_path = os.path.join(self.root_dir, self.image_files[index])
-        
+        label_path = os.path.join(self.label_path, self.label_files[index])
         # Load and preprocess the image
-        image = self.load_image(image_path)
-        return image
+        image, label = self.load_image(image_path, label_path)
+        return image, label
     
-    def load_image(self, path):
-        image = Image.open(path)
+    def load_image(self, path1, path2):
+        image = Image.open(path1)
+        label = Image.open(path2)
         if self.transform:
             image = self.transform(image)
-        return image
+            label = self.transform(label)
+        return image, label
     
     
 # Specifying paths to train, test and validate directories
-train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', transform=transform)
-test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', transform=transform)
-validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', transform=transform)
+train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', label_path=f'{root_path}/keras_png_slices_seg_train', transform=transform)
+test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', label_path=f'{root_path}/keras_png_slices_seg_test', transform=transform)
+validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', label_path=f'{root_path}/keras_png_slices_seg_validate', transform=transform)
 
 # Create data loaders for each set
 train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True) # Image shape [32, 1, 224, 224]
