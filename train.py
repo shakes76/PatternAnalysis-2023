@@ -20,22 +20,25 @@ torch.cuda.manual_seed_all(0)
 print ("note: trying out new lr scheduler and optimiser from  StepLR")
 
 # Hyperparameters and configurations
-learning_rate = 0.03
+learning_rate = 0.05
 
 optimiser_choice = "SGD"
 scheduler_active = True
-batch_size = 256
+batch_size = 16
 num_epochs = 30
 img_size = 256
 num_workers = 2
 momentum = 0.9
-depth = 4  # Decreased Depth - from 12
+depth = 16  # Decreased Depth - from 12
 n_heads = 4  # Modified Number of Heads
-mlp_ratio = 2.0  # Modified MLP Ratio
-embed_dim = 512 
+mlp_ratio = 12.0  # Modified MLP Ratio
+embed_dim = 256 
 max_patience = 7  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
+drop_p = 0.1  # dropout probability
+attn_p = 0.1  # attention dropout probability
+
 #update 1st oct 1.55pm - changed patience to 10 from 7
-test_num = 22
+test_num = 27
 optim_path_dict = {"AdamW": "AdamW/", "Radam": "RAdam/", "SGD": ""}
 optim_add_path = optim_path_dict[optimiser_choice]
 save_model_as = "{}saved_models/best_model_{}".format(optim_add_path, test_num)
@@ -58,6 +61,8 @@ print ("depth: ", depth)
 print ("n_heads: ", n_heads)
 print ("mlp_ratio: ", mlp_ratio)
 print ("embed_dim: ", embed_dim)
+print ("drop_p: ", drop_p)
+print ("attn_p: ", attn_p)
 
 
 
@@ -153,8 +158,8 @@ model = VisionTransformer(
     n_heads=n_heads,  # Modified Number of Heads
     mlp_ratio=mlp_ratio,  # Modified MLP Ratio
     qkv_bias=True, 
-    p=0., 
-    attn_p=0.,  # attention dropout probability
+    p=drop_p, 
+    attn_p=attn_p,  # attention dropout probability
 )
 model = model.to(device)  # Move the model to the device (CPU or GPU)
 
