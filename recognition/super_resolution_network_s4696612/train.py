@@ -18,7 +18,7 @@ print()
 
 #---------------
 # Hyper Parameters
-learning_rate = 0.00005
+learning_rate = 0.001
 num_epochs = 1
 
 #-----------------
@@ -102,8 +102,9 @@ plt.imshow(np.transpose(torchvision.utils.make_grid(batch[1].to(device)[:64], pa
 plt.show()
 
 plt.figure()
-plt.title('Training Losses')
+plt.title('Training Loss')
 plt.xlabel('Iterations')
 plt.ylabel('Mean Squared Error Loss')
 plt.plot(losses)
+plt.savefig('training_loss.png')
 plt.show()
