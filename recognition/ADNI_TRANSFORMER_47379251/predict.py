@@ -41,7 +41,7 @@ def test(epoch):
             total += targets.size(0)
             correct += predicted.eq(targets).sum().item()
 
-            progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+            if epoch%10==0: progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                 % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
     
     # Save checkpoint.
@@ -74,7 +74,6 @@ print('Training..')
 for epoch in range(start_epoch, args.n_epochs):
     start = time.time()
     trainloss = train(epoch)
-    # val_loss, acc = test(epoch)
     
     scheduler.step(epoch-1) # step cosine scheduling
     
@@ -96,7 +95,6 @@ for epoch in range(start_epoch, args.n_epochs):
 print('Testing..')
 for epoch in range(start_epoch, args.n_epochs):
     start = time.time()
-    # trainloss = train(epoch)
     val_loss, acc = test(epoch)
     
     scheduler.step(epoch-1) # step cosine scheduling

@@ -7,6 +7,10 @@ written by @kentaroy47, @arutema47
 
 '''
 
+'''
+Make code right (Time, Plots, Different Model, Model Save), Meta Learning?
+'''
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -29,12 +33,8 @@ from utils import *
 # parsers
 parser = argparse.ArgumentParser(description='PyTorch Training')
 parser.add_argument('--lr', default=1e-4, type=float, help='learning rate') # resnets.. 1e-3, Vit..1e-4
-parser.add_argument('--opt', default="adam")
-# parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
-# parser.add_argument('--noaug', action='store_true', help='disable use randomaug')
+parser.add_argument('--opt', default="sgd")
 parser.add_argument('--noamp', action='store_true', help='disable mixed precision training. for older pytorch versions')
-# parser.add_argument('--nowandb', action='store_true', help='disable wandb')
-# parser.add_argument('--mixup', action='store_true', help='add mixup augumentations')
 parser.add_argument('--net', default='vit')
 parser.add_argument('--bs', default='16')
 parser.add_argument('--size', default="256")
@@ -42,7 +42,10 @@ parser.add_argument('--n_epochs', type=int, default='5')
 parser.add_argument('--patch', default='32', type=int, help="patch for ViT")
 parser.add_argument('--dimhead', default="1024", type=int)
 parser.add_argument('--convkernel', default='4', type=int, help="parameter for convmixer")
-
+# parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
+# parser.add_argument('--noaug', action='store_true', help='disable use randomaug')
+# parser.add_argument('--nowandb', action='store_true', help='disable wandb')
+# parser.add_argument('--mixup', action='store_true', help='add mixup augumentations')
 args = parser.parse_args()
 
 # take in args
@@ -72,17 +75,18 @@ print('==> Preparing data..')
 size = imsize    
 
 transform_train = transforms.Compose([
-    transforms.Resize(size),
+    transforms.Resize((size,size)),
     transforms.RandomCrop(size),
     transforms.RandomHorizontalFlip(),
     transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    # transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.2, 0.2, 0.2)),
 ])
 
 transform_test = transforms.Compose([
-    transforms.Resize(size),
+    transforms.Resize((size,size)),
     transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.2, 0.2, 0.2)),
 ])
 
 # Add RandAugment with N, M(hyperparameter)
@@ -100,3 +104,5 @@ testset = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
 
 classes = ('NC', 'AD')
+
+# /home/Student/s4737925/Project/PatternAnalysis-2023/recognition/ADNI_TRANSFORMER_47379251

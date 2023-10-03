@@ -28,7 +28,6 @@ from utils import *
 # Model factory..
 print('==> Building model..')
 # if args.net=="vit_small":
-#     from models.vit_small import ViT
 #     net = ViT(
 #     image_size = size,
 #     patch_size = args.patch,
@@ -41,7 +40,6 @@ print('==> Building model..')
 #     emb_dropout = 0.1
 # )
 # elif args.net=="vit_tiny":
-#     from models.vit_small import ViT
 #     net = ViT(
 #     image_size = size,
 #     patch_size = args.patch,
@@ -54,7 +52,6 @@ print('==> Building model..')
 #     emb_dropout = 0.1
 # )
 # elif args.net=="simplevit":
-#     from models.simplevit import SimpleViT
 #     net = SimpleViT(
 #     image_size = size,
 #     patch_size = args.patch,
@@ -99,7 +96,7 @@ if args.net=="vit":
     dim = int(args.dimhead),
     depth = 6,
     heads = 16,
-    mlp_dim = 2048,
+    mlp_dim = 3072,
     dropout = 0.1,
     emb_dropout = 0.1
 )
@@ -156,6 +153,6 @@ def train(epoch):
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
 
-        progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+        if epoch%10==0: progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
             % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
     return train_loss/(batch_idx+1)
