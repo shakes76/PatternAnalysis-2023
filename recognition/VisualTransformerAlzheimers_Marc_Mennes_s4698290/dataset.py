@@ -43,7 +43,6 @@ class ADNI(torch.utils.data.Dataset):
                             lastAD -= 1
 
             self.lastAD = lastAD 
-            print(lastAD)
 
             if self.isVal:
                 self.lastAD = 108*20 - 1
