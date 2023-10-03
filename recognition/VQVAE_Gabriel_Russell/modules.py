@@ -28,7 +28,7 @@ class Parameters():
         self.num_training_updates = 15000
         self.num_hiddens = 128
         self.num_residual_hiddens = 32
-        self.embedding_dim = 64
+        self.embedding_dim = 128
         self.num_embeddings = 512
         self.commitment_cost = 0.25
         self.learn_rate = 2e-4
