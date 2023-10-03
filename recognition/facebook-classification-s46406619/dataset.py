@@ -1,8 +1,15 @@
 import numpy as np
 import os
 import torch
-import torch.utils.data as data
 from sklearn.model_selection import train_test_split
+
+class Data:
+    def __init__(self, X_train, y_train, X_test, y_test, edges):
+        self.X_train = X_train
+        self.y_train = y_train
+        self.X_test = X_test
+        self.y_test = y_test
+        self.edges = edges
 
 def load_data(batch_size=150):
     # set working directory
@@ -10,7 +17,7 @@ def load_data(batch_size=150):
 
     # import raw data files
     facebook = np.load('facebook.npz')
-    edges = torch.tensor(facebook['edges'])
+    edges = torch.transpose(torch.tensor(facebook['edges']), 0, 1)
     features = torch.tensor(facebook['features'])
     target = torch.tensor(facebook['target'])
 
@@ -26,4 +33,4 @@ def load_data(batch_size=150):
     print('y dataset shape:', y_train.shape, y_test.shape)
     print('Edges matrix shape:', edges.shape)
 
-    return X_train, y_train, X_test, y_test, edges
+    return Data(X_train, y_train, X_test, y_test, edges)
