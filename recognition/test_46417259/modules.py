@@ -44,7 +44,8 @@ class SiameseNeuralNet(nn.Module):
         x_features = self.twin1(x)
         y_features = self.twin2(y)
         # out = F.pairwise_distance(x_features, y_features, keepdim=True)
-        out = torch.absolute(pairwise_subtraction(x_features, y_features))
+        # out = torch.absolute(pairwise_subtraction(x_features, y_features))
+        out = torch.absolute(x_features - y_features)
         out = F.sigmoid(self.fc(out))
         return out
     
