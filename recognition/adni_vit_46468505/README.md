@@ -10,9 +10,19 @@ The ADNI Dataset consists of brain MRIs of patients with Alzheimers, as well as 
 
 ## Vision Transformers
 
-Vision transformers are able to effectively process images by splitting them into many small, "bite-sized" patches. While these patches are processed individually, the positional context of each patch within the original image is preserved with positional embeddings. Vision transformers can produce a variety of useful outputs, including segmentation, classification and image-generation. In the case of this report, a binary classification result is required. This is achieved by the addition of a small multi-layer perceptron (neural) network to the Vision Transformer output. Vision transformers trained on large datasets have shown advanced performance on CNNs by a small margin, which have historically been the preferred choice for computer-vision tasks. 
+Vision transformers are able to effectively process images by splitting them into many small, "bite-sized" patches. While these patches are processed individually, the positional context of each patch within the original image is preserved with positional embeddings. Self-attention is used in most architectures in order to determine the most useful patches to good performance.
+
+Vision transformers can produce a variety of useful outputs, including segmentation, classification and image-generation. Vision transformers trained on large datasets have shown advanced performance on CNNs by a small margin, which have historically been the preferred choice for computer-vision tasks. 
 
 ![Vision Transformer Architecture](images/generic_tfms.png)
+
+## Model Design
+
+The model consists of multiple transformer blocks, which themselves consist of normalisation, multi-head attention, skip connections, and MLP layers. Multi-head attention layers allow the model perform self-attention on its patches, determining the most useful ones for classification. Encoded patches are passed through a series of transformer blocks, and the result is flattened into a classification output.
+
+Categorical Cross-Entropy (CCE) loss was used, as it is designed to provide the best performance in multi-class and binary classification tasks by accounting for prediction confidences as well as the hard prediction. The labels are one-hot encoded, so the sparse version of CCE is used to account for this format.
+
+Adam Optimisation with a learning rate of 0.001 and weight decay of 0.0001 were used. Low learning rates are used to avoid a model learning "too quickly" leading to overfit, however it can increase the number of epochs of training required to get good performance. Weight decay is another hyperparameter used to avoid overfitting. It discourages learning large parameter values in a networl, where arge values of the weight decay hyperparameter penalises large parameters more harshly.
 
 ## Model Training
 
