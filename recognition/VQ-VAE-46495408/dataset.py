@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 train_ds = tf.keras.utils.image_dataset_from_directory(
     'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_train',
@@ -24,4 +25,6 @@ test_ds = tf.keras.utils.image_dataset_from_directory(
     image_size=(256, 256)
 )
 
-print(test_ds)
+normalization_layer = tf.keras.layers.Rescaling(1./255, offset=-0.5)
+train_ds = train_ds.map(lambda x: normalization_layer(x))
+print(train_ds)
