@@ -24,4 +24,4 @@ As pre-processing, the negative space is cropped from the borders of each image,
 
 **Cropping Negative Space and Splitting Image into Patches**
 
-
+The model was trained on the training set for 40 epochs, and test error was evaluated at each step. The plot of loss and accuracy for testing and training sets were recorded throughout training.
