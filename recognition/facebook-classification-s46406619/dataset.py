@@ -18,15 +18,12 @@ def load_data(test_size=0.2):
     # import raw data files
     facebook = np.load('facebook.npz')
     edges = torch.transpose(torch.tensor(facebook['edges']), 0, 1)
-    features = torch.tensor(facebook['features'])
+    nodes = torch.tensor(facebook['features'])
     target = torch.tensor(facebook['target'])
 
     # let us get some information about this dataset
     print('number of classes:', len(np.unique(target)))
-    print('number of nodes:', len(features))
-    print('number of directed edges:', len(edges[1]))
-    print('number of bidirectional edges:', round(len(edges[1]) / 2))
-    print('features shape:', features.shape)
+    print('features shape:', nodes.shape)
     print('edges shape:', edges.shape)
 
     # create indices to determine train and test split
@@ -37,4 +34,4 @@ def load_data(test_size=0.2):
         else:
             split_indices[i] = 0 # train element
 
-    return Data(features, edges, target, torch.tensor(split_indices))
+    return Data(nodes, edges, target, torch.tensor(split_indices))
