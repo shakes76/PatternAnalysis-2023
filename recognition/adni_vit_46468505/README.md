@@ -38,7 +38,7 @@ The model was trained on the training set for 40 epochs, and test error was eval
 
 A sample of predictions is shown.
 
-![Results](/recognition/adni_vit_46468505/images/sample_results.png)
+![Results](images/sample_results.png)
 
 ## Usage
 
