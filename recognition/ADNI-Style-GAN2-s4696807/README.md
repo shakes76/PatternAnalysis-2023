@@ -1,28 +1,40 @@
 # Brain Image Generation
-My model will attempt to produce accurate looking brain images using the ADNI brain dataset
+The purpose of this report is to use the stylegan2 deep learning model with the OASIS brain dataset in order to produce realistic 
+brain scan images. The StyleGAN2 model was chosen over other models generative models such as the DCGAN and VQVAE as the StyleGAN2 model is renound for its high-quality image generation compared to other models. Furthermore, the style vector allows for fine-grained control over the generated images' styles and features, making it ideal for creating a wide variety of outputs. 
+
+Generating brain images using StyleGAN2 holds significant importance in various industries, primarily in healthcare and neuroscience. It offers a range of advantages, such as data augmentation, privacy preservation, and enhanced anomaly detection. By creating realistic synthetic brain images, it expands the availability of diverse training data for machine learning models, leading to more accurate diagnostic tools and predictive algorithms. Additionally, it addresses privacy concerns by enabling research and development without compromising patient data.
+
+Furthermore, StyleGAN2-generated brain images find applications in education and training, helping medical professionals better understand complex conditions and treatments. They serve as valuable educational tools for medical students and professionals. These synthetic images also facilitate research into neurological disorders, enabling scientists to simulate different conditions and diseases, leading to innovative treatments and interventions.
+
+In terms of cost-effectiveness, generating synthetic brain images reduces the need for expensive data acquisition and medical equipment, making it an efficient option for testing algorithms and technologies. Additionally, it supports personalized medicine by allowing customization and simulation of individual patient profiles. Overall, StyleGAN2's role in generating brain images has the potential to revolutionize medical imaging, research, and healthcare, offering a versatile and ethical approach to data generation, analysis, and application development.
 
 ## Project Structure
-- `modules.py`: Source code for model components.
-- `dataset.py`: Data loader and preprocessing.
-- `train.py`: Training, validation, testing, and model saving.
-- `predict.py`: Example usage of the trained model.
+- `modules.py`: The Generator and Discriminator networks as well as the layers and block that make them up. 
+- `dataset.py`: Data loader and preprocessing for the OASIS brain dataset, performing augmentation.
+- `train.py`: Training process of for the generator and discriminator networks and the loss calculations and optimization.
+- `predict.py`: Use of the model and display of the progress of the loss for both networks and generated images. 
 
 ## How to Use
-Explain how to set up and run your code, including dependencies and configurations.
+In order to run this model on the OASIS dataset and see the generated images, you can run the predict.py file.
+This file imports the necessary dataset, modules and training process from the dataset.py, modules.py and train.py files respectively.
+It trains the model on the OASIS dataset and then provides the loss for each epoch as well as the generated images. After the training
+is complete it plots a graph of the losses of the generator and discriminator networks over time to show that they begin to converge. 
 
 ## Model Details
-Describe your generative model and its architecture in detail.
+The stylegan2 architecture build upon that of stylegan and the basic gan architecture. It made up of a generative model and discrimintative model.
+The generator will create images and discriminator will decide whether the image is from the real data set or if it has been created by the generator network. Both, of the networks work with and against each other, the generator trying to fool the discriminator and discriminator trying not to be fooled.  The end goal being the generation of realistic images close to that of the real provided dataset.  
 
-## Results
+The original stylegan model creared by Nvidia in December of 2018, built upon this basic gan architecture aiming to not only improve the quality of the resulting images but also providing more control over the specific styles of the images. The stylegan model introduced the style vector and noise components into the model, replacing the latent vector used in traditional gan architectures.    
+
+## Results (Todo)
 Include any visualizations or results from your model, if applicable.
 
-## Acknowledgments
-Give credit to any third-party code or libraries used in your project.
+## Acknowledgments (Todo)
+The structure of the models used in this report were created using the styleGAN2 reasearch paper.  
 
 ## Todo List
 - Change the model to not use RGB and just grayscale to reduce the training time as model will require less 
 - Add a graph of the loss of each epoch and print loss each epoch 
 - Work on report read me 
 - Manipulate the style vector and show the affect of the final results of the model to show how model works 
-
 

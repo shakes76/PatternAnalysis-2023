@@ -1,7 +1,7 @@
 #!/bin/bash 
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH --job-name=cifar
+#SBATCH --job-name=stylegan-OASIS
 #SBATCH --cpus-per-task 1
 #SBATCH --mail-type=All
 #SBATCH --mail-user=a.fittler@uqconnect.edu.au

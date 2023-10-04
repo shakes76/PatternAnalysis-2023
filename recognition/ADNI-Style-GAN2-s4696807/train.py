@@ -16,7 +16,7 @@ Z_DIM                   = 256  # Dimension of the latent space
 W_DIM                   = 256  # Dimension of the mapping network output
 LAMBDA_GP               = 10  # Weight for the gradient penalty term
 
-# Function to compute the gradient penalty for the critic
+# Function to compute the gradient penalty for the discriminator
 def gradient_penalty(critic, real, fake, device="cpu"):
     # Compute gradient penalty for the critic
     BATCH_SIZE, C, H, W = real.shape
@@ -24,7 +24,7 @@ def gradient_penalty(critic, real, fake, device="cpu"):
     interpolated_images = real * beta + fake.detach() * (1 - beta)
     interpolated_images.requires_grad_(True)
 
-    # Calculate critic scores
+    # Calculate discriminator scores
     mixed_scores = critic(interpolated_images)
  
     # Take the gradient of the scores with respect to the images
@@ -66,7 +66,8 @@ def get_noise(batch_size):
 
     return noise
 
-# Training function for the critic and generator
+
+# Training function for the discriminator and generator
 def train_fn(
     critic,
     gen,
@@ -77,7 +78,10 @@ def train_fn(
     opt_mapping_network,
 ):
     loop = tqdm(loader, leave=True)  # Create a tqdm progress bar for training iterations
-
+    
+    G_losses = []
+    D_losses = []
+    
     for batch_idx, (real, _) in enumerate(loop):
         real = real.to(DEVICE)  # Move real data to the specified device
         cur_batch_size = real.shape[0]
@@ -95,6 +99,7 @@ def train_fn(
                 + LAMBDA_GP * gp  # Gradient penalty term
                 + (0.001 * torch.mean(critic_real ** 2))  # Regularization term
             )
+        D_losses.append(loss_critic.item())
 
         critic.zero_grad()  # Reset gradients for the critic
         loss_critic.backward()  # Backpropagate the critic loss
@@ -107,7 +112,7 @@ def train_fn(
             plp = path_length_penalty(w, fake)
             if not torch.isnan(plp):
                 loss_gen = loss_gen + plp  # Update generator loss with path length penalty
-
+        G_losses.append(loss_gen.item())
         mapping_network.zero_grad()  # Reset gradients for the mapping network
         gen.zero_grad()  # Reset gradients for the generator
         loss_gen.backward()  # Backpropagate the generator loss
@@ -118,8 +123,12 @@ def train_fn(
             gp=gp.item(),
             loss_critic=loss_critic.item(),
         )
+    
+    return (D_losses, G_losses)
+    
 
 # Initialize the mapping network, generator, and critic on the specified device
 mapping_network     = MappingNetwork(Z_DIM, W_DIM).to(DEVICE)  # Initialize mapping network
 gen                 = Generator(LOG_RESOLUTION, W_DIM).to(DEVICE)  # Initialize generator
 critic              = Discriminator(LOG_RESOLUTION).to(DEVICE)  # Initialize critic
+
