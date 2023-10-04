@@ -289,56 +289,65 @@ main components are:
         [d]: Upsample -> Conv + B(Noise) -> + AdaIN(w) -> Conv + B(Noise) -> + AdaIN(w)
     RGB Output [d]: Conv (channels to RGB channels)
 
-Purpose: Generator an image from latent z
+Purpose: Generate an image from latent z
 
 Parameters:
-    z_size      Size of latent z
-    w_size      Size of manifold w
-    channels    np.array[d] for channels at layer d
-    rgb_ch      Number of RGB channels (3 for this project, 1 for grayscale)
-    alphaSched  The AlphaScheduler object for managing the progresive GAN fading
+    z_size          Size of latent z
+    w_size          Size of manifold w
+    channels        np.array[d] for channels at layer d
+    rgb_ch          Number of RGB channels (3 for this project, 1 for grayscale)
+    alphaSched      The AlphaScheduler object for managing the progresive GAN fading
+    is_progressive  True -> Progressively scale architecture on the fly
+                    False -> Define the full architecture on instantiation
 """
 class Generator(nn.Module):
-    def __init__(self, z_size, w_size, channels, rgb_ch, alphaSched):
+    def __init__(self, z_size, w_size, channels, rgb_ch, alphaSched, is_progressive):
         super(Generator, self).__init__()
         self.alphaSched = alphaSched
         self.normalise = RMS()
         self.mappingNetwork = MappingNetwork(z_size, w_size)
         self.synthesisNetwork = nn.ModuleList()
         self.rgbOutput = nn.ModuleList()
+        self.channels = channels
+        self.rgb_ch = rgb_ch
+        self.w_size = w_size
+        self.z_size = z_size
         
-        self.synthesisNetwork.append(SynthesisInitialBlock(channels[0], channels[0], w_size))
+        self.synthesisNetwork.append(SynthesisInitialBlock(channels[0], channels[1], w_size))
         self.rgbOutput.append(Conv2dHe(channels[0], rgb_ch, kernel_size=1, stride=1, padding=0))
         
-        for d in range(len(channels) - 1):
-            ch_in = int(channels[d])
-            ch_out = int(channels[d + 1])
-            self.synthesisNetwork.append(SynthesisBlock(ch_in, ch_out, w_size))
-            self.rgbOutput.append(Conv2dHe(ch_out, rgb_ch, kernel_size=1, stride=1, padding=0))
+        # Grow the architecture straight up if this is not a progressive GAN
+        if not is_progressive:
+            for d in range(1,len(self.channels)-1):
+                ch_in = int(self.channels[d])
+                ch_out = int(self.channels[d+1])
+                self.synthesisNetwork.append(SynthesisBlock(ch_in, ch_out, self.w_size))
+                self.rgbOutput.append(Conv2dHe(ch_out, self.rgb_ch, kernel_size=1, stride=1, padding=0))
+        
+    """
+    Only scale the architecture if the class was instantiated with is_progressive=False
+    """
+    def scale(self, device):        
+        ch_in = int(self.channels[self.alphaSched.depth])
+        ch_out = int(self.channels[self.alphaSched.depth+1])
+        self.synthesisNetwork.append(SynthesisBlock(ch_in, ch_out, self.w_size).to(device))
+        self.rgbOutput.append(Conv2dHe(ch_out, self.rgb_ch, kernel_size=1, stride=1, padding=0).to(device))
             
     def forward(self, z):
-        # Normalise latent z, then pass to the mapping network
         w = self.mappingNetwork(self.normalise(z))
 
-        # Scale depth based on the current AlphaScheduler depth
-        for depth in range(self.alphaSched.depth+1):
-            # First depth must be the SynthesisInitialBlock
+        for depth in range(self.alphaSched.depth+1): #len(self.rgbOutput)):
             if isinstance(self.synthesisNetwork[depth], SynthesisInitialBlock):
                 out = self.synthesisNetwork[0](w)
-            # Subsequent blocks of SynthesisBlocks
             else:
                 upsample = F.interpolate(out, scale_factor=2, mode="bilinear")
                 out = self.synthesisNetwork[depth](upsample, w)
+                
+        rgb_out = self.rgbOutput[depth](out)        
         
-        # Transform from the current depth to RGB
-        rgb_out = self.rgbOutput[self.alphaSched.depth](out)        
-        
-        # If fading, combine with the upscaled RGB output of the previous depth
-        if self.alphaSched.is_fade:
-            rgb_out_previous = self.rgbOutput[self.alphaSched.depth - 1](upsample)
-            rgb_out = self.alphaSched.alpha * rgb_out + (1 - self.alphaSched.alpha) * rgb_out_previous
-        
-        # Map to a pixel value
+        rgb_out_previous = self.rgbOutput[depth-1](upsample)
+        rgb_out = self.alphaSched.alpha * rgb_out + (1 - self.alphaSched.alpha) * rgb_out_previous
+            
         return torch.tanh(rgb_out)
     
 
@@ -366,62 +375,75 @@ main components are that from a progressive GAN.
 Purpose: Classify an image image as being real or fake
 
 Parameters:
-    rgb_ch      Number of RGB channels (3 for this project, 1 for grayscale)
     channels    np.array[d] for channels at layer d
+    rgb_ch      Number of RGB channels (3 for this project, 1 for grayscale)
     alphaSched  The AlphaScheduler object for managing the progresive GAN fading
+    is_progressive  True -> Progressively scale architecture on the fly
+                    False -> Define the full architecture on instantiation
 """   
 class Discriminator(nn.Module):
-    def __init__(self, rgb_ch, channels, alphaSched):
+    def __init__(self, channels, rgb_ch, alphaSched, is_progressive):
         super(Discriminator, self).__init__()
-        ch_in = channels[0]
+        ch_out = channels[-1]
         self.alphaSched = alphaSched
         self.synthesis_network = nn.ModuleList([])
         self.leaky = nn.LeakyReLU(0.2)
         self.stddev = ConcatStdDev()
         self.rgbInput = nn.ModuleList()
+        self.rgb_ch = rgb_ch
+        self.channels= channels
 
-        self.rgbInput.append(Conv2dHe(rgb_ch, ch_in, kernel_size=1, stride=1, padding=0))
-        for i in range(len(channels) - 1, 0, -1):
-            conv_in = int(channels[i])
-            conv_out = int(channels[i - 1])
-            self.synthesis_network.append(ConvBlock(conv_in, conv_out))
-            self.rgbInput.append(Conv2dHe(rgb_ch, conv_in, kernel_size=1, stride=1, padding=0))
-
+        self.rgbInput.append(Conv2dHe(rgb_ch, channels[1], kernel_size=1, stride=1, padding=0))
         
+        # Grow the architecture straight up if this is not a progressive GAN
+        if not is_progressive:
+            for d in range(1,len(channels)-1):
+                ch_out = int(self.channels[d])
+                ch_in = int(self.channels[d+1])
+                self.rgbInput.append(Conv2dHe(self.rgb_ch, ch_in, kernel_size=1, stride=1, padding=0))
+                self.synthesis_network.append(ConvBlock(ch_in, ch_out))
+            
         self.avg_pool = nn.AvgPool2d(kernel_size=2, stride=2)  
 
         self.classifier = nn.Sequential(
-            Conv2dHe(ch_in + 1, ch_in, kernel_size=3, padding=1),
+            Conv2dHe(channels[1] + 1, channels[1], kernel_size=3, padding=1),
             nn.LeakyReLU(0.2),
-            Conv2dHe(ch_in, ch_in, kernel_size=4, padding=0, stride=1),
+            Conv2dHe(channels[1], channels[1], kernel_size=4, padding=0, stride=1),
             nn.LeakyReLU(0.2),
-            Conv2dHe(ch_in, 1, kernel_size=1, padding=0, stride=1 ),
-            nn.Sigmoid()
+            Conv2dHe(channels[1], 1, kernel_size=1, padding=0, stride=1 )
+            #, nn.Sigmoid() Removed this due to a change in gradient loss determination
         )
+        
+    def scale(self, device):
+        ch_out = int(self.channels[self.alphaSched.depth])
+        ch_in = int(self.channels[self.alphaSched.depth+1])
+        if device is None:
+            self.rgbInput.append(Conv2dHe(self.rgb_ch, ch_in, kernel_size=1, stride=1, padding=0))
+            self.synthesis_network.append(ConvBlock(ch_in, ch_out))
+        else:
+            self.rgbInput.append(Conv2dHe(self.rgb_ch, ch_in, kernel_size=1, stride=1, padding=0)).to(device)
+            self.synthesis_network.append(ConvBlock(ch_in, ch_out)).to(device)
+
 
     """
     Feed forward:
         x   The image data, either real or fake.
     """
     def forward(self, x):
-        depth = len(self.synthesis_network) - self.alphaSched.depth
+        out = self.leaky(self.rgbInput[self.alphaSched.depth](x))
+        
+        if self.alphaSched.depth > 0:
+            out = self.synthesis_network[self.alphaSched.depth-1](out)
+            out = self.avg_pool(out)  
+            
+        downsampled = self.leaky(self.rgbInput[self.alphaSched.depth-1](self.avg_pool(x)))
 
-        out = self.leaky(self.rgbInput[depth](x))
-
-        if self.alphaSched.depth == 0:
-            out = self.stddev(out)
-            return self.classifier(out).view(out.shape[0], -1)
-
-        downscaled = self.leaky(self.rgbInput[depth + 1](self.avg_pool(x)))
-        out = self.avg_pool(self.synthesis_network[depth](out))
-
-        out = self.alphaSched.alpha * out + (1 - self.alphaSched.alpha) * downscaled
-
-        for step in range(depth + 1, len(self.synthesis_network)):
-            out = self.synthesis_network[step](out)
+        out = self.alphaSched.alpha * out + (1 - self.alphaSched.alpha) * downsampled        
+        
+        for d in range(1,self.alphaSched.depth):
+            out = self.synthesis_network[self.alphaSched.depth - d - 1](out)
             out = self.avg_pool(out)
 
         out = self.stddev(out)
         
         return self.classifier(out).view(out.shape[0], -1)
-    
