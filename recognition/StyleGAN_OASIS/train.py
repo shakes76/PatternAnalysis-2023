@@ -9,9 +9,44 @@ This is a placeholder file
 
 import numpy as np
 import torch
-from torch import optim, nn
+from torch import optim
 from dataset import createDataLoader, getDataSize
-from model import AlphaScheduler, Generator, Discriminator
+from modules import AlphaScheduler, Generator, Discriminator
+
+
+"""
+Implementation of gradient penalty. Full credit of this funtion goes to 
+https://blog.paperspace.com/implementation-stylegan-from-scratch/ which get 
+their code from the gradient_penalty function for WGAN-GP loss.
+
+Note: This code is very specific and crafting it independently is beyond the
+scope of this course. So with full references and acknowledgement I am using
+it as is, unaltered.
+"""
+def gradient_penalty(discriminator, real, fake, device):
+    BATCH_SIZE, C, H, W = real.shape
+    beta = torch.rand((BATCH_SIZE, 1, 1, 1)).repeat(1, C, H, W).to(device)
+    interpolated_images = real * beta + fake.detach() * (1 - beta)
+    interpolated_images.requires_grad_(True)
+
+    # Calculate discriminator scores
+    mixed_scores = discriminator(interpolated_images)
+ 
+    # Take the gradient of the scores with respect to the images
+    gradient = torch.autograd.grad(
+        inputs=interpolated_images,
+        outputs=mixed_scores,
+        grad_outputs=torch.ones_like(mixed_scores),
+        create_graph=True,
+        retain_graph=True,
+    )[0]
+    gradient = gradient.view(gradient.shape[0], -1)
+    gradient_norm = gradient.norm(2, dim=1)
+    gradient_penalty = torch.mean((gradient_norm - 1) ** 2)
+    return gradient_penalty
+
+
+
 
 """
 Run the training loop for the StyleGAN. This will simulanteously train the
@@ -25,23 +60,15 @@ def train_stylegan(cfg, device):
     alphaSched = AlphaScheduler(cfg['fade_epochs'], cfg['batch_sizes'], data_size)
     generator = Generator(cfg['z_size'], cfg['w_size'], cfg['channels'], cfg['rgb_ch'], alphaSched, is_progressive=False).to(device)
     discriminator = Discriminator(cfg['channels'], cfg['rgb_ch'], alphaSched, is_progressive=False).to(device)
-    gen_size=cfg['gen_size']
+    
     
     # initialize optimizers
-    optimizer_generator = optim.Adam([{"params": [param for name, param in generator.named_parameters() if "mappingNetwork" not in name]},
+    optimiser_generator = optim.Adam([{"params": [param for name, param in generator.named_parameters() if "mappingNetwork" not in name]},
                             {"params": generator.mappingNetwork.parameters(), "lr": cfg['mapping_lr']}], lr=cfg['lr'], betas=(0.0, 0.99))
-    optimizer_discriminator = optim.Adam(discriminator.parameters(), lr=cfg['lr'], betas=(0.0, 0.99))
-    
-    loss_fn = nn.BCELoss()
-    
-    real_label = 1.0
-    fake_label = 0.0
+    optimiser_discriminator = optim.Adam(discriminator.parameters(), lr=cfg['lr'], betas=(0.0, 0.99))
     
     generator.train()
     discriminator.train()
-    
-    Dloss = []
-    Gloss = []
     
     # start at step that corresponds to img size that we set in config
     for layer_epochs in cfg['fade_epochs'][1:]:
@@ -50,36 +77,46 @@ def train_stylegan(cfg, device):
         for epoch in range(layer_epochs):
             for real, _ in loader:
                 real = real.to(device)
+                       
+                z = torch.randn(real.shape[0], cfg['z_size']).to(device)                    # Generator the latent z
         
-                discriminator.zero_grad()                                                                 # Clear gradients ready for training
-                data_real = real.to(device)                                                               # Move batch to GPU
-                label_real = torch.full((len(data_real),), real_label, dtype=torch.float, device=device)  # Label training as real
-                output = discriminator(data_real).view(-1)                                                # Classify the real images
-                loss_real = loss_fn(output, label_real)                                                   # Get the loss of the real images
-                loss_real.backward()                                                                      # Get the gradient from the real images
-                gen_data = torch.randn(len(data_real), 1, 1, gen_size, device=device)                     # Generator random input (seed)
-                data_fake = generator(gen_data)                                                           # Generator fake images from the seed
-                label_fake = torch.full((len(data_fake),), fake_label, dtype=torch.float, device=device)  # Label training as fake
-                output = discriminator(data_fake.detach()).view(-1)                                       # Classify the fake images
-                loss_fake = loss_fn(output, label_fake)                                                   # Get the loss of the fake images
-                loss_fake.backward()                                                                      # Get the gradient from the fake images
-                loss = 0.1*loss_real + 0.9*loss_fake                                                      # Combine losses of real and fake
-                optimizer_discriminator.step()                                                            # Update the Discriminator from the two parts
-                Dloss.append(loss.detach().cpu())
-
-                # Train the Generator
-                generator.zero_grad()                                                                     # Clear the gradients ready for training
-                output = discriminator(data_fake).view(-1)                                                # Discriminator was updated, so re-classifiy fakes
-                loss = loss_fn(output, label_real)                                                        # Get the loss of the fakes using real labels*
-                loss.backward()                   
-                optimizer_generator.step()                                                                # Update the Generator
-                Gloss.append(loss.detach().cpu())
+                fake = generator(z)                                                         # Generator the fake images from z
+                discriminator_real = discriminator(real)                                    # Discriminate the real images
+                discriminator_fake = discriminator(fake.detach())                           # Discriminate the fake images
+                
+                """
+                The discriminator loss calculation is not my work. The technique
+                was obtained from https://blog.paperspace.com/implementation-stylegan-from-scratch/
+                with full credit to auther Abd Elilah TAUIL. In my observation, 
+                this code needed to run exactly as written or the StyleGAN fails 
+                to converge. To get this working, I had to remove the Sigmoid()
+                function from the discriminator.
+                """
+                gp = gradient_penalty(discriminator, real, fake, device=device)
+                loss_discriminator = (
+                    -(torch.mean(discriminator_real) - torch.mean(discriminator_fake))
+                    + cfg['lambda'] * gp
+                    + (0.001 * torch.mean(discriminator_real ** 2))
+                )
+        
+                # 
+                discriminator.zero_grad()
+                loss_discriminator.backward()
+                optimiser_discriminator.step()
+        
+                generator_fake = discriminator(fake)
+                loss_generator = -torch.mean(generator_fake)
+        
+                generator.zero_grad()
+                loss_generator.backward()
+                optimiser_generator.step()
                 
                 alphaSched.stepAlpha()
-                print('Epoch:', epoch, "   Depth:", alphaSched.depth, "   Alpha:", alphaSched.alpha)
+                print('Epoch:', epoch+1,"/",layer_epochs, "   Depth:", alphaSched.depth, "   Alpha:", alphaSched.alpha)
 
     
-        torch.save(generator.state_dict(), f'./stylegan_depth_{alphaSched.depth}.pth')
+        torch.save(generator.state_dict(), cfg['generator_model_file'].format(alphaSched.depth))
+        alphaSched.stepDepth()
 
 
 """
@@ -90,7 +127,7 @@ def train_stylegan_oasis():
             , 'fade_epochs': np.array([1, 1, 1, 1, 1, 1, 1])
             , 'depth': 6
             , 'image_folder': r'C:\Temp\keras_png_slices_data\keras_png_slices_data'
-            , 'generator_model_file': 'C:\Temp\gan_gen_depth_{0}.pth'
+            , 'generator_model_file': 'C:\Temp\stylegan_depth_{0}.pth'
             , 'discriminator_model_file': 'C:\Temp\gan_dis_depth_{0}.pth'
             , 'discriminator_loss_file': r'C:\Temp\losses_discriminator.csv'
             , 'generator_loss_file': r'C:\Temp\losses_generator.csv'
