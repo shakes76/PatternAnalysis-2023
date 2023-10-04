@@ -21,3 +21,27 @@ class VectorQuantizer(layers.Layer):
             trainable=True,
             name="embeddings_vqvae",
         )
+
+    def call(self, x):
+        # Calculate the input shape of the inputs and 
+        # then flatten the inputs keeping 'embedding_dim' intact
+        input_shape = tf.shape(x)
+        flattened = tf.reshape(x, [-1, self.embedding_dim])
+        
+        # Quantization
+        encoding_indices = self.get_code_indices(flattened)
+        encodings = tf.one_hot(encoding_indices, self.num_embeddings)
+        quantized = tf.matmul(encodings, self.embeddings, transpose_b=True)
+        
+    def get_code_indices(self, flattened_inputs):
+        # Calculate L2-normalized distance between the inputs and the codes
+        similarity = tf.matmul(flattened_inputs, self.embeddings)
+        distances = (
+            tf.reduce_sum(flattened_inputs ** 2, axis=1, keepdims=True)
+            + tf.reduce_sum(self.embeddings ** 2, axis=0)
+            - 2 * similarity
+        )
+        
+        # Derive the indices for minimum distances
+        encoding_indices = tf.armin(distances, axis=1)
+        return encoding_indices
