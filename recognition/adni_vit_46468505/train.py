@@ -21,8 +21,9 @@ train_set = tf_dataset(x_train,y_train,batch_size=batch_size)
 #test_set = tf_dataset(x_test,y_test,batch_size =len(y_test))
 
 def run_experiment(model):
+    #compile
     model = model_compile(model)
-
+    #save checkpoints
     checkpoint_filepath = "./recognition/adni_vit_46468505/model_checkpoints/"
     checkpoint_callback = keras.callbacks.ModelCheckpoint(
         checkpoint_filepath,
@@ -30,7 +31,7 @@ def run_experiment(model):
         save_best_only=True,
         save_weights_only=True,
     )
-
+    #fit!
     history = model.fit(
         train_set,
         batch_size=batch_size,
@@ -38,6 +39,7 @@ def run_experiment(model):
         #validation_split=0.1,
         callbacks=[checkpoint_callback],
     )
+    #upload weights
     model.load_weights(checkpoint_filepath)
 
     return history

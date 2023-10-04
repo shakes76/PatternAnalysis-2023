@@ -9,6 +9,7 @@ import random
 batch_size = 256
 image_size = 256  # We'll resize input images to this size
 
+# read
 def load_and_preprocess_image(image_path,image_size=(image_size,image_size)):
     image = cv2.imread(image_path)
     # Convert to grayscale
@@ -21,6 +22,7 @@ def load_and_preprocess_image(image_path,image_size=(image_size,image_size)):
     normalized_image = reshaped_image / 255.0
     return normalized_image
 
+# scrape root for file paths of images and their labels
 def parse_data(root_directory):
     # Initialize empty lists to store image data and labels
     x = []
@@ -57,6 +59,7 @@ def parse_data(root_directory):
     y=list(y)
     return (x,y)
 
+#data augs. cropping negative space
 def d_augment(x):
     original_height, original_width = tf.shape(x)[0], tf.shape(x)[1]
     # Data augmentation: Random horizontal flip
@@ -78,6 +81,7 @@ def d_augment(x):
     x = tf.image.resize(x, (image_size, image_size))
     return x
 
+# read images and format into numpy. also perform data augmentations
 def tf_parse(x,y):
     def _parse(x,y):
         x = load_and_preprocess_image(x.decode())
@@ -89,6 +93,7 @@ def tf_parse(x,y):
     y.set_shape([])
     return x,y
 
+# function call to transform list of file paths (X) with labels (Y) into dataset of images.
 def tf_dataset(X,Y,batch_size=batch_size):
     dataset=tf.data.Dataset.from_tensor_slices((X,Y))
     dataset=dataset.map(tf_parse)

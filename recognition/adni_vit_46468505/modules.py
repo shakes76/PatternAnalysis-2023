@@ -7,7 +7,7 @@ import tensorflow_addons as tfa;
 from dataset import image_size
 num_classes = 2
 
-patch_size = image_size // 8  # Size of the patches to be extract from the input images
+patch_size = image_size // 8  # 8 = number of patches per axis
 num_patches = (image_size // patch_size) ** 2
 
 projection_dim = 64
@@ -15,34 +15,21 @@ num_heads = 4
 transformer_units = [
     projection_dim * 2,
     projection_dim,
-]  # Size of the transformer layers
+]  
 transformer_layers = 16
-mlp_head_units = [2048, 1024]  # Size of the dense layers of the final classifier
+mlp_head_units = [2048, 1024] # mlp size
 
 learning_rate = 0.001
 weight_decay = 0.0001
 
-data_augmentation = keras.Sequential(
-    [
-        layers.Normalization(),
-        layers.Resizing(image_size, image_size),
-        layers.RandomFlip("horizontal"),
-        layers.RandomRotation(factor=0.02),
-        layers.RandomZoom(
-            height_factor=0.2, width_factor=0.2
-        ),
-    ],
-    name="data_augmentation",
-)
-# Compute the mean and the variance of the training data for normalization.
-#data_augmentation.layers[0].adapt(train_set.take(1))
-
+# mlp used for classification
 def mlp(x, hidden_units, dropout_rate):
     for units in hidden_units:
         x = layers.Dense(units, activation=tf.nn.gelu)(x)
         x = layers.Dropout(dropout_rate)(x)
     return x
 
+# patch class definition
 class Patches(layers.Layer):
     def __init__(self, patch_size):
         super().__init__()
@@ -60,7 +47,8 @@ class Patches(layers.Layer):
         patch_dims = patches.shape[-1]
         patches = tf.reshape(patches, [batch_size, -1, patch_dims])
         return patches
-    
+
+# positional embedding encoding
 class PatchEncoder(layers.Layer):
     def __init__(self, num_patches, projection_dim):
         super().__init__()
@@ -77,8 +65,6 @@ class PatchEncoder(layers.Layer):
     
 def create_vit_classifier():
     inputs = layers.Input(shape=(image_size,image_size,1))
-    # Augment data.
-    #augmented = data_augmentation(inputs)
     # Create patches.
     patches = Patches(patch_size)(inputs)
     # Encode patches.
@@ -114,16 +100,16 @@ def create_vit_classifier():
     return model
 
 def model_compile(model):
+    # initialise optimiser
     optimizer = tfa.optimizers.AdamW(
         learning_rate=learning_rate, weight_decay=weight_decay
     )
-
+    # compile with losses and metrics
     model.compile(
         optimizer=optimizer,
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=[
             keras.metrics.SparseCategoricalAccuracy(name="accuracy"),
-            #keras.metrics.SparseTopKCategoricalAccuracy(5, name="top-5-accuracy"),
-        ],
+        ]
     )
     return model
