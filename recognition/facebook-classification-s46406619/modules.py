@@ -6,13 +6,15 @@ from torch_geometric.nn import GCNConv
 class GCN(torch.nn.Module):
     def __init__(self):
         super().__init__()
-        self.gcn = GCNConv(128, 3)
-        self.linear = Linear(3, 4)
+        self.gcn1 = GCNConv(128, 64)
+        self.gcn2 = GCNConv(64, 64)
+        self.linear = Linear(64, 4)
 
     def forward(self, x, edges):
-        h = self.gcn(x, edges).relu()
-        z = self.linear(h)
-        return h, z
+        x = self.gcn1(x, edges).relu()
+        x = self.gcn2(x, edges).relu()
+        z = self.linear(x)
+        return x, z
     
     def accuracy(self, true, predict):
         return (true == predict).sum() / len(predict)

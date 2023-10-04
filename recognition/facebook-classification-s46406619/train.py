@@ -30,4 +30,6 @@ def run_training(lr=0.02, num_epoch=100):
         if epoch % 5 == 0:
             print(f'Epoch {epoch:>3} | Loss: {loss:.2f} | Acc: {acc*100:.2f}%')
 
-run_training(num_epoch=50)
+    torch.save(model.state_dict(), 'model.pth')
+
+run_training(num_epoch=100)
