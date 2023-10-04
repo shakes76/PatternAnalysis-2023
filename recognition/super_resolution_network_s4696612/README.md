@@ -17,6 +17,20 @@ applied to the low resolution image before any upsampling is performed. The conv
 generate a number of channels equal to the square of the upscaling factor; 16 filters are
 made. The pixelshuffle opperation then 'shuffles' the components of these channels into 1
 channel, thus creating a high resolution image. Through training, the convolutional layers
-learn to give the pixelshuffle result channels that accurately represent the original image,
-and the pixelshuffle operation learns the way the data should be arranged to successfully
-recreated the high resolution image. In this way, super-resolution is achieved.
+learn to supply the pixelshuffle with result channels that accurately represent the original 
+image, and the pixelshuffle operation learns the way the data should be arranged to
+successfully recreated the high resolution image. In this way, super-resolution is achieved.
+
+## Dependencies
+The project implements deep learning models using the following libaries. Functionalities
+may not be supported for other library versions.
+| Library  | Version |
+| ------------- | ------------- |
+| Python | 3.11.4 |
+| Pytorch | 2.0.1 |
+| PIL | 9.4.0 |
+| Torchvision | 0.15.2 |
+| Numpy | 1.25.2 |
+| Matplotlib | 3.7.2 |
+
+## 
