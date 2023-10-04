@@ -61,10 +61,7 @@ class Attention(nn.Module):
     def forward(self, in1, in2):
         out = self.lnorm1(in1)
         out, _ = self.attn(query=in1, key=in2, value=in2)
-        # out will be of shape [LATENT_DIM x BATCH_SIZE x EMBED_DIM] after matmul
-        # when used for cross-attention; otherwise same as x
-        
-        # first residual connection
+ 
         resid = out + in2
 
         # dense block
@@ -88,7 +85,7 @@ class MultiAttention(nn.Module):
         self.transformer = nn.ModuleList([
         Attention(
             heads=heads,
-            embed_dim=in_size) 
+            in_size=in_size) 
         for layer in range(layers)])
         
     def forward(self, latent, images=None):
