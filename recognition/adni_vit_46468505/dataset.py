@@ -100,3 +100,9 @@ def tf_dataset(X,Y,batch_size=batch_size):
     dataset=dataset.batch(batch_size)
     dataset=dataset.prefetch(10)
     return dataset
+
+def read_test_path(image_path):
+    im = load_and_preprocess_image(image_path)
+    im = d_augment(im)
+    im = im.numpy()
+    return im
