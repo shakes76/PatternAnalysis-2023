@@ -106,3 +106,4 @@ def read_test_path(image_path):
     im = d_augment(im)
     im = im.numpy()
     return im
+

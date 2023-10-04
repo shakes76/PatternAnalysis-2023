@@ -16,7 +16,7 @@ Vision transformers are able to effectively process images by splitting them int
 
 ## Model Training
 
-30000 images are provided for model training. A split of 70% training images and 30% testing images is chosen. This split provides an optimal trade-off between the maximising the accuracy of the test evaluation, while allowing as much breadth of training data as possible.
+30000 images are provided for model training. A split of 70% training images and 30% testing images is chosen. This split provides an optimal trade-off between the maximising the accuracy of the test evaluation, while allowing as much breadth of training data as possible. Within the 70% training set, 20% of the samples were set aside to use to validate the model during training. This validation set allows overfitting to be monitored during training.
 
 As pre-processing, the negative space is cropped from the borders of each image, which has the effect of focusing the model on the brain only as well as rescaling and centring the brains in-frame. Each image is analysed in patches.
 
@@ -25,3 +25,17 @@ As pre-processing, the negative space is cropped from the borders of each image,
 **Cropping Negative Space and Splitting Image into Patches**
 
 The model was trained on the training set for 40 epochs, and test error was evaluated at each step. The plot of loss and accuracy for testing and training sets were recorded throughout training.
+
+## Usage
+
+All packages used to develop the code for this model are listed in `myenv.txt` and can be installed with pip using the following command.
+
+```pip install -r myenv.txt```
+
+### Prediction
+
+The code in `predict.py` will load a previously trained model specified by a path variable. During runtime the user will be prompted to specify a testing image path for the model to make a prediciton on. The results are printed to the terminal. Ensure that path variables are changed to align with the directory structure being used.
+
+### Training
+
+Code used to train the vision transformer can be found in `train.py`. 40 epochs were used to train the model, however a 70% validation accuracy was achieved by the 10th epoch. The training loop runs for the number of epochs specified by the user, and saves the model to the working directory. Figures are also generated to show the training history, by plotting the loss and accuracy values for training and validation set for each epoch. Ensure that path variables are changed to align with the directory structure being used.
