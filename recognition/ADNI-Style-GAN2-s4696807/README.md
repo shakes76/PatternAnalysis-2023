@@ -19,4 +19,10 @@ Include any visualizations or results from your model, if applicable.
 ## Acknowledgments
 Give credit to any third-party code or libraries used in your project.
 
+## Todo List
+- Change the model to not use RGB and just grayscale to reduce the training time as model will require less 
+- Add a graph of the loss of each epoch and print loss each epoch 
+- Work on report read me 
+- Manipulate the style vector and show the affect of the final results of the model to show how model works 
+
 
