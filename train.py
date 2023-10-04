@@ -17,13 +17,13 @@ torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 torch.cuda.manual_seed_all(0)
 
-print ("note: trying out new lr scheduler and optimiser from  StepLR")
+print ("trying: AdamW, sm lr and lg model")
 
 # Hyperparameters and configurations
 learning_rate = 0.001
 
-optimiser_choice = "SGD"
-scheduler_active = False
+optimiser_choice = "AdamW"
+scheduler_active = True
 batch_size = 8
 num_epochs = 30
 img_size = 256
@@ -38,7 +38,7 @@ drop_p = 0.25  # dropout probability
 attn_p = 0.25  # attention dropout probability
 
 #update 1st oct 1.55pm - changed patience to 10 from 7
-test_num = 39
+test_num = 41
 optim_path_dict = {"AdamW": "AdamW/", "Radam": "RAdam/", "SGD": ""}
 optim_add_path = optim_path_dict[optimiser_choice]
 save_model_as = "{}saved_models/best_model_{}".format(optim_add_path, test_num)
