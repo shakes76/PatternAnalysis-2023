@@ -111,7 +111,7 @@ Extend the HeLayer to define an equalised Linear module
 """
 class LinearHe(HeLayer):
     def __init__(self, in_ch, out_ch, f=1.0):
-        HeLayer.__init__(self, nn.Linear(in_ch, out_ch, bias=True), bias_fill=0, f=0.01)
+        HeLayer.__init__(self, nn.Linear(in_ch, out_ch, bias=True), bias_fill=0, f=1.0)
 
 """
 Define a PyTorch module that concatenates the mean standard deviation to the
@@ -200,10 +200,12 @@ class B(nn.Module):
 
     """
     Feed forward:
-        noise   Generate from torch.randn((Batches, 1, img_size, img_size), device=device)
+        s       The signal shape that defines the noise shape
+        device  The CPU/GPU device for generating the noise on
     """
-    def forward(self, noise):
-        return self.weight * noise
+    def forward(self, s, device):
+        b = torch.randn((s[0], 1, s[2], s[3]), device=device)
+        return self.weight * b
     
 """
 The first synthesis block of the StyleGAN generator architecture. This is similar
