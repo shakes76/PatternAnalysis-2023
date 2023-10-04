@@ -38,7 +38,6 @@ The model was trained on the training set for 40 epochs, and test error was eval
 
 A sample of predictions is shown.
 
-![Results](images/sample_results.png)
 
 ## Usage
 
