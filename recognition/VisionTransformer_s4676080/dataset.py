@@ -50,4 +50,14 @@ test_transforms = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
+# Creating datasets and dataloaders
+train_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/new_dataset_2/AD_NC/train', transform=train_transforms, num_AD=2100, num_NC=2100)
+test_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/new_dataset_2/AD_NC/test', transform=test_transforms, num_AD=500, num_NC=500)
+
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
+
+# Displaying counts
+print(f"Training set: AD={len(train_dataset.AD_files)} images, NC={len(train_dataset.NC_files)} images")
+print(f"Test set: AD={len(test_dataset.AD_files)} images, NC={len(test_dataset.NC_files)} images")
     
