@@ -14,7 +14,8 @@ def main():
     print(device, flush=True)
 
     """ training params """
-    lr = 3e-5
+    generator_lr = 3e-5 if model_type == "gan" else 1e-3
+    discriminator_lr = 2e-5
     epochs = 300 if machine == "rangpur" else 3
 
     """ load training dataset """
@@ -33,23 +34,23 @@ def main():
 
     """ optimiser for generator """
     optimizer_generator = torch.optim.SGD(
-        params=generator.parameters(), lr=lr, 
+        params=generator.parameters(), lr=generator_lr, 
         momentum=0.9, weight_decay=5e-4,
     ) if model_type == "cnn" else torch.optim.Adam(
-        params=generator.parameters(), lr=lr, betas=(0.5, 0.999),
+        params=generator.parameters(), lr=generator_lr, betas=(0.5, 0.999),
     ) if model_type == "gan" else None
 
     """ optimiser for discriminator """
     optimizer_discriminator = torch.optim.SGD(
-        params=discriminator.parameters(), lr=lr, 
+        params=discriminator.parameters(), lr=discriminator_lr, 
         momentum=0.9, weight_decay=5e-4,
     ) if model_type == "cnn" else torch.optim.Adam(
-        params=discriminator.parameters(), lr=lr, betas=(0.5, 0.999),
+        params=discriminator.parameters(), lr=discriminator_lr, betas=(0.5, 0.999),
     ) if model_type == "gan" else None
 
     """ variable learning rate scheduller for generator """
     lr_scheduler_generator = torch.optim.lr_scheduler.OneCycleLR(
-        optimizer_generator, max_lr=lr, 
+        optimizer_generator, max_lr=generator_lr, 
         steps_per_epoch=len(train_loader), epochs=epochs,
     ) if model_type == "cnn" else torch.optim.lr_scheduler.LambdaLR(
         optimizer_generator, lr_lambda=lambda epoch: 0.95**epoch,
@@ -57,10 +58,10 @@ def main():
 
     """ variable learning rate scheduller for discriminator """
     lr_scheduler_discriminator = torch.optim.lr_scheduler.OneCycleLR(
-        optimizer_discriminator, max_lr=lr, 
+        optimizer_discriminator, max_lr=discriminator_lr, 
         steps_per_epoch=len(train_loader), epochs=epochs,
     ) if model_type == "cnn" else torch.optim.lr_scheduler.LambdaLR(
-        optimizer_discriminator, lr_lambda=lambda epoch: 0.95**epoch,
+        optimizer_discriminator, lr_lambda=lambda epoch: 0.96**epoch,
     ) if model_type == "gan" else None
 
     """ train the model """
