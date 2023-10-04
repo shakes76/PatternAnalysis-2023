@@ -34,7 +34,17 @@ All packages used to develop the code for this model are listed in `myenv.txt` a
 
 ### Prediction
 
-The code in `predict.py` will load a previously trained model specified by a path variable. During runtime the user will be prompted to specify a testing image path for the model to make a prediciton on. The results are printed to the terminal. Ensure that path variables are changed to align with the directory structure being used.
+The code in `predict.py` will load a previously trained model specified by a path variable. During runtime the user will be prompted to specify a testing image path for the model to make a prediciton on. The results are printed to the terminal. Ensure that path variables are changed to align with the directory structure being used. Example usage is shown.
+
+```
+Path of Image to Analyse: ./recognition/adni_vit_46468505/images/ad_sample.jpeg
+1/1 [==============================] - 3s 3s/step
+Test Image is Class Alzheimers with Confidence 4.9522
+```
+
+The testing image is also shown before a prediction is made.
+
+![Test Image](images/Figure_1.png)
 
 ### Training
 
