@@ -5,10 +5,10 @@ import torch
 from sklearn.model_selection import train_test_split
 
 class Data:
-    def __init__(self, features, edges, target, split_indices):
+    def __init__(self, features, edges, y, split_indices):
         self.X = features
         self.edges = edges
-        self.target = target
+        self.y = y
         self.split_indices = split_indices
 
 def load_data(test_size=0.2):

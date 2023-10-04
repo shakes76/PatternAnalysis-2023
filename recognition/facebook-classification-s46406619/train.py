@@ -15,7 +15,7 @@ def run_training(lr=0.02, num_epoch=100):
         h, z = model(data.X, data.edges) # forward pass
         
         # disregard all test labels from criterion
-        y_train = data.target
+        y_train = data.y
         for i in range(len(z)):
             if data.split_indices[i] == 1: # remove all test elements
                 z = torch.cat([z[0:i], z[i+1:]])
