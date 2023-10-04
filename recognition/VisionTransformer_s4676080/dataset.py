@@ -22,3 +22,15 @@ class AlzheimerDataset(Dataset):
         self.AD_files = self.AD_files[:num_AD]
         self.NC_files = self.NC_files[:num_NC]        
         self.all_files = self.AD_files + self.NC_files
+
+    def __len__(self):
+        return len(self.all_files)
+    
+    def __getitem__(self, idx):
+        image_path = self.all_files[idx]
+        image = Image.open(image_path).convert('RGB')
+        
+        if self.transform:
+            image = self.transform(image)                
+        label = 1 if os.path.basename(os.path.dirname(image_path)) == 'AD' else 0
+        return image, label
