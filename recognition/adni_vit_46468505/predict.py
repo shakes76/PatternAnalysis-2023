@@ -23,7 +23,7 @@ plt.title("Test Image")
 plt.show()
 
 vit_classifier = create_vit_classifier()
-vit_classifier.load_weights('/Users/georgiapower/Documents/UNI/engineering4:2/COMP3710/PatternAnalysis-2023/recognition/adni_vit_46468505/model_checkpoints/model_256bit_acc0.7271.h5')
+vit_classifier.load_weights('/Users/georgiapower/Documents/UNI/engineering4:2/COMP3710/PatternAnalysis-2023/recognition/adni_vit_46468505/model_checkpoints/model_256bit_acc0.7179.h5')
 vit_classifier=model_compile(vit_classifier)
 
 probs = vit_classifier.predict(point)
