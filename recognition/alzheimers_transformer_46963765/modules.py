@@ -4,6 +4,7 @@ import dataset as ds
 import torch
 import torchvision.models as models
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #Resnet Class (50 maybe or 25)
 class ADNI_Transformer(nn.Module):
@@ -13,17 +14,17 @@ class ADNI_Transformer(nn.Module):
         LATENT_DIM = 128
         LATENT_EMB = 64
         
-        
         # don't want it pretrianed      
         # take out the classification layer   
         network = models.resnet34(pretrained=False) 
         self._resnet = torch.nn.Sequential(*list(network.children())[:-1])
         
         #initialise the latent array and how many stacks we want
-        self.latent = torch.empty(LATENT_DIM, LATENT_EMB)
+        self.latent = torch.empty(LATENT_DIM, LATENT_EMB, device=device)
         self._depth = depth
         
         self._perceiver = nn.ModuleList([Perceiver_Block(LATENT_EMB) for per in range(depth)])
+        self._perceiver.to(device=device)
         self._classifier = Classifier()
         
 
@@ -32,9 +33,13 @@ class ADNI_Transformer(nn.Module):
         images = self._resnet(images)
         # reshapes to 32x512x1x1
         
+        #reshapes to 32, 512
+        images = images.view(32, 512)
+        
         latent = self.latent
+        print(latent.device)
         # use perceiver transformer (may n  eed to reshape first)
-        for pb in self.perceiver_blocks:
+        for pb in self._perceiver:
             latent = pb(latent, images)
         # might need to reshape
         
@@ -47,7 +52,7 @@ class Attention(nn.Module):
     def __init__(self, heads, in_size) -> None:
         super(Attention, self).__init__()
         
-        self.lnorm1 = nn.LayerNorm(in_size)
+        self.lnorm1 = nn.LayerNorm(in_size, device=device); self.lnorm1.to(device=device)
         self.attn = nn.MultiheadAttention(embed_dim=in_size, num_heads=heads)
 
         self.lnorm2 = nn.LayerNorm(in_size)
@@ -59,6 +64,9 @@ class Attention(nn.Module):
         
         
     def forward(self, in1, in2):
+        print(in1.shape)
+        print(in2.shape)
+        
         out = self.lnorm1(in1)
         out, _ = self.attn(query=in1, key=in2, value=in2)
  
@@ -81,12 +89,14 @@ class Attention(nn.Module):
 class MultiAttention(nn.Module):
     def __init__(self, heads, in_size, layers) -> None:
         super(MultiAttention, self).__init__()
-        
+
         self.transformer = nn.ModuleList([
         Attention(
             heads=heads,
             in_size=in_size) 
         for layer in range(layers)])
+        
+        self.transformer.to(device=device)
         
     def forward(self, latent, images=None):
         if images == None:
@@ -134,7 +144,6 @@ class Perceiver_Block(nn.Module):
         
     def forward(self, latent, image):
         l = self.cross_attention(latent, image)
-
         l = self.latent_transformer(latent)
 
         return l
