@@ -10,3 +10,13 @@ and then be processed through the model each time its use was required. Therefor
 aims to reconstruct brain MRI scan images to as high a detail as possible.
 
 ## Model Implementation
+An efficent sub-pixel convolutional neural network was implemented to complete the project.
+This model consists of multiple normal convolutional layers, (activated with the rectified
+linear unit function), and a pixelshuffle operation. In this model, the convolutions are
+applied to the low resolution image before any upsampling is performed. The convolutions
+generate a number of channels equal to the square of the upscaling factor; 16 filters are
+made. The pixelshuffle opperation then 'shuffles' the components of these channels into 1
+channel, thus creating a high resolution image. Through training, the convolutional layers
+learn to give the pixelshuffle result channels that accurately represent the original image,
+and the pixelshuffle operation learns the way the data should be arranged to successfully
+recreated the high resolution image. In this way, super-resolution is achieved.
