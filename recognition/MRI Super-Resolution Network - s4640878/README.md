@@ -14,9 +14,13 @@ The core objective of the network is to perform super-resolution, which means in
 
 The code for the generator model can be found in the `modules.py` file in `Model_Generator` class. The following is structural desciption of the generator model.
 
+![Generator](./figures/SR-DC-Generator.png)
+
 ### Discriminator
 
 The code for the discriminator model can be found in the `modules.py` file in `Model_Discriminator` class. The following is structural desciption of the discriminator model.
+
+![Discriminator](./figures/SR-DC-Discriminator.png)
 
 ## Dependencies
 

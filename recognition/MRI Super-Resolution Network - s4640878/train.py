@@ -31,27 +31,37 @@ def main():
     ) if model_type == "cnn" else torch.nn.BCELoss(
     ) if model_type == "gan" else None
 
-    """ optimizers """
-    #optimizer_generator = torch.optim.SGD(
-    #    params=generator.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4,
-    #)
-    #optimizer_discriminator = torch.optim.SGD(
-    #    params=discriminator.parameters(), lr=lr, momentum=0.9, weight_decay=5e-4,
-    #)
-    optimizer_generator = torch.optim.Adam(
+    """ optimiser for generator """
+    optimizer_generator = torch.optim.SGD(
+        params=generator.parameters(), lr=lr, 
+        momentum=0.9, weight_decay=5e-4,
+    ) if model_type == "cnn" else torch.optim.Adam(
         params=generator.parameters(), lr=lr, betas=(0.5, 0.999),
-    )
-    optimizer_discriminator = torch.optim.Adam(
-        params=discriminator.parameters(), lr=lr, betas=(0.5, 0.999),
-    )
+    ) if model_type == "gan" else None
 
-    """ variable learning rate schedullers """
-    #lr_scheduler_generator = torch.optim.lr_scheduler.OneCycleLR(
-    #    optimizer_generator, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs,
-    #)
-    #lr_scheduler_discriminator = torch.optim.lr_scheduler.OneCycleLR(
-    #    optimizer_discriminator, max_lr=lr, steps_per_epoch=len(train_loader), epochs=epochs,
-    #)
+    """ optimiser for discriminator """
+    optimizer_discriminator = torch.optim.SGD(
+        params=discriminator.parameters(), lr=lr, 
+        momentum=0.9, weight_decay=5e-4,
+    ) if model_type == "cnn" else torch.optim.Adam(
+        params=discriminator.parameters(), lr=lr, betas=(0.5, 0.999),
+    ) if model_type == "gan" else None
+
+    """ variable learning rate scheduller for generator """
+    lr_scheduler_generator = torch.optim.lr_scheduler.OneCycleLR(
+        optimizer_generator, max_lr=lr, 
+        steps_per_epoch=len(train_loader), epochs=epochs,
+    ) if model_type == "cnn" else torch.optim.lr_scheduler.LambdaLR(
+        optimizer_generator, lr_lambda=lambda epoch: 0.95**epoch,
+    ) if model_type == "gan" else None
+
+    """ variable learning rate scheduller for discriminator """
+    lr_scheduler_discriminator = torch.optim.lr_scheduler.OneCycleLR(
+        optimizer_discriminator, max_lr=lr, 
+        steps_per_epoch=len(train_loader), epochs=epochs,
+    ) if model_type == "cnn" else torch.optim.lr_scheduler.LambdaLR(
+        optimizer_discriminator, lr_lambda=lambda epoch: 0.95**epoch,
+    ) if model_type == "gan" else None
 
     """ train the model """
     generator.train()
@@ -107,16 +117,27 @@ def main():
                             discriminator_loss.item(), generator_loss.item(),
                         ), flush=True,
                     )
-                if model_type == "cnn": print (
+                if model_type == "cnn": print(
                         "epoch: %d/%d, step: %d/%d, loss: %.5f" % (
                             epoch + 1, epochs, i + 1, len(train_loader), 
                             generator_loss.item(),
                         ), flush=True,
                     )
          
-            """ step the lr schedulers """
-            #lr_scheduler_generator.step()
-            #if model_type == "gan": lr_scheduler_discriminator.step()
+            """ step the lr scheduler for cnn """
+            if model_type == "cnn":
+                lr_scheduler_generator.step()
+
+        """ step the lr schedulers for gan """
+        if model_type == "gan":
+            lr_scheduler_generator.step()
+            lr_scheduler_discriminator.step()
+            print(
+                "d lr: %.9f, g lr: %.9f" % (
+                    optimizer_discriminator.state_dict()["param_groups"][0]["lr"],
+                    optimizer_generator.state_dict()["param_groups"][0]["lr"],
+                ), flush=True,
+            )
 
         """ save the model """
         if (epoch + 1) % 30 == 0 or (machine == "local" and epoch + 1 == epochs):

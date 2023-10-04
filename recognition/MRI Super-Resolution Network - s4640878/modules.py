@@ -78,24 +78,24 @@ class Model_Discriminator(torch.nn.Module):
 
         self._model = torch.nn.Sequential(
 
-            self.make_layer(    # input layer
+            self.make_layer(    # conv 1: input layer
                 "input", num_channels, num_channels**2, batch_norm=False, activation_type="leaky-relu",
             ),
 
-            self.make_layer(    # downsampling layer: 240 x 256 -> 120 x 128
+            self.make_layer(    # conv 2: downsampling layer (240 x 256 -> 120 x 128)
                 "downsample", num_channels**2, num_channels**2, batch_norm=True, activation_type="leaky-relu",
             ),
-            self.make_layer(    # downsampling layer: 120 x 128 -> 60 x 64
+            self.make_layer(    # conv 3: downsampling layer (120 x 128 -> 60 x 64)
                 "downsample", num_channels**2, num_channels**2, batch_norm=True, activation_type="leaky-relu",
             ),
-            self.make_layer(    # downsampling layer: 60 x 64 -> 30 x 32
+            self.make_layer(    # conv 4: downsampling layer (60 x 64 -> 30 x 32)
                 "downsample", num_channels**2, num_channels**2, batch_norm=True, activation_type="leaky-relu",
             ),
-            self.make_layer(    # downsampling layer: 30 x 32 -> 15 x 16
+            self.make_layer(    # conv 5: downsampling layer (30 x 32 -> 15 x 16)
                 "downsample", num_channels**2, num_channels**2, batch_norm=True, activation_type="leaky-relu",
             ),
 
-            self.make_layer(    # output layer
+            self.make_layer(    # conv 6: output layer
                 "output", num_channels**2, num_channels, batch_norm=True, activation_type="leaky-relu",
             ),
 
