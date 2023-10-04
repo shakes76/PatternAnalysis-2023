@@ -234,14 +234,15 @@ class SynthesisInitialBlock(nn.Module):
     def forward(self, a):
         x = self.const
         
-        b1 = self.B1(torch.randn((x.shape[0], 1, x.shape[2], x.shape[3]), device=a.device))
-        b2 = self.B2(torch.randn((x.shape[0], 1, x.shape[2], x.shape[3]), device=a.device))
+        b1 = self.B1(x.shape, a.device)
+        b2 = self.B2(x.shape, a.device)
         
         x = x + b1
         x = self.adaIN1(x, a)
-        x = x + b2
+        x = self.conv2(x)
+        x = self.activate(x + b2)
         x = self.adaIN2(x, a)
-        x = self.activate(x)
+
         return x
 
 """
@@ -267,12 +268,13 @@ class SynthesisBlock(nn.Module):
         a   The manifold output w
     """
     def forward(self, x, a):
-        b1 = self.B1(torch.randn((x.shape[0], 1, x.shape[2], x.shape[3]), device=x.device))
-        b2 = self.B2(torch.randn((x.shape[0], 1, x.shape[2], x.shape[3]), device=x.device))
+        b1 = self.B1(x.shape, a.device)
+        b2 = self.B2(x.shape, a.device)
         
         x = self.conv1(x)
         x = self.activate(x + b1)
         x = self.adaIN1(x, a)
+        x = self.conv2(x)
         x = self.activate(x + b2)
         x = self.adaIN2(x, a)
 
