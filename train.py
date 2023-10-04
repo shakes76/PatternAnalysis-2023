@@ -20,25 +20,25 @@ torch.cuda.manual_seed_all(0)
 print ("note: trying out new lr scheduler and optimiser from  StepLR")
 
 # Hyperparameters and configurations
-learning_rate = 0.05
+learning_rate = 0.001
 
 optimiser_choice = "SGD"
-scheduler_active = True
-batch_size = 16
+scheduler_active = False
+batch_size = 8
 num_epochs = 30
 img_size = 256
 num_workers = 2
 momentum = 0.9
-depth = 16  # Decreased Depth - from 12
-n_heads = 4  # Modified Number of Heads
-mlp_ratio = 12.0  # Modified MLP Ratio
-embed_dim = 256 
+depth = 20  # Decreased Depth - from 12
+n_heads = 12  # Modified Number of Heads
+mlp_ratio = 4.0  # Modified MLP Ratio
+embed_dim = 768 
 max_patience = 7  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
-drop_p = 0.1  # dropout probability
-attn_p = 0.1  # attention dropout probability
+drop_p = 0.25  # dropout probability
+attn_p = 0.25  # attention dropout probability
 
 #update 1st oct 1.55pm - changed patience to 10 from 7
-test_num = 27
+test_num = 39
 optim_path_dict = {"AdamW": "AdamW/", "Radam": "RAdam/", "SGD": ""}
 optim_add_path = optim_path_dict[optimiser_choice]
 save_model_as = "{}saved_models/best_model_{}".format(optim_add_path, test_num)
