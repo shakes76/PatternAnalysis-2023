@@ -14,6 +14,10 @@ from modules import *
 from dataset import *
 import numpy as np
 import torch
+import matplotlib.pyplot as plt
+from scipy.signal import savgol_filter
+
+
 
 
 #Initialise GPU
@@ -38,21 +42,33 @@ data_var = 2.1689048e-06
 
 model.train()
 reconstruction_err_vals = []
-for i in enumerate(train_data):
-    batch_num, img = i
-    img = img.to(device)
-    optimizer.zero_grad()
+for epochs in range(5):
+    for i in enumerate(train_data):
+        batch_num, img = i
+        img = img.to(device)
+        optimizer.zero_grad()
 
-    vec_quantizer_loss, recon, _ = model(img)
-    #Reconstruction loss is mean squared error for images
-    reconstruction_err = F.mse_loss(recon, img)/ data_var
-    total_loss = reconstruction_err + vec_quantizer_loss
-    total_loss.backwards()
+        vec_quantizer_loss, recon, _ = model(img)
+        #Reconstruction loss is mean squared error for images
+        reconstruction_err = F.mse_loss(recon, img)/ data_var
+        total_loss = reconstruction_err + vec_quantizer_loss
+        total_loss.backward()
 
-    optimizer.step()
+        optimizer.step()
 
-    reconstruction_err_vals.append(reconstruction_err.item())
-    if (i+1) % 100 == 0:
-        print('%d iterations' % (i+1))
-        print('recon_error: %.3f' % np.mean(reconstruction_err_vals[-100:]))
-        print()
+        reconstruction_err_vals.append(reconstruction_err.item())
+        if batch_num % 20 == 0:
+            print('recon_error: %.3f' % np.mean(reconstruction_err_vals[-100:]))
+            print()
+    print("Epoch + " + str(epochs))
+train_res_recon_error_smooth = savgol_filter(reconstruction_err_vals, 375, 7)
+
+
+f = plt.figure(figsize=(16,8))
+ax = f.add_subplot(1,2,1)
+ax.plot(train_res_recon_error_smooth)
+ax.set_yscale('log')
+ax.set_title('Smoothed NMSE.')
+ax.set_xlabel('iteration')
+
+plt.savefig("reconstruction_err.png")
