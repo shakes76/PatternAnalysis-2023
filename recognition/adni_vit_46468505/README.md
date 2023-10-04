@@ -8,6 +8,26 @@ The ADNI Dataset consists of brain MRIs of patients with Alzheimers, as well as 
 
 **Sample Brain MRI Image of Alzheimers Patient (Left) and Healthy Patient (Right)**
 
+The dataset directory structure should resemble the following example file tree.
+
+```
+recognition/adni_vit_46468505/AD_NC/
+|-  test
+|-  |-  AD
+|-  |-  |-  388206_78.jpeg
+|-  |-  |-  ...
+|-  |-  NC
+|-  |-  |-  1182968_94.jpeg
+|-  |-  |-  ...
+|-  train
+|-  |-  AD
+|-  |-  |-  218391_78.jpeg
+|-  |-  |-  ...
+|-  |-  NC
+|-  |-  |-  808819_88.jpeg
+|-  |-  |-  ...
+```
+
 ## Vision Transformers
 
 Vision transformers are able to effectively process images by splitting them into many small, "bite-sized" patches. While these patches are processed individually, the positional context of each patch within the original image is preserved with positional embeddings. Self-attention is used in most architectures in order to determine the most useful patches to good performance.
