@@ -1,7 +1,7 @@
 import numpy as np
 from tensorflow import keras
 import matplotlib.pyplot as plt
-import tensorflow_addons as tfa;
+#import tensorflow_addons as tfa;
 
 from dataset import parse_data, tf_dataset
 from modules import create_vit_classifier, model_compile
