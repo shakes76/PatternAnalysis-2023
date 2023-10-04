@@ -296,17 +296,12 @@ def _init_vit_weights(m):
 
 
 def vit_base_patch16_224(num_classes: int = 21843, pretrained: bool = True,has_logits: bool = True):
-    """
-    ViT-Base model (ViT-B/16) from original paper (https://arxiv.org/abs/2010.11929).
-    ImageNet-21k weights @ 224x224, source https://github.com/google-research/vision_transformer.
-    weights ported from official Google JAX impl:
-    https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vitjx/jx_vit_base_patch16_224_in21k-e5005f0a.pth
-    """
+
     model = VisionTransformer(img_size=224,
                               patch_size=16,
                               embed_dim=400,
                               depth=6,
-                              num_heads=10,
+                              num_heads=8,
                               representation_size=400 if has_logits else None,
                               num_classes=num_classes)
     if pretrained:
@@ -317,12 +312,7 @@ def vit_base_patch16_224(num_classes: int = 21843, pretrained: bool = True,has_l
     return model
 
 def vit_base_patch16_224_2(num_classes: int = 21843, pretrained: bool = True,has_logits: bool = True):
-    """
-    ViT-Base model (ViT-B/16) from original paper (https://arxiv.org/abs/2010.11929).
-    ImageNet-21k weights @ 224x224, source https://github.com/google-research/vision_transformer.
-    weights ported from official Google JAX impl:
-    https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vitjx/jx_vit_base_patch16_224_in21k-e5005f0a.pth
-    """
+
     model = VisionTransformer(img_size=224,
                               patch_size=16,
                               embed_dim=256,
@@ -338,12 +328,7 @@ def vit_base_patch16_224_2(num_classes: int = 21843, pretrained: bool = True,has
     return model
 
 def vit_base_patch32_224(num_classes: int = 21843, pretrained: bool = True, has_logits: bool = True):
-    """
-    ViT-Base model (ViT-B/32) from original paper (https://arxiv.org/abs/2010.11929).
-    ImageNet-21k weights @ 224x224, source https://github.com/google-research/vision_transformer.
-    weights ported from official Google JAX impl:
-    https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vitjx/jx_vit_base_patch32_224_in21k-8db57226.pth
-    """
+
     model = VisionTransformer(img_size=224,
                               patch_size=32,
                               embed_dim=400,
@@ -360,12 +345,7 @@ def vit_base_patch32_224(num_classes: int = 21843, pretrained: bool = True, has_
     return model
 
 def vit_base_patch8_224(num_classes: int = 21843, pretrained: bool = True, has_logits: bool = True):
-    """
-    ViT-Base model (ViT-B/32) from original paper (https://arxiv.org/abs/2010.11929).
-    ImageNet-21k weights @ 224x224, source https://github.com/google-research/vision_transformer.
-    weights ported from official Google JAX impl:
-    https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vitjx/jx_vit_base_patch32_224_in21k-8db57226.pth
-    """
+
     model = VisionTransformer(img_size=224,
                               patch_size=8,
                               embed_dim=256,

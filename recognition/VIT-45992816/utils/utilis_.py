@@ -360,13 +360,13 @@ class Train_Metrice:
     def get(self):
         result = {}
         result['train_loss'] = np.mean(self.train_loss)
-        result['test_loss'] = np.mean(self.test_loss)
+        result['val_loss'] = np.mean(self.test_loss)
         result['train_acc'] = np.diag(self.train_cm).sum() / (self.train_cm.sum() + 1e-7)
-        result['test_acc'] = np.diag(self.test_cm).sum() / (self.test_cm.sum() + 1e-7)
+        result['val_acc'] = np.diag(self.test_cm).sum() / (self.test_cm.sum() + 1e-7)
         result['train_mean_acc'] = np.diag(
             self.train_cm.astype('float') / self.train_cm.sum(axis=1)[:, np.newaxis]).mean()
-        result['test_mean_acc'] = np.diag(self.test_cm.astype('float') / self.test_cm.sum(axis=1)[:, np.newaxis]).mean()
-        cols_name = ['train_loss', 'train_acc', 'train_mean_acc', 'test_loss', 'test_acc', 'test_mean_acc']
+        result['val_mean_acc'] = np.diag(self.test_cm.astype('float') / self.test_cm.sum(axis=1)[:, np.newaxis]).mean()
+        cols_name = ['train_loss', 'train_acc', 'train_mean_acc', 'val_loss', 'val_acc', 'val_mean_acc']
 
 
         return result, ','.join(['{:.6f}'.format(result[i]) for i in cols_name])
