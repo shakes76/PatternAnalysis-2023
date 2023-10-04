@@ -36,6 +36,10 @@ As pre-processing, the negative space is cropped from the borders of each image,
 
 The model was trained on the training set for 40 epochs, and test error was evaluated at each step. The plot of loss and accuracy for testing and training sets were recorded throughout training.
 
+A sample of predictions is shown.
+
+![Results](images/sample_results.png)
+
 ## Usage
 
 All packages used to develop the code for this model are listed in `myenv.txt` and can be installed with pip using the following command.
