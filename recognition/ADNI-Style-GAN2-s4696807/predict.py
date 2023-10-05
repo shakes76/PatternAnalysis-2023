@@ -6,7 +6,6 @@ from torchvision.utils import save_image
 import os
 import matplotlib.pyplot as plt
 
-
 # Function to generate example images using a generator model
 def generate_examples(gen, epoch, n=20):
     # Set the generator model in evaluation mode
@@ -70,14 +69,22 @@ for epoch in range(EPOCHS):
     Total_G_Losses.extend(G_Losses)
     Total_D_Losses.extend(D_Losses)
     
-    # Generate example images for the current epoch
-    generate_examples(gen, epoch)
+    if epoch % 20 == 0:
+        # Generate example images for the current epoch
+        generate_examples(gen, epoch)
     
 plt.figure(figsize=(10,5))
-plt.title("Generator and Discriminator Loss During Training")
-plt.plot(Total_G_Losses,label="G")
-plt.plot(Total_D_Losses, label="D")
+plt.title("Generator Loss During Training")
+plt.plot(Total_G_Losses,label="G", color="blue")
 plt.xlabel("iterations")
 plt.ylabel("Loss")
 plt.legend()
-plt.savefig('model_loss.png')
+plt.savefig('gen_loss.png')
+
+plt.figure(figsize=(10,5))
+plt.title("Discriminator Loss During Training")
+plt.plot(Total_D_Losses, label="D", color="orange")
+plt.xlabel("iterations")
+plt.ylabel("Loss")
+plt.legend()
+plt.savefig('dis_loss.png')
