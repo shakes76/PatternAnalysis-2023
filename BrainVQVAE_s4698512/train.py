@@ -9,11 +9,10 @@ Model imported from modules.py and data loader imported from dataset.py
 Plots losses and metrics during training.
 """
 
-import numpy as np
 import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from torchvision import transforms, datasets        # Will test on MNIST first
+from torchvision import transforms
 from torchvision.utils import save_image
 from tqdm import tqdm
 import os
@@ -39,9 +38,9 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
         images = images.to(device)
 
         optimiser.zero_grad()
-        # print(images.shape)
+
         x_til, z_e_x, z_q_x = model(images)
-        print("z_e_x shape", z_e_x.shape)
+
         # Reconstruction Loss
         recon_loss = F.mse_loss(x_til, images)
 
@@ -113,7 +112,7 @@ def main():
     learning_rate = 1.2e-4
 
     # Number of epochs during training
-    num_epochs = 50
+    num_epochs = 60
 
     # Trade off between reconstruction loss and KL Divergence loss
     # Reconstruction loss measures how similar of an output the model can produce from the input
@@ -121,7 +120,7 @@ def main():
     # of the VQ-VAE by forcing the encoder to follow a regularlised normal distribution in order to
     # prevent overfitting. A higher beta value (closer to 1) lowers KL Divergence Loss while a
     # lower beta value (closer to 0) lowers reconstruction loss.
-    beta = 0.4
+    beta = 0.35
 
     # Greyscale data: 1 channel
     num_channels = 1
@@ -130,10 +129,10 @@ def main():
     # latent space that an input data point can be snapped to (closest point). A higher number of
     # embeddings results in a finer latent space meaning more information can be retained from input
     # samples. However, too high may result in overfitting.
-    K = 32
+    K = 512
 
     # Number of neurons in each (inner/hidden) layer of the neural network
-    hidden_dim = 32
+    hidden_dim = 128
 
     dataset_path = os.path.join(".", "datasets", dataset)
 
@@ -146,10 +145,19 @@ def main():
             # Images already 256x256 but can't hurt to ensure size is correct
             transforms.Resize((image_x, image_y)),
 
-            # Convert images to single channel greyscale
+            # Randomly apply horizontal flips
+            transforms.RandomHorizontalFlip(p=0.5),
+
+            # Randomly apply rotations within the range of -15 to 15 degrees
+            transforms.RandomRotation(degrees=(-15, 15)),
+
+            # Randomly adjust brightness and contrast
+            transforms.ColorJitter(brightness=0.2, contrast=0.2),
+
+            # Convert images to single channel grayscale
             transforms.Grayscale(num_output_channels=num_channels),
 
-            # Finally convert images into Tensor
+            # Finally, convert images into Tensor
             transforms.ToTensor(),
         ])
 
@@ -216,11 +224,13 @@ def main():
     # Keep track of best loss so far and initialise to arbitrary -1
     best_loss = -1.
 
-    for epoch in range(num_epochs):
+    for epoch in tqdm(range(num_epochs), desc="Training Progress"):
+
         train(train_loader, model, optimiser, device, beta)
         loss, _ = test(validate_loader, model, device)
+        tqdm.write(f"Epoch [{epoch + 1}/{num_epochs}] Loss: {loss:.4f}")
 
-        print(f"Epoch [{epoch + 1}/{num_epochs}] Loss: {loss:.4f}")
+        # print(f"Epoch [{epoch + 1}/{num_epochs}] Loss: {loss:.4f}")
 
         # Save the model if it has the lowest validation loss so far
         if (epoch == 0) or (loss < best_loss):
