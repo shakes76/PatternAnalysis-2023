@@ -17,7 +17,7 @@ from modules import VectorQuantisedVAE
 from train import generate_samples
 
 
-def predict(dataset: str, num_samples: int, device: torch.device, model: str = "best.pt"):
+def predict(dataset: str, num_samples: int, device: torch.device, model_name: str = "best.pt"):
     """
     Takes a trained model of a dataset and generates (fake) samples.
     Stores them in a folder and also displays a sample of the samples.
@@ -39,7 +39,7 @@ def predict(dataset: str, num_samples: int, device: torch.device, model: str = "
         image_x, image_y = 240, 256
 
     # Size/dimensions within latent space
-    hidden_dim = 64     # Number of neurons in each layer
+    hidden_dim = 128     # Number of neurons in each layer
     K = 512      # Size of the codebook
 
     # Peturbance
@@ -49,7 +49,9 @@ def predict(dataset: str, num_samples: int, device: torch.device, model: str = "
     model = VectorQuantisedVAE(input_channels=num_channels,
                                output_channels=num_channels, hidden_channels=hidden_dim, num_embeddings=K)
     # Load the saved model
-    model.load_state_dict(torch.load(os.path.join(".", "ModelParams", "best.pt"))
+    model_path = os.path.join(".", "ModelParams", model_name)
+    print(model_path)
+    model.load_state_dict(torch.load(model_path)
                           )  # Update the path accordingly
     # Move model to CUDA GPU
     model = model.to(device)
@@ -126,7 +128,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Set the model to use the best one trained
-    model = "best.pt"
+    model = "model_60.pt"
 
     predict(dataset, num_samples, device, model)
 
