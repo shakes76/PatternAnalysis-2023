@@ -25,9 +25,8 @@ def load_data(batch_size, image_size):
         transforms.ToTensor(),
         transforms.Grayscale(num_output_channels=1),
         transforms.RandomHorizontalFlip(p=0.5),
-        transforms.RandomResizedCrop((224,224), scale=(0.8,1.0), ratio=(0.9, 1.1)),
-        # transforms.RandomRotation(degrees=30),
-        # transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+        transforms.RandomVerticalFlip(p=0.5),
+        transforms.RandomRotation(degrees=30),
         transforms.Normalize(mean=(0.1156), std=(0.2198), inplace=True),
     ])
 
