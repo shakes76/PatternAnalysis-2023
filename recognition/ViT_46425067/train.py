@@ -8,6 +8,8 @@ from tqdm.auto import tqdm
 import wandb
 import torchinfo
 from torchinfo import summary
+from vit_pytorch import ViT, SimpleViT
+from vit_pytorch.deepvit import DeepViT
 
 #setup random seeds
 torch.manual_seed(42)
@@ -42,15 +44,9 @@ def train_epoch(model: nn.Module,
             loss = loss_fn(y_pred_logits, y)
         # save loss
         train_loss += loss.item()
-        
         # model accuracy
         acc = accuracy(y_pred_logits, y)
         train_acc += acc
-        # if batch % 5 == 0:
-        #     wandb.log({"train/batch/loss": loss.item(),
-        #                 "train/batch/acc": acc,
-        #                 "train/batch/loss_avg": train_loss / (batch + 1),
-        #                 "train/batch/accuracy_avg": train_acc / (batch+1)})
         #backpropagation
         optimiser.zero_grad()
         grad_scaler.scale(loss).backward()
@@ -97,29 +93,37 @@ def test_epoch(model: nn.Module,
         test_acc = test_acc / len(data_loader)
     return test_loss, test_acc
 
-def train_model(config):
-    with wandb.init(config=config):
+def train_model(config=None):
+    with wandb.init(project="ViT", config=config, notes=""):
         config = wandb.config
         # load dataset
         train_loader, test_loader, _, _ = load_data(config.batch_size, config.img_size)
         # create model
-        model = ViT_torch(img_size=config.img_size,
-                    patch_size=config.patch_size,
-                    img_channels=config.img_channel,
-                    num_classes=config.num_classes,
-                    embed_dim=config.embed_dim,
-                    depth=config.depth,
-                    num_heads=config.num_heads,
-                    mlp_ratio=config.mlp_ratio,
-                    drop_prob=config.drop_prob,
-                    linear_embed=config.linear_embed).to(device)
-        
+        # model = ViT_torch(img_size=config.img_size,
+        #             patch_size=config.patch_size,
+        #             img_channels=config.img_channel,
+        #             num_classes=config.num_classes,
+        #             embed_dim=config.embed_dim,
+        #             depth=config.depth,
+        #             num_heads=config.num_heads,
+        #             mlp_ratio=config.mlp_ratio,
+        #             drop_prob=config.drop_prob,
+        #             linear_embed=config.linear_embed).to(device)
+        model = DeepViT(
+            image_size=config.img_size,
+            patch_size=config.patch_size,
+            num_classes=1,
+            dim=config.embed_dim,
+            depth=config.depth,
+            heads=config.num_heads,
+            mlp_dim=config.mlp_ratio*config.embed_dim,
+            dropout=config.drop_prob,
+            emb_dropout=config.drop_prob,
+            channels=1).to(device)
         # summarise model architecture
         summary(model, input_size=(1, 1, 224, 224), device=device)
-        
         # loss function 
         loss_fn = nn.BCEWithLogitsLoss()
-        
         # optimiser
         optimiser = optim.SGD(model.parameters(),
                                 lr=config.lr,
@@ -128,13 +132,11 @@ def train_model(config):
         if config.optimiser == "ADAM":
             optimiser = optim.Adam(model.parameters(),
                                     lr=config.lr,
-                                    weight_decay=config.weight_decay,
-                                    maximize=True)
+                                    weight_decay=config.weight_decay,)
         elif config.optimiser == "ADAMW":
             optimiser = optim.AdamW(model.parameters(),
                                     lr=config.lr,
                                     weight_decay=config.weight_decay)
-        
         # Learning rate scheduler
         scheduler = optim.lr_scheduler.OneCycleLR(optimizer=optimiser,
                                                     max_lr=config.max_lr,
@@ -142,7 +144,6 @@ def train_model(config):
                                                     epochs=config.epochs)
         # grad scaler for mixed precision
         grad_scaler = torch.cuda.amp.GradScaler(enabled=config.mix_precision)
-        
         # track results of training
         results  = {
                     "train_loss": [],
@@ -181,34 +182,31 @@ def train_model(config):
             results["test_acc"].append(test_acc)
     return results
 
-def save_model(path, model):
-    pass
-
 if __name__ == "__main__":
     WANDB = True
     #device agnostic code
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # hyperparmeters
     config = SimpleNamespace(
-        epochs=10,
+        epochs=30,
         img_channel=1,
         num_classes=1,  
         batch_size=512,
-        img_size=224,
+        img_size=256,
         patch_size=16,  #try 8 
-        embed_dim=128,  #patch embedding dimension
-        depth=12,        #number of transform encoders
+        embed_dim=256,  #patch embedding dimension
+        depth=6,        #number of transform encoders
         num_heads=8,    #attention heads
-        mlp_ratio=4,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
+        mlp_ratio=2,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
         # qkv_bias=True,  #bias for q, v, k calculations
-        drop_prob=0.1,  #dropout prob used in the ViT network
-        lr=1e-3, #2e-5,
-        optimiser="ADAM",
+        drop_prob=0.2,  #dropout prob used in the ViT network
+        lr=3e-4, #2e-5,
+        optimiser="SGD",
         linear_embed=True,
         data_augments=[],
         weight_decay=0.0,
         mix_precision=True,  
-        lr_scheduler=False,      
+        lr_scheduler=True,      
         max_lr=0.01,
     )
 
@@ -217,7 +215,7 @@ if __name__ == "__main__":
         #Login into wandb
         wandb.login(anonymous="allow")
         # wandb.init(config=config)  
-        wandb.agent(sweep_id="rodxiang2/ViT_Sweep/sunevdai", function=train_model, count=20)
+        wandb.agent(sweep_id="rodxiang2/ViT_Sweep/1x0mb3un", function=train_model, count=20)
     # Train the model and store the results
     else:
         results = train_model(config=config)
