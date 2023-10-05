@@ -17,7 +17,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 output_dir = './image_output'
 
 # Number of Epochs for training
-epochs = 50
+epochs = 500
 
 # Create a model instance from module.py
 model = module.UNet()
@@ -91,7 +91,7 @@ def sample_save_image(epoch, output_dir):
     # Sample noise
     img_size = dataset.IMAGE_SIZE
     img = torch.randn((1, 1, img_size, img_size), device=device)
-    num_images = 20
+    num_images = 10
     stepsize = int(module.T/num_images)
     
     for i in range(0, module.T)[::-1]:
