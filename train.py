@@ -4,7 +4,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
-from dataset import ADNIDataset  # Assuming your dataset class is in a file called dataset.py
+from dataset import ADNIDataset, DatasetStatistics  # Assuming your dataset class is in a file called dataset.py
 from model_test import VisionTransformer  # Assuming your model class is in a file called model.py
 from torch.optim.lr_scheduler import CyclicLR
 
@@ -17,28 +17,28 @@ torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 torch.cuda.manual_seed_all(0)
 
-print ("trying: AdamW, sm lr and lg model")
+print ("TEsting sm model with std and mean")
 
 # Hyperparameters and configurations
-learning_rate = 0.001
+learning_rate = 0.075
 
-optimiser_choice = "AdamW"
+optimiser_choice = "SDG"
 scheduler_active = True
-batch_size = 8
+batch_size = 128
 num_epochs = 30
 img_size = 256
 num_workers = 2
 momentum = 0.9
-depth = 20  # Decreased Depth - from 12
-n_heads = 12  # Modified Number of Heads
-mlp_ratio = 4.0  # Modified MLP Ratio
-embed_dim = 768 
+depth = 4  # Decreased Depth - from 12
+n_heads = 4  # Modified Number of Heads
+mlp_ratio = 2.0  # Modified MLP Ratio
+embed_dim = 256 
 max_patience = 7  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
 drop_p = 0.25  # dropout probability
 attn_p = 0.25  # attention dropout probability
 
 #update 1st oct 1.55pm - changed patience to 10 from 7
-test_num = 41
+test_num = 45
 optim_path_dict = {"AdamW": "AdamW/", "Radam": "RAdam/", "SGD": ""}
 optim_add_path = optim_path_dict[optimiser_choice]
 save_model_as = "{}saved_models/best_model_{}".format(optim_add_path, test_num)
@@ -93,21 +93,38 @@ def visualize_attention(data, attention_map, idx):
     plt.close()
 # TRANSFORMS
 # Adding more augmentations relevant to 3D brain scans such as vertical and horizontal flips
+std = 0.2244 # from file
+mean = 0.1156 # from file
 data_transforms = transforms.Compose([
     transforms.Resize((img_size, img_size)),
     transforms.RandomHorizontalFlip(),
     transforms.RandomVerticalFlip(),
     transforms.ToTensor(),
+    transforms.Normalize(mean=mean, std=std),
 ])
 standard_transforms = transforms.Compose([
     transforms.Resize((img_size, img_size)),
     transforms.ToTensor(),
+    transforms.Normalize(mean=mean, std=std),
 ])
+
+
+
 
 # DATASET 
 # Initialize the dataset
 root_dir = '/home/groups/comp3710/ADNI/AD_NC'
 train_dataset = ADNIDataset(root_dir=root_dir, subset='train', transform=data_transforms)
+
+
+# # calculate mean and std - alrady done
+# dataset_statistics = DatasetStatistics(train_dataset)
+# mean, std = dataset_statistics.calculate_statistics()
+# print(f"Mean: {mean}, Std Dev: {std}")
+# # save to file
+# with open("mean_std.txt", "w") as f:
+#     f.write(f"Mean: {mean}, Std Dev: {std}")
+
 
 # Test dataset
 test_dataset = ADNIDataset(root_dir=root_dir, subset='test', transform=standard_transforms)

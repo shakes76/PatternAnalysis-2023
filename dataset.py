@@ -1,4 +1,5 @@
-from torch.utils.data import Dataset
+import torch
+from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 import os
 
@@ -40,4 +41,32 @@ class ADNIDataset(Dataset):
             image = self.transform(image)
 
         return image, label
+
+
+
+class DatasetStatistics:
+    def __init__(self, dataset, batch_size=32):
+        self.dataset = dataset
+        self.loader = DataLoader(self.dataset, batch_size=batch_size, shuffle=False)
+        self.mean = 0.0
+        self.std = 0.0
+
+    def calculate_statistics(self):
+        nb_samples = 0
+        for data, _ in self.loader:
+            batch_samples = data.size(0)
+            data = data.view(batch_samples, data.size(1), -1)
+            self.mean += data.mean(2).sum(0)
+            nb_samples += batch_samples
+
+        self.mean /= nb_samples
+
+        for data, _ in self.loader:
+            batch_samples = data.size(0)
+            data = data.view(batch_samples, data.size(1), -1)
+            self.std += ((data - self.mean.unsqueeze(1))**2).sum([0,2])
+        
+        self.std = torch.sqrt(self.std / (nb_samples * 256 * 256))  # Assuming image size is 256x256
+
+        return self.mean, self.std
 
