@@ -141,3 +141,10 @@ optimizer.step()
 ## Future Direction
 
 #how to improve on this model (what else would i add to the model)
+
+
+## References
+
+## Code referenced from:
+# https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL (Heavily Referenced)
+# https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/annotated_diffusion.ipynb

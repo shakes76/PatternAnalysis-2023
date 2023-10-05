@@ -26,9 +26,6 @@ model = model.to(device)
 # Adam Optimizer for training the model
 optimizer = Adam(model.parameters(), lr=0.001)
 
-## Code referenced from:
-# https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL
-# https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/annotated_diffusion.ipynb
 
 # Loss function
 def get_loss(model, x_0, t):
