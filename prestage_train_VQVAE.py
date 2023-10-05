@@ -38,7 +38,7 @@ vis_folder = 'VQVAE_vis'
 ckpt_folder = 'model_ckpt/VQVAE'
 
 # Keep training if epoch is not zero
-start_epoch = 51
+start_epoch = 0
 if start_epoch != 0:
     # For example, if we start at epoch 7 and we need to load epoch 6.
     try:
