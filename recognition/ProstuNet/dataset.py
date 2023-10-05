@@ -1,19 +1,12 @@
 # dataset.py
 import tensorflow as tf
-from tensorflow import keras
-from tensorflow.keras import layers
-import tensorflow_datasets as tfds
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import nibabel as nib
-import random
-import os
 import numpy as np
-from copy import deepcopy
 import matplotlib.pyplot as plt
 import glob
-from PIL import Image
 
 class Data:
     """
@@ -99,7 +92,7 @@ class Data:
         
         return image, mask
 
-    def open_data(self, imagePath, maskPath):
+    def open_data(self, image_Path, mask_Path):
         ''' Opens data from image and mask path and creates a tensor representation
             Parameters:
                 imagePath: path to images
@@ -191,9 +184,9 @@ class Data:
         plt.figure(figsize=(15, 15))
         title = ["Input Image", "True Mask", "Predicted Mask"]
         for i in range(len(display_list)):
-        plt.subplot(1, len(display_list), i+1)
-        plt.title(title[i])
-        plt.imshow(tf.keras.utils.array_to_img(display_list[i]))
-        plt.axis("off")
-        plt.show()
+            plt.subplot(1, len(display_list), i+1)
+            plt.title(title[i])
+            plt.imshow(tf.keras.utils.array_to_img(display_list[i]))
+            plt.axis("off")
+            plt.show()
 
