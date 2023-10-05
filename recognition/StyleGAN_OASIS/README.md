@@ -24,11 +24,27 @@ _Describe how my particlar implementation works_
 
 _Provide example inputs, outputs and plots of your algorithm_
 
-## Dependencies and Reproducibility of Results
+## Reproducibility of Results
 
 _Referenced libraries and their versions_
 
 _Results of multiple runs, including run times_
+
+
+## Preprocessing
+
+The OASIS training dataset was used, which has 10,000 RGB images of size 256x256. Each synthesis layer requires training data for a particular size. Therefore, preprocessing included downsampling to the required size for each layer's training as well as the usual normalisation across the RGB channels.
+
+
+## Versioning and Dependencies
+
+PyTorch and CUDA for version 2.0.1 is required.
+
+Torchvision version 0.15.2 was used.
+
+## Loss Plots
+
+
 
 ## References
 _T. Karras, S. Laine, and T. Aila, “A Style-Based Generator Architecture for Generative Adversarial
