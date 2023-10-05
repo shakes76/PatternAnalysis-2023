@@ -268,7 +268,7 @@ class VectorQuantisedVAE(nn.Module):
         return x_tilde, z_e_x, z_q_x
 
 
-class VectorQuantization(Function):
+class VectorQuantisation(Function):
     @staticmethod
     def forward(ctx, inputs, codebook):
         with torch.no_grad():
@@ -290,19 +290,12 @@ class VectorQuantization(Function):
 
             return indices
 
-    @staticmethod
-    def backward(ctx, grad_output):
-        raise RuntimeError('Trying to call `.grad()` on graph containing '
-                           '`VectorQuantization`. The function `VectorQuantization` '
-                           'is not differentiable. Use `VectorQuantizationStraightThrough` '
-                           'if you want a straight-through estimator of the gradient.')
-
 
 class VectorQuantisationStraightThrough(Function):
     """
     This class defines a custom autograd function used in the training of Variational Autoencoders 
-    with Vector Quantization (VQ-VAEs). It implements the "straight-through estimator" technique, 
-    allowing for the quantization of continuous data into discrete representations while enabling 
+    with Vector Quantisation (VQ-VAEs). It implements the "straight-through estimator" technique, 
+    allowing for the quantisation of continuous data into discrete representations while enabling 
     gradient backpropagation during training.
 
     Since we are discretising the latent space, it is no longer to compute gradients. Therefore, 
@@ -312,7 +305,7 @@ class VectorQuantisationStraightThrough(Function):
 
     @staticmethod
     def forward(ctx, inputs, codebook):
-        # Step 1: Quantization
+        # Step 1: Quantisation
         # Quantise/discretise the input using the codebook
         indices = vq(inputs, codebook)
         # Flatten the indices for further processing
@@ -363,7 +356,7 @@ class VectorQuantisationStraightThrough(Function):
 
 
 # Alias for the custom functions, which can be used later
-vq = VectorQuantization.apply
+vq = VectorQuantisation.apply
 vq_st = VectorQuantisationStraightThrough.apply
 __all__ = [vq, vq_st]
 
