@@ -17,28 +17,28 @@ torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 torch.cuda.manual_seed_all(0)
 
-print ("TEsting sm model with std and mean")
+print ("biggest (40) model with std and mean - sm lr - no scheduler")
 
 # Hyperparameters and configurations
-learning_rate = 0.075
+learning_rate = 0.001
 
-optimiser_choice = "SDG"
-scheduler_active = True
-batch_size = 128
-num_epochs = 30
+optimiser_choice = "SGD"
+scheduler_active = False
+batch_size = 8
+num_epochs = 50
 img_size = 256
 num_workers = 2
 momentum = 0.9
-depth = 4  # Decreased Depth - from 12
-n_heads = 4  # Modified Number of Heads
-mlp_ratio = 2.0  # Modified MLP Ratio
-embed_dim = 256 
-max_patience = 7  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
+depth = 40  # Decreased Depth - from 12
+n_heads = 12  # Modified Number of Heads
+mlp_ratio = 6.0  # Modified MLP Ratio
+embed_dim = 768 
+max_patience = 20  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
 drop_p = 0.25  # dropout probability
 attn_p = 0.25  # attention dropout probability
 
 #update 1st oct 1.55pm - changed patience to 10 from 7
-test_num = 45
+test_num = 54
 optim_path_dict = {"AdamW": "AdamW/", "Radam": "RAdam/", "SGD": ""}
 optim_add_path = optim_path_dict[optimiser_choice]
 save_model_as = "{}saved_models/best_model_{}".format(optim_add_path, test_num)
@@ -63,7 +63,6 @@ print ("mlp_ratio: ", mlp_ratio)
 print ("embed_dim: ", embed_dim)
 print ("drop_p: ", drop_p)
 print ("attn_p: ", attn_p)
-
 
 
 # Visualize Attention - for end
@@ -297,7 +296,7 @@ correct = 0
 total = 0
 
 with torch.no_grad():  # No need to track gradients
-     for idx, (data, labels) in enumerate(test_loader):
+    for idx, (data, labels) in enumerate(test_loader):
         data, labels = data.to(device), labels.to(device)
         labels = labels.view(-1, 1).float()  # Reshaping from [32] to [32, 1]
 
@@ -305,7 +304,7 @@ with torch.no_grad():  # No need to track gradients
         outputs, attn_weights = model(data)
 
         # Visualize attention for the first batch (you can choose other batches)
-        if (idx % 10 == 0) and idx < 50:
+        if (idx % 10 == 0) and idx < 19:
             visualize_attention(data, attn_weights, idx)
         
         # Apply sigmoid to get probabilities
