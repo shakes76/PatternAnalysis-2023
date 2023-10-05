@@ -1,7 +1,4 @@
 /datasets/
-/mnistout/
-/BrainVQVAE_s4698512/__pycache__/
 **/__pycache__/
-/OASIS_generated/
-/OASIS_generated_MSE/
+/*_generated/
 /ModelParams/
