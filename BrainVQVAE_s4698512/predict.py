@@ -11,10 +11,8 @@ Prints out results and provides visualisations
 import os
 import torch
 import matplotlib.pyplot as plt
-from torchvision.utils import make_grid
 from torchvision import transforms
 from dataset import ADNI, OASIS
-# Replace with the actual module where your model is defined
 from modules import VectorQuantisedVAE
 from train import generate_samples
 
@@ -41,8 +39,8 @@ def predict(dataset: str, num_samples: int, device: torch.device, model: str = "
         image_x, image_y = 240, 256
 
     # Size/dimensions within latent space
-    hidden_dim = 32     # Number of neurons in each layer
-    K = 32      # Size of the codebook
+    hidden_dim = 64     # Number of neurons in each layer
+    K = 512      # Size of the codebook
 
     # Peturbance
     noise_scale = 0.001
