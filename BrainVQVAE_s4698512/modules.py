@@ -169,40 +169,6 @@ class VectorQuantisedVAE(nn.Module):
             nn.Tanh()
         )
 
-        # # Define the encoder network
-        # self.encoder = nn.Sequential(
-        #     nn.Conv2d(input_channels, hidden_channels,
-        #               kernel_size=4, stride=2, padding=1),
-        #     nn.ReLU(True),
-        #     nn.Conv2d(hidden_channels, hidden_channels,
-        #               kernel_size=4, stride=2, padding=1),
-        #     nn.ReLU(True),
-        #     nn.Conv2d(hidden_channels, hidden_channels,
-        #               kernel_size=4, stride=2, padding=1),
-        #     nn.ReLU(True),
-        #     nn.Conv2d(hidden_channels, hidden_channels,
-        #               kernel_size=4, stride=2, padding=1)  # Output latent codes
-        # )
-
-        # # Define the codebook
-        # self.codebook = VQEmbedding(num_embeddings, hidden_channels)
-
-        # # Define the decoder network
-        # self.decoder = nn.Sequential(
-        #     nn.Conv2d(num_embeddings, hidden_channels, kernel_size=1),
-        #     nn.ConvTranspose2d(hidden_channels, hidden_channels,
-        #                        kernel_size=4, stride=2, padding=1),
-        #     nn.ReLU(),
-        #     nn.ConvTranspose2d(hidden_channels, hidden_channels,
-        #                        kernel_size=4, stride=2, padding=1),
-        #     nn.ReLU(),
-        #     nn.ConvTranspose2d(hidden_channels, hidden_channels,
-        #                        kernel_size=4, stride=2, padding=1),
-        #     nn.ReLU(),
-        #     nn.Conv2d(hidden_channels, output_channels, kernel_size=1),
-        #     nn.Sigmoid()  # Assuming output is in [0, 1] range (for grayscale)
-        # )
-
         # Initialize model weights
         self.apply(weights_init)
 
