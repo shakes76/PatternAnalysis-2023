@@ -21,10 +21,16 @@ TEST_BATCH_SIZE = 128
 VALIDATE_BATCH_SIZE = 128
 
 OASIS_TRANS_DIR = os.path.join(".", "datasets", "OASIS_processed")
+ADNI_TRANS_DIR = os.path.join(".", "datasets", "ADNI_processed")
 
 FOLDS = ["train", "test", "validate"]
 OASIS_FOLD_PATH = {(TYPE, FOLD): f"keras_png_slices_{TYPE}{FOLD}" for TYPE in [
     "seg_", ""] for FOLD in FOLDS}
+
+CASES = ["AD", "NC"]    # Alzeimers or control
+# Adni dataset doesn't contain validation
+ADNI_FOLD_PATH = {
+    (FOLD, CASE): os.path.join(FOLD, CASE) for FOLD in FOLDS[0:2] for CASE in CASES}
 
 
 class OASIS():
@@ -145,6 +151,44 @@ class ADNI():
         self.train_dir_ad = "train/AD/"
         self.train_dir_nc = "train/NC/"
 
+        case = CASES[0]     # 0 = Alzeimers, 1 = Control
+
+        COPIED = False
+        # Copies imagess into their own case folder if not already done
+        if not COPIED:
+            # Loop over train and test sets
+            for fold in FOLDS[0:2]:
+                # Define source directory for this fold
+                source_dir = os.path.join(
+                    self.root_dir, ADNI_FOLD_PATH[(fold, case)])
+
+                # Loop over files in source directory.
+                for filename in os.listdir(source_dir):
+
+                    if not filename.endswith(".jpeg"):
+                        continue    # skip file if it's not a jpeg
+
+                    # Extract patient ID from filename
+                    # Assumes the format 'xxxxx_yy.jpeg' where xxxxx is pt id and yy is slice
+                    patient_id = filename.split("_")[0]
+
+                    # Define the destination directory for this patient
+                    destination_dir = os.path.join(
+                        ADNI_TRANS_DIR, ADNI_FOLD_PATH[(fold, case)], patient_id)
+
+                    # Create the destination directory if it doesn't exist
+                    os.makedirs(destination_dir, exist_ok=True)
+                    print("made directory", destination_dir)
+
+                    # Define the source and destination file paths
+                    source_filepath = os.path.join(source_dir, filename)
+                    destination_filepath = os.path.join(
+                        destination_dir, filename)
+
+                    # Copy the image from source to destination
+                    shutil.copy(source_filepath, destination_filepath)
+                    print("copying", source_dir, "to", destination_dir)
+
     def __len__(self):
         """
         Returns the number of images in the dataset
@@ -160,12 +204,24 @@ class ADNI():
             image = self.transfrom(image)
 
 
-# Test
+# Test script (OASIS)
 if __name__ == "__main__":
-    oasis_data_path = os.path.join(".", "datasets", "OASIS")
-    # Define a transformation to apply to the images (e.g., resizing)
-    transform = transforms.Compose([
-        transforms.Resize((256, 256)),  # Adjust the size as needed
-        transforms.ToTensor(),
-    ])
-    oasis = OASIS(oasis_data_path, transform=transform)
+    dataset = "ADNI"
+
+    if dataset == "OASIS":
+        oasis_data_path = os.path.join(".", "datasets", "OASIS")
+        # Define a transformation to apply to the images (e.g., resizing)
+        transform = transforms.Compose([
+            transforms.Resize((256, 256)),  # Adjust the size as needed
+            transforms.ToTensor(),
+        ])
+        oasis = OASIS(oasis_data_path, transform=transform)
+
+    elif dataset == "ADNI":
+        adni_data_path = os.path.join(".", "datasets", "ADNI", "AD_NC")
+        # Define a transformation to apply to the images (e.g., resizing)
+        transform = transforms.Compose([
+            transforms.Resize((240, 256)),  # Adjust the size as needed
+            transforms.ToTensor(),
+        ])
+        adni = ADNI(adni_data_path, transform=transform)
