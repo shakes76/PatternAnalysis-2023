@@ -39,20 +39,20 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
         images = images.to(device)
 
         optimiser.zero_grad()
-
+        # print(images.shape)
         x_til, z_e_x, z_q_x = model(images)
-
+        print("z_e_x shape", z_e_x.shape)
         # Reconstruction Loss
         recon_loss = F.mse_loss(x_til, images)
 
         # Vector Quantised Objective Function
         # We need to detach the gradient becuse gradients won't work in disctete space for backpropagation
-        # vq_loss = F.mse_loss(z_q_x, z_e_x.detach())
+        vq_loss = F.mse_loss(z_q_x, z_e_x.detach())
 
         # Commitment objective
         commit_loss = F.mse_loss(z_e_x, z_q_x.detach())
 
-        fin_loss = recon_loss + beta * commit_loss
+        fin_loss = recon_loss + vq_loss + beta * commit_loss
         fin_loss.backward()
 
         optimiser.step()
@@ -105,7 +105,7 @@ def main():
     # GPU Device Config
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    dataset = "ADNI"   # Choose dataset ADNI, OASIS
+    dataset = "OASIS"   # Choose dataset ADNI, OASIS
 
     # Define Global hyper parameters (for both datasets)
 
@@ -113,7 +113,7 @@ def main():
     learning_rate = 1.2e-4
 
     # Number of epochs during training
-    num_epochs = 160
+    num_epochs = 50
 
     # Trade off between reconstruction loss and KL Divergence loss
     # Reconstruction loss measures how similar of an output the model can produce from the input
@@ -126,20 +126,20 @@ def main():
     # Greyscale data: 1 channel
     num_channels = 1
 
+    # Number of embeddings within latent space's codebook. Each embedding is a discrete point within the
+    # latent space that an input data point can be snapped to (closest point). A higher number of
+    # embeddings results in a finer latent space meaning more information can be retained from input
+    # samples. However, too high may result in overfitting.
+    K = 32
+
+    # Number of neurons in each (inner/hidden) layer of the neural network
+    hidden_dim = 32
+
     dataset_path = os.path.join(".", "datasets", dataset)
 
     if dataset == "OASIS":
         # Input image dimensions
         image_x, image_y = 256, 256
-
-        # Number of neurons in each (inner/hidden) layer of the neural network
-        hidden_dim = 32
-
-        # Size/dimensions within latent space
-        K = 32      # Size of the codebook
-        # Dimensions of each vector within latent space
-
-        beta = 0.75
 
         # Define a transformation to apply to the images (e.g., resizing)
         transform = transforms.Compose([
@@ -164,16 +164,6 @@ def main():
     elif dataset == "ADNI":
         # Input image dimensions
         image_x, image_y = 240, 256
-
-        # Number of neurons in each (inner/hidden) layer of the neural network
-        hidden_dim = 32
-
-        # Size/dimensions within latent space
-        K = 32      # Size of the codebook
-        # Dimensions of each vector within latent space
-
-        # beta Trade off between reconstruction loss and commitment loss
-        beta = 0.75
 
         # Choose what type of samples to generate
         sampleType = "AD"     # AD = generate Alzheimer's samples; NC = generate control samples

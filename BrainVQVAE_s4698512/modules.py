@@ -144,7 +144,7 @@ class VectorQuantisedVAE(nn.Module):
 
     """
 
-    def __init__(self, input_channels: int, output_channels: int, num_embeddings: int = 512, hidden_channels: int = 200, z_dim: int = 20) -> None:
+    def __init__(self, input_channels: int, output_channels: int, num_embeddings: int, hidden_channels: int) -> None:
         # Call parent constructor
         super().__init__()
 
@@ -160,7 +160,7 @@ class VectorQuantisedVAE(nn.Module):
                       kernel_size=4, stride=2, padding=1),
             nn.ReLU(),
             nn.Conv2d(hidden_channels, num_embeddings,
-                      kernel_size=1)  # Output latent codes
+                      kernel_size=1, stride=1, padding=0)  # Output latent codes
         )
 
         # Define the codebook
@@ -297,6 +297,7 @@ class VectorQuantization(Function):
                                     inputs_flatten, codebook.t(), alpha=-2.0, beta=1.0)
 
             _, indices_flatten = torch.min(distances, dim=1)
+            print("Input size shape", inputs_size[:-1])
             indices = indices_flatten.view(*inputs_size[:-1])
             ctx.mark_non_differentiable(indices)
 

@@ -119,7 +119,7 @@ def predict(dataset: str, num_samples: int, device: torch.device, model: str = "
 
 def main():
     # Dataset selection
-    dataset = "ADNI"
+    dataset = "OASIS"
 
     # Number of samples to generate
     num_samples = 128
