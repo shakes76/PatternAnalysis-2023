@@ -17,7 +17,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 output_dir = './image_output'
 
 # Number of Epochs for training
-epochs = 200
+epochs = 50
 
 # Create a model instance from module.py
 model = module.UNet()
@@ -89,7 +89,7 @@ def save_tensor_image(image, epoch, step, output_dir):
 @torch.no_grad()
 def sample_save_image(epoch, output_dir):
     # Sample noise
-    img_size = 256
+    img_size = dataset.IMAGE_SIZE
     img = torch.randn((1, 1, img_size, img_size), device=device)
     num_images = 20
     stepsize = int(module.T/num_images)
@@ -111,10 +111,10 @@ for epoch in range(epochs):
     
     # Training Loop
     model.train()
-    for step, batch in enumerate(dataset.data_loader, 0):
+    for step, batch in enumerate(dataset.data_loader):
         optimizer.zero_grad()
         
-        t = torch.randint(0, module.T, (dataset.batch_size,), device=device).long()
+        t = torch.randint(0, module.T, (dataset.BATCH_SIZE,), device=device).long()
         loss = get_loss(model, batch[0], t)
         loss.backward()
         optimizer.step() 
@@ -130,11 +130,11 @@ for epoch in range(epochs):
         total_validation_samples = 0
         
         with torch.no_grad():
-            for step, batch in enumerate(dataset.validate_loader, 0):
-                t = torch.randint(0, module.T, (dataset.batch_size,), device=device).long()
+            for step, batch in enumerate(dataset.validate_loader):
+                t = torch.randint(0, module.T, (dataset.BATCH_SIZE,), device=device).long()
                 validation_loss = get_loss(model, batch[0], t)
-                total_validation_loss += validation_loss.item() * dataset.batch_size
-                total_validation_samples += dataset.batch_size
+                total_validation_loss += validation_loss.item() * dataset.BATCH_SIZE
+                total_validation_samples += dataset.BATCH_SIZE
 
         # Calculate average validation loss
         average_validation_loss = total_validation_loss / total_validation_samples

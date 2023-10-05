@@ -5,16 +5,20 @@ from PIL import Image
 
 root_path = 'data/keras_png_slices_data'
 
+# Define image size
+IMAGE_SIZE = 128
+
+# Define batch size of data
+BATCH_SIZE = 32
+
 # Define data transformations
 transform = transforms.Compose([
-    transforms.Resize((64, 64)),
+    transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
     transforms.RandomHorizontalFlip(),                      
     transforms.ToTensor(), # Data is scaled into [0, 1]
     transforms.Lambda(lambda t: (t * 2) - 1) # Scale between [-1, 1]
 ])
 
-# Define batch size of data
-batch_size = 32
 
 # Custom OASIS brain dataset class referenced from ChatGPT3.5: how to create custom dataset class for OASIS
 class OASISDataset(Dataset):
@@ -67,5 +71,5 @@ validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', labe
 # Create data loaders for each set
 # train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True) # Image shape [32, 1, 224, 224]
 # test_loader = DataLoader(test_data, batch_size=batch_size)
-data_loader = DataLoader(combined_data, batch_size=batch_size, shuffle=True)
-validate_loader = DataLoader(validate_data, batch_size=batch_size)
+data_loader = DataLoader(combined_data, batch_size=BATCH_SIZE, shuffle=True)
+validate_loader = DataLoader(validate_data, batch_size=BATCH_SIZE)
