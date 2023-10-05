@@ -71,5 +71,5 @@ validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', labe
 # Create data loaders for each set
 # train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True) # Image shape [32, 1, 224, 224]
 # test_loader = DataLoader(test_data, batch_size=batch_size)
-data_loader = DataLoader(combined_data, batch_size=BATCH_SIZE, shuffle=True)
+data_loader = DataLoader(combined_data, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
 validate_loader = DataLoader(validate_data, batch_size=BATCH_SIZE)
