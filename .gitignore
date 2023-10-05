@@ -4,5 +4,4 @@
 **/__pycache__/
 /OASIS_generated/
 /OASIS_generated_MSE/
-/ModelParams/model_*.pt
-/ModelParams_MSE/model_*.pt
+/ModelParams/
