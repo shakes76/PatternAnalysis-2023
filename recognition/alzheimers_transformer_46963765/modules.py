@@ -6,45 +6,6 @@ import torchvision.models as models
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-#Resnet Class (50 maybe or 25)
-class ADNI_Transformer(nn.Module):
-    
-    def __init__(self, depth):
-        super(ADNI_Transformer, self).__init__()    
-        LATENT_DIM = 32
-        LATENT_EMB = 512
-        
-        # don't want it pretrianed      
-        # take out the classification layer   
-        network = models.resnet34(pretrained=False) 
-        self._resnet = torch.nn.Sequential(*list(network.children())[:-1])
-        
-        #initialise the latent array and how many stacks we want
-        self.latent = torch.empty(LATENT_DIM, LATENT_EMB, device=device)
-        self._depth = depth
-        
-        self._perceiver = nn.ModuleList([Perceiver_Block(LATENT_EMB) for per in range(depth)])
-        self._perceiver.to(device=device)
-        self._classifier = Classifier()
-        
-
-    def forward(self, images):
-        # shape 32x3x240x240
-        images = self._resnet(images)
-        # reshapes to 32x512x1x1
-        
-        #reshapes to 32, 512
-        images = images.view(images.size(0), -1)
-        
-        latent = self.latent
-        # use perceiver transformer (may n  eed to reshape first)
-        for pb in self._perceiver:
-            latent = pb(latent, images)
-        # might need to reshape
-        
-        output = self._classifier(latent)
-        return output
-
 
 class Attention(nn.Module):
     
@@ -105,10 +66,6 @@ class LatentTransformer(nn.Module):
         # in1 is 128 by 64
         #in2 is 32 by 512
         
-        
-        #in1 = self.linear_in1(in1)
-        #print(in1.shape)
-        
         out = self.lnorm1(in1)
         out, _ = self.attn(query=in1, key=in2, value=in2)
  
@@ -147,6 +104,19 @@ class MultiAttention(nn.Module):
         return latent
         
         
+class Perceiver_Block(nn.Module):
+    
+    def __init__(self, in_size) -> None:
+        super(Perceiver_Block, self).__init__()
+        
+        self.cross_attention = Attention(1, in_size)
+        self.latent_transformer = MultiAttention(8,in_size,8)
+        
+    def forward(self, latent, image):
+        l = self.cross_attention(latent, image)
+        l = self.latent_transformer(l)
+
+        return l        
     
     
 class Classifier(nn.Module):
@@ -172,20 +142,44 @@ class Classifier(nn.Module):
         return torch.sigmoid(x)
 
 
-class Perceiver_Block(nn.Module):
+#Resnet Class (50 maybe or 25)
+class ADNI_Transformer(nn.Module):
     
-    def __init__(self, in_size) -> None:
-        super(Perceiver_Block, self).__init__()
+    def __init__(self, depth):
+        super(ADNI_Transformer, self).__init__()    
+        LATENT_DIM = 32
+        LATENT_EMB = 512
         
-        self.cross_attention = Attention(1, in_size)
-        self.latent_transformer = MultiAttention(8,in_size,8)
+        # don't want it pretrianed      
+        # take out the classification layer   
+        network = models.resnet34(pretrained=False) 
+        self._resnet = torch.nn.Sequential(*list(network.children())[:-1])
         
-    def forward(self, latent, image):
-        l = self.cross_attention(latent, image)
-        l = self.latent_transformer(latent)
+        #initialise the latent array and how many stacks we want
+        self.latent = torch.empty(LATENT_DIM, LATENT_EMB, device=device)
+        self._depth = depth
+        
+        self._perceiver = nn.ModuleList([Perceiver_Block(LATENT_EMB) for per in range(depth)])
+        self._perceiver.to(device=device)
+        self._classifier = Classifier()
+        
 
-        return l
-
+    def forward(self, images):
+        # shape 32x3x240x240
+        images = self._resnet(images)
+        # reshapes to 32x512x1x1
+        
+        #reshapes to 32, 512
+        images = images.view(images.size(0), -1)
+        
+        latent = self.latent
+        # use perceiver transformer (may n  eed to reshape first)
+        for pb in self._perceiver:
+            latent = pb(latent, images)
+        # might need to reshape
+        
+        output = self._classifier(latent)
+        return output
 
 
 
