@@ -10,10 +10,7 @@ Each component will be designated as a class
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import torch.optim as optim
 from torch.autograd import Function
-import torchvision.transforms as transforms
 
 
 class ResBlock(nn.Module):
@@ -148,39 +145,63 @@ class VectorQuantisedVAE(nn.Module):
         # Call parent constructor
         super().__init__()
 
-        # Define the encoder network
         self.encoder = nn.Sequential(
-            nn.Conv2d(input_channels, hidden_channels,
-                      kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(hidden_channels, hidden_channels,
-                      kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(hidden_channels, hidden_channels,
-                      kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(hidden_channels, num_embeddings,
-                      kernel_size=1, stride=1, padding=0)  # Output latent codes
+            # Downconvolution (downscaling)
+            nn.Conv2d(input_channels, hidden_channels, 4, 2, 1),
+            nn.BatchNorm2d(hidden_channels),
+            nn.ReLU(True),
+            nn.Conv2d(hidden_channels, hidden_channels, 4, 2, 1),
+            ResBlock(hidden_channels),
+            ResBlock(hidden_channels),
         )
 
-        # Define the codebook
         self.codebook = VQEmbedding(num_embeddings, hidden_channels)
 
-        # Define the decoder network
         self.decoder = nn.Sequential(
-            nn.Conv2d(num_embeddings, hidden_channels, kernel_size=1),
-            nn.ConvTranspose2d(hidden_channels, hidden_channels,
-                               kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(hidden_channels, hidden_channels,
-                               kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.ConvTranspose2d(hidden_channels, hidden_channels,
-                               kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv2d(hidden_channels, output_channels, kernel_size=1),
-            nn.Sigmoid()  # Assuming output is in [0, 1] range (for grayscale)
+            ResBlock(hidden_channels),
+            ResBlock(hidden_channels),
+            nn.ReLU(True),
+            # Upconvolution (upscaling)
+            nn.ConvTranspose2d(hidden_channels, hidden_channels, 4, 2, 1),
+            nn.BatchNorm2d(hidden_channels),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(hidden_channels, output_channels, 4, 2, 1),
+            nn.Tanh()
         )
+
+        # # Define the encoder network
+        # self.encoder = nn.Sequential(
+        #     nn.Conv2d(input_channels, hidden_channels,
+        #               kernel_size=4, stride=2, padding=1),
+        #     nn.ReLU(True),
+        #     nn.Conv2d(hidden_channels, hidden_channels,
+        #               kernel_size=4, stride=2, padding=1),
+        #     nn.ReLU(True),
+        #     nn.Conv2d(hidden_channels, hidden_channels,
+        #               kernel_size=4, stride=2, padding=1),
+        #     nn.ReLU(True),
+        #     nn.Conv2d(hidden_channels, hidden_channels,
+        #               kernel_size=4, stride=2, padding=1)  # Output latent codes
+        # )
+
+        # # Define the codebook
+        # self.codebook = VQEmbedding(num_embeddings, hidden_channels)
+
+        # # Define the decoder network
+        # self.decoder = nn.Sequential(
+        #     nn.Conv2d(num_embeddings, hidden_channels, kernel_size=1),
+        #     nn.ConvTranspose2d(hidden_channels, hidden_channels,
+        #                        kernel_size=4, stride=2, padding=1),
+        #     nn.ReLU(),
+        #     nn.ConvTranspose2d(hidden_channels, hidden_channels,
+        #                        kernel_size=4, stride=2, padding=1),
+        #     nn.ReLU(),
+        #     nn.ConvTranspose2d(hidden_channels, hidden_channels,
+        #                        kernel_size=4, stride=2, padding=1),
+        #     nn.ReLU(),
+        #     nn.Conv2d(hidden_channels, output_channels, kernel_size=1),
+        #     nn.Sigmoid()  # Assuming output is in [0, 1] range (for grayscale)
+        # )
 
         # Initialize model weights
         self.apply(weights_init)
@@ -297,7 +318,7 @@ class VectorQuantization(Function):
                                     inputs_flatten, codebook.t(), alpha=-2.0, beta=1.0)
 
             _, indices_flatten = torch.min(distances, dim=1)
-            print("Input size shape", inputs_size[:-1])
+
             indices = indices_flatten.view(*inputs_size[:-1])
             ctx.mark_non_differentiable(indices)
 
@@ -383,9 +404,10 @@ __all__ = [vq, vq_st]
 # test case
 if __name__ == "__main__":
     batch_size = 4
-    img_x, img_y = 28, 28
+    img_x, img_y = 256, 256
 
     x = torch.rand(batch_size, img_x * img_y)
-    vae = VectorQuantisedVAE(input_channels=img_x * img_y)
+    vae = VectorQuantisedVAE(input_channels=img_x * img_y,
+                             output_channels=img_x * img_y, num_embeddings=128, hidden_channels=32)
     x_recon, mu, sigma = vae(x)
     print(x_recon.shape, mu.shape, sigma.shape)
