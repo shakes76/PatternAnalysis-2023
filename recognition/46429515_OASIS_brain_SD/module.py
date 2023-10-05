@@ -1,5 +1,4 @@
 import torch
-import torchvision
 import torch.nn.functional as F
 from torch import nn
 import math
@@ -22,7 +21,7 @@ def get_index_from_list(vals, t, x_shape):
     """
     batch_size = t.shape[0]
     out = vals.gather(-1, t.cpu())
-    return out.reshape(batch_size, *((1,) * (len(x_shape) - 1))).to(device)
+    return out.reshape(batch_size, *((1,) * (len(x_shape) - 1))).to(t.device)
 
 def forward_diffusion_sample(x_0, t, device=device):
     """
@@ -94,9 +93,9 @@ class PositionalEmbedding(nn.Module):
         self.dim = dim
         
     def forward(self, time):
+        device = time.device
         half_dim = self.dim // 2
         embeddings = math.log(10000) / (half_dim - 1)
-        ###NEED TO FIX
         embeddings = torch.exp(torch.arange(half_dim, device=device) * -embeddings)
         embeddings = time[:, None] * embeddings[None, :]
         embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
@@ -111,8 +110,8 @@ class UNet(nn.Module):
     def __init__(self):
         super().__init__()
         img_ch = 1
-        down_ch = (64, 128, 256, 512, 1024)
-        up_ch = (1024, 512, 256, 128, 64)
+        down_ch = (32, 64, 128, 256, 512, 1024)
+        up_ch = (1024, 512, 256, 128, 64, 32)
         out_dim = 1
         time_emb_dim = 32
         
