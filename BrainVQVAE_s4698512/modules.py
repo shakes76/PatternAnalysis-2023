@@ -103,13 +103,34 @@ class VQEmbedding(nn.Module):
         return z_q_x, z_q_x_bar
 
 
-def weights_init(m):
+def weights_init(m: nn.Module) -> None:
+    """
+    Initialise the weights of convolutional layers in a neural network using Xavier initialization.
+
+    Args:
+        m (nn.Module): A layer within the neural network.
+
+    Note:
+        Xavier initialisation sets the initial weights of convolutional layers to be drawn from a 
+        uniform distribution with a specific scale set by m.weight.data, and biases are 
+        initialised to zeros.
+
+    Returns:
+        None
+    """
+    # Get the class name of the module 'm'
     classname = m.__class__.__name__
+
+    # Check if the class name contains 'Conv' (indicating it's a convolutional layer)
     if classname.find('Conv') != -1:
         try:
+            # Apply Xavier uniform initialization to the weights
             nn.init.xavier_uniform_(m.weight.data)
+
+            # Initialize biases to zeros
             m.bias.data.fill_(0)
         except AttributeError:
+            # If the layer does not have 'weight' or 'bias' attributes, skip initialization
             print("Skipping initialization of ", classname)
 
 
