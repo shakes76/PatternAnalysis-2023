@@ -33,6 +33,18 @@ class VectorQuantizer(layers.Layer):
         encodings = tf.one_hot(encoding_indices, self.num_embeddings)
         quantized = tf.matmul(encodings, self.embeddings, transpose_b=True)
         
+        # Reshape the quantized values back to the original input shape
+        quantized = tf.reshape(quantized, input_shape)
+        
+        # Calculate vector quantization loss and add that to the layer
+        commitment_loss = tf.reduce_mean((tf.stop_gradient(quantized) - x) ** 2)
+        codebook_loss = tf.reduce_mean((quantized - tf.stop_gradient(x)) ** 2)
+        self.add_loss(self.beta * commitment_loss + codebook_loss)
+        
+        # Straight-through estimator
+        quantized = x + tf.stop_gradient(quantized - x)
+        return quantized
+        
     def get_code_indices(self, flattened_inputs):
         # Calculate L2-normalized distance between the inputs and the codes
         similarity = tf.matmul(flattened_inputs, self.embeddings)
