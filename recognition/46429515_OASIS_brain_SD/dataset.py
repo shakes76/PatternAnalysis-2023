@@ -1,6 +1,6 @@
 import os
 import torchvision.transforms as transforms
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import DataLoader, Dataset, ConcatDataset
 from PIL import Image
 
 root_path = 'data/keras_png_slices_data'
@@ -22,36 +22,50 @@ class OASISDataset(Dataset):
         self.root_dir = root
         self.label_path = label_path
         self.transform = transform
-
-        # List all image files and label files in root and label path directory
-        self.image_files = [f for f in os.listdir(self.root_dir) if os.path.isfile(os.path.join(self.root_dir, f))]
-        self.label_files = [f for f in os.listdir(self.label_path) if os.path.isfile(os.path.join(self.label_path, f))]
+        self.image_paths = self._make_dataset() 
+     
+        
+    def _make_dataset(self):
+        image_paths = []
+        for subdir, _, files in os.walk(self.root_dir):
+            for file in files:
+                if file.endswith(".png"):
+                    image_paths.append(os.path.join(subdir, file))
+        return image_paths
     
+        
     def __len__(self):
-        return len(self.image_files)
+        return len(self.image_paths)
+    
     
     def __getitem__(self, index):
-        image_path = os.path.join(self.root_dir, self.image_files[index])
-        label_path = os.path.join(self.label_path, self.label_files[index])
-        # Load and preprocess the image
-        image, label = self.load_image(image_path, label_path)
-        return image, label
-    
-    def load_image(self, path1, path2):
-        image = Image.open(path1)
-        label = Image.open(path2)
+        
+        image_path = self.image_paths[index]
+        image = Image.open(image_path)
+        
         if self.transform:
             image = self.transform(image)
-            label = self.transform(label)
-        return image, label
+        
+        # Load corresponding label from label directory
+        label_filename = os.path.basename(image_path).replace("case_", "seg_")
+        label_path = os.path.join(self.label_path, label_filename)
+        
+        label_image = Image.open(label_path)
+        
+        if self.transform:
+            label_image = self.transform(label_image)
+        
+        return image, label_image
     
     
 # Specifying paths to train, test and validate directories
 train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', label_path=f'{root_path}/keras_png_slices_seg_train', transform=transform)
 test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', label_path=f'{root_path}/keras_png_slices_seg_test', transform=transform)
+combined_data = ConcatDataset([train_data, test_data])
 validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', label_path=f'{root_path}/keras_png_slices_seg_validate', transform=transform)
 
 # Create data loaders for each set
-train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True) # Image shape [32, 1, 224, 224]
-test_loader = DataLoader(test_data, batch_size=batch_size)
+# train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True) # Image shape [32, 1, 224, 224]
+# test_loader = DataLoader(test_data, batch_size=batch_size)
+data_loader = DataLoader(combined_data, batch_size=batch_size, shuffle=True)
 validate_loader = DataLoader(validate_data, batch_size=batch_size)
