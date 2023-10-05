@@ -48,8 +48,4 @@ def load_data(batch_size, image_size):
     test_loader = DataLoader(dataset=test_dataset,
                                 batch_size=batch_size,
                                 shuffle=False)
-    
-    class_labels = train_dataset.classes
-    class_idx = test_dataset.class_to_idx
-    
-    return train_loader, test_loader, class_labels, class_idx
+    return train_loader, test_loader,

@@ -82,7 +82,7 @@ def train_model(config=None):
     with wandb.init(project="ViT", config=config, notes=""):
         config = wandb.config
         # load dataset
-        train_loader, test_loader, _, _ = load_data(config.batch_size, config.img_size)
+        train_loader, test_loader = load_data(config.batch_size, config.img_size)
         # create model
         # model = ViT_torch(img_size=config.img_size,
         #             patch_size=config.patch_size,
