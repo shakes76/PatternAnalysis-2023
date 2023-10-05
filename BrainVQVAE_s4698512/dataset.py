@@ -14,9 +14,9 @@ from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 
 
-TRAIN_BATCH_SIZE = 128
-TEST_BATCH_SIZE = 128
-VALIDATE_BATCH_SIZE = 128
+TRAIN_BATCH_SIZE = 76
+TEST_BATCH_SIZE = 76
+VALIDATE_BATCH_SIZE = 76
 
 # OASIS Data set
 TYPE = "seg_"       # "seg_" for segmented, or "" for non-segmented
