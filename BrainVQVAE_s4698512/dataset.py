@@ -11,7 +11,7 @@ import os
 import shutil
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 
 
 TRAIN_BATCH_SIZE = 128
