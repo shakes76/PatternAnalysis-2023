@@ -9,10 +9,12 @@ model.to(device=device)
 
 dataset = ds.ADNI_Dataset()
 train_loader = dataset.get_train_loader()
+test_loader = dataset.get_test_loader()
+
 
 model.train()
-for j, (images, labels) in  enumerate(train_loader):
-    images = images.to(device)
-    labels = labels.to(device)
-    outputs = model(images)
-    print(outputs.shape)
+for j, (images, labels) in  enumerate(test_loader):
+    if images.size(0) == 32:
+        images = images.to(device)
+        labels = labels.to(device)
+        outputs = model(images)
