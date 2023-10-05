@@ -13,33 +13,48 @@ from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader, random_split
 
-TYPE = "seg_"       # "seg_" for segmented, or "" for non-segmented
 
-COPIED = True
 TRAIN_BATCH_SIZE = 128
 TEST_BATCH_SIZE = 128
 VALIDATE_BATCH_SIZE = 128
 
+# OASIS Data set
+TYPE = "seg_"       # "seg_" for segmented, or "" for non-segmented
 OASIS_TRANS_DIR = os.path.join(".", "datasets", "OASIS_processed")
-ADNI_TRANS_DIR = os.path.join(".", "datasets", "ADNI_processed")
 
 FOLDS = ["train", "test", "validate"]
 OASIS_FOLD_PATH = {(TYPE, FOLD): f"keras_png_slices_{TYPE}{FOLD}" for TYPE in [
     "seg_", ""] for FOLD in FOLDS}
 
+
+# ADNI Dataset
+ADNI_TRANS_DIR = os.path.join(".", "datasets", "ADNI_processed")
 CASES = ["AD", "NC"]    # Alzeimers or control
 # Adni dataset doesn't contain validation
 ADNI_FOLD_PATH = {
     (FOLD, CASE): os.path.join(FOLD, CASE) for FOLD in FOLDS[0:2] for CASE in CASES}
 
 
-class OASIS():
-    def __init__(self, root_dir, transform=None) -> None:
+class OASIS:
+    """
+    Defines data importer and data transforms as well as the data loader for the OASIS dataset.
+    """
+
+    def __init__(self, root_dir, transform=None, copy=False):
+        """
+        Initializes the OASIS class.
+
+        Args:
+            root_dir (str): The root directory containing the OASIS dataset.
+            transform (callable, optional): A function/transform to apply to the data (default: None).
+            copy (bool, optional): If True, the data will be copied to a processed folder and separated by patient (default: False).
+        """
+
         self.root_dir = root_dir
         self.transfrom = transform
 
         # Copies imagess into their own case folder if not already done
-        if not COPIED:
+        if copy:
             for fold in FOLDS:
                 source_dir = os.path.join(
                     self.root_dir, OASIS_FOLD_PATH[(TYPE, fold)])
@@ -47,19 +62,18 @@ class OASIS():
                 for filename in os.listdir(source_dir):
                     if not filename.endswith(".png"):
                         continue    # skip file
-                    # print(filename)
+
                     # Assumes the format 'seg_xxx_slice_y.nii.png'
                     patient_id = filename.split("_")[1]
-                    # print(patient_id)
 
                     # Define the destination directory for this patient
                     destination_dir = os.path.join(
                         OASIS_TRANS_DIR, OASIS_FOLD_PATH[(TYPE, fold)], patient_id)
-                    # print(destination_dir)
 
                     # Create the destination directory if it doesn't exist
                     os.makedirs(destination_dir, exist_ok=True)
                     print("made directory", destination_dir)
+
                     # Define the source and destination file paths
                     source_filepath = os.path.join(source_dir, filename)
                     destination_filepath = os.path.join(
@@ -143,19 +157,28 @@ class OASIS():
             image = self.transfrom(image)
 
 
-class ADNI():
-    def __init__(self, root_dir, transform=None) -> None:
+class ADNI:
+    """
+    Defines data importer and data transforms as well as the data loader for the ADNI dataset.
+    """
+
+    def __init__(self, root_dir, transform=None, copy=False) -> None:
+        """
+        Initializes the ADNI class.
+
+        Args:
+            root_dir (str): The root directory containing the ADNI dataset.
+            transform (callable, optional): A function/transform to apply to the data (default: None).
+            copy (bool, optional): If True, the data will be copied to a processed folder and separated by patient (default: False).
+        """
+
         self.root_dir = root_dir
         self.transfrom = transform
 
-        self.train_dir_ad = "train/AD/"
-        self.train_dir_nc = "train/NC/"
-
         case = CASES[0]     # 0 = Alzeimers, 1 = Control
 
-        COPIED = False
         # Copies imagess into their own case folder if not already done
-        if not COPIED:
+        if copy:
             # Loop over train and test sets
             for fold in FOLDS[0:2]:
                 # Define source directory for this fold
