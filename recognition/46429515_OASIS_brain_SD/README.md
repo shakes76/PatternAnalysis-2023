@@ -130,11 +130,15 @@ The respective sections of the trainings can be found inside the train.py file.
 
 ## Future Direction
 
-#how to improve on this model (what else would i add to the model)
+There are multiple ways that this stable diffusion model from scratch can be improved upon. The main methods for significant improvements are:
+* Increasing the complexity of the model for the Backwards Process
+* Changing from simple UNet to other models such as ResNet or Conditional U-Nets
+* Change the beta schedule equation used (sinusoidal, etc.)
+* Improve accuracy of the model by applying different transformations to the initial images
 
 
 ## References
 
-## Code referenced from:
-### https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL (Heavily Referenced)
-### https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/annotated_diffusion.ipynb
+### Code referenced from:
+* https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL (Heavily Referenced)
+* https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/annotated_diffusion.ipynb
