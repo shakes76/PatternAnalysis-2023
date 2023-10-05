@@ -103,44 +103,6 @@ class OASIS:
         self.validate_loader = DataLoader(
             self.validate_dataset, batch_size=VALIDATE_BATCH_SIZE, shuffle=False)
 
-        # print("Testing train loader")
-        # Iterate through the DataLoader to get a batch of data
-        # for batch_idx, data in enumerate(self.train_loader):
-        #     # "data" will contain a tuple (or dictionary) of inputs and labels, if applicable
-        #     inputs, labels = data  # Modify this if your DataLoader provides different data structure
-
-        #     # Print information about the batch
-        #     print(f"Batch {batch_idx + 1}:")
-        #     # Number of samples in the batch
-        #     print(f"Batch size: {len(inputs)}")
-
-        #     # Print or process the data as needed
-        #     # Shape of the input data (e.g., [batch_size, channels, height, width])
-        #     print("Input data shape:", inputs.shape)
-
-        #     # Optionally, print or process labels if your dataset has labels
-        #     if labels is not None:
-        #         # Shape of the labels (e.g., [batch_size])
-        #         print("Labels shape:", labels.shape)
-
-        #     # Optionally, visualize or inspect a few samples from the batch
-        #     # For example, if you are working with image data:
-        #     import matplotlib.pyplot as plt
-
-        #     # Plot the first few images from the batch
-        #     num_samples_to_plot = 4
-        #     for i in range(min(num_samples_to_plot, len(inputs))):
-        #         plt.subplot(1, num_samples_to_plot, i + 1)
-        #         # Assuming channels-last format for images
-        #         plt.imshow(inputs[i].permute(1, 2, 0).numpy())
-        #         plt.title(f"Sample {i + 1}")
-        #         plt.axis("off")
-
-        #     plt.show()
-
-        #     # Break the loop if you only want to inspect the first batch
-        #     break
-
     def __len__(self):
         """
         Returns the number of images in the train, test and validate sets as tuple
