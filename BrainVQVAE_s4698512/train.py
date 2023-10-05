@@ -105,7 +105,7 @@ def main():
     # GPU Device Config
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    dataset = "OASIS"   # ADNI, OASIS, MNIST
+    dataset = "ADNI"   # ADNI, OASIS, MNIST
 
     # Hyper parameters
     learning_rate = 0.8e-4
@@ -145,16 +145,48 @@ def main():
         ])
 
         # Define data loader object
-        oasis = OASIS(dataset_path, transform=transform)
+        oasis = OASIS(dataset_path, transform=transform, copy=False)
 
         train_loader = oasis.train_loader
         test_loader = oasis.test_loader
         validate_loader = oasis.validate_loader
     elif dataset == "ADNI":
         # Load ADNI dataset
+        # Greyscale data. Observe below in the transform I set num_output_channels = num_channels
         num_channels = 1
 
-        pass
+        # Image size
+        image_x, image_y = 240, 256
+
+        # Number of neurons in each inner layer of the neural network
+        hidden_dim = 32
+
+        # Size/dimensions within latent space
+        K = 32      # Size of the codebook
+        # Dimensions of each vector within latent space
+
+        # beta Trade off between reconstruction loss and commitment loss
+        beta = 0.75
+
+        # Define a transformation to apply to the images (e.g., resizing)
+        transform = transforms.Compose([
+            # Images already 256x256 but can't hurt to ensure size is correct
+            transforms.Resize((image_x, image_y)),
+
+            # Convert images to single channel greyscale
+            transforms.Grayscale(num_output_channels=num_channels),
+
+            # Finally convert images into Tensor
+            transforms.ToTensor(),
+        ])
+
+        # Define data loader object
+        adni = ADNI(dataset_path, transform=transform, copy=False)
+
+        train_loader = adni.train_loader
+        test_loader = adni.test_loader
+        validate_loader = adni.test_loader
+
     elif dataset == "MNIST":
         input_dim = 28 * 28
         # Hyper parameters
