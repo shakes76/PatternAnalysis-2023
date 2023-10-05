@@ -17,7 +17,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 output_dir = './image_output'
 
 # Number of Epochs for training
-epochs = 1000
+epochs = 200
 
 # Create a model instance from module.py
 model = module.UNet()
@@ -40,13 +40,7 @@ def get_loss(model, x_0, t):
     x_0: image
     """
     x_noise, noise = module.forward_diffusion_sample(x_0, t, device)
-    batch_size = x_noise.shape[0]
-    x_noise = x_noise.unsqueeze(1)
-    noise = noise.unsqueeze(1)
     noise_pred = model(x_noise, t)
-    
-    # Replicate noise along batch dimension to match batch size of noise_pred
-    noise = noise.repeat(batch_size, 1, 1, 1)
     return F.l1_loss(noise, noise_pred)
 
 
@@ -71,11 +65,12 @@ def sample_timestep(x, t):
     if t == 0:
         return model_mean
     else:
+        # add noise
         noise = torch.randn_like(x)
         return model_mean + torch.sqrt(posterior_variance_t) * noise
     
 
-def reverse_transform_image(image, epoch, step, output_dir):
+def save_tensor_image(image, epoch, step, output_dir):
     reverse_transforms = transforms.Compose([
         transforms.Lambda(lambda t: (t + 1) / 2),
         transforms.Lambda(lambda t: t.permute(1, 2, 0)),
@@ -83,26 +78,32 @@ def reverse_transform_image(image, epoch, step, output_dir):
         transforms.Lambda(lambda t: t.numpy().astype(np.uint8)),
         transforms.ToPILImage()
     ])
+     
+    # Shape image being saved so its a single brain
+    if len(image.shape) == 4:
+        image = image[0, :, :, :]
     
-    # save image here
+    # save image here  
     image_path = os.path.join(output_dir, f'epoch_{epoch:03d}_step_{step:03d}_generated.png')
-    vutils.save_image(image, image_path)
+    img = reverse_transforms(image)
+    img.save(image_path)
+
 
 @torch.no_grad()
 def sample_save_image(epoch, output_dir):
     # Sample noise
     img_size = 256
     img = torch.randn((1, 1, img_size, img_size), device=device)
-    num_images = 10
+    num_images = 20
     stepsize = int(module.T/num_images)
     
     for i in range(0, module.T)[::-1]:
         t = torch.full((1,), i, device=device, dtype=torch.long)
         img = sample_timestep(img, t)
         # Maintain natural range of distribution
-        img = torch.clamp(img, -1, 1)
+        img = torch.clamp(img, -1.0, 1.0)
         if i % stepsize == 0:
-            reverse_transform_image(img.detach().cpu(), epoch, i, output_dir)
+            save_tensor_image(img.detach().cpu(), epoch, i, output_dir)
 
 
 best_loss = float('inf')  # Initialize with a high value
@@ -113,14 +114,10 @@ for epoch in range(epochs):
     
     # Training Loop
     model.train()
-    for step, batch_image in enumerate(dataset.train_loader):
-        image, label = batch_image
+    for step, batch in enumerate(dataset.data_loader, 0):
         optimizer.zero_grad()
-        # print(image.shape)
-        batch_size = image.shape[0]
-        batch = image.to(device)
         
-        t = torch.randint(0, module.T, (batch_size,), device=device).long()
+        t = torch.randint(0, module.T, (dataset.batch_size,), device=device).long()
         loss = get_loss(model, batch[0], t)
         loss.backward()
         optimizer.step() 
@@ -136,14 +133,11 @@ for epoch in range(epochs):
         total_validation_samples = 0
         
         with torch.no_grad():
-            for batch_image in dataset.validation_loader:
-                image, label = batch_image
-                batch_size = image.shape[0]
-                batch = image.to(device)
-                t = torch.randint(0, module.T, (batch_size,), device=device).long()
+            for step, batch in enumerate(dataset.validate_loader, 0):
+                t = torch.randint(0, module.T, (dataset.batch_size,), device=device).long()
                 validation_loss = get_loss(model, batch[0], t)
-                total_validation_loss += validation_loss.item() * batch_size
-                total_validation_samples += batch_size
+                total_validation_loss += validation_loss.item() * dataset.batch_size
+                total_validation_samples += dataset.batch_size
 
         # Calculate average validation loss
         average_validation_loss = total_validation_loss / total_validation_samples
