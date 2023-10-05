@@ -40,4 +40,27 @@ class VisionTransformer(nn.Module):
             nn.ReLU(),
             nn.Linear(int(emb_size * mlp_ratio), num_classes)
         )
+        
+    def forward(self, x):
+        x = self.patch_embed(x)
+        
+        # Adding class token and position embedding
+        cls_tokens = self.cls_token.repeat(x.size(0), 1, 1)
+        x = torch.cat((cls_tokens, x), dim=1)
+        x += self.pos_embed
+        
+        # Transformer
+        x = self.transformer(x)
+        x = x.mean(dim=1)
+        
+        # MLP head
+        x = self.mlp_head(x)
+        
+        return x
+    
+
+    
+
+    
+        
     
