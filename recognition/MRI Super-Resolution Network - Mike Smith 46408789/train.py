@@ -15,7 +15,7 @@ def main():
 
     """ training params """
     generator_lr = 3e-5 if model_type == "gan" else 1e-3
-    discriminator_lr = 2e-5
+    discriminator_lr = 1e-5
     epochs = 300 if machine == "rangpur" else 3
 
     """ load training dataset """
@@ -49,19 +49,21 @@ def main():
     ) if model_type == "gan" else None
 
     """ variable learning rate scheduller for generator """
+    lambda_generator = lambda epoch: 0.95**min(epoch, 200)
     lr_scheduler_generator = torch.optim.lr_scheduler.OneCycleLR(
         optimizer_generator, max_lr=generator_lr, 
         steps_per_epoch=len(train_loader), epochs=epochs,
     ) if model_type == "cnn" else torch.optim.lr_scheduler.LambdaLR(
-        optimizer_generator, lr_lambda=lambda epoch: 0.95**epoch,
+        optimizer_generator, lr_lambda=lambda_generator,
     ) if model_type == "gan" else None
 
     """ variable learning rate scheduller for discriminator """
+    lambda_discriminator = lambda epoch: 0.96**min(epoch, 200)
     lr_scheduler_discriminator = torch.optim.lr_scheduler.OneCycleLR(
         optimizer_discriminator, max_lr=discriminator_lr, 
         steps_per_epoch=len(train_loader), epochs=epochs,
     ) if model_type == "cnn" else torch.optim.lr_scheduler.LambdaLR(
-        optimizer_discriminator, lr_lambda=lambda epoch: 0.96**epoch,
+        optimizer_discriminator, lr_lambda=lambda_discriminator,
     ) if model_type == "gan" else None
 
     """ train the model """
@@ -134,7 +136,7 @@ def main():
             lr_scheduler_generator.step()
             lr_scheduler_discriminator.step()
             print(
-                "d lr: %.9f, g lr: %.9f" % (
+                "d lr: %.12f, g lr: %.12f" % (
                     optimizer_discriminator.state_dict()["param_groups"][0]["lr"],
                     optimizer_generator.state_dict()["param_groups"][0]["lr"],
                 ), flush=True,
