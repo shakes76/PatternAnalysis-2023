@@ -70,25 +70,9 @@ class SiameseMLP(nn.Module):
         out = self.mlp(out)
         return out
 
-
-
-
-# deprecated
-def pairwise_subtraction(x:torch.Tensor, y:torch.Tensor):
-    if x.shape != y.shape:
-        raise NotImplementedError("X and Y must be the same shape")
-    pass
-
-    out = torch.zeros(x.shape)
-
-    for i in range(x.shape[0]):
-        for j in range(x.shape[1]):
-            out[i,j] = x[i,j] - y[i,j]
-    return out
-
-    # return torch.as_tensor([a - b for a,b in zip(x,y)])
-
-# testing
+#
+# testing scripts
+#
 def test_one_twin():
     test = SiameseTwin()
     print(test)
@@ -114,6 +98,29 @@ def test_mlp():
     print(out.shape)
     print(out)
 
+# test_one_twin()
+# test_entire_net()
+test_mlp()
+
+
+
+#
+# deprecated code
+#
+def pairwise_subtraction(x:torch.Tensor, y:torch.Tensor):
+    if x.shape != y.shape:
+        raise NotImplementedError("X and Y must be the same shape")
+    pass
+
+    out = torch.zeros(x.shape)
+
+    for i in range(x.shape[0]):
+        for j in range(x.shape[1]):
+            out[i,j] = x[i,j] - y[i,j]
+    return out
+
+    # return torch.as_tensor([a - b for a,b in zip(x,y)])
+
 def test_pairwise_subtraction():
     x = torch.rand(2, 4)
     y = torch.rand(2, 4)
@@ -129,9 +136,5 @@ def test_pairwise_subtraction_unequal_shape():
     print(y)
     print(pairwise_subtraction(x, y))
 
-# test_one_twin()
-# test_entire_net()
-test_mlp()
 # test_pairwise_subtraction_unequal_shape()
 # test_pairwise_subtraction()
-
