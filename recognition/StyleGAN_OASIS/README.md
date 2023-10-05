@@ -2,7 +2,7 @@
 
 Pattern recognition using a PyTorch style generative adverserial network (GAN) that is part of the COMP3710 repository. This particular implementation looks to create a generative model of the OASIS brain dataset using a variant of StyleGAN that has a "reasonably clear image".
 
-## Motivation of sythnesis with StyleGAN
+## Motivation of synthesis with StyleGAN
 
 A StyleGAN is used for synthesis. By learning the probability distribution to some underlying data (images in this case), it is possible to synthesis new images following the learnt distribution. There are a number of motivating reasons why a StyleGAN would be used:
 - **Image synthesis** As mentioned, images can be generated from the learnt underlying distribution for artistic and entertainment purposes
@@ -12,7 +12,11 @@ A StyleGAN is used for synthesis. By learning the probability distribution to so
 
 ## StyleGAN Algorithm
 
-_Description and explanation of the working principles of the algorithm implemented_
+A traditional GAN generates images directly from the latent z. While the introduction of this technique produced impressive results, it reaches limitations due to artifacts in the output as a results of its inability to control image features. StyleGAN addresses this by learning a manifold of z via the fully connected Mapping network (see image below). The output of the Mapping network represents the style weights that feed into each synthesis layer of the GAN. Amazingly, the GAN input is no longer random, but rather a constant 4x4 image. Each synthesis block is similar to a traditional GAN, except for two important features, namely adaptive instance normalisation and noise injection. 
+
+![StyleGAN Architecture](figures/stylegan_architecture.png)
+
+Adaptive instance normalisation, known as AdaIN, normalises each batch image, then scales and shifts (bias) each image by the styling weights produced by the Mapping network. Additionally, a noise injection occurs prior to AdaIN to promote variation. The consequence of applying AdaIN and noise injection is that over the full depth of the synthesis network, each layer focuses on different aspects of the generation process. Earlier layers focus on shape and composition, while later layers focus on finer details such as texture.  
 
 ## How It Works
 
@@ -25,3 +29,8 @@ _Provide example inputs, outputs and plots of your algorithm_
 _Referenced libraries and their versions_
 
 _Results of multiple runs, including run times_
+
+## References
+_T. Karras, S. Laine, and T. Aila, “A Style-Based Generator Architecture for Generative Adversarial
+Networks,” arXiv:1812.04948 [cs, stat], Mar. 2019, arXiv: 1812.04948. [Online]. Available: http:
+//arxiv.org/abs/1812.04948_
