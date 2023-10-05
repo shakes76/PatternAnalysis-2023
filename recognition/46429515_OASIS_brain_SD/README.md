@@ -10,11 +10,11 @@ In the (parametrized) backwards process, the model predicts the noise added in e
 
 ## Dependencies
 
-* PyTorch: '>=2.0.1'
-* Numpy: '>=1.24.3'
-* Pillow (PIL): '>=10.0.0'
-* Torchvision: '>=0.15.2'
-* Matplotlib: '>=3.7.2'
+* PyTorch: `>=2.0.1`
+* Numpy: `>=1.24.3`
+* Pillow (PIL): `>=10.0.0`
+* Torchvision: `>=0.15.2`
+* Matplotlib: `>=3.7.2`
 
 import os
 import torchvision.transforms as transforms
@@ -32,10 +32,10 @@ With a custom dataset class created (OASISDataset), this will enable the images 
 ```python
 train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', label_path=f'{root_path}/keras_png_slices_seg_train', transform=transform)
 test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', label_path=f'{root_path}/keras_png_slices_seg_test', transform=transform)
+combined_data = ConcatDataset([train_data, test_data])
 validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', label_path=f'{root_path}/keras_png_slices_seg_validate', transform=transform)
 
-train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_data, batch_size=batch_size)
+data_loader = DataLoader(combined_data, batch_size = BATCH_SIZE, shuffle=True, drop_last=True)
 validate_loader = DataLoader(validate_data, batch_size=batch_size)
 ```
 
@@ -44,9 +44,7 @@ validate_loader = DataLoader(validate_data, batch_size=batch_size)
 
 In this process, we build more gradually noisy images to be inputted into our model. Here, noise-levels/varianes are pre-computed and we sample each timestep image separately (Sums of Gaussians = Gaussian). The output of the noisy images can be seen as follows (code referenced from https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL):
 
-```python
-##example code here
-```
+The code can be seen in its section within module.py
 
 
 ### U-Net (Backwards Process) - module.py
@@ -99,6 +97,7 @@ In this section, the model is called and subtracts the noise prediction from the
 The following is the returned image when denoising, using an equation:
 
 ```python
+# Subtracting noise from image
 model_mean = sqrt_recip_alphas_t * (
         x - betas_t * model(x, t) / sqrt_one_minus_alphas_cumprod_t
     )
@@ -119,18 +118,9 @@ When training over epochs, the code goes through two sections:
 1. Training Loop
 2. Validation Loop
 
-The model goes through training and saves the processed image every 10 epochs, and the model goes through a validation every 5 epochs. In the validation process, if the model is found to be the best so far, the model will be saved for future usage in predict.py
+The model goes through training and saves the processed image every 10 epochs, and the model goes through a validation every 5 epochs. In the validation process, if the model is found to be the best so far, the model will be saved for future usage in predict.py.
 
-The main section of the training loop relies on the following code:
-
-```python
-optimizer.zero_grad()
-
-t = torch.randint(0, module.T, (batch_size,), device=device).long()
-loss = get_loss(model, batch[0], t)
-loss.backward()
-optimizer.step()
-```
+The respective sections of the trainings can be found inside the train.py file.
 
 
 ## Justification
@@ -146,5 +136,5 @@ optimizer.step()
 ## References
 
 ## Code referenced from:
-# https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL (Heavily Referenced)
-# https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/annotated_diffusion.ipynb
+### https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL (Heavily Referenced)
+### https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/annotated_diffusion.ipynb
