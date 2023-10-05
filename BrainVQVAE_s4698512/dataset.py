@@ -174,6 +174,21 @@ class ADNI:
                     shutil.copy(source_filepath, destination_filepath)
                     print("copying", source_dir, "to", destination_dir)
 
+        # New file paths
+        TRAIN_DIR = os.path.join(
+            ADNI_TRANS_DIR, ADNI_FOLD_PATH[("train", case)])
+        TEST_DIR = os.path.join(
+            ADNI_TRANS_DIR, ADNI_FOLD_PATH[("test", case)])
+
+        # Load Dataset
+        self.train_dataset = ImageFolder(TRAIN_DIR, transform=transform)
+        self.test_dataset = ImageFolder(TEST_DIR, transform=transform)
+
+        self.train_loader = DataLoader(
+            self.train_dataset, batch_size=TRAIN_BATCH_SIZE, shuffle=True)
+        self.test_loader = DataLoader(
+            self.test_dataset, batch_size=TEST_BATCH_SIZE, shuffle=False)
+
     def __len__(self):
         """
         Returns the number of images in the dataset
@@ -189,7 +204,7 @@ class ADNI:
             image = self.transfrom(image)
 
 
-# Test script (OASIS)
+# Test script
 if __name__ == "__main__":
     dataset = "ADNI"
 
@@ -209,4 +224,4 @@ if __name__ == "__main__":
             transforms.Resize((240, 256)),  # Adjust the size as needed
             transforms.ToTensor(),
         ])
-        adni = ADNI(adni_data_path, transform=transform)
+        adni = ADNI(adni_data_path, transform=transform, copy=True)
