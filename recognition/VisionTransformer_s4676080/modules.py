@@ -13,3 +13,8 @@ class PatchEmbedding(nn.Module):
         x = self.proj(x)
         x = x.flatten(2).transpose(1, 2)  
         return x
+    
+class VisionTransformer(nn.Module):
+    def __init__(self, in_channels=3, patch_size=16, emb_size=768, img_size=224, depth=12, num_heads=12, mlp_ratio=4, num_classes=2):
+        super().__init__()
+    
