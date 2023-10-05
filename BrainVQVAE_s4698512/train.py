@@ -105,31 +105,40 @@ def main():
     # GPU Device Config
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    dataset = "ADNI"   # ADNI, OASIS
+    dataset = "ADNI"   # Choose dataset ADNI, OASIS
 
-    # Hyper parameters
-    learning_rate = 0.8e-4
+    # Define Global hyper parameters (for both datasets)
+
+    # Learning rate
+    learning_rate = 1.2e-4
+
+    # Number of epochs during training
     num_epochs = 160
-    beta = 0.8
+
+    # Trade off between reconstruction loss and KL Divergence loss
+    # Reconstruction loss measures how similar of an output the model can produce from the input
+    # data (when passed through the latent codebook). KL Divergence loss controls the latent space
+    # of the VQ-VAE by forcing the encoder to follow a regularlised normal distribution in order to
+    # prevent overfitting. A higher beta value (closer to 1) lowers KL Divergence Loss while a
+    # lower beta value (closer to 0) lowers reconstruction loss.
+    beta = 0.4
+
+    # Greyscale data: 1 channel
+    num_channels = 1
 
     dataset_path = os.path.join(".", "datasets", dataset)
 
     if dataset == "OASIS":
-        # Load OASIS Dataset
-        # Greyscale data. Observe below in the transform I set num_output_channels = num_channels
-        num_channels = 1
-
-        # Image size
+        # Input image dimensions
         image_x, image_y = 256, 256
 
-        # Number of neurons in each inner layer of the neural network
+        # Number of neurons in each (inner/hidden) layer of the neural network
         hidden_dim = 32
 
         # Size/dimensions within latent space
         K = 32      # Size of the codebook
         # Dimensions of each vector within latent space
 
-        # beta Trade off between reconstruction loss and commitment loss
         beta = 0.75
 
         # Define a transformation to apply to the images (e.g., resizing)
@@ -147,19 +156,16 @@ def main():
         # Define data loader object
         oasis = OASIS(dataset_path, transform=transform, copy=False)
 
+        # Obtain data loaders from oasis object
         train_loader = oasis.train_loader
         test_loader = oasis.test_loader
         validate_loader = oasis.validate_loader
 
     elif dataset == "ADNI":
-        # Load ADNI dataset
-        # Greyscale data. Observe below in the transform I set num_output_channels = num_channels
-        num_channels = 1
-
-        # Image size
+        # Input image dimensions
         image_x, image_y = 240, 256
 
-        # Number of neurons in each inner layer of the neural network
+        # Number of neurons in each (inner/hidden) layer of the neural network
         hidden_dim = 32
 
         # Size/dimensions within latent space
@@ -188,6 +194,7 @@ def main():
         adni = ADNI(dataset_path, sampleType=sampleType,
                     transform=transform, copy=False)
 
+        # Obtain data loaders from adni object
         train_loader = adni.train_loader
         test_loader = adni.test_loader
         validate_loader = adni.test_loader
@@ -206,19 +213,10 @@ def main():
     optimiser = torch.optim.Adam(model.parameters(), lr=learning_rate)
     print("Optimiser initialised", optimiser)
 
-    # Reconstruction Loss function. Use BCELoss
-    print("initialising Loss function")
-    loss_fn = torch.nn.MSELoss(reduction="sum")
-    print("MSELoss initialised")
-
     # Train model
     print("Retrieving first batch of images from test loader")
     fixed_images, _ = next(iter(test_loader))
     print(f"{len(fixed_images)} images loaded")
-
-    # Generate the samples first once
-    reconstruction = generate_samples(fixed_images, model, device)
-    print("Reconstruction Complete")
 
     # Initialise Directory to save model to
     save_filename = os.path.join(".", "ModelParams")
@@ -240,22 +238,9 @@ def main():
             with open(f'{save_filename}/best.pt', 'wb') as f:
                 torch.save(model.state_dict(), f)
 
-        # # Generate and display samples
-        # with torch.no_grad():
-        #     reconstruction = generate_samples(fixed_images, model, device)
-
         # Save the model at each epoch
         with open(f'{save_filename}/model_{epoch + 1}.pt', 'wb') as f:
             torch.save(model.state_dict(), f)
-
-    # Visualize the generated samples using matplotlib
-    # fig, axes = plt.subplots(nrows=8, ncols=8, figsize=(12, 12))
-    # for i, ax in enumerate(axes.flat):
-    #     ax.imshow(reconstruction[i].cpu().numpy().squeeze(), cmap='gray')
-    #     ax.axis('off')
-
-    # plt.tight_layout()
-    # plt.show()
 
 
 def inference(digit, model, dataset):
