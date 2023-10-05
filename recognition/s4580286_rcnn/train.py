@@ -9,86 +9,82 @@ Original file is located at
 
 # Commented out IPython magic to ensure Python compatibility.
 '''
-Simple
-
+Trains the model on the 2017 ISIC dataset
+Outputs: Trained Model -> Mask_s4580286_Final.pt
+        Training and testing loss -> TestTrainFinal.csv
 '''
 from google.colab import drive
 drive.mount('/content/drive')
 
 # %cd /content/drive/MyDrive/ColabNotebooks
 
-from datasetv2 import MoleData
-from modulesv2 import load_model
+from dataset import MoleData
+from modules import load_model
+import pands as pd
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
-import matplotlib.pyplot as plt
 import time
 from tqdm import tqdm
 
-MODE = "debug"
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
-model = load_model()
-model = model.to(device)
-if MODE == "debug":
-    print(device)
+
+print(torch.__version__)
 
 #Hyper Parameters
-num_epochs = 5
+num_epochs = 20
 learning_rate = 0.0025
 num_classes = 3
 
-#Train Data
-train_data = MoleData("/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Training_Data",
-                 "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Training_Part1_GroundTruth",
-                 "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Training_Part3_GroundTruth.csv")
+def unpack_images(images, device):
+  new_images = []
+  for image in images:
+    new_images.append(image.to(device))
+  return new_images
 
-train_data = torch.utils.data.Subset(train_data, range(100))
-train_dataloader = torch.utils.data.DataLoader( train_data, batch_size=1, shuffle=True, collate_fn=lambda x:tuple(zip(*x)))
+def unpack_targets(targets, device):
+  new_targets = []
+  for target in targets:
+    new_target = {}
+    for k, v in target.items():
+        new_target[k] = v.to(device)
+    new_targets.append(new_target)
+  return new_targets
 
-## Test Data
-test_data = MoleData("//content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Test_v2_Data",
-                 "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Test_v2_Part1_GroundTruth",
-                 "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Test_v2_Part3_GroundTruth.csv")
-
-#batch_size = 256
-test_data = torch.utils.data.Subset(test_data, range(100))
-test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True, collate_fn=lambda x:tuple(zip(*x)))
-
-def single_epoch(model, optimizer, dataloader, device, epoch):
+def one_epoch(model, optimizer, dataloader, device, epoch, train_flag):
   total_losses = []
   i = 0
   total_step = len(dataloader)
-  for images,targets in tqdm(dataloader): #load a batch
-          images = [image.to(device) for image in images]
-          targets = [{k: v.to(device) for k, v in target.items()} for target in targets]
+  for i, (images,targets) in enumerate(dataloader): #load a batch
+    images = unpack_images(images,device)
+    targets = unpack_targets(targets, device)
 
-          # Forward pass
-          optimizer.zero_grad()
-          outputs = model(images,targets)
-          total_loss = sum(loss for loss in outputs.values())
+    # Forward pass
+    outputs = model(images, targets)
+    # Backward and optimize
+    if train_flag == 1:
+      optimizer.zero_grad()
+    total_loss = 0.0
+    for loss in outputs.values():
+      total_loss += loss
 
-          # Backward and optimize
+    if train_flag == 1:
+      total_loss.backward()
+      optimizer.step()
 
-          total_loss.backward()
-          optimizer.step()
-          total_losses.append(total_loss.detach().cpu().item())
-          i += 1
-          if (i+1) % 100 == 0:
-              print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
-                      .format(i+1, num_epochs, i+1, total_step, total_loss.item()))
+    total_losses.append(total_loss.detach().cpu().item())
+    if (i+1) % 100 == 0:
+        print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
+                .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
 
 
   return total_losses
 
 
-def train_model():
-  # criterion = nn.CrossEntropyLoss()
+def train_model(model, train_dataloader, test_dataloader,device):
   optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate,weight_decay=0.0001, momentum=0.9)
-
   #linear schedule - how to reduce learning rate as training
   total_step = len(train_dataloader)
   scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=learning_rate, steps_per_epoch=total_step, epochs=num_epochs)
-  #scheduler =  torch.optim.lr_scheduler.StepLR(optimizer,step_size=3,gamma=0.1)
   total_loss = []
 
   #Train
@@ -98,10 +94,10 @@ def train_model():
   for epoch in range(num_epochs):
     print(">Training")
     start = time.time()
-    all_loss = single_epoch(model, optimizer, train_dataloader, device, epoch)
+    train_loss = one_epoch(model, optimizer, train_dataloader, device, epoch, 1)
     scheduler.step()
-    training_loss.append(sum(all_loss))
-    print("TRAINING_LOSS", sum(all_loss))
+    training_loss.append(sum(train_loss))
+    print("TRAINING_LOSS", sum(train_loss))
     end = time.time()
     elapsed = end - start
     print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
@@ -110,34 +106,63 @@ def train_model():
     print("> Testing")
     start = time.time() #time generation
     with torch.no_grad():
-        correct = 0
-        total = 0
         all_losses = []
-        for images,targets in tqdm(test_dataloader): #load a batch
-          images = [image.to(device) for image in images]
-          targets = [{k: v.to(device) for k, v in target.items()} for target in targets]
-          outputs = model(images,targets)
-          total_loss = sum(loss for loss in outputs.values())
-          all_losses.append(total_loss.detach().cpu().item())
+        test_loss = one_epoch(model, optimizer, train_dataloader, device, epoch,0)
+        testing_loss.append(sum(test_loss))
+        print("TESTING_LOSS", sum(test_loss))
 
-        testing_loss.append(sum(all_losses))
-        print("TESTING_LOSS", sum(all_losses))
-
-  end = time.time()
-  elapsed = end - start
-  print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
-  print('END')
-  fig, ax = plt.subplots()
-  ax.plot(training_loss, label="Train")
-  ax.plot(testing_loss, label="Test")
-  ax.legend()
+    end = time.time()
+    elapsed = end - start
+    print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
+    print('END')
+    fig, ax = plt.subplots()
+    ax.plot(training_loss, label="Train")
+    ax.plot(testing_loss, label="Test")
+    ax.legend()
 
   return training_loss, testing_loss
 
+def main():
+  device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+  print(device)
+  print("Started")
 
-training_loss, testing_loss= train_model()
+  #Load Model
+  model = load_model()
+  model = model.to(device)
 
-torch.save(model.state_dict(), "Mask_RCNN_ISIC4try2.pt")
+  train_data = MoleData("/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Training_Data",
+                      "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Training_Part1_GroundTruth",
+                      "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Training_Part3_GroundTruth.csv")
+  train_data = torch.utils.data.Subset(train_data, range(100))
+  train_dataloader = torch.utils.data.DataLoader(
+      train_data,
+      batch_size=2,
+      shuffle=True,
+      collate_fn=lambda x:tuple(zip(*x)),
+      )
 
-training_loss2, testing_loss2= train_model()
-training_loss3, testing_loss3= train_model()
+  test_data =MoleData("/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Test_v2_Data",
+      "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Test_v2_Part1_GroundTruth",
+      "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Test_v2_Part3_GroundTruth.csv",
+      )
+  test_data = torch.utils.data.Subset(train_data, range(100))
+  test_dataloader = torch.utils.data.DataLoader(
+      train_data,
+      batch_size=2,
+      shuffle=True,
+      collate_fn=lambda x:tuple(zip(*x)),
+      )
+
+  training_loss, testing_loss= train_model(model, train_dataloader, test_dataloader,device)
+  #Save training and testing loss for later
+  df = pd.DataFrame()
+  df['testing_loss'] = testing_loss
+  df["training_loss"] = training_loss
+  df.to_csv("TestTrainFinal.csv")
+
+  torch.save(model.state_dict(), "Mask_s4580286_Final.pt")
+
+
+if __name__ == "__main__":
+  main()
