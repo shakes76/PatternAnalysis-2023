@@ -19,10 +19,7 @@ class PatchEmbedding(nn.Module):
             in_channels (int, optional): RGB channel of image. Defaults to 1 for greyscale.
             linear_mode (bool): whether to use linear projection method or convolution
         """
-        super().__init__()
-        #TODO: check img_size is a squre number
-        #TODO: check patch_size is a sqaure number
-        
+        super().__init__()        
         self.img_size = img_size
         self.patch_size = patch_size
         self.num_patches = (img_size // patch_size) ** 2
@@ -212,9 +209,9 @@ class ViT(nn.Module):
                                             in_channels=img_channels,
                                             linear_mode=False) #TODO: try changing to linear mode
         #class token to determine which class the image belongs to
-        self.class_token = nn.Parameter(torch.randn(1, 1, embed_dim)) #zeros or randn
+        self.class_token = nn.Parameter(torch.zeros(1, 1, embed_dim)) #zeros or randn
         #positional information of patches
-        self.pos_embed = nn.Parameter(torch.randn(1, self.patch_embed.num_patches + 1, embed_dim))
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.patch_embed.num_patches + 1, embed_dim))
         self.pos_drop = nn.Dropout(p=drop_prob)
         
         #transform encoder blocks
@@ -285,7 +282,8 @@ class ViT_torch(nn.Module):
         self.transform_encoder = nn.TransformerEncoder(encoder_layer=encoder_layer,
                                                         num_layers=depth)
         
-        self.norm_layer = nn.LayerNorm(embed_dim, eps=1e-6)
+        # self.norm_layer = nn.LayerNorm(embed_dim)
+        self.latent = nn.Identity()
         self.head = nn.Linear(embed_dim, num_classes)
         
     def forward(self, x):
@@ -303,6 +301,7 @@ class ViT_torch(nn.Module):
         
         #get only the class token for output
         output = x[:, 0]
-        output = self.norm_layer(output)
+        # output = self.norm_layer(output)
+        output = self.latent(output)
         output = self.head(output)
         return output
