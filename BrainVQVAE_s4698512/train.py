@@ -243,42 +243,5 @@ def main():
             torch.save(model.state_dict(), f)
 
 
-def inference(digit, model, dataset):
-    """
-    Generates (num_examples) of a particular digit.
-    Specifically we extract an example of each digit,
-    then after we have the mu, sigma representation for
-    each digit we can sample from that.
-
-    After we sample we can run the decoder part of the VAE
-    and generate examples.
-    """
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    images = []
-    idx = 0
-    for x, y in dataset:
-        if y == idx:
-            images.append(x)
-            idx += 1
-        if idx == 10:
-            break
-
-    encodings_digit = []
-    for d in range(10):
-        with torch.no_grad():
-            mu, sigma = model.encode(images[d].view(1, 784).to(device))
-        encodings_digit.append((mu, sigma))
-
-    mu, sigma = encodings_digit[digit]
-    for example in range(5):
-        epsilon = torch.randn_like(sigma)
-        z = mu + sigma * epsilon
-        out = model.decode(z)
-        out = out.view(-1, 1, 28, 28)
-        save_image(out, os.path.join(
-            "mnistout", f"generated_{digit}_ex{example}.png"))
-
-
 if __name__ == "__main__":
     main()
