@@ -36,13 +36,13 @@ class SiameseNeuralNet(nn.Module):
     def __init__(self) -> None:
         super(SiameseNeuralNet, self).__init__()
 
-        self.twin1 = SiameseTwin()
+        self.backbone = SiameseTwin()
         self.twin2 = SiameseTwin()
         self.fc = nn.Linear(4096, 1)
 
     def forward(self, x, y):
-        x_features = self.twin1(x)
-        y_features = self.twin2(y)
+        x_features = self.backbone(x)
+        y_features = self.backbone(y)
         # out = F.pairwise_distance(x_features, y_features, keepdim=True)
         # out = torch.absolute(pairwise_subtraction(x_features, y_features))
         out = torch.absolute(x_features - y_features)
