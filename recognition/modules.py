@@ -25,32 +25,47 @@ class CrossAttention(nn.Module):
         v = nn.Linear(input_y)
         k = nn.Linear(input_y)
         return (v, k)
+    
+class SelfAttention(nn.Module):
+    def __init__(self):
+        self.attention =nn.MultiheadAttention()
 
 class LatentTransformer(nn.Module):
     def __init__(self):
         super(LatentTransformer, self).__init__()
 
 class PerceiverBlock(nn.Module):
-    def __init__(self, depth, latent_dim, embed_dim):
+    def __init__(self, depth, latent_dimensions, embedded_dimensions):
         super.__init__()
         self.crossAttention = CrossAttention()
-        self.latentTransformer = LatentTransformer()
-        self.latent = nn.Parameter(
-            torch.nn.init.trunc_normal_(
-                torch.zeros((latent_dim, 1, embed_dim)),  #embed first then latent dimensions. Others just used torch.empty
-                mean=0, 
-                std=0.02, 
-                a=-2, 
-                b=2))
+        self.latentTransformerArray = LatentTransformer()
+        
         
         self.depth = depth
     
     def forward(self, ):
-        print(1)
+        pass
 
 class Perceiver(nn.Module):
     def __init__(self, query, key, value):
         self.query = query
         self.key = key
         self.value = value
-        self.perceiverBlock = PerceiverBlock()
+        self.perceiverBlock = PerceiverBlock(DEPTH, LATENT_DIMENTIONS, EMBEDDED_DIMENTIONS)
+
+
+class ADNI(nn.Module):
+    def __init__(self):
+        self.model = [Perceiver for _ in range(DEPTH)]
+        self.latent = nn.Parameter(
+            torch.nn.init.trunc_normal_(
+                torch.zeros((LATENT_DIMENTIONS, 1, EMBEDDED_DIMENTIONS)),  #embed first then latent dimensions. Others just used torch.empty
+                mean=0, 
+                std=0.02, 
+                a=-2, 
+                b=2))
+    
+    def forward(self, input_x):
+        latent = self.latent
+        for level in self.model:
+            latent = level(latent, )
