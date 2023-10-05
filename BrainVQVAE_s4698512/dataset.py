@@ -29,7 +29,7 @@ OASIS_FOLD_PATH = {(TYPE, FOLD): f"keras_png_slices_{TYPE}{FOLD}" for TYPE in [
 
 # ADNI Dataset
 ADNI_TRANS_DIR = os.path.join(".", "datasets", "ADNI_processed")
-CASES = ["AD", "NC"]    # Alzeimers or control
+CASES = ["AD", "NC"]    # Alzheimer's or control
 # Adni dataset doesn't contain validation
 ADNI_FOLD_PATH = {
     (FOLD, CASE): os.path.join(FOLD, CASE) for FOLD in FOLDS[0:2] for CASE in CASES}
@@ -124,12 +124,13 @@ class ADNI:
     Defines data importer and data transforms as well as the data loader for the ADNI dataset.
     """
 
-    def __init__(self, root_dir, transform=None, copy=False) -> None:
+    def __init__(self, root_dir: str, sampleType: str, transform=None, copy: bool = False) -> None:
         """
         Initializes the ADNI class.
 
         Args:
             root_dir (str): The root directory containing the ADNI dataset.
+            sampleType (str): AD if Alzheimer's samples to be generated; NC if control samples to be generated
             transform (callable, optional): A function/transform to apply to the data (default: None).
             copy (bool, optional): If True, the data will be copied to a processed folder and separated by patient (default: False).
         """
@@ -137,15 +138,13 @@ class ADNI:
         self.root_dir = root_dir
         self.transfrom = transform
 
-        case = CASES[0]     # 0 = Alzeimers, 1 = Control
-
         # Copies imagess into their own case folder if not already done
         if copy:
             # Loop over train and test sets
             for fold in FOLDS[0:2]:
                 # Define source directory for this fold
                 source_dir = os.path.join(
-                    self.root_dir, ADNI_FOLD_PATH[(fold, case)])
+                    self.root_dir, ADNI_FOLD_PATH[(fold, sampleType)])
 
                 # Loop over files in source directory.
                 for filename in os.listdir(source_dir):
@@ -159,7 +158,7 @@ class ADNI:
 
                     # Define the destination directory for this patient
                     destination_dir = os.path.join(
-                        ADNI_TRANS_DIR, ADNI_FOLD_PATH[(fold, case)], patient_id)
+                        ADNI_TRANS_DIR, ADNI_FOLD_PATH[(fold, sampleType)], patient_id)
 
                     # Create the destination directory if it doesn't exist
                     os.makedirs(destination_dir, exist_ok=True)
@@ -176,9 +175,9 @@ class ADNI:
 
         # New file paths
         TRAIN_DIR = os.path.join(
-            ADNI_TRANS_DIR, ADNI_FOLD_PATH[("train", case)])
+            ADNI_TRANS_DIR, ADNI_FOLD_PATH[("train", sampleType)])
         TEST_DIR = os.path.join(
-            ADNI_TRANS_DIR, ADNI_FOLD_PATH[("test", case)])
+            ADNI_TRANS_DIR, ADNI_FOLD_PATH[("test", sampleType)])
 
         # Load Dataset
         self.train_dataset = ImageFolder(TRAIN_DIR, transform=transform)
