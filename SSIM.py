@@ -80,7 +80,7 @@ if __name__ == '__main__':
     img1 = Variable(torch.rand(1, 1, 256, 256))
     img2 = Variable(torch.rand(1, 1, 256, 256))
     from dataset import get_dataloader, MyDataset
-    dataloader = get_dataloader(mode='test', batch_size=32)
+    dataloader = get_dataloader(mode='train_and_validate', batch_size=32)
     # print(get_im(0))
     # from model_VQVAE import VQVAE
     total_ssim, total_len = 0, 0
