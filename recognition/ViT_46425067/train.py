@@ -82,12 +82,6 @@ def test_epoch(model: nn.Module,
             #model accuracy
             acc =  accuracy(y_pred_logits, y)
             test_acc += acc
-            # if batch % 5 == 0:
-            #     wandb.log({"test/batch/loss": loss.item(),
-            #                 "test/batch/acc": acc,
-            #                 "test/batch/loss_avg": test_loss / (batch + 1),
-            #                 "test/batch/accuracy_avg": test_acc / (batch+1)})
-            
         # average loss, accuracy over epoch
         test_loss = test_loss / len(data_loader)
         test_acc = test_acc / len(data_loader)
@@ -121,7 +115,7 @@ def train_model(config=None):
             emb_dropout=config.drop_prob,
             channels=1).to(device)
         # summarise model architecture
-        summary(model, input_size=(1, 1, 224, 224), device=device)
+        summary(model, input_size=(1, 1, 256, 256), device=device)
         # loss function 
         loss_fn = nn.BCEWithLogitsLoss()
         # optimiser
@@ -183,39 +177,38 @@ def train_model(config=None):
     return results
 
 if __name__ == "__main__":
-    WANDB = True
+    WANDB_SWEEP = True
     #device agnostic code
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # hyperparmeters
     config = SimpleNamespace(
         epochs=30,
-        img_channel=1,
-        num_classes=1,  
-        batch_size=512,
-        img_size=256,
-        patch_size=16,  #try 8 
-        embed_dim=256,  #patch embedding dimension
-        depth=6,        #number of transform encoders
-        num_heads=8,    #attention heads
-        mlp_ratio=2,    #the amount of hidden units in feed forward layer in proportion to the input dimension  
-        # qkv_bias=True,  #bias for q, v, k calculations
-        drop_prob=0.2,  #dropout prob used in the ViT network
-        lr=3e-4, #2e-5,
-        optimiser="SGD",
-        linear_embed=True,
-        data_augments=[],
-        weight_decay=0.0,
-        mix_precision=True,  
-        lr_scheduler=True,      
-        max_lr=0.01,
+        img_channel=1,      
+        num_classes=1,          
+        batch_size=512,         
+        img_size=256,           #image sizes (img_size, img_size)
+        patch_size=16,          #sizes of patchs (patch_size, patch_size)
+        embed_dim=256,          #patch embedding dimension
+        depth=6,                #number of transform encoders
+        num_heads=8,            #attention heads
+        mlp_ratio=2,            #the amount of hidden units in feed forward layer in proportion to the input dimension  
+        drop_prob=0.2,          #dropout prob used in the ViT network
+        lr=3e-4,                #learning rate for optimiser
+        optimiser="SGD",        #optimiser: SGD, ADAM, ADAMW
+        linear_embed=True,      #to use linear embed instead of conv method
+        data_augments=[],       #specifies what data augments have been used
+        weight_decay=0.0,       #optimiser weight decay
+        mix_precision=True,     #enable float16 mix precision during loss, model calcs
+        lr_scheduler=True,      #enable one cycle learning rate scheduler 
+        max_lr=0.01,            #max learning rate for learning scheduler
     )
 
-    # logging
-    if WANDB:
-        #Login into wandb
+    # logging with hyperparameter sweeps or normal runs
+    if WANDB_SWEEP:
+        # Login into wandb
         wandb.login(anonymous="allow")
-        # wandb.init(config=config)  
+        # Launch agent to connect to sweep
         wandb.agent(sweep_id="rodxiang2/ViT_Sweep/1x0mb3un", function=train_model, count=20)
-    # Train the model and store the results
     else:
+        # Normal Training without wandb sweep
         results = train_model(config=config)
