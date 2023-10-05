@@ -13,6 +13,20 @@ Stable Diffusion on OASIS Dataset
 
 # Project Overview
 
+## Run
+
+#### Pretrain Stage
+
+##### Train
+* For VAE, `prestage_train_AE.py`
+* For VQVAE, `prestage_train_VQVAE.py`
+##### Logger
+* Use `logger.py` can see the loss curve.
+##### Files
+* `model_ckpt\*`: put models checkpoint
+* `log\*`: put log when training. (Can use logger.py to visualize it.)
+* `*_vis\*`: visualization of images when training.
+
 ## Results
 
 ## Diffusion Process GIF
@@ -136,16 +150,17 @@ Balancing the weights of VAE_loss and KLD_loss is a challenging task. If we set 
 
 ![](https://github.com/haofuml/cyclical_annealing/raw/master/figs/NAACL_2019_Cyclical.png)
 
-#### VAE GAN
+#### VQVAE
+
+#### VQGAN
+
 #### PatchGAN
 
-#### LPIPS
-#### Gradient Clipping
 ####  Overview
-
 * Construct an Unet-like autoencoder, and it used some module like Swish, Self-attention and resnetblock
 * Use reparameterization in latent space to calculate KL divergence.
 * Use GAN (or discriminator) with LPIPS score to optimize decoder.
+  * LPIPS score is adopted in stable diffusion. But we have no pre-trained model to use.
 
 
 

@@ -29,7 +29,7 @@ def compact_large_image(imgs, HZ=4, WZ=8):
     return imgs
 
 
-def weight_scheduler(cur_iter=0, end=50000, change_cycle=500, disc_start=50):
+def weight_scheduler(cur_iter=0, end=50000, change_cycle=500, disc_start=10000):
     cur_iter = min(cur_iter, end)
     w_recon = 1
     w_perceptual = 0.5
@@ -45,7 +45,7 @@ def weight_scheduler(cur_iter=0, end=50000, change_cycle=500, disc_start=50):
     # we don't train from discriminator if iter < disc_start
     w_dis = 0.5
     if cur_iter < disc_start:
-        w_dis = cur_iter / disc_start * 0.5
+        w_dis = 0 # cur_iter / disc_start * 0.5
     return w_recon, w_perceptual, w_kld, w_dis
 
 
