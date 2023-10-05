@@ -105,7 +105,7 @@ def main():
     # GPU Device Config
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    dataset = "ADNI"   # ADNI, OASIS, MNIST
+    dataset = "ADNI"   # ADNI, OASIS
 
     # Hyper parameters
     learning_rate = 0.8e-4
@@ -150,6 +150,7 @@ def main():
         train_loader = oasis.train_loader
         test_loader = oasis.test_loader
         validate_loader = oasis.validate_loader
+
     elif dataset == "ADNI":
         # Load ADNI dataset
         # Greyscale data. Observe below in the transform I set num_output_channels = num_channels
@@ -168,6 +169,9 @@ def main():
         # beta Trade off between reconstruction loss and commitment loss
         beta = 0.75
 
+        # Choose what type of samples to generate
+        sampleType = "AD"     # AD = generate Alzheimer's samples; NC = generate control samples
+
         # Define a transformation to apply to the images (e.g., resizing)
         transform = transforms.Compose([
             # Images already 256x256 but can't hurt to ensure size is correct
@@ -181,37 +185,12 @@ def main():
         ])
 
         # Define data loader object
-        adni = ADNI(dataset_path, transform=transform, copy=False)
+        adni = ADNI(dataset_path, sampleType=sampleType,
+                    transform=transform, copy=False)
 
         train_loader = adni.train_loader
         test_loader = adni.test_loader
         validate_loader = adni.test_loader
-
-    elif dataset == "MNIST":
-        input_dim = 28 * 28
-        # Hyper parameters
-
-        # Size/dimensions within latent space
-        hidden_dim = 200
-
-        # Dimensions of each vector within latent space
-        z_dim = 20
-
-        # epoch count
-        num_epochs = 20
-
-        # batch size
-        batch_size = 64
-
-        # learning rate
-        learning_rate = 3e-4    # Karpathy constant
-
-        # Load Dataset and normalise it to pixel values between 0 and 1. Divide by 255
-        dataset = datasets.MNIST(
-            root=os.path.join(".", "datasets", "MNIST"), train=True, download=False, transform=transforms.ToTensor())
-
-        train_loader = DataLoader(
-            dataset=dataset, batch_size=batch_size, shuffle=True)
 
     # Dataset Imported
     print(f"{dataset} Dataset Imported :)\n------\n")
