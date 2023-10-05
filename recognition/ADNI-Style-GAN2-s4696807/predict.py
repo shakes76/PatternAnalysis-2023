@@ -15,7 +15,7 @@ def generate_examples(gen, epoch, n=20):
     # Generate 'n' example images
     for i in range(n):
         with torch.no_grad():
-            w_values = [1, 1.1, 1.2, 1.3, 1.4]
+            w_values = [1, 2, 3, 4, 5]
             for value in w_values:
                 # Generate random latent vector 'w'
                 w = get_w(value)
@@ -76,7 +76,7 @@ for epoch in range(EPOCHS):
 plt.figure(figsize=(10,5))
 plt.title("Generator and Discriminator Loss During Training")
 plt.plot(Total_G_Losses,label="G")
-plt.plot(Total_D_Losses="D")
+plt.plot(Total_D_Losses, label="D")
 plt.xlabel("iterations")
 plt.ylabel("Loss")
 plt.legend()
