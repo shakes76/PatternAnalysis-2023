@@ -10,16 +10,7 @@ import torchinfo
 from torchinfo import summary
 from vit_pytorch import ViT, SimpleViT
 from vit_pytorch.deepvit import DeepViT
-
-#setup random seeds
-torch.manual_seed(42)
-torch.cuda.manual_seed(42)
-
-def accuracy(y_pred, y):
-    y_pred_label = torch.round(torch.sigmoid(y_pred))
-    correct = torch.eq(y, y_pred_label).sum().item()
-    acc = (correct / len(y))
-    return acc
+import utils
 
 def train_epoch(model: nn.Module, 
                 data_loader: torch.utils.data.DataLoader,
@@ -45,7 +36,7 @@ def train_epoch(model: nn.Module,
         # save loss
         train_loss += loss.item()
         # model accuracy
-        acc = accuracy(y_pred_logits, y)
+        acc = utils.accuracy(y_pred_logits, y)
         train_acc += acc
         #backpropagation
         optimiser.zero_grad()
@@ -80,7 +71,7 @@ def test_epoch(model: nn.Module,
             test_loss += loss.item()
             
             #model accuracy
-            acc =  accuracy(y_pred_logits, y)
+            acc =  utils.accuracy(y_pred_logits, y)
             test_acc += acc
         # average loss, accuracy over epoch
         test_loss = test_loss / len(data_loader)
@@ -178,6 +169,11 @@ def train_model(config=None):
 
 if __name__ == "__main__":
     WANDB_SWEEP = True
+    
+    #setup random seeds
+    torch.manual_seed(42)
+    torch.cuda.manual_seed(42)
+    
     #device agnostic code
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # hyperparmeters
@@ -202,7 +198,6 @@ if __name__ == "__main__":
         lr_scheduler=True,      #enable one cycle learning rate scheduler 
         max_lr=0.01,            #max learning rate for learning scheduler
     )
-
     # logging with hyperparameter sweeps or normal runs
     if WANDB_SWEEP:
         # Login into wandb
