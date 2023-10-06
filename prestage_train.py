@@ -52,7 +52,7 @@ opt_d = torch.optim.Adam(discriminator.parameters(),
                          lr=learning_rate, betas=(0.5, 0.9))
 
 # Keep training if epoch is not zero
-start_epoch = 0
+start_epoch = 5
 # Only train to end_epoch-1
 end_epoch = 70
 
@@ -172,10 +172,10 @@ def train_epoch(net, dataloader, auxiliary=True):
             recon_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
         g1_grads = torch.norm(torch.autograd.grad(
             g1_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
-        d1_weight = recon_grads / (g1_grads + 1e-4)
+        g_weight = recon_grads / (g1_grads + 1e-4)
 
         # For fear that gradient explode occur, we clamp the sacle.
-        d1_weight = torch.clamp(d1_weight, 0.0, 1e4).detach()
+        g_weight = torch.clamp(g_weight, 0.0, 1e4).detach()
 
         # Apply auxiliary loss (gen from sample and trained as GAN)
         if auxiliary:
@@ -186,23 +186,18 @@ def train_epoch(net, dataloader, auxiliary=True):
             t = torch.randint(low=0, high=32, size=(raw_img.shape[0],)).cuda()
             gen_img = net.sample(raw_img.shape[0], t)
             logits_gen = discriminator(gen_img.contiguous(), t)
-            # Adjust G2_loss scaling
             g2_loss = -torch.mean(logits_gen)
-            g2_grads = torch.norm(torch.autograd.grad(
-                g2_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
-            d2_weight = recon_grads / (g2_grads + 1e-4)
-            d2_weight = torch.clamp(d2_weight, 0.0, 1e4).detach()
             net.train()
 
         # Construct all the loss we calculated
-        loss = w_recon * recon_loss + w_dis * d1_weight * g1_loss
+        loss = w_recon * recon_loss + w_dis * g_weight * g1_loss
         regularization = regularization.mean()
         if mode == 'VAE':
             loss += w_kld * regularization.mean() 
         elif mode == 'VQVAE':
             loss += 1.0 * regularization.mean()
         if auxiliary:
-            loss = loss + w_dis * d2_weight * g2_loss
+            loss = loss + w_dis * g_weight * g2_loss
 
         loss.backward()
         opt.step()
@@ -240,13 +235,12 @@ def train_epoch(net, dataloader, auxiliary=True):
             'fake_recon_loss': g1_loss.item(),
             'discriminator_loss': d_loss.item(),
             'w_recon': w_recon,
-            "w_dis": w_dis * d1_weight,
+            "w_dis": w_dis * g_weight,
         }
         # If we use auxiliary, try to update the information of sample images
         if auxiliary:
             cur_info.update({
                 'fake_sample_loss': g2_loss.item(),
-                "w_sample": w_dis * d2_weight,
             })
 
         # Record epoch info, it should be sacled for batch_size
