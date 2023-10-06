@@ -125,7 +125,11 @@ The respective sections of the trainings can be found inside the train.py file.
 
 ## Justification
 
-#justification on why i chose specific values like epochs, learning rates, optimizers (hyper parameters)
+The Adam optimizer is a popular choice for deep learning modules as it adapts learning rates to each parameters during training, thus selecting a basic learning rate of 0.001 allows for balanced learning between initial progression and fine-tuning together with the optimizer's features.
+
+The batch size was sized to be 32 as the provided OASIS dataset have been sliced into 32 per case. The image size has been selected to be 128x128 as 64x64 is considered to be too small for proper clarity of the image outputs and 256x256 may be too big for some of the images from the dataset provided, thus possibly adding inaccuracy to the model.
+
+
 
 
 ## Future Direction
