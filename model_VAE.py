@@ -310,9 +310,7 @@ class VQVAE(nn.Module):
         self.decoder = Decoder(tanh_out=True, **params)
         self.pos_len = pos_len
 
-        self.quantize = VectorQuantizer2(n_e=n_embed, e_dim=embed_dim, beta=0.25,
-                                        remap=None,
-                                        sane_index_shape=False)
+        self.quantize = VectorQuantizer2(n_e=n_embed, e_dim=embed_dim, beta=0.25)
         # For convienient purpose, store the z-shape.
         latent_wh = resolution // 2 ** (len(ch_mult)-1)
         self.z_shape = [latent_wh, latent_wh]
@@ -370,7 +368,7 @@ class VQVAE(nn.Module):
 
     def forward(self, x, t):
         latent = self.encode(x, t)
-        quant, diff_loss, (_, _, ind) = self.quantize(latent)
+        quant, diff_loss, ind = self.quantize(latent)
         recon = self.decode(quant, t)
         return recon, diff_loss, ind
 

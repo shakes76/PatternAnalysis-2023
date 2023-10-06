@@ -52,13 +52,13 @@ opt_d = torch.optim.Adam(discriminator.parameters(),
                          lr=learning_rate, betas=(0.5, 0.9))
 
 # Keep training if epoch is not zero
-start_epoch = 5
+start_epoch = 7
 # Only train to end_epoch-1
 end_epoch = 70
 
 # We define 500 iterations as an epoch.
 ITER_PER_EPOCH = 500
-batch_size = 5
+batch_size = 8
 
 # Stage threshold
 # disc_start: which iteration should activate discriminator
