@@ -107,7 +107,7 @@ def calculate_weight_sampler(net, dataloader):
             # Get indices information for every data
             batch_size = raw_img.shape[0]
             latent = net.encode(raw_img, z_idx)
-            quant, diff_loss, (_, _, ind) = net.quantize(latent)
+            quant, diff_loss, ind = net.quantize(latent)
             ind = rearrange(ind, '(b c h w) -> b c h w', b=batch_size,
                             h=net.z_shape[0], w=net.z_shape[1])
             indices.append(ind.detach())
