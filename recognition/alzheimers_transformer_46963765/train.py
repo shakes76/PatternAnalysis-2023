@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #put in training loop
-def train(epochs):
-    model = ADNI_Transformer(depth=6)
+def train(epochs, depth):
+    model = ADNI_Transformer(depth=depth)
     model.to(device=device)
 
     dataset = ds.ADNI_Dataset()
@@ -51,6 +51,8 @@ def visualize_loss(batch_losses):
     plt.ylabel('Batch Loss')
     plt.title('Batch Loss Over Epochs')
     plt.grid(True)
+    plt.savefig('plots/loss_plot.png')
+
     plt.show()
 
 
@@ -78,11 +80,13 @@ def test_accuracy(model):
 
 if __name__ == "__main__":
 
-    model, losses = train(75)
+    model, losses = train(15, 15)
     torch.save(model.state_dict(), "model/model.pth")
-    visualize_loss(losses)
-    accuracy = test_accuracy(model)
     
+    accuracy = test_accuracy(model)
     print("Accuracy of model is {}%".format(accuracy))
+    
+    visualize_loss(losses)
+    
 
     
