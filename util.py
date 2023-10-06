@@ -32,11 +32,10 @@ def compact_large_image(imgs, HZ=4, WZ=8):
 def weight_scheduler(cur_iter=0, end=50000, change_cycle=500, disc_start=10000):
     cur_iter = min(cur_iter, end)
     w_recon = 1
-    w_perceptual = 0.5
 
     # https://github.com/haofuml/cyclical_annealing
     # Cyclical Annealing Schedule: A Simple Approach to Mitigating KL Vanishing (NAACL 2019):
-    w_kld = 10
+    w_kld = 1e-2
     # first half is linear, end half is constant
     iter_in_cycle = cur_iter % change_cycle
     if iter_in_cycle < change_cycle // 2:
@@ -46,7 +45,7 @@ def weight_scheduler(cur_iter=0, end=50000, change_cycle=500, disc_start=10000):
     w_dis = 0.5
     if cur_iter < disc_start:
         w_dis = 0 # cur_iter / disc_start * 0.5
-    return w_recon, w_perceptual, w_kld, w_dis
+    return w_recon, w_kld, w_dis
 
 
 if __name__ == '__main__':

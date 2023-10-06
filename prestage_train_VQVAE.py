@@ -15,8 +15,8 @@ from tqdm import tqdm
 from einops import rearrange, repeat, reduce
 from collections import defaultdict
 # ==== import from this folder ==== #
-from model_VQVAE import VQVAE
-from discriminator import NLayerDiscriminator, weights_init
+from model_VAE import VAE, VQVAE
+from model_discriminator import NLayerDiscriminator, weights_init
 from dataset import get_dataloader
 from util import reset_dir, weight_scheduler, compact_large_image
 from logger import Logger
@@ -24,18 +24,24 @@ from SSIM import ssim
 DEVICE = torch.device("cuda")
 print("DEVICE:", DEVICE)
 
-net = VQVAE().to(device=DEVICE)
+# mode should be vae or vqvae
+mode = 'VAE'
+
+vis_folder = f'{mode}_vis'
+ckpt_folder = f'model_ckpt/{mode}'
+
+if mode == 'VQVAE':
+    net = VQVAE().to(device=DEVICE)
+elif mode == 'VAE':
+    net = VAE().to(DEVICE)
 discriminator = NLayerDiscriminator(
     input_nc=1, n_layers=3).apply(weights_init).to(device=DEVICE)
 
 learning_rate = 2e-4
-opt_vqvae = optim.Adam(net.parameters(), lr=learning_rate, betas=(0.5, 0.9))
+opt = optim.Adam(net.parameters(), lr=learning_rate, betas=(0.5, 0.9))
 opt_d = torch.optim.Adam(discriminator.parameters(),
                          lr=learning_rate, betas=(0.5, 0.9))
 
-
-vis_folder = 'VQVAE_vis'
-ckpt_folder = 'model_ckpt/VQVAE'
 
 # Keep training if epoch is not zero
 start_epoch = 0
@@ -53,7 +59,7 @@ else:
     reset_dir(ckpt_folder)
 
 # logger for record losses
-logger = Logger(file_name='VQVAE_log.txt', reset=(start_epoch == 0))
+logger = Logger(file_name=f'{mode}_log.txt', reset=(start_epoch == 0))
 
 # We define 500 iterations as an epoch.
 ITER_PER_EPOCH = 500
@@ -61,11 +67,11 @@ batch_size = 6
 
 # Stage threshold
 disc_start_iter = 250
-auxiliary_start_epoch = 0
+auxiliary_start_epoch = 20
 
 cur_iter = ITER_PER_EPOCH * start_epoch
 
-
+# This is just for VQVAE
 def calculate_weight_sampler(net, dataloader):
     indices = []
     for now_step, batch_data in tqdm(enumerate(dataloader), total=len(dataloader)):
@@ -73,7 +79,7 @@ def calculate_weight_sampler(net, dataloader):
             data.to(DEVICE) for data in batch_data]
         with torch.no_grad():
             batch_size = raw_img.shape[0]
-            latent = net.encode(raw_img)
+            latent = net.encode(raw_img, z_idx)
             quant, diff_loss, (_, _, ind) = net.quantize(latent)
             ind = rearrange(ind, '(b c h w) -> b c h w', b=batch_size,
                             h=net.z_shape[0], w=net.z_shape[1])
@@ -96,13 +102,22 @@ def train_epoch(net, dataloader, auxiliary=True):
             data.to(DEVICE) for data in batch_data]
 
         # Get weight of each loss
-        w_recon, w_perceptual, w_kld, w_dis = weight_scheduler(
+        w_recon, w_kld, w_dis = weight_scheduler(
             cur_iter, change_cycle=ITER_PER_EPOCH)
 
         # Train Generator
-        opt_vqvae.zero_grad()
+        opt.zero_grad()
 
-        recon_img, diff_loss, ind = net(raw_img)
+        '''
+        regularization: 
+            for origial VAE, regularizatoin is kld loss
+            for VQVAE, regularization if diff loss
+        
+        latent: 
+            for origial VAE, latent is mean & std
+            for VQVAE, latent is the discrete indices.
+        '''
+        recon_img, regularization, latent = net(raw_img, z_idx)
 
         # Reconstruction Term (L1 Loss)
         recon_loss = torch.abs(raw_img.contiguous() - recon_img.contiguous())
@@ -123,7 +138,8 @@ def train_epoch(net, dataloader, auxiliary=True):
         # Apply auxiliary loss (gen from sample and trained as GAN)
         if auxiliary:
             net.eval()
-            gen_img = net.sample(raw_img.shape[0])
+            t = torch.randint(low=0, high=32, size=(raw_img.shape[0],)).cuda()
+            gen_img = net.sample(raw_img.shape[0], t)
             logits_gen = discriminator(gen_img.contiguous())
             g2_loss = -torch.mean(logits_gen)
             g2_grads = torch.norm(torch.autograd.grad(
@@ -131,13 +147,16 @@ def train_epoch(net, dataloader, auxiliary=True):
             d2_weight = recon_grads / (g2_grads + 1e-4)
             d2_weight = torch.clamp(d2_weight, 0.0, 1e4).detach()
 
-        loss = w_recon * recon_loss + 1.0 * diff_loss.mean() + w_dis * \
-            d1_weight * g1_loss
+        loss = w_recon * recon_loss + w_dis * d1_weight * g1_loss
+        if mode == 'VAE':
+            loss += w_kld * regularization.mean() 
+        elif mode == 'VQVAE':
+            loss += 1.0 * regularization.mean()
         if auxiliary:
             loss = loss + w_dis * d2_weight * g2_loss
 
         loss.backward()
-        opt_vqvae.step()
+        opt.step()
 
         # Train Discriminator
         opt_d.zero_grad()
@@ -146,6 +165,7 @@ def train_epoch(net, dataloader, auxiliary=True):
         recon_img = recon_img.detach()
         logits_real = discriminator(raw_img.contiguous().detach())
         logits_fake = discriminator(recon_img.contiguous().detach())
+        # Use hinge loss
         loss_real = torch.mean(F.relu(1. - logits_real))
         loss_fake = torch.mean(F.relu(1. + logits_fake))
 
@@ -163,13 +183,13 @@ def train_epoch(net, dataloader, auxiliary=True):
         # info to dict
         cur_info = {
             'recon_loss': recon_loss.item(),
-            'diff_loss': diff_loss.item(),
+            'reg_loss': regularization.mean().item(),
             'fake_recon_loss': g1_loss.item(),
             'discriminator_loss': d_loss.item(),
             'w_recon': w_recon,
-            'w_perceptual': w_perceptual,
             "w_dis": w_dis * d1_weight,
         }
+        # If we use auxiliary, try to update the information of sample images
         if auxiliary:
             cur_info.update({
                 'fake_sample_loss': g2_loss.item(),
@@ -187,6 +207,7 @@ def train_epoch(net, dataloader, auxiliary=True):
 
         if now_step % ITER_PER_EPOCH == 0 and now_step != 0:
             break
+
     # Mean the info
     for k in epoch_info:
         if k != 'total_num':
@@ -206,7 +227,7 @@ def test_epoch(net, dataloader, folder):
     for now_step, batch_data in enumerate(dataloader):
         raw_img, seg_img, brain_idx, z_idx = [
             data.to(DEVICE) for data in batch_data]
-        recon_img, diff, info = net(raw_img)
+        recon_img, regularization, latent = net(raw_img, z_idx)
         # Record reconstructed images (for visualization) and brain indices (for labeling)
         recon_imgs.append(recon_img.detach().cpu())
         brain_indices.append(brain_idx.detach().cpu())
@@ -220,37 +241,27 @@ def test_epoch(net, dataloader, folder):
         plt.imsave(f'{folder}/recon_{brain_idx}.png',
                    recon_imgs[idx] * 0.5 + 0.5, cmap='gray')
 
-    # Generate images from randn
-    cur_idx = 0
-    # Sample number of img_limit brains
-    img_limit = 32
-    # For big image format, img_limit should be multiple of 32.
-    assert img_limit % 32 == 0, "img_limit should %32 == 0"
-    imgs = []
-    for _ in range((img_limit-1) // raw_img.shape[0] + 1):
-        gen_img = net.sample(raw_img.shape[0])
-        imgs.append(gen_img.detach().cpu())
-        for idx, inf_img in enumerate(gen_img.detach().cpu().numpy()):
-            plt.imsave(f'{folder}/gen_{cur_idx + idx}.png',
-                       inf_img[0] * 0.5 + 0.5, cmap='gray')
-
-        # Only sample img_limit images
-        if cur_idx > img_limit:
-            break
-        cur_idx += raw_img.shape[0]
-
-    # Gerneate one big image contain 32 brains
-    imgs = torch.concat(imgs, 0)[:img_limit]
-    imgs = compact_large_image(imgs, HZ=4, WZ=8)
-    for idx in range(imgs.shape[0]):
-        plt.imsave(f'{folder}/gen_large_{idx}.png',
-                   imgs[idx] * 0.5 + 0.5, cmap='gray')
+    sample_n = 3
+    for cur_idx in range(sample_n):
+        gen_imgs = net.sample_for_visualize(raw_img.shape[0]).detach().cpu()
+        for z_idx, gen_img in enumerate(gen_imgs.numpy()):
+            plt.imsave(f'{folder}/gen_{cur_idx}_{z_idx}.png',
+                       gen_img[0] * 0.5 + 0.5, cmap='gray')
+        # Gerneate one big image contain 32 brains
+        gen_imgs = compact_large_image(gen_imgs, HZ=4, WZ=8)[0]
+        plt.imsave(f'{folder}/gen_large_{cur_idx}.png',
+                gen_imgs * 0.5 + 0.5, cmap='gray')
 
     return total_ssim / len(dataloader.dataset)
+
+# This parameter is for debugging.
+# Should remove this when submit.
+data_limit = 32
+
 # Get dataloader
 train_dataloader = get_dataloader(
-    mode='train_and_validate', batch_size=batch_size)
-test_dataloader = get_dataloader(mode='test', batch_size=16)
+    mode='train_and_validate', batch_size=batch_size, limit=data_limit)
+test_dataloader = get_dataloader(mode='test', batch_size=16, limit=data_limit)
 
 start_auxiliary = False
 for epoch in range(start_epoch, 50):
@@ -258,19 +269,21 @@ for epoch in range(start_epoch, 50):
         print(
             f"To adapt auxiliary, we shrink the batch size from {batch_size} -> {batch_size // 2}")
         train_dataloader = get_dataloader(
-            mode='train_and_validate', batch_size=batch_size // 2)
+            mode='train_and_validate', batch_size=batch_size // 2, limit=data_limit)
         start_auxiliary = True
 
     # The format string parse epoch info
     def fmt(epoch_info):
-        ks = ['recon_loss', 'diff_loss', 'fake_recon_loss',
+        ks = ['recon_loss', 'reg_loss', 'fake_recon_loss',
               'fake_sample_loss', 'discriminator_loss']
         return ' '.join(f"{k[:-5]}: {epoch_info[k]:6.4f}" for k in ks if k in epoch_info)
     net.train()
     train_info = train_epoch(net, train_dataloader, auxiliary=start_auxiliary)
     net.eval()
     with torch.no_grad():
-        calculate_weight_sampler(net, train_dataloader)
+        # Only VQVAE should we calculate weight sampler (for better auxiliary)
+        if mode == 'VQVAE':
+            calculate_weight_sampler(net, train_dataloader)
         ssim_score = test_epoch(net, test_dataloader, f'{vis_folder}/epoch_{epoch}')
 
     # Save the model

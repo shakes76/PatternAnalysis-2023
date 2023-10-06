@@ -16,7 +16,7 @@ from einops import rearrange, repeat
 from collections import defaultdict
 # ==== import from this folder ==== #
 from model_AE import Autoencoder
-from discriminator import NLayerDiscriminator, weights_init
+from model_discriminator import NLayerDiscriminator, weights_init
 from dataset import get_dataloader
 from util import reset_dir, weight_scheduler, compact_large_image
 from logger import Logger
@@ -83,16 +83,13 @@ def train_epoch(net, dataloader):
             g1_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
         g2_grads = torch.norm(torch.autograd.grad(
             g2_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
-        kl_grads = torch.norm(torch.autograd.grad(
-            kld_loss, net.get_encoder_last_layer(), retain_graph=True)[0]).detach()
 
-        kl_weight = 0.01 * recon_grads / (kl_grads + 1e-4)
-        d1_weight = 0.01 * recon_grads / (g1_grads + 1e-4)
-        d2_weight = 0.01 * recon_grads / (g2_grads + 1e-4)
+        d1_weight = recon_grads / (g1_grads + 1e-4)
+        d2_weight = recon_grads / (g2_grads + 1e-4)
         d1_weight = torch.clamp(d1_weight, 0.0, 1e4).detach()
         d2_weight = torch.clamp(d2_weight, 0.0, 1e4).detach()
         
-        loss = w_recon * recon_loss + kl_weight * w_kld * kld_loss +  \
+        loss = w_recon * recon_loss + w_kld * kld_loss +  \
             w_dis * d1_weight * g1_loss + \
             w_dis * d2_weight * g2_loss
         
