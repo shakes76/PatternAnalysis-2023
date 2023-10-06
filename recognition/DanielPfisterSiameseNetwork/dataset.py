@@ -1,5 +1,5 @@
-import numpy as np
 import os
+import numpy as np
 import tensorflow as tf
 
 #define the function to read all the image names from folder 
