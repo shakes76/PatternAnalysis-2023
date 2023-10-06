@@ -19,10 +19,10 @@ def train(epochs, depth):
 
     batch_losses = []
 
-    model.train()
     for epoch in range(epochs):
         batch_loss = 0
 
+        model.train()
         for j, (images, labels) in  enumerate(train_loader):
             if images.size(0) == 32:
                 optimizer.zero_grad()
@@ -38,7 +38,6 @@ def train(epochs, depth):
         batch_losses.append(batch_loss)
         print("epoch {} complete".format(epoch + 1))
         print("loss is {}".format(batch_loss))
-
         
     return model, batch_losses
 
@@ -81,8 +80,10 @@ def test_accuracy(model):
     return accuracy
 
 if __name__ == "__main__":
-
-    model, losses = train(15, 6)
+    epochs = 15
+    depth = 6
+    # 15 epochs and a depth of 6
+    model, losses = train(epochs, depth)
     torch.save(model.state_dict(), "model/model.pth")
     
     accuracy = test_accuracy(model)
@@ -90,5 +91,8 @@ if __name__ == "__main__":
     
     visualize_loss(losses)
     
+# check depth (is 6)
+# check skip connections
+# check latent_transformer layers and heads (are 8)
 
     

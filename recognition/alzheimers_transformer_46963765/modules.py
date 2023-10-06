@@ -13,145 +13,110 @@ class Attention(nn.Module):
     def __init__(self, heads, in_size) -> None:
         super(Attention, self).__init__()
         
+        # Cross attention layer as described in paper
         self.lnorm1 = nn.LayerNorm(in_size, device=device); self.lnorm1.to(device=device)
         self.attn = nn.MultiheadAttention(embed_dim=in_size, num_heads=heads)
 
+        # Dense block as described in the paper. 
         self.lnorm2 = nn.LayerNorm(in_size)
         self.linear1 = nn.Linear(in_size, in_size)
         self.act = nn.GELU()
         self.linear2 = nn.Linear(in_size, in_size)
-        self.drop = nn.Dropout(0.1)
         
         
-    def forward(self, in1, in2):
+    def forward(self, latent, image):
         # in1 is 128 by 64
         #in2 is 32 by 512
-        
                 
-        out = self.lnorm1(in1)
-        out, _ = self.attn(query=in1, key=in2, value=in2)
- 
-        resid = out + in2
+        out = self.lnorm1(latent)
+        out, _ = self.attn(query=latent, key=image, value=image)
+        
+        #first residual connection.
+        resid = out + image
 
         # dense block
         out = self.lnorm2(resid)
         out = self.linear1(out)
         out = self.act(out)
         out = self.linear2(out)
-        out = self.drop(out)
 
         # second residual connection
         out = out + resid
 
         return out
     
-    
-class LatentTransformer(nn.Module):
-    
-    def __init__(self, heads, in_size) -> None:
-        super(LatentTransformer, self).__init__()
-        
-        self.lnorm1 = nn.LayerNorm(in_size, device=device); self.lnorm1.to(device=device)
-        self.attn = nn.MultiheadAttention(embed_dim=in_size, num_heads=heads)
-
-        self.lnorm2 = nn.LayerNorm(in_size)
-        self.linear1 = nn.Linear(in_size, in_size)
-        self.act = nn.GELU()
-        self.linear2 = nn.Linear(in_size, in_size)
-        self.drop = nn.Dropout(0.1)
-        
-        #self.linear_in1 = nn.Linear(64, in_size)  # Assuming you want to reshape to embed_dim
-
-        
-    def forward(self, in1, in2):
-        # in1 is 128 by 64
-        #in2 is 32 by 512
-        
-        out = self.lnorm1(in1)
-        out, _ = self.attn(query=in1, key=in2, value=in2)
- 
-        resid = out + in2
-
-        # dense block
-        out = self.lnorm2(resid)
-        out = self.linear1(out)
-        out = self.act(out)
-        out = self.linear2(out)
-        out = self.drop(out)
-
-        # second residual connection
-        out = out + resid
-
-        return out
-        
-    
+           
     
 class MultiAttention(nn.Module):
     def __init__(self, heads, in_size, layers) -> None:
         super(MultiAttention, self).__init__()
 
+        # multi head self attention layer as described in paper
         self.transformer = nn.ModuleList([
-        LatentTransformer(
+        Attention(
             heads=heads,
             in_size=in_size) 
-        for layer in range(layers)])
-        
+        for layer in range(layers)]) 
         self.transformer.to(device=device)
         
     def forward(self, latent):
+        
+        # self attention so pass latent in twice
         for head in self.transformer:
             latent = head(latent, latent)
-        
         return latent
         
         
 class Perceiver_Block(nn.Module):
     
-    def __init__(self, in_size) -> None:
+    def __init__(self, in_size, heads, layers) -> None:
         super(Perceiver_Block, self).__init__()
         
+        # Perceiver block consists of a single head cross attention
+        # and a multi head self attetnion with multiple layers. Was 6 in paper.
         self.cross_attention = Attention(1, in_size)
-        self.latent_transformer = MultiAttention(8,in_size,8)
+        self.latent_transformer = MultiAttention(heads,in_size,layers)
         
     def forward(self, latent, image):
-        l = self.cross_attention(latent, image)
-        l = self.latent_transformer(l)
-
-        return l        
+        out = self.cross_attention(latent, image)
+        out = self.latent_transformer(out)
+        return out        
     
     
 class Classifier(nn.Module):
     
-    def __init__(self) -> None:
+    def __init__(self, out_dimention) -> None:
         super(Classifier, self).__init__()
         self.flatten = nn.Flatten() 
-        self.fc1 = nn.LazyLinear(128) 
+        self.fc1 = nn.LazyLinear(out_dimention) 
         self.relu = nn.ReLU() 
-        self.fc2 = nn.Linear(128, 1)
-        
+        self.fc2 = nn.Linear(out_dimention, 1)
         
         
     def forward(self, latent):
         # starts 128x64
-        x = self.flatten(latent)
+        out = self.flatten(latent)
         #reshapes to 128*64x1
-        x = self.fc1(x)
-        x = self.relu(x)
+        out = self.fc1(out)
+        out = self.relu(out)
         #output 128x1
-        x = self.fc2(x)
+        out = self.fc2(out)
         # output 1x1
-        return torch.sigmoid(x)
+        return torch.sigmoid(out)
 
 
-#Resnet Class (50 maybe or 25)
+
 class ADNI_Transformer(nn.Module):
     
     def __init__(self, depth):
         super(ADNI_Transformer, self).__init__()    
         LATENT_DIM = 32
         LATENT_EMB = 512
+        latent_heads = 8
+        latent_layers = 8
+        classifier_out = 128
         
-        # don't want it pretrianed      
+        # pretrained to default values       
         # take out the classification layer   
         network = models.resnet34(weights=ResNet34_Weights.DEFAULT) 
         self._resnet = torch.nn.Sequential(*list(network.children())[:-1])
@@ -160,9 +125,10 @@ class ADNI_Transformer(nn.Module):
         self.latent = torch.empty(LATENT_DIM, LATENT_EMB, device=device)
         self._depth = depth
         
-        self._perceiver = nn.ModuleList([Perceiver_Block(LATENT_EMB) for per in range(depth)])
+        # Stack perceiver blocks to make final model
+        self._perceiver = nn.ModuleList([Perceiver_Block(LATENT_EMB, latent_heads, latent_layers) for per in range(depth)])
         self._perceiver.to(device=device)
-        self._classifier = Classifier()
+        self._classifier = Classifier(classifier_out)
         
 
     def forward(self, images):
@@ -177,8 +143,8 @@ class ADNI_Transformer(nn.Module):
         # use perceiver transformer (may n  eed to reshape first)
         for pb in self._perceiver:
             latent = pb(latent, images)
-        # might need to reshape
         
+        # classify the output
         output = self._classifier(latent)
         return output
 
