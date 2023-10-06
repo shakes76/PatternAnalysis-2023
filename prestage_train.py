@@ -64,8 +64,8 @@ batch_size = 8
 # disc_start: which iteration should activate discriminator
 # auxiliary start: which epoch should activate 
 #       auxiliary (random generated images) score 
-disc_start_iter = 1000
-auxiliary_start_epoch = 5
+disc_start_iter = 10000
+auxiliary_start_epoch = max(disc_start_iter // ITER_PER_EPOCH, 5)
 
 cur_iter = ITER_PER_EPOCH * start_epoch
 
@@ -138,7 +138,7 @@ def train_epoch(net, dataloader, auxiliary=True):
         # Get weight of each loss 
         # (w_kld is no effect when mode is VQVAE)
         w_recon, w_kld, w_dis = weight_scheduler(
-            cur_iter, change_cycle=ITER_PER_EPOCH)
+            cur_iter, change_cycle=ITER_PER_EPOCH, disc_start=disc_start_iter)
 
         # ===================
         # | Train Generator |
