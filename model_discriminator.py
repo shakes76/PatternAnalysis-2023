@@ -57,7 +57,7 @@ class NLayerDiscriminator(nn.Module):
             self.convs += [
                 nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
                           kernel_size=kw, stride=2, padding=padw, bias=False),
-                nn.GroupNorm(32, ndf * nf_mult),
+                nn.GroupNorm(ndf//4, ndf * nf_mult),
                 nn.LeakyReLU(0.2, True)
             ]
 
@@ -66,7 +66,7 @@ class NLayerDiscriminator(nn.Module):
         self.convs += [
             nn.Conv2d(ndf * nf_mult_prev, ndf * nf_mult,
                       kernel_size=kw, stride=1, padding=padw, bias=False),
-            nn.GroupNorm(32, ndf * nf_mult),
+            nn.GroupNorm(ndf//4, ndf * nf_mult),
             nn.LeakyReLU(0.2, True)
         ]
         self.conv_out = nn.Conv2d(
@@ -83,7 +83,7 @@ class NLayerDiscriminator(nn.Module):
                 ))
 
         if attn:
-            self.attn = AttnBlock(512)
+            self.attn = AttnBlock(8 * ndf)
         else:
             self.attn = None
 

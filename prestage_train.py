@@ -42,7 +42,7 @@ if mode == 'VQVAE':
 elif mode == 'VAE':
     net = VAE().to(DEVICE)
 discriminator = NLayerDiscriminator(
-    input_nc=1, n_layers=3).apply(weights_init).to(device=DEVICE)
+    input_nc=1, ndf=32, n_layers=3).apply(weights_init).to(device=DEVICE)
 
 # Learning rate choose. You can adjust learning rate here,
 # And don't adjust betas, it's optimized.
@@ -52,19 +52,19 @@ opt_d = torch.optim.Adam(discriminator.parameters(),
                          lr=learning_rate, betas=(0.5, 0.9))
 
 # Keep training if epoch is not zero
-start_epoch = 7
+start_epoch = 0
 # Only train to end_epoch-1
 end_epoch = 70
 
 # We define 500 iterations as an epoch.
 ITER_PER_EPOCH = 500
-batch_size = 8
+batch_size = 6
 
 # Stage threshold
 # disc_start: which iteration should activate discriminator
 # auxiliary start: which epoch should activate 
 #       auxiliary (random generated images) score 
-disc_start_iter = 10000
+disc_start_iter = 2500
 auxiliary_start_epoch = max(disc_start_iter // ITER_PER_EPOCH, 5)
 
 cur_iter = ITER_PER_EPOCH * start_epoch
