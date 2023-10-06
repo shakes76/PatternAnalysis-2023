@@ -18,20 +18,20 @@ from collections import defaultdict
 from model_VAE import VAE, VQVAE
 from model_discriminator import NLayerDiscriminator, weights_init
 from dataset import get_dataloader
-from util import reset_dir, weight_scheduler, compact_large_image
+from util import reset_dir, weight_scheduler, compact_large_image, ssim
 from logger import Logger
-from SSIM import ssim
+
 DEVICE = torch.device("cuda")
 print("DEVICE:", DEVICE)
 
 # mode should be vae or vqvae
-mode = 'VAE'
+mode = 'VQVAE'
 
 vis_folder = f'{mode}_vis'
 ckpt_folder = f'model_ckpt/{mode}'
 
 if mode == 'VQVAE':
-    net = VQVAE().to(device=DEVICE)
+    net = VQVAE().to(DEVICE)
 elif mode == 'VAE':
     net = VAE().to(DEVICE)
 discriminator = NLayerDiscriminator(
@@ -45,6 +45,19 @@ opt_d = torch.optim.Adam(discriminator.parameters(),
 
 # Keep training if epoch is not zero
 start_epoch = 0
+# Only train to end_epoch-1
+end_epoch = 70
+
+# We define 500 iterations as an epoch.
+ITER_PER_EPOCH = 500
+batch_size = 5
+
+# Stage threshold
+disc_start_iter = 1000
+auxiliary_start_epoch = 5
+
+cur_iter = ITER_PER_EPOCH * start_epoch
+
 if start_epoch != 0:
     # For example, if we start at epoch 7 and we need to load epoch 6.
     try:
@@ -61,15 +74,6 @@ else:
 # logger for record losses
 logger = Logger(file_name=f'{mode}_log.txt', reset=(start_epoch == 0))
 
-# We define 500 iterations as an epoch.
-ITER_PER_EPOCH = 500
-batch_size = 6
-
-# Stage threshold
-disc_start_iter = 1000
-auxiliary_start_epoch = 5
-
-cur_iter = ITER_PER_EPOCH * start_epoch
 
 # This is just for VQVAE
 def calculate_weight_sampler(net, dataloader):
@@ -124,7 +128,7 @@ def train_epoch(net, dataloader, auxiliary=True):
         recon_loss = torch.sum(recon_loss) / recon_loss.shape[0]
 
         # Reconstruction Term (GAN Loss)
-        logits_fake = discriminator(recon_img.contiguous())
+        logits_fake = discriminator(recon_img.contiguous(), z_idx)
         g1_loss = -torch.mean(logits_fake)
 
         # Adjust discriminator weight
@@ -140,7 +144,7 @@ def train_epoch(net, dataloader, auxiliary=True):
             net.eval()
             t = torch.randint(low=0, high=32, size=(raw_img.shape[0],)).cuda()
             gen_img = net.sample(raw_img.shape[0], t)
-            logits_gen = discriminator(gen_img.contiguous())
+            logits_gen = discriminator(gen_img.contiguous(), t)
             g2_loss = -torch.mean(logits_gen)
             g2_grads = torch.norm(torch.autograd.grad(
                 g2_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
@@ -148,6 +152,7 @@ def train_epoch(net, dataloader, auxiliary=True):
             d2_weight = torch.clamp(d2_weight, 0.0, 1e4).detach()
 
         loss = w_recon * recon_loss + w_dis * d1_weight * g1_loss
+        regularization = regularization.mean()
         if mode == 'VAE':
             loss += w_kld * regularization.mean() 
         elif mode == 'VQVAE':
@@ -163,14 +168,14 @@ def train_epoch(net, dataloader, auxiliary=True):
 
         # We should detach or it'll backprop generator side. (It'll occurs error that said we should retain_graph)
         recon_img = recon_img.detach()
-        logits_real = discriminator(raw_img.contiguous().detach())
-        logits_fake = discriminator(recon_img.contiguous().detach())
+        logits_real = discriminator(raw_img.contiguous().detach(), z_idx)
+        logits_fake = discriminator(recon_img.contiguous().detach(), z_idx)
         # Use hinge loss
         loss_real = torch.mean(F.relu(1. - logits_real))
         loss_fake = torch.mean(F.relu(1. + logits_fake))
 
         if auxiliary:
-            logits_gen = discriminator(gen_img.contiguous().detach())
+            logits_gen = discriminator(gen_img.contiguous().detach(), t)
             loss_gen = torch.mean(F.relu(1. + logits_gen))
             # First 0.5 is discriminator factor, Second 0.5 is from hinge loss
             d_loss = 0.5 * 0.5 * (loss_real + loss_fake + loss_gen)
@@ -183,7 +188,7 @@ def train_epoch(net, dataloader, auxiliary=True):
         # info to dict
         cur_info = {
             'recon_loss': recon_loss.item(),
-            'reg_loss': regularization.mean().item(),
+            'reg_loss': regularization.item(),
             'fake_recon_loss': g1_loss.item(),
             'discriminator_loss': d_loss.item(),
             'w_recon': w_recon,
@@ -224,7 +229,7 @@ def test_epoch(net, dataloader, folder):
     # Reconstruct the given data
     total_ssim = 0
     recon_imgs, brain_indices = [], []
-    for now_step, batch_data in enumerate(dataloader):
+    for now_step, batch_data in tqdm(enumerate(dataloader), total=len(dataloader)):
         raw_img, seg_img, brain_idx, z_idx = [
             data.to(DEVICE) for data in batch_data]
         recon_img, regularization, latent = net(raw_img, z_idx)
@@ -261,7 +266,7 @@ data_limit = None
 # Get dataloader
 train_dataloader = get_dataloader(
     mode='train_and_validate', batch_size=batch_size, limit=data_limit)
-test_dataloader = get_dataloader(mode='test', batch_size=16, limit=data_limit)
+test_dataloader = get_dataloader(mode='test', batch_size=8, limit=data_limit)
 
 start_auxiliary = False
 for epoch in range(start_epoch, 50):

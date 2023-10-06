@@ -5,10 +5,11 @@ import math
 import torch.nn.functional as F
 from einops import rearrange, repeat
 from tqdm import tqdm
+from torch.utils.data import WeightedRandomSampler
 
 # Self defined modules
 from module import ResnetBlock, AttnBlock, Downsample, Upsample, VectorQuantizer2
-from torch.utils.data import WeightedRandomSampler
+from util import sinusoidal_embedding
 
 class Encoder(nn.Module):
     def __init__(self, *, ch, ch_mult=(1, 2, 4, 8), num_res_blocks,
@@ -33,12 +34,7 @@ class Encoder(nn.Module):
 
         # Time embedding Setup
         time_emb_size = ch
-        time_embedding = torch.zeros([pos_len, time_emb_size])
-        div_term = torch.exp(torch.arange(0, time_emb_size, 2) * (-math.log(10000.0) / time_emb_size))
-        time_pos = torch.unsqueeze(torch.arange(0, pos_len), -1)
-        time_embedding[:, 0::2] = torch.sin(time_pos * div_term)
-        time_embedding[:, 1::2] = torch.cos(time_pos * div_term)
-        self.time_embedding = time_embedding
+        self.time_embedding = sinusoidal_embedding(pos_len, time_emb_size)
         
         self.time_mlp = nn.Sequential(
             nn.Linear(time_emb_size, time_emb_size),
@@ -124,12 +120,7 @@ class Decoder(nn.Module):
 
         # Time embedding Setup
         time_emb_size = ch
-        time_embedding = torch.zeros([pos_len, time_emb_size])
-        div_term = torch.exp(torch.arange(0, time_emb_size, 2) * (-math.log(10000.0) / time_emb_size))
-        time_pos = torch.unsqueeze(torch.arange(0, pos_len), -1)
-        time_embedding[:, 0::2] = torch.sin(time_pos * div_term)
-        time_embedding[:, 1::2] = torch.cos(time_pos * div_term)
-        self.time_embedding = time_embedding
+        self.time_embedding = sinusoidal_embedding(pos_len, time_emb_size)
         
         self.time_mlp = nn.Sequential(
             nn.Linear(time_emb_size, time_emb_size),
