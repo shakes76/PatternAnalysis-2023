@@ -13,8 +13,6 @@ Stable Diffusion on OASIS Dataset
 
 # Project Overview
 
-## Run
-
 ## Files
 
 ### Non-Script
@@ -39,6 +37,25 @@ Stable Diffusion on OASIS Dataset
 * `pixelCNN.py`: Do pixelCNN when random generation from VQVAE model.
 * `model_diffusion.py`: The model of stable diffusion. It's UNet.
 * `stable_diffusion.py`: Do stable diffusion when random generation from `VQVAE` or `VAE` model.
+
+## Run
+1. Requirements
+```
+einops==0.6.1
+torch==1.11.0+cu113
+torchvision==0.12.0+cu113
+tqdm==4.66.1
+Pillow==9.0.1
+numpy==1.22.2
+matplotlib==3.5.1
+imageio==2.22.4
+```
+2. Change dataset, which is in `__init__` in `dataset.py`
+3. For first stage
+   1. run `prestage_train.py`. You can select the mode among `VAE` and `VQVAE` in `line 27` in this script.
+4. For second stage
+   1. TODO, collect indices data to another place.
+   2. run `stable_diffusion.py`. If you want to use pixelCNN, you can run `pixelCNN.ipynb`
 
 ## Results
 
