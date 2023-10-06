@@ -176,8 +176,8 @@ def load_test_set(path):
 #     print(resized_images.shape)
 #     # output: (2594, 256, 256, 3), 2594 images of size 256x256 with 3 channels
 
-if __name__ == '__main__':
-    path = "E:/comp3710/ISIC2018/"
-    train_X, train_y = load_training_set(path)
-    val_X, val_y = load_val_set(path)
-    test_X, test_y = load_test_set(path)
+# if __name__ == '__main__':
+#     path = "E:/comp3710/ISIC2018/"
+#     train_X, train_y = load_training_set(path)
+#     val_X, val_y = load_val_set(path)
+#     test_X, test_y = load_test_set(path)
