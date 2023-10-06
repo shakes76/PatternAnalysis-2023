@@ -35,3 +35,5 @@ H_DIM = 1600        # dimension of Hidden Layer
 NUM_EPOCHS = 20     # number of epoch
 LR_RATE = 3e-4      # learning rate
 
+def save_iamge():
+    pass
