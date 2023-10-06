@@ -37,6 +37,8 @@ def train(epochs, depth):
                 
         batch_losses.append(batch_loss)
         print("epoch {} complete".format(epoch + 1))
+        print("loss is {}".format(batch_loss))
+
         
     return model, batch_losses
 
@@ -80,7 +82,7 @@ def test_accuracy(model):
 
 if __name__ == "__main__":
 
-    model, losses = train(15, 15)
+    model, losses = train(15, 6)
     torch.save(model.state_dict(), "model/model.pth")
     
     accuracy = test_accuracy(model)

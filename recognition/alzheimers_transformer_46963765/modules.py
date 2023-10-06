@@ -3,6 +3,7 @@ import torch.nn.functional as F
 import dataset as ds
 import torch
 import torchvision.models as models
+from torchvision.models import ResNet34_Weights
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -152,7 +153,7 @@ class ADNI_Transformer(nn.Module):
         
         # don't want it pretrianed      
         # take out the classification layer   
-        network = models.resnet34(pretrained=False) 
+        network = models.resnet34(weights=ResNet34_Weights.DEFAULT) 
         self._resnet = torch.nn.Sequential(*list(network.children())[:-1])
         
         #initialise the latent array and how many stacks we want
