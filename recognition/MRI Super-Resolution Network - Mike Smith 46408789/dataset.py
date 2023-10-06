@@ -70,7 +70,6 @@ class Dataset(data.Dataset):
         return torch.Tensor(one_hot)
 
 
-
 def main():
     """
     main function: used to test the functionality of the dataloader module

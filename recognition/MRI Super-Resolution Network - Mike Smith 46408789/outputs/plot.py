@@ -46,20 +46,22 @@ def main():
 
             count += 1
 
-    plt.plot(epoch_losses, d_losses)
-    plt.plot(epoch_losses, g_losses)
-    plt.xlabel("Epochs")
+    plt.style.use("dark_background")
+
+    plt.plot(epoch_losses, d_losses, color="red")
+    plt.plot(epoch_losses, g_losses, color="green")
+    plt.xlabel("Epoch")
     plt.ylabel("Training Loss")
     plt.legend(["Discriminator Loss", "Generator Loss"])
     plt.title("Training Loss Plot")
     plt.show()
 
-    plt.plot(epoch_lrs, d_lrs)
-    plt.plot(epoch_lrs, g_lrs)
-    plt.xlabel("Epochs")
+    plt.plot(epoch_lrs, d_lrs, color="red")
+    plt.plot(epoch_lrs, g_lrs, color="green")
+    plt.xlabel("Epoch")
     plt.ylabel("Learning Rate")
     plt.legend(["Discriminator LR", "Generator LR"])
-    plt.title("Learning Rate Plot")
+    plt.title("Variable Learning Rate Plot")
     plt.show()
 
 

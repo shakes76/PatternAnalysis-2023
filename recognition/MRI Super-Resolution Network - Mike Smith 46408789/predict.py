@@ -12,7 +12,7 @@ def main():
     except Exception: n = 3
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(device, flush=True)
+    print(f"pytorch version: {torch.__version__}, exe device: {device}", flush=True)
 
     """ model """
     model = Model_Generator().to(device)
@@ -26,6 +26,8 @@ def main():
             state_dict=torch.load(f=f, map_location=torch.device('cpu')),
         )
 
+    plt.style.use("dark_background")
+    
     model.eval()
     for i, (images, labels) in enumerate(test_loader):
         images = images.to(device)
@@ -41,7 +43,7 @@ def main():
                 (images[0] - torch.min(images[0])) / (torch.max(images[0]) - torch.min(images[0]))
             ).permute(1, 2, 0).cpu()
         )
-        plt.title("original", size=8)
+        plt.title("Original", size=10)
 
         plt.subplot(n, 3, i*3 + 2)
         plt.imshow(
@@ -49,7 +51,7 @@ def main():
                 (downsampled[0] - torch.min(downsampled[0])) / (torch.max(downsampled[0]) - torch.min(downsampled[0]))
             ).permute(1, 2, 0).cpu()
         )
-        plt.title("downsampled", size=8)
+        plt.title("Downsampled", size=10)
 
         plt.subplot(n, 3, i*3 + 3)
         plt.imshow(
@@ -57,7 +59,7 @@ def main():
                 (outputs[0] - torch.min(outputs[0])) / (torch.max(outputs[0]) - torch.min(outputs[0]))
             ).permute(1, 2, 0).cpu()
         )
-        plt.title("reconstructed", size=8)
+        plt.title("Reconstructed", size=10)
 
         if i == n - 1: break
 

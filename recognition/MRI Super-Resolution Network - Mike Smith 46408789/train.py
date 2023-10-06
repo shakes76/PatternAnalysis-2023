@@ -11,11 +11,11 @@ def main():
 
     """ pytorch exe device """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(device, flush=True)
+    print(f"pytorch version: {torch.__version__}, exe device: {device}", flush=True)
 
     """ training params """
     generator_lr = 3e-5 if model_type == "gan" else 1e-3
-    discriminator_lr = 1e-5
+    discriminator_lr = 2e-5
     epochs = 300 if machine == "rangpur" else 3
 
     """ load training dataset """
@@ -49,7 +49,7 @@ def main():
     ) if model_type == "gan" else None
 
     """ variable learning rate scheduller for generator """
-    lambda_generator = lambda epoch: 0.95**min(epoch, 200)
+    lambda_generator = lambda epoch: 0.95**epoch
     lr_scheduler_generator = torch.optim.lr_scheduler.OneCycleLR(
         optimizer_generator, max_lr=generator_lr, 
         steps_per_epoch=len(train_loader), epochs=epochs,
@@ -58,7 +58,7 @@ def main():
     ) if model_type == "gan" else None
 
     """ variable learning rate scheduller for discriminator """
-    lambda_discriminator = lambda epoch: 0.96**min(epoch, 200)
+    lambda_discriminator = lambda epoch: 0.96**epoch
     lr_scheduler_discriminator = torch.optim.lr_scheduler.OneCycleLR(
         optimizer_discriminator, max_lr=discriminator_lr, 
         steps_per_epoch=len(train_loader), epochs=epochs,
