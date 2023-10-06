@@ -4,10 +4,10 @@ from mrcnn import model as modellib
 
 class MaskRCNNConfig(Config):
     NAME = "skin_lesion"
-    IMAGES_PER_GPU = 1
+    IMAGES_PER_GPU = 4
     NUM_CLASSES = 1 + 1  # Background + skin lesion
     STEPS_PER_EPOCH = 100
-    DETECTION_MIN_CONFIDENCE = 0.9
+    DETECTION_MIN_CONFIDENCE = 0.8
 
 def get_maskrcnn_model():
     config = MaskRCNNConfig()

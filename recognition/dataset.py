@@ -1,21 +1,27 @@
-from mrcnn.utils import Dataset
-import cv2
 import os
+import cv2
+import numpy as np
 
-class SkinLesionDataset(Dataset):
-    def load_dataset(self, dataset_dir):
-        self.add_class("dataset", 1, "skin_lesion")
-        images_dir = os.path.join(dataset_dir, 'ISIC2018_Task1-2_Training_Input_x2')
-        annotations_dir = os.path.join(dataset_dir, 'ISIC2018_Task1_Training_GroundTruth_x2')
 
-        for filename in os.listdir(images_dir):
-            image_id = filename[:-4]
-            img_path = os.path.join(images_dir, filename)
-            ann_path = os.path.join(annotations_dir, image_id + '.png')
-            self.add_image('dataset', image_id=image_id, path=img_path, annotation=ann_path)
+def resize_images(folder_path, target_size=(256, 256), extensions=None):
+    """
+    :param folder_path: path to folder containing images
+    :param target_size: size of image to resize
+    :param extensions: list of file extensions to consider as images
+    :return: numpy array of resized images
+    """
+    if extensions is None:
+        extensions = [".jpg", ".png"] # inputs in jpg and grand truth in png
+    resized_images = []
+    for filename in os.listdir(folder_path):
+        if any(filename.endswith(ext) for ext in extensions):  # only process image files
+            image_path = os.path.join(folder_path, filename)
 
-    def load_mask(self, image_id):
-        info = self.image_info[image_id]
-        path = info['annotation']
-        mask = cv2.imread(path)
-        return mask, [1]
+            # Read and resize the image
+            image = cv2.imread(image_path)
+            image_resized = cv2.resize(image, target_size)
+
+            resized_images.append(image_resized)
+
+    return np.array(resized_images)
+

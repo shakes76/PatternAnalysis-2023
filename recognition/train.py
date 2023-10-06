@@ -1,10 +1,12 @@
-import torch.optim as optim
-from dataset import Dataset
-from modules import Unet
+from modules import get_maskrcnn_model
+from dataset import SkinLesionDataset
+import os
 
-# Load model and dataset
-modules = Unet()
-dataset = Dataset()
+if __name__ == "__main__":
+    train_set = SkinLesionDataset()
+    train_set.load_dataset(dataset_dir="E:/comp3710/ISIC2018")
+    train_set.prepare()
 
-# Load optimizer
-optimizer = optim.Adam(modules.parameters(), lr=0.001)
+    model = get_maskrcnn_model()
+
+    model.train(train_set, train_set, learning_rate=0.005, epochs=5, layers='heads')
