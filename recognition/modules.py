@@ -4,12 +4,24 @@ from mrcnn import model as modellib
 
 class MaskRCNNConfig(Config):
     NAME = "skin_lesion"
-    IMAGES_PER_GPU = 4
+    IMAGES_PER_GPU = 16
     NUM_CLASSES = 1 + 1  # Background + skin lesion
     STEPS_PER_EPOCH = 100
-    DETECTION_MIN_CONFIDENCE = 0.8
+    DETECTION_MIN_CONFIDENCE = 0.9
 
-def get_maskrcnn_model():
-    config = MaskRCNNConfig()
-    model = modellib.MaskRCNN(mode="training", config=config, model_dir="./")
+
+def get_maskrcnn_model(mode, config, model_dir, weights_path=None):
+    """Returns a Mask R-CNN model.
+
+    :param mode: Either 'training' or 'inference'
+    :param config: A Subclass of mrcnn.config.Config
+    :param model_dir: Directory to save logs and trained model
+    :param weights_path: Path to pretrained weights
+    :return: Mask R-CNN model
+    """
+    model = modellib.MaskRCNN(mode=mode, config=config, model_dir=model_dir)
+
+    if weights_path:
+        model.load_weights(weights_path, by_name=True)
+
     return model
