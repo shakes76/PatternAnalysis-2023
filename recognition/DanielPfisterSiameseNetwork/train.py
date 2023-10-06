@@ -5,10 +5,10 @@ import os
 import tensorflow as tf
 from dataset import image_list
 from dataset import load_images
+import random
 
 
 #%%
-
 #define varibles
 height = 32
 width = 32
@@ -36,5 +36,45 @@ train_images_NC = []
 #load images into list as a numpy array
 train_images_NC = load_images(path_train_images_NC, list_train_NC, number_train_NC, height, width)
 train_images_AD = load_images(path_train_images_AD, list_train_AD, number_train_AD, height, width)
+
+
 # %%
 
+#create data with the correct shape for the neural network
+train_pair_label = []
+train_pair_image = []
+
+#creates AD and NC as well as AD and AD image pairs
+#AD and AD image pairs get the label 1
+#AD and NC image pairs get the label 0 
+for x in range(0,number_train_AD):
+    random_number_AD = random.randint(0, number_train_AD-1)
+    random_number_NC = random.randint(0, number_train_NC-1)
+    image1 = np.expand_dims(train_images_AD[x,:,:,:], 0)
+    image2 = np.expand_dims(train_images_AD[random_number_AD,:,:,:], 0)
+    con_AD = np.concatenate((image1, image2), axis=0)
+    train_pair_image.append(con_AD)
+    train_pair_label.append(1)
+    image3 = np.expand_dims(train_images_NC[random_number_NC,:,:,:], 0) #[2,32,32,1]
+    con_NC = np.concatenate((image1, image3), axis=0)
+    train_pair_image.append(con_NC)
+    train_pair_label.append(0)
+
+#creates NC and NC as well as NC and AD image pairs
+#NC and NC image pairs get the label 1
+#NC and AD image pairs get the label 0 
+for x in range(0,number_train_NC):
+    random_number_AD = random.randint(0, number_train_AD-1)
+    random_number_NC = random.randint(0, number_train_NC-1)
+    image1 = np.expand_dims(train_images_NC[x,:,:,:], 0)
+    image2 = np.expand_dims(train_images_NC[random_number_NC,:,:,:], 0)
+    con_NC = np.concatenate((image1, image2), axis=0)
+    train_pair_image.append(con_NC)
+    train_pair_label.append(1)
+    image3 = np.expand_dims(train_images_AD[random_number_AD,:,:,:], 0) #[2,32,32,1]
+    con_AD = np.concatenate((image1, image3), axis=0)
+    train_pair_image.append(con_AD)
+    train_pair_label.append(0)
+
+train_pair_image_array = np.array(train_pair_image)
+train_pair_label_array = np.array(train_pair_label)

@@ -1,7 +1,11 @@
+#%%
+#import von libraries
 import os
 import numpy as np
 import tensorflow as tf
 
+
+#%%
 #define the function to read all the image names from folder 
 #und count the image number
 def image_list(path_folder_images):
@@ -11,6 +15,7 @@ def image_list(path_folder_images):
     
     return list_image, image_count
 
+#%%
 # define the function to load the images
 def load_images(path_folder_images, list_images, number_images, height, width):
     image_array = []
@@ -24,3 +29,4 @@ def load_images(path_folder_images, list_images, number_images, height, width):
 
     image_array = np.array(image_array) # create a numpy array
     return image_array
+# %%
