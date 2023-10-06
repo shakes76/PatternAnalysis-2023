@@ -21,7 +21,13 @@ class UNet3D(nn.Module):
         self.decoder2 =   nn.Conv3d(256, 128, 3, stride=1, padding=1)  # b, 8, 15, 1
         self.decoder3 =   nn.Conv3d(128, 64, 3, stride=1, padding=1)  # b, 1, 28, 28
         self.decoder4 =   nn.Conv3d(64, 32, 3, stride=1, padding=1)
-        self.decoder5 =   nn.Conv3d(32, out_channel, 3, stride=1, padding=1)
+        self.decoder5 =   nn.Conv3d(32, 2, 3, stride=1, padding=1)
+        
+        self.map = nn.Sequential(
+            nn.Conv3d(2, out_channel, 1, 1),
+            # nn.Upsample(scale_factor=(1, 2, 2), mode='trilinear'),
+            nn.Softmax(dim =1)
+        )
         
     def forward(self, x):
         
@@ -46,8 +52,22 @@ class UNet3D(nn.Module):
         out = torch.add(out,t1)
         
         out = F.relu(F.interpolate(self.decoder5(out),scale_factor=(2,2,2),mode ='trilinear'))
-        
-        return out
+        output = self.map(out)
+        return output
+    
+class DiceLoss(torch.nn.Module):
+    def __init__(self, smooth=1):
+        super(DiceLoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, inputs, targets):
+        assert inputs.shape == targets.shape, f"Shapes don't match {inputs.shape} != {targets.shape}"
+        inputs = inputs[:,1:]                                                       # skip background class
+        targets = targets[:,1:]                                                     # skip background class
+        axes = tuple(range(2, len(inputs.shape)))                                   # sum over elements per sample and per class
+        intersection = torch.sum(inputs * targets, axes)
+        addition = torch.sum(torch.square(inputs) + torch.square(targets), axes)
+        return 1 - torch.mean((2 * intersection + self.smooth) / (addition + self.smooth))
     
 if __name__=='__main__':
     test_dataset = MRIDataset_pelvis(mode='test',dataset_path='/Users/tongxueqing/Downloads/HipMRI_study_complete_release_v1',split_id=200,normalize=True,augmentation=True)
@@ -59,4 +79,6 @@ if __name__=='__main__':
         print(sample[1].shape)
         output=model(sample[0])
         print('output.shape:',output.shape)
+        labely=torch.nn.functional.one_hot(sample[1].squeeze(1).long(),num_classes=6).permute(0,4,1,2,3).float()
+        # loss =torch.nn.functional.mse_loss(output,sample[1])
         break
