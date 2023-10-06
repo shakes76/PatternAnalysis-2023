@@ -97,7 +97,6 @@ class MyDataset(torch.utils.data.Dataset):
 __DATASET__ = {}
 
 def get_dataloader(mode='train', batch_size=8, limit=None):
-    print("called", mode, batch_size, limit)
     assert mode in ['train', 'test', 'validate', 'train_and_validate']
     # To some issue, we may call get_dataloader twice.
     if (mode, limit) in __DATASET__:
@@ -121,31 +120,4 @@ def get_dataloader(mode='train', batch_size=8, limit=None):
 
 
 if __name__ == '__main__':
-    DEVICE = 'cuda'
-    dataloader = get_dataloader('test', limit=32)
-    recon_imgs, brain_indices = [], []
-    for now_step, batch_data in enumerate(dataloader):
-        raw_img, seg_img, brain_idx, z_idx = [
-            data.to(DEVICE) for data in batch_data]
-        # recon_img, latent, kld_loss = net(raw_img)
-        # Record reconstructed images (for visualization) and brain indices (for labeling)
-        recon_imgs.append(raw_img.detach().cpu())
-        brain_indices.append(brain_idx.detach().cpu())
-
-    recon_imgs, brain_indices = torch.concat(
-        recon_imgs, 0), torch.concat(brain_indices, 0)
-
-    # Reshape same brain but different z-index into one image
-    recon_imgs = rearrange(recon_imgs, ' ( I Z ) C H W -> I Z C H W', Z=32)
-    # Image should be 4 * 8 of brains
-    recon_imgs = rearrange(
-        recon_imgs, ' I (HZ WZ) C H W -> I (HZ H) (WZ W) C', HZ=4)
-    recon_imgs = repeat(
-        recon_imgs, 'I H W C -> I H W (repeat C)', repeat=3).numpy()
-    # print(recon_imgs.shape)
-    # import matplotlib.pyplot as plt
-    # for idx, brain_idx in enumerate(brain_indices[::32]):
-    #     plt.imsave(f'VAE_vis/iter_10/recon_{brain_idx}.png', recon_imgs[idx], cmap='gray')
-
-    # # plt.imshow(recon_imgs[0], cmap='gray')
-    # # plt.show()
+    dataloader = get_dataloader('train')
