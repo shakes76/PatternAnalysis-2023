@@ -36,8 +36,8 @@ ARCHITECTURE:
 PROCESS:
 
 DATA PREPROCESSING:
-- Each modality of each patient's data is normalized independently by subtracting the mean and dividing by the standard deviation of the brain region.
-- The normalized images are clipped at [−5,5] to remove outliers and are rescaled to [0,1], setting the non-brain region to 0.
+- Each modality of each patient's data is normalised independently by subtracting the mean and dividing by the standard deviation of the brain region.
+- The normalised images are clipped at [−5,5] to remove outliers and are rescaled to [0,1], setting the non-brain region to 0.
 
 Training:
 - training data composed of randomly sampled patches size 128 x 128 x 128 voxels with a batch size of 2
