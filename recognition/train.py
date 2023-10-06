@@ -4,6 +4,7 @@ import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from dataset import ISICDataset, get_transform
 from modules import UNet3D
+from modules2 import build_unet
 
 # Hyperparameters
 lr = 0.001  # Learning rate
@@ -17,6 +18,7 @@ train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 # Model, Loss, and Optimiser
 model = UNet3D(in_channels=3, num_classes=2).to(device)
+# model = build_unet().to(device)
 optimiser = optim.Adam(model.parameters(), lr=lr)
 
 # Training Loop
@@ -32,6 +34,8 @@ for epoch in range(num_epochs):
         
         # Forward pass
         outputs = model(inputs)
+
+        print("here")
         
         # Loss computation using cross entropy loss
         # Ensure your mask labels are of type torch.long
