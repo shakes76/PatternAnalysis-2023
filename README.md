@@ -15,17 +15,33 @@ Stable Diffusion on OASIS Dataset
 
 ## Run
 
-#### Pretrain Stage
+## Files
 
-##### Train
-* For VAE, `prestage_train_AE.py`
-* For VQVAE, `prestage_train_VQVAE.py`
-##### Logger
-* Use `logger.py` can see the loss curve.
-##### Files
-* `model_ckpt\*`: put models checkpoint
-* `log\*`: put log when training. (Can use logger.py to visualize it.)
+### Non-Script
+* `model_ckpt\*`: models' checkpoints.
+* `log\*`: training log. (Can use `logger.py` to visualize it.)
 * `*_vis\*`: visualization of images when training.
+* `playground`: we write some code to figure out some algorithms.
+* `README.md / report.pdf`: The file you current see.
+
+### Common
+* `util.py`: useful function, such as ssim, positional encoding.
+* `module.py`: useful network module, such as resblock.
+* `dataset.py`: get dataset from given folder.
+* `logger.py`: script that can check the training log.
+
+### First Stage
+* `model_VAE.py`: `VAE` and `VQVAE` model for first stage.
+* `model_discriminator.py`: The GAN part when training `VAE` or `VQVAE`.
+* `prestage_train.py`: Training Script for first stage.
+
+### Second Stage
+* `pixelCNN.py`: Do pixelCNN when random generation from VQVAE model.
+* `model_diffusion.py`: The model of stable diffusion. It's UNet.
+* `stable_diffusion.py`: Do stable diffusion when random generation from `VQVAE` or `VAE` model.
+
+##### Second Stage Script 
+
 
 ## Results
 
@@ -142,6 +158,7 @@ Notation: $q$ is encoder, $z$ is latent.
     * $= - \log \sigma - \frac 12 - \frac 12( \sigma^2 + \mu^2)$
     * $= -\frac{1}{2} (1 + \log  \sigma^2 -\sigma^2 - \mu^2)$
   * Thus, the regularization term for KL divergence is $= -\frac{1}{2} (1 + \log \sigma^2 - \sigma^2 - \mu^2)$. If we modify the encoder from an image to some $\mu$ and $\sigma$, and sample the latent variable from $N(\mu, \sigma)$, then we can apply this term.
+
 #### KLD Loss Scheduler
 
 > [Cyclical Annealing Schedule: A Simple Approach to Mitigating KL Vanishing (NAACL 2019)](https://github.com/haofuml/cyclical_annealing)
