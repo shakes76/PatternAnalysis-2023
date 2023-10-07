@@ -1,70 +1,68 @@
 import torch
 from torchvision import transforms
 from torch.utils.data import DataLoader
-from modules import get_maskrcnn_model
-from dataset import ISICDataset
+from modules import get_maskrcnn_model  # Ensure this function is defined in your modules.py
+from dataset import ISICDataset  # Ensure this class is defined in your dataset.py
 import matplotlib.pyplot as plt
+import os
 
+# Ensure GPU usage if available
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-# 1 class (lesion) + 1 background
-model = get_maskrcnn_model(num_classes=2)
+# Initialize model and optimizer
+model = get_maskrcnn_model(num_classes=2).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
+# Define transformations
 transform = transforms.Compose([
     transforms.Resize((256, 256)),
     transforms.ToTensor(),
 ])
 
+# Define dataset paths
+img_train_dir = './ISIC2018_Task1-2_Training_Input'
+mask_train_dir = './ISIC2018_Task1_Training_GroundTruth'
+img_test_dir = './ISIC2018_Task1-2_Test_Input'
 
-# Custom collate function to handle None values
-def custom_collate(batch):
-    batch = list(filter(lambda x: x[0] is not None and x[1] is not None, batch))
-    if len(batch) == 0:
-        return None, None
-    return torch.utils.data.dataloader.default_collate(batch)
-
-
-# For training
-img_train_dir = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\ISIC-2017_Training_Data'
-mask_train_dir = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\ISIC-2017_Test_v2_Part1_GroundTruth'
-
-# For testing
-img_test_dir = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\ISIC-2017_Test_v2_Data'
-mask_test_dir = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\ISIC-2017_Test_v2_Part1_GroundTruth'
-
+# Initialize datasets and dataloaders
 train_dataset = ISICDataset(img_dir=img_train_dir, mask_dir=mask_train_dir, transform=transform)
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, collate_fn=custom_collate)
+train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
-# Define the number of epochs
-epochs = 1
+# Training parameters
+epochs = 10
+losses = []
 
 # Training loop
-losses = []
 for epoch in range(epochs):
-    print(f"Training Epoch {epoch + 1}/{epochs}...")
-    for iteration, (images, targets) in enumerate(train_loader):
-        if images is None or targets is None:
-            continue
+    print(f"Epoch {epoch + 1}/{epochs}")
+    for images, targets in train_loader:
+        images = [image.to(device) for image in images]
+        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+
         optimizer.zero_grad()
         loss_dict = model(images, targets)
+
+        # Debug: Check the loss_dict
+        print("Loss Dict:", loss_dict)
+
         loss = sum(loss for loss in loss_dict.values())
+
+        # Debug: Check the loss and its type
+        print("Loss:", loss, "Type:", type(loss))
 
         loss.backward()
         optimizer.step()
         losses.append(loss.item())
 
-        # Print the training loss for each iteration
-        print(f"Iteration {iteration + 1}: Training Loss = {loss.item():.4f}")
+# Save model
+path_to_saved_model = './Save_Model'
+if not os.path.exists(path_to_saved_model):
+    os.makedirs(path_to_saved_model)
+torch.save(model.state_dict(), os.path.join(path_to_saved_model, './Save_Model'))
 
-
-
-# path to save model
-path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\Save Model\\mask_rcnn_model.pth'
-torch.save(model.state_dict(), path_to_saved_model)
-
-# Plotting losses
+# Plot losses
 plt.plot(losses)
-plt.xlabel('Iterations')
+plt.xlabel('Iteration')
 plt.ylabel('Loss')
+plt.title('Training Loss')
 plt.show()
