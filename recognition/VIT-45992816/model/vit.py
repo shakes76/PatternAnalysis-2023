@@ -288,10 +288,10 @@ def vit_base_patch16_224(num_classes: int = 21843, pretrained: bool = True,has_l
 
     model = VisionTransformer(img_size=224,
                               patch_size=16,
-                              embed_dim=400,
+                              embed_dim=256,
                               depth=6,
                               num_heads=8,
-                              representation_size=400 if has_logits else None,
+                              representation_size=256 if has_logits else None,
                               num_classes=num_classes)
     if pretrained:
         state_dict = load_state_dict_from_url("https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vitjx/jx_vit_base_patch16_224_in21k-e5005f0a.pth",
@@ -304,10 +304,10 @@ def vit_base_patch32_224(num_classes: int = 21843, pretrained: bool = True, has_
 
     model = VisionTransformer(img_size=224,
                               patch_size=32,
-                              embed_dim=400,
+                              embed_dim=256,
                               depth=6,
                               num_heads=8,
-                              representation_size=400 if has_logits else None,
+                              representation_size=256 if has_logits else None,
                               num_classes=num_classes)
     if pretrained:
         print("Used pretrain")
