@@ -1,18 +1,18 @@
 import torch
 from torch.utils.data import Dataset
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
-import pandas as pd
-import numpy as np
 import os
 from PIL import Image
 import torchvision.transforms as T
+import numpy as np
 
-def get_transform(train):
-    transforms = []
-    transforms.append(T.PILToTensor())
-    transforms.append(T.ConvertImageDtype(torch.float))
-    return T.Compose(transforms)
+
+def get_transform():
+    return T.Compose([
+        T.PILToTensor(),
+        T.ConvertImageDtype(torch.float)
+    ])
+
+
 class ISICDataset(Dataset):
     def __init__(self, img_dir, mask_dir, transform=None):
         self.img_dir = img_dir
@@ -27,11 +27,8 @@ class ISICDataset(Dataset):
         img_path = os.path.join(self.img_dir, self.image_files[idx])
         mask_path = os.path.join(self.mask_dir, self.image_files[idx].replace('.jpg', '_superpixels.png'))
 
-        try:
-            image = Image.open(img_path).convert("RGB")
-            mask = Image.open(mask_path).convert("L")
-        except FileNotFoundError:
-            return None, None
+        image = Image.open(img_path).convert("RGB")
+        mask = Image.open(mask_path).convert("L")
 
         if self.transform:
             image = self.transform(image)
@@ -49,12 +46,19 @@ class ISICDataset(Dataset):
         # Create target dictionary
         target = {
             "boxes": boxes,
-            "labels": torch.ones((1,), dtype=torch.int64),
+            "labels": torch.ones((1,), dtype=torch.int64),  # As labels are not provided, setting default to 1
             "masks": mask,
             "image_id": torch.tensor([idx]),
             "area": (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0]),
             "iscrowd": torch.zeros((1,), dtype=torch.int64)
-
         }
 
         return image, target
+
+
+if __name__ == "__main__":
+    # Example usage for Training data
+    TRAIN_IMG_DIR = './ISIC2018_Task1-2_Training_Input'
+    TRAIN_MASK_DIR = './ISIC2018_Task1_Training_GroundTruth'
+
+    train_dataset = ISICDataset(img_dir=TRAIN_IMG_DIR, mask_dir=TRAIN_MASK_DIR, transform=get_transform())
