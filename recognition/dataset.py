@@ -25,7 +25,7 @@ class ISICDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.image_files[idx])
-        mask_path = os.path.join(self.mask_dir, self.image_files[idx].replace('.jpg', '_superpixels.png'))
+        mask_path = os.path.join(self.mask_dir, self.image_files[idx].replace('.jpg', '_segmentation.png'))
 
         image = Image.open(img_path).convert("RGB")
         mask = Image.open(mask_path).convert("L")
@@ -46,7 +46,7 @@ class ISICDataset(Dataset):
         # Create target dictionary
         target = {
             "boxes": boxes,
-            "labels": torch.ones((1,), dtype=torch.int64),  # As labels are not provided, setting default to 1
+            "labels": torch.ones((1,), dtype=torch.int64), 
             "masks": mask,
             "image_id": torch.tensor([idx]),
             "area": (boxes[:, 3] - boxes[:, 1]) * (boxes[:, 2] - boxes[:, 0]),
@@ -57,8 +57,7 @@ class ISICDataset(Dataset):
 
 
 if __name__ == "__main__":
-    # Example usage for Training data
-    TRAIN_IMG_DIR = './ISIC2018_Task1-2_Training_Input'
-    TRAIN_MASK_DIR = './ISIC2018_Task1_Training_GroundTruth'
+    TRAIN_IMG_DIR = './ISIC2018_Task1-2_Training_Input'  
+    TRAIN_MASK_DIR = './ISIC2018_Task1_Training_GroundTruth'  
 
     train_dataset = ISICDataset(img_dir=TRAIN_IMG_DIR, mask_dir=TRAIN_MASK_DIR, transform=get_transform())
