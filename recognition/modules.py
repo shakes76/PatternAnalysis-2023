@@ -1,21 +1,53 @@
-import torchvision
-from torchvision.models.detection import maskrcnn_resnet50_fpn
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
+import torch.nn as nn
+
+class DoubleConv(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super().__init__()
+        self.double_conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        return self.double_conv(x)
 
 
-def get_maskrcnn_model(num_categories=3):
+class ImprovedUNet(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ImprovedUNet, self).__init__()
 
-    maskrcnn_model = maskrcnn_resnet50_fpn(pretrained=True)
+        # Encoder
+        self.enc1 = DoubleConv(in_channels, 64)
+        self.enc2 = DoubleConv(64, 128)
+        self.enc3 = DoubleConv(128, 256)
+        self.enc4 = DoubleConv(256, 512)
 
-    # Adjust the box predictor to match the number of classes
-    box_features = maskrcnn_model.roi_heads.box_predictor.cls_score.in_features
-    custom_box_predictor = FastRCNNPredictor(box_features, num_categories)
-    maskrcnn_model.roi_heads.box_predictor = custom_box_predictor
+        self.pool = nn.MaxPool2d(2)
 
-    # Adjust the mask predictor to match the number of classes
-    mask_features = maskrcnn_model.roi_heads.mask_predictor.conv5_mask.in_channels
-    custom_mask_predictor = MaskRCNNPredictor(mask_features, 256, num_categories)
-    maskrcnn_model.roi_heads.mask_predictor = custom_mask_predictor
+        # Decoder
+        self.dec1 = DoubleConv(512, 256)
+        self.dec2 = DoubleConv(256, 128)
+        self.dec3 = DoubleConv(128, 64)
+        self.out_conv = nn.Conv2d(64, out_channels, 1)
 
-    return maskrcnn_model
+        self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+
+    def forward(self, x):
+        # Encoder
+        e1 = self.enc1(x)
+        e2 = self.enc2(self.pool(e1))
+        e3 = self.enc3(self.pool(e2))
+        e4 = self.enc4(self.pool(e3))
+
+        # Decoder
+        d1 = self.dec1(self.up(e4))
+        d2 = self.dec2(self.up(d1))
+        d3 = self.dec3(self.up(d2))
+        out = self.out_conv(d3)
+
+        return out
+
