@@ -7,14 +7,16 @@ from torchvision import transforms
 
 
 def dice_loss(pred, target, smooth=1.):
-    pred = pred.contiguous()
-    target = target.contiguous()
+    pred = torch.sigmoid(pred)
 
-    intersection = (pred * target).sum(dim=2).sum(dim=2)
+    # Flatten label and prediction tensors
+    pred = pred.view(-1)
+    target = target.view(-1)
 
-    loss = (1 - ((2. * intersection + smooth) / (pred.sum(dim=2).sum(dim=2) + target.sum(dim=2).sum(dim=2) + smooth)))
+    intersection = (pred * target).sum()
+    dice = (2. * intersection + smooth) / (pred.sum() + target.sum() + smooth)
 
-    return loss.mean()
+    return 1 - dice
 
 
 def train():
@@ -35,30 +37,48 @@ def train():
     train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
 
     model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
+    for param in model.parameters():
+        param.requires_grad = True
+
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    num_epochs = 1  
+    num_epochs = 1
+    num_epochs = 1
     for epoch in range(num_epochs):
         model.train()
         running_loss = 0.0
         total_samples = 0
+        total_dice_coefficient = 0.0  # Initialize the accumulator for Dice coefficient
 
+        # Print epoch number at the start of each epoch
         print(f"Starting Epoch {epoch + 1}/{num_epochs}")
 
-        for images, masks in train_loader:
+        for step, (images, masks) in enumerate(train_loader, 1):
             images, masks = images.to(device), masks.to(device)
+
             optimizer.zero_grad()
 
             outputs = model(images)
             loss = dice_loss(outputs, masks)
+
+            dice_coefficient = 1 - loss.item()
+            total_dice_coefficient += dice_coefficient  # Accumulate the Dice coefficient for this batch
+
             loss.backward()
             optimizer.step()
 
             running_loss += loss.item() * images.size(0)  # multiply by batch size
             total_samples += images.size(0)
 
+            # Print the loss for every step/batch
+            print(f"Epoch {epoch + 1}/{num_epochs}, Step {step}/{len(train_loader)} Loss: {loss.item():.4f}")
+
         epoch_loss = running_loss / total_samples
-        print(f"Epoch {epoch + 1}/{num_epochs} Loss: {epoch_loss:.4f}")
+        average_dice_coefficient = total_dice_coefficient / len(
+            train_loader)  # Compute the average Dice coefficient for the epoch
+
+        print(f"Epoch {epoch + 1} Average Loss: {epoch_loss:.4f}")
+        print(f"Epoch {epoch + 1} Average Dice Coefficient: {average_dice_coefficient:.4f}\n")
 
     torch.save(model.state_dict(), "model_checkpoint.pth")
 
