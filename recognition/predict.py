@@ -7,7 +7,7 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 
 # Load the pre-trained model
 model = get_maskrcnn_model(num_classes=2)
-path_to_saved_model = 'C:\\Users\\yangj\\Desktop\\COMP3710_Project\\Save_Model'
+path_to_saved_model = './Save_Model'
 model.load_state_dict(torch.load(path_to_saved_model))
 model = model.to(device)
 model.eval()
@@ -18,8 +18,7 @@ transform = transforms.Compose([
     transforms.ToTensor(),
 ])
 
-# Load an image for prediction
-path_to_image = 'C:\\Users\\yangj\\Desktop\\COMP3710 Project Test1\\ISIC-2017_Validation_DataData'
+path_to_image = './ISIC2018_Task1-2_Test_Input'
 image = Image.open(path_to_image).convert("RGB")
 image = transform(image).unsqueeze(0).to(device)
 
