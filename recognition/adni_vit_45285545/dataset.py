@@ -4,8 +4,11 @@ Data loader for loading and preprocessing ADNI data.
 import os
 from typing import Any, Callable, Optional, Tuple
 
+import torch
+import torchvision
+import torchvision.transforms as transforms
+
 from torch.utils.data import DataLoader, Dataset
-from torchvision.io import read_image
 
 # Root directory for ADNI training and testing split
 ADNI_ROOT = os.path.join('ADNI_AD_NC_2D', 'AD_NC')
@@ -34,7 +37,7 @@ class ADNI(Dataset):
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
         subdir = 'AD' if index < self.count_ad else 'NC'
         img_path = os.path.join(self.img_dir, subdir, self.img_list[index])
-        image = read_image(img_path)
+        image = torchvision.io.read_image(img_path, torchvision.io.ImageReadMode.RGB)
         label = int(index < self.count_ad) # return 1 for AD and 0 for NC
         if self.transform:
             image = self.transform(image)
@@ -47,9 +50,19 @@ def create_train_dataloader() -> DataLoader:
     '''
     Returns a DataLoader on pre-processed training data from the ADNI dataset.
     '''
-    return DataLoader(ADNI(ADNI_ROOT, train=True), batch_size=4, shuffle=True)
+    transform = transforms.Compose([
+        transforms.CenterCrop(224),
+        transforms.ConvertImageDtype(torch.float),
+    ])
+    train_dataset = ADNI(ADNI_ROOT, train=True, transform=transform)
+    return DataLoader(train_dataset, batch_size=4, shuffle=True)
 
 def create_test_dataloader() -> DataLoader:
     '''
     Returns a DataLoader on pre-processed test data from the ADNI dataset.'''
-    return DataLoader(ADNI(ADNI_ROOT, train=False), batch_size=64, shuffle=True)
+    transform = transforms.Compose([
+        transforms.CenterCrop(224),
+        transforms.ConvertImageDtype(torch.float),
+    ])
+    test_dataset = ADNI(ADNI_ROOT, train=False, transform=transform)
+    return DataLoader(test_dataset, batch_size=64, shuffle=True)
