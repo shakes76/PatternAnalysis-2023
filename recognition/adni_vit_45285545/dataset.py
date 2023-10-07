@@ -2,6 +2,7 @@
 Data loader for loading and preprocessing ADNI data.
 '''
 import os
+import sys
 from typing import Any, Callable, Optional, Tuple
 
 import torch
@@ -11,7 +12,10 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset
 
 # Root directory for ADNI training and testing split
-ADNI_ROOT = os.path.join('ADNI_AD_NC_2D', 'AD_NC')
+ADNI_ROOT = {
+    'win32': os.path.join('ADNI', 'AD_NC'),
+    'linux': os.path.join('/home', 'groups', 'comp3710', 'ADNI', 'ADNI_NC')
+}[sys.platform]
 
 class ADNI(Dataset):
     def __init__(self, root: str, train: bool = True,
