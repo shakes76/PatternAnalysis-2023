@@ -1,5 +1,5 @@
 import tensorflow as tf
-import numpy as np
+#import tensorflow_probability as tfp
 import matplotlib.pyplot as plt
 
 def get_train_dataset():
@@ -39,3 +39,21 @@ def preview_images():
         plt.imshow(next(iter(train_ds))[i])
         plt.axis('off')
     plt.show()
+    
+def get_training_variance():
+    # Calculate the mean value
+    train_ds = get_train_dataset()
+    train_sum = 0
+    num_samples = 0
+    for batch in train_ds:
+        num_samples += len(batch)
+        train_sum += tf.reduce_sum(batch)
+    train_mu = train_sum / (num_samples * 256 ** 2)
+    # Calculate the variance
+    variance = 0
+    for batch in train_ds:
+        variance += tf.reduce_sum((batch - train_mu) ** 2)
+    variance /= (num_samples * 256 ** 2) - 1
+    return variance
+    
+print(get_training_variance())
