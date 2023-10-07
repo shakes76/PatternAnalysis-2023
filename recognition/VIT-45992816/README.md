@@ -134,11 +134,12 @@ This document utilises the `fitting` function in `utils/utils_fit` for training 
 During the training and validating procedure, this document also provides information on the *training loss*, *validating loss*, *learning rate*, *train acc* and *validating acc* etc. on each epoch. In addition, it stores the best parameters of the model on the given `opt.save_path`.  
   
 * predict.py  
-This document is the main document for testing purposes. The document *train.py* stores the model parameters of the best epoch on the *save_path* as the name of `best. pt`. This document will load the parameters to the model for the future prediction task. In addition, it also utilises the `dataset.py` to transform and load the test images.  
+This document is the main document for testing purposes. The document *train.py* stores the model parameters of the best epoch on the *save_path* as the name of `best.pt`. This document will load the parameters to the model for the future prediction task. In addition, it also utilises the `dataset.py` to transform and load the test images.  
 For the prediction, the model loads the weight from `best.pt` and predicts the result under the inference mode. In addition, this document will store the *accuracy*, *f1-score*, *auc*, *recall* and *precision* for each class and the overall *accuracy*, *recall*, *precision* and *f1-score* with a txt file in the path of `opt.save_path`.   
 This document also provides an option to store the detailed information of the correctly predicted images and incorrectly predicted images by adding `--visual` when running the *predict.py*. In addition, it also provides the option to visualize the *tsne* plot by adding `--tsne`.
   
 ### Model architecture
+![Alt text](https://drive.google.com/uc?export=view&id=1XGEjvcF9SXuUvRETpwfIy51xoQBerskY)  
 
 ### Dependencies required
 python 3.9  
@@ -162,7 +163,7 @@ pip install grad-cam
   
 Train and Validate  
 ```
-python train.py --config config/config.py --save_path runs/vit --lr 1e-4 --warmup --amp  --batch_size 128 --epoch 300
+python train.py --model_name vit_base_patch8_224 --config config/config.py --save_path runs/vit --lr 1e-4 --warmup --amp  --batch_size 32 --epoch 250
 ```
 
 Predict
@@ -170,4 +171,40 @@ Predict
 python predict.py --task test --save_path runs/vit --visual --tsne
 ```
 
-### Result demonstration
+## Result demonstration
+### Optimization
+The image size after the preprocessing is 224x224. Firstly, I will determine the optimal patch size of the model with 8, 16, 32. To be specific, while train data has more than 8000 images, they all belong to 400 different patients. Hence, this project needs a small scale of the ViT architecture with 6 transformer blocks, 8 multi-heads and 256 embedding dimensions. In addition, the patch size of 8 need more than 30GB GPU memories and this project utilise a Nvidia A100 GPU in the overall train, validate and test period.  
+The default parameter for the training and validating phase are 300 epoches, 128 batch sizes, learning rate 1e-4, early stop 30 epoches.
+* Patch size:8  
+![Alt text](https://drive.google.com/uc?export=view&id=1bVnxO9Cp-InUQIxq8fKDk157w8N9dPil)  
+
+* Patch size:16  
+![Alt text](https://drive.google.com/uc?export=view&id=1nAkjjJlW1W67Fs08dbDUkZYu_pMLiK6d)  
+
+* Patch size:32  
+![Alt text](https://drive.google.com/uc?export=view&id=1a8uH4pSjc8VkuGB9ymY9Lud24Hn6ewmX)  
+
+
+  
+Secondly, this project will determine the best batch size with 32,64,128.  
+* Batch size:32  
+![Alt text](https://drive.google.com/uc?export=view&id=1hdWauLoUptOeFhS0_sLBuh768naeTxT8)  
+* Batch size:64  
+![Alt text](https://drive.google.com/uc?export=view&id=1V8wMAGE_swehEGN008yOrEH0QKcAlI96)  
+* Batch size:128  
+![Alt text](https://drive.google.com/uc?export=view&id=1bVnxO9Cp-InUQIxq8fKDk157w8N9dPil)  
+Through the optimization period, the best parameters for this project are epoch 250, batch size 32, learning rate 1e-4, early stop 30 epoches, 6 transformer blocks, 8 multi-heads, 256 embedding dimensions and 8 patch size.
+  
+### Result visulization
+The training and validating learning curve is shown as:  
+![Alt text](https://drive.google.com/uc?export=view&id=1jJ1BTvNIMNWTwWfZgDp0oaisTd1H1gV_)  
+The test result for the overall labels and each label are shown as:  
+![Alt text](https://drive.google.com/uc?export=view&id=1hdWauLoUptOeFhS0_sLBuh768naeTxT8)   
+![Alt text](https://drive.google.com/uc?export=view&id=1xqYs5lN9tLgjifRpCLJ2LwMMY2f_iV5y)  
+The tsne visulization is shown as:  
+![Alt text](https://drive.google.com/uc?export=view&id=1tPFtqE7GUUTI_YJbkIsk8vcks87ELviG)
+
+
+
+
+
