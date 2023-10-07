@@ -5,6 +5,7 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import torchvision
 import numpy as np
+from torch.utils.data import random_split
 
 
 #-------------
@@ -18,12 +19,14 @@ print()
 
 #---------------
 # Hyper Parameters
-learning_rate = 0.001
+learning_rate = 0.0005
 num_epochs = 1
 
 #-----------------
-# Data
-batch_size = 64
+# Data configuration
+batch_size = 50
+train_set_proportion = 0.8
+valid_and_test_remaining_proportion = 0.5
 
 # Path parameters must be changed depending on where the dataset is located on the machine
 path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\AD_NC"
@@ -35,13 +38,26 @@ transform = transforms.Compose([
     transforms.Normalize(0.5, 0.5),
 ])
 
-train_data = ImageDataset(directory=train_path,
+data = ImageDataset(directory=train_path,
                           transform=transform)
+train_size = int(train_set_proportion * len(data))
+remaining_size = len(data) - train_size
+
+train_data, remaining_data = random_split(data, [train_size, remaining_size])
+validation_size = remaining_size // 2
+test_size = remaining_size - validation_size
+test_data, validation_data = random_split(remaining_data, [test_size, validation_size])
+
 train_loader = torch.utils.data.DataLoader(train_data,
                                            batch_size=batch_size,
                                            shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_data,
+                                          batch_size=batch_size,
+                                          shuffle=True)
+valid_loader = torch.utils.data.DataLoader(validation_data,
+                                           batch_size=batch_size,
+                                           shuffle=True)
 n_total_steps = len(train_loader)
-
 batch = next(iter(train_loader))
 
 #----------------------------
@@ -55,6 +71,9 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
 # Mean squared error loss used for image comparisons
 criterion = nn.MSELoss()
+
+# Learning rate scheduler used to vary learning
+scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.1)
 
 print("> Training.")
 
@@ -77,6 +96,7 @@ for epoch in range(num_epochs):
 
         if (i + 1) % 10 == 0:
             print(f"Epoch [{epoch + 1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item()}")
+    scheduler.step()
 
 #-------------------
 # Model Finalisation
