@@ -1,4 +1,4 @@
-# Detect lesions within the ISIC data set with the Mask RCNN (topic 3)
+# . Segment the ISIC 2017/8 data set with the Improved UNet (topic 1)
 
 
 Tasks include:
