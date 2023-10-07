@@ -58,6 +58,31 @@ class UpsamplingModule(nn.Module):
         x = F.leaky_relu(x, negative_slope=1e-2)
         return x
 
+class SegmentationLayer(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(SegmentationLayer, self).__init__()
+        # A convolutional layer that produces segmentation map
+        # Adjust kernel_size, stride, and padding as per your requirements
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
+        
+    def forward(self, x):
+        # Applying convolution
+        x = self.conv(x)
+        # Applying sigmoid activation to squash outputs between 0 and 1
+        x = torch.sigmoid(x)
+        return x
+    
+class UpscalingLayer(nn.Module):
+    def __init__(self, scale_factor=2, mode='nearest'):
+        super(UpscalingLayer, self).__init__()
+        # An upsampling layer that increases the spatial dimensions of the feature map
+        self.upsample = nn.Upsample(scale_factor=scale_factor, mode=mode)
+        
+    def forward(self, x):
+        # Applying upscaling
+        x = self.upsample(x)
+        return x
+    
 class UNet2D(nn.Module):
     def __init__(self, in_channels, num_classes):
         super(UNet2D, self).__init__()
@@ -81,22 +106,24 @@ class UNet2D(nn.Module):
         self.local1 = LocalisationModule(256, 128)
         self.up1 = UpsamplingModule(128, 64)
 
-        self.seg1 = ""
-
         self.local2 = LocalisationModule(128, 64)
         self.up2 = UpsamplingModule(64, 32)
 
-        self.seg2 = ""
+        self.seg1 = SegmentationLayer(64, num_classes)
+        self.upsample_seg1 = UpscalingLayer()
 
         self.local3 = LocalisationModule(64, 32)
         self.up3 = UpsamplingModule(32, 16)
 
-        self.seg3 = ""
+        self.seg2 = SegmentationLayer(32, num_classes)
+        self.upsample_seg2 = UpscalingLayer()
 
-        self.final_conv = nn.Conv2d(32, num_classes, kernel_size=3, stride=1, padding=1)
+        self.final_conv = nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1)
+
+        self.seg3 = SegmentationLayer(32, num_classes)
+        self.upsample_seg3 = UpscalingLayer()
 
     def forward(self, x):
-        print("initial x shape:", x.shape)
         y1 = self.enc1(x)
         x1 = self.context1(y1)
         x1 = x1 + y1
@@ -124,14 +151,26 @@ class UNet2D(nn.Module):
         # Decoder
         x = self.local1(torch.cat((x4, up_bottleneck), 1))
         x = self.up1(x)
-        x = self.local2(torch.cat((x3, x), 1))
-        x = self.up2(x)
-        x = self.local3(torch.cat((x2, x), 1))
-        x = self.up3(x)
-        x = self.final_conv(torch.cat((x1, x), 1))
-        print("final x:", x.shape)
 
-        out = nn.functional.softmax(x, dim=1)
+        x = self.local2(torch.cat((x3, x), 1))
+        seg1 = self.seg1(x)
+        x = self.up2(x)
+
+        seg1_upsampled = self.upsample_seg1(seg1)
+
+        x = self.local3(torch.cat((x2, x), 1))
+        seg2 = self.seg2(x)
+        x = self.up3(x)
+
+        seg12 = seg1_upsampled + seg2
+        seg12_up = self.upsample_seg2(seg12)
+        
+        x = self.final_conv(torch.cat((x1, x), 1))
+
+        seg3 = self.seg3(x)
+        seg123 = seg3 + seg12_up
+
+        out = nn.functional.softmax(seg123, dim=1)
         print(out.shape)
         
         return out
