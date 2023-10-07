@@ -8,7 +8,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning VUDA not Found. Using CPU")
 # hyperparameters
-num_epoch = 20
+num_epoch = 3
 learning_rate = 0.001
 
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
@@ -21,6 +21,7 @@ model = model.to(device)
 loss_func = losses.TripletMarginLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 total_steps=len(train_loader)
+
 for epoch in range(num_epoch):
     model.train()
     print("training starts")
@@ -53,4 +54,4 @@ for epoch in range(num_epoch):
         f"Epoch [{epoch}/{num_epoch}] \
         training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}"
     )
-torch.save(model,r"C:/Users/wongm/Desktop/COMP3710/project/")
+torch.save(model,r"C:\Users\wongm\Desktop\COMP3710\project\siamese.pth")
