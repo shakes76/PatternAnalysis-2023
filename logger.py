@@ -65,31 +65,32 @@ class Logger:
         if start is None:
             start = min(L//2, 50)
 
-        # mapping function
-        m_f = lambda v: self.smooth_num(v, window=smooth_window)[start:]
-
         X = np.arange(L)[start:]
 
+        # mapping function
+        m_f = lambda v: (X[-len(v[start:]):], self.smooth_num(v, window=smooth_window)[start:])
+
+
         plt.subplot(2, 2, 1)
-        plt.plot(X, m_f(self.data['recon_loss']), label='Reconstruction Loss', c='blue')
+        plt.plot(*m_f(self.data['recon_loss']), label='Reconstruction Loss', c='blue')
         plt.legend()
 
         plt.subplot(2, 2, 2)
-        plt.plot(X, m_f(self.data['reg_loss']), label='regularization Loss', c='orange')
+        plt.plot(*m_f(self.data['reg_loss']), label='regularization Loss', c='orange')
         plt.legend()
 
         plt.subplot(2, 2, 3)
-        plt.plot(X, m_f(self.data['fake_recon_loss']), label='Reconstruction D Loss', c='blue')
-        # plt.plot(X, m_f(self.data['fake_sample_loss']), label='Sample D Loss', c='red')
-        plt.plot(X, m_f(self.data['discriminator_loss']), label='Discriminator Toatal Loss', c='purple')
+        plt.plot(*m_f(self.data['fake_recon_loss']), label='Reconstruction D Loss', c='blue')
+        # plt.plot(*m_f(self.data['fake_sample_loss']), label='Sample D Loss', c='red')
+        plt.plot(*m_f(self.data['discriminator_loss']), label='Discriminator Toatal Loss', c='purple')
         plt.title("Discriminator Loss")
         plt.legend()
 
         plt.subplot(2, 2, 4)
-        # plt.plot(X, m_f(self.data['w_kld']), label='KLD loss weight', c='orange')
-        plt.plot(X, m_f(self.data['w_recon']), label='Recon weight', c='blue')
-        plt.plot(X, m_f(self.data['w_dis']), label='Discriminator(for Recon) weight', c='blue')
-        # plt.plot(X, m_f(self.data['w_sample']), label='Discriminator(Sample) weight', c='red')
+        # plt.plot(*m_f(self.data['w_kld']), label='KLD loss weight', c='orange')
+        plt.plot(*m_f(self.data['w_recon']), label='Recon weight', c='blue')
+        plt.plot(*m_f(self.data['w_dis']), label='Discriminator(for Recon) weight', c='blue')
+        # plt.plot(*m_f(self.data['w_sample']), label='Discriminator(Sample) weight', c='red')
         plt.legend()
         plt.title("Weight for Each Loss")
 

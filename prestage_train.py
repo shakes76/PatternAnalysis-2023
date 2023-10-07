@@ -42,7 +42,7 @@ if mode == 'VQVAE':
 elif mode == 'VAE':
     net = VAE().to(DEVICE)
 discriminator = NLayerDiscriminator(
-    input_nc=1, ndf=32, n_layers=3).apply(weights_init).to(device=DEVICE)
+    input_nc=1, ndf=128, n_layers=4).apply(weights_init).to(device=DEVICE)
 
 # Learning rate choose. You can adjust learning rate here,
 # And don't adjust betas, it's optimized.
@@ -52,7 +52,7 @@ opt_d = torch.optim.Adam(discriminator.parameters(),
                          lr=learning_rate, betas=(0.5, 0.9))
 
 # Keep training if epoch is not zero
-start_epoch = 0
+start_epoch = 34
 # Only train to end_epoch-1
 end_epoch = 70
 
@@ -64,7 +64,7 @@ batch_size = 6
 # disc_start: which iteration should activate discriminator
 # auxiliary start: which epoch should activate 
 #       auxiliary (random generated images) score 
-disc_start_iter = 2500
+disc_start_iter = 10000
 auxiliary_start_epoch = max(disc_start_iter // ITER_PER_EPOCH, 5)
 
 cur_iter = ITER_PER_EPOCH * start_epoch
@@ -79,9 +79,9 @@ if start_epoch != 0:
     # For example, if we start at epoch 7 and we need to load epoch 6.
     try:
         net = torch.load(f'{ckpt_folder}/epoch_AE_{start_epoch-1}.pt')
-        discriminator = torch.load(f'{ckpt_folder}/epoch_D_{start_epoch-1}.pt')
+        # discriminator = torch.load(f'{ckpt_folder}/epoch_D_{start_epoch-1}.pt')
     except Exception as e:
-        print("Fail to load model")
+        print("Fail to load model", e)
 else:
     # Reset visualization folder
     reset_dir(vis_folder)
@@ -160,22 +160,23 @@ def train_epoch(net, dataloader, auxiliary=True):
         recon_loss = torch.abs(raw_img.contiguous() - recon_img.contiguous())
         recon_loss = torch.sum(recon_loss) / recon_loss.shape[0]
 
-        # Reconstruction Term (GAN Loss)
-        logits_fake = discriminator(recon_img.contiguous(), z_idx)
-        g1_loss = -torch.mean(logits_fake)
+        if w_dis > 0:
+            # Reconstruction Term (GAN Loss)
+            logits_fake = discriminator(recon_img.contiguous(), z_idx)
+            g1_loss = -torch.mean(logits_fake)
 
-        # Adjust discriminator weight
-        #   adjust rate is determined by the gradient. 
-        #   If G_loss is too smooth and reconstruction loss will dominate the loss
-        #   Then we sacle G_loss to make it more influential. 
-        recon_grads = torch.norm(torch.autograd.grad(
-            recon_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
-        g1_grads = torch.norm(torch.autograd.grad(
-            g1_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
-        g_weight = recon_grads / (g1_grads + 1e-4)
+            # Adjust discriminator weight
+            #   adjust rate is determined by the gradient. 
+            #   If G_loss is too smooth and reconstruction loss will dominate the loss
+            #   Then we sacle G_loss to make it more influential. 
+            recon_grads = torch.norm(torch.autograd.grad(
+                recon_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
+            g1_grads = torch.norm(torch.autograd.grad(
+                g1_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
+            g_weight = recon_grads / (g1_grads + 1e-4)
 
-        # For fear that gradient explode occur, we clamp the sacle.
-        g_weight = torch.clamp(g_weight, 0.0, 1e4).detach()
+            # For fear that gradient explode occur, we clamp the sacle.
+            g_weight = torch.clamp(g_weight, 0.0, 1e4).detach()
 
         # Apply auxiliary loss (gen from sample and trained as GAN)
         if auxiliary:
@@ -190,53 +191,61 @@ def train_epoch(net, dataloader, auxiliary=True):
             net.train()
 
         # Construct all the loss we calculated
-        loss = w_recon * recon_loss + w_dis * g_weight * g1_loss
+        loss = w_recon * recon_loss 
         regularization = regularization.mean()
         if mode == 'VAE':
             loss += w_kld * regularization.mean() 
         elif mode == 'VQVAE':
             loss += 1.0 * regularization.mean()
+        if w_dis > 0:
+            loss = loss + w_dis * g_weight * g1_loss
         if auxiliary:
             loss = loss + w_dis * g_weight * g2_loss
 
         loss.backward()
         opt.step()
 
-        # =======================
-        # | Train Discriminator |
-        # =======================
-        opt_d.zero_grad()
+        # We train discriminator early one epoch
+        if cur_iter > disc_start_iter - ITER_PER_EPOCH:
+            # =======================
+            # | Train Discriminator |
+            # =======================
+            opt_d.zero_grad()
 
-        # We should detach or it'll backprop generator side. 
-        #  (It'll occurs error that said we should retain_graph)
-        recon_img = recon_img.detach()
-        logits_real = discriminator(raw_img.contiguous().detach(), z_idx)
-        logits_fake = discriminator(recon_img.contiguous().detach(), z_idx)
+            # We should detach or it'll backprop generator side. 
+            #  (It'll occurs error that said we should retain_graph)
+            recon_img = recon_img.detach()
+            logits_real = discriminator(raw_img.contiguous().detach(), z_idx)
+            logits_fake = discriminator(recon_img.contiguous().detach(), z_idx)
 
-        # Here we adopt hinge loss
-        loss_real = torch.mean(F.relu(1. - logits_real))
-        loss_fake = torch.mean(F.relu(1. + logits_fake))
+            # Here we adopt hinge loss
+            loss_real = torch.mean(F.relu(1. - logits_real))
+            loss_fake = torch.mean(F.relu(1. + logits_fake))
 
-        if auxiliary:
-            logits_gen = discriminator(gen_img.contiguous().detach(), t)
-            loss_gen = torch.mean(F.relu(1. + logits_gen))
-            # First 0.5 is discriminator factor, Second 0.5 is from hinge loss
-            d_loss = 0.5 * 0.5 * (loss_real + loss_fake + loss_gen)
-        else:
-            d_loss = 0.5 * 0.5 * (loss_real + loss_fake)
+            if auxiliary:
+                logits_gen = discriminator(gen_img.contiguous().detach(), t)
+                loss_gen = torch.mean(F.relu(1. + logits_gen))
+                # First 0.5 is discriminator factor, Second 0.5 is from hinge loss
+                d_loss = 0.5 * 0.5 * ( loss_real + 0.5 * (loss_fake + loss_gen))
+            else:
+                d_loss = 0.5 * 0.5 * (loss_real + loss_fake)
 
-        d_loss.backward()
-        opt_d.step()
+            d_loss.backward()
+            opt_d.step()
 
         # Gather training info to a dict.
         cur_info = {
             'recon_loss': recon_loss.item(),
             'reg_loss': regularization.item(),
-            'fake_recon_loss': g1_loss.item(),
-            'discriminator_loss': d_loss.item(),
             'w_recon': w_recon,
-            "w_dis": w_dis * g_weight,
         }
+        # If weight of discriminator is larger than 0, update d loss
+        if w_dis > 0:
+            cur_info.update({
+                'fake_recon_loss': g1_loss.item(),
+                'discriminator_loss': d_loss.item(),
+                "w_dis": w_dis * g_weight,
+            })
         # If we use auxiliary, try to update the information of sample images
         if auxiliary:
             cur_info.update({
