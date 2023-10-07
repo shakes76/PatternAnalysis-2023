@@ -254,7 +254,7 @@ class ViT_torch(nn.Module):
                     embed_dim:int,
                     depth:int,
                     num_heads:int,
-                    mlp_ratio=4.,
+                    mlp_dim:int,
                     drop_prob=0.1,
                     linear_embed=False):
         super().__init__()
@@ -273,7 +273,7 @@ class ViT_torch(nn.Module):
         #transform encoder blocks
         encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim,
                                                     nhead=num_heads,
-                                                    dim_feedforward=embed_dim*mlp_ratio,
+                                                    dim_feedforward=mlp_dim,
                                                     activation='gelu',
                                                     batch_first=True,
                                                     norm_first=True, 
