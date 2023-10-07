@@ -51,8 +51,8 @@ test_transforms = transforms.Compose([
     transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
 ])
 # Creating datasets and dataloaders
-train_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/new_dataset_2/AD_NC/train', transform=train_transforms, num_AD=2100, num_NC=2100)
-test_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/new_dataset_2/AD_NC/test', transform=test_transforms, num_AD=500, num_NC=500)
+train_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/new_dataset_2/AD_NC/train', transform=train_transforms, num_AD=5000, num_NC=5000)
+test_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/new_dataset_2/AD_NC/test', transform=test_transforms, num_AD=1000, num_NC=1000)
 
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=True)
