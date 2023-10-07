@@ -1,68 +1,67 @@
 import torch
-from torchvision import transforms
 from torch.utils.data import DataLoader
-from modules import get_maskrcnn_model  # Ensure this function is defined in your modules.py
-from dataset import ISICDataset  # Ensure this class is defined in your dataset.py
-import matplotlib.pyplot as plt
-import os
+import torch.optim as optim
+from dataset import ISICDataset
+from modules import ImprovedUNet
+from torchvision import transforms
 
-# Ensure GPU usage if available
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-# Initialize model and optimizer
-model = get_maskrcnn_model(num_classes=2).to(device)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
+def dice_loss(pred, target, smooth=1.):
+    pred = pred.contiguous()
+    target = target.contiguous()
 
-# Define transformations
-transform = transforms.Compose([
-    transforms.Resize((256, 256)),
-    transforms.ToTensor(),
-])
+    intersection = (pred * target).sum(dim=2).sum(dim=2)
 
-# Define dataset paths
-img_train_dir = './ISIC2018_Task1-2_Training_Input'
-mask_train_dir = './ISIC2018_Task1_Training_GroundTruth'
-img_test_dir = './ISIC2018_Task1-2_Test_Input'
+    loss = (1 - ((2. * intersection + smooth) / (pred.sum(dim=2).sum(dim=2) + target.sum(dim=2).sum(dim=2) + smooth)))
 
-# Initialize datasets and dataloaders
-train_dataset = ISICDataset(img_dir=img_train_dir, mask_dir=mask_train_dir, transform=transform)
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    return loss.mean()
 
-# Training parameters
-epochs = 10
-losses = []
 
-# Training loop
-for epoch in range(epochs):
-    print(f"Epoch {epoch + 1}/{epochs}")
-    for images, targets in train_loader:
-        images = [image.to(device) for image in images]
-        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+def train():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        optimizer.zero_grad()
-        loss_dict = model(images, targets)
+    image_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
 
-        # Debug: Check the loss_dict
-        print("Loss Dict:", loss_dict)
+    mask_transform = transforms.Compose([
+        transforms.ToTensor()
+    ])
 
-        loss = sum(loss for loss in loss_dict.values())
+    train_dataset = ISICDataset("ISIC2018_Task1-2_Training_Input_x2", "ISIC2018_Task1_Training_GroundTruth_x2",
+                                image_transform, mask_transform)
 
-        # Debug: Check the loss and its type
-        print("Loss:", loss, "Type:", type(loss))
+    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
 
-        loss.backward()
-        optimizer.step()
-        losses.append(loss.item())
+    model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
+    optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-# Save model
-path_to_saved_model = './Save_Model'
-if not os.path.exists(path_to_saved_model):
-    os.makedirs(path_to_saved_model)
-torch.save(model.state_dict(), os.path.join(path_to_saved_model, './Save_Model'))
+    num_epochs = 1  
+    for epoch in range(num_epochs):
+        model.train()
+        running_loss = 0.0
+        total_samples = 0
 
-# Plot losses
-plt.plot(losses)
-plt.xlabel('Iteration')
-plt.ylabel('Loss')
-plt.title('Training Loss')
-plt.show()
+        print(f"Starting Epoch {epoch + 1}/{num_epochs}")
+
+        for images, masks in train_loader:
+            images, masks = images.to(device), masks.to(device)
+            optimizer.zero_grad()
+
+            outputs = model(images)
+            loss = dice_loss(outputs, masks)
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item() * images.size(0)  # multiply by batch size
+            total_samples += images.size(0)
+
+        epoch_loss = running_loss / total_samples
+        print(f"Epoch {epoch + 1}/{num_epochs} Loss: {epoch_loss:.4f}")
+
+    torch.save(model.state_dict(), "model_checkpoint.pth")
+
+
+if __name__ == "__main__":
+    train()
