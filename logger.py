@@ -81,7 +81,7 @@ class Logger:
 
         plt.subplot(2, 2, 3)
         plt.plot(*m_f(self.data['fake_recon_loss']), label='Reconstruction D Loss', c='blue')
-        # plt.plot(*m_f(self.data['fake_sample_loss']), label='Sample D Loss', c='red')
+        plt.plot(*m_f(self.data['fake_sample_loss']), label='Sample D Loss', c='red')
         plt.plot(*m_f(self.data['discriminator_loss']), label='Discriminator Toatal Loss', c='purple')
         plt.title("Discriminator Loss")
         plt.legend()
