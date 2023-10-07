@@ -1,7 +1,3 @@
-"""
-original code from rwightman:
-https://github.com/rwightman/pytorch-image-models/blob/master/timm/models/vision_transformer.py
-"""
 from functools import partial
 from collections import OrderedDict
 
@@ -13,14 +9,7 @@ from utils.utilis_ import load_weights_from_state_dict, fuse_conv_bn
 
 
 def drop_path(x, drop_prob: float = 0., training: bool = False):
-    """
-    Drop paths (Stochastic Depth) per sample (when applied in main path of residual blocks).
-    This is the same as the DropConnect impl I created for EfficientNet, etc networks, however,
-    the original name is misleading as 'Drop Connect' is a different form of dropout in a separate paper...
-    See discussion: https://github.com/tensorflow/tpu/issues/494#issuecomment-532968956 ... I've opted for
-    changing the layer and argument names to 'drop path' rather than mix DropConnect as a layer name and use
-    'survival rate' as the argument.
-    """
+
     if drop_prob == 0. or not training:
         return x
     keep_prob = 1 - drop_prob
@@ -303,22 +292,6 @@ def vit_base_patch16_224(num_classes: int = 21843, pretrained: bool = True,has_l
                               depth=6,
                               num_heads=8,
                               representation_size=400 if has_logits else None,
-                              num_classes=num_classes)
-    if pretrained:
-        state_dict = load_state_dict_from_url("https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vitjx/jx_vit_base_patch16_224_in21k-e5005f0a.pth",
-                                              progress=True)
-        model = load_weights_from_state_dict(model, state_dict)
-
-    return model
-
-def vit_base_patch16_224_2(num_classes: int = 21843, pretrained: bool = True,has_logits: bool = True):
-
-    model = VisionTransformer(img_size=224,
-                              patch_size=16,
-                              embed_dim=256,
-                              depth=6,
-                              num_heads=8,
-                              representation_size=256 if has_logits else None,
                               num_classes=num_classes)
     if pretrained:
         state_dict = load_state_dict_from_url("https://github.com/rwightman/pytorch-image-models/releases/download/v0.1-vitjx/jx_vit_base_patch16_224_in21k-e5005f0a.pth",
