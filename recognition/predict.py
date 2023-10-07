@@ -1,45 +1,30 @@
 import torch
+from torch.utils.data import DataLoader
 from torchvision import transforms
-from modules import get_maskrcnn_model
-from PIL import Image
-import numpy as np
-import matplotlib.pyplot as plt
+from dataset import ISICDataset
+from modules import ImprovedUNet
 
-# Set up the device for GPU or CPU
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Initialize and load the pre-trained model
-model_path = './Save_Model'
-model = get_maskrcnn_model(num_classes=2)
-model.load_state_dict(torch.load(model_path, map_location=device))
-model.to(device)
-model.eval()
+def predict():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Define the image transform pipeline
-def preprocess_image(img_path):
-    preprocess = transforms.Compose([
-        transforms.Resize((256, 256)),
+    transform = transforms.Compose([
         transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
-    img = Image.open(img_path).convert("RGB")
-    return preprocess(img).unsqueeze(0)
 
-# Load and preprocess the image
-image_path = './ISIC2018_Task1-2_Test_Input'
-input_image = preprocess_image(image_path).to(device)
+    test_dataset = ISICDataset("ISIC2018_Task1-2_Test_Input", transform=transform)
+    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
-# Perform inference
-with torch.no_grad():
-    prediction = model(input_image)
+    model = ImprovedUNet().to(device)
+    model.load_state_dict(torch.load("model_checkpoint.pth"))
+    model.eval()
 
-def visualize_predictions(image_tensor, predictions):
-    image_arr = image_tensor[0].cpu().numpy().transpose((1, 2, 0))
-    plt.imshow(image_arr)
-    for box in predictions[0]['boxes']:
-        plt.gca().add_patch(plt.Rectangle((box[0], box[1]), box[2] - box[0], box[3] - box[1], fill=False, color='red'))
-    plt.show()
+    for images, _ in test_loader:
+        images = images.to(device)
+        with torch.no_grad():
+            outputs = model(images)
 
-visualize_predictions(input_image, prediction)
 
-# Display prediction results
-print(prediction)
+if __name__ == "__main__":
+    predict()
