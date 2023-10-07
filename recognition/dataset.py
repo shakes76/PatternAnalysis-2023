@@ -109,8 +109,8 @@ class ISICDataset(Dataset):
 if __name__ == "__main__":
     # Loading the training, validation, and test datasets
     train_dataset = ISICDataset(dataset_type='training', transform=get_transform())
-    # val_dataset = ISICDataset(dataset_type='validation', transform=get_transform())
-    # test_dataset = ISICDataset(dataset_type='test', transform=get_transform())
+    val_dataset = ISICDataset(dataset_type='validation', transform=get_transform())
+    test_dataset = ISICDataset(dataset_type='test', transform=get_transform())
 
     # Example to print the size of images and masks from the training dataset
     for i in range(len(train_dataset)):

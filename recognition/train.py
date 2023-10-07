@@ -1,53 +1,51 @@
 import torch
+import torch.nn as nn
 import torch.optim as optim
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from dataset import ISICDataset, get_transform
-from modules import UNet3D
-from modules2 import build_unet
+from modules2 import UNet2D
 
-# Hyperparameters
-lr = 0.001  # Learning rate
-batch_size = 2
-num_epochs = 1
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+# Check if GPU is available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Initialise dataset and dataloaders
+# Load Data
 train_dataset = ISICDataset(dataset_type='training', transform=get_transform())
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+for i, data in enumerate(train_loader, 0):
+    inputs, labels = data['image'], data['mask']
+    print(f"Input shape: {inputs.shape}, Labels shape: {labels.shape}")
+    break
 
-# Model, Loss, and Optimiser
-model = UNet3D(in_channels=3, num_classes=2).to(device)
-# model = build_unet().to(device)
-optimiser = optim.Adam(model.parameters(), lr=lr)
+# Initialize model, optimizer, and loss function
+model = UNet2D(3, 1).to(device)
+optimizer = optim.Adam(model.parameters(), lr=0.001)
+criterion = nn.BCEWithLogitsLoss()
+
+# Training Function
+def train_epoch(model, dataloader, criterion, optimizer, device):
+    model.train()
+    running_loss = 0.0
+    for i, data in enumerate(dataloader, 0):
+        inputs, labels = data['image'].to(device), data['mask'].to(device)
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        loss = criterion(outputs, labels.unsqueeze(1).float())
+        loss.backward()
+        optimizer.step()
+        running_loss += loss.item()
+
+        # Log Information
+        if i % 10 == 9:  # print every 10 mini-batches
+            print(f"[Step {i+1}] Loss: {loss.item():.4f}")
+
+
+    return running_loss / len(dataloader)
 
 # Training Loop
-model.train()
+num_epochs = 25
 for epoch in range(num_epochs):
-    total_loss = 0.0
-    
-    for i, sample in enumerate(train_loader):
-        inputs, labels = sample['image'].to(device), sample['mask'].to(device)
-        
-        # Zero the parameter gradients
-        optimiser.zero_grad()
-        
-        # Forward pass
-        outputs = model(inputs)
+    train_loss = train_epoch(model, train_loader, criterion, optimizer, device)
+    print(f"Epoch {epoch+1}/{num_epochs}, Loss: {train_loss:.4f}")
 
-        print("here")
-        
-        # Loss computation using cross entropy loss
-        # Ensure your mask labels are of type torch.long
-        labels = labels.long()
-        loss = F.cross_entropy(outputs, labels)
-        
-        # Backward pass and optimisation
-        loss.backward()
-        optimiser.step()
-        
-        total_loss += loss.item()
-        
-        # Print statistics
-        if (i + 1) % 10 == 0:
-            print(f"Epoch [{epoch + 1}/{num_epochs}], Step [{i + 1}/{len(train_loader)}], Loss: {total_loss / (i + 1):.4f}")
+# Save Model Weights
+torch.save(model.state_dict(), 'unet_model.pth')

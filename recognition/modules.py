@@ -22,11 +22,15 @@ class ContextModule(nn.Module):
         self.dropout = nn.Dropout3d(p=0.3)
 
     def forward(self, x):
+        # Saving the input x for the skip connection
+        identity = x
         # Passing x through the two convolutions
         x = self.conv1(x)
         x = self.conv2(x)
         # Applying dropout
         x = self.dropout(x)
+        # Adding the identity (input) to the output (skip connection)
+        # x += identity
         return x
 
 # Implementing the localisation module
