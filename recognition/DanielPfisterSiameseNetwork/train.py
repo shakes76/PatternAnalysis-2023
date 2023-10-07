@@ -6,7 +6,8 @@ import tensorflow as tf
 from dataset import image_list
 from dataset import load_images
 import random
-
+from sklearn.model_selection import train_test_split
+from modules import siamese_network 
 
 #%%
 #define varibles
@@ -78,3 +79,18 @@ for x in range(0,number_train_NC):
 
 train_pair_image_array = np.array(train_pair_image)
 train_pair_label_array = np.array(train_pair_label)
+#%%
+
+x_train, x_valid, y_train, y_valid = train_test_split(train_pair_image_array, train_pair_label_array, test_size=0.2,random_state=42)
+
+#%%
+
+model = siamese_network(height,width,dimension)
+model.fit(x=[x_train[:, 0, :, :], x_train[:, 1, :, :]],
+          y=y_train,
+          validation_data=([x_valid[:, 0, :, :],
+                            x_valid[:, 1, :, :]],
+                           y_valid),
+          epochs=20,
+          batch_size=32)
+# %%
