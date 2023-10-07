@@ -81,5 +81,6 @@ Here's your description with improved grammar:
 ## Total Flow Chart
 
 ![](report_imgs/workflow.png)
+> Oops, I mis-drew this workflow. The generated latent should pass through the vector quantizer.
 
 The main concepts and related workds are in `tech_note.md`
