@@ -2,7 +2,7 @@ import torch
 import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms.v2 as transforms
-import torchvision.utils as vutils
+# import torchvision.utils as vutils
 import numpy as np
 import matplotlib.pyplot as plt
 import random
@@ -26,6 +26,7 @@ test_transforms = transforms.Compose([
     transforms.CenterCrop(240),
 ])
 
+
 class PairedDataset(torch.utils.data.Dataset):
     def __init__(self, image_folder:dset.ImageFolder, show_debug_info:bool, random_seed=None) -> None:
         super().__init__()
@@ -42,6 +43,14 @@ class PairedDataset(torch.utils.data.Dataset):
         return self.image_folder_size
 
     def __getitem__(self, index: int):
+        """
+        returns [img1, img2, similarity] or [img1, img2, similarity, filepath1, filepath2]
+        where:
+            img1 and img2 are tensor representations of images
+            similarity is 1 if the two images are of the same class and 0 otherwise
+            filepath1 and filepath2 are strings representing the last 15 characters
+                of the images' filepaths excluding the .jpeg extension
+        """
         img1, label1 = self.image_folder[index]
         similarity = random.randint(0, 1)
 
@@ -70,39 +79,51 @@ class PairedDataset(torch.utils.data.Dataset):
         return self.debug_mode
 
 
-def load_train() -> torch.utils.data.DataLoader:
-    # load the trainset
-    trainset = dset.ImageFolder(root=train_path,
-                                transform=train_transforms
-                            )
-    print(f'trainset has classes {trainset.class_to_idx} and {len(trainset)} images')
+def load_data(training:bool, Siamese:bool, random_seed=None) -> torch.utils.data.DataLoader:
+    if training:
+        path = train_path
+        transforms = train_transforms
+    else:
+        path = test_path
+        transforms = test_transforms
 
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
+    if random_seed is not None:
+        random.seed(random_seed)
+        torch.random.seed(random_seed)
+
+    source = dset.ImageFolder(root=path, transform=transforms)
+    print(f'dataset has classes {source.class_to_idx} and {len(source)} images')
+
+    if Siamese:
+        # loading paired data for the Siamese neural net
+        # each data point is of format [img1, img2, similarity]
+        # where similarity is 1 if the two images are of the same class and 0 otherwise
+        dataset = PairedDataset(source, show_debug_info=False, random_seed=random_seed)
+        loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                            shuffle=True, num_workers=workers)
+    else:
+        # loading unitary training data for the MLP
+        # each data point is of format [img, label]
+        # where label is 1 if the image is of class AD and 0 otherwise
+        loader = torch.utils.data.DataLoader(source, batch_size=batch_size,
                                             shuffle=True, num_workers=workers)
     
-    return trainloader
+    return loader
 
-def load_test() -> torch.utils.data.DataLoader:
-    # load the testset
-    testset = dset.ImageFolder(root=test_path,
-                            transform=test_transforms
-                            )
-    print(f'testset has classes {testset.class_to_idx} and {len(testset)} images')
 
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                            shuffle=True, num_workers=workers)
-    
-    return testloader
-
-def test_visualise_data(dataloader: torch.utils.data.DataLoader):
-    # Plot some training images
+#
+# basic tests
+#
+def test_load_data_basic():
+    dataloader = load_data(training=True, Siamese=True)
     next_batch = next(iter(dataloader))
     print(next_batch[0][0].shape)
-    # plt.figure(figsize=(8,8))
-    # plt.axis("off")
-    # plt.title("Training Images")
-    # plt.imshow(np.transpose(vutils.make_grid(train_batch[0].to(device)[:64], padding=2, normalize=True).cpu(),(1,2,0)))
-    # plt.show()
+
+def test_visualise_data_MLP():
+    # Plot some training images
+    dataloader = load_data(training=True, Siamese=False)
+    next_batch = next(iter(dataloader))
+    print(next_batch[0][0].shape)
 
     # the following data visualisation code is modified based on code at
     # https://github.com/pytorch/tutorials/blob/main/beginner_source/basics/data_tutorial.py
@@ -120,14 +141,12 @@ def test_visualise_data(dataloader: torch.utils.data.DataLoader):
         plt.imshow(np.transpose(next_batch[0][i].squeeze(), (1,2,0)), cmap="gray")
     plt.show()
 
-def visualise_paired_data(dataset: PairedDataset):
-    if not dataset.showing_debug_info():
-        raise NotImplementedError("PairedDataset must be initialised with show_debug_info=True")
+def test_visualise_data_Siamese():
+    # Plot some training images
+    dataloader = load_data(training=True, Siamese=True)
+    dataloader.dataset.debug_mode = True
 
-    testloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
-                                            shuffle=True, num_workers=workers)
-        
-    next_batch = next(iter(testloader))
+    next_batch = next(iter(dataloader))
     print(next_batch[0][0].shape)
     print(next_batch[0][1].shape)
 
@@ -154,13 +173,79 @@ def test_paired_dataset():
     print(len(source))
     visualise_paired_data(test)
 
+def visualise_paired_data(dataset: PairedDataset):
+    if not dataset.showing_debug_info():
+        raise NotImplementedError("PairedDataset must be initialised with show_debug_info=True")
+
+    testloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                            shuffle=True, num_workers=workers)
+        
+    next_batch = next(iter(testloader))
+    print(next_batch[0][0].shape)
+    print(next_batch[0][1].shape)
+
+    cols, rows = 3, 3
+    fig, axs = plt.subplots(rows, cols * 2)
+    labels_map = {0: 'diff', 1: 'same'}
+
+    for i in range(rows):
+        for j in range(cols):
+            axs[i,j*2].imshow(np.transpose(next_batch[0][i*rows+j].squeeze(), (1,2,0)), cmap="gray")
+            axs[i,j*2+1].imshow(np.transpose(next_batch[1][i*rows+j].squeeze(), (1,2,0)), cmap="gray")
+            axs[i,j*2].set_title(f"""{labels_map[next_batch[2][i*rows+j].tolist()]}, {next_batch[3][i*rows+j]}""")
+            axs[i,j*2+1].set_title(next_batch[4][i*rows+j])
+            axs[i,j*2].axis("off")
+            axs[i,j*2+1].axis("off")
+    plt.show()
+
 
 # Decide which device we want to run on
 device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
 print("Device: ", device)
 
-test_paired_dataset()
+# test_load_data_basic()
+test_visualise_data_MLP()
+test_visualise_data_Siamese()
+# test_paired_dataset()
 
-# load_train()
-# test_visualise_data(load_train())
-# test_visualise_data(load_test())
+
+#
+# deprecated code below
+#
+def load_train_Siamese() -> torch.utils.data.DataLoader:
+
+    train_source = dset.ImageFolder(root=train_path, transform=train_transforms)
+
+    trainset = PairedDataset(train_source, show_debug_info=False)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
+                                            shuffle=True, num_workers=workers)
+    
+    return trainloader
+
+def load_test_Siamese() -> torch.utils.data.DataLoader:
+    # loading paired testing data for the Siamese neural net
+    # testloader is of format [img1, img2, similarity]
+    test_source = dset.ImageFolder(root=test_path, transform=test_transforms)
+
+    testset = PairedDataset(test_source, show_debug_info=False)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
+                                            shuffle=True, num_workers=workers)
+    
+    return testloader
+
+
+def load_train() -> torch.utils.data.DataLoader:
+    # loading unitary training data for the MLP
+    train_source = dset.ImageFolder(root=train_path, transform=train_transforms)
+
+def load_test() -> torch.utils.data.DataLoader:
+    # load the testset
+    testset = dset.ImageFolder(root=test_path,
+                            transform=test_transforms
+                            )
+    print(f'testset has classes {testset.class_to_idx} and {len(testset)} images')
+
+    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
+                                            shuffle=True, num_workers=workers)
+    
+    return testloader
