@@ -42,7 +42,7 @@ with torch.no_grad():
 	
 		total += labels.size(0)
 		correct += (predicted == labels).sum().item()
-	print("Test Accuracy: {} %".format(100 * correct / total))
+	print("Test Accuracy: {:.5f} %".format(100 * correct / total))
 
 end = time.time()
 elapsed = end - start
