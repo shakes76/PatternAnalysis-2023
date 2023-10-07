@@ -78,33 +78,33 @@ def test_epoch(model: nn.Module,
         test_acc = test_acc / len(data_loader)
     return test_loss, test_acc
 
-def train_model(config=None):
-    with wandb.init(project="ViT", config=config, notes=""):
+def train_model(config):
+    with wandb.init(project="ViT", config=config):
         config = wandb.config
         # load dataset
         train_loader, test_loader = load_data(config.batch_size, config.img_size)
         # create model
-        # model = ViT_torch(img_size=config.img_size,
-        #             patch_size=config.patch_size,
-        #             img_channels=config.img_channel,
-        #             num_classes=config.num_classes,
-        #             embed_dim=config.embed_dim,
-        #             depth=config.depth,
-        #             num_heads=config.num_heads,
-        #             mlp_ratio=config.mlp_ratio,
-        #             drop_prob=config.drop_prob,
-        #             linear_embed=config.linear_embed).to(device)
-        model = DeepViT(
-            image_size=config.img_size,
-            patch_size=config.patch_size,
-            num_classes=1,
-            dim=config.embed_dim,
-            depth=config.depth,
-            heads=config.num_heads,
-            mlp_dim=config.mlp_ratio*config.embed_dim,
-            dropout=config.drop_prob,
-            emb_dropout=config.drop_prob,
-            channels=1).to(device)
+        model = ViT_torch(img_size=config.img_size,
+                    patch_size=config.patch_size,
+                    img_channels=config.img_channel,
+                    num_classes=config.num_classes,
+                    embed_dim=config.embed_dim,
+                    depth=config.depth,
+                    num_heads=config.num_heads,
+                    mlp_dim=config.mlp_dim,
+                    drop_prob=config.drop_prob,
+                    linear_embed=config.linear_embed).to(device)
+        # model = ViT(
+        #     image_size=config.img_size,
+        #     patch_size=config.patch_size,
+        #     num_classes=1,
+        #     dim=config.embed_dim,
+        #     depth=config.depth,
+        #     heads=config.num_heads,
+        #     mlp_dim=config.mlp_dim,
+        #     dropout=config.drop_prob,
+        #     emb_dropout=config.drop_prob,
+        #     channels=1).to(device)
         # summarise model architecture
         summary(model, input_size=(1, 1, 256, 256), device=device)
         # loss function 
@@ -165,10 +165,12 @@ def train_model(config=None):
             results["train_acc"].append(train_acc)
             results["test_loss"].append(test_loss)
             results["test_acc"].append(test_acc)
+            if test_acc <= 0.0 or train_acc <= 0.0:
+                break
     return results
 
 if __name__ == "__main__":
-    WANDB_SWEEP = True
+    WANDB_SWEEP = False
     
     #setup random seeds
     torch.manual_seed(42)
@@ -178,18 +180,18 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # hyperparmeters
     config = SimpleNamespace(
-        epochs=30,
+        epochs=100,
         img_channel=1,      
         num_classes=1,          
         batch_size=512,         
-        img_size=256,           #image sizes (img_size, img_size)
-        patch_size=16,          #sizes of patchs (patch_size, patch_size)
-        embed_dim=256,          #patch embedding dimension
+        img_size=128,           #image sizes (img_size, img_size)
+        patch_size=64,          #sizes of patchs (patch_size, patch_size)
+        embed_dim=128,          #patch embedding dimension
         depth=6,                #number of transform encoders
         num_heads=8,            #attention heads
-        mlp_ratio=2,            #the amount of hidden units in feed forward layer in proportion to the input dimension  
-        drop_prob=0.2,          #dropout prob used in the ViT network
-        lr=3e-4,                #learning rate for optimiser
+        mlp_dim=1024,            #the amount of hidden units in feed forward layer in proportion to the input dimension  
+        drop_prob=0,          #dropout prob used in the ViT network
+        lr=0.001,                #learning rate for optimiser
         optimiser="SGD",        #optimiser: SGD, ADAM, ADAMW
         linear_embed=True,      #to use linear embed instead of conv method
         data_augments=[],       #specifies what data augments have been used
@@ -203,7 +205,7 @@ if __name__ == "__main__":
         # Login into wandb
         wandb.login(anonymous="allow")
         # Launch agent to connect to sweep
-        wandb.agent(sweep_id="rodxiang2/ViT_Sweep/1x0mb3un", function=train_model, count=20)
+        wandb.agent(sweep_id="rodxiang2/ViT_Sweep/k6g6ewwu", function=train_model)
     else:
         # Normal Training without wandb sweep
         results = train_model(config=config)
