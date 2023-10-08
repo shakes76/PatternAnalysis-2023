@@ -35,6 +35,9 @@ class Parameters():
         self.commitment_cost = 0.25
         self.learn_rate = 2e-4
         self.grey_channel = 1
+        self.features = 128
+        self.channel_noise = 100
+
     
 """
 Residual layer containing [ReLU, 3x3 conv, ReLU, 1x1 conv]
@@ -222,10 +225,10 @@ class VQVAEModel(nn.Module):
 Class for initialising an Adam Optimizer for VQVAE model
 """
 class Optimizer():
-    def __init__(self):
-        model = VQVAEModel()
+    def __init__(self, model):
+        self.model = model
         p = Parameters()
-        self.Adam = optim.Adam(model.parameters(), p.learn_rate)
+        self.Adam = optim.Adam(self.model.parameters(), p.learn_rate)
 
 """
 Building a DCGAN to generate images from trained images outputted by VQVAE
