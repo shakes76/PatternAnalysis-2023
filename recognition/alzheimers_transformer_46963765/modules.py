@@ -8,13 +8,28 @@ from torchvision.models import ResNet34_Weights
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+class ImageEncoder(nn.Module):
+    def __init__(self, embed_dim):
+        super(ImageEncoder, self).__init__()
+        self._convolution = nn.Conv1d(in_channels=1, out_channels=embed_dim, kernel_size=1)
+
+        
+    def forward(self, images):
+        
+        images = images.view(images.size(0), images.size(1), -1)
+        images = self._convolution(images)
+
+        images = images.permute(2,0,1)
+        return images
+
+
 class Attention(nn.Module):
     
     def __init__(self, heads, in_size) -> None:
         super(Attention, self).__init__()
         
         # Cross attention layer as described in paper
-        self.lnorm1 = nn.LayerNorm(in_size, device=device); self.lnorm1.to(device=device)
+        self.lnorm1 = nn.LayerNorm(in_size, device=device)
         self.attn = nn.MultiheadAttention(embed_dim=in_size, num_heads=heads)
 
         # Dense block as described in the paper. 
@@ -31,6 +46,9 @@ class Attention(nn.Module):
         #in2 is 32 by 512
                 
         out = self.lnorm1(image)
+        
+        print(latent.shape); print(image.shape)
+
         out, _ = self.attn(query=latent, key=image, value=image)
         
         #first residual connection.
@@ -115,18 +133,20 @@ class ADNI_Transformer(nn.Module):
         super(ADNI_Transformer, self).__init__()    
         LATENT_DIM = 512
         LATENT_EMB = 512
-        latent_heads = 8
         latent_layers = 4
+        latent_heads = 8
         classifier_out = 128
         batch_size = 32
         
         # pretrained to default values       
         # take out the classification layer   
-        network = models.resnet34(weights=ResNet34_Weights.DEFAULT) 
-        self._resnet = torch.nn.Sequential(*list(network.children())[:-1])
+        
+        #network = models.resnet34(weights=ResNet34_Weights.DEFAULT) 
+        #self._resnet = torch.nn.Sequential(*list(network.children())[:-1])
+        self._embeddings = ImageEncoder(LATENT_EMB)
         
         #initialise the latent array and how many stacks we want
-        self.latent = torch.empty(LATENT_DIM, LATENT_EMB, device=device)
+        self.latent = torch.empty(batch_size,LATENT_DIM, LATENT_EMB, device=device)
         self._depth = depth
         
         # Stack perceiver blocks to make final model
@@ -137,14 +157,12 @@ class ADNI_Transformer(nn.Module):
 
     def forward(self, images):
         # shape 32x3x240x240
-        images = self._resnet(images)
-        # reshapes to 32x512x1x1
-        
-        #reshapes to 32, 512
-        images = images.view(images.size(0), -1)
+        images = self._embeddings(images)
         
         latent = self.latent
-        # use perceiver transformer (may n  eed to reshape first)
+        # latent size 512x512
+        
+        # use perceiver transformer (may need to reshape first)
         for pb in self._perceiver:
             latent = pb(latent, images)
         
