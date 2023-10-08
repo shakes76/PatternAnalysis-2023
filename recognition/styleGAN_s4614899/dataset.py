@@ -18,6 +18,7 @@ BATCH_SIZES = [256, 128, 64, 32, 16, 8]
 CHANNELS_IMG = 3
 
 # Costomized ImageFolder to read image data
+# Reference: https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
 class CustomImageDataset(Dataset):
     def __init__(self, img_dir, transform=None):
         self.img_dir = img_dir
