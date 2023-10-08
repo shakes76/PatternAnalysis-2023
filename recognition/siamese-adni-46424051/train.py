@@ -12,11 +12,11 @@ import numpy as np
 class Train():
     def __init__(self):
         self.net = Model()
-        self.trainSet = DatasetTrain(constants.train_path)
-        self.testSet = DatasetTest(constants.test_path, size=constants.train_iters)
         self.transforms = transforms.Compose([
             transforms.ToTensor()
         ])
+        self.trainSet = DatasetTrain(constants.train_path, transforms=self.transforms)
+        self.testSet = DatasetTest(constants.test_path, transforms=self.transforms, size=constants.train_iters)
         self.trainLoader = DataLoader(self.trainSet, batch_size=constants.batch_size, shuffle=False)
         self.testLoader = DataLoader(self.testSet, batch_size=constants.batch_size, shuffle=False)
         self.loss_function = BCEWithLogitsLoss(size_average=True)
