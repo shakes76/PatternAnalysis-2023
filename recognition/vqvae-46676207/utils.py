@@ -12,9 +12,19 @@ from enum import Enum
 from PIL import Image
 from torch.utils.data.sampler import SubsetRandomSampler
 import matplotlib.pyplot as plt
+from platform import node
 
 # IO Paths
-DATA_PATH = '/Users/samson/Documents/UQ/COMP3710/data/keras_png_slices_data/'                     # root of data dir
+match node():                                                    # root of data dir
+    case 'Its-a-Macbook.modem':
+        DATA_PATH = '/Users/samson/Documents/UQ/COMP3710/data/keras_png_slices_data/'
+    case 'Its_a_PC':
+        DATA_PATH = 'D:/Documents/UQ/COMP3710/data/keras_png_slices_data/'
+    case _:
+        if 'vgpu' in node():
+            DATA_PATH = '/home/Student/s4667620/mac_mount/data/keras_png_slices_data/'
+        else:
+            raise Exception(f'Unknown hostname: {node()}. Please add your DATA_PATH in utils.py.')
 TRAIN_INPUT_PATH = DATA_PATH + 'keras_png_slices_train/'         # train input
 VALID_INPUT_PATH = DATA_PATH + 'keras_png_slices_validate/'      # valid input
 TEST_INPUT_PATH = DATA_PATH + 'keras_png_slices_test/'           # test input
@@ -34,6 +44,3 @@ Z_DIM = 10          # dimension of Latent Space
 H_DIM = 1600        # dimension of Hidden Layer
 NUM_EPOCHS = 20     # number of epoch
 LR_RATE = 3e-4      # learning rate
-
-def save_iamge():
-    pass

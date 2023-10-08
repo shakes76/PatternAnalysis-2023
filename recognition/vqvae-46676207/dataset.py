@@ -63,7 +63,7 @@ def load_data(data_dir='./data',
                 random_seed=42,
                 valid_size=0.1,
                 shuffle=True,
-                test=False):
+                test=False) -> DataLoader :
     """
     Return a Dataloader of OASIS_MRI
     """
@@ -84,7 +84,7 @@ def load_data(data_dir='./data',
           transform=transform,
         )
 
-        data_loader = torch.utils.data.DataLoader(
+        data_loader = DataLoader(
             test_dataset, batch_size=batch_size, shuffle=shuffle
         )
 
@@ -114,11 +114,13 @@ def load_data(data_dir='./data',
         train_sampler = SubsetRandomSampler(train_idx)
         valid_sampler = SubsetRandomSampler(valid_idx)
 
-        train_loader = torch.utils.data.DataLoader(
-            train_dataset, batch_size=batch_size, sampler=train_sampler)
+        train_loader = DataLoader(
+            train_dataset, batch_size=batch_size, sampler=train_sampler, num_workers=2
+        )
     
-        valid_loader = torch.utils.data.DataLoader(
-            valid_dataset, batch_size=batch_size, sampler=valid_sampler)
+        valid_loader = DataLoader(
+            valid_dataset, batch_size=batch_size, sampler=valid_sampler, num_workers=2
+        )
 
         return (train_loader, valid_loader)
 

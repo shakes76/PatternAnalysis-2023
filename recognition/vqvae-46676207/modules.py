@@ -1,6 +1,8 @@
 from utils import *
 from dataset import *
 
+from torch import distributed as dist
+
 class VAE(nn.Module):
     """
     Variational Auto Encoder for OASIS_MRI
@@ -39,9 +41,7 @@ class VAE(nn.Module):
 
         x = self.decode(z_reparametrized)
         return x, mu, sigma
-
-
-from torch import distributed as dist
+    
 
 def get_world_size():
     if not dist.is_available() or not dist.is_initialized():
@@ -199,7 +199,7 @@ class Decoder(nn.Module):
 class VQVAE(nn.Module):
     def __init__(
         self,
-        in_channel=3,
+        in_channel=1,
         channel=128,
         n_res_block=2,
         n_res_channel=32,
