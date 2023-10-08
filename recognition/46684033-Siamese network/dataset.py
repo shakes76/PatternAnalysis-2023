@@ -8,7 +8,8 @@ train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 
 transform = transforms.Compose([
-    transforms.ToTensor()
+    transforms.ToTensor(),
+    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])
 
 def pair_dataset(dataset):
