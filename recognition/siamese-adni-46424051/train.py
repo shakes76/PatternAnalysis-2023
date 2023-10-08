@@ -59,5 +59,5 @@ class Train():
                 label = "SAME"
             else:
                 label = "DIFF"
-            print(label, torch.nn.Linear(128, 1)(difference))
+            print(label, torch.nn.Linear(128, 1)(difference.to('cuda')))
         # print (correct * 1.0 / (incorrect + correct))
