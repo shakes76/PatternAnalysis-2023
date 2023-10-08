@@ -2,6 +2,14 @@ import torch
 import torch.nn.functional as F
 from torch import nn, optim
 
+
+'''
+This file defines the generator and the discriminator used in the styleGAN model, along with essential components
+of them to achieve the desired functions of styleGAN;
+The implementation of this styleGAN model is referenced from an existing one:
+https://www.kaggle.com/code/tauilabdelilah/stylegan-implementation-from-scratch-pytorch
+'''
+
 # scaling factors
 factors = [1,1,1,1/2,1/4,1/8,1/16,1/32]
 
