@@ -1,7 +1,9 @@
-TITLE
+# StyleGAN for the OASIS Brain Dataset
 
-DESCRIPTION OF ALGORITHM AND PROBLEM IT SOLVES
+## StyleGAN Architecture
 
-HOW IT WORKS
+## How it works
 
-FIGURE/VISUALISATION
+## Results
+
+## References
