@@ -21,7 +21,7 @@ def get_transforms_training():
         transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
-        transforms.Normalize([0.5], [0.5])  # Adjust these values if needed, for 1 channel
+         # Adjust these values if needed, for 1 channel
     ])
 
 
@@ -29,7 +29,7 @@ def get_transforms_testing():
     return transforms.Compose([
         transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
         transforms.ToTensor(),
-        transforms.Normalize([0.5], [0.5])  # Adjust these values if needed, for 1 channel
+          # Adjust these values if needed, for 1 channel
     ]) 
 
 #--------- CREATE DATASET CLASS --------------------
@@ -155,8 +155,8 @@ def create_siamese_dataloader(root_dir, batch_size=32, shuffle=True, transform=N
 
 ############ CHECKING IF DATALOADER WORKS ######################
 
-ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
-train_loader, val_loader = create_siamese_dataloader(ROOT_DIR_TRAIN, batch_size=32, transform=get_transforms_training(), split_flag=True)
+# ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
+# train_loader, val_loader = create_siamese_dataloader(ROOT_DIR_TRAIN, batch_size=32, transform=get_transforms_training(), split_flag=True)
 
 
 # Get the first batch from the train_loader
@@ -215,6 +215,44 @@ train_loader, val_loader = create_siamese_dataloader(ROOT_DIR_TRAIN, batch_size=
 
 # # After creating your dataloaders, call the function:
 # check_for_leakage_from_loaders(train_loader, val_loader)
+
+def get_classification_dataloader(root_dir, batch_size=32, shuffle=True, transform=None, split_flag=True):
+    data = datasets.ImageFolder(root=root_dir, transform=transform)
+    print("Total Number of images:", len(data))
+    print(data.classes)           # List of class names
+    print(data.class_to_idx)
+
+    if split_flag:
+        val_split = 0.2
+        train_len = int((1.0 - val_split) * len(data))
+        val_len = len(data) - train_len
+
+        train_data, val_data = random_split(data, [train_len, val_len])
+
+        print(len(train_data))
+        print(len(val_data))
+
+        train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=shuffle)
+        val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False)
+
+        # print(len(train_loader))
+        # print(len(val_loader))
+
+        return train_loader, val_loader
+
+    else:
+        # If no splitting is required, return only the train loader
+        train_loader = DataLoader(data, batch_size=batch_size, shuffle=shuffle)
+        return train_loader
+
+
+#### CHECK DATA LOADER FOR CLASSIFICATION #####
+ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
+train_loader,val_loader = get_classification_dataloader(ROOT_DIR_TRAIN,batch_size=32, transform=get_transforms_training(), split_flag=True)
+
+train_images, train_labels = next(iter(train_loader))
+print("Training Images:", train_images)
+print("Training Labels:", train_labels)
 
 
 
