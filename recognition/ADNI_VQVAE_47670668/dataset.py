@@ -2,6 +2,8 @@
 import os
 from PIL import Image
 from torch.utils.data import Dataset
+from torchvision.transforms import transforms
+
 
 class ADNIDataset(Dataset):
   """ADNI dataset"""
@@ -17,7 +19,7 @@ class ADNIDataset(Dataset):
   def __getitem__(self, idx):
       img_path = os.path.join(self.data_dir, self.image_files[idx])
       img = Image.open(img_path)
-      label = 1 if 'AD' in self.image_files[idx] else 0  # Assuming filename contains class info
+      label = 1 if '/AD/' in img_path else 0  # Label based on directory
       
       if self.transform:
           img = self.transform(img)
