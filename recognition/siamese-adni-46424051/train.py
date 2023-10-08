@@ -41,7 +41,9 @@ class Train():
             
             self.optimiser.zero_grad()
             out1, out2 = self.net.forward(img1, img2)
-            loss += self.loss_function(out1, out2).item()
+            l = self.loss_function(out1, out2)
+            loss += l.item()
+            l.backward()
             self.optimiser.step()
             losses.append(loss)
 
@@ -57,5 +59,5 @@ class Train():
                 label = "SAME"
             else:
                 label = "DIFF"
-            print(label, difference)
+            print(label, self.net.out(difference))
         # print (correct * 1.0 / (incorrect + correct))
