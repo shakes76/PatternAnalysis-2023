@@ -58,10 +58,14 @@ def load_train_data():
     # this for testing
     path="./AD_NC/train"
 
+    torch.manual_seed(33) # for reproduce in the future
     # Data transformation
     transform_train = transforms.Compose([
         transforms.Resize(105),
         transforms.CenterCrop(105),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+        transforms.RandomRotation(15),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
