@@ -12,6 +12,11 @@ import os
 from dataset import get_dataset
 from modules import Resnet, Resnet34
 
+# Toggles.
+train = 1
+test = 1
+
+# Hyperparameters
 num_epochs = 10
 batch_size = 32
 learning_rate = 0.001
@@ -41,37 +46,50 @@ optimizer = optim.Adam(resnet.parameters(), lr=learning_rate)
 
 
 #
-print(f">>> Training \n")
-for epoch in range(num_epochs):
-    running_loss = 0.0
+if train == 1:
+    # Training Model
+    resnet.train()
+    print(f">>> Training \n")
+    # Start timing.
+    st = time.time()
+    for epoch in range(num_epochs):
+        running_loss = 0.0
 
-    for i, data in enumerate(trainloader, 0):
-        # Extract data and transfer to GPU.
-        anchor = data[0].to(device)
-        positive = data[1].to(device)
-        negative = data[2].to(device)
+        # Loop over every batch in data loader.
+        for i, data in enumerate(trainloader, 0):
+            # Extract data and transfer to GPU.
+            anchor = data[0].to(device)
+            positive = data[1].to(device)
+            negative = data[2].to(device)
 
-        # Zero the gradients -- Ensuring gradients not accumulated
-        #                       across multiple training iterations.
-        optimizer.zero_grad()
+            # Zero the gradients -- Ensuring gradients not accumulated
+            #                       across multiple training iterations.
+            optimizer.zero_grad()
 
-        # Forward Pass
-        anchor_out = resnet(anchor)
-        positive_out = resnet(positive)
-        negative_out = resnet(negative)
+            # Forward Pass
+            anchor_out = resnet(anchor)
+            positive_out = resnet(positive)
+            negative_out = resnet(negative)
 
-        # Calculate Loss with Triplet Loss.
-        loss = criterion(anchor_out, positive_out, negative_out)
+            # Calculate Loss with Triplet Loss.
+            loss = criterion(anchor_out, positive_out, negative_out)
 
-        # Compute gradient with respect to model.
-        loss.backward()
+            # Compute gradient with respect to model.
+            loss.backward()
 
-        # Optimizer step - Update model parameters.
-        optimizer.step()
+            # Optimizer step - Update model parameters.
+            optimizer.step()
 
-        running_loss += loss.item()
+            # Keep track of running loss.
+            running_loss += loss.item()
 
-        # Print Loss Info while training.
-        if (i + 1) % 10 == 0:
-            print(f'[Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {running_loss / 10:.5f}')
-            running_loss = 0.0
+            # Print Loss Info while training.
+            if (i + 1) % 10 == 0:
+                print(f'[Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {running_loss / 10:.5f}')
+                running_loss = 0.0
+
+        ###############
+
+    print(">>> Training Finished.")
+    elapsed = time.time() - st
+    print(f"\nTraining took: {elapsed}s to complete, or {elapsed/60} minutes.\n")
