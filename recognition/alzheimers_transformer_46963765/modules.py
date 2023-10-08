@@ -88,12 +88,12 @@ class Perceiver_Block(nn.Module):
     
 class Classifier(nn.Module):
     
-    def __init__(self, out_dimention) -> None:
+    def __init__(self, out_dimention, batch_size, latent_size) -> None:
         super(Classifier, self).__init__()
         
-        self.fc1 = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=(481, 1), stride=(32, 1))
+        self.fc1 = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=(481, 1), stride=(batch_size, 1))
         self.relu = nn.ReLU() 
-        self.fc2 = nn.Linear(512, 32)
+        self.fc2 = nn.Linear(latent_size, batch_size)
         
         
     def forward(self, latent):
@@ -118,6 +118,7 @@ class ADNI_Transformer(nn.Module):
         latent_heads = 8
         latent_layers = 4
         classifier_out = 128
+        batch_size = 32
         
         # pretrained to default values       
         # take out the classification layer   
@@ -131,7 +132,7 @@ class ADNI_Transformer(nn.Module):
         # Stack perceiver blocks to make final model
         self._perceiver = nn.ModuleList([Perceiver_Block(LATENT_EMB, latent_heads, latent_layers) for per in range(depth)])
         self._perceiver.to(device=device)
-        self._classifier = Classifier(classifier_out)
+        self._classifier = Classifier(classifier_out, batch_size, LATENT_DIM)
         
 
     def forward(self, images):
