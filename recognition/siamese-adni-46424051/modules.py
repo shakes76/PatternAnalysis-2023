@@ -29,5 +29,4 @@ class Model(Module):
     def forward(self, img1, img2):
         out1 = self.forward_one(img1)
         out2 = self.forward_one(img2)
-        difference = torch.abs(out1 - out2)
-        return self.out(difference)
+        return out1, out2

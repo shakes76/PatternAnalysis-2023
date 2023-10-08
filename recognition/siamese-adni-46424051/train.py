@@ -4,7 +4,7 @@ from modules import Model
 import constants
 from torchvision import transforms
 import torch
-from torch.nn import BCEWithLogitsLoss
+from torch.nn import BCEWithLogitsLoss, PairwiseDistance
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 import numpy as np
@@ -40,8 +40,8 @@ class Train():
                 img1, img2, label = Variable(img1), Variable(img2), Variable(label)
             
             self.optimiser.zero_grad()
-            out = self.net.forward(img1, img2)
-            loss += self.loss_function(out.squeeze(-1), label).item()
+            out1, out2 = self.net.forward(img1, img2)
+            loss += self.loss_function(out1, out2).item()
             self.optimiser.step()
             losses.append(loss)
 
@@ -51,6 +51,11 @@ class Train():
             if constants.cuda:
                 img1, img2 = img1.cuda(), img2.cuda()
             img1, img2 = Variable(img1), Variable(img2)
-            out = self.net.forward(img1, img2).data.cpu().numpy()
-            print(out)
-        #print (correct * 1.0 / (incorrect + correct))
+            out1, out2 = self.net(img1, img2).data.cpu().numpy()
+            difference = torch.nn.functional.pairwise_distance(out1, out2)
+            if (label) == torch.FloatTensor([[0]]):
+                label = "SAME"
+            else:
+                label = "DIFF"
+            print(label + difference)
+        # print (correct * 1.0 / (incorrect + correct))
