@@ -50,18 +50,28 @@ for i in os.listdir(TESTIMAGEPATH):
             test_dirs_full.append(os.path.join(TESTIMAGEPATH, 'NC', j))
 
 
-print(train_dirs_full)
+#print(train_dirs_full)
 
 ##### Temp Code for Visualising Images.
 # fig, axs = plt.subplots(2)
 # image1 = train_dirs_full[1]
 #
 # data = cv2.imread(image1)
+# print(data.shape)
 # axs[0].imshow(data)
 # data2 = cv2.cvtColor(data, cv2.COLOR_BGR2RGB)
 # axs[1].imshow(data2)
 #
 # plt.show()
+
+image_size = 32
+# Only works if 32? do I need to change resnet?
+
+# Transforms to be applied to data loaders.
+transform = transforms.Compose([transforms.ToPILImage(),
+                                transforms.ToTensor(),
+                                transforms.Resize((image_size, image_size), antialias=None)
+                                 ])
 
 class ImageDataset(Dataset):
     def __init__(self, image_dir, transform=None):
@@ -101,24 +111,27 @@ class ImageDataset(Dataset):
         positive_image = cv2.imread(positive)
         negative_image = cv2.imread(negative)
 
-        # Convert image from BGR to RGB colour. # as imread assumes BGR.
-        # data = cv2.cvtColor(data, cv2.COLOR_BGR2RGB)
+        # fig, axs = plt.subplots(3)
+        #
+        # axs[0].imshow(anchor_data)
+        # axs[1].imshow(positive_image)
+        # axs[2].imshow(negative_image)
+        #
+        # plt.show()
 
         # If transforms are given.
         if self.transform is not None:
-            # apply the transformations to both image and segmentation
+            # apply the transformations to image
             # e.g. transform [H, W, n] format to [n, H, W]
-            anchor = self.transform(anchor_data)
+            anchor_data = self.transform(anchor_data)
             positive_image = self.transform(positive_image)
             negative_image = self.transform(negative_image)
-        else:
-            anchor = anchor_data
 
-        return anchor, positive_image, negative_image, anchor_label
+        return anchor_data, positive_image, negative_image, anchor_label
 
 
 def get_dataset(train):
     if train == 1:
-        return ImageDataset(train_dirs_full)
+        return ImageDataset(train_dirs_full, transform=transform)
     else:
-        return ImageDataset(test_dirs_full)
+        return ImageDataset(test_dirs_full, transform=transform)
