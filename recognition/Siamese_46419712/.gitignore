@@ -2,3 +2,7 @@
 /__pycache__/
 siamese.pt
 classifier.pt
+siamese_loss_plot_validate.png
+siamese_loss_plot.png
+classifier_loss_plot.png
+classifier_loss_plot_validate.png
