@@ -12,8 +12,8 @@ import numpy as np
 class Train():
     def __init__(self):
         self.net = Model()
-        self.trainSet = DatasetTrain()
-        self.testSet = DatasetTest(size=constants.train_iters)
+        self.trainSet = DatasetTrain(constants.train_path)
+        self.testSet = DatasetTest(constants.test_path, size=constants.train_iters)
         self.transforms = transforms.Compose([
             transforms.ToTensor()
         ])
