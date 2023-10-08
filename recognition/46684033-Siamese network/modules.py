@@ -109,24 +109,42 @@ class Siamese(nn.Module):
         super(Siamese,self).__init__()
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
-        self.conv1 == nn.Conv2d(3, 32, (10, 10))
-        self.conv2 == nn.Conv2d(32,64,(7,7))
-        self.conv3 == nn.Conv2d(64,128,(4,4))
-        self.maxpool = nn.MaxPool2d(4)
-        self.batchNorm1 = nn.BatchNorm2d(32)
-        self.batchNorm2 = nn.BatchNorm2d(64)
-        self.batchNorm2 = nn.BatchNorm2d(128)
+        self.linear = nn.Linear(1,64)
+        self.conv1 = nn.Conv2d(2, 1, 1)
+        # self.conv2 = nn.Conv2d(32,64,(7,7),bias=False)
+        # self.conv3 = nn.Conv2d(64,128,(4,4),bias=False)
+        # self.conv4 = nn.Conv2d(128,1,(2,2))
+        # self.maxpool = nn.MaxPool2d(4)
+        # self.batchNorm1 = nn.BatchNorm2d(32)
+        # self.batchNorm2 = nn.BatchNorm2d(64)
+        # self.batchNorm3 = nn.BatchNorm2d(128)
+        self.sequence = nn.Sequential(
+            nn.Conv2d(3, 32, (10, 10), bias=False),
+            nn.BatchNorm2d(32),
+            nn.MaxPool2d(4),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, (7, 7), bias=False),
+            nn.BatchNorm2d(64),
+            nn.MaxPool2d(4),
+            nn.ReLU(),
+            nn.Conv2d(64, 128, (4, 4), bias=False),
+            nn.BatchNorm2d(128),
+            nn.MaxPool2d(4),
+            nn.ReLU(),
+            nn.Conv2d(128,1,(2,2))
+        )
+    def forward(self,x,y):
+        x = self.sequence(x)
+        y = self.sequence(y)
+        output = torch.cat((x, y), 1)
+        output = self.conv1(output)
+        output = self.sigmoid(output)
+        return output
 
-    def forward(self,x):
-        x = self.conv1(x)
-        x = self.batchNorm1
-        x = self.relu(x)
 
-        x = self.conv2(x)
-        x = self.batchNorm2
-        x = self.relu(x)
 
-        x = self.conv3(x)
-        x = self.batchNorm3
-        x = self.relu(x)
+
+
+
+
 

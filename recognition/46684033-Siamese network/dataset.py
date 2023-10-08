@@ -73,18 +73,12 @@ def load_data(train_path, test_path):
     test_loader = torch.utils.data.DataLoader(testset, batch_size=64)
     return train_loader, validation_loader, test_loader
 
-
-train_loader, validation_loader, test_loader = load_data(train_path, test_path)
-
-
+#for debug only
+#train_loader, validation_loader, test_loader = load_data(train_path, test_path)
 
 
-# class pairing_dataset(AD_train_path,NC_train_path):
-#     def __init__(self):
-#         self.AD_dataset = torchvision.datasets.ImageFolder(root=AD_train_path, transform=transform)
-#         self.NC_dataset = torchvision.datasets.ImageFolder(root=NC_train_path, transform=transform)
-#
-#     def __getitem__(self, idx):
+
+
 
 
 
