@@ -51,7 +51,7 @@ def train():
     model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-    num_epochs = 2
+    num_epochs = 3
     train_losses = []
 
     for epoch in range(num_epochs):
