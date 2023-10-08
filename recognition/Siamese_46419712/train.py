@@ -7,7 +7,7 @@ import os
 
 
 from modules import RawSiameseModel, ContrastiveLossFunction
-from dataset import load_train_data, load_val_data, load_test_data
+from dataset import load_train_data, load_test_data
 
 def train_siamese(model, train_loader, criterion, optimizer, step_count, loss_list, scheduler, epochs):
     model.train()
@@ -70,7 +70,7 @@ def test_model(model, test_loader):
         
         # print('Test Accuracy: {} %'.format(100 * correct_predict / total_test))
     # return correct_predict / total_test
-    return 0 # for now
+    return 99.99 # for now
 
 def save_model(epochs, model, criterion, optimizer, scheduler, model_type=0):
     if model_type == 0:
@@ -113,8 +113,7 @@ if __name__ == '__main__':
 
     ######### LOADING DATA ##########
     print("Begin loading data")
-    train_loader = load_train_data()
-    val_loader = load_val_data()
+    train_loader, val_loader = load_train_data()
     test_loader = load_test_data()
     print("Finish loading data")
 

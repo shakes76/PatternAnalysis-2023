@@ -41,6 +41,18 @@ class PairedDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.trainset)
 
+def split_dataset(dataset, seed=True):
+
+    if seed:
+        generator = torch.Generator().manual_seed(35)
+    else:
+        generator = torch.Generator()
+
+    # follow the principle -> 80% train 20% val
+    train_set, val_set = torch.utils.data.random_split(dataset, [0.8, 0.2], generator=generator)
+
+    return train_set, val_set
+
 def load_train_data():
     path="/home/groups/comp3710/ADNI/AD_NC/train"
     # this for testing
@@ -51,7 +63,7 @@ def load_train_data():
         transforms.Resize(105),
         transforms.CenterCrop(105),
         transforms.ToTensor(),
-        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
     # transform_train = transforms.Compose([
@@ -61,18 +73,17 @@ def load_train_data():
     #     transforms.ToTensor(),
     #     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     # ])
-    train_image = torchvision.datasets.ImageFolder(root=path, transform=transform_train)
+    load_train_image = torchvision.datasets.ImageFolder(root=path, transform=transform_train)
+
+    train_image, val_image = split_dataset(load_train_image)
+
     trainset = PairedDataset(train_image)
     train_loader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
 
-    # data_iter = iter(train_loader)
-    # images, _ = next(data_iter)
+    valset = PairedDataset(val_image)
+    val_loader = torch.utils.data.DataLoader(valset, batch_size=128, shuffle=True, num_workers=0)
 
-    # # Check the number of channels in the first image
-    # num_channels = images.size(1)
-    # print(f"Number of channels in the first image: {num_channels}")
-
-    return train_loader
+    return train_loader, val_loader
 
 def load_test_data():
     path="/home/groups/comp3710/ADNI/AD_NC/test"
@@ -97,19 +108,4 @@ def load_test_data():
 
 if __name__ == '__main__':
     # test dataset
-
     testloader = load_train_data()
-        
-    # # Extract one batch
-    # example_batch = next(iter(testloader))
-
-    # # Example batch is a list containing 2x8 images, indexes 0 and 1, an also the label
-    # # If the label is 1, it means that it is not the same person, label is 0, same person in both images
-    # concatenated = torch.cat((example_batch[0], example_batch[1]),0)
-
-    # npimg = torchvision.utils.make_grid(concatenated).numpy()
-    # plt.axis("off")
-
-    # plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    # plt.show() 
-    # print(example_batch[2].numpy().reshape(-1))
