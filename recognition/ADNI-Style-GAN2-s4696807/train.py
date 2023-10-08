@@ -8,7 +8,7 @@ from tqdm import tqdm
 # Define constants and hyperparameters
 DATASET                 = "./OASIS"  # Path to the dataset
 DEVICE                  = "cuda" if torch.cuda.is_available() else "cpu"  # Use GPU if available, otherwise use CPU
-EPOCHS                  = 100 # Number of training epochs
+EPOCHS                  = 301 # Number of training epochs
 LEARNING_RATE           = 1e-3  # Learning rate for optimization
 BATCH_SIZE              = 32  # Batch size for training
 LOG_RESOLUTION          = 7  # Logarithmic resolution used for 128*128 images

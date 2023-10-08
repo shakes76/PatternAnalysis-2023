@@ -69,13 +69,13 @@ for epoch in range(EPOCHS):
     Total_G_Losses.extend(G_Losses)
     Total_D_Losses.extend(D_Losses)
     
-    if epoch % 20 == 0:
+    if epoch % 50 == 0:
         # Generate example images for the current epoch
         generate_examples(gen, epoch)
     
 plt.figure(figsize=(10,5))
 plt.title("Generator Loss During Training")
-plt.plot(Total_G_Losses,label="G", color="blue")
+plt.plot(Total_G_Losses, label="G", color="blue")
 plt.xlabel("iterations")
 plt.ylabel("Loss")
 plt.legend()
