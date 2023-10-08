@@ -93,7 +93,7 @@ class DatasetTest(Dataset):
         if self.transforms:
             image1 = self.transforms(image1)
             image2 = self.transforms(image2)
-        return image1, image2
+        return image1, image2, torch.tensor(r % 2, dtype=torch.float32)
     
 if __name__=="__main__":
     dataset = DatasetTrain(os.path.expanduser("~/../../groups/comp3710/ADNI/AD_NC/train"), None)

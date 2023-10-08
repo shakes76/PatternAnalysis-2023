@@ -47,14 +47,10 @@ class Train():
 
     def test(self):
         correct, incorrect = 0, 0
-        for _, (img1, img2) in enumerate(self.testLoader):
+        for _, (img1, img2, label) in enumerate(self.testLoader):
             if constants.cuda:
                 img1, img2 = img1.cuda(), img2.cuda()
             img1, img2 = Variable(img1), Variable(img2)
             out = self.net.forward(img1, img2).data.cpu().numpy()
-            prediction = np.argmax(out)
-            if prediction == 0:
-                correct += 1
-            else:
-                incorrect += 1
-        print (correct * 1.0 / (incorrect + correct))
+            print(out)
+        #print (correct * 1.0 / (incorrect + correct))
