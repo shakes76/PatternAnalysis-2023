@@ -43,10 +43,10 @@ for i in os.listdir(TRAINIMAGEPATH):
 for i in os.listdir(TESTIMAGEPATH):
     if i == 'AD':
         for j in test_dirs_AD:
-            train_dirs_full.append(os.path.join(TESTIMAGEPATH, 'AD', j))
+            test_dirs_full.append(os.path.join(TESTIMAGEPATH, 'AD', j))
     else:
         for j in test_dirs_NC:
-            train_dirs_full.append(os.path.join(TESTIMAGEPATH, 'NC', j))
+            test_dirs_full.append(os.path.join(TESTIMAGEPATH, 'NC', j))
 
 
 ##### Temp Code for Visualising Images.
@@ -87,3 +87,9 @@ class ImageDataset(Dataset):
 
         return image, label
 
+
+def get_dataset(train):
+    if train == 1:
+        return ImageDataset(train_dirs_full)
+    else:
+        return ImageDataset(test_dirs_full)
