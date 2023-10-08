@@ -1,3 +1,10 @@
+from torch.utils.data import DataLoader, Dataset
+import torchvision.transforms as transforms
+import os
+import cv2
+
+data_path = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2/"
+batch_size = 128
 
 class ISICDataset(Dataset):
     def __init__(self, root_dir, transform=None):
@@ -5,7 +12,7 @@ class ISICDataset(Dataset):
         self.transform = transform
         self.image_files = os.listdir(root_dir)
 
-      def __len__(self):
+    def __len__(self):
         return len(self.image_files)
 
     def __getitem__(self, idx):
@@ -23,6 +30,5 @@ transform = transforms.Compose([
     transforms.Resize((256, 256)),
     transforms.Normalize([0.5], [0.5])])
 
-data_path = "/home/groups/comp3710"
 dataset = ISICDataset(root_dir=data_path, transform=transform)
 train_loader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)      
