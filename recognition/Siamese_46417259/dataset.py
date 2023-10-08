@@ -11,9 +11,21 @@ import random
 batch_size = 128
 workers = 0
 
-# file paths
-train_path = '/Users/minhaosun/Documents/COMP3710_local/data/AD_NC/train'
-test_path = '/Users/minhaosun/Documents/COMP3710_local/data/AD_NC/test'
+# alias for testing on different machines
+MAC = -1
+RANGPUR = 1
+
+machine = RANGPUR
+if machine == RANGPUR:
+    # file paths for RANGPUR
+    train_path = '/home/groups/comp3710/ADNI/AD_NC/train'
+    test_path = '/home/groups/comp3710/ADNI/AD_NC/test'
+else: 
+    # file paths for Mac
+    train_path = '/Users/minhaosun/Documents/COMP3710_local/data/AD_NC/train'
+    test_path = '/Users/minhaosun/Documents/COMP3710_local/data/AD_NC/test'
+
+savepath = "/home/Student/s4641725/COMP3710/project_results" 
 
 # transforms
 train_transforms = transforms.Compose([
@@ -129,8 +141,8 @@ def test_visualise_data_MLP():
     # https://github.com/pytorch/tutorials/blob/main/beginner_source/basics/data_tutorial.py
     # published under the BSD 3-Clause "New" or "Revised" License
     # full text of the license can be found in this project at BSD_new.txt
-    figure = plt.figure(figsize=(8, 8))
-    cols, rows = 3, 3
+    figure = plt.figure(figsize=(12, 12))
+    cols, rows = 4, 4
 
     labels_map = {0: 'AD', 1: 'NC'}
 
@@ -139,7 +151,13 @@ def test_visualise_data_MLP():
         plt.title(labels_map[next_batch[1][i].tolist()])
         plt.axis("off")
         plt.imshow(np.transpose(next_batch[0][i].squeeze(), (1,2,0)), cmap="gray")
-    plt.show()
+    
+    if machine == RANGPUR:
+        print("saving figure for mlp")
+        plt.savefig(f"{savepath}/data_for_mlp.png", dpi=300)
+        print("figure saved for mlp")
+    else: 
+        plt.show()
 
 def test_visualise_data_Siamese():
     # Plot some training images
@@ -151,7 +169,7 @@ def test_visualise_data_Siamese():
     print(next_batch[0][1].shape)
 
     cols, rows = 3, 3
-    fig, axs = plt.subplots(rows, cols * 2)
+    fig, axs = plt.subplots(rows, cols * 2, figsize=(16,12))
     labels_map = {0: 'diff', 1: 'same'}
 
     for i in range(rows):
@@ -162,7 +180,13 @@ def test_visualise_data_Siamese():
             axs[i,j*2+1].set_title(next_batch[4][i*rows+j])
             axs[i,j*2].axis("off")
             axs[i,j*2+1].axis("off")
-    plt.show()
+    
+    if machine == RANGPUR:
+        print("saving figure for Siamese")
+        plt.savefig(f"{savepath}/data_for_siamese.png", dpi=300)
+        print("figure saved for Siamese")
+    else: 
+        plt.show()
 
 def test_paired_dataset():
     source = dset.ImageFolder(root=train_path,
@@ -196,7 +220,10 @@ def visualise_paired_data(dataset: PairedDataset):
             axs[i,j*2+1].set_title(next_batch[4][i*rows+j])
             axs[i,j*2].axis("off")
             axs[i,j*2+1].axis("off")
-    plt.show()
+    if machine == RANGPUR:
+        plt.savefig(f"{savepath}/data_for_siamese_2.png")
+    else: 
+        plt.show()
 
 
 if __name__ == "__main__":
