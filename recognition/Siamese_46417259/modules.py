@@ -98,9 +98,11 @@ def test_mlp():
     print(out.shape)
     print(out)
 
-# test_one_twin()
-# test_entire_net()
-test_mlp()
+
+if __name__ == "__main__":
+    # test_one_twin()
+    # test_entire_net()
+    test_mlp()
 
 
 

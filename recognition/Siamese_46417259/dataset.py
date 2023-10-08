@@ -199,14 +199,15 @@ def visualise_paired_data(dataset: PairedDataset):
     plt.show()
 
 
-# Decide which device we want to run on
-device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
-print("Device: ", device)
+if __name__ == "__main__":
+    # Decide which device we want to run on
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
+    print("Device: ", device)
 
-# test_load_data_basic()
-test_visualise_data_MLP()
-test_visualise_data_Siamese()
-# test_paired_dataset()
+    # test_load_data_basic()
+    test_visualise_data_MLP()
+    test_visualise_data_Siamese()
+    # test_paired_dataset()
 
 
 #
