@@ -1,11 +1,17 @@
 import torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-#from math import log2
 import os
 from torch.utils.data import Dataset
 from PIL import Image
 import matplotlib.pyplot as plt
+
+'''
+This file reads a downloaded image dataset from the OASIS dataset and returns a data loader of it 
+along with a transformation of the original dataset;
+Additionally, this file gives some sample images from the loader to show what the images I'm working
+with look like.
+'''
 
 DATASET = "/home/groups/comp3710/OASIS/keras_png_slices_train"
 BATCH_SIZES = [256, 128, 64, 32, 16, 8]
@@ -14,7 +20,6 @@ CHANNELS_IMG = 3
 # Costomized ImageFolder to read image data
 class CustomImageDataset(Dataset):
     def __init__(self, img_dir, transform=None):
-        #self.img_labels = pd.read_csv(annotations_file)
         self.img_dir = img_dir
         self.img_files = os.listdir(img_dir)
         self.transform = transform
@@ -42,13 +47,10 @@ def get_loader(image_size):
          )
         ]
     )
-    batch_size = BATCH_SIZES[0] # batch size = 256
+    #batch_size = BATCH_SIZES[int(log2(image_size/4))] # image size = 256 
+    batch_size = BATCH_SIZES[0] # img size = 256
     dataset = CustomImageDataset(img_dir = DATASET, transform=trainsform)
-    loader = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=True
-    )
+    loader = DataLoader(dataset,batch_size=batch_size,shuffle=True)
     return loader, dataset
 
 # shape (256, 256, 3)
