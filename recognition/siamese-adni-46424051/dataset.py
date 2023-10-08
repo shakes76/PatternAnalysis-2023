@@ -31,7 +31,7 @@ class DatasetTrain(Dataset):
     def __len__(self):
         return 11120
     
-    def __getitem__(self):
+    def __getitem__(self, index):
         image1 = None
         image2 = None
         r = random.randint(0, 2)
@@ -76,7 +76,7 @@ class DatasetTest(Dataset):
     def __len__(self):
         return self.size
     
-    def __getitem__(self):
+    def __getitem__(self, index):
         image1 = None
         image2 = None
         r = random.randint(0, 1)
