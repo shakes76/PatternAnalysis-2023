@@ -41,7 +41,7 @@ class Train():
             
             self.optimiser.zero_grad()
             out = self.net.forward(img1, img2)
-            loss += self.loss_function(out.squeeze(-1), label).item
+            loss += self.loss_function(out.squeeze(-1), label).item()
             self.optimiser.step()
             losses.append(loss)
 
