@@ -45,13 +45,17 @@ from monai.transforms import (
 train_transforms = Compose(
     [
         LoadImaged(keys=["image", "label"]),
+        
+        
         EnsureChannelFirstd(keys=["image", "label"]),
+        
        
         Lambdad(keys="image", func=lambda x:(x - x.min()) / (x.max()-x.min())),
 
         RandFlipd(keys=("image", "label"), prob=0.5, spatial_axis=[0]),
         RandFlipd(keys=("image", "label"), prob=0.5, spatial_axis=[1]),
         RandFlipd(keys=("image", "label"), prob=0.5, spatial_axis=[2]),
+        Resized(keys=["image", "label"],spatial_size=(256,256,128)),
         EnsureTyped(keys=("image", "label"), dtype=torch.float32),
     ]
 )
@@ -72,7 +76,7 @@ class MRIDataset_pelvis(Dataset):
     """
      Code for reading Prostate 3D data set 
     """
-    def __init__(self,mode,dataset_path='./HipMRI_study_complete_release_v1',split_id=200,normalize=True,augmentation=True):
+    def __init__(self,mode,dataset_path='./HipMRI_study_complete_release_v1',normalize=True,augmentation=True):
         """
         param mode: 'train','val','test'
         param datset_path: root dataset folder
@@ -89,13 +93,22 @@ class MRIDataset_pelvis(Dataset):
             self.test_transform = val_transforms
             
         if self.mode == 'train':
-            select_list=os.listdir(os.path.join(dataset_path,'semantic_MRs_anon'))[:split_id]
+#             select_list=os.listdir(os.path.join(dataset_path,'semantic_MRs_anon'))[:split_id]
+            with open('train_list.txt','r') as f:
+                y=f.readlines()
+                select_list = [_.strip() for _ in y]
+#                 print(y)
+#                 print(len(y))
+#                 print(y[0].strip())
             self.img_list = [os.path.join(dataset_path,'semantic_MRs_anon',_) for _ in select_list]
             self.label_list = [os.path.join(dataset_path,'semantic_labels_anon',_.replace('_LFOV','_SEMANTIC_LFOV')) for _ in select_list]
             self.train_files = [{'image':image_name,'label':label_name}  for image_name,label_name in zip(self.img_list,self.label_list)]
 
         elif self.mode == 'test':
-            select_list=os.listdir(os.path.join(dataset_path,'semantic_MRs_anon'))[split_id:]
+            with open('test_list.txt','r') as f:
+                y=f.readlines()
+                select_list = [_.strip() for _ in y]
+#             select_list=os.listdir(os.path.join(dataset_path,'semantic_MRs_anon'))[split_id:]
             self.img_list = [os.path.join(dataset_path,'semantic_MRs_anon',_) for _ in select_list]
             self.label_list = [os.path.join(dataset_path,'semantic_labels_anon',_.replace('_LFOV','_SEMANTIC_LFOV')) for _ in select_list]
             self.test_files = [{'image':image_name,'label':label_name}  for image_name,label_name in zip(self.img_list,self.label_list)]
@@ -127,14 +140,15 @@ class MRIDataset_pelvis(Dataset):
 
 
 if __name__=='__main__':
-    test_dataset = MRIDataset_pelvis(mode='test',dataset_path='./Downloads/HipMRI_study_complete_release_v1',split_id=200,normalize=True,augmentation=True)
+    test_dataset = MRIDataset_pelvis(mode='test',dataset_path='/root/HipMRI_study_complete_release_v1',normalize=True,augmentation=True)
     test_dataloader = DataLoader(dataset=test_dataset, batch_size=2, shuffle=False)
+    print(len(test_dataset))
     for batch_ndx, sample in enumerate(test_dataloader):
         print('test')
         print(sample[0].shape)
         print(sample[1].shape)
         break
-    train_dataset = MRIDataset_pelvis(mode='train',dataset_path='./Downloads/HipMRI_study_complete_release_v1',split_id=200,normalize=True,augmentation=True)
+    train_dataset = MRIDataset_pelvis(mode='train',dataset_path='/root/HipMRI_study_complete_release_v1',normalize=True,augmentation=True)
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=2, shuffle=False)
     for batch_ndx, sample in enumerate(train_dataloader):
         print('train')
