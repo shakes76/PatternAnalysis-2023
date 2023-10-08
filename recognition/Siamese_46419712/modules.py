@@ -5,7 +5,7 @@ import torch.nn.functional as F
 
 class RawSiameseModel(nn.Module):
     def __init__(self):
-        super(SiameseModel, self).__init__()
+        super(RawSiameseModel, self).__init__()
         # Follow https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf -> Siamese Neural Networks for One-shot Image Recognition
         # first convolution layer
         self.model1 = nn.Sequential(
@@ -32,6 +32,18 @@ class RawSiameseModel(nn.Module):
             nn.Linear(6 * 6 * 256, 4096),
             nn.Sigmoid()
         )
+
+        self.apply(self._init_weights)
+    
+    def _init_weights(self, module):
+        if isinstance(module, nn.Conv2d):
+            module.weight.data.normal_(mean=0.0, std=1e-2)
+            if module.bias is not None:
+                module.bias.data.normal_(mean=0.5, std=1e-2)
+        elif isinstance(module, nn.Linear):
+            module.weight.data.normal_(mean=0.0, std=2e-1)
+            if module.bias is not None:
+                module.bias.data.normal_(mean=0.5, std=1e-2)
 
     def forward(self, x):
         output = self.model1(x)
