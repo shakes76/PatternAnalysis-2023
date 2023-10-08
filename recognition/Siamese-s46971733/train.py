@@ -15,12 +15,13 @@ from modules import Resnet, Resnet34
 # Toggles.
 train = 1
 test = 1
+plot_loss = 1
 
 # Path that model is saved to and loaded from.
 PATH = './resnet_net.pth'
 
 # Path that training loss is saved to.
-PLOT_PATH = './training_loss'
+PLOT_PATH = './training_loss.png'
 
 # Hyperparameters
 num_epochs = 10
@@ -52,6 +53,9 @@ optimizer = optim.Adam(resnet.parameters(), lr=learning_rate)
 
 
 #
+
+loss_list = []
+
 if train == 1:
     # Training Model
     resnet.train()
@@ -94,6 +98,8 @@ if train == 1:
                 print(f'[Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {running_loss / 10:.5f}')
                 running_loss = 0.0
 
+            loss_list.append(loss.item())
+
         ###############
 
     print(">>> Training Finished.")
@@ -102,6 +108,17 @@ if train == 1:
 
     # Save trained model for later use.
     torch.save(resnet.state_dict(), PATH)
+
 else:
     print("Training was disabled. \nLoading model from path.")
     resnet.load_state_dict(torch.load(PATH))
+
+# Plot the loss over the many iterations of training.
+if plot_loss == 1:
+    plt.figure(figsize=(10, 5))
+    plt.title("")
+    plt.plot(loss_list)
+    plt.xlabel("Iterations")
+    plt.ylabel("Loss")
+    plt.savefig(PLOT_PATH)
+    plt.show()
