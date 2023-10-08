@@ -1,60 +1,56 @@
 import torchvision
 import torch
-import torchvision.transforms as transforms
-import torch.nn as nn
-import torch.nn.functional as F
 import time
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 
 
-from modules import SiameseModel, RawSiameseModel, ContrastiveLossFunction
+from modules import RawSiameseModel, ContrastiveLossFunction
 from dataset import load_train_data, load_test_data
 
-def save_model(siamese_epochs, siamese_model, siamese_criterion, siamese_optimizer,
-                classifier_epochs=None, classifier_model=None, classifier_criterion=None, classifier_optimizer=None):
-    if classifier_model is not None:
-        torch.save({
-            'siamese_epochs': siamese_epochs,
-            'siamese_model': siamese_model.state_dict(),
-            'siamese_criterion': siamese_criterion,
-            'siamese_optimizer': siamese_optimizer.state_dict(),
-            'classifier_epochs': classifier_epochs,
-            'classifier_model': classifier_model.state_dict(),
-            'classifier_criterion': classifier_criterion,
-            'classifier_optimizer': classifier_optimizer.state_dict(),
-        }, "model.pt")
+def train_siamese():
+    pass
+
+def validate_siamese():
+    pass
+
+def train_classifier():
+    pass
+
+def validate_classifier():
+    pass
+
+def save_model(epochs, model, criterion, optimizer, model_type=0):
+    if model_type == 0:
+        PATH = 'siamese.pt'
     else:
-        torch.save({
-            'siamese_epochs': siamese_epochs,
-            'siamese_model': siamese_model.state_dict(),
-            'siamese_criterion': siamese_criterion,
-            'siamese_optimizer': siamese_optimizer.state_dict()
-        }, "model.pt")
+        PATH = 'classifier.pt'
+
+    torch.save({
+        "epochs": epochs,
+        "model": model.state_dict(),
+        "criterion": criterion,
+        "optimizer": optimizer.state_dict()
+    }, PATH)
 
     print("Save model")
 
-def load_model():
-    if os.path.exists("model.pt"):
-        load_model = torch.load("model.pt")
+def load_model(model_type=0):
+    if model_type == 0:
+        PATH = 'siamese.pt'
+    else:
+        PATH = 'classifier.pt'
+
+    if os.path.exists(PATH):
+        load_model = torch.load(PATH)
         # ignore if classifier complete
-        if 'classifier_model' in load_model:
-            epoch1 = load_model['siamese_epochs']
-            siamese = load_model['siamese_model']
-            s_criterion = load_model['siamese_criterion']
-            s_optimizer = load_model['siamese_optimizer']
-            epoch2 = load_model['classifier_epochs']
-            classifier = load_model['classifier_model']
-            c_criterion = load_model['classifier_criterion']
-            c_optimizer = load_model['classifier_optimizer']
-            return epoch1, siamese, s_criterion, s_optimizer, epoch2, classifier, c_criterion, c_optimizer
-        else:
-            epoch1 = load_model['siamese_epochs']
-            siamese = load_model['siamese_model']
-            s_criterion = load_model['siamese_criterion']
-            s_optimizer = load_model['siamese_optimizer']
-            return epoch1, siamese, s_criterion, s_optimizer, None
+        epoch = load_model['epochs']
+        model = load_model['model']
+        criterion = load_model['criterion']
+        optimizer = load_model['optimizer']
+
+        return epoch, model, criterion, optimizer
     else:
         return None
 

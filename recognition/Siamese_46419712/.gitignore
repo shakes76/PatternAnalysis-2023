@@ -1,3 +1,4 @@
 /AD_NC
 /__pycache__/
-model.pt
+siamese.pt
+classifier.pt
