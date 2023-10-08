@@ -16,6 +16,12 @@ from modules import Resnet, Resnet34
 train = 1
 test = 1
 
+# Path that model is saved to and loaded from.
+PATH = './resnet_net.pth'
+
+# Path that training loss is saved to.
+PLOT_PATH = './training_loss'
+
 # Hyperparameters
 num_epochs = 10
 batch_size = 32
@@ -93,3 +99,9 @@ if train == 1:
     print(">>> Training Finished.")
     elapsed = time.time() - st
     print(f"\nTraining took: {elapsed}s to complete, or {elapsed/60} minutes.\n")
+
+    # Save trained model for later use.
+    torch.save(resnet.state_dict(), PATH)
+else:
+    print("Training was disabled. \nLoading model from path.")
+    resnet.load_state_dict(torch.load(PATH))
