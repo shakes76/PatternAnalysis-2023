@@ -35,7 +35,7 @@ class ContrastiveLoss(torch.nn.Module):
 
       return loss_contrastive
 
-criterion = nn.BCELoss()
+criterion = ContrastiveLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 total_steps=len(train_loader)
 
@@ -50,17 +50,15 @@ for epoch in range(num_epoch):
         images1 = images1.to(device)
         images2 = images2.to(device)
         labels = labels.to(device)
-        output = model(images1,images2).squeeze()
-        loss = criterion(output, labels.float())
+        output1,output2 = model(images1,images2)
+        loss = criterion(output1,output2, labels.float())
         loss.backward()
         optimizer.step()
 
-        pred = torch.where(output > 0.5, 1, 0)
-        correct += (pred == labels).sum().item()
-        train_total += labels.size(0)
+
         if (i + 1) % 100 == 0:
-            print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: {}%"
-                  .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item() , 100*correct/train_total))
+            print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} "
+                  .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item() ))
 
     model.eval()
 
@@ -73,14 +71,12 @@ for epoch in range(num_epoch):
             images1 = images1.to(device)
             images2 = images2.to(device)
             labels = labels.to(device)
-            output = model(images1,images2).squeeze()
-            val_loss = criterion(output, labels.float())
-            pred = torch.where(output > 0.5, 1, 0)
-            correct += (pred == labels).sum().item()
-            total += labels.size(0)
+            output1,output2 = model(images1,images2)
+            val_loss = criterion(output1,output2, labels.float())
+
 
     print(
         f"Epoch [{epoch+1}/{num_epoch}] \
-        training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}, validation accuracy: {100*correct/total}%"
+        training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}"
     )
 torch.save(model,r"C:\Users\wongm\Desktop\COMP3710\project\siamesev2.pth")

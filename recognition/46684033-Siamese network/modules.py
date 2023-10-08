@@ -141,21 +141,19 @@ class Siamese(nn.Module):
             nn.ReLU(),
             nn.Linear(256, 64),
             nn.ReLU(),
-            nn.Linear(64, 1)
+            nn.Linear(64, 2)
         )
 
     def forward_once(self, x):
         x = self.sequence(x)
+        x = x.view(x.size()[0], -1)
+        x = self.fc(x)
         return x
 
     def forward(self, x, y):
         x = self.forward_once(x)
         y = self.forward_once(y)
-        x = x.view(x.size()[0], -1)
-        y = y.view(y.size()[0], -1)
-        x = self.fc(x)
-        y = self.fc(y)
-        output = abs(x - y)
-        output = self.sigmoid(output)
+        #output = abs(x - y)
+        #output = self.sigmoid(output)
 
-        return output
+        return x,y
