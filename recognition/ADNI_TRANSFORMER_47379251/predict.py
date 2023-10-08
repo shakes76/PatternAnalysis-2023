@@ -78,7 +78,7 @@ print("Training took " + str(elapsed) + " secs or " + str(elapsed / 60) + " mins
 plt.plot([i for i in range(1, args.n_epochs+1)], list_loss)
 plt.title("Training Plot")
 plt.legend()
-plt.savefig(str(datetime.now().strftime("%m/%d/%Y, %H:%M:%S"))+'_Report.png')
+plt.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Report.png')
 print('Testing..')
 net.eval()
 print(net.eval())

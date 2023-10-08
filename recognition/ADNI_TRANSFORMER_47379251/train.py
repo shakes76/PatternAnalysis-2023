@@ -23,6 +23,8 @@ from torch.utils.tensorboard import SummaryWriter
 from modules import *
 from dataset import *
 from utils import *
+from torchvision import models
+from torchsummary import summary
 
 
 # Model factory..
@@ -33,11 +35,24 @@ if args.net=="ViT":
     patch_size = args.patch,
     num_classes = num_classes,
     dim = int(args.dimhead),
-    depth = 6,
-    heads = 16,
-    mlp_dim = 2048,
+    depth = 4,
+    heads = 4,
+    mlp_dim = 1024,
     dropout = 0.1,
-    emb_dropout = 0.1
+    emb_dropout = 0.5
+)
+elif args.net=="SViT":
+    from vit_pytorch.vit_for_small_dataset import ViT
+    net = ViT(
+    image_size = size,
+    patch_size = args.patch,
+    num_classes = num_classes,
+    dim = int(args.dimhead),
+    depth = 4,
+    heads = 4,
+    mlp_dim = 512,
+    dropout = 0.5,
+    emb_dropout = 0.5
 )
 elif args.net=="NaViT":
     from vit_pytorch.na_vit import NaViT
@@ -158,12 +173,12 @@ elif args.net=="MaxViT":
 
 # For Multi-GPU
 if 'cuda' in device:
-    print(device)
     torch.cuda.empty_cache()
 
 
 # Loss is CE
 criterion = nn.CrossEntropyLoss()
+## criterion =nn.BCELoss()
 
 if args.opt == "adam":
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
@@ -172,7 +187,7 @@ elif args.opt == "sgd":
 elif args.opt == "rms":
     optimizer = optim.RMSprop(net.parameters(), lr=args.lr, momentum=0.9, weight_decay=6e-4)    
 elif args.opt == "adamw":
-    optimizer = optim.AdamW(net.parameters(), lr=args.lr)      
+    optimizer = optim.AdamW(net.parameters(), lr=args.lr, weight_decay=1e-4)      
     
 # use cosine scheduling
 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.n_epochs)
@@ -214,16 +229,17 @@ def train(epoch):
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
-        if epoch%2==0: 
+        if epoch%5==0: 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                 % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
     writer.add_scalar("Train Loss/Epochs", train_loss, epoch) 
     if epoch==0: 
         log = "Learning Rate: " + str(args.lr) + "\nOptimizer: " + str(args.opt) + "\nModel: " + str(args.net)\
             + "\nBatch Size: " + str(args.bs) + "\nEpoch: " + str(args.n_epochs)\
-            + "\nPatch Size: " + str(args.patch) + "\nDimensions: " + str(args.dimhead) + "\nConv Kernel: " + str(args.convkernel)\
+            + "\nPatch Size: " + str(args.patch) + "\nDimensions: " + str(args.dimhead) + "\nConv Kernel: "\
             + "\nLR Scheduler: " +  sched_lr
         writer.add_text('Param', log, 0)
     writer.close()   
     return train_loss
     
+print(net)

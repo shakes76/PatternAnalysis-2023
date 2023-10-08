@@ -1,5 +1,6 @@
 # TODO:
 - Make code right (Time, Plots, Different Model, Model Save), Meta Learning?
+- Graph Everything (Batch Norm, Train Test)
 - Validation Set (https://www.geeksforgeeks.org/training-neural-networks-with-validation-using-pytorch/)
 
 # NOTES:
@@ -10,6 +11,8 @@
 - Augmix
 - Regularization (Dropouts), Normalization
 - Weights and Biases (Google)
+- No model files in git but save it and datafiles
+- 20 marks algo - solve problem, design, comment 
 
 # Hyper-Param:
 - Learning Rate

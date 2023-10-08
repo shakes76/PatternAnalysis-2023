@@ -21,15 +21,15 @@ from utils import *
 
 # parsers
 parser = argparse.ArgumentParser(description='PyTorch Training')
-parser.add_argument('--lr', default=1e-4, type=float, help='learning rate') # resnets.. 1e-3, Vit..1e-4
-parser.add_argument('--opt', default="adam")
-parser.add_argument('--net', default='ViT')
-parser.add_argument('--bs', default='16')
+parser.add_argument('--lr', default=3e-4, type=float, help='learning rate') # resnets.. 1e-3, Vit..1e-4
+parser.add_argument('--opt', default="adamw")
+parser.add_argument('--net', default='SViT')
+parser.add_argument('--bs', default='64')
 parser.add_argument('--size', default="256")
 parser.add_argument('--n_epochs', type=int, default='5')
 parser.add_argument('--patch', default='64', type=int, help="patch for ViT")
-parser.add_argument('--dimhead', default="1024", type=int)
-parser.add_argument('--convkernel', default='4', type=int, help="parameter for convmixer")
+parser.add_argument('--dimhead', default="8", type=int)
+# parser.add_argument('--convkernel', default='2', type=int, help="parameter for convmixer")
 # parser.add_argument('--resume', '-r', action='store_true', help='resume from checkpoint')
 # parser.add_argument('--noaug', action='store_true', help='disable use randomaug')
 # parser.add_argument('--nowandb', action='store_true', help='disable wandb')
@@ -72,10 +72,10 @@ transform_test = transforms.Compose([
 ])
 
 # Prepare dataset
-trainset = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
-# trainset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
+#trainset = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
+trainset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=bs, shuffle=True)
 
-testset = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
-# testset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
+#testset = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
+testset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
