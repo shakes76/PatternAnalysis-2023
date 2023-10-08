@@ -73,7 +73,7 @@ class DatasetTest(Dataset):
         return NC, AD
 
     def __len__(self):
-        return 11120
+        return 4540
     
     def __getitem__(self):
         image1 = None
