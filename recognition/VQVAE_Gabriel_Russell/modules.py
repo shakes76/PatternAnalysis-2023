@@ -17,6 +17,8 @@ import torch.optim as optim
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from torchvision.utils import make_grid
+from torch.distributions.normal import Normal
+from torch.distributions import kl_divergence
 
 
 """
@@ -24,7 +26,7 @@ Define the hyperparameters used for the model.
 """
 class Parameters():
     def __init__(self):
-        self.batch_size = 128
+        self.batch_size = 32 #128
         self.num_training_updates = 15000
         self.num_hiddens = 128
         self.num_residual_hiddens = 32
@@ -224,4 +226,106 @@ class Optimizer():
         model = VQVAEModel()
         p = Parameters()
         self.Adam = optim.Adam(model.parameters(), p.learn_rate)
+
+"""
+Building a DCGAN to generate images from trained images outputted by VQVAE
+"""
+
+"""
+Discriminator Class of DCGAN
+"""
+class Discriminator(nn.Module):
+    def __init__(self, grey_channel, features):
+        super(Discriminator, self).__init__()
+        #64 x 64 input image
+        self.input = nn.Sequential(
+            nn.Conv2d(grey_channel, features, kernel_size=4, stride=2, padding=1),
+            nn.LeakyReLU(0.2),
+            nn.BatchNorm2d(features)
+        )
+
+        #Conv Block 1
+        self.block_1 = nn.Sequential(
+            nn.Conv2d(features, features*2, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(features*2),
+            nn.LeakyReLU(0.2)
+        )
+
+        #Conv Block 2
+        self.block_2 = nn.Sequential(
+            nn.Conv2d(features*2, features*4, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(features*4),
+            nn.LeakyReLU(0.2)
+        )
+
+        #Conv Block 3
+        self.block_3 = nn.Sequential(
+            nn.Conv2d(features*4, features*8, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(features*8),
+            nn.LeakyReLU(0.2)
+        )
+
+        #Output - reduces to 1 dimension
+        self.output = nn.Sequential(
+            nn.Conv2d(features*8, 1, kernel_size=4, stride=2, padding=0),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        input = self.input(x)
+        conv = self.block_1(input)
+        conv = self.block_2(conv)
+        conv = self.block_3(conv)
+        output = self.output(conv)
+        return output
+    
+
+"""
+Generator Class of DCGAN
+"""
+class Generator(nn.Module):
+    def __init__(self, channel_noise, channels, features):
+        super(Generator, self).__init__()    
+        #Input block for noise 
+        self.input = nn.Sequential(
+            nn.ConvTranspose2d(channel_noise, features*16, kernel_size=4, stride=2, padding=0).
+            nn.BatchNorm2d(features*16),
+            nn.ReLU()
+        )
+
+        #Conv transpose block 1
+        self.block_1 = nn.Sequential(
+            nn.ConvTranspose2d(features*16, features*8, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(features*8),
+            nn.ReLU()
+        )
+
+        #Conv transpose block 2
+        self.block_2 = nn.Sequential(
+            nn.ConvTranspose2d(features*8, features*4, kernel_size=4, stride=2, padding=1),
+             nn.BatchNorm2d(features*4),
+            nn.ReLU()
+        )
+
+        #Conv transpose block 3
+        self.block_3 = nn.Sequential(
+            nn.ConvTranspose2d(features*4, features*2, kernel_size=4, stride=2, padding=1),
+             nn.BatchNorm2d(features*2),
+            nn.ReLU()
+        )
+
+        #Conv transpose block 4
+        self.block_4 = nn.Sequential(
+            nn.ConvTranspose2d(features*2, channels, kernel_size=4, stride=2, padding=1),
+            nn.Tanh()
+        )
+
+    def forward(self, x):
+        input = self.input(x)
+        conv_transpose = self.block_1(input)
+        conv_transpose = self.block_2(conv_transpose)
+        conv_transpose = self.block_3(conv_transpose)
+        output = self.block_4(conv_transpose)
+        return output
+
 
