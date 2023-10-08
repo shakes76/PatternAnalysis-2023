@@ -104,3 +104,29 @@ class ResNet(nn.Module):
 
 def ResNet18():
     return ResNet(BasicBlock, [2, 2, 2, 2])
+class Siamese(nn.Module):
+    def __init__(self):
+        super(Siamese,self).__init__()
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+        self.conv1 == nn.Conv2d(3, 32, (10, 10))
+        self.conv2 == nn.Conv2d(32,64,(7,7))
+        self.conv3 == nn.Conv2d(64,128,(4,4))
+        self.maxpool = nn.MaxPool2d(4)
+        self.batchNorm1 = nn.BatchNorm2d(32)
+        self.batchNorm2 = nn.BatchNorm2d(64)
+        self.batchNorm2 = nn.BatchNorm2d(128)
+
+    def forward(self,x):
+        x = self.conv1(x)
+        x = self.batchNorm1
+        x = self.relu(x)
+
+        x = self.conv2(x)
+        x = self.batchNorm2
+        x = self.relu(x)
+
+        x = self.conv3(x)
+        x = self.batchNorm3
+        x = self.relu(x)
+
