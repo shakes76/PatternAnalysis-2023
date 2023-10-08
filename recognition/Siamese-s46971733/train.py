@@ -13,7 +13,7 @@ from dataset import get_dataset
 from modules import Resnet, Resnet34
 
 # Toggles.
-train = 1
+train = 0
 test = 1
 plot_loss = 1
 
@@ -87,6 +87,7 @@ if train == 1:
             # Compute gradient with respect to model.
             loss.backward()
 
+
             # Optimizer step - Update model parameters.
             optimizer.step()
 
@@ -112,6 +113,24 @@ if train == 1:
 else:
     print("Training was disabled. \nLoading model from path.")
     resnet.load_state_dict(torch.load(PATH))
+
+if test == 1:
+    print(">>> Testing Start")
+
+    # Start timing.
+    st = time.time()
+
+    # Set Model to evaluation mode.
+    resnet.eval()
+
+    for i, data in enumerate(testloader, 0):
+        inputs, labels = data[0].to(device), data[1]
+
+        print(f"Inputs are: {inputs}")
+
+        predicted = resnet(inputs)
+
+        print(f"Outputs are: {predicted}")
 
 # Plot the loss over the many iterations of training.
 if plot_loss == 1:
