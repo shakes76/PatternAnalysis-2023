@@ -19,7 +19,7 @@ class Model(Module):
             ReLU()
         )
         self.linear = Sequential(Linear(135168, 8192), Sigmoid())
-        self.out = Linear(4096, 1)
+        self.out = Linear(8192, 1)
     
     def forward_one(self, img):
         img = self.conv(img)
