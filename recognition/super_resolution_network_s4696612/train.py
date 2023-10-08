@@ -97,21 +97,38 @@ for epoch in range(num_epochs):
             for j, (photos, names) in enumerate(valid_loader):
                 photos = photos.to(device)
                 names = names.to(device)
-
                 out = model(photos)
                 lose = criterion(out, names)
+
                 if lose.item() > worst_loss:
                     worst_loss = lose.item()
+
             validation_losses.append(worst_loss)
         
         if (i + 1) % 10 == 0:
             print(f"Epoch [{epoch + 1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item()}, Validation Loss: {lose.item()}")
 
-
-
 #-------------------
-# Model Finalisation
+# Model Testing
+print("> Testing.")
 model.eval()
+
+with torch.no_grad():
+    max_loss = 0
+    min_loss = 100
+    for i, (images, labels) in enumerate(test_loader):
+        images = images.to(device)
+        labels = labels.to(device)
+        output = model(images)
+        loss = criterion(output, labels)
+        loss_value = loss.item()
+
+        if loss_value > max_loss:
+            max_loss = loss_value
+        if loss_value < min_loss:
+            min_loss = loss_value
+    print(f"Maximum loss value for a batch in the test set: {max_loss}")
+    print(f"Minimum loss value for a batch in the test set: {min_loss}")
 
 # Save trained pytorch model
 torch.save(model.state_dict(), save_path)
