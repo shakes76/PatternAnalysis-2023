@@ -36,10 +36,10 @@ class DatasetTrain(Dataset):
         image2 = None
         r = random.randint(0, 2)
         if r == 0:
-            image1 = random.choice(self.CN)
-            image2 = random.choice(self.CN)
+            image1 = random.choice(self.NC)
+            image2 = random.choice(self.NC)
         if r == 1:
-            image1 = random.choice(self.CN)
+            image1 = random.choice(self.NC)
             image2 = random.choice(self.AD)
         if r == 2:
             image1 = random.choice(self.AD)
@@ -81,10 +81,10 @@ class DatasetTest(Dataset):
         image2 = None
         r = random.randint(0, 1)
         if r == 0:
-            image1 = random.choice(self.CN)
-            image2 = random.choice(self.CN)
+            image1 = random.choice(self.NC)
+            image2 = random.choice(self.NC)
         if r == 1:
-            image1 = random.choice(self.CN)
+            image1 = random.choice(self.NC)
             image2 = random.choice(self.AD)
         if r == 2:
             image1 = random.choice(self.AD)
