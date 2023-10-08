@@ -224,9 +224,9 @@ class VQVAEModel(nn.Module):
 """
 Class for initialising an Adam Optimizer for VQVAE model
 """
-class Optimizer():
-    def __init__(self, model):
-        self.model = model
+class VQVAE_Optimizer():
+    def __init__(self,):
+        self.model = VQVAEModel()
         p = Parameters()
         self.Adam = optim.Adam(self.model.parameters(), p.learn_rate)
 

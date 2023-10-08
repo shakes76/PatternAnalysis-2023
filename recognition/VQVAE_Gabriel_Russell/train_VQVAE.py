@@ -22,7 +22,7 @@ class TrainVQVAE():
         self.model = modules.VQVAEModel()
         data = dataset.OASISDataloader()
         self.train_loader = data.get_train
-        self.optimizer = modules.Optimizer(self.model)
+        self.optimizer = modules.VQVAE_Optimizer()
     
     def train(self, reconstruction_error):
         data_var = 0.0338 #Calculated separately
