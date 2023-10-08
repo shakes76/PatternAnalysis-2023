@@ -15,33 +15,6 @@ import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 from torchvision.utils import save_image
 
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if not torch.cuda.is_available():
-    print("Warning CUDA not Found. Using CPU...")
-
-# Setup file paths
-PATH = os.getcwd() + '/'
-DATA_PATH_TRAINING_RANGPUR = '/home/groups/comp3710/OASIS'
-DATA_PATH_TRAINING_LOCAL = PATH + 'test_img/'
-BATCH_SIZE = 32
-# Set the mode to either 'rangpur' or 'local' for testing purposes
-mode = 'rangpur'
-
-if mode == 'rangpur':
-    DATA_PATH_TRAINING = DATA_PATH_TRAINING_RANGPUR
-elif mode == 'local':
-    DATA_PATH_TRAINING = DATA_PATH_TRAINING_LOCAL
-
-
-# Perform tranformations on the data
-transform_train = transforms.Compose([
-    transforms.ToTensor()
-])
-
-train_ds = ImageFolder(DATA_PATH_TRAINING, transform=transform_train)
-train_dl = DataLoader(train_ds, batch_size=BATCH_SIZE, shuffle=True)
-
 # Display a batch of training images
 def show_batch(dl):
     imgs = next(iter(dl))
@@ -59,4 +32,20 @@ def show_images(img):
     fig.axes.get_xaxis().set_visible(False)
     fig.axes.get_yaxis().set_visible(False)
 
-show_batch(train_dl)
+# show_batch(train_dl)
+
+def load_dataset(data_path_training, batch_size):
+    """
+    Loads the dataset and returns the training data loaders.
+    """
+
+    # Perform tranformations on the data
+    transform_train = transforms.Compose([
+        transforms.ToTensor()
+    ])
+
+    train_ds = ImageFolder(data_path_training, transform=transform_train)
+    train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+    # show_batch(train_dl)
+
+    return train_dl
