@@ -51,9 +51,10 @@ class DatasetTrain(Dataset):
         return image1, image2, torch.tensor(r % 2, dtype=np.float32)
     
 class DatasetTest(Dataset):
-    def __init__(self, path, transforms=None):
+    def __init__(self, path, transforms=None, size=1000):
         super(DatasetTest, self).__init__()
         self.transforms = transforms
+        self.size = size
         self.NC, self.AD = self.load_images(path)
 
     def load_images(self, path):
@@ -73,7 +74,7 @@ class DatasetTest(Dataset):
         return NC, AD
 
     def __len__(self):
-        return 4540
+        return self.size
     
     def __getitem__(self):
         image1 = None
