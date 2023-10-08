@@ -1,10 +1,2 @@
-# Recognition Tasks
-Various recognition tasks solved in deep learning frameworks.
+# StyleGAN model on the OASIS brain dataset
 
-Tasks may include:
-* Image Segmentation
-* Object detection
-* Graph node classification
-* Image super resolution
-* Disease classification
-* Generative modelling with StyleGAN and Stable Diffusion
