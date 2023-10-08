@@ -59,7 +59,7 @@ class VectorQuantizer(layers.Layer):
         return encoding_indices
     
 def get_encoder(latent_dim=16):
-    encoder_inputs = keras.Input(shape=(28, 28, 1))
+    encoder_inputs = keras.Input(shape=(256, 256, 1))
     x = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same")(encoder_inputs)
     x = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same")(x)
     encoder_outputs = layers.Conv2D(latent_dim, 1, padding="same")(x)
@@ -77,10 +77,8 @@ def get_vqvae(latent_dim=16, num_embeddings=64):
     vq_layer = VectorQuantizer(num_embeddings, latent_dim, name="vector_quantizer")
     encoder = get_encoder(latent_dim)
     decoder = get_decoder(latent_dim)
-    inputs = keras.Input(shape=(28, 28, 1))
+    inputs = keras.Input(shape=(256, 256, 1))
     encoder_outputs = encoder(inputs)
     quantized_latents = vq_layer(encoder_outputs)
     reconstructions = decoder(quantized_latents)
     return keras.Model(inputs, reconstructions, name="vq_vae")
-
-get_vqvae().summary()

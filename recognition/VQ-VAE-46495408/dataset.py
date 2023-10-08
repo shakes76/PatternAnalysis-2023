@@ -14,21 +14,29 @@ def get_train_dataset():
     train_ds = train_ds.map(lambda x: normalization_layer(x))
     return train_ds
 
-validate_ds = tf.keras.utils.image_dataset_from_directory(
-    'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_validate',
-    label_mode=None,
-    color_mode='grayscale',
-    batch_size=128,
-    image_size=(256, 256)
-)
+def get_validate_ds():
+    validate_ds = tf.keras.utils.image_dataset_from_directory(
+        'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_validate',
+        label_mode=None,
+        color_mode='grayscale',
+        batch_size=128,
+        image_size=(256, 256)
+    )
+    normalization_layer = tf.keras.layers.Rescaling(1./255, offset=-0.5)
+    validate_ds = validate_ds.map(lambda x: normalization_layer(x))
+    return validate_ds
 
-test_ds = tf.keras.utils.image_dataset_from_directory(
-    'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_test',
-    label_mode=None,
-    color_mode='grayscale',
-    batch_size=128,
-    image_size=(256, 256)
-)
+def get_test_ds():
+    test_ds = tf.keras.utils.image_dataset_from_directory(
+        'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_test',
+        label_mode=None,
+        color_mode='grayscale',
+        batch_size=128,
+        image_size=(256, 256)
+    )
+    normalization_layer = tf.keras.layers.Rescaling(1./255, offset=-0.5)
+    test_ds = test_ds.map(lambda x: normalization_layer(x))
+    return test_ds
 
 def preview_images():
     train_ds = get_train_dataset()
@@ -40,20 +48,17 @@ def preview_images():
         plt.axis('off')
     plt.show()
     
-def get_training_variance():
+def get_dataset_variance(dataset):
     # Calculate the mean value
-    train_ds = get_train_dataset()
-    train_sum = 0
+    sum = 0
     num_samples = 0
-    for batch in train_ds:
+    for batch in dataset:
         num_samples += len(batch)
-        train_sum += tf.reduce_sum(batch)
-    train_mu = train_sum / (num_samples * 256 ** 2)
+        sum += tf.reduce_sum(batch)
+    mu = sum / (num_samples * 256 ** 2)
     # Calculate the variance
     variance = 0
-    for batch in train_ds:
-        variance += tf.reduce_sum((batch - train_mu) ** 2)
+    for batch in dataset:
+        variance += tf.reduce_sum((batch - mu) ** 2)
     variance /= (num_samples * 256 ** 2) - 1
     return variance
-    
-print(get_training_variance())
