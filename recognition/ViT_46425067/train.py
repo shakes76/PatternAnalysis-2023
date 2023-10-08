@@ -106,7 +106,7 @@ def train_model(config):
         #     emb_dropout=config.drop_prob,
         #     channels=1).to(device)
         # summarise model architecture
-        summary(model, input_size=(1, 1, 256, 256), device=device)
+        # summary(model, input_size=(1, 1, 256, 256), device=device)
         # loss function 
         loss_fn = nn.BCEWithLogitsLoss()
         # optimiser
@@ -186,15 +186,15 @@ if __name__ == "__main__":
         batch_size=512,         
         img_size=128,           #image sizes (img_size, img_size)
         patch_size=64,          #sizes of patchs (patch_size, patch_size)
-        embed_dim=128,          #patch embedding dimension
+        embed_dim=256,          #patch embedding dimension
         depth=6,                #number of transform encoders
         num_heads=8,            #attention heads
         mlp_dim=1024,            #the amount of hidden units in feed forward layer in proportion to the input dimension  
-        drop_prob=0,          #dropout prob used in the ViT network
+        drop_prob=0.1,          #dropout prob used in the ViT network
         lr=0.001,                #learning rate for optimiser
         optimiser="SGD",        #optimiser: SGD, ADAM, ADAMW
         linear_embed=True,      #to use linear embed instead of conv method
-        data_augments=[],       #specifies what data augments have been used
+        data_augments="H_Resize",       #specifies what data augments have been used
         weight_decay=0.0,       #optimiser weight decay
         mix_precision=True,     #enable float16 mix precision during loss, model calcs
         lr_scheduler=True,      #enable one cycle learning rate scheduler 
