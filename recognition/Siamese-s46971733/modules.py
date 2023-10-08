@@ -55,8 +55,8 @@ class Block(nn.Module):
         return out
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=1):
-        # 1 Class -- Alzheimer's or Normal
+    def __init__(self, block, num_blocks, num_classes=2):
+        # 2 Class -- Anchor, Positive, Negative?
         super(ResNet, self).__init__()
         self.in_channels = 64
 
@@ -71,7 +71,13 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
-        self.linear = nn.Linear(512*block.expansion, num_classes)
+        #self.linear = nn.Linear(512*block.expansion, num_classes)
+        self.linear = nn.Linear(512 * block.expansion, 10)
+
+        # self.triplet_loss = nn.Sequential(
+        #     nn.Linear(num_classes, 2))
+        self.triplet_loss = nn.Sequential(
+                        nn.Linear(10, num_classes))
 
     def _make_layer(self, block, out_channels, num_blocks, stride):
         # Basically makes one block downsample and the other compute convolutional layer.
@@ -93,6 +99,9 @@ class ResNet(nn.Module):
         # Flattens layer.
         out = out.view(out.size(0), -1)
         out = self.linear(out)
+
+        out = self.triplet_loss(out)
+
         return out
 
 def Resnet():
@@ -100,4 +109,5 @@ def Resnet():
 
 def Resnet34():
     return ResNet(Block, [3, 4, 6, 3])
+
 
