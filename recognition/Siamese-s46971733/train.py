@@ -13,7 +13,7 @@ from dataset import get_dataset
 from modules import Resnet, Resnet34
 
 num_epochs = 10
-batch_size = 64
+batch_size = 32
 learning_rate = 0.001
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -39,14 +39,17 @@ optimizer = optim.Adam(resnet.parameters(), lr=learning_rate)
 # Future spot for Scheduler?
 
 
-#
 
+#
+print(f">>> Training \n")
 for epoch in range(num_epochs):
     running_loss = 0.0
 
     for i, data in enumerate(trainloader, 0):
         # Extract data and transfer to GPU.
         anchor = data[0].to(device)
+        positive = data[1].to(device)
+        negative = data[2].to(device)
 
         # Zero the gradients -- Ensuring gradients not accumulated
         #                       across multiple training iterations.
@@ -54,14 +57,21 @@ for epoch in range(num_epochs):
 
         # Forward Pass
         anchor_out = resnet(anchor)
+        positive_out = resnet(positive)
+        negative_out = resnet(negative)
 
         # Calculate Loss with Triplet Loss.
-        #loss = criterion(anchor_out, positive_out, negative_out)
+        loss = criterion(anchor_out, positive_out, negative_out)
+
         # Compute gradient with respect to model.
-        #loss.backward()
+        loss.backward()
 
         # Optimizer step - Update model parameters.
         optimizer.step()
 
         running_loss += loss.item()
-        print(f"Epoch: {epoch+1} / {num_epochs} - Loss: {running_loss}")
+
+        # Print Loss Info while training.
+        if (i + 1) % 10 == 0:
+            print(f'[Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {running_loss / 10:.5f}')
+            running_loss = 0.0
