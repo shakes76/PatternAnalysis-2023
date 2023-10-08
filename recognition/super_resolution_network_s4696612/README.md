@@ -21,6 +21,12 @@ learn to supply the pixelshuffle with result channels that accurately represent 
 image, and the pixelshuffle operation learns the way the data should be arranged to
 successfully recreated the high resolution image. In this way, super-resolution is achieved.
 
+The Adam optimiser was used in model training. The SGD optimiser was also tested, however,
+it quickly became apparent that the Adam optimiser achieved better resulting images. Similarly,
+mean squared error loss was used to measure the model's accuracy during training, but absolute
+error was also tested. After early testing, it was concluded that mean squared error was more
+effective for training the model, thus it was used in the final implementation.
+
 ## Dependencies
 The project implements deep learning models using the following libaries. Functionalities
 may not be supported for other library versions.
@@ -32,5 +38,12 @@ may not be supported for other library versions.
 | Torchvision | 0.15.2 |
 | Numpy | 1.25.2 |
 | Matplotlib | 3.7.2 |
+
+Additionally, the project code is dependent on the location of the dataset within the machine
+running the code. To run the files in this project, the paths in utils.py must be changed to 
+appropriately direct to the dataset. The path to the "train" portion of the dataset should be
+set as "train_path", and the "test" portion should be "test_path". Since the dataset was not
+provided with a validation set, a validation set was constructed within train.py as a random
+10% of the training data.
 
 ## 

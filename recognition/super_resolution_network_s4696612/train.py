@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import torchvision
 import numpy as np
 from torch.utils.data import random_split
+from utils import *
 
 
 #-------------
@@ -27,18 +28,11 @@ num_epochs = 1
 batch_size = 50
 train_set_proportion = 0.9
 
-# Path parameters must be changed depending on where the dataset is located on the machine
-path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\AD_NC"
-save_path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\PatternAnalysis-2023\recognition\super_resolution_network_s4696612\saved_model.pth"
-train_path = path + "\\train\\AD"
-test_path = path + "\\test\\AD"
-
+# Datasets and validation split
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(0.5, 0.5),
 ])
-
-# Datasets and validation split
 data = ImageDataset(directory=train_path,
                           transform=transform)
 train_size = int(train_set_proportion * len(data))
