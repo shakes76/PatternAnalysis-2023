@@ -14,7 +14,7 @@ def train(epochs, depth):
 
     dataset = ds.ADNI_Dataset()
     train_loader = dataset.get_train_loader()
-    optimizer = optim.Adam(model.parameters(), 1e-5)
+    optimizer = optim.Adam(model.parameters(), 0.002)
     criterion = nn.BCELoss()
 
     batch_losses = []
@@ -80,8 +80,8 @@ def test_accuracy(model):
     return accuracy
 
 if __name__ == "__main__":
-    epochs = 15
-    depth = 6
+    epochs = 75
+    depth = 2
     # 15 epochs and a depth of 6
     model, losses = train(epochs, depth)
     torch.save(model.state_dict(), "model/model.pth")

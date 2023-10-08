@@ -30,11 +30,11 @@ class Attention(nn.Module):
         # in1 is 128 by 64
         #in2 is 32 by 512
                 
-        out = self.lnorm1(latent)
+        out = self.lnorm1(image)
         out, _ = self.attn(query=latent, key=image, value=image)
         
         #first residual connection.
-        resid = out + image
+        resid = out + latent
 
         # dense block
         out = self.lnorm2(resid)
@@ -90,21 +90,21 @@ class Classifier(nn.Module):
     
     def __init__(self, out_dimention) -> None:
         super(Classifier, self).__init__()
-        self.flatten = nn.Flatten() 
-        self.fc1 = nn.LazyLinear(out_dimention) 
+        
+        self.fc1 = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=(481, 1), stride=(32, 1))
         self.relu = nn.ReLU() 
-        self.fc2 = nn.Linear(out_dimention, 1)
+        self.fc2 = nn.Linear(512, 32)
         
         
     def forward(self, latent):
-        # starts 128x64
-        out = self.flatten(latent)
-        #reshapes to 128*64x1
-        out = self.fc1(out)
+        
+        # starts 512x512
+        out = self.fc1(latent.unsqueeze(0))
         out = self.relu(out)
-        #output 128x1
-        out = self.fc2(out)
-        # output 1x1
+        # out 512x1
+
+        out = self.fc2(out.squeeze())
+        # out 32x1
         return torch.sigmoid(out)
 
 
@@ -113,10 +113,10 @@ class ADNI_Transformer(nn.Module):
     
     def __init__(self, depth):
         super(ADNI_Transformer, self).__init__()    
-        LATENT_DIM = 32
+        LATENT_DIM = 512
         LATENT_EMB = 512
         latent_heads = 8
-        latent_layers = 8
+        latent_layers = 4
         classifier_out = 128
         
         # pretrained to default values       
