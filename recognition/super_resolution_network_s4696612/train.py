@@ -25,29 +25,29 @@ num_epochs = 1
 #-----------------
 # Data configuration
 batch_size = 50
-train_set_proportion = 0.8
-valid_and_test_remaining_proportion = 0.5
+train_set_proportion = 0.9
 
 # Path parameters must be changed depending on where the dataset is located on the machine
 path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\AD_NC"
 save_path = r"c:\Users\Jackie Mann\Documents\Jarrod_Python\PatternAnalysis-2023\recognition\super_resolution_network_s4696612\saved_model.pth"
 train_path = path + "\\train\\AD"
+test_path = path + "\\test\\AD"
 
 transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(0.5, 0.5),
 ])
 
+# Datasets and validation split
 data = ImageDataset(directory=train_path,
                           transform=transform)
 train_size = int(train_set_proportion * len(data))
-remaining_size = len(data) - train_size
+valid_size = len(data) - train_size
+train_data, validation_data = random_split(data, [train_size, valid_size])
+test_data = ImageDataset(directory=test_path,
+                         transform=transform)
 
-train_data, remaining_data = random_split(data, [train_size, remaining_size])
-validation_size = remaining_size // 2
-test_size = remaining_size - validation_size
-test_data, validation_data = random_split(remaining_data, [test_size, validation_size])
-
+# Data Loaders
 train_loader = torch.utils.data.DataLoader(train_data,
                                            batch_size=batch_size,
                                            shuffle=True)
@@ -72,12 +72,9 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 # Mean squared error loss used for image comparisons
 criterion = nn.MSELoss()
 
-# Learning rate scheduler used to vary learning
-scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=0.1)
-
 print("> Training.")
-
 losses = []
+validation_losses = []
 
 # Training loop
 for epoch in range(num_epochs):
@@ -93,10 +90,24 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         losses.append(loss.item())
+        
+        # Check validation set for overfitting
+        with torch.no_grad():
+            worst_loss = 0
+            for j, (photos, names) in enumerate(valid_loader):
+                photos = photos.to(device)
+                names = names.to(device)
 
+                out = model(photos)
+                lose = criterion(out, names)
+                if lose.item() > worst_loss:
+                    worst_loss = lose.item()
+            validation_losses.append(worst_loss)
+        
         if (i + 1) % 10 == 0:
-            print(f"Epoch [{epoch + 1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item()}")
-    scheduler.step()
+            print(f"Epoch [{epoch + 1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item()}, Validation Loss: {lose.item()}")
+
+
 
 #-------------------
 # Model Finalisation
@@ -106,7 +117,7 @@ model.eval()
 torch.save(model.state_dict(), save_path)
 
 # Show sample of model images
-x = batch[0].to(device)[:64]
+x = batch[0].to(device)[0]
 y = model(x)
 plt.figure(figsize=(8,8))
 plt.axis('off')
@@ -126,5 +137,6 @@ plt.title('Training Loss')
 plt.xlabel('Iterations')
 plt.ylabel('Mean Squared Error Loss')
 plt.plot(losses)
+plt.plot(validation_losses)
 plt.savefig('training_loss.png')
 plt.show()
