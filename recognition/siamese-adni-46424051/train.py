@@ -53,7 +53,7 @@ class Train():
             img1, img2 = Variable(img1), Variable(img2)
             out1, out2 = self.net(img1, img2)
             difference = torch.nn.functional.pairwise_distance(out1, out2)
-            if label[0][0] == 0:
+            if label[0] == 0:
                 label = "SAME"
             else:
                 label = "DIFF"
