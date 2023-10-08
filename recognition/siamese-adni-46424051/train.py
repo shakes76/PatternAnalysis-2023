@@ -51,7 +51,7 @@ class Train():
             if constants.cuda:
                 img1, img2 = img1.cuda(), img2.cuda()
             img1, img2 = Variable(img1), Variable(img2)
-            out1, out2 = self.net(img1, img2).data.cpu().numpy()
+            out1, out2 = self.net(img1, img2)
             difference = torch.nn.functional.pairwise_distance(out1, out2)
             if (label) == torch.FloatTensor([[0]]):
                 label = "SAME"
