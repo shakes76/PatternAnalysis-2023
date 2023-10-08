@@ -46,48 +46,150 @@ Stylegan2 restricts the use of the adaptive instance noramlisation, get away fro
 The implementation of the Stylegan2 model used in this report is taken directly from the original paper, however it has been simplified drastically and made to be more compact and readable due to the simpler nature of this specific generation task. We will cover all of the important layers explaining their usages and the theory behind them.  These networks and layers can be seen in the modules.py file. 
 
 ## Noise Mapping Network
-This network build upon the pytorch neural network meodule.  When initialising this network the parameters z_dim and w_dim are used.  These are the dimensions that we want for our noise vector z and our style vector w.  
+The Mapping Network, implemented as a subclass of nn.Module, serves a crucial role in StyleGAN2. Its purpose is to map a given noise vector, denoted as z, to the style vector w. The network architecture is defined by a series of eight EqualizedLinear layers, followed by ReLU activation functions. This architecture helps to introduce non-linearity and complexity into the mapping process.
 
-The mapping network is made up of 8 Equalized linear layers, which is a class that will be discussed in more detail below. The output of each of these layers is passed through the ReLU activation function, thus introducing non-linearity to the system.  
+In the __init__ method, the network is initialized with two parameters: z_dim and w_dim. z_dim represents the dimensionality of the input noise vector z, and w_dim is the desired dimensionality of the style vector w.
 
-For the forward function, pixel normalisation is used in order to ensure that the input pixel are all normalised in order to help stabilise training and improve consistency across channels. 
+In the forward method, the input x is first subjected to PixelNorm to normalize pixel values and enhance training stability. Subsequently, the normalized x is passed through the network mapping, producing the final style vector w. The PixelNorm operation is essential for ensuring that the input noise is consistently scaled across different dimensions.
 
 
 ## Generator Network
 The generator network is broken up into 5 distinct blocks, these are the generator network itself, the generator block, the style block, the ToRBG layer and the convolutional weight layer.  The implemetation and relationships between these are broken down below. 
 
+![Generator Archietectur](assets/generator.png)
+
 ### Generator
+The Generator begins with an initial constant tensor. Subsequently, it employs a series of generator blocks, each of which consists of a convolutional layer, style modulation, and RGB output. The feature map resolution is doubled at each block, progressively increasing the image resolution. The output RGB images from these blocks are scaled up and summed to produce the final RGB image.  Additionally, the toRGB operation incorporates style modulation, although it's not explicitly shown in the figure for simplicity.
+
+In the __init__ method, several crucial parameters are passed: log_resolution, which represents the logarithm base 2 of the image resolution, W_DIM, the dimensionality of the style vector w, n_features, the number of features in the convolution layer at the highest resolution (final block), and max_features, which is the maximum number of features in any generator block. The initialization process involves calculating the number of features for each block and creating instances of various components, including the initial constant, the first style block, the layer for obtaining RGB images, and the generator blocks.
+
+In the forward method, w is passed for each generator block. It has a shape of [n_blocks, batch_size, W-dim]. Additionally, input_noise, a list of noise tensors, is provided for each block, as many blocks, except the initial one, require two noise inputs after each convolution layer. The batch size is determined, and the learned constant is expanded to match the batch size. The initial constant is passed through the first style block to obtain an RGB image. Subsequently, the image is fed through the remaining generator blocks after upsampling. Finally, the last RGB image is returned with a tanh activation function. The use of tanh ensures that pixel values range between -1 and 1, suitable for image generation.
 
 ### Generator Block
+A Generator Block is a key component of the Generator architecture. It consists of two style blocks, each involving 3x3 convolutions with style modulation, and an RGB output.
+
+In the __init__ method, W_DIM, in_features, and out_features are provided. These parameters define the dimensionality of the style vector w, the number of input features to the block, and the number of output features, respectively. The initialization process includes creating two style blocks and a toRGB layer.
+
+In the forward method, x represents the input feature map with a shape of [batch_size, in_features, height, width]. w has the shape [batch_size, W_DIM], and noise is a tuple of two noise tensors with a shape of [batch_size, 1, height, width].
+
+The input feature map x is passed through the two style blocks, and the RGB image is obtained using the toRGB layer. Both the feature map x and the RGB image are returned.
 
 ### Style Block
+A Style Block is a fundamental building block in StyleGAN2, responsible for introducing style modulation into the network.
+
+In the __init__ method, W_DIM, in_features, and out_features are passed as parameters. These values determine the dimensionality of the style vector w, the number of input features, and the number of output features. The style block is constructed with components like an EqualizedLinear layer for style vector modulation, a weight-modulated convolution layer, noise scaling, bias, and an activation function (LeakyReLU).
+
+The forward method takes in x, the input feature map of shape [batch_size, in_features, height, width], w, the style vector of shape [batch_size, W_DIM], and noise. The style vector s is computed using the to_style operation. Then, x and s are used in the weight-modulated convolution operation, followed by scaling and noise addition. Finally, bias is applied, and the activation function is evaluated before returning the result.
 
 ### ToRGB
+The ToRGB layer is responsible for mapping the intermediate feature maps to RGB images. It is not as necessary for this specific report as the dataset used contained only black and white images so the model quickly learnt and adjusted to that.  
+
+In the __init__ method, W_DIM and features are provided as parameters. W_DIM represents the dimensionality of the style vector w, and features is the number of features in the intermediate feature map. The initialization process involves creating components for style vector modulation, weight-modulated convolution, bias, and activation function.
+
+In the forward method, x and w are sent as inputs. The style vector style is obtained using the to_style operation. Then, x and style are used in the weight-modulated convolution. Finally, bias is added, and the activation function is applied before returning the result.
 
 ### Convolution Weight Modulation/Demodulation
+The Conv2dWeightModulate class represents a convolutional layer with weight modulation and demodulation, which is a crucial component in StyleGAN2.
+
+In the __init__ method, several parameters are provided: in_features, out_features, kernel_size, demodulate, and eps. These parameters define the properties of the convolution layer, including input and output features, kernel size, whether demodulation should be applied, and the epsilon value for normalization. The initialization process includes specifying padding, creating weight parameters with equalized learning rates using the EqualizedWeight class, and setting epsilon.
+
+In the forward method, x is the input feature map, and s represents the style-based scaling tensor. The batch size, height, and width of x are extracted. The scales are reshaped, and equalized weights are obtained. x and s are then modulated, and if demodulation is enabled, they are demodulated using specified equations. The result is returned as x.
+
+This convolutional layer plays a crucial role in introducing style-based changes to the feature maps, which are essential for image generation in StyleGAN2.
 
 
-## Discriminator
+## Discriminator Network
+The Discriminator is responsible for evaluating the generated images and distinguishing them from real ones. It plays a vital role in the adversarial training process.
+
+![Discriminator Architecture](assets/discriminator.png)
+
+### Discriminator
+The Discriminator architecture involves transforming an input image of resolution 2^LOG_RESOLUTION by 2^LOG_RESOLUTION into a feature map with the same resolution. This feature map is then processed through a series of Discriminator Blocks, each containing residual connections. At each block, the resolution is downsampled by a factor of 2, while the number of features is doubled.
+
+In the __init__ method, several parameters are provided, including log_resolution, n_features, and max_features. log_resolution represents the logarithm base 2 of the image resolution, n_features specifies the number of features in the initial convolution layer, and max_features sets the maximum number of features in any Discriminator block. The initialization process involves calculating the number of features for each block, creating a from_rgb layer for converting RGB images to feature maps, defining the number of Discriminator blocks, and creating instances of these blocks. Additionally, the architecture incorporates a minibatch standard deviation operation, which helps the Discriminator capture variations within the batch or image.
+
+In the forward method, the input x is processed through the from_rgb layer and then through the sequence of Discriminator blocks. After passing through these blocks, a minibatch standard deviation operation is applied to capture variations within the batch or image. A final 3x3 convolution is performed, and the feature map is flattened before passing through a linear layer to obtain the classification score. The result of this Discriminator is used to distinguish between real and generated images during training.
+
 ### Discriminator Block
+A Discriminator Block is a building block used in the Discriminator architecture. It consists of two 3x3 convolutions with a residual connection.
+
+In the __init__ method, in_features and out_features are provided as parameters, representing the number of input and output features, respectively. The Discriminator Block includes a residual block with down-sampling, a 1x1 convolution layer for the residual connection, a block layer with two 3x3 convolutions and Leaky ReLU activation, down-sampling using AvgPool2d, and a scale factor.
+
+The forward method takes x as the input feature map. It first calculates the residual using the residual block and down-sampling. Then, x passes through the block layer with two 3x3 convolutions and Leaky ReLU activation. After down-sampling, the result is added to the residual, and scaling is applied. The final result is returned.
 
 ### Equalised Linear Layer
+The EqualizedLinear class represents a linear layer with equalized learning rate, an important concept in StyleGAN2.
+
+In the __init__ method, in_features, out_features, and bias are provided as parameters. These parameters define the input and output dimensions and whether bias should be included. The EqualizedLinear layer includes weight parameters with equalized learning rates and bias.
+
+In the forward method, x represents the input tensor. The linear transformation is applied to x using the weight and bias parameters. This operation ensures that the learning rates for the weights are equalized, contributing to stable training and improved performance.
+
 
 ## Equalised Convolutional Layer
+The EqualizedConv2d class represents a 2D convolutional layer with equalized learning rate, a critical component in StyleGAN2
+
+In the __init__ method, several parameters are provided, including in_features, out_features, kernel_size, and padding. These parameters define the properties of the convolution layer, such as input and output features, kernel size, and padding. The EqualizedConv2d layer incorporates weight parameters with equalized learning rates and bias.
+
+In the forward method, x represents the input feature map. The convolution operation is applied to x using the weight and bias parameters, with padding as specified. This operation ensures that the learning rates for the weights are equalized, contributing to stable training and improved performance.
 
 ### Equalised Weight 
+The EqualizedWeight class represents a parameter used in convolutional and linear layers for equalized learning rates.
+
+In the __init__ method, shape is provided, which specifies the shape of the weight parameter. The initialization process includes defining a constant c and initializing the weights from a normal distribution with mean 0 and standard deviation 1.
+
+In the forward method, the weights are scaled by the constant c and returned. This scaling ensures that the learning rates for the weights are equalized, contributing to stable training and improved performance.
 
 
 ## Perceptual Path Normalisation
+Perceptual Path Length Normalization, also known as the PathLengthPenalty class, plays a crucial role in StyleGAN2 by encouraging a fixed-size step in the style vector w to result in a fixed-magnitude change in the generated image.
+
 ### PathLengthPenalty
+In the __init__ method, the beta constant is provided, which is used to calculate an exponential moving average a. The initialization process sets up parameters for tracking steps, an exponential sum, and a.
+
+The forward method takes two inputs: w, representing the style vectors, and x, representing the generated images. Within this method, random noise y is generated to compute a certain output. The gradients with respect to w are calculated and used to compute norm. The loss is calculated based on the difference between norm and the exponential moving average a. The penalty term is returned.
 
 
 ## Utilities 
 ### Gradient Penalty
+This function computes the gradient penalty for the Wasserstein GAN with Gradient Penalty (WGAN-GP) loss. It's used to enforce the Lipschitz constraint on the critic (discriminator) network. The gradient penalty encourages smoothness and stability during training.
+
 ### Get W
+This function samples random noise vectors z and passes them through the mapping network to obtain style vectors w. Style vectors are used to control the appearance of generated images.
+
 ### Get Noise
+This function generates noise for each generator block. The noise is typically added to different layers of the generator to introduce variety and details in the generated images.
+
 ### Generate Examples
+This function generates fake images using the generator gen. It does this by sampling random style vectors w and noise for n different images. These fake images are saved for visualization purposes. The function also applies an alpha value to control image appearance.
+
+
 
 # Training Process
+The training process involves training the StyleGAN2 model using the provided discriminator (critic), generator (gen), mapping network (mapping_network), path length penalty (path_length_penalty), data loader (loader), and optimizers (opt_critic, opt_gen, opt_mapping_network).
+
+## Train Function
+This function represents the training loop for a single batch of real images. It includes the following steps:
+- Loading and preprocessing real images.
+- Generating random style vectors w and noise for fake images.
+- Forward and backward passes for the discriminator (critic) to maximize the difference between real and fake image scores. This includes computing the gradient penalty.
+- Backpropagation and optimization of the discriminator.
+- Forward and backward passes for the generator (gen) and mapping network (mapping_network) to maximize the fake image scores. It also includes adding a perceptual path length penalty every 16 epochs.
+- Backpropagation and optimization of the generator and mapping network.
+- Updating progress in the training loop.
+
+## Initialisation of Networks, Optimisers and Dataloaders
+- Data loader (loader) is initialized to load real images.
+- Generator (gen), Discriminator (critic), Mapping Network (mapping_network), and Path Length Penalty (path_length_penalty) are instantiated and moved to the specified device (usually GPU).
+- Optimizers (opt_gen, opt_critic, opt_mapping_network) are defined for each network.
+
+## Training Loop 
+- The networks (gen, critic, mapping_network) are set to training mode.
+- The training loop is run for the specified number of epochs (EPOCHS).
+- In each epoch, the train_fn function is called to train the networks using real and fake images.
+- Every 20 epochs, generate_examples is called to generate and save some fake samples for visualization. Here the style vector is manipulated for each EPOCH to changed the number of brain scans in each generated image to display Stylegan2's unique styling capabilities
+
+This training process follows the principles of training GANs, where the generator tries to generate realistic images to fool the discriminator, while the discriminator tries to distinguish between real and fake images. The path length penalty helps control the variation in generated images.
+
 
 
 # Results
@@ -99,9 +201,9 @@ After completing the stylegan2's training on the OASIS brain dataset for 300 epo
 
 A graph of the loss for both the generator and discriminator networks of the models architecture can be seen below. It shows that the model training perfomed relatively as expected as over time the loss of the generator model decreased and towards the end the discriminator became a little worse as do the to generator network's images becoming more and more realistic. This is exactly what we wanted to see for this model!
 
-![Generator Loss](gen_loss.png)
+![Generator Loss](assets/gen_loss.png)
 
-![Discriminator Loss](model_loss.png)
+![Discriminator Loss](assets/model_loss.png)
 
 We can also see in the models above that the loss for both networks seems to converge around _, then remains quite stable for the rest of the training.  This further reinforces what we see with the results of each 20 epochs, as the improvement from epoch 20 -> 300 was negligable.  This just means that with the current model and data that I will not get any more accurate in it's image generation no matter how many epoch we run it for. 
 
