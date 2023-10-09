@@ -1,5 +1,5 @@
 '''
-Predicts models and performs certain plot functionality for documentation
+Predicts model and performs certain plot functionality for documentation, accuracy and IOU
 
 '''
 
@@ -76,7 +76,7 @@ def display_single_sample(test_image,test_target, prediction, row):
 def evaluate_single_sample(test_image,test_target, prediction):
   '''
   Evaluates single instance of a sample and outputs in subplot
-  Outputs: Correct[0 or 1] and Iou
+  Outputs: Correct[0 or 1] and IOU
 
   '''
   bboxes = test_target["boxes"]

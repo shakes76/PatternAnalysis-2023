@@ -1,5 +1,6 @@
 '''
-Loads the data from the file directory. Outputs: image(tensor), bounding_box(tensor)
+Loads the data from the file directory. 
+Outputs: image(tensor), targets(dict((tensor), (tensor), (tensor))
 
 '''
 import torch
@@ -27,7 +28,7 @@ class MoleData(Dataset):
     def __getitem__(self, index):
         '''
         Load and process single sample
-        Outputs : has_melanoma
+        Outputs : images, targets
 
         '''
         # Get Index

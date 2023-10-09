@@ -7,7 +7,7 @@ Outputs: Trained Model -> Mask_s4580286_Final.pt
 
 from dataset import MoleData
 from modules import load_model
-import pands as pd
+import pandas as pd
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
@@ -18,7 +18,7 @@ from tqdm import tqdm
 print(torch.__version__)
 
 #Hyper Parameters
-num_epochs = 20
+num_epochs = 30
 learning_rate = 0.0025
 num_classes = 3
 
@@ -121,7 +121,7 @@ def main():
   train_data = MoleData("/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Training_Data",
                       "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Training_Part1_GroundTruth",
                       "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Training_Part3_GroundTruth.csv")
-  train_data = torch.utils.data.Subset(train_data, range(100))
+  train_data = torch.utils.data.Subset(train_data, range(500))
   train_dataloader = torch.utils.data.DataLoader(
       train_data,
       batch_size=2,

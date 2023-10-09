@@ -1,6 +1,6 @@
 
 '''
-Loads Mask-RCNN model pretrained on COCO Dataset
+Loads Mask-RCNN model, pretrained on COCO Dataset
 
 '''
 
