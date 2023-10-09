@@ -1,0 +1,10 @@
+#!/bin/bash
+
+#SBATCH --job-name=COMP3710_ADNI_ViT
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=1
+#SBATCH --gres=gpu:1
+
+python ./train.py 16
