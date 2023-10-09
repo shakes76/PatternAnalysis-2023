@@ -1,5 +1,6 @@
 import torch
-from torch.utils.data import Dataset, DataLoader, ConcatDataset
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
 from torchvision.transforms import Compose, Resize, ToTensor
 from PIL import Image
 import os
@@ -13,7 +14,7 @@ class ADNIDataset(Dataset):
         """
         self.root_dir = root_dir
         self.transform = transform
-        self.image_files = [os.path.join(dp, f) for dp, dn, filenames in os.walk(root_dir) for f in filenames if f.endswith('.png')]  # Assuming images are in .png format
+        self.image_files = [os.path.join(dp, f) for dp, dn, filenames in os.walk(root_dir) for f in filenames if f.endswith('.jpeg')]  # Assuming images are in .jpeg format
 
     def __len__(self):
         return len(self.image_files)
@@ -28,15 +29,17 @@ class ADNIDataset(Dataset):
         return image
 
 def downsample_transform(factor=4):
-    return Compose([
-        Resize((256 // factor, 240 // factor)),  # Assuming images are 256x256. Adjust if different.
-        ToTensor()
+    return transforms.Compose([
+        Resize((256 // factor, 240 // factor)),  # Assuming images are 256x240.
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))  # Assuming Min-Max normalization to [0,1]. Adjust if using Z-score normalization.
     ])
 
 def original_transform():
-    return Compose([
+    return transforms.Compose([
         Resize((256, 240)),  # Resize to a standard size
-        ToTensor()
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))  # Assuming Min-Max normalization to [0,1]. Adjust if using Z-score normalization.
     ])
 
 def get_dataloaders(root_dir, batch_size=32):
@@ -56,6 +59,3 @@ def get_dataloaders(root_dir, batch_size=32):
     test_loader = DataLoader(list(zip(downsampled_test_dataset, original_test_dataset)), batch_size=batch_size, shuffle=False)
 
     return train_loader, test_loader
-
-train_loader, test_loader = get_dataloaders("C:\\Users\\soonw\\ADNI\\AD_NC")
-    
