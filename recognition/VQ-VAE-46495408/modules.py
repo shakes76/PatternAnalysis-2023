@@ -135,3 +135,9 @@ class VQVAETrainer(keras.models.Model):
             "vqvae_loss": self.vq_loss_tracker.result(),
             "ssim": self.ssim_tracker.result(),
         }
+        
+class PixelConvLayer(layers.Layer):
+    def __init__(self, mask_type, **kwargs):
+        super().__init__()
+        self.mask_type = mask_type
+        self.conv = layers.Conv2D(**kwargs)
