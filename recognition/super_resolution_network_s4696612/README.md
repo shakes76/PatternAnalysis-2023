@@ -41,15 +41,28 @@ the blue line is the training set's loss. The model is not overly overfitted sin
 set's loss is very similar to the training set. Furthermore, the test set had similar loss of 
 approximately 0.1, indicating that the model successfully upscales the MRI scans.
 
-![](/training_loss.png)
+![Plot of training/validation losses](/recognition/super_resolution_network_s4696612/training_loss.png)
 
 ## Results
+The trained model achieves its goal of significantly increasing the resolution of brain MRI scans.
+However, it is not a flawless model. A comparison of the input, model output, and goal images can be
+seen below. This sample was chosen randomly, but it readily illustrates the model's effectiveness.
+It should be noted that while the images have been scaled the same visible dimensions, no change has
+been made to their pixels, which results in evident differences in image quality.
 
-![](/Comparison.png)
+![Comparison of input, output and goak](/recognition/super_resolution_network_s4696612/Comparison.png)
 
-![](/model_sample.png)
+Evidently, the model greatly improves image resolution - the model generated image is far closer to
+the goal image than the input. It was observed that the generated model illustrates many of the details
+evident in the goal. However, it is evident that this model does not portray the intensity of greys
+very well - the black background is slightly grey. This issue suggests further improvements to the
+model should be investigated.
 
-![](/goal_images.png)
+Further samples of model generated images and their goal images are shown below. The goals are in
+the same position as the model images in the second grid.
+
+![Sample model output](/recognition/super_resolution_network_s4696612/model_sample.png)
+![Sample model goal](/recognition/super_resolution_network_s4696612/goal_images.png)
 
 
 ## Dependencies
@@ -70,7 +83,3 @@ appropriately direct to the dataset. The path to the "train" portion of the data
 set as "train_path", and the "test" portion should be "test_path". Since the dataset was not
 provided with a validation set, a validation set was constructed within train.py as a random
 10% of the training data.
-
-## 
-Maximum loss value for a batch in the test set: 0.01198537927120924
-Minimum loss value for a batch in the test set: 0.008538042195141315
