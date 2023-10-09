@@ -279,6 +279,7 @@ def generate_samples():
 BEST_LOSS = 999
 LAST_SAVED = -1
 BEST_SSIM = 0  # initial value, assuming higher SSIM is better
+save_interval = 10
 
 train_losses = []
 val_losses = []
@@ -297,7 +298,9 @@ for epoch in range(1, N_EPOCHS):
         BEST_SSIM = val_ssim                    
         print("Saving model based on improved SSIM!")
         dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
-        torch.save(model.state_dict(), f'models/{dataset_name}_vqvae.pt') 
+        # Save model and generate samples every 10 epochs
+        if epoch % save_interval == 0:
+            torch.save(model.state_dict(), f'model_epoch_{epoch}/{dataset_name}_vqvae.pt') 
     else:
         print(f"Not saving model! Last best SSIM: {BEST_SSIM:.4f}")
 
