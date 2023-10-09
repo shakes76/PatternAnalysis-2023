@@ -2,8 +2,12 @@
 
 import os
 import random
+import torch
+import torchvision.transforms as transforms
 from torch.utils.data import Dataset
 from PIL import Image
+
+device = torch.device('cuda')
 
 class CustomDataset(Dataset):
     def __init__(self, ad_dir, nc_dir, transform=None):
@@ -44,3 +48,41 @@ class CustomDataset(Dataset):
             nc = self.transform(nc)
         
         return anchor, ad, nc
+
+# calculate the mean and std of the dataset
+# input: The folder containing folders containing images
+# outupt: mean and std of all images across all subfolders
+def compute_mean_std(img_folder):
+    # get subfolders
+    subfolders = [dir for dir in os.listdir(img_folder) if os.path.isdir(os.path.join(img_folder, dir))]
+
+    # transformer
+    transform = transforms.Compose([
+        # transform image from numpy.ndarray to tensor
+        # and normalize pixels from 0~255 to 0~1
+        transforms.ToTensor()
+        ])
+
+    num_px = 0
+    sum_px = 0
+    sum_px_sq = 0
+
+    for subfolder in subfolders:
+        subfolder_path = os.path.join(img_folder, subfolder)
+        img_names = os.listdir(subfolder_path)
+
+        for img_name in img_names:
+            # open the image and put them into GPU
+            img_path = os.path.join(subfolder_path, img_name)
+            img = Image.open(img_path)
+            img_tensor = transform(img).to(device)
+
+            num_px += img_tensor.numel()  # get the # of px
+            sum_px += torch.sum(img_tensor)
+            sum_px_sq += torch.sum(img_tensor ** 2)
+
+    # calculate mean and std for all images across all subfolders
+    mean = sum_px / num_px
+    std = torch.sqrt((sum_px_sq / num_px) - (mean ** 2))
+
+    return mean.item(), std.item()
