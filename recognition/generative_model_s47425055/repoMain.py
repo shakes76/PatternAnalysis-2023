@@ -18,8 +18,8 @@ from skimage.metrics import structural_similarity as ssim
 BATCH_SIZE = 32
 N_EPOCHS = 2
 PRINT_INTERVAL = 100
-DATASET_PATH = '/home/groups/comp3710/OASIS'
-NUM_WORKERS = 4
+DATASET_PATH = './OASIS'
+NUM_WORKERS = 1
 INPUT_DIM = 1  # 1 for grayscale
 DIM = 256
 K = 512
@@ -155,17 +155,17 @@ preproc_transform = transforms.Compose([
 
 # Data loaders
 train_loader = torch.utils.data.DataLoader(
-    datasets.ImageFolder(DATASET_PATH + '/keras_png_slices_train', transform=preproc_transform),
+    datasets.ImageFolder(DATASET_PATH + '/train_images', transform=preproc_transform),
     batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS
 )
 
 val_loader = torch.utils.data.DataLoader(
-    datasets.ImageFolder(DATASET_PATH + '/keras_png_slices_validate', transform=preproc_transform),
+    datasets.ImageFolder(DATASET_PATH + '/validat_images', transform=preproc_transform),
     batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS
 )
 
 test_loader = torch.utils.data.DataLoader(
-    datasets.ImageFolder(DATASET_PATH + '/keras_png_slices_test', transform=preproc_transform),
+    datasets.ImageFolder(DATASET_PATH + '/test_images', transform=preproc_transform),
     batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS
 )
 
