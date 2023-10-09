@@ -89,6 +89,26 @@ def load_train_data():
 
     return train_loader, val_loader
 
+def load_train_data_classifier():
+    path="/home/groups/comp3710/ADNI/AD_NC/train"
+    path="./AD_NC/train"
+
+    transform_train = transforms.Compose([
+        transforms.Resize(105),
+        transforms.CenterCrop(105),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+        transforms.RandomRotation(15),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+
+    trainset = torchvision.datasets.ImageFolder(root=path, transform=transform_train)
+
+    train_loader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
+
+    return train_loader
+
 def load_test_data():
     path="/home/groups/comp3710/ADNI/AD_NC/test"
     # this for testing
@@ -101,12 +121,13 @@ def load_test_data():
 
     # Data transformation
     transform_test = transforms.Compose([
+        transforms.Resize(105),
+        transforms.CenterCrop(105),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) # standard scaling for normalize, doesn't know much on the status of the entire dataset
     ])
 
-    test_image = torchvision.datasets.ImageFolder(root=path, transform=transform_test)
-    testset = PairedDataset(test_image)
+    testset = torchvision.datasets.ImageFolder(root=path, transform=transform_test)
     test_loader = torch.utils.data.DataLoader(testset, batch_size=128, shuffle=True, num_workers=0)
     return test_loader
 
