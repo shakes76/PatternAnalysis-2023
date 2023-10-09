@@ -1,6 +1,6 @@
 ##################################   modules.py   ##################################
 import torch
-from torch.nn import Module, Sequential, Linear, Sigmoid, Conv2d, ReLU, MaxPool2d
+from torch.nn import Module, Sequential, Linear, Sigmoid, Conv2d, ReLU, MaxPool2d, Dropout2d, LocalResponseNorm
 
 class Model(Module):
     def __init__(self):
@@ -8,22 +8,23 @@ class Model(Module):
         self.conv = Sequential(
             Conv2d(1, 96, 11),
             ReLU(inplace=True),
+            LocalResponseNorm(5, alpha=0.0001, beta=0.75, k=2),
             MaxPool2d(3),
+            Dropout2d(p=0.3),
             Conv2d(96, 256, 5),
             ReLU(inplace=True),
+            LocalResponseNorm(5, alpha=0.0001, beta=0.75, k=2),
             MaxPool2d(3),
+            Dropout2d(p=0.3),
             Conv2d(256, 384, 3),
             ReLU(inplace=True),
             Conv2d(384, 256, 3),
             ReLU(inplace=True),
             MaxPool2d(3),
+            Dropout2d(p=0.3),
         )
         self.linear = Sequential(
-            Linear(30976, 1024),
-            ReLU(inplace=True),
-            Linear(1024, 128),
-            ReLU(inplace=True),
-            Linear(128, 2)
+            Linear(256, 2)
         )
     
     def forward_one(self, img):

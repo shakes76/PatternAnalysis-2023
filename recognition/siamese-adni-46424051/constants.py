@@ -1,10 +1,12 @@
 ##################################   constants.py   ##################################
 import os
 
-cuda = True
+cuda = False
 batch_size = 128
 test_size = 1000
-train_iters = 10000
 learning_rate = 0.0001
-train_path = os.path.expanduser("~/../../groups/comp3710/ADNI/AD_NC/train")
-test_path = os.path.expanduser("~/../../groups/comp3710/ADNI/AD_NC/test")
+epochs = 1
+# train_path = os.path.expanduser("~/../../groups/comp3710/ADNI/AD_NC/train")
+# test_path = os.path.expanduser("~/../../groups/comp3710/ADNI/AD_NC/test")
+train_path = os.path.expanduser("PatternAnalysis-2023/recognition/siamese-adni-46424051/images/train")
+test_path = os.path.expanduser("PatternAnalysis-2023/recognition/siamese-adni-46424051/images/test")

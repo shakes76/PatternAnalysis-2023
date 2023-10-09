@@ -7,7 +7,7 @@ class Loss(Module):
         super(Loss, self).__init__()
 
     def forward(self, x1, x2, y):
-        difference = x0 - x1
+        difference = x1 - x2
         distance_square = torch.sum(torch.pow(difference, 2), 1)
         distance = torch.sqrt(distance_square)
         margin_distance = 1 - distance
