@@ -20,7 +20,7 @@ N_EPOCHS = 2
 PRINT_INTERVAL = 100
 DATASET_PATH = './OASIS'
 NUM_WORKERS = 1
-INPUT_DIM = 1  # 1 for grayscale
+INPUT_DIM = 1
 DIM = 256
 K = 512
 LAMDA = 1
@@ -79,12 +79,17 @@ class VQEmbedding(nn.Module):
         # emb   - (K, D)
 
         emb = self.embedding.weight
-        dists = torch.pow(
-            z_e_x.unsqueeze(1) - emb[None, :, :, None, None],
-            2
-        ).sum(2)
+        z_e_x_reshaped = z_e_x.permute(0, 2, 3, 1).contiguous().view(-1, z_e_x.shape[1])  # (B*H*W, D)
+        emb_reshaped = emb  # since emb is already (K, D)
 
-        latents = dists.min(1)[1]
+        # Calculate distances between reshaped tensors
+        z_e_x_norm = (z_e_x_reshaped**2).sum(1, keepdim=True)  # (B*H*W, 1)
+        emb_norm = (emb_reshaped**2).sum(1, keepdim=True).t()  # (1, K)
+
+        dists = z_e_x_norm + emb_norm - 2 * torch.mm(z_e_x_reshaped, emb_reshaped.t())  # (B*H*W, K)
+
+        dists = dists.view(z_e_x.shape[0], z_e_x.shape[2], z_e_x.shape[3], -1)  # reshape back to (B, H, W, K)
+        latents = dists.min(-1)[1]
         return latents
 
 
@@ -149,6 +154,7 @@ class VectorQuantizedVAE(nn.Module):
 
 # Data preprocessing
 preproc_transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))  # Normalize for grayscale
 ])
@@ -219,25 +225,6 @@ def train():
                 time.time() - start_time
             ))
 
-def validate():
-    model.eval()  # Switch to evaluation mode
-    val_loss = []
-    with torch.no_grad():  # No gradient required for validation
-        for batch_idx, (x, _) in enumerate(val_loader):
-            x = x.to(DEVICE)
-            x_tilde, z_e_x, z_q_x = model(x)
-            loss_recons = F.mse_loss(x_tilde, x)
-            loss_vq = F.mse_loss(z_q_x, z_e_x.detach())
-            val_loss.append(to_scalar([loss_recons, loss_vq]))
-
-    # Display the average validation loss
-    print('\nValidation Loss: {}'.format(np.asarray(val_loss).mean(0)))
-    
-    # Compute SSIM for validation
-    ssim_score = compute_ssim(x, x_tilde)
-    print(f"Validation SSIM: {ssim_score}")
-    
-    return np.asarray(val_loss).mean(0)
 
 def validate():
     model.eval()  # Switch to evaluation mode
@@ -261,7 +248,7 @@ def validate():
 
 def generate_samples():
     model.eval()  # make sure model is in eval mode
-    x, _ = test_loader.__iter__().next()
+    x, _ = next(iter(test_loader)) # x, _ = test_loader.__iter__().next()
     x = x[:32].to(DEVICE)
     x_tilde, _, _ = model(x)
 
