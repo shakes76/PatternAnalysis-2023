@@ -57,7 +57,7 @@ class Train():
             # difference = torch.nn.functional.pairwise_distance(out1, out2)
             # print(difference.item())
             print(out)
-            pred = np.argmax(out)
+            pred = np.argmax(out.cpu().numpy())
             if pred == 0:
                 correct += 1
             else:
