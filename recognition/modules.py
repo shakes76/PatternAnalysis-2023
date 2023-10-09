@@ -24,18 +24,47 @@ class RPN(nn.Module):
         self.anchor_scales = [8, 16, 32]
         self.anchor_ratios = [0.5, 1, 2]
 
-    def generate_base_anchors(self, feature_map_size):
+    def generate_base_anchors(self, feature_map_size, stride=32):
+
+        """
+        Generate the base anchors for a feature map.
+        :param feature_map_size: image size / stride
+        :param stride: scale factor for the image
+        :return: base anchors
+        """
+
+        tensor_ratios = torch.tensor(self.anchor_ratios)
+        tensor_scales = torch.tensor(self.anchor_scales)
+
         base_anchors = []
-        for scale in self.anchor_scales:
-            for ratio in self.anchor_ratios:
+        for scale in tensor_scales:
+            for ratio in tensor_ratios:
                 w = scale * torch.sqrt(ratio)
                 h = scale / torch.sqrt(ratio)
-                x1, y1, x2, y2 = -w/2, -h/2, w/2, h/2
-                base_anchors.append([x1, y1, x2, y2])
-        base_anchors = torch.tensor(base_anchors)
+                x1, y1, x2, y2 = -w / 2, -h / 2, w / 2, h / 2
+
+                # Tile the base anchor across the feature map grid
+                shift_x = torch.arange(0, feature_map_size[1]) * stride
+                shift_y = torch.arange(0, feature_map_size[0]) * stride
+                shift_x, shift_y = torch.meshgrid(shift_x, shift_y)
+                shifts = torch.stack((shift_x, shift_y, shift_x, shift_y), dim=2)
+                shifts = shifts.reshape(-1, 4)
+
+                anchor = torch.tensor([x1, y1, x2, y2])
+                anchors = anchor[None, :] + shifts[:, None]
+                base_anchors.append(anchors)
+        base_anchors = torch.cat(base_anchors, dim=0)
         return base_anchors
 
     def apply_bbox_deltas(self, anchors, bbox_deltas):
+
+        """
+        Apply the bounding box deltas to the anchors to obtain the predicted bounding boxes.
+        :param anchors: base anchors
+        :param bbox_deltas: bounding box deltas
+        :return: predicted bounding boxes
+        """
+
         widths = anchors[:, 2] - anchors[:, 0]
         heights = anchors[:, 3] - anchors[:, 1]
         ctr_x = anchors[:, 0] + 0.5 * widths
@@ -60,6 +89,15 @@ class RPN(nn.Module):
         return pred_boxes
 
     def apply_nms(self, boxes, scores, threshold=0.5):
+
+        """
+        Apply non-maximum suppression to the predicted bounding boxes, discarding overlapping boxes.
+        :param boxes: bounding boxes to apply NMS to
+        :param scores: scores for each bounding box
+        :param threshold: IoU threshold for NMS
+        :return: indices of the bounding boxes to keep
+        """
+
         keep_indices = nms(boxes, scores, threshold)
         return boxes[keep_indices], scores[keep_indices]
 
@@ -69,13 +107,21 @@ class RPN(nn.Module):
         objectness = self.cls_score(x)
         bbox_deltas = self.bbox_pred(x)
 
+        # apply softmax to the objectness scores, get the probability each anchor contains an object
         objectness_prob = F.softmax(objectness.view(objectness.size(0), 2, -1), dim=1)[:, 1, :]
 
-        base_anchors = self.generate_base_anchors(x.shape[2:])
-        anchors = base_anchors.repeat(x.shape[2] * x.shape[3], 1)
+        feature_map_size = (int(x.shape[2]), int(x.shape[3]))
+        # generate the base anchors for the feature map
+        base_anchors = self.generate_base_anchors(feature_map_size=feature_map_size)
 
+        # repeat the base anchors for each pixel in the feature map
+        flattened_base_anchors = base_anchors.view(-1)
+        anchors = flattened_base_anchors.repeat(x.shape[2] * x.shape[3], 1)
+
+        # apply the bounding box deltas to the anchors to obtain the predicted bounding boxes
         refined_anchors = self.apply_bbox_deltas(anchors, bbox_deltas.squeeze())
 
+        # apply non-maximum suppression to the predicted bounding boxes, discarding overlapping boxes
         final_boxes, final_scores = self.apply_nms(refined_anchors, objectness_prob.squeeze())
 
         return final_boxes, final_scores
@@ -180,14 +226,30 @@ class MaskRCNN(nn.Module):
         # Load the pretrained weights into the backbone network
         self.backbone.load_state_dict(resnet.state_dict(), strict=False)
 
-    def forward(self, x, boxes, box_indices):
+    def forward(self, x):
+        # Backbone feature extraction
         x = self.backbone(x)
-        proposals = self.rpn(x)
-        rois = self.roi_align(x, boxes, box_indices)
+
+        # RPN to generate proposals
+        final_boxes, final_scores = self.rpn(x)
+
+        # Assuming single image per batch, creating box_indices tensor
+        box_indices = torch.zeros(final_boxes.shape[0], dtype=torch.int64)
+
+        # RoI Align
+        rois = self.roi_align(x, final_boxes, box_indices)
+
+        # Classification
         classification = self.classifier(rois)
+
+        # Box Regression
         boxes = self.box_regressor(rois)
+
+        # Mask prediction
         masks = self.mask_branch(rois)
+
         return classification, boxes, masks
+
 
 
 
