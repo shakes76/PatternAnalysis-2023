@@ -8,11 +8,17 @@ import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
+def beta_schedule(timesteps):
+    beta_start = 0.0001
+    beta_end = 0.02
+    return torch.linspace(beta_start, beta_end, timesteps)
+
 # Initialize models and dataset
-betas = [0.1] * 100  # Example list of betas for 100 steps
 num_steps = 100
+betas = beta_schedule(num_steps)
 diffusion_process = DiffusionProcess(betas, num_steps).to(device)
 diffusion_network = DiffusionNetwork().to(device)
+print(diffusion_network)
 
 optimizer = optim.Adam(diffusion_network.parameters(), lr=0.001)
 criterion = torch.nn.MSELoss()  # Example loss function
@@ -52,4 +58,5 @@ plt.plot(losses)
 plt.xlabel('Iteration')
 plt.ylabel('Loss')
 plt.title('Training Loss')
+plt.ylim(0, 0.05)
 plt.show()

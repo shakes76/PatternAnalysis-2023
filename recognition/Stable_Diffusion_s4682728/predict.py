@@ -13,9 +13,14 @@ diffusion_network = DiffusionNetwork().to(device)
 diffusion_network.load_state_dict(torch.load(model_path))
 diffusion_network.eval()  # Set the model to evaluation mode
 
-# Initialize DiffusionProcess
-betas = [0.1] * 100  # Example list of betas for 100 steps
+def beta_schedule(timesteps):
+    beta_start = 0.0001
+    beta_end = 0.02
+    return torch.linspace(beta_start, beta_end, timesteps)
+
+# Initialize models and dataset
 num_steps = 100
+betas = beta_schedule(num_steps)
 diffusion_process = DiffusionProcess(betas, num_steps).to(device)
 
 # Load a sample batch of data
