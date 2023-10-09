@@ -8,6 +8,7 @@ from torch.nn import BCEWithLogitsLoss, PairwiseDistance
 from torch.utils.data import DataLoader
 from torch.autograd import Variable
 import numpy as np
+import matplotlib.pyplot as plt
 
 class Train():
     def __init__(self):
@@ -46,6 +47,9 @@ class Train():
             l.backward()
             self.optimiser.step()
             losses.append(loss)
+        plt.figure()
+        plt.plot(losses)
+        plt.show()
 
     def test(self):
         correct, incorrect = 0, 0
