@@ -231,6 +231,8 @@ def train():
 def validate():
     model.eval()  # Switch to evaluation mode
     val_loss = []
+    ssim_accum = 0.0  # Accumulator for SSIM scores
+    batch_count = 0   # Counter for batches
     with torch.no_grad():  # No gradient required for validation
         for batch_idx, (x, _) in enumerate(val_loader):
             x = x.to(DEVICE)
@@ -238,6 +240,12 @@ def validate():
             loss_recons = F.mse_loss(x_tilde, x)
             loss_vq = F.mse_loss(z_q_x, z_e_x.detach())
             val_loss.append(to_scalar([loss_recons, loss_vq]))
+
+            # Compute SSIM for the current batch and accumulate
+            ssim_accum += compute_ssim(x, x_tilde)
+            batch_count += 1
+    # Calculate the average SSIM for all batches
+    avg_ssim = ssim_accum / batch_count
 
     # Display the average validation loss
     mean_val_loss = np.asarray(val_loss).mean(0)
@@ -249,9 +257,9 @@ def validate():
 
     # Append the metrics to the lists
     val_losses.append(mean_val_loss)
-    ssim_scores.append(ssim_score)
+    ssim_scores.append(avg_ssim)
     
-    return np.asarray(val_loss).mean(0), ssim_score  # return SSIM score and loss
+    return np.asarray(val_loss).mean(0), avg_ssim  # return SSIM score and loss
 
 def generate_samples():
     model.eval()  # make sure model is in eval mode
