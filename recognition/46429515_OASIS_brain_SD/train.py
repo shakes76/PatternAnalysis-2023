@@ -12,7 +12,7 @@ model = module.UNet()
 model = model.to(device)
 
 # Adam Optimizer for training the model
-optimizer = Adam(model.parameters(), lr=0.001)
+optimizer = Adam(model.parameters(), lr=0.01)
 
 best_loss = float('inf')  # Initialize with a high value
 best_model_state_dict = None  # Variable to store the state_dict of the best model
@@ -55,7 +55,7 @@ for epoch in range(utils.epochs):
             best_loss = average_validation_loss  # Update the best loss
             best_model_state_dict = model.state_dict()  # Save the state_dict of the best model
 
-            torch.save(best_model_state_dict, 'best_model.pth')
+            torch.save(best_model_state_dict, 'best_model_{total_validation_samples}.pth')
         
         # Print validation results
         print(f"Epoch {epoch} | Validation Loss: {average_validation_loss}")

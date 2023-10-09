@@ -55,7 +55,7 @@ posterior_variance = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod)
 output_dir = './image_output'
 
 # Number of Epochs for training
-epochs = 500
+epochs = 1000
 
 # Loss function
 def get_loss(model, x_0, t, device):
