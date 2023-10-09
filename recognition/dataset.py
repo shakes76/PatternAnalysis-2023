@@ -4,10 +4,15 @@ import torch
 path = "./ADNI/"
 batch_size = 20
 
+def resize(x):
+    return x[0][:,:,None]
+
+#Need to change the resize method
+
 class ADNI():
     def __init__(self, batch_size):
         self.batch_size = batch_size
-        self.transformations = transforms.Compose([transforms.Grayscale(1), transforms.RandomCrop(240), transforms.ToTensor()])
+        self.transformations = transforms.Compose([transforms.Grayscale(1), transforms.RandomCrop(240), transforms.ToTensor(), transforms.Lambda(lambda x: resize(x))])
         self.dataset = datasets.ImageFolder(path, transform=self.transformations) # datasets.CelebA(root=path, download=True, transform=transformations)
         self.training_data_loader = torch.utils.data.DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
         self.testing_data_loader = torch.utils.data.DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)

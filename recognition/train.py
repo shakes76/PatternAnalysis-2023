@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 #Hyperparameter
 #Currently example paramaters need to find good values
+#Whole file needs changing
 LATENT_DIMENTIONS = 128 # Dimensions in higher dimensionality space
 EMBEDDED_DIMENTIONS = 32 # Dimensions in lower dimensionality space
 CROSS_ATTENTION_HEADS = 1
@@ -24,8 +25,14 @@ perceiver.to(device)
 # model_depth, self_attention_depth, latent_dimensions, embedded_dimensions, cross_attention_heads, self_attention_heads):
 
 #Dataset
-trainloader = ADNI(BATCH_SIZE)
+adni = ADNI(BATCH_SIZE)
+trainloader = adni.training_data_loader
+loss_function = nn.CrossEntropyLoss()
+optimiser = optim.Adam(perceiver.parameters(), lr=LEARNING_RATE)
 
+
+loss_data = []
+accuracy = []
 
 for epoch in range(EPOCHS):
     correct = 0
@@ -41,9 +48,9 @@ for epoch in range(EPOCHS):
         optimiser.zero_grad()
 
         # forward + backward + optimize
-        outputs = model(inputs)
+        outputs = perceiver(inputs)
 
-        loss = loss_fn(outputs, labels)
+        loss = loss_function(outputs, labels)
         loss.backward()
         optimiser.step()
 
@@ -66,4 +73,4 @@ plt.xlabel('EPOCH')
 plt.ylabel('Training Accuracy')
 plt.show()  
 
-torch.save(model.state_dict(), MODEL_PATH)
+torch.save(perceiver.state_dict(), SAVE_PATH)
