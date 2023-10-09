@@ -1,6 +1,8 @@
 import os
 import tensorflow as tf
-from tensorflow.keras.preprocessing.image import img_to_array, load_img
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
+
 
 '''
 Function used to load ADNI datasets. 
@@ -13,48 +15,41 @@ Outputs:
     data - the image converted to a tensorflow tensor
     labels - the classification label, 1 for having alzeimers, else 0
 '''
-def load_dataset(base_path, image_size=(256, 240)):
-    data = []
-    labels = []
+def load_dataset():
+    # Define the image data generator
+    datagen = ImageDataGenerator(rescale=1.0/255.0,  # Normalize pixel values
+                                rotation_range=20,   # Augmentation options
+                                width_shift_range=0.2,
+                                height_shift_range=0.2,
+                                horizontal_flip=True,
+                                vertical_flip=True,
+                                validation_split=0.2)  # Split data into training and validation sets
 
-    # Iterate through the AD and NC classes from the path
-    for class_name in os.listdir(base_path):
-        class_path = os.path.join(base_path, class_name)
-        class_label = 1 if class_name == "AD" else 0  # 1 for 'AD', 0 for 'NC'
-        
-        # Iterate through each file and append the image data and label
-        for filename in os.listdir(class_path):
-            file_path = os.path.join(class_path, filename)
-            image = load_img(file_path, target_size=image_size)
-            image = img_to_array(image)
-            image = image / 255.0  # Normalize the image
+    # Create separate data generators for training and validation sets
+    train_generator = datagen.flow_from_directory("AD_NC/train",
+                                                target_size=(256, 240),  # Set the desired image size
+                                                batch_size=32,
+                                                class_mode='categorical',
+                                                subset='training')  # Specify 'training' or 'validation'
 
-            data.append(image)
-            labels.append(class_label)
+    test_generator = datagen.flow_from_directory("AD_NC/test",
+                                                    target_size=(256, 240),
+                                                    batch_size=32,
+                                                    class_mode='categorical',
+                                                    subset='validation')
+    return train_generator, test_generator
 
 
-    data = tf.convert_to_tensor(data, dtype=tf.float32)
-    labels = tf.convert_to_tensor(labels, dtype=tf.int32)
 
-    return data, labels
 
 def main():
-    train_path = "AD_NC/train"
-    test_path = "AD_NC/test"
+    train_generator, test_generator = load_dataset()
 
-    print("Begin training")
-    train_data, train_labels = load_dataset(train_path)
-    print("Finished training")
-
-    test_data, test_labels = load_dataset(test_path)
-    print("Finished testing")
+    print(train_generator.shape)
+    print(test_generator.shape)
 
 
-    print("Shape of train_data:", train_data.shape)
-    print("Shape of train_labels:", train_labels.shape)
-
-    print("Shape of test_data:", test_data.shape)
-    print("Shape of test_labels:", test_labels.shape)
+    
 
 
 
