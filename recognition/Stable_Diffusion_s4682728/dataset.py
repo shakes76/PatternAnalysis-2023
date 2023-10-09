@@ -1,7 +1,7 @@
 import torch
 import os
 from PIL import Image
-from torchvision.transforms import Compose, ToPILImage, Grayscale, Resize, CenterCrop, ToTensor, Lambda
+from torchvision.transforms import Compose, Grayscale, ToTensor, Lambda
 from torch.utils.data import Dataset, DataLoader, ConcatDataset
 
 class ImageDataset(Dataset):
@@ -22,7 +22,7 @@ class ImageDataset(Dataset):
         
         return image
 
-def prepare_dataset(batch_size=8,
+def process_dataset(batch_size=8,
                     train_dir="/Users/Eiji/Documents/ML/Data/OASIS_Brain/keras_png_slices_train", 
                     test_dir="/Users/Eiji/Documents/ML/Data/OASIS_Brain/keras_png_slices_test", 
                     val_dir="/Users/Eiji/Documents/ML/Data/OASIS_Brain/keras_png_slices_validate"):
@@ -31,7 +31,7 @@ def prepare_dataset(batch_size=8,
     image_transforms = Compose([
         Grayscale(),
         ToTensor(), 
-        Lambda(lambda t: (t * 2) - 1)
+        Lambda(lambda t: (t * 2) - 1),
     ])
 
     train_data = ImageDataset(directory=train_dir, image_transforms=image_transforms)
