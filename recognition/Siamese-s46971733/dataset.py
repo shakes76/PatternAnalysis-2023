@@ -74,6 +74,12 @@ transform = transforms.Compose([transforms.ToPILImage(),
                                  ])
 
 class ImageDataset(Dataset):
+    """
+    Custom Dataset made by splitting ADNI paths into anchors, positives, negatives and labels.
+
+    __getitem__ method based on https://medium.com/@Skpd/triplet-loss-on-imagenet-dataset-a2b29b8c2952
+      - Modified to fit dataset and for use in train.py
+    """
     def __init__(self, image_dir, transform=None, train=0):
         self.images = image_dir
         self.train = train
