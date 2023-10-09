@@ -1,3 +1,11 @@
+"""
+Created on Wednesday September 20 2023
+
+Script to train, test and evaluate a visual transformer model on the ADNI 
+dataset
+
+@author: Rodger Xiang s4642506
+"""
 import torch
 import torch.nn as nn
 import torch.optim as optim

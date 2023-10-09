@@ -1,3 +1,11 @@
+"""
+Created on Wednesday September 20 2023
+
+Script to load in the ADNI dataset as a pytorch DataLoader
+
+@author: Rodger Xiang s4642506
+"""
+
 import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms

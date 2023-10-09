@@ -1,6 +1,8 @@
 """
 Created on Wednesday September 20 2023
 
+Script to create a Visual Transformer model
+
 @author: Rodger Xiang s4642506
 """
 

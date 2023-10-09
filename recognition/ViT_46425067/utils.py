@@ -1,3 +1,10 @@
+"""
+Created on Wednesday September 20 2023
+
+Scripts for misc functions used in training, saving and loading the model
+
+@author: Rodger Xiang s4642506
+"""
 import torch
 from pathlib import Path
 
