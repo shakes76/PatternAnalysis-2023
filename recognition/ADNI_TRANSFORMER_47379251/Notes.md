@@ -40,3 +40,5 @@
 77 - test_val_m
 78 - 0.1 dp test
 79 - 0.1 dp t+v
+
+- In Git Commit add -m "Validation"
