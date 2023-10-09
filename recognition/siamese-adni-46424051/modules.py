@@ -14,9 +14,6 @@ class Model(Module):
             MaxPool2d(2),
             Conv2d(128, 128, 4),
             ReLU(),
-            MaxPool2d(2),
-            Conv2d(128, 256, 4),
-            ReLU()
         )
         self.linear = Sequential(Linear(135168, 8192), Sigmoid())
         self.out = Linear(8192, 1)
