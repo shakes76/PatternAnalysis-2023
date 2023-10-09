@@ -27,7 +27,7 @@ def combined_loss(pred, target):
     bce_loss = criterion(pred, target)
     dice = dice_loss(pred, target)
     # Change the ratio if needed
-    return 0.5 * bce_loss + 0.5 * dice
+    return 0.7 * bce_loss + 0.3 * dice
 
 
 def evaluate_dsc(loader, model, device):
@@ -68,7 +68,7 @@ def train():
     optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=2, verbose=True)
 
-    num_epochs = 3
+    num_epochs = 1
     train_losses = []
 
     for epoch in range(num_epochs):
