@@ -1,5 +1,4 @@
 import os
-import dataset
 import module
 import torch
 import torch.nn.functional as F
@@ -52,17 +51,14 @@ posterior_variance = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod)
 
 ## train.py
 
-# Device setup
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
 # Output directory to save images
 output_dir = './image_output'
 
 # Number of Epochs for training
-epochs = 500
+epochs = 1
 
 # Loss function
-def get_loss(model, x_0, t):
+def get_loss(model, x_0, t, device):
     """
     Loss function using L1 loss (Mean Absolute Error)
     L_t (for random time step t given noise ~ N(0, I)):
@@ -82,7 +78,7 @@ def sample_timestep(model, x, t):
     Noise in the image x is predicted and returns denoised image
     """
     betas_t = get_index_from_list(betas, t, x.shape)
-    sqrt_one_minus_alphas_cumprod_t = module.get_index_from_list(
+    sqrt_one_minus_alphas_cumprod_t = get_index_from_list(
         sqrt_one_minus_alphas_cumprod, t, x.shape
     )
     sqrt_recip_alphas_t = get_index_from_list(sqrt_recip_alphas, t, x.shape)
@@ -121,14 +117,14 @@ def save_tensor_image(image, epoch, step, output_dir):
 
 
 @torch.no_grad()
-def sample_save_image(model, epoch, output_dir):
+def sample_save_image(model, epoch, output_dir, device):
     # Sample noise
     img_size = IMAGE_SIZE
     img = torch.randn((1, 1, img_size, img_size), device=device)
     num_images = 10
-    stepsize = int(module.T/num_images)
+    stepsize = int(T/num_images)
     
-    for i in range(0, module.T)[::-1]:
+    for i in range(0, T)[::-1]:
         t = torch.full((1,), i, device=device, dtype=torch.long)
         img = sample_timestep(model, img, t)
         # Maintain natural range of distribution

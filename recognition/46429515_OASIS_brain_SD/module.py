@@ -4,8 +4,13 @@ import torch.nn.functional as F
 from torch import nn
 import math
 
+
+# Device setup
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+
 # Noise Scheduler (Forward Process)
-def forward_diffusion_sample(x_0, t, device=utils.device):
+def forward_diffusion_sample(x_0, t, device=device):
     """
     Takes image and timestep as input to return the image w/ noise
     q(x_t|x_0) = N(x_t;sqrt(alpha_t)*x_0, (1-alpha_t)I)
@@ -22,7 +27,6 @@ def forward_diffusion_sample(x_0, t, device=utils.device):
 
 
 # U-Net (Backwards Process)
-
 # Aim is to obtain x_0, from x_t
 class Block(nn.Module):
     def __init__(self, in_channel, out_channel, time_emb_dim, up=False):

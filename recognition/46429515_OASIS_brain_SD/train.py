@@ -1,18 +1,15 @@
-import os
 import dataset
 import module
 import utils
 import torch
-import torchvision
-import torchvision.transforms as transforms
-import numpy as np
-from torch import nn
 from torch.optim import Adam
 
+# Device setup
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 # Create a model instance from module.py
 model = module.UNet()
-model = model.to(utils.device)
+model = model.to(device)
 
 # Adam Optimizer for training the model
 optimizer = Adam(model.parameters(), lr=0.001)
@@ -28,14 +25,14 @@ for epoch in range(utils.epochs):
     for step, batch in enumerate(dataset.data_loader):
         optimizer.zero_grad()
         
-        t = torch.randint(0, utils.T, (utils.BATCH_SIZE,), device=utils.device).long()
-        loss = utils.get_loss(model, batch[0], t)
+        t = torch.randint(0, utils.T, (utils.BATCH_SIZE,), device=device).long()
+        loss = utils.get_loss(model, batch[0], t, device)
         loss.backward()
         optimizer.step() 
         
         if epoch % 10 == 0 and step == 0:
             print(f"Epoch {epoch} | step {step:03d} Loss: {loss.item()}")
-            utils.sample_save_image(model, epoch, utils.output_dir)
+            utils.sample_save_image(model, epoch, utils.output_dir, device)
             
     # Validation loop (Written by ChatGPT3.5)
     if epoch % validate_every_n_epochs == 0:
@@ -45,7 +42,7 @@ for epoch in range(utils.epochs):
         
         with torch.no_grad():
             for step, batch in enumerate(dataset.validate_loader):
-                t = torch.randint(0, utils.T, (utils.BATCH_SIZE,), device=utils.device).long()
+                t = torch.randint(0, utils.T, (utils.BATCH_SIZE,), device=device).long()
                 validation_loss = utils.get_loss(model, batch[0], t)
                 total_validation_loss += validation_loss.item() * utils.BATCH_SIZE
                 total_validation_samples += utils.BATCH_SIZE
