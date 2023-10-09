@@ -1,2 +1,0 @@
-Task:
-Segment the (downsampled) Prostate 3D data set with the UNet3D [5] with all labels having a minimum Dice similarity coefficient of 0.7 on the test set. See also CAN3D [6] for more details and use the data augmentation library here for TF or use the appropriate transforms in PyTorch.
