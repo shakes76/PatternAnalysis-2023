@@ -5,7 +5,9 @@
 
 Stable Diffusion is a type of diffusion model that works in a two step process that uses a technique similar to how a generative model would work. The diffusion model operates by gradually adding noise to an input image in a forward process and then retrieves the original image by denoising (backwards process). 
 
-In the (parametrized) backwards process, the model predicts the noise added in each of image  and generates new datapoints using a neural network. This diffusion model will be using a U-Net for the backwards process
+In the (parametrized) backwards process, the model predicts the noise added in each of the images and generates new datapoints using a neural network. Afterwards, when the noise is done being added, the model will work backwards, predicting the noise added to the image and then subtracting the noise from the image. Eventually, this will result into a clearer, denoised image.
+
+This diffusion model will be using a U-Net for the backwards process.
 
 
 ## Dependencies
@@ -16,18 +18,12 @@ In the (parametrized) backwards process, the model predicts the noise added in e
 * Torchvision: `>=0.15.2`
 * Matplotlib: `>=3.7.2`
 
-import os
-import torchvision.transforms as transforms
-from torchvision.datasets import ImageFolder
-from torch.utils.data import DataLoader, Dataset
-from PIL import Image
-
 
 ## Usage Example
 
 ### Dataset Creation - dataset.py
 
-With a custom dataset class created (OASISDataset), this will enable the images to be transformed as desired, as well as implement the dataset into a dataloader to be used for our task, where our specified root_path is the path to the parent folder of images of the dataset and the batch size is 32.
+With a custom dataset class created (OASISDataset), this will enable the images to be transformed as desired, as well as implement the dataset into a dataloader to be used for our task, where our specified root_path is the path to the parent folder of images of the dataset and the batch size is 32 (can be found in utils.py).
 
 ```python
 train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', label_path=f'{root_path}/keras_png_slices_seg_train', transform=transform)
@@ -50,8 +46,7 @@ The diffusion noising code can be found in the noise scheduler section in module
 
 ### U-Net (Backwards Process) - module.py
 
-In the backwards process, we create a U-Net model to predict the nose in the image where the input is a noisy image (coming from forward process) and the output is the noise in the image. For the U-Net, it is a simple network which consists of a downsampling, residual sampling (via sinusoidal position embedding) and upsampling of data. To create
-a model of the network:
+In the backwards process, we create a U-Net model to predict the nose in the image where the input is a noisy image (coming from forward process) and the output is the noise in the image. For the U-Net, it is a simple network which consists of a downsampling, residual sampling (via sinusoidal position embedding) and upsampling of data. To create a model of the network:
 
 ```python
 model = UNet()
@@ -104,6 +99,8 @@ model_mean = sqrt_recip_alphas_t * (
     )
 ```
 
+The sampling codes can be found in the train.py section of utils.py
+
 
 ### Training - train.py
 
@@ -129,8 +126,6 @@ The respective sections of the trainings can be found inside the train.py file.
 The Adam optimizer is a popular choice for deep learning modules as it adapts learning rates to each parameters during training, thus selecting a basic learning rate of 0.001 allows for balanced learning between initial progression and fine-tuning together with the optimizer's features.
 
 The batch size was sized to be 32 as the provided OASIS dataset have been sliced into 32 per case. The image size has been selected to be 128x128 as 64x64 is considered to be too small for proper clarity of the image outputs and 256x256 may be too big for some of the images from the dataset provided, thus possibly adding inaccuracy to the model.
-
-
 
 
 ## Future Direction
