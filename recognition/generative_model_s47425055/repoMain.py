@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
 from torch.distributions.normal import Normal
@@ -16,7 +17,7 @@ from skimage.metrics import structural_similarity as ssim
 
 # Constants
 BATCH_SIZE = 32
-N_EPOCHS = 2
+N_EPOCHS = 60
 PRINT_INTERVAL = 100
 DATASET_PATH = './OASIS'
 NUM_WORKERS = 1
@@ -182,7 +183,7 @@ scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=10, gamma=0.9)  # for
 
 def train():
     model.train()
-    train_loss = []
+    #train_loss = []
     for batch_idx, (x, _) in enumerate(train_loader):
         start_time = time.time()
         x = x.to(DEVICE)
@@ -213,9 +214,10 @@ def train():
         log_px = nll.sum() / N + np.log(128) - np.log(K * 2)
         log_px /= np.log(2)
 
-        train_loss.append(
-            [log_px.item()] + to_scalar([loss_recons, loss_vq])
-        )
+        #train_loss.append(
+        #    [log_px.item()] + to_scalar([loss_recons, loss_vq])
+        #)
+        train_losses.append((log_px.item(), loss_recons.item(), loss_vq.item()))
 
         if (batch_idx + 1) % PRINT_INTERVAL == 0:
             print('\tIter [{}/{} ({:.0f}%)]\tLoss: {} Time: {}'.format(
@@ -224,7 +226,7 @@ def train():
                 np.asarray(train_loss)[-PRINT_INTERVAL:].mean(0),
                 time.time() - start_time
             ))
-
+        #return np.asarray(train_loss).mean(0)[0]  # return average reconstruction loss
 
 def validate():
     model.eval()  # Switch to evaluation mode
@@ -238,11 +240,16 @@ def validate():
             val_loss.append(to_scalar([loss_recons, loss_vq]))
 
     # Display the average validation loss
-    print('\nValidation Loss: {}'.format(np.asarray(val_loss).mean(0)))
+    mean_val_loss = np.asarray(val_loss).mean(0)
+    print('\nValidation Loss: {}'.format(mean_val_loss))
     
     # Compute SSIM for validation
     ssim_score = compute_ssim(x, x_tilde)
     print(f"Validation SSIM: {ssim_score}")
+
+    # Append the metrics to the lists
+    val_losses.append(mean_val_loss)
+    ssim_scores.append(ssim_score)
     
     return np.asarray(val_loss).mean(0), ssim_score  # return SSIM score and loss
 
@@ -273,12 +280,17 @@ BEST_LOSS = 999
 LAST_SAVED = -1
 BEST_SSIM = 0  # initial value, assuming higher SSIM is better
 
+train_losses = []
+val_losses = []
+ssim_scores = []
+
 for epoch in range(1, N_EPOCHS):
     print(f"Epoch {epoch}:")
     train()
     
     # Modify this line to unpack both loss and SSIM
     val_loss, val_ssim = validate()
+    
 
     # Check SSIM instead of loss for performance improvements
     if val_ssim > BEST_SSIM:                        
@@ -289,4 +301,29 @@ for epoch in range(1, N_EPOCHS):
     else:
         print(f"Not saving model! Last best SSIM: {BEST_SSIM:.4f}")
 
+    # Generate samples at the end of each epoch
     generate_samples()
+
+    # Step the scheduler to adjust learning rate
+    scheduler.step()
+
+plt.figure(figsize=(12, 5))
+
+# Plot training and validation losses
+plt.subplot(1, 2, 1)
+train_losses_array = np.array(train_losses)
+plt.plot(train_losses_array[:, 0], label="Overall Training Loss")
+plt.plot(train_losses_array[:, 1], label="Reconstruction Training Loss")
+plt.plot(train_losses_array[:, 2], label="VQ Training Loss")
+plt.plot(np.array(val_losses)[:, 0], label="Validation Loss", linestyle="--")
+plt.title("Losses over epochs")
+plt.legend()
+
+# Plot SSIM scores
+plt.subplot(1, 2, 2)
+plt.plot(ssim_scores, label="Validation SSIM", linestyle="--")
+plt.title("SSIM over epochs")
+plt.legend()
+
+plt.tight_layout()
+plt.show()
