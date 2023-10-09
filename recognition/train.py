@@ -20,6 +20,7 @@ BATCH_SIZE = 5
 LEARNING_RATE = 0.004
 SAVE_PATH = "./MODEL.txt"
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+print("using ", device)
 perceiver = Perceiver(MODEL_DEPTH, SELF_ATTENTION_DEPTH, LATENT_DIMENTIONS, EMBEDDED_DIMENTIONS, CROSS_ATTENTION_HEADS, SELF_ATTENTION_HEADS)
 perceiver.to(device)
 # model_depth, self_attention_depth, latent_dimensions, embedded_dimensions, cross_attention_heads, self_attention_heads):

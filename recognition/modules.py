@@ -4,8 +4,49 @@ import torchvision
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 from torchvision.models import resnet50, ResNet50_Weights
+import math
+
 # from perceriver_pytorch import Perceriver # install the perceiver
 
+
+class PositionalImageEmbedding(nn.Module):
+    def __init__(self, input_shape, input_channels, embed_dim, bands=4):
+        super().__init__()
+        self.ff = self.fourier_features(
+            shape=input_shape, bands=bands)
+        self.conv = nn.Conv1d(input_channels + self.ff.shape[0], embed_dim, 1)
+
+
+    def forward(self, x):
+        enc = self.ff.unsqueeze(0).expand(
+            (x.shape[0],) + self.ff.shape)
+        enc = enc.type_as(x)
+        x = torch.cat([x, enc], dim=1)
+        x = x.flatten(2)
+        x = self.conv(x)
+        x = x.permute(2, 0, 1)
+        return x
+    
+
+    def fourier_features(self, shape, bands):
+        dims = len(shape)
+        pos = torch.stack(list(torch.meshgrid(
+            *(torch.linspace(-1.0, 1.0, steps=n) for n in list(shape))
+        )))
+        pos = pos.unsqueeze(0).expand((bands,) + pos.shape)
+        band_frequencies = (torch.logspace(
+            math.log(1.0),
+            math.log(shape[0]/2),
+            steps=bands,
+            base=math.e
+        )).view((bands,) + tuple(1 for _ in pos.shape[1:])).expand(pos.shape)
+        result = (band_frequencies * math.pi * pos).view((dims * bands,) + shape)
+        result = torch.cat([
+            torch.sin(result),
+            torch.cos(result),
+        ], dim=0)
+
+        return result
 
 
 
@@ -41,7 +82,7 @@ class CrossAttention(nn.Module):
         # Paper states that inputs are first passed through the layer norm then through linear layers
         result = self.layer_norm(latent)
         #cross attention takes 3 parameters: (latent, key, value)
-        result = self.cross_attention(result, key_value, key_value)
+        result = self.cross_attention(result, key_value, key_value)[0]
         result = self.multilayerPerceptron(result)
         return result
     
@@ -58,7 +99,7 @@ class SelfAttention(nn.Module):
         # Paper states that inputs are first passed through the layer norm then through linear layers
         result = self.layer_norm(latent)
         #cross attention takes 3 parameters: (latent, key, value)
-        result = self.cross_attention(result, result)
+        result = self.cross_attention(result, result, result)[0]
         result = self.multilayerPerceptron(result)
         return result
 
@@ -82,6 +123,7 @@ class Block(nn.Module):
     def forward(self, latent, key_value):
         result = self.crossAttention(latent, key_value)
         result = self.latentTransformerArray(result)
+        return result
 
 
 class Classifier(nn.Module):
@@ -110,15 +152,33 @@ class Perceiver(nn.Module):
         self.latent = nn.Parameter(
             torch.nn.init.trunc_normal_(torch.zeros((self.latent_dimensions, 1, self.embedded_dimensions)), mean=0, std=0.02, a=-2, b=2)
         )
+        self.positionalImageEmbedding = PositionalImageEmbedding((240, 240), 1, self.embedded_dimensions)
+        
+        
 
     
     def forward(self, kv):
-        #Some reshaping steps here potentially
-
-        latent = self.latent
+        latent = self.latent.expand(-1, kv.size()[0], -1)
+        kv = self.positionalImageEmbedding(kv)
         for block in self.perceiver_block_array:
             latent = block(latent, kv)
         #Need to do the classifier here
         latent = self.classifier(latent)
         return latent
+    
 
+
+model_kwargs = {
+    "input_shape":(28, 28),
+    "latent_dim":8,
+    "embed_dim":16,
+    "attn_mlp_dim":16, 
+    "trnfr_mlp_dim":16, 
+    "trnfr_heads":8, 
+    "dropout":0.1, 
+    "trnfr_layers":6, 
+    "n_blocks":6, 
+    "n_classes":10,
+    "batch_size":64,
+    "learning_rate":0.003
+}
