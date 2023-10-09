@@ -1,32 +1,129 @@
-from mrcnn.config import Config
-from mrcnn import model as modellib
+import torch
+import torch.nn as nn
+import torchvision.models as models
 
-class MaskRCNNConfig(Config):
-    NAME = "skin_lesion"
-    IMAGES_PER_GPU = 16
-    NUM_CLASSES = 1 + 1  # Background + skin lesion
-    STEPS_PER_EPOCH = 100
-    DETECTION_MIN_CONFIDENCE = 0.9
+class Backbone(nn.Module):
 
-
-def get_maskrcnn_model(mode, config, model_dir, weights_path=None):
-    """Returns a Mask R-CNN model.
-
-    :param mode: Either 'training' or 'inference'
-    :param config: A Subclass of mrcnn.config.Config
-    :param model_dir: Directory to save logs and trained model
-    :param weights_path: Path to pretrained weights
-    :return: Mask R-CNN model
     """
-    model = modellib.MaskRCNN(mode=mode, config=config, model_dir=model_dir)
+    The backbone network is responsible for extracting features from the input image.
+    """
+    def __init__(self, pretrained=True):
 
-    if weights_path:
-        model.load_weights(weights_path, by_name=True)
+        """
+        Initialize the backbone network.
+        :param pretrained: whether to use pretrained weights from ImageNet
+        """
 
-    return model
+        super(Backbone, self).__init__()
+        resnet = models.resnet50(pretrained=pretrained)
+        self.features = nn.Sequential(*list(resnet.children())[:-2])
 
-if __name__ == '__main__':
-    config = MaskRCNNConfig()
-    config.display()
-    model = get_maskrcnn_model("training", config, "E:/OneDrive/UQ/Year3_sem2/COMP3710/A3/logs")
-    # ModuleNotFoundError: No module named 'keras.engine'
+    def forward(self, x):
+
+        x = self.features(x)
+        return x
+
+class RPN(nn.Module):
+
+    """
+    The RPN network takes as input the output features from the backbone network and outputs
+    a set of rectangular object proposals, each with an objectness score.
+    """
+    def __init__(self):
+        super(RPN, self).__init__()
+
+
+    def forward(self, x):
+
+        return x
+
+class RoIAlign(nn.Module):
+
+    """
+    The RoIAlign layer crops and resizes the feature maps from the backbone network for each object proposal.
+    """
+    def __init__(self):
+        super(RoIAlign, self).__init__()
+
+
+    def forward(self, x):
+
+        return x
+
+class Classifier(nn.Module):
+
+    """
+    The classifier network takes as input the output features from the RoIAlign layer and outputs a classification
+    """
+    def __init__(self, num_classes):
+        super(Classifier, self).__init__()
+
+
+    def forward(self, x):
+
+        return x
+
+class BoxRegressor(nn.Module):
+
+
+    """
+    The box regressor network takes as input the output features from the RoIAlign layer and outputs a set of bounding
+    boxes.
+    """
+    def __init__(self):
+        super(BoxRegressor, self).__init__()
+
+
+    def forward(self, x):
+
+        return x
+
+
+class MaskBranch(nn.Module):
+
+    """
+    The mask branch network takes as input the output features from the RoIAlign layer and outputs a segmentation mask.
+    """
+    def __init__(self):
+        super(MaskBranch, self).__init__()
+
+
+    def forward(self, x):
+
+        return x
+
+class MaskRCNN(nn.Module):
+
+    """
+    The Mask R-CNN model structure.
+    """
+    def __init__(self, num_classes):
+
+        """
+        Initialize the Mask R-CNN model.
+        :param num_classes: Number of classes in the dataset
+        """
+
+        super(MaskRCNN, self).__init__()
+        self.backbone = Backbone()
+        self.rpn = RPN()
+        self.roi_align = RoIAlign()
+        self.classifier = Classifier(num_classes)
+        self.box_regressor = BoxRegressor()
+        self.mask_branch = MaskBranch()
+
+    def forward(self, x):
+
+        """
+        The forward function of the Mask R-CNN model.
+        :param x:  input image
+        :return:  classification, bounding box, and mask outputs
+        """
+
+        x = self.backbone(x)
+        proposals = self.rpn(x)
+        rois = self.roi_align(proposals)
+        classification = self.classifier(rois)
+        boxes = self.box_regressor(rois)
+        masks = self.mask_branch(rois)
+        return classification, boxes, masks
