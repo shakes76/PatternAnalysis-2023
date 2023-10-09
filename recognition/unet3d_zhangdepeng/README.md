@@ -15,18 +15,19 @@ representative training set and can segment non-annotated 3D MR image to six cla
 + numpy                          1.21.2
 + matplotlib                     3.4.3
 
-'''
+```
 pip install -r requirements.txt
-'''
+```
+
 ## Usage
 ### train
-、、、
+```
 python train.py --loss /loss_type --dataset_root /path_of_dataset 
-、、、
+```
 ### test
-'''
+```
 python predict.py --pth /path_of_trained_model --dataset_root /path_of_dataset
-'''
+```
 
 ## The training process of loss and metric 
 
@@ -42,7 +43,7 @@ The total number of dataset is 211. The train/val/test is 174/16/21, thus the ra
 + resize: for training with batches, we use resized to keep the same size 
 
 ## Citation
-'''
+```
 @inproceedings{cciccek20163d,
   title={3D U-Net: learning dense volumetric segmentation from sparse annotation},
   author={{\c{C}}i{\c{c}}ek, {\"O}zg{\"u}n and Abdulkadir, Ahmed and Lienkamp, Soeren S and Brox, Thomas and Ronneberger, Olaf},
@@ -51,5 +52,5 @@ The total number of dataset is 211. The train/val/test is 174/16/21, thus the ra
   year={2016},
   organization={Springer}
 }
-'''
+```
 
