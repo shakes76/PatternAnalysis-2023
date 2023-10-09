@@ -3,6 +3,8 @@ Data loader for loading and preprocessing ADNI data.
 '''
 import os
 import sys
+
+from pathlib import Path
 from typing import Any, Callable, Optional, Tuple
 
 import torch
@@ -14,7 +16,7 @@ from torch.utils.data import DataLoader, Dataset
 # Root directory for ADNI training and testing split
 ADNI_ROOT = {
     'win32': os.path.join('ADNI', 'AD_NC'),
-    'linux': os.path.join('/home', 'groups', 'comp3710', 'ADNI', 'ADNI_NC')
+    'linux': os.path.join('/home', 'groups', 'comp3710', 'ADNI', 'AD_NC')
 }[sys.platform]
 
 class ADNI(Dataset):
@@ -26,10 +28,10 @@ class ADNI(Dataset):
         self.transform = transform
         self.target_transform = target_transform
 
-        self.img_dir = os.path.join(root, 'train' if train else 'test')
+        self.img_dir = Path(root, 'train' if train else 'test')
         # Read and store file names of all images for faster access
-        ad_fnames = os.listdir(os.path.join(self.img_dir, 'AD'))
-        nc_fnames = os.listdir(os.path.join(self.img_dir, 'NC'))
+        ad_fnames = os.listdir(Path(self.img_dir, 'AD'))
+        nc_fnames = os.listdir(Path(self.img_dir, 'NC'))
         self.img_list = ad_fnames + nc_fnames
         # Pre-calculate and store number of images in either class
         self.count_ad = len(ad_fnames)
