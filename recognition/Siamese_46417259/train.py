@@ -58,7 +58,7 @@ def save_checkpoint():
 
 def train_and_eval():
     starting_epoch = 0
-    num_epochs = 10
+    num_epochs = 5
     random_seed = 69
 
     dataloader = load_data(training=True, Siamese=True, random_seed=random_seed)
@@ -66,8 +66,7 @@ def train_and_eval():
 
     total_step = len(dataloader)
 
-    scheduler = optim.lr_scheduler.OneCycleLR(optimiser, max_lr=1e-3, 
-                                              steps_per_epoch=total_step, epochs=num_epochs)
+    scheduler = optim.lr_scheduler.ExponentialLR(optimiser, 0.99, num_epochs)
 
     training_losses = []
 
@@ -89,13 +88,14 @@ def train_and_eval():
             # Backward and optimize
             loss.backward()
             optimiser.step()
-            scheduler.step()
 
             if (i+1) % 100 == 0:
                 print("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
                     .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
             
-            training_losses.append(loss)      
+            training_losses.append(loss.item()) 
+        # stepping LR scheduler every epoch rather than every batch
+        scheduler.step()
     end = time.time()
     elapsed = end - start
     print("Training took " + str(elapsed) + " secs of " + str(elapsed/60) + " mins in total")
@@ -123,7 +123,7 @@ def train_and_eval():
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
-            eval_losses.append(loss)
+            eval_losses.append(loss.item())
             
         print('Test Accuracy: {} %'.format(100 * correct / total))
     
@@ -145,7 +145,7 @@ def train_and_eval():
 # new code here
 
 if __name__ == "__main__":
-    initialise_training()
+    # initialise_training()
     # load_from_checkpoint()
     train_and_eval()
 
