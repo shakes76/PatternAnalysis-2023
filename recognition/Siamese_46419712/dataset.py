@@ -56,7 +56,7 @@ def split_dataset(dataset, seed=True):
 def load_train_data():
     path="/home/groups/comp3710/ADNI/AD_NC/train"
     # this for testing
-    path="./AD_NC/train"
+    # path="./AD_NC/train"
 
     torch.manual_seed(33) # for reproduce in the future
     # Data transformation
@@ -91,7 +91,7 @@ def load_train_data():
 
 def load_train_data_classifier():
     path="/home/groups/comp3710/ADNI/AD_NC/train"
-    path="./AD_NC/train"
+    # path="./AD_NC/train"
 
     transform_train = transforms.Compose([
         transforms.Resize(105),
@@ -112,7 +112,7 @@ def load_train_data_classifier():
 def load_test_data():
     path="/home/groups/comp3710/ADNI/AD_NC/test"
     # this for testing
-    path="./AD_NC/test"
+    # path="./AD_NC/test"
     # dataset = torchvision.datasets.ImageFolder(root=path, transform=transforms.ToTensor())
 
     # # Calculate the mean and standard deviation

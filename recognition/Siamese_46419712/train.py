@@ -35,8 +35,6 @@ def train_siamese(model, train_loader, criterion, optimizer, loss_list, schedule
             print (">>>>> Step [{}/{}] Loss: {:.5f}"
                     .format(i+1, len(train_loader), loss.item()))
 
-        break
-
 def validate_siamese(model, val_loader, criterion, val_loss_list):
     model.eval()
 
@@ -51,7 +49,6 @@ def validate_siamese(model, val_loader, criterion, val_loss_list):
             output2 = model(img1)
             loss = criterion(output1, output2, labels)
             val_loss_list.append(loss.item())
-            break # remove this line when test
 
 def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_list):
     sModel.eval() # siamese
@@ -78,8 +75,6 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
             print (">>>>> Step [{}/{}] Loss: {:.5f}"
                     .format(i+1, len(train_loader), loss.item()))
 
-        break
-
 def validate_classifier(cModel, sModel, val_loader, criterion, val_loss_list):
     pass
 
@@ -100,8 +95,6 @@ def test_model(model, cModel, test_loader):
             _, predicted = torch.max(output.data, 1)
             total_test += label.size(0)
             correct_predict += (predicted == label).sum().item()
-
-            break
     
     return correct_predict/total_test
 
@@ -205,7 +198,6 @@ if __name__ == '__main__':
         save_loss_plot(val_loss_list, train=False) # save loss plot for siamese validate
         save_model(epoch, model, criterion, optimizer, scheduler) # save model for every epoch
 
-        break
 
     end = time.time() #time generation
 
@@ -234,7 +226,7 @@ if __name__ == '__main__':
         train_classifier(model, cModel, train_loader_classifier, criterionB, optimizerB, loss_list)
         save_loss_plot(classifier_loss_list, epoch, siamese=False) # save loss plot for siamese train
         save_model(epoch, cModel, criterionB, optimizerB, scheduler, 1) # save model for every epoch
-        break
+
     end = time.time() #time generation
     print("Finish classifier training")
     elapsed = end - start
