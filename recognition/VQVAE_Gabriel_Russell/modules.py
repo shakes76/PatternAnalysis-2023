@@ -26,11 +26,10 @@ Define the hyperparameters used for the model.
 """
 class Parameters():
     def __init__(self):
-        self.batch_size = 32 #128
-        self.num_training_updates = 15000
+        self.batch_size = 32 
         self.num_hiddens = 128 #Number of hidden layers for convolution
         self.num_residual_hiddens = 32 #Number of residual hidden layers
-        self.embedding_dim = 128 #dimension for each embedding
+        self.embedding_dim = 64 #dimension for each embedding
         self.num_embeddings = 512 #Number of embeddings in codebook
         self.commitment_cost = 0.25 #Beta term in loss func
         self.learn_rate = 1e-3 #Learning rate
@@ -38,6 +37,7 @@ class Parameters():
         self.features = 128
         self.channel_noise = 100
         self.data_var = 0.0338 #calculated separately for training data
+        self.Gan_batch_size = 16
 
     
 """
@@ -107,6 +107,7 @@ class Encoder(nn.Module):
         #inputs = F.relu(inputs)
         
         output = self.residual_block(inputs)
+       # print(f"Encoded shape is {output.shape}")
         return output
     
 
@@ -147,6 +148,7 @@ class Decoder(nn.Module):
        # inputs = F.relu(inputs)
 
         output = self.transposed_conv_2(inputs)
+        ##print(f"decoded shape is {output.shape}")
         return output
     
 """ 
@@ -179,7 +181,10 @@ class VectorQuantizer(nn.Module):
                     - 2 * torch.matmul(flat_input, self._embedding.weight.t()))
             
         # Encoding
+        codebook_indices = torch.argmin(distances, dim = 1)
+
         encoding_indices = torch.argmin(distances, dim=1).unsqueeze(1)
+        
         encodings = torch.zeros(encoding_indices.shape[0], self._num_embeddings, device=inputs.device)
         encodings.scatter_(1, encoding_indices, 1)
         
@@ -196,7 +201,7 @@ class VectorQuantizer(nn.Module):
         perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
         
         # convert quantized from BHWC -> BCHW
-        return loss, quantized.permute(0, 3, 1, 2).contiguous(), perplexity, encodings
+        return loss, quantized.permute(0, 3, 1, 2).contiguous(), perplexity, codebook_indices
 
     
 """
@@ -224,12 +229,16 @@ class VQVAEModel(nn.Module):
     def forward(self, x):
         #Encode input
         x = self.encoder(x)
+        
         #Change channel dimensions
         x = self.conv_layer(x)
+        #print(f"After conv shape is {x}")
         #Quantize
         loss, quantized, perplexity, _ = self.quantizer(x)
+        #print(f"Quantized shape is {quantized}")
         #Decode
         x_recon = self.decoder(quantized)
+       # print(f"decoded shape is {x_recon}")
 
         return loss, x_recon, perplexity
 
@@ -242,11 +251,11 @@ Building a DCGAN to generate images from trained images outputted by VQVAE
 Discriminator Class of DCGAN
 """
 class Discriminator(nn.Module):
-    def __init__(self, grey_channel, features):
+    def __init__(self, features):
         super(Discriminator, self).__init__()
         #64 x 64 input image
         self.input = nn.Sequential(
-            nn.Conv2d(grey_channel, features, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(3, features, kernel_size=4, stride=2, padding=1),
             nn.LeakyReLU(0.2),
             nn.BatchNorm2d(features)
         )
@@ -291,11 +300,11 @@ class Discriminator(nn.Module):
 Generator Class of DCGAN
 """
 class Generator(nn.Module):
-    def __init__(self, channel_noise, channels, features):
+    def __init__(self, channel_noise, features):
         super(Generator, self).__init__()    
         #Input block for noise 
         self.input = nn.Sequential(
-            nn.ConvTranspose2d(channel_noise, features*16, kernel_size=4, stride=2, padding=0).
+            nn.ConvTranspose2d(channel_noise, features*16, kernel_size=4, stride=2, padding=0),
             nn.BatchNorm2d(features*16),
             nn.ReLU()
         )
@@ -323,7 +332,7 @@ class Generator(nn.Module):
 
         #Conv transpose block 4
         self.block_4 = nn.Sequential(
-            nn.ConvTranspose2d(features*2, channels, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(features*2, 3, kernel_size=4, stride=2, padding=1),
             nn.Tanh()
         )
 
@@ -336,3 +345,8 @@ class Generator(nn.Module):
         return output
 
 
+def initialize_weights(model):
+    # Initializes weights according to the DCGAN paper
+    for m in model.modules():
+        if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)):
+            nn.init.normal_(m.weight.data, 0.0, 0.02)
