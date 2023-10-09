@@ -61,7 +61,7 @@ class Train():
             print("out2:", out2)
             dot = torch.sum(torch.dot(out1[0], out2[0]))
             print("dot:", dot)
-            if dot < 0.5:
+            if dot < 1.5:
                 if label == "SAME":
                     correct += 1
                 else:
