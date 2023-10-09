@@ -20,6 +20,16 @@ def dice_loss(pred, target, smooth=1.):
     return 1 - dice
 
 
+criterion = torch.nn.BCEWithLogitsLoss()
+
+
+def combined_loss(pred, target):
+    bce_loss = criterion(pred, target)
+    dice = dice_loss(pred, target)
+    # Change the ratio if needed
+    return 0.5 * bce_loss + 0.5 * dice
+
+
 def evaluate_dsc(loader, model, device):
     model.eval()
     all_dscs = []
@@ -36,10 +46,12 @@ def evaluate_dsc(loader, model, device):
 def train():
     image_transform = Compose([
         RandomHorizontalFlip(p=0.5),
-        RandomRotation(degrees=15),
+        RandomRotation(degrees=20),
+        transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
+
     mask_transform = transforms.Compose([transforms.ToTensor()])
 
     full_dataset = ISICDataset("ISIC2018_Task1-2_Training_Input_x2", "ISIC2018_Task1_Training_GroundTruth_x2",
@@ -53,7 +65,7 @@ def train():
     test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
     model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-4)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=2, verbose=True)
 
     num_epochs = 3
@@ -82,7 +94,7 @@ def train():
         train_losses.append(epoch_loss)
         average_dice_coefficient = total_dice_coefficient / len(train_loader)
 
-        scheduler.step(epoch_loss)  # Reduce LR based on the recent epoch's loss
+        scheduler.step(epoch_loss)
 
         print(f"Training Loss: {epoch_loss:.4f}, Training Dice Coefficient: {average_dice_coefficient:.4f}")
 
