@@ -18,6 +18,11 @@ from PIL import Image
 from torch.utils.data import Dataset
 from modules import Parameters
 
+current_dir = os.getcwd()
+OASIS_train_path = current_dir + '\keras_png_slices_train'
+OASIS_validate_path = current_dir + '\keras_png_slices_validate'
+OASIS_test_path = current_dir + '\keras_png_slices_test'
+
 """
 This class takes the downloaded data from a specific path, performs the required 
 transformation to all images and returns it ready to be loaded into a dataloader
@@ -29,9 +34,11 @@ class OASISDataset(Dataset):
     #Resize all images to 256x256 pixels
     #Convert to tensors and normalise tensor image with mean and standard deviation
     transform = transforms.Compose([
+   # transforms.Resize((32,32)),
     transforms.Resize((256,256)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean = [0.5], std = [0.5])])
+    transforms.ToTensor()
+   # transforms.Normalize(mean = [0.5], std = [0.5])
+    ])
 
     def __init__(self, data_directory):
         self.data_directory = data_directory
@@ -44,6 +51,7 @@ class OASISDataset(Dataset):
         img_path = os.path.join(self.data_directory, self.data[idx])
         img = Image.open(img_path)
         img = self.transform(img)
+
         return img
 
 """
@@ -54,10 +62,6 @@ Included are some getter functions for returning the specified dataloader.
 class OASISDataloader():
     def __init__(self):
         p = Parameters()
-        current_dir = os.getcwd()
-        OASIS_train_path = current_dir + '\keras_png_slices_train'
-        OASIS_validate_path = current_dir + '\keras_png_slices_validate'
-        OASIS_test_path = current_dir + '\keras_png_slices_test'
         self.train = OASISDataset(OASIS_train_path)
         self.validate = OASISDataset(OASIS_validate_path)
         self.test = OASISDataset(OASIS_test_path)
@@ -76,3 +80,32 @@ class OASISDataloader():
         test_dataloader =  DataLoader(self.test, batch_size = self.batch_size, shuffle = False)
         return test_dataloader
     
+
+class DCGAN_Dataset(Dataset):
+    transform = transforms.Compose([
+        transforms.ToTensor()
+    ])
+    def __init__(self, model):
+        self.model = model
+        self.image_path = OASIS_train_path
+        self.images = os.listdir(OASIS_train_path)
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    def __len__(self):
+        return(len(self.images))
+    
+    def __getitem__(self, idx):
+        img_path = os.path.join(self.image_path, self.images[idx])
+        img = Image.open(img_path)
+        img = self.transform(img)
+        img = img.unsqueeze(dim = 0)
+        img = img.to(self.device)
+        #Encode the training data to serve as inputs for GAN
+        VQVAE_encoded = self.model.encoder(img)
+        conv = self.model.conv_layer(VQVAE_encoded)
+        _,_,_,encoding_indices = self.model.quantizer(conv)
+        encoding_indices = encoding_indices.float().to('cuda')
+        #print(encodings.shape)
+        encoding_indices = encoding_indices.view(64,64) #Reshape to 64x64
+        encoding_indices = torch.stack((encoding_indices, encoding_indices, encoding_indices),0)
+        return encoding_indices
