@@ -6,17 +6,25 @@ class Model(Module):
     def __init__(self):
         super(Model, self).__init__()
         self.conv = Sequential(
-            Conv2d(1, 64, 10),
+            Conv2d(1, 96, 11),
             ReLU(inplace=True),
-            MaxPool2d(2),
-            Conv2d(64, 128, 7),
-            ReLU(),
-            MaxPool2d(2),
-            Conv2d(128, 128, 4),
-            ReLU(),
+            MaxPool2d(3),
+            Conv2d(96, 256, 5),
+            ReLU(inplace=True),
+            MaxPool2d(3),
+            Conv2d(256, 384, 3),
+            ReLU(inplace=True),
+            Conv2d(384, 256, 3),
+            ReLU(inplace=True),
+            MaxPool2d(3),
         )
-        self.linear = Sequential(Linear(135168, 8192), Sigmoid())
-        self.out = Linear(8192, 1)
+        self.linear = Sequential(
+            Linear(30976, 1024),
+            ReLU(inplace=True),
+            Linear(1024, 128),
+            ReLU(inplace=True),
+            Linear(128, 2)
+        )
     
     def forward_one(self, img):
         img = self.conv(img)
