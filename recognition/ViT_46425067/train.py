@@ -6,18 +6,16 @@ dataset
 
 @author: Rodger Xiang s4642506
 """
+import utils
+import wandb
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from modules import ViT, ViT_torch
-from dataset import load_data
+from torchinfo import summary
 from types import SimpleNamespace
 from tqdm.auto import tqdm
-import wandb
-import torchinfo
-from torchinfo import summary
-
-import utils
+from dataset import load_data
+from modules import ViT
 
 def train_epoch(model: nn.Module, 
                 data_loader: torch.utils.data.DataLoader,
@@ -62,6 +60,18 @@ def test_epoch(model: nn.Module,
                 loss_fn: nn.Module,
                 mix_precision: bool,
                 device: str):
+    """ validates the current model's accuracy and loss on a validation dataset
+
+    Args:
+        model (nn.Module): _description_
+        data_loader (torch.utils.data.DataLoader): _description_
+        loss_fn (nn.Module): _description_
+        mix_precision (bool): _description_
+        device (str): _description_
+
+    Returns:
+        _type_: _description_
+    """
     # test setup
     test_loss, test_acc = 0, 0
     model.eval()
@@ -87,9 +97,9 @@ def train_model(config):
     with wandb.init(project="ViT", config=config):
         config = wandb.config
         # load dataset
-        train_loader, test_loader = load_data(config.batch_size, config.img_size)
+        train_loader, val_loader, _ = load_data(config.batch_size, config.img_size)
         # create model
-        model = ViT_torch(img_size=config.img_size,
+        model = ViT(img_size=config.img_size,
                     patch_size=config.patch_size,
                     img_channels=config.img_channel,
                     num_classes=config.num_classes,
@@ -97,11 +107,9 @@ def train_model(config):
                     depth=config.depth,
                     num_heads=config.num_heads,
                     mlp_dim=config.mlp_dim,
-                    drop_prob=config.drop_prob,
-                    linear_embed=config.linear_embed).to(device)
-        
-        # summarise model architecture
-        # summary(model, input_size=(1, 1, 256, 256), device=device)
+                    drop_prob=config.drop_prob).to(device)
+        # summarise model architecture 
+        summary(model, input_size=(1, config.img_channel, config.img_size, config.img_size), device=device)
         # loss function 
         loss_fn = nn.BCEWithLogitsLoss()
         # optimiser
@@ -116,16 +124,17 @@ def train_model(config):
                                                     epochs=config.epochs)
         # grad scaler for mixed precision
         grad_scaler = torch.cuda.amp.GradScaler(enabled=config.mix_precision)
+        
         # track results of training
         results  = {
                     "train_loss": [],
                     "train_acc": [],
-                    "test_loss": [], 
-                    "test_acc":  [],
+                    "val_loss": [], 
+                    "val_acc":  [],
                     }
         # main training loop
         for epoch in tqdm(range(config.epochs)):
-            #training loss and accuracu
+            #train loss and accuracy over 1 epoch
             train_loss, train_acc = train_epoch(model=model,
                                                 data_loader=train_loader,
                                                 loss_fn=loss_fn,
@@ -135,28 +144,37 @@ def train_model(config):
                                                 device=device,
                                                 mix_precision=config.mix_precision,
                                                 lr_scheduler=config.lr_scheduler)
-            # testing loss and accuracy
-            test_loss, test_acc = test_epoch(model=model,
-                                                data_loader=test_loader,
+            # test loss and accuracy over 1 epoch
+            val_loss, val_acc = test_epoch(model=model,
+                                                data_loader=val_loader,
                                                 loss_fn=loss_fn,
                                                 device=device, 
                                                 mix_precision=config.mix_precision)
+            #Wandb Logging
             wandb.log({"train/epoch/loss": train_loss,
                         "train/epoch/acc": train_acc,
-                        "train/epoch/epoch_num": epoch + 1,
-                        "test/epoch/loss": test_loss,
-                        "test/epoch/acc": test_acc,
-                        "test/epoch/epoch_num": epoch + 1})
+                        "val/epoch/loss": val_loss,
+                        "val/epoch/acc": val_acc,
+                        "epoch_num": epoch + 1,
+                        })
             # save results
             results["train_loss"].append(train_loss)
             results["train_acc"].append(train_acc)
-            results["test_loss"].append(test_loss)
-            results["test_acc"].append(test_acc)
-            if test_acc <= 0.0 or train_acc <= 0.0:
+            results["val_loss"].append(val_loss)
+            results["val_acc"].append(val_acc)
+            
+            # Stop training if accuracy drops to zero
+            if val_acc <= 0.0 or train_acc <= 0.0:
                 break
+        
+        #save model
+        wandb.run.name
+        utils.save_model(model=model, model_name=wandb.run.name)
+            
     return results
 
 if __name__ == "__main__":
+    # Determines if a wandb sweep is used or not
     WANDB_SWEEP = False
     
     #setup random seeds
@@ -165,29 +183,30 @@ if __name__ == "__main__":
     
     #device agnostic code
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
     # hyperparmeters
     config = SimpleNamespace(
-        epochs=100,
+        epochs=1,
         img_channel=1,      
         num_classes=1,          
         batch_size=512,         
-        img_size=256,           #image sizes (img_size, img_size)
-        patch_size=128,          #sizes of patchs (patch_size, patch_size)
-        embed_dim=128,          #patch embedding dimension
-        depth=6,                #number of transform encoders
-        num_heads=8,            #attention heads
-        mlp_dim=2048,            #the amount of hidden units in feed forward layer in proportion to the input dimension  
+        img_size=32,           #image sizes (img_size, img_size)
+        patch_size=16,          #sizes of patchs (patch_size, patch_size)
+        embed_dim=16,          #patch embedding dimension
+        depth=1,                #number of transform encoders
+        num_heads=1,            #attention heads
+        mlp_dim=16,            #the amount of hidden units in feed forward layer in proportion to the input dimension  
         drop_prob=0.2,          #dropout prob used in the ViT network
         lr=0.001,                #learning rate for optimiser
         optimiser="SGD",        #optimiser: SGD, ADAM, ADAMW
-        linear_embed=True,      #to use linear embed instead of conv method
         data_augments="H_V_R",       #specifies what data augments have been used
         weight_decay=1e-7,       #optimiser weight decay
         mix_precision=True,     #enable float16 mix precision during loss, model calcs
         lr_scheduler=True,      #enable one cycle learning rate scheduler 
         max_lr=0.01,            #max learning rate for learning scheduler
     )
-    # logging with hyperparameter sweeps or normal runs
+    
+    # hyperparameter sweeps or a normal run using the specified config above
     if WANDB_SWEEP:
         # Login into wandb
         wandb.login(anonymous="allow")

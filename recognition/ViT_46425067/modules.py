@@ -32,7 +32,7 @@ class PatchEmbedding(nn.Module):
         return self.projection(x)
     
     
-class ViT_torch(nn.Module):
+class ViT(nn.Module):
     def __init__(self, img_size:int,
                     patch_size:int,
                     img_channels:int,
@@ -56,14 +56,14 @@ class ViT_torch(nn.Module):
             drop_prob (float, optional): probability for dropout in the model. Defaults to 0.1.
         """
         super().__init__()
-        
+        self.num_patches = (img_size // patch_size) ** 2
         self.patch_embed = PatchEmbedding(patch_size=patch_size,
                                             embed_dim=embed_dim,
                                             in_channels=img_channels)
         #class token to determine which class the image belongs to
         self.class_token = nn.Parameter(torch.zeros(1, 1, embed_dim)) #zeros or randn
         #positional information of patches
-        self.pos_embed = nn.Parameter(torch.zeros(1, self.patch_embed.num_patches + 1, embed_dim))
+        self.pos_embed = nn.Parameter(torch.zeros(1, self.num_patches + 1, embed_dim))
         self.pos_drop = nn.Dropout(p=drop_prob)
         
         #transform encoder blocks
