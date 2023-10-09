@@ -15,7 +15,7 @@ def createResNet():
 class MultilayerPerceptron(nn.Module):
     def __init__(self, dimensions):
         super(MultilayerPerceptron, self).__init__()
-        self.layer_normalisation = nn.LayerNorm() # Needs some parameters
+        self.layer_normalisation = nn.LayerNorm(dimensions) # Needs some parameters
         self.linear_layer1 = nn.Linear(dimensions, dimensions) # Pass in input and output neuron amounts
         self.linear_layer2 = nn.Linear(dimensions, dimensions)
         self.gelu_act = nn.GELU()
@@ -34,7 +34,7 @@ class CrossAttention(nn.Module):
         super(CrossAttention, self).__init__()
         self.layer_norm = nn.LayerNorm(embedded_dimensions) # based on some dimension
          # takes num_heads which are num of heads, d_model which are dimensions of input and output tensor 
-        self.cross_attention = nn.MultiheadAttention(num_heads=cross_attention_heads)
+        self.cross_attention = nn.MultiheadAttention(embed_dim=embedded_dimensions, num_heads=cross_attention_heads)
         self.multilayerPerceptron = MultilayerPerceptron(embedded_dimensions) # needs some parameters
     
     def forward(self, latent, key_value):
@@ -47,12 +47,12 @@ class CrossAttention(nn.Module):
     
 class SelfAttention(nn.Module):
     def __init__(self, embedded_dimension, self_attention_heads):
-        super(CrossAttention, self).__init__()
+        super(SelfAttention, self).__init__()
         self.layer_norm = nn.LayerNorm(embedded_dimension) # based on some dimension
         # takes num_heads which are num of heads, d_model which are dimensions of input and output tensor 
         # paper states that 8 heads are used per self attention
         self.multilayerPerceptron = MultilayerPerceptron(embedded_dimension)
-        self.cross_attention = nn.MultiheadAttention(num_heads=self_attention_heads)
+        self.cross_attention = nn.MultiheadAttention(embed_dim=embedded_dimension, num_heads=self_attention_heads)
     
     def forward(self, latent):
         # Paper states that inputs are first passed through the layer norm then through linear layers
@@ -77,7 +77,7 @@ class Block(nn.Module):
     def __init__(self, self_attention_depth, latent_dimensions, embedded_dimensions, cross_attention_heads, self_attention_heads):
         super(Block, self).__init__()
         self.crossAttention = CrossAttention(embedded_dimensions, cross_attention_heads)
-        self.latentTransformerArray = LatentTransformer(self_attention_depth, self_attention_heads)
+        self.latentTransformerArray = LatentTransformer(self_attention_depth, self_attention_heads, embedded_dimensions)
     
     def forward(self, latent, key_value):
         result = self.crossAttention(latent, key_value)
@@ -97,6 +97,7 @@ class Classifier(nn.Module):
 
 class Perceiver(nn.Module):
     def __init__(self, model_depth, self_attention_depth, latent_dimensions, embedded_dimensions, cross_attention_heads, self_attention_heads):
+        super(Perceiver, self).__init__()
         self.model_depth = model_depth
         self.self_attention_depth = self_attention_depth
         self.latent_dimensions = latent_dimensions
