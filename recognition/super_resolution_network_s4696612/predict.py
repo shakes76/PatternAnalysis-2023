@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import torchvision
 import numpy as np
 from utils import *
+
+
 #-----------------
 # Data
 batch_size = 64
@@ -39,7 +41,7 @@ trained_model.eval()
 torch.save(trained_model.state_dict(), save_path)
 
 # Show images
-fig = plt.figure(figsize=(8,8))
+fig = plt.figure(figsize=(6,3))
 x = batch[0].to(device)[:32]
 y = trained_model(x)
 
@@ -58,18 +60,21 @@ fig.add_subplot(1,3,3)
 plt.axis('off')
 plt.title('High Res')
 plt.imshow(np.transpose(torchvision.utils.make_grid(batch[1].to(device)[0], padding=2,normalize=True).cpu(), (1,2,0)))
+plt.savefig("Comparison.png")
 plt.show()
 
 # Plot a range of model generated images
-plt.figure(figsize=(8,8))
+plt.figure(figsize=(8,4))
 plt.axis('off')
 plt.title('Model Images')
 plt.imshow(np.transpose(torchvision.utils.make_grid(y, padding=2,normalize=True).cpu(), (1,2,0)))
+plt.savefig("model_sample.png")
 plt.show()
 
 # Plot a range of goal images
-plt.figure(figsize=(8,8))
+plt.figure(figsize=(8,4))
 plt.axis('off')
 plt.title('Goal Images')
 plt.imshow(np.transpose(torchvision.utils.make_grid(batch[1].to(device)[:32], padding=2,normalize=True).cpu(), (1,2,0)))
+plt.savefig("goal_images.png")
 plt.show()

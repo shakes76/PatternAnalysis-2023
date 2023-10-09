@@ -41,9 +41,15 @@ the blue line is the training set's loss. The model is not overly overfitted sin
 set's loss is very similar to the training set. Furthermore, the test set had similar loss of 
 approximately 0.1, indicating that the model successfully upscales the MRI scans.
 
-![alt_test](/training_loss.png)
+![](/training_loss.png)
 
 ## Results
+
+![](/Comparison.png)
+
+![](/model_sample.png)
+
+![](/goal_images.png)
 
 
 ## Dependencies
