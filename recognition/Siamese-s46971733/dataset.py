@@ -74,8 +74,9 @@ transform = transforms.Compose([transforms.ToPILImage(),
                                  ])
 
 class ImageDataset(Dataset):
-    def __init__(self, image_dir, transform=None):
+    def __init__(self, image_dir, transform=None, train=0):
         self.images = image_dir
+        self.train = train
 
         # Create list of image labels.
         self.label_list = [image.split('\\')[-2] for image in self.images]
@@ -91,25 +92,27 @@ class ImageDataset(Dataset):
         anchor_data = cv2.imread(img_path)
         anchor_label = img_path.split('\\')[-2]
 
-        positive_list = []
-        negative_list = []
+        # If training, use triplet.
+        if self.train:
+            positive_list = []
+            negative_list = []
 
-        # Obtain list of positive and negative images.
-        for i in range(len(self.images)):
-            if self.images[i] == img_path:
-                continue
-            elif self.label_list[i] == anchor_label:
-                positive_list.append(self.images[i])
-            else:
-                negative_list.append(self.images[i])
+            # Obtain list of positive and negative images.
+            for i in range(len(self.images)):
+                if self.images[i] == img_path:
+                    continue
+                elif self.label_list[i] == anchor_label:
+                    positive_list.append(self.images[i])
+                else:
+                    negative_list.append(self.images[i])
 
-        # Randomly select a positive and negative image from list.
-        positive = random.choice(positive_list)
-        negative = random.choice(negative_list)
+            # Randomly select a positive and negative image from list.
+            positive = random.choice(positive_list)
+            negative = random.choice(negative_list)
 
-        # Convert paths into images.
-        positive_image = cv2.imread(positive)
-        negative_image = cv2.imread(negative)
+            # Convert paths into images.
+            positive_image = cv2.imread(positive)
+            negative_image = cv2.imread(negative)
 
         # fig, axs = plt.subplots(3)
         #
@@ -124,14 +127,25 @@ class ImageDataset(Dataset):
             # apply the transformations to image
             # e.g. transform [H, W, n] format to [n, H, W]
             anchor_data = self.transform(anchor_data)
-            positive_image = self.transform(positive_image)
-            negative_image = self.transform(negative_image)
+            if self.train:
+                positive_image = self.transform(positive_image)
+                negative_image = self.transform(negative_image)
 
-        return anchor_data, positive_image, negative_image, anchor_label
+        if anchor_label == 'AD':
+            anchor_label = 1
+        else:
+            anchor_label = 0
+
+        if self.train:
+            return anchor_data, positive_image, negative_image, anchor_label
+        else:
+            return anchor_data, anchor_label
 
 
-def get_dataset(train):
-    if train == 1:
-        return ImageDataset(train_dirs_full, transform=transform)
+def get_dataset(train, clas):
+    if train == 1 and clas == 0:
+        return ImageDataset(train_dirs_full, transform=transform, train=1)
+    elif train == 1 and clas == 1:
+        return ImageDataset(train_dirs_full, transform=transform, train=0)
     else:
-        return ImageDataset(test_dirs_full, transform=transform)
+        return ImageDataset(test_dirs_full, transform=transform, train=0)
