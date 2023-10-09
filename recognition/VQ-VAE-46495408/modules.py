@@ -157,3 +157,25 @@ class PixelConvLayer(layers.Layer):
             self.conv.kernel.assign(self.conv.kernel * self.mask)
             return self.conv(inputs)
         
+class ResidualBlock(keras.layers.Layer):
+    def __init__(self, filters, **kwargs):
+        super().__init__(**kwargs)
+        self.conv1 = keras.layers.Conv2D(
+            filters=filters, kernel_size=1, activation="relu"
+        )
+        self.pixel_conv = PixelConvLayer(
+            mask_type="B",
+            filters=filters // 2,
+            kernel_size=3,
+            activation="relu",
+            padding="same",
+        )
+        self.conv2 = keras.layers.Conv2D(
+            filters=filters, kernel_size=1, activation="relu"
+        )
+        
+    def call(self, inputs):
+        x = self.conv1(inputs)
+        x = self.pixel_conv(x)
+        x = self.conv2(x)
+        return keras.layers.add([inputs, x])
