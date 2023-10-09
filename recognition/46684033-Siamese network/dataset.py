@@ -114,6 +114,7 @@ def load_data3(train_path, test_path):
     train_loader = torch.utils.data.DataLoader(paired_trainset, batch_size=64, shuffle=True)
     test_loader = torch.utils.data.DataLoader(paired_testset, batch_size=64)
     return train_loader, test_loader
+
 class SiameseDatset_triplet(torch.utils.data.Dataset):
     def __init__(self, dataset):
         self.dataset = dataset
@@ -127,7 +128,7 @@ class SiameseDatset_triplet(torch.utils.data.Dataset):
         anchor_image, label1 = self.dataset[idx1]
         #get positive image
         pos_image, label2 = self.dataset[idx2]
-        while(label1 != label2):
+        while(label1 != label2 or idx1==idx2):
             idx2 = random.randint(0, self.num_samples - 1)
             pos_image, label2 = self.dataset[idx2]
         #get negative image
