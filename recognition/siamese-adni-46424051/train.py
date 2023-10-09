@@ -59,4 +59,16 @@ class Train():
             print(label)
             print("out1:", out1)
             print("out2:", out2)
+            dot = torch.dot(out1, out2)
+            print("dot:", dot)
+            if dot < 0.5:
+                if label == "SAME":
+                    correct += 1
+                else:
+                    incorrect += 1
+            else:
+                if label == "DIFF":
+                    correct += 1
+                else:
+                    incorrect += 1
         print(correct * 1.0 / (correct + incorrect))
