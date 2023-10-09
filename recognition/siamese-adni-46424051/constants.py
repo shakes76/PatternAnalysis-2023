@@ -2,7 +2,7 @@
 import os
 
 cuda = False
-batch_size = 128
+batch_size = 8
 test_size = 1000
 learning_rate = 0.0001
 epochs = 1

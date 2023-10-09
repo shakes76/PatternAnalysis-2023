@@ -52,8 +52,16 @@ class Train():
             if constants.cuda:
                 img1, img2 = img1.cuda(), img2.cuda()
             out1, out2 = self.net(img1, img2)
-            difference = torch.nn.functional.pairwise_distance(out1, out2)
-            print(difference.item())
+            dis = torch.abs(out1 - out2)
+            out = torch.nn.Linear(4096, 1)(dis)
+            # difference = torch.nn.functional.pairwise_distance(out1, out2)
+            # print(difference.item())
+            print(out)
+            pred = np.argmax(out)
+            if pred == 0:
+                correct += 1
+            else:
+                incorrect += 1
             if label[0] == 0:
                 label = "SAME"
             else:
