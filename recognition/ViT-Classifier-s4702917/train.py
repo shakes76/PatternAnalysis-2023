@@ -19,14 +19,18 @@ if (not torch.cuda.is_available()):
 numEpochs = 2500
 learningRate = 0.01
 gamma = 0.9
-trainFromLastRun = True
+trainFromLastRun = False
 savePath = "models/mnistClassifier.pth"
 
 # Initialise Model
 if trainFromLastRun and os.path.exists(savePath):
   model = torch.load(savePath)
-else: # vit_base_patch32_384.augreg_in21k_ft_in1k
-	model = timm.create_model("vit_small_patch16_224.augreg_in21k_ft_in1k", img_size=28, num_classes=len(ds.classes), in_chans=ds.channels)
+else:
+  # Apparently better to choose a pre-trained model that is lower resolution than the
+	# fine-tune database's images, i.e. for this choose a 224 model.
+	# Probably vit_base_patch32_224.augreg_in21k_ft_in1k
+	# 256 x 240
+	model = timm.create_model("vit_base_patch32_224.augreg_in21k_ft_in1k", img_size=28, num_classes=len(ds.classes), in_chans=ds.channels)
 model = model.to(device)
 
 # Initialise logging to display tracking information in TensorBoard

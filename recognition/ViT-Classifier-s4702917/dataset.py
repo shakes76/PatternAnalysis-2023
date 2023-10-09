@@ -5,6 +5,7 @@ import numpy as np
 import torch
 import torchvision
 import torchvision.transforms as transforms
+from torchvision.datasets import ImageFolder
 
 # Parameters
 batchSize = 64
@@ -15,14 +16,8 @@ transform = transforms.Compose(
 	transforms.Normalize((0.5,), (0.5,))])
 
 # datasets
-trainset = torchvision.datasets.FashionMNIST('./data',
-	download=True,
-	train=True,
-	transform=transform)
-testset = torchvision.datasets.FashionMNIST('./data',
-	download=True,
-	train=False,
-	transform=transform)
+trainset = ImageFolder("/home/groups/comp3710/ADNI/AD_NC/train", transform=transform)
+testset = ImageFolder("/home/groups/comp3710/ADNI/AD_NC/test", transform=transform)
 
 # dataloaders
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchSize,
@@ -33,8 +28,7 @@ testloader = torch.utils.data.DataLoader(testset, batch_size=batchSize,
                                          shuffle=False, num_workers=0)
 
 # constant for classes
-classes = ('T-shirt/top', 'Trouser', 'Pullover', 'Dress', 'Coat',
-           'Sandal', 'Shirt', 'Sneaker', 'Bag', 'Ankle Boot')
+classes = ('AD', 'NC')
 channels = 1
 
 # helper function to show an image
