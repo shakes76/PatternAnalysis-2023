@@ -7,11 +7,11 @@ import time
 from typing import Any
 
 import torch
-import torchvision
 
 from tqdm import tqdm
 
 from dataset import create_train_dataloader, create_test_dataloader
+from modules import ViT
 
 N_EPOCHS = 20
 
@@ -73,8 +73,7 @@ def save_model(mdl: Any) -> None:
 
 def main(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    mdl = torchvision.models.vit_b_16(weights=torchvision.models.ViT_B_16_Weights.IMAGENET1K_V1)
-    mdl.to(device)
+    mdl = ViT().to(device)
     train_model(mdl, epochs=args.epochs, device=device, pg=args.pg)
     test_model(mdl, device=device, pg=args.pg)
     save_model(mdl)
