@@ -6,7 +6,7 @@ from utils import *
 
 def generate_train_loader():
     transform = transforms.Compose([
-                            transforms.Resize((60,64)),
+                            transforms.Grayscale(1),
                             transforms.ToTensor(),
                             transforms.RandomHorizontalFlip()
                         ])
