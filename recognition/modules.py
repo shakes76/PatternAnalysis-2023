@@ -1,11 +1,7 @@
 import torch
 import torch.nn as nn
 import torchvision.models as models
-import torchvision.ops as ops
-import torch.nn.functional as F
-from torch.utils.data import DataLoader
-from torchvision.models import ResNet50_Weights
-from torchvision.ops import nms
+from torchvision.ops import nms, roi_align
 
 import ResNet
 from dataset import ISICDataset
@@ -39,12 +35,16 @@ class RoIAlign(nn.Module):
     The RoIAlign layer crops and resizes the feature maps from the backbone network for each object proposal.
     """
 
-    def __init__(self):
+    def __init__(self, output_size, spatial_scale, sampling_ratio):
         super(RoIAlign, self).__init__()
-        self.roi_align = ops.RoIAlign((7, 7), spatial_scale=1/16.0, sampling_ratio=-1)
+        self.output_size = output_size
+        self.spatial_scale = spatial_scale
+        self.sampling_ratio = sampling_ratio
 
-    def forward(self, features, boxes, box_indices):
-        return self.roi_align(features, boxes, box_indices)
+    def forward(self, input, boxes, box_indices):
+        return roi_align(input, boxes, box_indices,
+                         self.output_size, self.spatial_scale, self.sampling_ratio)
+
 
 class Classifier(nn.Module):
 
@@ -118,7 +118,7 @@ class MaskRCNN(nn.Module):
         super(MaskRCNN, self).__init__()
         self.backbone = ResNet.ResNet(ResNet.Bottleneck, [3, 4, 6, 3])
         self.rpn = RPN()
-        self.roi_align = RoIAlign()
+        self.roi_align = RoIAlign(output_size=(7, 7), spatial_scale=1 / 16, sampling_ratio=-1)
         self.classifier = Classifier(num_classes)
         self.box_regressor = BoxRegressor()
         self.mask_branch = MaskBranch()
@@ -128,36 +128,14 @@ class MaskRCNN(nn.Module):
         # Load the pretrained weights into the backbone network
         self.backbone.load_state_dict(resnet.state_dict(), strict=False)
 
-    def forward(self, x):
+    def forward(self, x, boxes, box_indices):
         x = self.backbone(x)
         proposals = self.rpn(x)
-        rois = self.roi_align(proposals)
+        rois = self.roi_align(x, boxes, box_indices)
         classification = self.classifier(rois)
         boxes = self.box_regressor(rois)
         masks = self.mask_branch(rois)
         return classification, boxes, masks
 
 
-if __name__ == '__main__':
-    train_dataset = ISICDataset(path="E:/comp3710/ISIC2018", type="Training")
-    train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
 
-    # Initialize the model
-    num_classes = 2  # For binary classification, we have 2 classes: 0 and 1
-    model = MaskRCNN(num_classes)
-    model = model.cuda()  # 如果使用GPU
-
-    # 初始化优化器
-    optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-
-    # 训练循环
-    for epoch in range(10):  # 运行10个epoch，
-        for i, (images, labels) in enumerate(train_loader):
-            images = images.cuda()
-            labels = labels.cuda()
-
-            optimizer.zero_grad()
-
-            classification, boxes, masks = model(images)
-
-            break
