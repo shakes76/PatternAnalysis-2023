@@ -17,22 +17,49 @@ def createResNet():
 
 
 class CrossAttention(nn.Module):
-    def __init__(self):
+    def __init__(self, dimensions):
         super(CrossAttention, self).__init__()
-
+        self.layer_norm = nn.LayerNorm() # based on some dimension
+        self.linear_layer = nn.Linear(dimensions, dimensions) # Pass in input and output neuron amounts
+         # takes num_heads which are num of heads, d_model which are dimensions of input and output tensor 
+        self.cross_attention = nn.MultiheadAttention(num_heads=1)
     
-    def forward(input_x, input_y):
-        v = nn.Linear(input_y)
-        k = nn.Linear(input_y)
-        return (v, k)
+    def forward(self, latent, key_value):
+        # Paper states that inputs are first passed through the layer norm then through linear layers
+        result = self.layer_norm(latent)
+        result = self.linear_layer(result)
+        #cross attention takes 3 parameters: (latent, key, value)
+        result = self.cross_attention(result, key_value, key_value)
+        return result
     
 class SelfAttention(nn.Module):
-    def __init__(self):
-        self.attention =nn.MultiheadAttention()
+    def __init__(self, dimensions):
+        super(CrossAttention, self).__init__()
+        self.layer_norm = nn.LayerNorm() # based on some dimension
+        self.linear_layer = nn.Linear(dimensions, dimensions) # Pass in input and output neuron amounts
+        # takes num_heads which are num of heads, d_model which are dimensions of input and output tensor 
+        # paper states that 8 heads are used per self attention
+        self.cross_attention = nn.MultiheadAttention(num_heads=8)
+    
+    def forward(self, latent):
+        # Paper states that inputs are first passed through the layer norm then through linear layers
+        result = self.layer_norm(latent)
+        result = self.linear_layer(result)
+        #cross attention takes 3 parameters: (latent, key, value)
+        result = self.cross_attention(result, result)
+        return result
 
 class LatentTransformer(nn.Module):
-    def __init__(self):
+    def __init__(self, latent_depth, dimensions):
         super(LatentTransformer, self).__init__()
+        self.depth = latent_depth
+        self.self_attention_stack = nn.ModuleList([SelfAttention(dimensions) for i in range(latent_depth)])
+
+    
+    def forward(self, latent):
+        for self_attention in self.self_attention_stack:
+            latent = self_attention.forward(latent)
+        return latent
 
 class PerceiverBlock(nn.Module):
     def __init__(self, depth, latent_dimensions, embedded_dimensions):
