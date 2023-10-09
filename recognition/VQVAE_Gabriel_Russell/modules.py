@@ -233,14 +233,6 @@ class VQVAEModel(nn.Module):
 
         return loss, x_recon, perplexity
 
-"""
-Class for initialising an Adam Optimizer for VQVAE model
-"""
-class VQVAE_Optimizer():
-    def __init__(self,):
-        self.model = VQVAEModel()
-        p = Parameters()
-        self.Adam = optim.Adam(self.model.parameters(), p.learn_rate)
 
 """
 Building a DCGAN to generate images from trained images outputted by VQVAE
