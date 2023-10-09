@@ -44,7 +44,8 @@ validate_loader = DataLoader(validate_data, batch_size=batch_size)
 
 In this process, we build more gradually noisy images to be inputted into our model. Here, noise-levels/varianes are pre-computed and we sample each timestep image separately (Sums of Gaussians = Gaussian). The output of the noisy images can be seen as follows (code referenced from https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL):
 
-The code can be seen in its section within module.py
+The precomputed values can be seen in the module.py section in utils.py
+The diffusion noising code can be found in the noise scheduler section in module.py
 
 
 ### U-Net (Backwards Process) - module.py
