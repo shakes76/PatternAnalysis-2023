@@ -123,6 +123,8 @@ def train_fn(
             gp=gp.item(),
             loss_critic=loss_critic.item(),
         )
+        
+        
     
     return (D_losses, G_losses)
     

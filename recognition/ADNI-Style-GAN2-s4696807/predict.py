@@ -72,6 +72,8 @@ for epoch in range(EPOCHS):
     if epoch % 50 == 0:
         # Generate example images for the current epoch
         generate_examples(gen, epoch)
+        torch.save(gen.state_dict(), f'generator_epoch{epoch}.pt')
+        torch.save(critic.state_dict(), f'discriminator_epoch{epoch}.pt')
     
 plt.figure(figsize=(10,5))
 plt.title("Generator Loss During Training")
