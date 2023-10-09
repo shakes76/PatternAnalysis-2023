@@ -56,7 +56,6 @@ class Block(nn.Module):
 
 class ResNet(nn.Module):
     def __init__(self, block, num_blocks, num_classes=2):
-        # 2 Class -- Anchor, Positive, Negative?
         super(ResNet, self).__init__()
         self.in_channels = 64
 
@@ -72,12 +71,14 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
         #self.linear = nn.Linear(512*block.expansion, num_classes)
-        self.linear = nn.Linear(512 * block.expansion, 10)
+        #self.linear = nn.Linear(512 * block.expansion, 10)
+        self.linear = nn.Linear(512 * block.expansion, 64)
 
         # self.triplet_loss = nn.Sequential(
         #     nn.Linear(num_classes, 2))
-        self.triplet_loss = nn.Sequential(
-                        nn.Linear(10, num_classes))
+        # self.triplet_loss = nn.Sequential(
+        #                 nn.Linear(10, num_classes),
+        #                 nn.ReLU())
 
     def _make_layer(self, block, out_channels, num_blocks, stride):
         # Basically makes one block downsample and the other compute convolutional layer.
@@ -100,9 +101,36 @@ class ResNet(nn.Module):
         out = out.view(out.size(0), -1)
         out = self.linear(out)
 
-        out = self.triplet_loss(out)
+        #out = self.triplet_loss(out)
+        #out = self.triplet_loss(out)
 
         return out
+
+class classifer(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.layer = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(64, 32),
+            nn.BatchNorm1d(32),
+            nn.ReLU(),
+
+            nn.Linear(32, 16),
+            nn.BatchNorm1d(16),
+            nn.ReLU(),
+
+            nn.Linear(16, 2)
+        )
+
+        self.activation = nn.Sigmoid()
+
+    def forward(self, x):
+        out = self.layer(x)
+        out = self.activation(out)
+
+        return out
+
 
 def Resnet():
     return ResNet(Block, [2, 2, 2, 2])
