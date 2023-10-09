@@ -4,7 +4,7 @@ This implementation trains a mask R-CNN to segment and classify images of skin l
 
 <img width="515" alt="archetecture" src="https://github.com/Shreya-Personal/s4580286/assets/141000874/8a4876cf-1e1d-4f50-85f4-edd914125b68">
 
-Figure 1: Mask R-CNN architeture
+Figure 1: Mask R-CNN architecture
 
 The backbone network used was the resnet50 fpn, which was pretrained on the COCO dataset. The backbone extracts hierarchical features from the input image. The Mask R-CNN then uses an RPN (region proposal network) to suggest potential bounding box locations before being ranked by the likelihood of containing objects. The ROI align allows for accurate, smooth pixel-level alignment between feature maps and region proposals, a signature feature of the Mask R-CNN. The aligned features are then passed through two parallel features for classifying and refining the segmentation. A third branch utilizes a series of convolutional layers to generate an instance-level binary mask. The loss function is multitask to evaluate classification, bounding box, and mask prediction during training.
 
