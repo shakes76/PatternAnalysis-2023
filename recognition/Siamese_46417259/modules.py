@@ -46,7 +46,7 @@ class SiameseNeuralNet(nn.Module):
         # out = torch.absolute(pairwise_subtraction(x_features, y_features))
         out = torch.absolute(x1_features - x2_features)
         out = F.sigmoid(self.fc(out))
-        return out
+        return out, x1_features, x2_features
     
 class SiameseMLP(nn.Module):
     

@@ -5,10 +5,10 @@ import torch.nn as nn
 import torch.nn.parallel
 import torch.optim as optim
 import torch.utils.data
-import torchvision.datasets as dset
-import torchvision.transforms.v2 as transforms
-import torchvision.utils as vutils
-import numpy as np
+# import torchvision.datasets as dset
+# import torchvision.transforms.v2 as transforms
+# import torchvision.utils as vutils
+# import numpy as np
 import matplotlib.pyplot as plt
 
 from modules import SiameseTwin, SiameseNeuralNet, SiameseMLP
@@ -19,11 +19,11 @@ TEST_PATH = '/home/groups/comp3710/ADNI/AD_NC/test/'
 RESULTS_PATH = "/home/Student/s4641725/COMP3710/project_results/"
 
 # Loss Functions and Optimizers -----------------------------------
-def contrastive_loss(x1:torch.Tensor,x2:torch.Tensor, sameness:torch.Tensor, margin:float=1.0):
+def contrastive_loss(x1:torch.Tensor, x2:torch.Tensor, label:torch.Tensor, margin:float=1.0):
     
     difference = nn.PairwiseDistance(x1, x2)
-    loss = (sameness * torch.pow(difference, 2) + 
-            (1 - sameness) * torch.max(0, margin - torch.pow(difference, 2)))
+    loss = (label * torch.pow(difference, 2) + 
+            (1 - label) * torch.max(0, margin - torch.pow(difference, 2)))
     loss = torch.mean(loss)
     return loss
 
@@ -47,8 +47,7 @@ def initialise_training():
 
     criterion = contrastive_loss
     optimiser = optim.Adam(siamese_net.parameters(), lr=1e-3, betas=(0.9, 0.999))
-
-    return siamese_net, criterion, optimiser
+    return siamese_net, criterion, optimiser, device
 
 def load_from_checkpoint(filename:str):
     pass
@@ -57,14 +56,96 @@ def save_checkpoint():
     pass
 
 def train_and_eval():
-    save_checkpoint()
+    starting_epoch = 0
+    num_epochs = 10
+    random_seed = 69
 
+    dataloader = load_data(training=True, Siamese=True, random_seed=random_seed)
+    siamese_net, criterion, optimiser, device = initialise_training()
 
+    total_step = len(dataloader)
+
+    scheduler = optim.lr_scheduler.OneCycleLR(optimiser, max_lr=1e-3, 
+                                              steps_per_epoch=total_step, epochs=num_epochs)
+
+    training_losses = []
+
+    siamese_net.train()
+    print("> Training")
+    start = time.time() #time generation
+    for epoch in range(starting_epoch, num_epochs):
+    # For each batch in the dataloader
+        for i, (x1, x2, label) in enumerate(dataloader, 0):
+            # forward pass
+            x1 = x1.to(device)
+            x2 = x2.to(device)
+            label = label.to(device)
+
+            siamese_net.zero_grad()
+            sameness, x1_features, x2_features = siamese_net(x1, x2).view(-1)
+            loss = criterion(x1_features, x2_features, label)
+
+            # Backward and optimize
+            loss.backward()
+            optimiser.step()
+            scheduler.step()
+
+            if (i+1) % 100 == 0:
+                print("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
+                    .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
+            
+            training_losses.append(loss)      
+    end = time.time()
+    elapsed = end - start
+    print("Training took " + str(elapsed) + " secs of " + str(elapsed/60) + " mins in total")
+
+    # --------------
+    # Test the model
+    print("> Testing")
+    start = time.time() #time generation
+    siamese_net.eval()
+    test_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
+
+    eval_losses = []
+
+    with torch.no_grad(): # disables gradient calculation
+        correct = 0
+        total = 0
+        for x1, x2, labels in test_loader:
+            x1 = x1.to(device)
+            x2 = x2.to(device)
+            labels = labels.to(device)
+            predicted, x1_features, x2_features = siamese_net(x1, x2)
+
+            loss = criterion(x1_features, x2_features, labels)
+            # _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+            eval_losses.append(loss)
+            
+        print('Test Accuracy: {} %'.format(100 * correct / total))
+    
+    end = time.time()
+    elapsed = end - start
+    print("Testing took " + str(elapsed) + " secs of " + str(elapsed/60) + " mins in total")
+
+    print('END')
+
+    plt.figure(figsize=(10,5))
+    plt.title("Training and Evaluation Loss During Training")
+    plt.plot(training_losses, label="Train")
+    plt.plot(eval_losses, label="Eval")
+    plt.xlabel("iterations")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.savefig(RESULTS_PATH + f"/train_and_eval_loss_after_{num_epochs}_epochs.png")
 
 # new code here
 
 if __name__ == "__main__":
     initialise_training()
     # load_from_checkpoint()
+    train_and_eval()
 
     
