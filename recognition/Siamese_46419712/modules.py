@@ -80,14 +80,16 @@ class BinaryModelClassifier(nn.Module):
     def __init__(self, siamese_model):
         super(BinaryModelClassifier, self).__init__()
 
-        self.siamese = siamese_model # siamese model
-
-        # idea from the tutor -> use the siamese model to train the data to extract feature vector
-        # train the classifier using the feature vector from the siamese model
-        pass
+        # dummy linear layer
+        self.binary_layer = nn.Sequential(
+            nn.Linear(4096, 128),
+            nn.ReLU(),
+            nn.Linear(128, 1),
+            nn.Sigmoid()
+        )
 
     def forward(self, x):
-        output = self.siamese(x) # feature vector from siamese model
+        output = self.binary_layer(x)
         return output
 
 class ContrastiveLossFunction(nn.Module):
