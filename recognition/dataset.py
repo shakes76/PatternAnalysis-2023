@@ -6,6 +6,7 @@ from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 import os
 import cv2
+import matplotlib.pyplot as plt
 
 class ISICDataset(Dataset):
     def __init__(self, path, type, desired_height=256, desired_width=256):
