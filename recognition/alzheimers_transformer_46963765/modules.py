@@ -55,8 +55,6 @@ class Attention(nn.Module):
         #in2 is 32 by 512
                 
         out = self.lnorm1(image)
-        
-
         out, _ = self.attn(query=latent, key=image, value=image)
         
         #first residual connection.
@@ -165,7 +163,6 @@ class ADNI_Transformer(nn.Module):
     def forward(self, images):
         # shape 32x3x240x240
         images = self._embeddings(images)
-        
         latent = self.latent
         # latent size 512x512
         

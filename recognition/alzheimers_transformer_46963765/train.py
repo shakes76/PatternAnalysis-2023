@@ -15,14 +15,13 @@ def train(epochs, depth):
 
     dataset = ds.ADNI_Dataset()
     train_loader = dataset.get_train_loader()
-    optimizer = optim.Adam(model.parameters(), 0.05)
+    optimizer = optim.Adam(model.parameters(), 0.005)
     criterion = nn.BCELoss()
     batch_losses = []
 
     # training loop
     for epoch in range(epochs):
         batch_loss = 0
-
         model.train()
         for j, (images, labels) in  enumerate(train_loader):
             if images.size(0) == 32:
@@ -33,19 +32,21 @@ def train(epochs, depth):
                 loss = criterion(outputs.squeeze().to(torch.float), labels.to(torch.float))
                 loss.backward()
                 optimizer.step()
-                batch_loss += loss.item()
                 
-        batch_losses.append(batch_loss)
+                batch_loss += loss.item()
+                print(batch_loss/(j+1))
+                
+        batch_losses.append(batch_loss/(j+1))
         print("epoch {} complete".format(epoch + 1))
-        print("loss is {}".format(batch_loss))
+        # print("loss is {}".format(batch_loss))
         
     return model, batch_losses
 
 
 
 if __name__ == "__main__":
-    epochs = 0
-    depth = 2
+    epochs = 20
+    depth = 3
     
     model, losses = train(epochs, depth)
     torch.save(model.state_dict(), "model/model.pth")
