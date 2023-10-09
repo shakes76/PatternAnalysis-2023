@@ -3,6 +3,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from dataset import ISICDataset, get_transform
 from modules import UNet2D
+from modules2 import ImprovedUNet
 import matplotlib.pyplot as plt
 
 # Parameters
@@ -22,6 +23,7 @@ val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
 # Model, Criterion, Optimizer
 model = UNet2D(in_channels=3, num_classes=1).to(device)
+# model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
 optimizer = optim.Adam(model.parameters(), lr=initial_lr, weight_decay=l2_weight_decay)
 
 # Custom Dice Loss

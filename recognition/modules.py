@@ -22,8 +22,8 @@ class ContextModule(nn.Module):
 
     def forward(self, x):
         x = self.conv1(x)
-        x = self.conv2(x)
         x = self.dropout(x)
+        x = self.conv2(x)
         return x
 
 class LocalisationModule(nn.Module):
@@ -67,8 +67,6 @@ class SegmentationLayer(nn.Module):
     def forward(self, x):
         # Applying convolution
         x = self.conv(x)
-        # Applying sigmoid activation to squash outputs between 0 and 1
-        x = torch.sigmoid(x)
         return x
     
 class UpscalingLayer(nn.Module):
@@ -148,28 +146,28 @@ class UNet2D(nn.Module):
         up_bottleneck = self.up_bottleneck(bottleneck)
         
         # Decoder
-        x = self.local1(torch.cat((x4, up_bottleneck), 1))
+        x = self.local1(torch.cat((x4, up_bottleneck), dim=1))
         x = self.up1(x)
 
-        x = self.local2(torch.cat((x3, x), 1))
+        x = self.local2(torch.cat((x3, x), dim=1))
         seg1 = self.seg1(x)
         x = self.up2(x)
 
         seg1_upsampled = self.upsample_seg1(seg1)
 
-        x = self.local3(torch.cat((x2, x), 1))
+        x = self.local3(torch.cat((x2, x), dim=1))
         seg2 = self.seg2(x)
         x = self.up3(x)
-
+        
         seg12 = seg1_upsampled + seg2
         seg12_up = self.upsample_seg2(seg12)
         
-        x = self.final_conv(torch.cat((x1, x), 1))
+        x = self.final_conv(torch.cat((x1, x), dim=1))
 
         seg3 = self.seg3(x)
         seg123 = seg3 + seg12_up
 
-        out = nn.functional.softmax(seg123, dim=1)
-        # print(out.shape)
+        # out = nn.functional.softmax(seg123, dim=1)
+        out = torch.sigmoid(seg123)
         
         return out
