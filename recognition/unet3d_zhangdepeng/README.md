@@ -7,7 +7,10 @@ Segment the (downsampled) Prostate 3D data set with the UNet3D.
 
 **algorithm** : We the network with annotated 3D MR slices from a
 representative training set and can segment non-annotated 3D MR image to six classes .
-[! img1.png]
+
+<div align="center">
+  <img src="recognition/unet3d_zhangdepeng/img1.png" >
+</div>
 
 ## Requirements
 + monai                          1.2.0
@@ -30,7 +33,21 @@ python predict.py --pth /path_of_trained_model --dataset_root /path_of_dataset
 ```
 
 ## The training process of loss and metric 
+we train the model with different loss function and record the loss of training process
+<div align="center">
+  <img src="recognition/unet3d_zhangdepeng/train_loss_mse1.png" >
+</div>
+<div align="center">
+  <img src="recognition/unet3d_zhangdepeng/train_loss_dice1.png" >
+</div>
 
+we train the model with different loss function and record the dice metric of test set  during training process
+<div align="center">
+  <img src="recognition/unet3d_zhangdepeng/metric_mse.png" >
+</div>
+<div align="center">
+  <img src="recognition/unet3d_zhangdepeng/metric_dice.png" >
+</div>
 
 ## Dataset
 
