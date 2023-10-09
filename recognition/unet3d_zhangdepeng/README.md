@@ -9,8 +9,9 @@ Segment the (downsampled) Prostate 3D data set with the UNet3D.
 representative training set and can segment non-annotated 3D MR image to six classes .
 
 <div align="center">
-  <img src="recognition/unet3d_zhangdepeng/img1.png" >
+  <img src="img1.png" >
 </div>
+**attention** we cite the picture from 3DUnet[1]
 
 ## Requirements
 + monai                          1.2.0
@@ -35,18 +36,18 @@ python predict.py --pth /path_of_trained_model --dataset_root /path_of_dataset
 ## The training process of loss and metric 
 we train the model with different loss function and record the loss of training process
 <div align="center">
-  <img src="recognition/unet3d_zhangdepeng/train_loss_mse1.png" >
+  <img src="train_loss_mse1.png" >
 </div>
 <div align="center">
-  <img src="recognition/unet3d_zhangdepeng/train_loss_dice1.png" >
+  <img src="train_loss_dice1.png" >
 </div>
 
 we train the model with different loss function and record the dice metric of test set  during training process
 <div align="center">
-  <img src="recognition/unet3d_zhangdepeng/metric_mse.png" >
+  <img src="metric_mse.png" >
 </div>
 <div align="center">
-  <img src="recognition/unet3d_zhangdepeng/metric_dice.png" >
+  <img src="metric_dice.png" >
 </div>
 
 ## Dataset
@@ -61,7 +62,7 @@ The total number of dataset is 211. The train/val/test is 174/16/21, thus the ra
 
 ## Citation
 ```
-@inproceedings{cciccek20163d,
+[1]@inproceedings{cciccek20163d,
   title={3D U-Net: learning dense volumetric segmentation from sparse annotation},
   author={{\c{C}}i{\c{c}}ek, {\"O}zg{\"u}n and Abdulkadir, Ahmed and Lienkamp, Soeren S and Brox, Thomas and Ronneberger, Olaf},
   booktitle={Medical Image Computing and Computer-Assisted Intervention--MICCAI 2016: 19th International Conference, Athens, Greece, October 17-21, 2016, Proceedings, Part II 19},
