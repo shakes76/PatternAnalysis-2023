@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from keras import layers
-from dataset import get_validate_ds
 
 class VectorQuantizer(layers.Layer):
     def __init__(self, num_embeddings, embedding_dim, beta=0.25, **kwargs):

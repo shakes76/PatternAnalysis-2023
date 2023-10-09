@@ -13,7 +13,7 @@ def get_train_dataset():
     train_ds = train_ds.map(lambda x: normalization_layer(x))
     return train_ds
 
-def get_validate_ds():
+def get_validate_dataset():
     validate_ds = tf.keras.utils.image_dataset_from_directory(
         'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_validate',
         label_mode=None,
@@ -25,7 +25,7 @@ def get_validate_ds():
     validate_ds = validate_ds.map(lambda x: normalization_layer(x))
     return validate_ds
 
-def get_test_ds():
+def get_test_dataset():
     test_ds = tf.keras.utils.image_dataset_from_directory(
         'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_test',
         label_mode=None,
