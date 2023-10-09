@@ -5,6 +5,7 @@ import torch.nn as nn
 import torch.nn.parallel
 import torch.optim as optim
 import torch.utils.data
+import torch.nn.functional as F
 # import torchvision.datasets as dset
 # import torchvision.transforms.v2 as transforms
 # import torchvision.utils as vutils
@@ -21,9 +22,9 @@ RESULTS_PATH = "/home/Student/s4641725/COMP3710/project_results/"
 # Loss Functions and Optimizers -----------------------------------
 def contrastive_loss(x1:torch.Tensor, x2:torch.Tensor, label:torch.Tensor, margin:float=1.0):
     
-    difference = nn.PairwiseDistance(x1, x2)
+    difference = F.pairwise_distance(x1, x2)
     loss = (label * torch.pow(difference, 2) + 
-            (1 - label) * torch.max(0, margin - torch.pow(difference, 2)))
+            (1 - label) * torch.max(torch.zeros_like(difference), margin - torch.pow(difference, 2)))
     loss = torch.mean(loss)
     return loss
 
@@ -82,7 +83,7 @@ def train_and_eval():
             label = label.to(device)
 
             siamese_net.zero_grad()
-            sameness, x1_features, x2_features = siamese_net(x1, x2).view(-1)
+            sameness, x1_features, x2_features = siamese_net(x1, x2)
             loss = criterion(x1_features, x2_features, label)
 
             # Backward and optimize

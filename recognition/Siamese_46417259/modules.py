@@ -17,7 +17,7 @@ class SiameseTwin(nn.Module):
         self.conv3 = nn.Conv2d(128, 128, 4, 1)
         self.maxpool3 = nn.MaxPool2d(2, stride=2)
         self.conv4 = nn.Conv2d(128, 256, 4, 1)
-        self.fc = nn.Linear(256*22*24, 4096)
+        self.fc = nn.Linear(256*22*22, 4096)
 
     def forward(self, x):
         out = F.relu(self.conv1(x))
