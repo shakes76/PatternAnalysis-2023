@@ -1,9 +1,5 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-from torchvision import transforms, datasets
-from torchvision.transforms import RandomRotation, RandomHorizontalFlip, RandomVerticalFlip, RandomResizedCrop, ColorJitter
+from torch.utils.data import Dataset
+from torchvision import transforms
 
 import os
 from PIL import Image
