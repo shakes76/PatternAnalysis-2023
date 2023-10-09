@@ -183,7 +183,6 @@ scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=10, gamma=0.9)  # for
 
 def train():
     model.train()
-    #train_loss = []
     for batch_idx, (x, _) in enumerate(train_loader):
         start_time = time.time()
         x = x.to(DEVICE)
@@ -214,16 +213,13 @@ def train():
         log_px = nll.sum() / N + np.log(128) - np.log(K * 2)
         log_px /= np.log(2)
 
-        #train_loss.append(
-        #    [log_px.item()] + to_scalar([loss_recons, loss_vq])
-        #)
         train_losses.append((log_px.item(), loss_recons.item(), loss_vq.item()))
 
         if (batch_idx + 1) % PRINT_INTERVAL == 0:
             print('\tIter [{}/{} ({:.0f}%)]\tLoss: {} Time: {}'.format(
                 batch_idx * len(x), len(train_loader.dataset),
                 PRINT_INTERVAL * batch_idx / len(train_loader),
-                np.asarray(train_loss)[-PRINT_INTERVAL:].mean(0),
+                np.mean(train_losses[-PRINT_INTERVAL:], axis=0),
                 time.time() - start_time
             ))
         #return np.asarray(train_loss).mean(0)[0]  # return average reconstruction loss
@@ -250,10 +246,8 @@ def validate():
     # Display the average validation loss
     mean_val_loss = np.asarray(val_loss).mean(0)
     print('\nValidation Loss: {}'.format(mean_val_loss))
-    
-    # Compute SSIM for validation
-    ssim_score = compute_ssim(x, x_tilde)
-    print(f"Validation SSIM: {ssim_score}")
+    # print average ssim score
+    print(f"Average Validation SSIM: {avg_ssim:.4f}")
 
     # Append the metrics to the lists
     val_losses.append(mean_val_loss)
@@ -284,10 +278,13 @@ def generate_samples():
     plt.axis('off')
     plt.show()
 
-BEST_LOSS = 999
-LAST_SAVED = -1
-BEST_SSIM = 0  # initial value, assuming higher SSIM is better
-save_interval = 10
+# Constants for determining the importance of SSIM and reconstruction loss
+ALPHA = 0.5  # weight for SSIM, range [0, 1]
+BETA = 1 - ALPHA  # weight for reconstruction loss
+
+BEST_METRIC = -999  # initial value for the combination metric
+BEST_SSIM = 0  # just for logging purposes
+BEST_RECONS_LOSS = 999  # just for logging purposes
 
 train_losses = []
 val_losses = []
@@ -299,18 +296,21 @@ for epoch in range(1, N_EPOCHS):
     
     # Modify this line to unpack both loss and SSIM
     val_loss, val_ssim = validate()
-    
+    # Calculate the combined metric
+    combined_metric = ALPHA * val_ssim + BETA * (1 - val_loss[0])  # assuming lower reconstruction loss is better, thus the (1 - val_loss[0])
 
-    # Check SSIM instead of loss for performance improvements
-    if val_ssim > BEST_SSIM:                        
-        BEST_SSIM = val_ssim                    
-        print("Saving model based on improved SSIM!")
+    # Check the combined metric for improvements
+    if combined_metric > BEST_METRIC:                        
+        BEST_METRIC = combined_metric
+        BEST_SSIM = val_ssim
+        BEST_RECONS_LOSS = val_loss[0]
+        print("Saving model based on improved combined metric!")
         dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
         # Save model and generate samples every 10 epochs
         if epoch % save_interval == 0:
             torch.save(model.state_dict(), f'model_epoch_{epoch}/{dataset_name}_vqvae.pt') 
     else:
-        print(f"Not saving model! Last best SSIM: {BEST_SSIM:.4f}")
+        print(f"Not saving model! Last best combined metric: {BEST_METRIC:.4f}, SSIM: {BEST_SSIM:.4f}, Reconstruction Loss: {BEST_RECONS_LOSS:.4f}")
 
     # Generate samples at the end of each epoch
     generate_samples()
