@@ -5,56 +5,40 @@ import matplotlib.pyplot as plt
 
 # Set device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(device)
 
 # Load trained model
 model_path = "diffusion_network.pth"
-diffusion_network = DiffusionNetwork().to(device)
+diffusion_network = DiffusionNetwork()
 diffusion_network.load_state_dict(torch.load(model_path))
-diffusion_network.eval()  # Set the model to evaluation mode
+diffusion_network.to(device)
+diffusion_network.eval()  # set to evaluation mode
 
-def beta_schedule(timesteps):
-    start = 0.0001
-    end = 0.02
-    return torch.linspace(start, end, timesteps)
+# Load data
+batch_size = 9  # set batch size to 9 to generate 9 images
+dataloader = process_dataset(batch_size=batch_size, is_validation=True)  # replace with your validation directory
 
-# Initialize models and dataset
-num_steps = 100
-betas = beta_schedule(num_steps)
-diffusion_process = DiffusionProcess(betas, num_steps).to(device)
-
-# Load a sample batch of data
-batch_size = 3
-dataloader = process_dataset(batch_size=batch_size)
-sample_batch = next(iter(dataloader)).to(device)
-
-# Apply diffusion process
-diffused_sample = diffusion_process(sample_batch)
-
-# Generate images from diffused images
-with torch.no_grad():
-    output_samples = diffusion_network(diffused_sample)
-
-# Move data to CPU for visualization
-sample_batch = sample_batch.cpu()
-diffused_sample = diffused_sample.cpu()
-output_samples = output_samples.cpu()
-
-# Visualize
-fig, axes = plt.subplots(10, 3, figsize=(15, 15))
-
-for i in range(3):
-    axes[i, 0].imshow(sample_batch[i][0], cmap='gray')
-    axes[i, 0].set_title('Original Image')
+# Prediction and Visualization
+for i, batch in enumerate(dataloader):
+    # Move batch to device
+    batch = batch.to(device)
     
-    axes[i, 1].imshow(diffused_sample[i][0], cmap='gray')
-    axes[i, 1].set_title('Diffused Image')
+    # Generate image from input image
+    with torch.no_grad():
+        output = diffusion_network(batch)
+
+    # Convert to numpy arrays
+    output = output.cpu().numpy()
     
-    axes[i, 2].imshow(output_samples[i][0], cmap='gray')
-    axes[i, 2].set_title('Generated Image')
-
-for ax_row in axes:
-    for ax in ax_row:
-        ax.axis('off')
-
-plt.show()
+    # Plot 3x3 grid
+    plt.figure(figsize=(10, 10))
+    
+    for j in range(9):
+        plt.subplot(3, 3, j+1)
+        plt.title(f"Image {j+1}")
+        plt.imshow(output[j, 0], cmap='gray')
+        plt.axis('off')
+        
+    plt.show()
+    
+    # Stop after first batch for demonstration
+    break

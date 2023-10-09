@@ -21,15 +21,15 @@ diffusion_network = DiffusionNetwork().to(device)
 print(diffusion_network)
 
 optimizer = optim.Adam(diffusion_network.parameters(), lr=1e-3)
-criterion = torch.nn.MSELoss()  # Example loss function
+criterion = torch.nn.MSELoss().to(device)  # Example loss function
 
 batch_size = 8
-dataloader = process_dataset(batch_size=batch_size)
+train_dataloader = process_dataset(batch_size=batch_size, is_validation=False)
 
 # Training loop
 losses = []
 for epoch in range(10):  # Example: 10 epochs
-    for i, batch in enumerate(dataloader):
+    for i, batch in enumerate(train_dataloader):
         # Move batch to device
         batch = batch.to(device)
         
@@ -48,15 +48,6 @@ for epoch in range(10):  # Example: 10 epochs
         optimizer.step()
         
         losses.append(loss.item())
-        print(f"Epoch {epoch+1}, Iteration {i+1}, Loss: {loss.item()}")
-
-# Save the trained model
-torch.save(diffusion_network.state_dict(), "diffusion_network.pth")
-
-# Plotting loss
-plt.plot(losses)
-plt.xlabel('Iteration')
-plt.ylabel('Loss')
-plt.title('Training Loss')
-plt.ylim(0, 0.05)
-plt.show()
+        
+        if (i + 1) % 10 == 0:
+            print(f"Epoch {epoch+1}, Iteration {i+1}, Loss: {loss.item()}")
