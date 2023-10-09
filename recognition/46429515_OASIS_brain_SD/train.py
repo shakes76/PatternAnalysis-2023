@@ -12,7 +12,7 @@ model = module.UNet()
 model = model.to(device)
 
 # Adam Optimizer for training the model
-optimizer = Adam(model.parameters(), lr=0.01)
+optimizer = Adam(model.parameters(), lr=0.001)
 
 best_loss = float('inf')  # Initialize with a high value
 best_model_state_dict = None  # Variable to store the state_dict of the best model
