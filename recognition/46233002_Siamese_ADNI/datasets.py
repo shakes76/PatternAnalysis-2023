@@ -8,8 +8,8 @@ import numpy as np
 class ADDataTrain(Dataset):
 
     def __init__(self, ad_dir, nc_dir, ads, ncs, transform=None):
-        self.ad_dir = ad_dir
-        self.nc_dir = nc_dir
+        self.ad_dir = ad_dir # /home/groups/comp3710/ADNI/AD_NC/train/AD
+        self.nc_dir = nc_dir # /home/groups/comp3710/ADNI/AD_NC/train/NC
 
         self.ads = sorted(ads)
         self.ncs = sorted(ncs)
@@ -22,24 +22,21 @@ class ADDataTrain(Dataset):
     def __getitem__(self, idx):
         # Determine if AD or NC 
         if idx < len(self.ads):
-            path = self.ad_dir
-            anchor_dir = self.ads
-            pos_dir = self.ads
-            neg_dir = self.ncs
+            anchor_path = os.path.join(self.ad_dir, self.ads[idx])
+            pos_path = os.path.join(self.ad_dir, random.sample(self.ads, 1)[0])
+            neg_path = os.path.join(self.nc_dir, random.sample(self.ncs, 1)[0])
             label = 1
         else:
-            path = self.nc_dir
-            anchor_dir = self.ncs
-            pos_dir = self.ncs
-            neg_dir = self.ads
-            idx = idx - len(self.ads)
+            anchor_path = os.path.join(self.nc_dir, self.ncs[idx-len(self.ads)])
+            pos_path = os.path.join(self.nc_dir, random.sample(self.ncs, 1)[0])
+            neg_path = os.path.join(self.ad_dir, random.sample(self.ads, 1)[0])
             label = 0
         
         # Read image
         # Positive and negative images are randomly sampled
-        anchor = cv2.imread(os.path.join(path, anchor_dir[idx]))
-        positive = cv2.imread(os.path.join(path, random.sample(pos_dir, 1)))
-        negative = cv2.imread(os.path.join(path, random.sample(neg_dir, 1)))
+        anchor = cv2.imread(anchor_path)
+        positive = cv2.imread(pos_path)
+        negative = cv2.imread(neg_path)
 
         # Convert to np array and resize to single channel
         anchor = np.array(cv2.cvtColor(anchor, cv2.COLOR_BGR2GRAY))
@@ -79,24 +76,21 @@ class ADDataTest(Dataset):
 
     def __getitem__(self, idx):
         # Determine if AD or NC 
-        if idx < len(self.anchor_ads):
-            path = self.ad_dir
-            anchor_dir = self.anchor_ads
-            pos_dir = self.ads
-            neg_dir = self.ncs
+        if idx < len(self.ads):
+            anchor_path = os.path.join(self.ad_dir, self.anchor_ads[idx])
+            pos_path = os.path.join(self.ad_dir, self.ads[idx])
+            neg_path = os.path.join(self.nc_dir, self.ncs[idx])
             label = 1
         else:
-            path = self.nc_dir
-            anchor_dir = self.anchor_ncs
-            pos_dir = self.ncs
-            neg_dir = self.ads
-            idx = idx - len(self.anchor_ads)
+            anchor_path = os.path.join(self.nc_dir, self.anchor_ncs[idx-len(self.anchor_ads)])
+            pos_path = os.path.join(self.nc_dir, self.ncs[idx-len(self.anchor_ads)])
+            neg_path = os.path.join(self.ad_dir, self.ads[idx-len(self.anchor_ads)])
             label = 0
         
         # Read image 
-        anchor = cv2.imread(os.path.join(path, anchor_dir[idx]))
-        positive = cv2.imread(os.path.join(path, pos_dir[idx]))
-        negative = cv2.imread(os.path.join(path, neg_dir[idx]))
+        anchor = cv2.imread(anchor_path)
+        positive = cv2.imread(pos_path)
+        negative = cv2.imread(neg_path)
 
         # Convert to np array and resize to single channel
         anchor = np.array(cv2.cvtColor(anchor, cv2.COLOR_BGR2GRAY))
