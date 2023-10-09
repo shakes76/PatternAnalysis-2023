@@ -2,6 +2,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow import keras
 from keras import layers
+from dataset import get_validate_ds
 
 class VectorQuantizer(layers.Layer):
     def __init__(self, num_embeddings, embedding_dim, beta=0.25, **kwargs):
@@ -95,6 +96,7 @@ class VQVAETrainer(keras.models.Model):
         self.total_loss_tracker = keras.metrics.Mean(name="total_loss")
         self.reconstruction_loss_tracker = keras.metrics.Mean(name="reconstruction_loss")
         self.vq_loss_tracker = keras.metrics.Mean(name="vq_loss")
+        self.ssim_tracker = keras.metrics.Mean(name="ssim")
     
     @property
     def metrics(self):
@@ -102,6 +104,7 @@ class VQVAETrainer(keras.models.Model):
             self.total_loss_tracker,
             self.reconstruction_loss_tracker,
             self.vq_loss_tracker,
+            self.ssim_tracker,
         ]
 
     def train_step(self, x):
@@ -113,6 +116,8 @@ class VQVAETrainer(keras.models.Model):
                 tf.reduce_mean((x - reconstructions) ** 2) / self.train_variance
             )
             total_loss = reconstructions_loss + sum(self.vqvae.losses)
+            # Validate the ssim
+            ssim = tf.image.ssim(x, reconstructions, 1.0)
             
         # Backpropagation
         grads = tape.gradient(total_loss, self.vqvae.trainable_variables)
@@ -122,10 +127,12 @@ class VQVAETrainer(keras.models.Model):
         self.total_loss_tracker.update_state(total_loss)
         self.reconstruction_loss_tracker.update_state(reconstructions_loss)
         self.vq_loss_tracker.update_state(sum(self.vqvae.losses))
+        self.ssim_tracker.update_state(ssim)
         
         # Log results
         return {
             "loss": self.total_loss_tracker.result(),
             "reconstruction_loss": self.reconstruction_loss_tracker.result(),
             "vqvae_loss": self.vq_loss_tracker.result(),
+            "ssim": self.ssim_tracker.result(),
         }
