@@ -141,3 +141,19 @@ class PixelConvLayer(layers.Layer):
         super().__init__()
         self.mask_type = mask_type
         self.conv = layers.Conv2D(**kwargs)
+    
+    def build(self, input_shape):
+        # Build the conv2d layer to initialize kernel variables
+        self.conv.build(input_shape)
+        # Use the initialized kernel to create the mask
+        kernel_shape = self.conv.kernel.get_shape()
+        self.mask = np.zeros(shape=kernel_shape)
+        self.mask[: kernel_shape[0] // 2, ...] = 1.0
+        self.mask[kernel_shape[0] // 2, : kernel_shape[1] // 2, ...] = 1.0
+        if self.mask_type == "B":
+            self.mask[kernel_shape[0] // 2, kernel_shape[1] // 2, ...] = 1.0
+        
+        def call(self, inputs):
+            self.conv.kernel.assign(self.conv.kernel * self.mask)
+            return self.conv(inputs)
+        
