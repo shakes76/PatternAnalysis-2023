@@ -27,6 +27,25 @@ mean squared error loss was used to measure the model's accuracy during training
 error was also tested. After early testing, it was concluded that mean squared error was more
 effective for training the model, thus it was used in the final implementation.
 
+## Dataset
+The ADNI brain dataset was used for the training, validation and testing of the model. The
+ADNI image size is 240x256. These images were each downsampled by a factor of 4 to create
+datasets with 'input' images of size 60x64; the original image was used as the 'label' for
+model development.
+
+## Training
+The loss for the training data and validation set throughout training were recorded and compared.
+The model's loss quickly converged to approximiately 0.09 in all trials. This can be seen in the
+below plot of the losses. In this plot, the orange line indicates the validation set's loss, and
+the blue line is the training set's loss. The model is not overly overfitted since the validation
+set's loss is very similar to the training set. Furthermore, the test set had similar loss of 
+approximately 0.1, indicating that the model successfully upscales the MRI scans.
+
+![alt_test](/training_loss.png)
+
+## Results
+
+
 ## Dependencies
 The project implements deep learning models using the following libaries. Functionalities
 may not be supported for other library versions.
