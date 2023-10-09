@@ -2,29 +2,36 @@ import torch
 import torch.nn as nn
 
 class DiffusionProcess(nn.Module):
-    def __init__(self, beta: float, num_steps: int):
+    def __init__(self, betas, num_steps):
         super(DiffusionProcess, self).__init__()
-        self.beta = beta
+        self.betas = betas  # List of beta values for each time step
         self.num_steps = num_steps
 
     def forward(self, x):
-        # Implement the diffusion process over `num_steps` steps
         for step in range(self.num_steps):
-            noise = torch.randn_like(x) * self.beta
+            beta = self.betas[step]
+            noise = torch.randn_like(x) * torch.sqrt(beta)
             x = x + noise
         return x
 
 class DiffusionNetwork(nn.Module):
-    def __init__(self, channels: int):
+    def __init__(self):
         super(DiffusionNetwork, self).__init__()
-        self.conv1 = nn.Conv2d(channels, 64, 3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(64, 128, 3, stride=2, padding=1)
-        self.deconv = nn.ConvTranspose2d(128, channels, 3, stride=2, padding=1, output_padding=1)
+        # Encoder
+        self.enc1 = nn.Conv2d(1, 64, 3, padding=1)
+        self.enc2 = nn.Conv2d(64, 128, 3, padding=1)
+        # Decoder
+        self.dec1 = nn.ConvTranspose2d(128, 64, 3, padding=1)
+        self.dec2 = nn.ConvTranspose2d(64, 1, 3, padding=1)
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = self.deconv(x)
+        # Encoder
+        x = self.enc1(x)
+        x = self.enc2(x)
+        # Decoder
+        x = self.dec1(x)
+        x = self.dec2(x)
         return x
+
 
 
