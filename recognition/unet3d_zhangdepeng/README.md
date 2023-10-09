@@ -20,9 +20,9 @@ pip install -r requirements.txt
 '''
 ## Usage
 ### train
-'''
+、、、
 python train.py --loss /loss_type --dataset_root /path_of_dataset 
-'''
+、、、
 ### test
 '''
 python predict.py --pth /path_of_trained_model --dataset_root /path_of_dataset
