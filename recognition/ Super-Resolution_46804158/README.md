@@ -1,14 +1,14 @@
 # Project Title 
 
 ## Description
-
+    CNN-based approach for single image super-resolution
 
 
 ## How It Works
 
 
 
-![XYZNet Architecture](./images/xyznet_architecture.png)
+
 
 ## Dependencies
 
@@ -18,7 +18,7 @@
 - Matplotlib 3.3.4
 
 ## Reproducibility
-
+- ADNI MRI Dataset: https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI
 
 
 ## Example Inputs, Outputs, and Plots
