@@ -8,8 +8,7 @@ from tqdm.auto import tqdm
 import wandb
 import torchinfo
 from torchinfo import summary
-from vit_pytorch import ViT, SimpleViT
-from vit_pytorch.deepvit import DeepViT
+
 import utils
 
 def train_epoch(model: nn.Module, 
@@ -58,7 +57,6 @@ def test_epoch(model: nn.Module,
     # test setup
     test_loss, test_acc = 0, 0
     model.eval()
-    
     # testing loop
     with torch.inference_mode():
         for batch, (X, y) in enumerate(data_loader):
@@ -69,7 +67,6 @@ def test_epoch(model: nn.Module,
                 loss = loss_fn(y_pred_logits, y)
             # save loss
             test_loss += loss.item()
-            
             #model accuracy
             acc =  utils.accuracy(y_pred_logits, y)
             test_acc += acc
@@ -94,17 +91,7 @@ def train_model(config):
                     mlp_dim=config.mlp_dim,
                     drop_prob=config.drop_prob,
                     linear_embed=config.linear_embed).to(device)
-        # model = ViT(
-        #     image_size=config.img_size,
-        #     patch_size=config.patch_size,
-        #     num_classes=1,
-        #     dim=config.embed_dim,
-        #     depth=config.depth,
-        #     heads=config.num_heads,
-        #     mlp_dim=config.mlp_dim,
-        #     dropout=config.drop_prob,
-        #     emb_dropout=config.drop_prob,
-        #     channels=1).to(device)
+        
         # summarise model architecture
         # summary(model, input_size=(1, 1, 256, 256), device=device)
         # loss function 
@@ -114,14 +101,6 @@ def train_model(config):
                                 lr=config.lr,
                                 momentum=0.9,
                                 weight_decay=config.weight_decay)
-        if config.optimiser == "ADAM":
-            optimiser = optim.Adam(model.parameters(),
-                                    lr=config.lr,
-                                    weight_decay=config.weight_decay,)
-        elif config.optimiser == "ADAMW":
-            optimiser = optim.AdamW(model.parameters(),
-                                    lr=config.lr,
-                                    weight_decay=config.weight_decay)
         # Learning rate scheduler
         scheduler = optim.lr_scheduler.OneCycleLR(optimizer=optimiser,
                                                     max_lr=config.max_lr,
