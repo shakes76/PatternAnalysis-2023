@@ -110,6 +110,27 @@ class Decoder(nn.Module):
         out = self.transpose_conv2(x)
         return out
 
+
+class VQVAE(nn.Module):
+    def __init__(self, no_channels, latent_dim, num_embeddings):
+        super(VQVAE, self).__init__()
+        
+        self.no_channels = no_channels
+        self.latent_dim = latent_dim
+        self.num_embeddings = num_embeddings
+
+        self.encoder = Encoder(no_channels, latent_dim)
+        self.decoder = Decoder(no_channels, latent_dim)
+        self.embedding = nn.Embedding(num_embeddings, latent_dim)
+
+        self.vector_quantization = VectorQuantizer(latent_dim, num_embeddings)
+    
+    def forward(self, x):
+        z = self.encoder(x)
+        embedding_loss, z_q = self.vector_quantization(z)
+        x_hat = self.decoder(z_q)
+        return x_hat, z, z_q
+
 class VectorQuantizer(nn.Module):
     """
     Discretization bottleneck module for the VQ-VAE model.
