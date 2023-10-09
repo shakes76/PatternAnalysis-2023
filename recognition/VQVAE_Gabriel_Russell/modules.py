@@ -28,15 +28,16 @@ class Parameters():
     def __init__(self):
         self.batch_size = 32 #128
         self.num_training_updates = 15000
-        self.num_hiddens = 128
-        self.num_residual_hiddens = 32
-        self.embedding_dim = 128
-        self.num_embeddings = 512
-        self.commitment_cost = 0.25
-        self.learn_rate = 2e-4
-        self.grey_channel = 1
+        self.num_hiddens = 128 #Number of hidden layers for convolution
+        self.num_residual_hiddens = 32 #Number of residual hidden layers
+        self.embedding_dim = 128 #dimension for each embedding
+        self.num_embeddings = 512 #Number of embeddings in codebook
+        self.commitment_cost = 0.25 #Beta term in loss func
+        self.learn_rate = 1e-3 #Learning rate
+        self.grey_channel = 1 #Number of channels of image (all grey images)
         self.features = 128
         self.channel_noise = 100
+        self.data_var = 0.0338 #calculated separately for training data
 
     
 """
@@ -46,11 +47,11 @@ class Residual_layer(nn.Module):
     def __init__(self, in_channels, num_hiddens, num_residual_hiddens):
         super(Residual_layer, self).__init__()
         self._block = nn.Sequential(
-            nn.ReLU(inplace = False),
+            nn.ReLU(),
             nn.Conv2d(in_channels=in_channels,
                       out_channels=num_residual_hiddens,
                       kernel_size=3, stride=1, padding=1, bias=False),
-            nn.ReLU(inplace = False),
+            nn.ReLU(),
             nn.Conv2d(in_channels=num_residual_hiddens,
                       out_channels=num_hiddens,
                       kernel_size=1, stride=1, bias=False)
@@ -103,10 +104,10 @@ class Encoder(nn.Module):
         inputs = F.relu(inputs)
         
         inputs = self.conv_2(inputs)
-        inputs = F.relu(inputs)
+        #inputs = F.relu(inputs)
         
-        inputs = self.residual_block(inputs)
-        return inputs
+        output = self.residual_block(inputs)
+        return output
     
 
 """
@@ -118,7 +119,13 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         p = Parameters()
 
-        self.residual_block = ResidualBlock(in_channels=in_channels,
+        self.conv = nn.Conv2d(in_channels = in_channels,
+                              out_channels = num_hiddens,
+                              kernel_size = 3,
+                              stride = 1,
+                              padding = 1)
+
+        self.residual_block = ResidualBlock(in_channels=num_hiddens,
                                              num_hiddens=num_hiddens,
                                              num_residual_hiddens=num_residual_hiddens)
         
@@ -128,18 +135,19 @@ class Decoder(nn.Module):
                                                 stride=2, padding=1)
         
         self.transposed_conv_2 = nn.ConvTranspose2d(in_channels=num_hiddens//2, 
-                                                out_channels=p.grey_channel,
+                                                out_channels=1,
                                                 kernel_size=4, 
                                                 stride=2, padding=1)
 
     def forward(self, inputs):
+        inputs = self.conv(inputs)
         inputs = self.residual_block(inputs)
         
         inputs = self.transposed_conv_1(inputs)
-        inputs = F.relu(inputs)
+       # inputs = F.relu(inputs)
 
-        inputs = self.transposed_conv_2(inputs)
-        return inputs
+        output = self.transposed_conv_2(inputs)
+        return output
     
 """ 
 The Vector Quantizer layer quantizes the input tensor.
@@ -150,7 +158,7 @@ class VectorQuantizer(nn.Module):
     def __init__(self, num_embeddings, embedding_dim, commitment_cost):
         super(VectorQuantizer, self).__init__()
         
-        self._embedding_dim = embedding_dim
+        self._embedding_dim = embedding_dim 
         self._num_embeddings = num_embeddings
         
         self._embedding = nn.Embedding(self._num_embeddings, self._embedding_dim)
@@ -200,7 +208,7 @@ class VQVAEModel(nn.Module):
     def __init__(self):
         super(VQVAEModel, self).__init__()
         p = Parameters()
-        self.encoder = Encoder(p.grey_channel, p.num_hiddens, 
+        self.encoder = Encoder(1, p.num_hiddens, 
                                 p.num_residual_hiddens)
         self.conv_layer = nn.Conv2d(in_channels=p.num_hiddens, 
                                       out_channels=p.embedding_dim,
@@ -214,9 +222,13 @@ class VQVAEModel(nn.Module):
                                 p.num_residual_hiddens)
 
     def forward(self, x):
+        #Encode input
         x = self.encoder(x)
+        #Change channel dimensions
         x = self.conv_layer(x)
+        #Quantize
         loss, quantized, perplexity, _ = self.quantizer(x)
+        #Decode
         x_recon = self.decoder(quantized)
 
         return loss, x_recon, perplexity
