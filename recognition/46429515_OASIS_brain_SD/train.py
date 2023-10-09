@@ -28,7 +28,7 @@ for epoch in range(utils.epochs):
     for step, batch in enumerate(dataset.data_loader):
         optimizer.zero_grad()
         
-        t = torch.randint(0, module.T, (utils.BATCH_SIZE,), device=utils.device).long()
+        t = torch.randint(0, utils.T, (utils.BATCH_SIZE,), device=utils.device).long()
         loss = utils.get_loss(model, batch[0], t)
         loss.backward()
         optimizer.step() 
@@ -45,7 +45,7 @@ for epoch in range(utils.epochs):
         
         with torch.no_grad():
             for step, batch in enumerate(dataset.validate_loader):
-                t = torch.randint(0, module.T, (utils.BATCH_SIZE,), device=utils.device).long()
+                t = torch.randint(0, utils.T, (utils.BATCH_SIZE,), device=utils.device).long()
                 validation_loss = utils.get_loss(model, batch[0], t)
                 total_validation_loss += validation_loss.item() * utils.BATCH_SIZE
                 total_validation_samples += utils.BATCH_SIZE
