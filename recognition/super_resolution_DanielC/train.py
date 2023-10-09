@@ -25,6 +25,7 @@ print(model)
 
 # -------
 # Train the model
+total_step = len(train_loader)
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
@@ -51,9 +52,12 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         if (i+1) % 10 == 0:
-            print ("Epoch [{}/{}], Loss: {:.5f}"
-                    .format(epoch+1, num_epochs, loss.item()), flush=True)
+            print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
+                    .format(epoch+1, num_epochs, i+1, total_step, loss.item()), flush=True)
+            
 
 end = time.time()
 elapsed = end - start
 print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total") 
+
+torch.save(model, model_path)
