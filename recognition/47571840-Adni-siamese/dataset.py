@@ -247,12 +247,12 @@ def get_classification_dataloader(root_dir, batch_size=32, shuffle=True, transfo
 
 
 #### CHECK DATA LOADER FOR CLASSIFICATION #####
-ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
-train_loader,val_loader = get_classification_dataloader(ROOT_DIR_TRAIN,batch_size=32, transform=get_transforms_training(), split_flag=True)
+# ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
+# train_loader,val_loader = get_classification_dataloader(ROOT_DIR_TRAIN,batch_size=32, transform=get_transforms_training(), split_flag=True)
 
-train_images, train_labels = next(iter(train_loader))
-print("Training Images:", train_images)
-print("Training Labels:", train_labels)
+# train_images, train_labels = next(iter(train_loader))
+# print("Training Images:", train_images)
+# print("Training Labels:", train_labels)
 
 
 
