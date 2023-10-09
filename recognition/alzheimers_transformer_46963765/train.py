@@ -15,7 +15,7 @@ def train(epochs, depth):
 
     dataset = ds.ADNI_Dataset()
     train_loader = dataset.get_train_loader()
-    optimizer = optim.Adam(model.parameters(), 0.005)
+    optimizer = optim.Adam(model.parameters(), 0.0005)
     criterion = nn.BCELoss()
     batch_losses = []
 
@@ -45,7 +45,7 @@ def train(epochs, depth):
 
 
 if __name__ == "__main__":
-    epochs = 20
+    epochs = 120
     depth = 3
     
     model, losses = train(epochs, depth)

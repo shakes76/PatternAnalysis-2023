@@ -55,6 +55,7 @@ class Attention(nn.Module):
         #in2 is 32 by 512
                 
         out = self.lnorm1(image)
+        #print(latent.shape); print(image.shape)
         out, _ = self.attn(query=latent, key=image, value=image)
         
         #first residual connection.
