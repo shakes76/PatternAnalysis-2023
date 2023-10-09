@@ -13,23 +13,31 @@ Additionally, this file gives some sample images from the loader to show what th
 with look like.
 '''
 
-DATASET = "/home/groups/comp3710/OASIS/keras_png_slices_train"
+DATASET1 = "/home/groups/comp3710/OASIS/keras_png_slices_train" # training data
+DATASET2 = "/home/groups/comp3710/OASIS/keras_png_slices_test" # test data
+DATASET3 = "/home/groups/comp3710/OASIS/keras_png_slices_validate" # validation data
 BATCH_SIZES = [256, 128, 64, 32, 16, 8]
 CHANNELS_IMG = 3
 
 # Costomized ImageFolder to read image data
 # Reference: https://pytorch.org/tutorials/beginner/basics/data_tutorial.html
 class CustomImageDataset(Dataset):
-    def __init__(self, img_dir, transform=None):
-        self.img_dir = img_dir
-        self.img_files = os.listdir(img_dir)
+    def __init__(self, img_dirs, transform=None):
+        #self.img_dir = img_dir
+        #self.img_files = os.listdir(img_dir)
         self.transform = transform
+
+        # Read all the three OASIS files from rangpur
+        self.img_files = []
+        for dir_path in img_dirs:
+            self.img_files += [os.path.join(dir_path, fname) for fname in os.listdir(dir_path)]
 
     def __len__(self):
         return len(self.img_files)
 
     def __getitem__(self, idx):
-        img_name = os.path.join(self.img_dir, self.img_files[idx])
+        #img_name = os.path.join(self.img_dir, self.img_files[idx])
+        img_name = self.img_files[idx]
         image = Image.open(img_name).convert("RGB")
 
         if self.transform:
@@ -50,7 +58,8 @@ def get_loader(image_size):
     )
     #batch_size = BATCH_SIZES[int(log2(image_size/4))] # image size = 256 
     batch_size = BATCH_SIZES[0] # img size = 256
-    dataset = CustomImageDataset(img_dir = DATASET, transform=trainsform)
+     # Load all the training, test, and validation data together to train the styleGAN model
+    dataset = CustomImageDataset(img_dirs = [DATASET1, DATASET2, DATASET3], transform=trainsform)
     loader = DataLoader(dataset,batch_size=batch_size,shuffle=True)
     return loader, dataset
 
