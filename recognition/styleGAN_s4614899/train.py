@@ -85,7 +85,8 @@ def train_fn(critic, gen, loader, dataset, step, alpha, opt_critic, opt_gen):
 
         loop.set_postfix(
             gp = gp.item(),
-            loss_critic = loss_critic.item()
+            loss_critic = loss_critic.item(),
+            loss_gen = loss_gen.item() # display both losses during training
         )
     return alpha
 
@@ -105,12 +106,12 @@ critic.train()
 step = int(log2(START_TRAIN_IMG_SIZE / 4))
 for num_epochs in PROGRESSIVE_EPOCHS[step:]:
     alpha = 1e-7
-    loader, dataset = dataset.get_loader(4*2**step)
-    print('Curent image size: '+str(4*2**step))
+    loader, data = dataset.get_loader(4*2**step)
+    print('Current image size: '+str(4*2**step))
 
     for epoch in range(num_epochs):
         print(f'Epoch [{epoch + 1}/ {num_epochs}')
-        alpha = train_fn(critic, gen, loader, dataset, step, alpha, opt_critic, opt_gen)
+        alpha = train_fn(critic, gen, loader, data, step, alpha, opt_critic, opt_gen)
     #generate_examples(gen, step)
     step +=1
 
