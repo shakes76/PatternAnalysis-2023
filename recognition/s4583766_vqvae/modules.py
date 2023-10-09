@@ -8,6 +8,7 @@ import torch.nn as nn
 
 # TODO: extract residual_block to separate module
 # TODO: separate encoder and decoder into separate modules
+# TODO: check and fix the layer sizes
 
 class Encoder(nn.Module):
     """
@@ -24,7 +25,7 @@ class Encoder(nn.Module):
         # self.latent_dim = latent_dim
         self.conv1 = nn.Conv2d(
             in_channels=no_channels,
-            out_channels=256,
+            out_channels=64,
             kernel_size=4,
             stride=2,
             padding=1,
@@ -53,8 +54,6 @@ class Encoder(nn.Module):
         out = self.residual_block(out)
         out = self.conv3(out)
         return out
-
-
 class Decoder(nn.Module):
     """
     Decoder module for the VQ-VAE model.
@@ -110,3 +109,56 @@ class Decoder(nn.Module):
         out = self.transpose_conv1(out)
         out = self.transpose_conv2(x)
         return out
+
+class VectorQuantizer(nn.Module):
+    """
+    Discretization bottleneck module for the VQ-VAE model.
+
+    Referred to the paper and https://github.com/MishaLaskin/vqvae/blob/master/models/vqvae.py. 
+    """
+    def __init__(self, no_embeddings, embeddings_dim, beta):
+        super(VectorQuantizer, self).__init__()
+        self.no_embeddings = no_embeddings
+        self.embeddings_dim = embeddings_dim
+        self.beta = beta
+
+        self.embedding = nn.Embedding(self.no_embeddings, self.embeddings_dim)
+        self.embedding.weight.data.uniform_(-1/self.no_embeddings, 1/self.no_embeddings)
+    
+    def forward(self, z):
+        """
+        Takes the output of the Encoder network z and maps it to a discrete
+        vector (that represents the closest embedding vector e_j).
+        """
+        z = z.permute(0, 2, 3, 1).contiguous()
+        # reshape z to (batch_size * height * width, channel)
+        z_flattened = z.view(-1, self.embeddings_dim)
+
+        # Calculate distance from z (encoder output) to embeddings, 
+        # using the formula: distance = ||z||^2 + ||e_j||^2 - 2*z*e_j
+        distance = torch.sum(z_flattened**2, dim=1, keepdim=True) + \
+                   torch.sum(self.embedding.weight**2, dim=1) - \
+                   2 * torch.matmul(z_flattened, self.embedding.weight.t())
+
+        # Find the closest encodings (k)
+        min_encoding_indices = torch.argmin(distance, dim=1).unsqueeze(1)
+        min_encodings = torch.zeros(min_encoding_indices.shape[0], self.no_embeddings).to(device)
+        # use the k (min embeddings vector) as a mask
+        min_encodings.scatter_(1, min_encoding_indices, 1)
+
+        # Get the quantized latent vectors
+        # z_q(x) = e_k, where k = argmin ||z(x) - e_j||^2 as obtained above
+        z_q = torch.matmul(min_encodings, self.embedding.weight).view(z.shape)
+        
+        # During forward computation, the nearest embedding z_q is passed to the decoder, and during the backwards pass the gradient is passed unaltered to the encoder. The gradient can push the encoder's output to be discretised differently in the next forward pass. 
+
+        # To learn the embedding space, use the dictionary learning algorithm, Vector Quantisation (VQ). This uses l_2 error to move the embedding vectors e_j towards the encoder output z_e(x).
+        # Based on the paper:
+        embedding_loss = torch.mean((z_q.detach() - z)**2) + self.beta * torch.mean((z_q - z.detach())**2)
+
+        z_q = z + (z_q - z).detach()
+
+        # reshape z_q to (batch_size, height, width, channel)
+        z_q = z_q.permute(0, 3, 1, 2).contiguous()
+
+        return embedding_loss, z_q

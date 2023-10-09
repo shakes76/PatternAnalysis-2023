@@ -7,12 +7,14 @@ Sophie Bates, s4583766.
 '''
 
 import os
+
+import dataset
+import modules
 import numpy as np
 import torch
 import torchvision
-
-import dataset
 from dataset import load_dataset
+from modules import VQVAE, Decoder, Encoder
 
 # Setup file paths
 PATH = os.getcwd() + '/'
@@ -22,7 +24,6 @@ BATCH_SIZE = 32
 
 # Set the mode to either 'rangpur' or 'local' for testing purposes
 mode = 'local'
-
 if mode == 'rangpur':
 	data_path_training = DATA_PATH_TRAINING_RANGPUR
 elif mode == 'local':
@@ -33,4 +34,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU...")
 
+# Hyper-parameters
+learning_rate = 3e-4
+
 load_dataset(data_path_training, BATCH_SIZE)
+
+vqvae = VQVAE(256, 512, 64).to(device)
+
