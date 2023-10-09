@@ -9,7 +9,9 @@ train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 
 transform = transforms.Compose([
+    #transforms.Resize((128, 128)),
     transforms.ToTensor(),
+
 ])
 
 
@@ -79,12 +81,12 @@ def load_data2(train_path, test_path):
     trainset = torchvision.datasets.ImageFolder(root=train_path, transform=transform)
     testset = torchvision.datasets.ImageFolder(root=test_path, transform=transform)
 
-    paired_trainset = SiameseDatset(trainset)
-    paired_testset = SiameseDatset(testset)
+    paired_trainset = SiameseDatset_contrastive(trainset)
+    paired_testset = SiameseDatset_contrastive(testset)
     train_loader = torch.utils.data.DataLoader(paired_trainset, batch_size=64, shuffle=True)
     test_loader = torch.utils.data.DataLoader(paired_testset, batch_size=64)
     return train_loader, test_loader
-class SiameseDatset(torch.utils.data.Dataset):
+class SiameseDatset_contrastive(torch.utils.data.Dataset):
     def __init__(self, dataset):
         self.dataset = dataset
         self.num_samples = len(dataset)
@@ -99,6 +101,42 @@ class SiameseDatset(torch.utils.data.Dataset):
         label = 0 if label1 == label2 else 1
 
         return (image1, image2), label
+
+    def __len__(self):
+        return self.num_samples
+
+def load_data3(train_path, test_path):
+    trainset = torchvision.datasets.ImageFolder(root=train_path, transform=transform)
+    testset = torchvision.datasets.ImageFolder(root=test_path, transform=transform)
+
+    paired_trainset = SiameseDatset_triplet(trainset)
+    paired_testset = SiameseDatset_triplet(testset)
+    train_loader = torch.utils.data.DataLoader(paired_trainset, batch_size=64, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(paired_testset, batch_size=64)
+    return train_loader, test_loader
+class SiameseDatset_triplet(torch.utils.data.Dataset):
+    def __init__(self, dataset):
+        self.dataset = dataset
+        self.num_samples = len(dataset)
+
+    def __getitem__(self, idx):
+        is_same_class = random.randint(0, 1)
+        idx1 = random.randint(0, self.num_samples - 1)
+        idx2 = random.randint(0, self.num_samples - 1)
+        idx3 = random.randint(0, self.num_samples - 1)
+        anchor_image, label1 = self.dataset[idx1]
+        #get positive image
+        pos_image, label2 = self.dataset[idx2]
+        while(label1 != label2):
+            idx2 = random.randint(0, self.num_samples - 1)
+            pos_image, label2 = self.dataset[idx2]
+        #get negative image
+        neg_image, label3 = self.dataset[idx3]
+        while (label1 == label3):
+            idx3 = random.randint(0, self.num_samples - 1)
+            neg_image, label3 = self.dataset[idx3]
+
+        return anchor_image, pos_image, neg_image
 
     def __len__(self):
         return self.num_samples
