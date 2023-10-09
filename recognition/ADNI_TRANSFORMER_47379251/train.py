@@ -7,7 +7,7 @@ from __future__ import print_function
 import os
 import argparse
 import csv
-import time
+import time, warnings
 import numpy as np
 import pandas as pd
 import torch
@@ -50,10 +50,27 @@ elif args.net=="SViT":
     dim = int(args.dimhead),
     depth = 4,
     heads = 4,
-    mlp_dim = 512,
-    dropout = 0.5,
-    emb_dropout = 0.5
+    mlp_dim = 1024,
+    dropout = 0.2,
+    emb_dropout = 0.1
 )
+elif args.net == "vit_small":
+        from functools import partial
+        from torch import nn
+        from vit_pytorch.vit_small import VisionTransformer
+        patch_size = args.patch
+        img_size = size
+        net = VisionTransformer(img_size=[img_size],
+            patch_size=patch_size,
+            in_chans=3,
+            num_classes=num_classes,
+            embed_dim=1024,
+            depth=9,
+            num_heads=12,
+            mlp_ratio=args.vit_mlp_ratio,
+            qkv_bias=True,
+            drop_path_rate=args.drop_path_rate,
+            norm_layer=partial(nn.LayerNorm, eps=1e-6))
 elif args.net=="NaViT":
     from vit_pytorch.na_vit import NaViT
     net = NaViT(
@@ -102,74 +119,6 @@ elif args.net=="CrossViT":
     dropout = 0.1,
     emb_dropout = 0.1
 )
-elif args.net=="ScalableViT":
-    from vit_pytorch.scalable_vit import ScalableViT
-    net = ScalableViT(
-        num_classes = num_classes,
-        dim = 64,                               # starting model dimension. at every stage, dimension is doubled
-        heads = (2, 4, 8, 16),                  # number of attention heads at each stage
-        depth = (2, 2, 20, 2),                  # number of transformer blocks at each stage
-        ssa_dim_key = (40, 40, 40, 32),         # the dimension of the attention keys (and queries) for SSA. in the paper, they represented this as a scale factor on the base dimension per key (ssa_dim_key / dim_key)
-        reduction_factor = (8, 4, 2, 1),        # downsampling of the key / values in SSA. in the paper, this was represented as (reduction_factor ** -2)
-        window_size = (64, 32, None, None),     # window size of the IWSA at each stage. None means no windowing needed
-        dropout = 0.1,                          # attention and feedforward dropout
-)
-elif args.net=="Dino":
-    from vit_pytorch import ViT, Dino
-
-    net = ViT(
-        image_size = size,
-        patch_size = args.patch,
-        num_classes = num_classes,
-        dim = 1024,
-        depth = 6,
-        heads = 8,
-        mlp_dim = 2048
-    )
-
-    learner = Dino(
-        net,
-        image_size = 256,
-        hidden_layer = 'to_latent',        # hidden layer name or index, from which to extract the embedding
-        projection_hidden_size = 256,      # projector network hidden dimension
-        projection_layers = 4,             # number of layers in projection network
-        num_classes_K = 65336,             # output logits dimensions (referenced as K in paper)
-        student_temp = 0.9,                # student temperature
-        teacher_temp = 0.04,               # teacher temperature, needs to be annealed from 0.04 to 0.07 over 30 epochs
-        local_upper_crop_scale = 0.4,      # upper bound for local crop - 0.4 was recommended in the paper 
-        global_lower_crop_scale = 0.5,     # lower bound for global crop - 0.5 was recommended in the paper
-        moving_average_decay = 0.9,        # moving average of encoder - paper showed anywhere from 0.9 to 0.999 was ok
-        center_moving_average_decay = 0.9, # moving average of teacher centers - paper showed anywhere from 0.9 to 0.999 was ok
-
-)
-elif args.net=="CaViT":
-    from vit_pytorch.na_vit import CaViT
-    net = CaiT(
-    image_size = size,
-    patch_size = args.patch,
-    num_classes = num_classes,
-    dim = 1024,
-    depth = 12,             # depth of transformer for patch to patch attention only
-    cls_depth = 2,          # depth of cross attention of CLS tokens to patch
-    heads = 16,
-    mlp_dim = 2048,
-    dropout = 0.1,
-    emb_dropout = 0.1,
-    layer_dropout = 0.05    # randomly dropout 5% of the layers
-)
-elif args.net=="MaxViT":
-    from vit_pytorch.max_vit import MaxViT
-    net = MaxViT(
-    num_classes = num_classes,
-    dim_conv_stem = 64,               # dimension of the convolutional stem, would default to dimension of first layer if not specified
-    dim = 96,                         # dimension of first layer, doubles every layer
-    dim_head = 32,                    # dimension of attention heads, kept at 32 in paper
-    depth = (2, 2, 5, 2),             # number of MaxViT blocks per stage, which consists of MBConv, block-like attention, grid-like attention
-    window_size = 7,                  # window size for block and grids
-    mbconv_expansion_rate = 4,        # expansion rate of MBConv
-    mbconv_shrinkage_rate = 0.25,     # shrinkage rate of squeeze-excitation in MBConv
-    dropout = 0.1                     # dropout
-)
 
 # For Multi-GPU
 if 'cuda' in device:
@@ -199,7 +148,7 @@ def train(epoch):
     loss_idx_value = 0
     writer = SummaryWriter()
     net.train()
-    net.cuda()
+    if torch.cuda.is_available(): net.cuda()
     if epoch == 0:
         print(net.train())
     train_loss = 0
@@ -229,10 +178,10 @@ def train(epoch):
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
-        if epoch%5==0: 
+        if epoch%1==0: 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                 % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
-    writer.add_scalar("Train Loss/Epochs", train_loss, epoch) 
+    #writer.add_scalar("Train Loss/Epochs", train_loss, epoch) 
     if epoch==0: 
         log = "Learning Rate: " + str(args.lr) + "\nOptimizer: " + str(args.opt) + "\nModel: " + str(args.net)\
             + "\nBatch Size: " + str(args.bs) + "\nEpoch: " + str(args.n_epochs)\
@@ -240,6 +189,7 @@ def train(epoch):
             + "\nLR Scheduler: " +  sched_lr
         writer.add_text('Param', log, 0)
     writer.close()   
+    #print(100.*correct/total)
     return train_loss
     
 print(net)
