@@ -11,16 +11,24 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class ImageEncoder(nn.Module):
     def __init__(self, embed_dim):
         super(ImageEncoder, self).__init__()
+        
+        # positional encoding vector 31
+        self.position_encodings = torch.randn(embed_dim-1)
         self._convolution = nn.Conv1d(in_channels=1, out_channels=embed_dim, kernel_size=1)
 
         
     def forward(self, images):
-        images = F.interpolate(images, size=(32,32), mode='bilinear', align_corners=False)
-
-        images = images.view(images.size(0), images.size(1), -1)
-        images = self._convolution(images)
-
-        images = images.permute(2,0,1)
+        # take the positional encoding vector and expand to the size of the images matrix 32x31x240x240
+        enc = self.position_encodings.unsqueeze(0).expand((images.shape[0],) + self.position_encodings.shape).unsqueeze(-1).unsqueeze(-1).expand(-1, -1, 240, 240)
+        enc = enc.type_as(images) 
+       
+        # add to the images matrix to make the positional encodings
+        images = torch.cat([images, enc], dim=1)
+        # flatten the last two dimentions of image to 1d 
+        images = images.flatten(2)
+        
+        # remake permuation of image for attention block
+        images = images.permute(2, 0, 1)
         return images
 
 
