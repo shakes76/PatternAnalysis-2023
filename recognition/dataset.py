@@ -1,32 +1,40 @@
 import os
 import cv2
 import numpy as np
-from torch.utils.data import DataLoader, Dataset
-
+from PIL import Image
+from torchvision import transforms
+from torch.utils.data import Dataset, DataLoader
+import os
+import cv2
 
 class ISICDataset(Dataset):
-    def __init__(self, path, type, transform=None):
+    def __init__(self, path, type, desired_height=256, desired_width=256):
 
         """
 
-        :param path: path to folder containing images and masks
-        :param type: type of dataset (Training, Validation, Test)
-        :param transform: transform to apply to images and masks
+        :param path: path to the dataset directory
+        :param type: type of dataset, either "Training" or "Validation" or "Testing"
+        :param desired_height: height of the image after resizing
+        :param desired_width: width of the image after resizing
         """
 
         self.path = path
         self.type = type
-        self.transform = transform
         self.image_folder = f"{path}/{type}_Input"
         self.mask_folder = f"{path}/{type}_GroundTruth"
+        self.transform = transforms.Compose([
+            transforms.Resize((desired_height, desired_width)),
+            transforms.ToTensor()
+        ])
 
+        # Check if the dataset is valid
         try:
             self.image_filenames = [f for f in os.listdir(self.image_folder) if f.endswith('.jpg')]
             self.mask_filenames = [f for f in os.listdir(self.mask_folder) if f.endswith('.png')]
         except FileNotFoundError:
             raise FileNotFoundError(f"The folder path '{path}' does not exist.")
 
-        # Ensure each image corresponds to a mask
+        # Check if the images and masks are in a one-to-one correspondence
         image_basenames = set([os.path.splitext(f)[0] for f in self.image_filenames])
         mask_basenames = set([os.path.splitext(f)[0].replace('_segmentation', '') for f in self.mask_filenames])
         if image_basenames != mask_basenames:
@@ -40,7 +48,11 @@ class ISICDataset(Dataset):
         mask_path = os.path.join(self.mask_folder, self.mask_filenames[idx])
 
         image = cv2.imread(image_path)
-        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  # Assuming the mask is a grayscale image
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+
+        image = Image.fromarray(image)
+        mask = Image.fromarray(mask)
 
         if self.transform:
             image = self.transform(image)
@@ -49,9 +61,9 @@ class ISICDataset(Dataset):
         return image, mask
 
 
-if __name__ == '__main__':
-    path = "E:/comp3710/ISIC2018"
-    train_dataset = ISICDataset(path, "Training")
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-    for images, masks in train_loader:
-        print(images.shape, masks.shape)
+# if __name__ == '__main__':
+#     path = "E:/comp3710/ISIC2018"
+#     train_dataset = ISICDataset(path, "Training")
+#     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+#     for images, masks in train_loader:
+#         print(images.shape, masks.shape)
