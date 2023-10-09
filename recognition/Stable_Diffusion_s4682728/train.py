@@ -44,6 +44,9 @@ for epoch in range(10):  # Example: 10 epochs
         losses.append(loss.item())
         print(f"Epoch {epoch+1}, Iteration {i+1}, Loss: {loss.item()}")
 
+# Save the trained model
+torch.save(diffusion_network.state_dict(), "diffusion_network.pth")
+
 # Plotting loss
 plt.plot(losses)
 plt.xlabel('Iteration')
