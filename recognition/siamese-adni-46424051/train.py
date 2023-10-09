@@ -53,11 +53,10 @@ class Train():
                 img1, img2 = img1.cuda(), img2.cuda()
             out1, out2 = self.net(img1, img2)
             dis = torch.abs(out1 - out2)
-            out = torch.nn.Linear(2, 1)(dis)
             # difference = torch.nn.functional.pairwise_distance(out1, out2)
             # print(difference.item())
-            print(out)
-            pred = np.argmax(out.cpu().detach().numpy())
+            print(dis)
+            pred = np.argmax(dis.cpu().detach().numpy())
             if pred == 0:
                 correct += 1
             else:
