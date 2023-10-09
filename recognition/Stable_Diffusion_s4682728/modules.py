@@ -9,7 +9,7 @@ class DiffusionProcess(nn.Module):
 
     def forward(self, x):
         for step in range(self.num_steps):
-            beta = torch.tensor(self.betas[step], dtype=torch.float32)
+            beta = self.betas[step].clone().detach()
             noise = torch.randn_like(x) * torch.sqrt(beta)
             x = x + noise
         return x
