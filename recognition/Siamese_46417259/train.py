@@ -61,12 +61,12 @@ def train_and_eval():
     num_epochs = 5
     random_seed = 69
 
-    dataloader = load_data(training=True, Siamese=True, random_seed=random_seed)
+    train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
     siamese_net, criterion, optimiser, device = initialise_training()
 
-    total_step = len(dataloader)
+    total_step = len(train_loader)
 
-    scheduler = optim.lr_scheduler.ExponentialLR(optimiser, 0.99)
+    # scheduler = optim.lr_scheduler.ExponentialLR(optimiser, 0.99)
 
     training_losses = []
 
@@ -75,13 +75,13 @@ def train_and_eval():
     start = time.time() #time generation
     for epoch in range(starting_epoch, num_epochs):
     # For each batch in the dataloader
-        for i, (x1, x2, label) in enumerate(dataloader, 0):
+        for i, (x1, x2, label) in enumerate(train_loader, 0):
             # forward pass
             x1 = x1.to(device)
             x2 = x2.to(device)
             label = label.to(device)
 
-            siamese_net.zero_grad()
+            optimiser.zero_grad()
             sameness, x1_features, x2_features = siamese_net(x1, x2)
             loss = criterion(x1_features, x2_features, label)
 
@@ -95,7 +95,7 @@ def train_and_eval():
             
             training_losses.append(loss.item()) 
         # stepping LR scheduler every epoch rather than every batch
-        scheduler.step()
+        # scheduler.step()
     end = time.time()
     elapsed = end - start
     print("Training took " + str(elapsed) + " secs of " + str(elapsed/60) + " mins in total")
@@ -116,7 +116,8 @@ def train_and_eval():
             x1 = x1.to(device)
             x2 = x2.to(device)
             labels = labels.to(device)
-            predicted, x1_features, x2_features = siamese_net(x1, x2)
+            sameness, x1_features, x2_features = siamese_net(x1, x2)
+            predicted = torch.round(sameness)
 
             loss = criterion(x1_features, x2_features, labels)
             # _, predicted = torch.max(outputs.data, 1)
@@ -129,7 +130,7 @@ def train_and_eval():
     
     end = time.time()
     elapsed = end - start
-    print("Testing took " + str(elapsed) + " secs of " + str(elapsed/60) + " mins in total")
+    print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
 
     print('END')
 
