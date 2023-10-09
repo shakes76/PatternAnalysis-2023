@@ -41,7 +41,7 @@ from monai.transforms import (
     SpatialPadd,
 
 )
-
+##for train split : resize and randomfip
 train_transforms = Compose(
     [
         LoadImaged(keys=["image", "label"]),
@@ -59,13 +59,13 @@ train_transforms = Compose(
         EnsureTyped(keys=("image", "label"), dtype=torch.float32),
     ]
 )
-
+##for test split : just load
 val_transforms = Compose(
     [
         LoadImaged(keys=["image", "label"]),
         EnsureChannelFirstd(keys=["image", "label"]),
         # Spacingd(keys=["image", "label"], pixdim=cfg.spacing, mode=("bilinear", "nearest")),
-        Lambdad(keys="image", func=lambda x: x / x.max()),
+        Lambdad(keys="image", func=lambda x: (x - x.min()) / (x.max()-x.min())),
        
         EnsureTyped(keys=("image", "label"), dtype=torch.float32),
         # ToDeviced(keys=["image", "label"], device="cuda:0"),
@@ -76,7 +76,7 @@ class MRIDataset_pelvis(Dataset):
     """
      Code for reading Prostate 3D data set 
     """
-    def __init__(self,mode,dataset_path='./HipMRI_study_complete_release_v1',normalize=True,augmentation=True):
+    def __init__(self,mode,dataset_path='./HipMRI_study_complete_release_v1'):
         """
         param mode: 'train','val','test'
         param datset_path: root dataset folder
@@ -84,13 +84,9 @@ class MRIDataset_pelvis(Dataset):
         self.mode=mode
         self.CLASSES = 6
         self.vol_dim = (256,256,128)
-        self.normalize = normalize
-        self.augmentation = augmentation
+        self.train_transform = train_transforms
+        self.test_transform = val_transforms
 
-
-        if self.augmentation:
-            self.train_transform = train_transforms
-            self.test_transform = val_transforms
             
         if self.mode == 'train':
 #             select_list=os.listdir(os.path.join(dataset_path,'semantic_MRs_anon'))[:split_id]
@@ -125,12 +121,12 @@ class MRIDataset_pelvis(Dataset):
         # label_data = label.get_fdata()
         # print(img_data.shape,label_data.shape)
 
-        if self.mode == 'train' and self.augmentation:
+        if self.mode == 'train' :
             # augmented_t1, augmented_s = self.train_transform(img_data,label_data)  
             augmented_t1 = self.train_transform({'image':img_path,'label':label_path})
             return augmented_t1['image'],augmented_t1['label']
             
-        if self.mode == 'test' and self.augmentation:
+        if self.mode == 'test':
             # augmented_t1, augmented_s = self.test_transform(img_data,label_data)
             augmented_t1 = self.test_transform({'image':img_path,'label':label_path})
             return augmented_t1['image'],augmented_t1['label']

@@ -23,7 +23,7 @@ model=UNet3D(in_channel=1, out_channel=6).cuda()
 model.load_state_dict(torch.load(args.pth))
 model.eval()
 
-test_dataset = MRIDataset_pelvis(mode='test',dataset_path=args.dataset_root,normalize=True,augmentation=True)
+test_dataset = MRIDataset_pelvis(mode='test',dataset_path=args.dataset_root)
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
 
 class DiceLoss(torch.nn.Module):
