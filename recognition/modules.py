@@ -1,4 +1,3 @@
-from tensorflow import keras
 from mrcnn.config import Config
 from mrcnn import model as modellib
 
@@ -25,3 +24,9 @@ def get_maskrcnn_model(mode, config, model_dir, weights_path=None):
         model.load_weights(weights_path, by_name=True)
 
     return model
+
+if __name__ == '__main__':
+    config = MaskRCNNConfig()
+    config.display()
+    model = get_maskrcnn_model("training", config, "E:/OneDrive/UQ/Year3_sem2/COMP3710/A3/logs")
+
