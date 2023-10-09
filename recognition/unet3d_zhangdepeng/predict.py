@@ -19,28 +19,15 @@ parser.add_argument('--dataset_root',default='/root/HipMRI_study_complete_releas
 
 args = parser.parse_args()
 
+##define the model and load trained model file
 model=UNet3D(in_channel=1, out_channel=6).cuda()
 model.load_state_dict(torch.load(args.pth))
 model.eval()
 
+##define the test dataloader
 test_dataset = MRIDataset_pelvis(mode='test',dataset_path=args.dataset_root)
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=1, shuffle=False)
 
-class DiceLoss(torch.nn.Module):
-    def __init__(self, smooth=1):
-        super(DiceLoss, self).__init__()
-        self.smooth = smooth
-
-    def forward(self, inputs, targets):
-        assert inputs.shape == targets.shape, f"Shapes don't match {inputs.shape} != {targets.shape}"
-        inputs = inputs[:,1:]                                                       # skip background class
-        targets = targets[:,1:]                                                     # skip background class
-        axes = tuple(range(2, len(inputs.shape)))                                   # sum over elements per sample and per class
-        intersection = torch.sum(inputs * targets, axes)
-        addition = torch.sum(torch.square(inputs) + torch.square(targets), axes)
-        return 1 - torch.mean((2 * intersection ) / (addition + self.smooth))
-    
-criterion = DiceLoss() 
 
 valid_loss=[]
 for idx,(data_x,data_y) in enumerate(test_dataloader):
@@ -49,6 +36,7 @@ for idx,(data_x,data_y) in enumerate(test_dataloader):
 #     labely=torch.nn.functional.one_hot(data_y.squeeze(1).long(),num_classes=6).permute(0,4,1,2,3).float()
 
     outputs = model(data_x)
+    ##get the class with max value
     outputs_class = torch.argmax(outputs,dim=1).squeeze()
 #     print(outputs_class.shape)
     intersection=torch.sum(outputs_class==data_y)
@@ -57,9 +45,9 @@ for idx,(data_x,data_y) in enumerate(test_dataloader):
 #     print('intersection,outputs_class.size():',intersection,outputs_class.size())
     dice_coeff=intersection.item()/outputs_class.nelement()
     print('dice_coeff',dice_coeff)
-#     loss = criterion(outputs,labely)
     valid_loss.append(dice_coeff)
 #     print(loss)
+##print the result of test set
 m_loss=np.average(valid_loss)
 print(args.pth)
 print('average_dice_coeff:',m_loss)
