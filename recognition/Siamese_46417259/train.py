@@ -24,7 +24,7 @@ def contrastive_loss(x1:torch.Tensor, x2:torch.Tensor, label:torch.Tensor, margi
     
     difference = F.pairwise_distance(x1, x2)
     loss = (label * torch.pow(difference, 2) + 
-            (1 - label) * torch.max(torch.zeros_like(difference), margin - torch.pow(difference, 2)))
+            (1-label) * torch.max(torch.zeros_like(difference), margin-torch.pow(difference, 2)))
     loss = torch.mean(loss)
     return loss
 
@@ -66,7 +66,7 @@ def train_and_eval():
 
     total_step = len(dataloader)
 
-    scheduler = optim.lr_scheduler.ExponentialLR(optimiser, 0.99, num_epochs)
+    scheduler = optim.lr_scheduler.ExponentialLR(optimiser, 0.99)
 
     training_losses = []
 
@@ -140,7 +140,7 @@ def train_and_eval():
     plt.xlabel("iterations")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig(RESULTS_PATH + f"/train_and_eval_loss_after_{num_epochs}_epochs.png")
+    plt.savefig(RESULTS_PATH + f"train_and_eval_loss_after_{num_epochs}_epochs.png")
 
 # new code here
 
