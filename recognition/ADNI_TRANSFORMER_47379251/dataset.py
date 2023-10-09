@@ -16,6 +16,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
+from torch.utils.data import random_split
 
 #from utils import *
 
@@ -27,7 +28,7 @@ parser.add_argument('--opt', default="adam")
 parser.add_argument('--net', default='SViT')
 parser.add_argument('--bs', default='128')
 parser.add_argument('--size', default="256")
-parser.add_argument('--n_epochs', type=int, default='60')
+parser.add_argument('--n_epochs', type=int, default='200')
 parser.add_argument('--patch', default='128', type=int, help="patch for ViT")
 parser.add_argument('--dimhead', default="512", type=int)
 classes = ('NC', 'AD')
@@ -89,14 +90,28 @@ transform_test = transforms.Compose([
 
 # Prepare dataset
 trainset = torchvision.datasets.ImageFolder(root='/home/groups/comp3710/ADNI/AD_NC/train', transform=transform_train)
-#trainset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
 #torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
+#trainset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=bs, shuffle=True)
 
-testset = torchvision.datasets.ImageFolder(root='/home/groups/comp3710/ADNI/AD_NC/test', transform=transform_test)
-#testset = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
-#testset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
+## Test
+#testset = torchvision.datasets.ImageFolder(root='/home/groups/comp3710/ADNI/AD_NC/test', transform=transform_test)
+#testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
+
+## Vaid
+test_valid_set = torchvision.datasets.ImageFolder(root='/home/groups/comp3710/ADNI/AD_NC/test', transform=transform_test)
+#test_valid_set = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
+#test_valid_set = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
+
+test_size = int(0.5 * len(test_valid_set))
+valid_size = len(test_valid_set) - test_size
+
+testset, validset = random_split(test_valid_set, [test_size, valid_size])
+
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
+validloader = torch.utils.data.DataLoader(validset, batch_size=100, shuffle=False)
+
+print(len(testset),len(trainset),len(validset))
 
 
 ## CIFAR

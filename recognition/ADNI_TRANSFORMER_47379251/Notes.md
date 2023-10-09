@@ -31,6 +31,12 @@
 - Optimizer
 - Criterion
 - Model
-- Epoch
+- Epoch - 35 (64.2), 50 (65), 60 (65.3), 120 (66), 200 (66.7), 300 (65)
 - Dropout
 # Jobs:
+190 - val
+188 - 200e 
+76 - test_m
+77 - test_val_m
+78 - 0.1 dp test
+79 - 0.1 dp t+v

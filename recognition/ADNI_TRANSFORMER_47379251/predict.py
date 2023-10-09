@@ -62,30 +62,67 @@ def test():
     print(content)
     return test_loss, acc
 
-list_loss = []
-list_acc = []
 
-print('Training..')
-start = time.time()
-for epoch in range(start_epoch, args.n_epochs):
-    trainloss = train(epoch) 
-    list_loss.append(trainloss)       
-    scheduler.step(epoch-1) # step cosine scheduling
-end = time.time()
-elapsed = end - start
-print("Training took " + str(elapsed) + " secs or " + str(elapsed / 60) + " mins in total")    
-# Plots
-plt.plot([i for i in range(1, args.n_epochs+1)], list_loss)
-plt.title("Training Plot")
-plt.legend()
-plt.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Report.png')
-print('Testing..')
-net.eval()
-print(net.eval())
-start = time.time()
-val_loss, acc = test()    
-end = time.time()
-elapsed = end - start
-print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
-print('END')    
-print("Test Loss:", val_loss,"Test Accuracy:", acc)        
+def test_measure():
+    list_loss = []
+    print('Training..')
+    start = time.time()
+    for epoch in range(start_epoch, args.n_epochs):
+        trainloss = train(epoch) 
+        list_loss.append(trainloss)     
+        scheduler.step(epoch-1) # step cosine scheduling
+    end = time.time()
+    elapsed = end - start
+    print("Training took " + str(elapsed) + " secs or " + str(elapsed / 60) + " mins in total")    
+    # Plots
+    plt.plot([i for i in range(1, args.n_epochs+1)], list_loss, label='Train')
+    plt.title("Training Plot")
+    plt.legend()
+    plt.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Report.png')
+    print('Testing..')
+    net.eval()
+    print(net.eval())
+    start = time.time()
+    val_loss, acc = test()    
+    end = time.time()
+    elapsed = end - start
+    print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
+    print('END')    
+    print("Test Loss:", val_loss,"Test Accuracy:", acc) 
+
+def test_valid_measure():
+    list_loss = []
+    list_acc = []
+    list_test=[]
+    acu = []
+    print('Training..')
+    start = time.time()
+    for epoch in range(start_epoch, args.n_epochs):
+        trainloss,testloss, acc = train_valid(epoch) 
+        list_loss.append(trainloss)   
+        list_test.append(testloss)   
+        acu.append(acc)  
+        scheduler.step(epoch-1) # step cosine scheduling
+    end = time.time()
+    elapsed = end - start
+    print("Training took " + str(elapsed) + " secs or " + str(elapsed / 60) + " mins in total")    
+    # Plots
+    plt.plot([i for i in range(1, args.n_epochs+1)], list_loss, label='Train')
+    plt.plot([i for i in range(1, args.n_epochs+1)], list_test, label='Valid')
+    plt.title("Training Plot")
+    plt.legend()
+    plt.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Report.png')
+    print(acu)
+    print('Testing..')
+    net.eval()
+    print(net.eval())
+    start = time.time()
+    val_loss, acc = test()    
+    end = time.time()
+    elapsed = end - start
+    print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
+    print('END')    
+    print("Test Loss:", val_loss,"Test Accuracy:", acc) 
+
+test_valid_measure()      
+#test_measure()           

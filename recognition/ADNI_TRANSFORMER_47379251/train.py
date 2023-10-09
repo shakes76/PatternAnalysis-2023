@@ -51,7 +51,7 @@ elif args.net=="SViT":
     depth = 4,
     heads = 4,
     mlp_dim = 1024,
-    dropout = 0.2,
+    dropout = 0.1,
     emb_dropout = 0.1
 )
 elif args.net == "vit_small":
@@ -181,7 +181,7 @@ def train(epoch):
         if epoch%1==0: 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                 % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
-    #writer.add_scalar("Train Loss/Epochs", train_loss, epoch) 
+    writer.add_scalar("Train Loss/Epochs", train_loss, epoch) 
     if epoch==0: 
         log = "Learning Rate: " + str(args.lr) + "\nOptimizer: " + str(args.opt) + "\nModel: " + str(args.net)\
             + "\nBatch Size: " + str(args.bs) + "\nEpoch: " + str(args.n_epochs)\
@@ -191,5 +191,69 @@ def train(epoch):
     writer.close()   
     #print(100.*correct/total)
     return train_loss
+
+
+##### Training + Validation
+scaler = torch.cuda.amp.GradScaler()
+def train_valid(epoch):
+    loss_idx_value = 0
+    writer = SummaryWriter()
+    net.train()
+    if torch.cuda.is_available(): net.cuda()
+    if epoch == 0:
+        print(net.train())
+    train_loss = 0
+    correct = 0
+    total = 0
+    print('\nEpoch: %d' % epoch)
+    for batch_idx, (inputs, targets) in enumerate(trainloader):
+        inputs, targets = inputs.to(device), targets.to(device)
+        # Tensorboard
+        if epoch == 0 and batch_idx == 0:
+            writer.add_graph(net, input_to_model=(inputs, targets)[0], verbose=True)
+        # Write an image at every batch 0
+        if batch_idx == 0:
+            writer.add_image("Example input", inputs[0], global_step=epoch)
+        # Train with amp
+        with autocast(device_type="cuda" if torch.cuda.is_available() else "cpu"):
+            outputs = net(inputs)
+            loss = criterion(outputs, targets)
+        optimizer.zero_grad()    
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+
+        train_loss += loss.item()
+        writer.add_scalar("Train Loss/Minibatches", train_loss, loss_idx_value)
+        loss_idx_value += 1
+        _, predicted = outputs.max(1)
+        total += targets.size(0)
+        correct += predicted.eq(targets).sum().item()
+        if epoch%1==0: 
+            progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+    writer.add_scalar("Train Loss/Epochs", train_loss, epoch) 
+    valid_loss = 0.0
+    acc = 0
+    net.eval()     # Optional when not using Model Specific layer
+    for batch_idx, (inputs, targets) in enumerate(validloader):
+        # Transfer Data to GPU if available
+        inputs, targets = inputs.to(device), targets.to(device)
+        outputs = net(inputs)
+        loss = criterion(outputs, targets)
+        valid_loss += loss.item()
+        _, predicted = outputs.max(1)
+        total += targets.size(0)
+        correct += predicted.eq(targets).sum().item()
+        if (100.*correct/total) > acc: acc = 100.*correct/total
+    if epoch==0: 
+        log = "Learning Rate: " + str(args.lr) + "\nOptimizer: " + str(args.opt) + "\nModel: " + str(args.net)\
+            + "\nBatch Size: " + str(args.bs) + "\nEpoch: " + str(args.n_epochs)\
+            + "\nPatch Size: " + str(args.patch) + "\nDimensions: " + str(args.dimhead) + "\nConv Kernel: "\
+            + "\nLR Scheduler: " +  sched_lr
+        writer.add_text('Param', log, 0)
+    writer.close()   
+    #print(100.*correct/total)
+    return train_loss, valid_loss, acc
     
 print(net)
