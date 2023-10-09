@@ -1,6 +1,47 @@
 import os
 import cv2
 import numpy as np
+from torch.utils.data import DataLoader, Dataset
+
+
+class ISICDataset(Dataset):
+    def __init__(self, path, type, transform=None):
+
+        """
+
+        :param path: path to folder containing images and masks
+        :param type: type of dataset (train, val, test)
+        :param transform: transform to apply to images and masks
+        """
+
+        self.path = path
+        self.type = type
+        self.transform = transform
+
+        self.image_filenames = [f for f in os.listdir(f"{path}_Input") if f.endswith('.jpg')]
+        self.mask_filenames = [f for f in os.listdir(f"{path}_GroundTruth") if f.endswith('.png')]
+
+        # Ensure each image corresponds to a mask
+        image_basenames = set([os.path.splitext(f)[0] for f in self.image_filenames])
+        mask_basenames = set([os.path.splitext(f)[0].replace('_segmentation', '') for f in self.mask_filenames])
+        if image_basenames != mask_basenames:
+            raise ValueError("The images and masks are not in a one-to-one correspondence.")
+
+    def __len__(self):
+        return len(self.image_filenames)
+
+    def __getitem__(self, idx):
+        image_path = os.path.join(self.image_folder, self.image_filenames[idx])
+        mask_path = os.path.join(self.mask_folder, self.mask_filenames[idx])
+
+        image = cv2.imread(image_path)
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)  # Assuming the mask is a grayscale image
+
+        if self.transform:
+            image = self.transform(image)
+            mask = self.transform(mask)
+
+        return image, mask
 
 
 def load_images(folder_path, target_size=(256, 256), extensions=[".jpg", ".png"]):
