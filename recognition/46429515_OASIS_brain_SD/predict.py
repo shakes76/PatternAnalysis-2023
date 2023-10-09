@@ -12,7 +12,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = module.UNet()
 
 # Load saved weights (pre-trained model)
-model.load_state_dict(torch.load('best_model.pth', map_location=torch.device('cpu')))
+# , map_location=torch.device('cpu')
+model.load_state_dict(torch.load('best_model.pth'))
 model.eval()
 
 preprocess = transforms.Compose([
