@@ -1,44 +1,57 @@
-from modules import MaskRCNNConfig, get_maskrcnn_model
-from dataset import load_training_set, load_val_set
+import torch
+import torch.nn as nn
+from torch.utils.data import DataLoader
+from torch.optim import SGD
+from dataset import ISICDataset  # Assuming dataset.py is in the same directory
+from modules import MaskRCNN  # Assuming modules.py is in the same directory
 
+# Initialize the dataset
+train_dataset = ISICDataset(path="E:/comp3710/ISIC2018", type="Training")
+val_dataset = ISICDataset(path="E:/comp3710/ISIC2018", type="Validation")
 
-def train_model(data_path, log_dir, pretrained_weights=None, epochs=10):
-    """
-    Train the Mask R-CNN model.
+train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
+val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
 
-    :param data_path: Path to the dataset directory
-    :param log_dir: Directory to save logs and trained model
-    :param pretrained_weights: Path to the pretrained weights file
-    :param epochs: Number of epochs for training
-    """
-    # Configuration
-    config = MaskRCNNConfig()
-    config.display()
+# Initialize the model
+num_classes = 2  # For binary classification, we have 2 classes: 0 and 1
+model = MaskRCNN(num_classes)
 
-    # Load datasets
-    train_images, train_masks = load_training_set(data_path)
-    val_images, val_masks = load_val_set(data_path)
+# If CUDA is available, move the model to GPU
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+model.to(device)
 
-    # Create model
-    model = get_maskrcnn_model("training", config, log_dir)
+# Define the loss functions
+classification_loss = nn.CrossEntropyLoss()
+bbox_loss = nn.SmoothL1Loss()
+mask_loss = nn.BCEWithLogitsLoss()
 
-    # Optionally, load pre-trained weights
-    if pretrained_weights:
-        model.load_weights(pretrained_weights, by_name=True,
-                           exclude=["mrcnn_class_logits", "mrcnn_bbox_fc", "mrcnn_bbox", "mrcnn_mask"])
+# Initialize the optimizer
+optimizer = SGD(model.parameters(), lr=0.001, momentum=0.9)
 
-    # Training
-    model.train(train_images, train_masks,
-                val_images, val_masks,
-                learning_rate=config.LEARNING_RATE,
-                epochs=epochs,
-                layers='heads')  # 'heads' means that only the head layers of the network will be trained
+# Training loop
+for epoch in range(10):  # Number of epochs
+    for i, (images, masks) in enumerate(train_loader):
+        images, masks = images.to(device), masks.to(device)
 
-    print("Training complete")
+        # Zero the parameter gradients
+        optimizer.zero_grad()
 
+        # Forward pass
+        classification, boxes, predicted_masks = model(images)
 
-# Example usage
-if __name__ == '__main__':
-    data_path = "E:/comp3710/ISIC2018/"
-    log_dir = "E:/OneDrive/UQ/Year3_sem2/COMP3710/A3/logs"
-    train_model(data_path, log_dir, epochs=10)
+        # Calculate the loss
+        loss_cls = classification_loss(classification)
+        loss_bbox = bbox_loss(boxes)
+        loss_mask = mask_loss(predicted_masks, masks)
+
+        # Combine the losses
+        total_loss = loss_cls + loss_bbox + loss_mask
+
+        # Backward pass and optimization
+        total_loss.backward()
+        optimizer.step()
+
+        print(f"Epoch [{epoch+1}/10], Step [{i+1}/{len(train_loader)}], Loss: {total_loss.item():.4f}")
+
+# Save the model
+torch.save(model.state_dict(), "mask_rcnn_model.pth")

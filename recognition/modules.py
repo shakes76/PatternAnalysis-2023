@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.models as models
 from torchvision.ops import nms, roi_align
 
@@ -20,13 +21,64 @@ class RPN(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.cls_score = nn.Conv2d(512, 2 * 9, kernel_size=1, stride=1)
         self.bbox_pred = nn.Conv2d(512, 4 * 9, kernel_size=1, stride=1)
+        self.anchor_scales = [8, 16, 32]
+        self.anchor_ratios = [0.5, 1, 2]
+
+    def generate_base_anchors(self, feature_map_size):
+        base_anchors = []
+        for scale in self.anchor_scales:
+            for ratio in self.anchor_ratios:
+                w = scale * torch.sqrt(ratio)
+                h = scale / torch.sqrt(ratio)
+                x1, y1, x2, y2 = -w/2, -h/2, w/2, h/2
+                base_anchors.append([x1, y1, x2, y2])
+        base_anchors = torch.tensor(base_anchors)
+        return base_anchors
+
+    def apply_bbox_deltas(self, anchors, bbox_deltas):
+        widths = anchors[:, 2] - anchors[:, 0]
+        heights = anchors[:, 3] - anchors[:, 1]
+        ctr_x = anchors[:, 0] + 0.5 * widths
+        ctr_y = anchors[:, 1] + 0.5 * heights
+
+        dx = bbox_deltas[:, 0::4]
+        dy = bbox_deltas[:, 1::4]
+        dw = bbox_deltas[:, 2::4]
+        dh = bbox_deltas[:, 3::4]
+
+        pred_ctr_x = ctr_x + dx * widths
+        pred_ctr_y = ctr_y + dy * heights
+        pred_w = torch.exp(dw) * widths
+        pred_h = torch.exp(dh) * heights
+
+        pred_boxes = torch.zeros_like(bbox_deltas)
+        pred_boxes[:, 0::4] = pred_ctr_x - 0.5 * pred_w
+        pred_boxes[:, 1::4] = pred_ctr_y - 0.5 * pred_h
+        pred_boxes[:, 2::4] = pred_ctr_x + 0.5 * pred_w
+        pred_boxes[:, 3::4] = pred_ctr_y + 0.5 * pred_h
+
+        return pred_boxes
+
+    def apply_nms(self, boxes, scores, threshold=0.5):
+        keep_indices = nms(boxes, scores, threshold)
+        return boxes[keep_indices], scores[keep_indices]
 
     def forward(self, x):
         x = self.conv(x)
         x = self.relu(x)
         objectness = self.cls_score(x)
         bbox_deltas = self.bbox_pred(x)
-        return objectness, bbox_deltas
+
+        objectness_prob = F.softmax(objectness.view(objectness.size(0), 2, -1), dim=1)[:, 1, :]
+
+        base_anchors = self.generate_base_anchors(x.shape[2:])
+        anchors = base_anchors.repeat(x.shape[2] * x.shape[3], 1)
+
+        refined_anchors = self.apply_bbox_deltas(anchors, bbox_deltas.squeeze())
+
+        final_boxes, final_scores = self.apply_nms(refined_anchors, objectness_prob.squeeze())
+
+        return final_boxes, final_scores
 
 
 class RoIAlign(nn.Module):
