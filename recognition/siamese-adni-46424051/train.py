@@ -52,5 +52,6 @@ class Train():
             if constants.cuda:
                 img1, img2 = img1.cuda(), img2.cuda()
             out1, out2 = self.net(img1, img2)
-            print(out1)
+            print("out1:", out1)
+            print("out2:", out2)
         print(correct * 1.0 / (correct + incorrect))
