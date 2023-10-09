@@ -10,6 +10,8 @@ import torch.nn as nn
 # TODO: separate encoder and decoder into separate modules
 # TODO: check and fix the layer sizes
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 class Encoder(nn.Module):
     """
     Encoder module for the VQ-VAE model.
@@ -110,7 +112,6 @@ class Decoder(nn.Module):
         out = self.transpose_conv2(x)
         return out
 
-
 class VQVAE(nn.Module):
     def __init__(self, no_channels, latent_dim, num_embeddings):
         super(VQVAE, self).__init__()
@@ -129,7 +130,7 @@ class VQVAE(nn.Module):
         z = self.encoder(x)
         embedding_loss, z_q = self.vector_quantization(z)
         x_hat = self.decoder(z_q)
-        return x_hat, z, z_q
+        return embedding_loss, z, z_q
 
 class VectorQuantizer(nn.Module):
     """
