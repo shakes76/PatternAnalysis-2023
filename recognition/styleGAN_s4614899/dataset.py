@@ -57,7 +57,7 @@ def get_loader(image_size):
         ]
     )
     #batch_size = BATCH_SIZES[int(log2(image_size/4))] # image size = 256 
-    batch_size = BATCH_SIZES[0] # img size = 256
+    batch_size = BATCH_SIZES[3] # img size = 256, batch size = 32
      # Load all the training, test, and validation data together to train the styleGAN model
     dataset = CustomImageDataset(img_dirs = [DATASET1, DATASET2, DATASET3], transform=trainsform)
     loader = DataLoader(dataset,batch_size=batch_size,shuffle=True)
