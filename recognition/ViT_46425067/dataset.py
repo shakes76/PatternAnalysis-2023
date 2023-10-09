@@ -26,8 +26,9 @@ def load_data(batch_size, image_size):
         transforms.Grayscale(num_output_channels=1),
         transforms.RandomHorizontalFlip(p=0.5),
         transforms.RandomVerticalFlip(p=0.5),
-        transforms.RandomRotation(degrees=10),
-
+        transforms.RandomRotation(degrees=30),
+        # transforms.RandomResizedCrop(image_size, scale=(0.7, 1)),
+        # transforms.RandomCrop(size=(image_size, image_size), padding=8, padding_mode='reflect'), #scale=(0.8, 1.0)),  # Random crop and resize
         transforms.Normalize(mean=(0.1156), std=(0.2198), inplace=True),
     ])
 
