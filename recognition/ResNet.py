@@ -72,7 +72,7 @@ class Bottleneck(nn.Module):
 
 
 # test
-if __name__ == '__main__':
-    net = ResNet(Bottleneck, [3, 4, 6, 3])
-    y = net(torch.randn(1, 3, 256, 256))
-    print(y.size())  # 结果应该是 torch.Size([1, 2048, 8, 8])
+# if __name__ == '__main__':
+#     net = ResNet(Bottleneck, [3, 4, 6, 3])
+#     y = net(torch.randn(1, 3, 256, 256))
+#     print(y.size())  # 结果应该是 torch.Size([1, 2048, 8, 8])
