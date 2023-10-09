@@ -44,7 +44,7 @@ class Train():
             out1, out2 = self.net.forward(img1, img2)
             l = self.loss_function(out1, out2)
             loss += l.item()
-            l.backward()
+            # l.backward()
             self.optimiser.step()
             losses.append(loss)
         plt.figure()
