@@ -35,11 +35,11 @@ Pic 4.
 
 In this training, it is clear enough and SSIM could reach 95% one picture of all these 64 brain pictures is not shown, which means it could be overfitting. Therefore, we have to adjust the learning rate and track the loss during the training process. Since the first 1000 times training have high loss, we only record the loss after training 1000 epochs. The result is as follows: Pic5 is when learning rate equals 0.01, Pic6 is when learning rate equals 0.001, Pic7 is when learning rate equals 0.0001. The best images they can generate is also shown in Pic 8, 9, 10.
 
-![image](https://github.com/Albert-bc/vq-vae/assets/59477394/a090cf33-0e28-4e51-9d51-cabb5fc1c014) Pic5.	![image](https://github.com/Albert-bc/vq-vae/assets/59477394/6307499f-461a-4cb7-8a9b-0f4602c303de) Pic8. (No_4543 _Loss_0.00182_SSIM_92.36%)     
+![image](https://github.com/Albert-bc/vq-vae/assets/59477394/a090cf33-0e28-4e51-9d51-cabb5fc1c014) Pic5. (lr=0.01)	![image](https://github.com/Albert-bc/vq-vae/assets/59477394/6307499f-461a-4cb7-8a9b-0f4602c303de) Pic8. (No_4543 _Loss_0.00182_SSIM_92.36%)     
 
-![image](https://github.com/Albert-bc/vq-vae/assets/59477394/3ec97594-196f-4ddc-9bde-a1d2dc587580) Pic6. ![image](https://github.com/Albert-bc/vq-vae/assets/59477394/dceaab87-88ec-4007-b563-aed41eec277e) Pic9. (No_6726 _Loss_0.00117_SSIM_97.073%)	  
+![image](https://github.com/Albert-bc/vq-vae/assets/59477394/3ec97594-196f-4ddc-9bde-a1d2dc587580) Pic6. (lr=0.001)  ![image](https://github.com/Albert-bc/vq-vae/assets/59477394/dceaab87-88ec-4007-b563-aed41eec277e) Pic9. (No_6726 _Loss_0.00117_SSIM_97.073%)	  
 
-![image](https://github.com/Albert-bc/vq-vae/assets/59477394/126a93ce-776c-4b4b-adf7-d0c07770acbd) Pic7. ![image](https://github.com/Albert-bc/vq-vae/assets/59477394/ae1995b9-23a8-45ea-b83b-ce62e68418fd) Pic10. (No_9693 _Loss_0.001575_SSIM_95.94%)
+![image](https://github.com/Albert-bc/vq-vae/assets/59477394/126a93ce-776c-4b4b-adf7-d0c07770acbd) Pic7. (lr=0.0001)  ![image](https://github.com/Albert-bc/vq-vae/assets/59477394/ae1995b9-23a8-45ea-b83b-ce62e68418fd) Pic10. (No_9693 _Loss_0.001575_SSIM_95.94%)
 
 From the images, we can clearly see that inside 10000 times training, SSIM and loss performance is the best when learning rate equals 0.001, but it still overfitting because 1/64 image is missing (all black). Therefore, we need to adjust the learning rate to make it change in multistep. Code: from torch.optim.lr_scheduler import MultiStepLR is used to adjust the learning rate. However, it is easily getting loss like Pic11. if the learning rate step is not chosen well. After several attempts, we get the best generated image so far is shown in Pic12.
 
