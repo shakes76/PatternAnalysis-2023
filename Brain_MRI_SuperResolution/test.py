@@ -1,16 +1,12 @@
-from keras.models import load_model
-from keras.preprocessing.image import img_to_array, load_img
+from tensorflow.keras.models import load_model
+import cv2
 import numpy as np
 
-model = load_model("saved_models/sub_pixel_cnn.h5")
-
-# Load an image from the test set
-img_path = 'data/ad_nc/test/AD/image1.png'
-img = load_img(img_path, target_size=(128, 128))
-img = img_to_array(img)/255.0
-img = np.expand_dims(img, axis=0)
-
-# Predict
-super_res = model.predict(img)
-
-# If needed, you can save or visualize the super_res output.
+model = load_model('saved_models/sub_pixel_cnn_model.h5')
+print(1);
+test_image = cv2.imread('path_to_a_downsampled_test_image', cv2.IMREAD_GRAYSCALE)
+print(1);
+predicted = model.predict(np.expand_dims(np.expand_dims(test_image, axis=-1), axis=0))
+print(1);
+cv2.imwrite('super_resolved_image.png', predicted[0].squeeze())  # Squeeze to remove channel dimension
+print(1);

@@ -1,23 +1,45 @@
-from keras.optimizers import Adam
-from keras.losses import mean_squared_error
-from keras.preprocessing.image import ImageDataGenerator
+import numpy as np
+import cv2
+from AD_NC.dataset import load_dataset, downsample_images
 from models.sub_pixel_cnn import sub_pixel_cnn
+from tensorflow.keras.optimizers import Adam
 
-# Hyperparameters
-EPOCHS = 50
-BATCH_SIZE = 32
+def resize_images(images, target_dim):
+    return [cv2.resize(image, target_dim, interpolation=cv2.INTER_CUBIC) for image in images]
 
-# Create an image data generator
-datagen = ImageDataGenerator(rescale=1./255)
-train_gen = datagen.flow_from_directory('data/ad_nc/train', target_size=(128, 128), batch_size=BATCH_SIZE, class_mode='input')
-test_gen = datagen.flow_from_directory('data/ad_nc/test', target_size=(128, 128), batch_size=BATCH_SIZE, class_mode='input')
+# Load datasets
+originals = load_dataset('AD_NC/train/AD') + load_dataset('AD_NC/train/NC')
+downsampled = downsample_images(originals)
+
+print("Original images count:", len(originals))
+print("Sample original image shape:", originals[0].shape)
+print("Downsampled images count:", len(downsampled))
+print("Sample downsampled image shape:", downsampled[0].shape)
+
+# Resize originals to match the expected model output size
+originals_resized = resize_images(originals, (120, 128))
+print("Resized originals count:", len(originals_resized))
+print("Sample resized original image shape:", originals_resized[0].shape)
 
 # Model
-model = sub_pixel_cnn()
-model.compile(optimizer=Adam(), loss=mean_squared_error)
+input_shape = downsampled[0].shape + (1,)
+model = sub_pixel_cnn(input_shape)
+print("Model input shape:", model.input_shape)
+print("Model output shape:", model.output_shape)
 
-# Train
-model.fit(train_gen, validation_data=test_gen, epochs=EPOCHS)
+# Optimizer and compilation
+optimizer = Adam(lr=0.001)
+model.compile(optimizer=optimizer, loss='mean_squared_error')
 
-# Save
-model.save("saved_models/sub_pixel_cnn.h5")
+# Training data preparation
+X_train = np.array(downsampled).reshape(-1, *input_shape)
+Y_train = np.array(originals_resized).reshape(-1, 120, 128, 1)
+
+print("Training data shape:", X_train.shape)
+print("Target data shape:", Y_train.shape)
+
+# Training
+model.fit(X_train, Y_train, epochs=50, batch_size=16)
+
+# Save model
+model.save('saved_models/sub_pixel_cnn_model.h5')
