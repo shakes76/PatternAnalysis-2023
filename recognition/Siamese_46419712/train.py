@@ -1,17 +1,15 @@
-import torchvision
 import torch
 import time
 import matplotlib.pyplot as plt
-import numpy as np
 import os
+import torch.nn as nn
 
-
-from modules import RawSiameseModel, ContrastiveLossFunction
-from dataset import load_train_data, load_test_data
+from modules import RawSiameseModel, ContrastiveLossFunction, BinaryModelClassifier
+from dataset import load_train_data, load_test_data, load_train_data_classifier
 
 def train_siamese(model, train_loader, criterion, optimizer, loss_list, scheduler):
     model.train()
-    count = 0
+
     for i, val in enumerate(train_loader):
         img0, img1 , labels = val
         img0 = img0.to(device)
@@ -33,17 +31,11 @@ def train_siamese(model, train_loader, criterion, optimizer, loss_list, schedule
         
         scheduler.step()
 
-        if (i+1) % 1 == 0:
+        if (i+1) % 40 == 0:
             print (">>>>> Step [{}/{}] Loss: {:.5f}"
                     .format(i+1, len(train_loader), loss.item()))
 
-            # save_model(epochs, model, criterion, optimizer)
-        
-        if count == 3:
-            break # remove this when test
-        count += 1
-
-    return total_step
+        break
 
 def validate_siamese(model, val_loader, criterion, val_loss_list):
     model.eval()
@@ -61,10 +53,34 @@ def validate_siamese(model, val_loader, criterion, val_loss_list):
             val_loss_list.append(loss.item())
             break # remove this line when test
 
-def train_classifier(model, train_loader, criterion, optimizer, step_count, loss_list, scheduler, epochs):
-    pass
+def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_list):
+    sModel.eval() # siamese
+    cModel.train() # classifier
 
-def validate_classifier(model, val_loader, criterion, epochs):
+    for i, val in enumerate(train_loader):
+        img, label = val
+        img = img.to(device)
+        label = label.to(device).float()
+
+        fv1 = model(img)
+
+        output = cModel(fv1)
+        loss = criterion(output, label.unsqueeze(1))
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        # save loss for graph
+        loss_list.append(loss.item())
+        
+        if (i+1) % 40 == 0:
+            print (">>>>> Step [{}/{}] Loss: {:.5f}"
+                    .format(i+1, len(train_loader), loss.item()))
+
+        break
+
+def validate_classifier(cModel, sModel, val_loader, criterion, val_loss_list):
     pass
 
 def test_model(model, test_loader):
@@ -152,12 +168,13 @@ if __name__ == '__main__':
     ######### LOADING DATA ##########
     print("Begin loading data")
     train_loader, val_loader = load_train_data()
+    train_loader_classifier = load_train_data_classifier()
     test_loader = load_test_data()
     print("Finish loading data \n")
 
     #########  TRAINING SIAMASE MODEL ##########
     # Testing model
-    model = RawSiameseModel()
+    model = RawSiameseModel().to(device)
 
     # hyper parameters
     num_epochs = 20
@@ -179,11 +196,10 @@ if __name__ == '__main__':
 
     for epoch in range(num_epochs):
         print ("Epoch [{}/{}]".format(epoch + 1, num_epochs))
-        total_step = train_siamese(model, train_loader, criterion, optimizer, loss_list, scheduler)
+        train_siamese(model, train_loader, criterion, optimizer, loss_list, scheduler)
         save_loss_plot(loss_list, epoch) # save loss plot for siamese train
         validate_siamese(model, val_loader, criterion, val_loss_list)
         save_loss_plot(val_loss_list, train=False) # save loss plot for siamese validate
-
         save_model(epoch, model, criterion, optimizer, scheduler) # save model for every epoch
 
         break
@@ -196,10 +212,26 @@ if __name__ == '__main__':
 
     #########  TRAINING BINARY CLASSIFIER MODEL ########## 
     # hyper parameters for classifier
+
+    num_epochs = 20
+    learning_rate = 0.0001
+    cModel = BinaryModelClassifier(model).to(device)
+
+    criterionB = nn.BCELoss()
+    optimizerB = torch.optim.Adam(cModel.parameters(), lr=learning_rate)
+
+    classifier_loss_list = []
+
     print("Start classifier training")
     
     start = time.time()
     # train classifier
+    for epoch in range(num_epochs):
+        print ("Epoch [{}/{}]".format(epoch + 1, num_epochs))
+        train_classifier(model, cModel, train_loader_classifier, criterionB, optimizerB, loss_list)
+        save_loss_plot(classifier_loss_list, epoch, siamese=False) # save loss plot for siamese train
+        save_model(epoch, cModel, criterionB, optimizerB, scheduler, 1) # save model for every epoch
+        break
     end = time.time() #time generation
     print("Finish classifier training")
     elapsed = end - start
@@ -208,7 +240,7 @@ if __name__ == '__main__':
     #########  TESTING MODEL ##########
     print("Start Testing")
     start = time.time()
-    accuracy = test_model(model, test_loader)
+    accuracy = test_model(model, cModel, test_loader)
     print('Test Accuracy: {} %'.format(100 * accuracy))
     end = time.time() #time generation
     print("Finish Testing")
