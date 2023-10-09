@@ -17,17 +17,19 @@ N_EPOCHS = 20
 
 strftime = lambda t: f'{int(t//3600):02}:{int((t%3600)//60):02}:{(t%3600)%60:08.5f}'
 
-def train_model(mdl: Any, epochs: int, device: torch.device) -> None:
+def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -> None:
     '''
     Train the given model on a pre-processsed ADNI training dataset.
     '''
+    wrapiter = (lambda iter: tqdm(iter)) if pg else (lambda iter: iter)
+
     train_loader = create_train_dataloader()
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(mdl.parameters(), lr=1e-3)
     mdl.train()
     time_start = time.time()
     for epoch in range(epochs):
-        for images, labels in tqdm(train_loader):
+        for images, labels in wrapiter(train_loader):
             images = images.to(device)
             labels = labels.to(device)
             optimizer.zero_grad()
@@ -42,15 +44,17 @@ def train_model(mdl: Any, epochs: int, device: torch.device) -> None:
         time_elapsed = time.time() - time_start
         print(f'Epoch [{epoch+1:02}/{epochs:02}]  Loss: {loss.item():.5f}  ({strftime(time_elapsed)})')
 
-def test_model(mdl: Any, device: torch.device) -> None:
+def test_model(mdl: Any, device: torch.device, pg: bool = False) -> None:
     '''Test the given model on the ADNI test dataset.'''
+    wrapiter = (lambda iter: tqdm(iter)) if pg else (lambda iter: iter)
+
     test_loader = create_test_dataloader()
     mdl.eval()
     time_start = time.time()
     with torch.no_grad():
         total = 0
         correct = 0
-        for images, labels in tqdm(test_loader):
+        for images, labels in wrapiter(test_loader):
             images = images.to(device)
             labels = labels.to(device)
             # Forward pass
@@ -71,13 +75,14 @@ def main(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     mdl = torchvision.models.vit_b_16(weights=torchvision.models.ViT_B_16_Weights.IMAGENET1K_V1)
     mdl.to(device)
-    train_model(mdl, epochs=args.epochs, device=device)
-    test_model(mdl, device=device)
+    train_model(mdl, epochs=args.epochs, device=device, pg=args.pg)
+    test_model(mdl, device=device, pg=args.pg)
     save_model(mdl)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('epochs', type=int)
+    parser.add_argument('epochs', type=int, help='number of training epochs')
+    parser.add_argument('--pg', action='store_true', help='show progress bar')
     args = parser.parse_args()
     main(args)
