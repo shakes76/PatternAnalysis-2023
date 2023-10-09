@@ -29,7 +29,7 @@ class DatasetTrain(Dataset):
         return NC, AD
 
     def __len__(self):
-        return 11120
+        return 1000
     
     def __getitem__(self, index):
         image1 = None

@@ -41,7 +41,7 @@ class Train():
                 img1, img2, label = Variable(img1), Variable(img2), Variable(label)
             
             self.optimiser.zero_grad()
-            out1, out2 = self.net.forward(img1, img2)
+            out1, out2 = self.net(img1, img2)
             l = self.loss_function(out1, out2)
             loss += l.item()
             # l.backward()
