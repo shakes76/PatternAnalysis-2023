@@ -67,3 +67,4 @@ class Train():
             else:
                 label = "DIFF"
             print(label)
+        print(correct * 1.0 / (correct + incorrect))
