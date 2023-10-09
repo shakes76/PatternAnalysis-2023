@@ -53,7 +53,7 @@ class Train():
                 img1, img2 = img1.cuda(), img2.cuda()
             out1, out2 = self.net(img1, img2)
             dis = torch.abs(out1 - out2)
-            out = torch.nn.Linear(4096, 1)(dis)
+            out = torch.nn.Linear(2, 1)(dis)
             # difference = torch.nn.functional.pairwise_distance(out1, out2)
             # print(difference.item())
             print(out)
