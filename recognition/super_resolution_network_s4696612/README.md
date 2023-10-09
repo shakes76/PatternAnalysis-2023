@@ -47,3 +47,5 @@ provided with a validation set, a validation set was constructed within train.py
 10% of the training data.
 
 ## 
+Maximum loss value for a batch in the test set: 0.01198537927120924
+Minimum loss value for a batch in the test set: 0.008538042195141315
