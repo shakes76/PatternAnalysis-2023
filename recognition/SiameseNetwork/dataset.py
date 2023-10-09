@@ -1,9 +1,8 @@
 # containing the data loader for loading and preprocessing your data
 
 import os
-import torch
 import random
-from torch.utils.data import DataLoader, Dataset
+from torch.utils.data import Dataset
 from PIL import Image
 
 class CustomDataset(Dataset):
