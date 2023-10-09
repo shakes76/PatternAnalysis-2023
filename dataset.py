@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 
 
-def json_to_csv(json_file_path='facebook_large/musae_facebook_features.json'):
+def format_features(json_file_path='facebook_large/musae_facebook_features.json'):
     '''
     format json -> csv
     
@@ -19,17 +19,20 @@ def json_to_csv(json_file_path='facebook_large/musae_facebook_features.json'):
         features_dict = json.load(json_file)
 
         for key, item in features_dict.items():
-            df1 = pd.DataFrame({'key':key, 'item': item})
+            df1 = pd.DataFrame({'key':key, 'item': [item]})
             df = pd.concat([df, df1], ignore_index=True)
 
     df.to_csv('facebook_large/musae_facebook_features.csv', index=False)
 
 def format_target(csv_file_path='facebook_large/musae_facebook_target.csv'):
+    '''
+    Does something...
+    '''
     df = pd.read_csv(csv_file_path).iloc[:, -1]
     df.columns = ['index', 'target']
     df.to_csv('facebook_large/musae_facebook_target1.csv', index=True)
 
-format_target()
+format_features()
 
 # features = pd.read_csv('facebook_large/musae_facebook_features.csv')
 # x = torch.Tensor(features.values)
