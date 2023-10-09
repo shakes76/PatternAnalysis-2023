@@ -200,7 +200,7 @@ After completing the StyleGAN2's training on the OASIS brain dataset for 180 epo
 
 
 ## Training Images
-![Training Images](assets/training_images.png)
+![Training Images](assets/training_images_examples.png)
 
 
 ## Generated Images after 1 Epoch
