@@ -249,8 +249,3 @@ The structure of the models used in this report were created using the styleGAN2
 - Paperface report breakdown: https://blog.paperspace.com/understanding-stylegan2/ 
 - Paperface simplified implementation: https://blog.paperspace.com/implementation-stylegan2-from-scratch/ 
 - Huggingface implementation: https://huggingface.co/spaces/mfrashad/ClothingGAN/blob/main/models/stylegan2/stylegan2-pytorch/model.py 
-
-
-## Todo List
-- Check if style vector w manipulation shown is good enough with tutor
-
