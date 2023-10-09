@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import random
 
 # global variables
-batch_size = 128
+batch_size = 64
 workers = 0
 
 # alias for testing on different machines
@@ -49,7 +49,7 @@ class PairedDataset(torch.utils.data.Dataset):
         # for reproducibility
         if random_seed is not None:
             random.seed(random_seed)
-            torch.random.seed(random_seed)
+            torch.random.manual_seed(random_seed)
 
     def __len__(self) -> int:
         return self.image_folder_size
@@ -101,7 +101,7 @@ def load_data(training:bool, Siamese:bool, random_seed=None) -> torch.utils.data
 
     if random_seed is not None:
         random.seed(random_seed)
-        torch.random.seed(random_seed)
+        torch.random.manual_seed(random_seed)
 
     source = dset.ImageFolder(root=path, transform=transforms)
     print(f'dataset has classes {source.class_to_idx} and {len(source)} images')
