@@ -1,19 +1,13 @@
 import os
+import utils
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset, ConcatDataset
 from PIL import Image
 
-root_path = 'data/keras_png_slices_data'
-
-# Define image size
-IMAGE_SIZE = 128
-
-# Define batch size of data
-BATCH_SIZE = 32
 
 # Define data transformations
 transform = transforms.Compose([
-    transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+    transforms.Resize((utils.IMAGE_SIZE, utils.IMAGE_SIZE)),
     transforms.RandomHorizontalFlip(),                      
     transforms.ToTensor(), # Data is scaled into [0, 1]
     transforms.Lambda(lambda t: (t * 2) - 1) # Scale between [-1, 1]
@@ -63,13 +57,16 @@ class OASISDataset(Dataset):
     
     
 # Specifying paths to train, test and validate directories
-train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', label_path=f'{root_path}/keras_png_slices_seg_train', transform=transform)
-test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', label_path=f'{root_path}/keras_png_slices_seg_test', transform=transform)
+train_data = OASISDataset(root=f'{utils.root_path}/keras_png_slices_train', 
+                          label_path=f'{utils.root_path}/keras_png_slices_seg_train', transform=transform)
+test_data = OASISDataset(root=f'{utils.root_path}/keras_png_slices_test', 
+                         label_path=f'{utils.root_path}/keras_png_slices_seg_test', transform=transform)
 combined_data = ConcatDataset([train_data, test_data])
-validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', label_path=f'{root_path}/keras_png_slices_seg_validate', transform=transform)
+validate_data = OASISDataset(root=f'{utils.root_path}/keras_png_slices_validate', 
+                             label_path=f'{utils.root_path}/keras_png_slices_seg_validate', transform=transform)
 
 # Create data loaders for each set
 # train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True) # Image shape [32, 1, 224, 224]
 # test_loader = DataLoader(test_data, batch_size=batch_size)
-data_loader = DataLoader(combined_data, batch_size=BATCH_SIZE, shuffle=True, drop_last=True)
-validate_loader = DataLoader(validate_data, batch_size=BATCH_SIZE)
+data_loader = DataLoader(combined_data, batch_size=utils.BATCH_SIZE, shuffle=True, drop_last=True)
+validate_loader = DataLoader(validate_data, batch_size=utils.BATCH_SIZE)
