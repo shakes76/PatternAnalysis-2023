@@ -31,23 +31,25 @@ class CustomDataset(Dataset):
         # chooce anchor image evently from ad image set and nc image set
         if index % 2 == 0:
             anchor_path = os.path.join(self.ad_folder, self.ad_names[index//2])
+            positive_path = os.path.join(self.ad_folder, random.choice(self.ad_names))
+            negative_path = os.path.join(self.nc_folder, random.choice(self.nc_names))
         else:
             anchor_path = os.path.join(self.nc_folder, self.nc_names[index//2])
-        ad_path = os.path.join(self.ad_folder, random.choice(self.ad_names))
-        nc_path = os.path.join(self.nc_folder, random.choice(self.nc_names))
+            positive_path = os.path.join(self.nc_folder, random.choice(self.nc_names))
+            negative_path = os.path.join(self.ad_folder, random.choice(self.ad_names))
 
         # open images
         anchor = Image.open(anchor_path)
-        ad = Image.open(ad_path)
-        nc = Image.open(nc_path)
+        positive = Image.open(positive_path)
+        negative = Image.open(negative_path)
 
         # apply transformation
         if self.transform:
             anchor = self.transform(anchor)
-            ad = self.transform(ad)
-            nc = self.transform(nc)
+            positive = self.transform(positive)
+            negative = self.transform(negative)
         
-        return anchor, ad, nc
+        return anchor, positive, negative
 
 # calculate the mean and std of the dataset
 # input: The folder containing folders containing images
