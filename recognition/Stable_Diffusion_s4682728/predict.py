@@ -14,9 +14,9 @@ diffusion_network.load_state_dict(torch.load(model_path))
 diffusion_network.eval()  # Set the model to evaluation mode
 
 def beta_schedule(timesteps):
-    beta_start = 0.0001
-    beta_end = 0.02
-    return torch.linspace(beta_start, beta_end, timesteps)
+    start = 0.0001
+    end = 0.02
+    return torch.linspace(start, end, timesteps)
 
 # Initialize models and dataset
 num_steps = 100

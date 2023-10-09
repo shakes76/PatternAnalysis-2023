@@ -9,9 +9,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
 def beta_schedule(timesteps):
-    beta_start = 0.0001
-    beta_end = 0.02
-    return torch.linspace(beta_start, beta_end, timesteps)
+    start = 0.0001
+    end = 0.02
+    return torch.linspace(start, end, timesteps)
 
 # Initialize models and dataset
 num_steps = 100
@@ -20,7 +20,7 @@ diffusion_process = DiffusionProcess(betas, num_steps).to(device)
 diffusion_network = DiffusionNetwork().to(device)
 print(diffusion_network)
 
-optimizer = optim.Adam(diffusion_network.parameters(), lr=0.001)
+optimizer = optim.Adam(diffusion_network.parameters(), lr=1e-3)
 criterion = torch.nn.MSELoss()  # Example loss function
 
 batch_size = 8
