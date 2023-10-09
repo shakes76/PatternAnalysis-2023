@@ -83,24 +83,27 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
 def validate_classifier(cModel, sModel, val_loader, criterion, val_loss_list):
     pass
 
-def test_model(model, test_loader):
+def test_model(model, cModel, test_loader):
     # evaluate the model
     model.eval() # disable drop out, batch normalization
+    cModel.eval()
     with torch.no_grad(): # disable gradient computation
         correct_predict = 0
         total_test = 0
-        # for img0, img1, labels in test_loader:
-        #     img0 = img0.to(device)
-        #     img1 = img1.to(device)
-        #     labels = labels.to(device)
-        #     outputs = model(img1, img2)
-        #     _, predicted = torch.max(outputs.data, 1)
-        #     total_test += labels.size(0)
-        #     correct_predict += (predicted == labels).sum().item()
-        
-        # print('Test Accuracy: {} %'.format(100 * correct_predict / total_test))
-    # return correct_predict / total_test
-    return 0.99 # for now
+        for img, label in test_loader:
+            img = img.to(device)
+            label = label.to(device)
+
+            fv = model(img)
+            output = cModel(fv)
+
+            _, predicted = torch.max(output.data, 1)
+            total_test += label.size(0)
+            correct_predict += (predicted == label).sum().item()
+
+            break
+    
+    return correct_predict/total_test
 
 def save_loss_plot(loss_list, epoch=0, train=True, siamese=True):
     """
