@@ -15,7 +15,8 @@ class ImageEncoder(nn.Module):
 
         
     def forward(self, images):
-        
+        images = F.interpolate(images, size=(32,32), mode='bilinear', align_corners=False)
+
         images = images.view(images.size(0), images.size(1), -1)
         images = self._convolution(images)
 
@@ -47,7 +48,6 @@ class Attention(nn.Module):
                 
         out = self.lnorm1(image)
         
-        print(latent.shape); print(image.shape)
 
         out, _ = self.attn(query=latent, key=image, value=image)
         
@@ -109,19 +109,18 @@ class Classifier(nn.Module):
     def __init__(self, out_dimention, batch_size, latent_size) -> None:
         super(Classifier, self).__init__()
         
-        self.fc1 = nn.Conv2d(in_channels=1, out_channels=1, kernel_size=(481, 1), stride=(batch_size, 1))
+        self.fc1 = nn.Conv2d(in_channels=32, out_channels=1, kernel_size=1)
         self.relu = nn.ReLU() 
-        self.fc2 = nn.Linear(latent_size, batch_size)
+        self.fc2 = nn.Conv1d(in_channels=32, out_channels=1, kernel_size=1)
         
         
     def forward(self, latent):
         
-        # starts 512x512
-        out = self.fc1(latent.unsqueeze(0))
+        #32x32x32 latent
+        out = self.fc1(latent)
         out = self.relu(out)
-        # out 512x1
-
-        out = self.fc2(out.squeeze())
+        out = out.mean(dim=2).t()
+        
         # out 32x1
         return torch.sigmoid(out)
 
@@ -131,8 +130,8 @@ class ADNI_Transformer(nn.Module):
     
     def __init__(self, depth):
         super(ADNI_Transformer, self).__init__()    
-        LATENT_DIM = 512
-        LATENT_EMB = 512
+        LATENT_DIM = 32
+        LATENT_EMB = 32
         latent_layers = 4
         latent_heads = 8
         classifier_out = 128
