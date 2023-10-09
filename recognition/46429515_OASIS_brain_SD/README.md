@@ -1,5 +1,6 @@
 # OASIS brain dataset - Stable Diffusion Task
 
+The aim of this model is to generate a brain from a noisy image using the Stable Diffusion Model.
 
 ## Stable Diffusion
 
@@ -20,6 +21,9 @@ This diffusion model will be using a U-Net for the backwards process.
 
 
 ## Usage Example
+
+### Stable Diffusion Generating Outcomes
+>> link to images here (predict.py images in a folder into github)
 
 ### Dataset Creation - dataset.py
 
