@@ -4,11 +4,15 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import torch
 
+# Set device
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+print(device)
+
 # Initialize models and dataset
 betas = [0.1] * 100  # Example list of betas for 100 steps
 num_steps = 100
-diffusion_process = DiffusionProcess(betas, num_steps)
-diffusion_network = DiffusionNetwork()
+diffusion_process = DiffusionProcess(betas, num_steps).to(device)
+diffusion_network = DiffusionNetwork().to(device)
 
 optimizer = optim.Adam(diffusion_network.parameters(), lr=0.001)
 criterion = torch.nn.MSELoss()  # Example loss function
@@ -20,6 +24,9 @@ dataloader = process_dataset(batch_size=batch_size)
 losses = []
 for epoch in range(10):  # Example: 10 epochs
     for i, batch in enumerate(dataloader):
+        # Move batch to device
+        batch = batch.to(device)
+        
         # Apply diffusion process
         diffused_batch = diffusion_process(batch)
         
