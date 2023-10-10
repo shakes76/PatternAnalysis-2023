@@ -1,5 +1,6 @@
 *.html
 /data
 /runs
+/output
 /models
 /__pycache__
