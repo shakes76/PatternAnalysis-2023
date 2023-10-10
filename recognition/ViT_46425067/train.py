@@ -16,6 +16,29 @@ from types import SimpleNamespace
 from tqdm.auto import tqdm
 from dataset import load_data
 from modules import ViT
+# Determines if a wandb sweep is used or not
+WANDB_SWEEP = False
+# hyperparmeters
+CONFIG = SimpleNamespace(
+        epochs=1,
+        img_channel=1,      
+        num_classes=1,          
+        batch_size=512,         
+        img_size=32,           #image sizes (img_size, img_size)
+        patch_size=16,          #sizes of patchs (patch_size, patch_size)
+        embed_dim=16,          #patch embedding dimension
+        depth=1,                #number of transform encoders
+        num_heads=1,            #attention heads
+        mlp_dim=16,            #the amount of hidden units in feed forward layer in proportion to the input dimension  
+        drop_prob=0.2,          #dropout prob used in the ViT network
+        lr=0.001,                #learning rate for optimiser
+        optimiser="SGD",        #optimiser: SGD, ADAM, ADAMW
+        data_augments="H_V_R",       #specifies what data augments have been used
+        weight_decay=1e-7,       #optimiser weight decay
+        mix_precision=True,     #enable float16 mix precision during loss, model calcs
+        lr_scheduler=True,      #enable one cycle learning rate scheduler 
+        max_lr=0.01,            #max learning rate for learning scheduler
+    )
 
 def train_epoch(model: nn.Module, 
                 data_loader: torch.utils.data.DataLoader,
@@ -173,38 +196,13 @@ def train_model(config):
             
     return results
 
-if __name__ == "__main__":
-    # Determines if a wandb sweep is used or not
-    WANDB_SWEEP = False
-    
+if __name__ == "__main__":    
     #setup random seeds
     torch.manual_seed(42)
     torch.cuda.manual_seed(42)
-    
+
     #device agnostic code
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
-    # hyperparmeters
-    config = SimpleNamespace(
-        epochs=1,
-        img_channel=1,      
-        num_classes=1,          
-        batch_size=512,         
-        img_size=32,           #image sizes (img_size, img_size)
-        patch_size=16,          #sizes of patchs (patch_size, patch_size)
-        embed_dim=16,          #patch embedding dimension
-        depth=1,                #number of transform encoders
-        num_heads=1,            #attention heads
-        mlp_dim=16,            #the amount of hidden units in feed forward layer in proportion to the input dimension  
-        drop_prob=0.2,          #dropout prob used in the ViT network
-        lr=0.001,                #learning rate for optimiser
-        optimiser="SGD",        #optimiser: SGD, ADAM, ADAMW
-        data_augments="H_V_R",       #specifies what data augments have been used
-        weight_decay=1e-7,       #optimiser weight decay
-        mix_precision=True,     #enable float16 mix precision during loss, model calcs
-        lr_scheduler=True,      #enable one cycle learning rate scheduler 
-        max_lr=0.01,            #max learning rate for learning scheduler
-    )
     
     # hyperparameter sweeps or a normal run using the specified config above
     if WANDB_SWEEP:
@@ -214,4 +212,4 @@ if __name__ == "__main__":
         wandb.agent(sweep_id="rodxiang2/ViT_Sweep/k6g6ewwu", function=train_model)
     else:
         # Normal Training without wandb sweep
-        results = train_model(config=config)
+        results = train_model(config=CONFIG)
