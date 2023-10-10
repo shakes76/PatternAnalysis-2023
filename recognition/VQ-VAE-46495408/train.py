@@ -21,9 +21,9 @@ def plot_history(history):
     plt.savefig('recognition/VQ-VAE-46495408/results/vqvae_ssim.png')
     plt.close()
 
-'''Train the VQ-VAE model'''
 train_ds = get_test_dataset()
 def train_vqvae():
+    '''Train the VQ-VAE model'''
     train_variance = get_dataset_variance(train_ds)
     vqvae_trainer = VQVAETrainer(train_variance, latent_dim=32, num_embeddings=128)
     # Define the optimizer
@@ -35,9 +35,23 @@ def train_vqvae():
         save_best_only=False,
         save_weights_only=True
     )
-    vqvae_history = vqvae_trainer.fit(train_ds, epochs=1, callbacks=[checkpoint])
-    # Plot the training history
+    vqvae_history = vqvae_trainer.fit(train_ds, epochs=5, callbacks=[checkpoint])
+    # Plot and save the training history
     plot_history(vqvae_history)
     
+def train_pixelcnn():
+    # Load the trained weights to vq-vae trainer
+    train_variance = get_dataset_variance(train_ds)
+    vqvae_trainer = VQVAETrainer(train_variance, latent_dim=32, num_embeddings=128)
+    vqvae_trainer.load_weights('recognition/VQ-VAE-46495408/checkpoint/vqvae_ckpt')
+    encoder = vqvae_trainer.vqvae.get_layer("encoder")
+    quantizer = vqvae_trainer.vqvae.get_layer("vector_quantizer")
+    # Generate the codebook indices
+    encoded_outputs = encoder.predict(train_ds)
+    flat_enc_outputs = encoded_outputs.reshape(-1, encoded_outputs.shape[-1])
+    codebook_indices = quantizer.get_code_indices(flat_enc_outputs)
+    codebook_indices = codebook_indices.numpy().reshape(encoded_outputs.shape[:-1])
+    #print(f"Shape of the training data for PixelCNN: {codebook_indices.shape}")
+    
 if __name__=='__main__':
-    train_vqvae()
+    train_pixelcnn()
