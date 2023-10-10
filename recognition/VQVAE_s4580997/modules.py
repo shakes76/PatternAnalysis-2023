@@ -43,14 +43,6 @@ class ResidualBlock(nn.Module) :
 
 
 class Encoder(nn.Module):
-    """
-    Encoder module for the VQ-VAE model.
-
-    The encoder consists of 2 strided convolutional layers with stride 2 and 
-    window size 4 × 4, followed by two residual 3 × 3 blocks (implemented as 
-    ReLU, 3x3 conv, ReLU, 1x1 conv), all having 256 hidden units.
-    """
-
     def __init__(self, in_channels, n_hidden, n_residual):
         super(Encoder, self).__init__()
 
@@ -78,7 +70,8 @@ class Encoder(nn.Module):
             padding=0
         )
 
-        self.residualBlock = ResidualBlock(n_hidden, 
+        self.residualBlock = ResidualBlock(
+            n_hidden, 
             n_hidden, 
             n_residual, 
             2
@@ -88,10 +81,16 @@ class Encoder(nn.Module):
 
     def forward(self, out):
         out = self.conv1(out)
+        print('ENCODER CONV1: ', out.shape)
+
         out = self.relu(out)
         out = self.conv2(out)
+        print('ENCODER CONV2: ', out.shape)
+
         out = self.residualBlock(out)
         out = self.conv3(out)
+        print('ENCODER CONV3: ', out.shape)
+
         return out
     
 class Decoder(nn.Module):
@@ -129,9 +128,14 @@ class Decoder(nn.Module):
 
     def forward(self, out):
         out = self.conv1(out)
+
         out = self.residualBlock(out)
+
         out = self.transpose1(out)
+        print('DECODER T1: ', out.shape)
         out = self.transpose2(out)
+        print('DECODER T2: ', out.shape)
+
         return out
 
 class VectorQuantizer(nn.Module):
@@ -169,8 +173,12 @@ class VectorQuantizer(nn.Module):
 
         """
         # reshape z -> (batch, height, width, channel) and flatten
+        print('VQ BEFORE RESHAPE: ', z.shape)
         z = z.permute(0, 2, 3, 1).contiguous()
+        print('VQ AFTER RESHAPE: ', z.shape)
+
         z_flattened = z.view(-1, self.dim_embeddings)
+
         # distances from z to embeddings e_j (z - e)^2 = z^2 + e^2 - 2 e * z
 
         d = torch.sum(z_flattened ** 2, dim=1, keepdim=True) + \
@@ -185,6 +193,7 @@ class VectorQuantizer(nn.Module):
 
         # get quantized latent vectors
         z_q = torch.matmul(min_embeddingsncodings, self.embedding.weight).view(z.shape)
+        print('VQ MATMUL: ', z_q.shape)
 
         # compute loss for embedding
         loss = torch.mean((z_q.detach()-z)**2) + self.beta * \
@@ -192,6 +201,7 @@ class VectorQuantizer(nn.Module):
 
         # preserve gradients
         z_q = z + (z_q - z).detach()
+        print('VQ GRADIENTS: ', z_q.shape)
 
         # perplexity
         e_mean = torch.mean(min_embeddingsncodings, dim=0)
@@ -199,6 +209,7 @@ class VectorQuantizer(nn.Module):
 
         # reshape back to match original input shape
         z_q = z_q.permute(0, 3, 1, 2).contiguous()
+        print('VQ PERMUTE: ', z_q.shape)
 
         return loss, z_q, perplexity, min_embeddingsncodings, min_embeddingsncoding_indices
 
@@ -211,12 +222,14 @@ class VQVAE(nn.Module):
             n_residual
         )
         
-        self.quantizer = VectorQuantizer(n_embeddings, 
+        self.quantizer = VectorQuantizer(
+            n_embeddings, 
             dim_embedding,
             beta
         )
         
-        self.decoder = Decoder(dim_embedding,
+        self.decoder = Decoder(
+            n_hidden,
             n_hidden, 
             n_residual,
             channels
@@ -224,8 +237,12 @@ class VQVAE(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
+        print('PASSES ENCODING')
         loss, x_q, perplexity, _, _ = self.quantizer(x)
+        print('PASSES VQ')
         x_hat = self.decoder(x_q)
+        print('PASSES DECODING')
+
 
         return loss, x_hat, perplexity
 
