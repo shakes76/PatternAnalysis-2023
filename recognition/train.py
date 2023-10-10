@@ -12,6 +12,7 @@ import torchvision
 import torchvision.transforms as transforms
 import time
 import numpy as np
+import os
 
 # Dice Loss Function
 def dice_loss(output, target):
@@ -21,28 +22,13 @@ def dice_loss(output, target):
     loss = 1 - (2.0 * intersection) / (denominator)
     return loss
 
-# Variable numList must be a list of number types only
-def get_average(numList):
-    """
-    Calculates Averages of a list of number types.
-
-    numList: a List object containing only number types
-    return: number type (float, int, etc...)
-    """
-    size = len(numList)
-    count = 0
-    for num in numList:
-        count += num
-    
-    return count / size
-
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
 # Hyper Parameters
-num_epochs = 30
+num_epochs = 1
 initial_lr = 5e-4
 batch_size = 16
 lr_decay = 0.985
@@ -116,8 +102,35 @@ for epoch in range(num_epochs):
             losses.append(loss.item())
             coeffs.append((1 - dice_loss(outputs, labels)).item())
 
-            # if (i == 0):
-            #     save_segments(images, labels, outputs, 9, epochNumber)
+            # plots
+            if not os.path.exists('plots'):
+                os.makedirs('plots')
+
+            fig, axs = plt.subplots(5, 3, figsize=(15,5*5))
+            axs[0][0].set_title("Original Image")
+            axs[0][1].set_title("Actual Mask")
+            axs[0][2].set_title("Predicted Mask")
+            for row in range(5):
+                img = images.cpu()[row].permute(1,2,0).numpy()
+                label = labels.cpu()[row].permute(1,2,0).numpy()
+                pred = outputs.cpu()[row]
+                pred = pred.permute(1,2,0).numpy()
+                axs[row][0].imshow(img)
+                axs[row][0].xaxis.set_visible(False)
+                axs[row][0].yaxis.set_visible(False)
+
+                axs[row][1].imshow(label, cmap="gray")
+                axs[row][1].xaxis.set_visible(False)
+                axs[row][1].yaxis.set_visible(False)
+
+                axs[row][2].imshow(pred, cmap="gray")
+                axs[row][2].xaxis.set_visible(False)
+                axs[row][2].yaxis.set_visible(False)
+            
+                fig.suptitle("Validation Segments Epoch: " + str(curr_epoch))
+                plt.savefig(os.path.join('plots', "ValidationSegmentsEpoch" + str(curr_epoch)))
+
+            plt.close()
     
     valid_loss = statistics.mean(losses)
     valid_coeff = statistics.mean(coeffs)
@@ -128,7 +141,18 @@ for epoch in range(num_epochs):
     validation_losses.append(valid_loss)
     validation_dice.append(valid_coeff)
 
-    print ("Epoch [{}/{}], Training Loss: {:.5f}, Training Dice Similarity {:.5f}".format(epoch+1, num_epochs, train_losses[-1], train_dice[-1]))
-    print('Validation Loss: {:.5f}, Validation Average Dice Similarity: {:.5f}'.format(get_average(validation_losses) ,get_average(validation_dice)))
+    print ("epoch_num = {}/{}, Training Loss: {:.5f}, Training Dice Similarity {:.5f}".format(epoch+1, num_epochs, train_losses[-1], train_dice[-1]))
+    print('Val Loss: {:.5f}, Val Average Dice Similarity: {:.5f}'.format(statistics.mean(validation_losses), statistics.mean(validation_dice)))
 
-print("Training & Validation Took " + str((time.time() - start_time)/60) + " Minutes")
+print("Total Time: " + str((time.time() - start_time)/60) + " Minutes")
+    
+x = list(range(1, len(train_losses) + 1))
+
+plt.xticks(np.arange(min(x), max(x)+1, 1.0))
+plt.plot(x, train_losses, label=f"Training Loss")
+plt.plot(x, validation_losses, label=f"Validation Loss")
+plt.legend()
+
+plt.title(f"Training and Validation Loss Over Epochs")
+plt.savefig(os.path.join('plots', "results"))
+plt.close()

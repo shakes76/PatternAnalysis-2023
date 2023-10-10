@@ -32,9 +32,7 @@ class ClipAndRescale(object):
         # Rescale to [0,1]
         """ maps the minimum value of clip_range to the minimum of rescale_range and the maximum of clip_range to the maximum of rescale_range. """
         min_val, max_val = self.rescale_range
-        rescaled_image = (clipped_image - self.clip_range[0]) / \
-                         (self.clip_range[1] - self.clip_range[0]) * \
-                         (max_val - min_val) + min_val
+        rescaled_image = (clipped_image - self.clip_range[0]) / (self.clip_range[1] - self.clip_range[0]) * (max_val - min_val) + min_val
         
         # Ensuring the mask has the same shape as the image tensor before using it for indexing
         """ Adds an additional dimension at the start, changing the shape of the mask from (H, W) to (1, H, W), assuming the original mask is 2D. This is needed to match the 3D shape of the image (C, H, W) """
