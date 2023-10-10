@@ -28,7 +28,7 @@ if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
 # Hyper Parameters
-num_epochs = 1
+num_epochs = 30
 initial_lr = 5e-4
 batch_size = 16
 lr_decay = 0.985
@@ -103,34 +103,40 @@ for epoch in range(num_epochs):
             coeffs.append((1 - dice_loss(outputs, labels)).item())
 
             # plots
-            if not os.path.exists('plots'):
-                os.makedirs('plots')
+            if (curr_epoch % 5 == 0 or curr_epoch == 1):
+                save_path = os.path.join("model_checkpoints", f"model_epoch_{epoch+1}.pth")
+                if not os.path.exists("model_checkpoints"):
+                    os.makedirs("model_checkpoints")
+                torch.save(model.state_dict(), save_path)
 
-            fig, axs = plt.subplots(5, 3, figsize=(15,5*5))
-            axs[0][0].set_title("Original Image")
-            axs[0][1].set_title("Actual Mask")
-            axs[0][2].set_title("Predicted Mask")
-            for row in range(5):
-                img = images.cpu()[row].permute(1,2,0).numpy()
-                label = labels.cpu()[row].permute(1,2,0).numpy()
-                pred = outputs.cpu()[row]
-                pred = pred.permute(1,2,0).numpy()
-                axs[row][0].imshow(img)
-                axs[row][0].xaxis.set_visible(False)
-                axs[row][0].yaxis.set_visible(False)
+                if not os.path.exists('plots'):
+                    os.makedirs('plots')
 
-                axs[row][1].imshow(label, cmap="gray")
-                axs[row][1].xaxis.set_visible(False)
-                axs[row][1].yaxis.set_visible(False)
+                fig, axs = plt.subplots(5, 3, figsize=(15,5*5))
+                axs[0][0].set_title("Original Image")
+                axs[0][1].set_title("Actual Mask")
+                axs[0][2].set_title("Predicted Mask")
+                for row in range(5):
+                    img = images.cpu()[row].permute(1,2,0).numpy()
+                    label = labels.cpu()[row].permute(1,2,0).numpy()
+                    pred = outputs.cpu()[row]
+                    pred = pred.permute(1,2,0).numpy()
+                    axs[row][0].imshow(img)
+                    axs[row][0].xaxis.set_visible(False)
+                    axs[row][0].yaxis.set_visible(False)
 
-                axs[row][2].imshow(pred, cmap="gray")
-                axs[row][2].xaxis.set_visible(False)
-                axs[row][2].yaxis.set_visible(False)
-            
-                fig.suptitle("Validation Segments Epoch: " + str(curr_epoch))
-                plt.savefig(os.path.join('plots', "ValidationSegmentsEpoch" + str(curr_epoch)))
+                    axs[row][1].imshow(label, cmap="gray")
+                    axs[row][1].xaxis.set_visible(False)
+                    axs[row][1].yaxis.set_visible(False)
 
-            plt.close()
+                    axs[row][2].imshow(pred, cmap="gray")
+                    axs[row][2].xaxis.set_visible(False)
+                    axs[row][2].yaxis.set_visible(False)
+                
+                    fig.suptitle("Validation Segments Epoch: " + str(curr_epoch))
+                    plt.savefig(os.path.join('plots', "ValidationSegmentsEpoch" + str(curr_epoch)))
+
+                plt.close()
     
     valid_loss = statistics.mean(losses)
     valid_coeff = statistics.mean(coeffs)
@@ -148,11 +154,20 @@ print("Total Time: " + str((time.time() - start_time)/60) + " Minutes")
     
 x = list(range(1, len(train_losses) + 1))
 
+# Plotting Loss over Epochs
 plt.xticks(np.arange(min(x), max(x)+1, 1.0))
 plt.plot(x, train_losses, label=f"Training Loss")
 plt.plot(x, validation_losses, label=f"Validation Loss")
 plt.legend()
-
 plt.title(f"Training and Validation Loss Over Epochs")
-plt.savefig(os.path.join('plots', "results"))
+plt.savefig(os.path.join('plots', "results_loss"))
+plt.close()
+
+# Plotting Dice Coefficients over Epochs
+plt.xticks(np.arange(min(x), max(x)+1, 1.0))
+plt.plot(x, train_dice, label=f"Training Dice Coefficient")
+plt.plot(x, validation_dice, label=f"Validation Dice Coefficient")
+plt.legend()
+plt.title(f"Training and Validation Dice Coefficients Over Epochs")
+plt.savefig(os.path.join('plots', "results_dice"))
 plt.close()

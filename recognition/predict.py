@@ -3,12 +3,12 @@ from torch.utils.data import DataLoader
 from torchvision import transforms
 import matplotlib.pyplot as plt
 from dataset import ISICDataset, get_transform
-from modules2 import UNet2D
+from modules import UNet2D
 from PIL import Image
 import numpy as np
 
 # Assuming that the model is saved in a file named 'model.pth'
-MODEL_PATH = 'unet2d_model.pth'
+MODEL_PATH = 'model_epoch_1.pth'
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def predict(model, dataloader, device):
