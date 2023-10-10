@@ -1,6 +1,11 @@
 from dataset import *
 from modules import *
 
+import sys
+
+path = '*/file.txt'
+sys.stdout = open(path, 'w')
+
 epoch = 200
 unet = UNet(1,6).cuda()
 criterion = nn.CrossEntropyLoss()
