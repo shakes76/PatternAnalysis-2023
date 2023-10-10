@@ -9,6 +9,7 @@ import torch
 from pathlib import Path
 from modules import ViT
 import platform
+import wandb
 
 OS = platform.system()
 if OS == "Windows":
@@ -66,13 +67,11 @@ def load_model(model_name, device, config):
     model.load_state_dict(state_dict)
     return model.to(device)
 
-import wandb
-sweep_config = {
+def create_new_sweep():
+    sweep_config = {
     "method": "grid",
     "metric": {"goal": "maximize", "name": "test/epoch/acc"},
-}
-
-def create_new_sweep():
+    }
     param_dict =  {
             'epochs': {
                 'value': 35
