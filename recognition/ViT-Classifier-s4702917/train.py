@@ -17,7 +17,7 @@ if (not torch.cuda.is_available()):
 	print("Warning: Cuda not available, using CPU instead.")
  
 # Hyper-parameters
-numEpochs = 2500
+numEpochs = 40
 learningRate = 0.01
 gamma = 0.9
 trainFromLastRun = False
