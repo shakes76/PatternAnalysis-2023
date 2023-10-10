@@ -179,3 +179,32 @@ class ResidualBlock(keras.layers.Layer):
         x = self.pixel_conv(x)
         x = self.conv2(x)
         return keras.layers.add([inputs, x])
+    
+def get_pixel_cnn(pixelcnn_input_shape, num_embeddings):
+    num_residual_blocks = 2
+    num_pixelcnn_layers = 2
+    pixelcnn_inputs = keras.Input(shape=pixelcnn_input_shape, dtype=tf.int32)
+    ohe = tf.one_hot(pixelcnn_inputs, num_embeddings)
+    x = PixelConvLayer(
+        mask_type="A", filters=128, kernel_size=7, activation="relu", padding="same"
+    )(ohe)
+    
+    for _ in range(num_residual_blocks):
+        x = ResidualBlock(filters=128)(x)
+        
+    for _ in range(num_pixelcnn_layers):
+        x = PixelConvLayer(
+            mask_type="B",
+            filters=128,
+            kernel_size=1,
+            strides=1,
+            activation="relu",
+            padding="valid",
+        )(x)
+        
+    out = keras.layers.Conv2D(
+        filters=num_embeddings, kernel_size=1, strides=1, padding="valid"
+    )(x)
+    
+    pixcel_cnn = keras.Model(pixelcnn_inputs, out, name="pixel_cnn")
+    return pixcel_cnn
