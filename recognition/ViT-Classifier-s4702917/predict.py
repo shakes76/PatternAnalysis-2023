@@ -1,8 +1,12 @@
 import torch
 import time
 import os
+import sys
 
 import dataset as ds
+
+# Don't buffer prints
+sys.stdout.reconfigure(line_buffering=True, write_through=True)
 
 # Initialise device
 print("PyTorch Version:", torch.__version__)
