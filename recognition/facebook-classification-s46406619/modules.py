@@ -9,12 +9,14 @@ class GCN(torch.nn.Module):
         self.train_split = train_split
         self.test_split = test_split
         self.gcn1 = GCNConv(128, 64)
-        self.gcn2 = GCNConv(64, 64)
-        self.linear = Linear(64, 4)
+        self.gcn2 = GCNConv(64, 32)
+        self.gcn3 = GCNConv(32, 16)
+        self.linear = Linear(16, 4)
 
     def forward(self, x, edges):
         x = self.gcn1(x, edges).relu()
         x = self.gcn2(x, edges).relu()
+        x = self.gcn3(x, edges).relu()
         z = self.linear(x)
         return x, z
     

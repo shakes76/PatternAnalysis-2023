@@ -29,4 +29,4 @@ def run_training(lr=0.02, num_epochs=100):
 
     torch.save(model, 'model.pth')
 
-run_training(num_epochs=100)
+run_training(lr=0.0175, num_epochs=100)
