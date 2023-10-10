@@ -11,5 +11,11 @@ if __name__ == '__main__':
     vqvae = VQVAE()
     vqvae_trainer = TrainVQVAE(vqvae, vqvae_dataset, config)
     vqvae_trainer.train()
-    print('Model trained, beginning testing.')
-    vqvae_trainer.plot_loss()
+    vqvae_trainer.plot_loss(save=True)
+    # vqvae.trainer.save()
+
+    # gan_dataset = Dataset(batch_size=config.batch_size, root_dir = './AD_NC', fraction=0.1)
+    # gan = GAN()
+    # gan_trainer = TrainGAN(vqvae, gan_dataset, config)
+    # gan_trainer.plot_loss(save=True)
+    # gan_trainer.save()

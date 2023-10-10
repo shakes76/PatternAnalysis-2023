@@ -5,7 +5,32 @@ import torch.nn.functional as F
 from utils import Config
 from dataset import Dataset
 import matplotlib.pyplot as plt
+from abc import ABC, abstractmethod
 
+class Trainer(ABC) :
+
+    @abstractmethod
+    def __init__(self, model: nn.Module, dataset: Dataset, config: Config) :
+        self.lr = config.lr
+        self.wd = config.wd
+        self.epochs = config.epochs
+
+        self.device = config.device
+        self.model = model.to(self.device)
+        self.dataset = dataset
+        
+        self.losses = []
+
+    @abstractmethod
+    def train(self) -> None :
+        pass
+
+    @abstractmethod
+    def plot_loss(self, save = True) -> None :
+        pass
+    
+    def save(self) -> None :
+        pass
 
 class TrainVQVAE() :
     
@@ -68,6 +93,28 @@ class TrainVQVAE() :
             plt.savefig(self.savepath + '_training_loss.png')
         else :
             plt.show()
+
+class TrainGAN(Trainer) :
+    def __init__(self, model: nn.Module, dataset: Dataset, config: Config) :
+        super().__init__(model, dataset, config)
+        self.criterion = nn.BCEWithLogitsLoss().to(self.device)
+        self.optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)
+        self.losses = []
+        self.accuracies = []
     
-    def plot_accuracies(self) -> None :
+    def train(self) -> None :
         pass
+
+    def plot_loss(self, save = True) -> None :
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.losses, label='Loss')
+        plt.title('Training Epochs against Loss for VQVAE')
+        plt.xlabel('Epochs')
+        plt.ylabel('Reconstruction Loss')
+        plt.legend()
+        plt.grid(True)
+
+        if save :
+            plt.savefig(self.savepath + '_training_loss.png')
+        else :
+            plt.show()

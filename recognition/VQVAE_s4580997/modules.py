@@ -3,7 +3,14 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
+
+"""
+|--------------------------------------------------------------------------
+| VQVAE Model Modules
+|--------------------------------------------------------------------------
+"""
+
+
 class ResidualLayer(nn.Module):
     def __init__(self, in_channels, n_hidden, n_residual):
         super(ResidualLayer, self).__init__()
@@ -264,6 +271,13 @@ class VQVAE(nn.Module):
 
         return loss, x_hat, perplexity
 
+
+"""
+|--------------------------------------------------------------------------
+| GAN Model for Testing
+|--------------------------------------------------------------------------
+"""
+
 class Generator(nn.Module):
     def __init__(self, latent_size):
         super(Generator, self).__init__()
@@ -309,3 +323,12 @@ class Discriminator(nn.Module):
 
     def forward(self, input):
         return self.main(input).view(-1, 1).squeeze(1)
+
+class GAN(nn.Module):
+    def __init__(self, latent_size):
+        super(GAN, self).__init__()
+        self.generator = Generator(latent_size)
+        self.discriminator = Discriminator()
+
+    def forward(self, x):
+        return self.generator(x)
