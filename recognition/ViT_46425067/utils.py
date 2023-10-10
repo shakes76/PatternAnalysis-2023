@@ -30,9 +30,9 @@ def save_model(model, model_name):
         model (nn.Module): trained model
         model_name (str): name of the model to save as
     """
-    MODEL_PATH = Path(f"./models/{model_name}.pth")
+    MODEL_PATH = Path(f"./models/")
     MODEL_PATH.mkdir(parents=True, exist_ok=True)
-    torch.save(obj=model.state_dict(), f=MODEL_PATH)
+    torch.save(obj=model.state_dict(), f=MODEL_PATH / f"{model_name}.pth")
     
 
 def load_model(path, model, device):

@@ -13,3 +13,4 @@ recognition/ViT_46425067/mild.py
 recognition/ViT_46425067/premodel.py
 recognition/ViT_46425067/s.sh
 recognition/ViT_46425067/sweep.py
+models/
