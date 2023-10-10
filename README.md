@@ -33,6 +33,7 @@ Stable Diffusion & VQVAE on OASIS
 
 ### About dataset & SSIM Score
 * We trained our VQVAE on the train and validate dataset provided by the OASIS dataset. Then, we tested the SSIM score on the test dataset, which yielded a score of approximately 0.78 to 0.79.
+  * It's important to note that the SSIM settings, such as the window size, are configured in the same way as those described on Wikipedia.
 * In the second stage, we employed the entire dataset as the training data to train the LDM (Latent Diffusion Model) in the stable diffusion framework. This allowed us to generate images from random noise.
 * Furthermore, we also used a transformer and treated as PixelCNN to randomly generate brain images.
 
