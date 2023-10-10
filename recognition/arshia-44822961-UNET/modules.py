@@ -80,3 +80,21 @@ class Conv2dStride2(nn.Module):
         out = self.relu(out)
         return out
     
+# Upsampling Module 
+# As per paper 
+class UpsamplingModule(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(UpsamplingModule, self).__init__()
+
+        # Upsampling layer (repeat each feature voxel twice in each spatial dimension)
+        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        # 3x3 convolutional layer that halves the number of feature maps
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
+        #Leakly Relu 
+        self.relu = nn.LeakyReLU(out_channels)
+
+    def forward(self, x):
+        upsampled_x = self.upsample(x)
+        out = self.conv(upsampled_x)
+        out = self.relu(out)
+        return out
