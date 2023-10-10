@@ -14,6 +14,24 @@ class DiffusionProcess(nn.Module):
             x = x + noise
         return x
 
+class ChannelAttention(nn.Module):
+    def __init__(self, in_channels, reduction_ratio=16):
+        super(ChannelAttention, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(in_channels, in_channels // reduction_ratio, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(in_channels // reduction_ratio, in_channels, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
+
+
 class Block(nn.Module):
     def __init__(self, in_c, out_c, dropout=0.0):
         super().__init__()
@@ -23,6 +41,7 @@ class Block(nn.Module):
         self.bnorm2 = nn.BatchNorm2d(out_c)
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout)
+        self.attention = ChannelAttention(out_c)
 
     def forward(self, x):
         x = self.conv1(x)
@@ -31,10 +50,11 @@ class Block(nn.Module):
         x = self.dropout(x)
         x = self.conv2(x)
         x = self.bnorm2(x)
+        x = self.attention(x)
         x = self.relu(x)
         return x
 
-# Encoder block with multiple residual blocks
+# Modified Encoder Block
 class EncoderBlock(nn.Module):
     def __init__(self, in_c, out_c, num_blocks=2):
         super().__init__()
@@ -48,7 +68,7 @@ class EncoderBlock(nn.Module):
         x = self.pool(x)
         return x, skip
 
-# Decoder block with multiple residual blocks
+# Modified Decoder Block
 class DecoderBlock(nn.Module):
     def __init__(self, num_in, num_out, num_blocks=2):
         super().__init__()
@@ -91,7 +111,3 @@ class DiffusionNetwork(nn.Module):
 
         x = self.norm_out(x)  # Feature normalization before the output layer
         return self.out(x)
-
-
-
-
