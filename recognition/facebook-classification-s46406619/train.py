@@ -2,7 +2,7 @@ import torch
 from modules import *
 from dataset import *
 
-def run_training(lr=0.02, num_epochs=100):
+def run_training(lr, num_epochs):
     data = load_data()
     model = GCN(data.train_split, data.test_split)
     print('\n', model, '\n')

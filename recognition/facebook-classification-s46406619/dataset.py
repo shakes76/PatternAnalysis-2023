@@ -3,6 +3,8 @@ import numpy.random as random
 import os
 import torch
 
+random.seed(42)
+
 class Data:
     def __init__(self, features, edges, y, train_split, test_split):
         self.X = features
