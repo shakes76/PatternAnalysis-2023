@@ -28,7 +28,7 @@ train_dataloader = process_dataset(batch_size=batch_size, is_validation=False)
 
 # Training loop
 losses = []
-for epoch in range(10):  # Example: 10 epochs
+for epoch in range(51):
     for i, batch in enumerate(train_dataloader):
         # Move batch to device
         batch = batch.to(device)
@@ -49,5 +49,16 @@ for epoch in range(10):  # Example: 10 epochs
         
         losses.append(loss.item())
         
-        if (i + 1) % 10 == 0:
+        if (i + 1) % 100 == 0:
             print(f"Epoch {epoch+1}, Iteration {i+1}, Loss: {loss.item()}")
+
+# Save the trained model
+torch.save(diffusion_network.state_dict(), "diffusion_network51_s.pth")
+
+# Plotting loss
+plt.plot(losses)
+plt.xlabel('Iteration')
+plt.ylabel('Loss')
+plt.title('Training Loss')
+plt.ylim(0, 0.05)
+plt.show()
