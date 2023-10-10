@@ -4,24 +4,32 @@ import timm
 from torch.utils.tensorboard import SummaryWriter
 import time
 import os
-import sys
 
+import logging
 import plotting
 import dataset as ds
 
-# Don't buffer prints
-sys.stdout.reconfigure(line_buffering=True, write_through=True)
+# Setup logging
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+fh = logging.FileHandler('output/vit_out.txt')
+fh.setLevel(logging.DEBUG) # or any level you want
+logger.addHandler(fh)
 
 # Initialise device
-print("PyTorch Version:", torch.__version__)
+logger.debug("PyTorch Version:", torch.__version__)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 if (not torch.cuda.is_available()):
-	print("Warning: Cuda not available, using CPU instead.")
+	logger.warning("Warning: Cuda not available, using CPU instead.")
  
 # Hyper-parameters
 numEpochs = 40
+# If we've been training for more than 1.5 hrs we
+# should stop so we don't get force-quit by the scheduler.
+maxTrainTime = 1.5 * 60 * 60
 learningRate = 0.01
 gamma = 0.9
 trainFromLastRun = False
@@ -46,8 +54,8 @@ writer = SummaryWriter('runs/classifier_experiment_0')
 addedGraph = False
 
 # model info
-print("Model No. of Parameters:", sum([param.nelement() for param in model.parameters()]))
-print(model)
+logger.debug("Model No. of Parameters:", sum([param.nelement() for param in model.parameters()]))
+logger.debug(model)
 
 criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)
@@ -55,7 +63,7 @@ scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma)
 
 # Training the model
 model.train()
-print("> Training")
+logger.info("> Training")
 start = time.time()
 
 totalStep = len(ds.trainloader)
@@ -96,14 +104,24 @@ for epoch in range(numEpochs):
 											plotting.plot_classes_preds(model, images, labels),
 											global_step=epoch * len(ds.trainloader) + i)
 
+			logger.info("Epoch [{}/{}], Step[{}/{}] Average Loss: {:.5f}"
+						.format(epoch+1, numEpochs, i+1, totalStep, running_loss / numBatchesBetweenLogging))
+
 			running_loss = 0.0
+
+			# if more than maxTrainTime seconds have passed since training started, exit out
+			# of all loops to prevent the training progress from being lost.
+			if time.time() - start > maxTrainTime:
+				break
+		if time.time() - start > maxTrainTime:
+				break
 	
 	# reduce the learning rate each epoch.
 	scheduler.step()
 
 end = time.time()
 elapsed = end - start
-print("Training took " + str(elapsed) + " secs")
+logger.info("Training took " + str(elapsed) + " secs")
 
 os.makedirs(os.path.dirname(savePath), exist_ok=True)
 torch.save(model, savePath)

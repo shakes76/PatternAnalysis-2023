@@ -1,20 +1,24 @@
 import torch
 import time
-import os
-import sys
+import logging
 
 import dataset as ds
 
-# Don't buffer prints
-sys.stdout.reconfigure(line_buffering=True, write_through=True)
+# Setup logging
+logger = logging.getLogger()
+logger.setLevel(logging.DEBUG)
+
+fh = logging.FileHandler('output/vit_out.txt')
+fh.setLevel(logging.DEBUG) # or any level you want
+logger.addHandler(fh)
 
 # Initialise device
-print("PyTorch Version:", torch.__version__)
+logger.debug("PyTorch Version:", torch.__version__)
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 if (not torch.cuda.is_available()):
-	print("Warning: Cuda not available, using CPU instead.")
+	logger.warning("Warning: Cuda not available, using CPU instead.")
 
 # Parameters
 savePath = "models/mnistClassifier.pth"
@@ -24,11 +28,11 @@ model = torch.load(savePath)
 model = model.to(device)
 
 # model info
-print("Model No. of Parameters:", sum([param.nelement() for param in model.parameters()]))
-print(model)
+logger.debug("Model No. of Parameters:", sum([param.nelement() for param in model.parameters()]))
+logger.debug(model)
 
 # Test the model
-print("> Testing")
+logger.info("> Testing")
 start =  time.time()
 model.eval()
 
@@ -46,10 +50,10 @@ with torch.no_grad():
 	
 		total += labels.size(0)
 		correct += (predicted == labels).sum().item()
-	print("Test Accuracy: {:.5f} %".format(100 * correct / total))
+	logger.info("Test Accuracy: {:.5f} %".format(100 * correct / total))
 
 end = time.time()
 elapsed = end - start
-print("Testing took " + str(elapsed) + " secs")
+logger.info("Testing took " + str(elapsed) + " secs")
 
-print("END")
+logger.info("END")
