@@ -10,8 +10,8 @@ batchSize = 64
 
 # transforms
 class SquarePad:
-	def __call__(self, image):
-		w, h = image.size
+	def __call__(self, image: torch.Tensor):
+		_, w, h = image.shape
 		max_wh = np.max([w, h])
 		hp = int((max_wh - w) / 2)
 		vp = int((max_wh - h) / 2)
