@@ -10,7 +10,7 @@ import plotting
 import dataset as ds
 
 # Setup logging
-logger = logging.getLogger()
+logger = logging.getLogger("MAIN_LOGGER")
 logger.setLevel(logging.DEBUG)
 
 fh = logging.FileHandler('output/vit_out.txt')
