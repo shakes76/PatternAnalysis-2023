@@ -1,15 +1,5 @@
-Stable Diffusion on OASIS Dataset
+Stable Diffusion & VQVAE on OASIS 
 ===
-
-> The readme file should contain a title, a description of the algorithm and the problem that it solves(approximately a paragraph), how it works in a paragraph and a figure/visualisation.
-
-# Requirements (This should be removed when submitted)
-
-1. The readme file should contain a title, a description of the algorithm and the problem that it solves(approximately a paragraph), how it works in a paragraph and a figure/visualisation.
-2. It should also list any dependencies required, including versions and address reproduciblility of results,if applicable.3.
-3. provide example inputs, outputs and plots of your algorithm
-4. The read me file should be properly formatted using GitHub markdown
-5. Describe any specific pre-processing you have used with references if any. Justify your training, validationand testing splits of the data.
 
 # Project Overview
 
@@ -36,13 +26,20 @@ Stable Diffusion on OASIS Dataset
 
 ### Second Stage
 * `latent_dataset.py`: Collect the latent data given an first stage mode.
-* `pixelCNN.py`: Do pixelCNN when random generation from VQVAE model.
+* `pixelCNN.ipynb`: Do pixelCNN (here we use transformer) when random generation from VQVAE model.
 * `model_diffusion.py`: The model of stable diffusion. It's UNet.
 * `stable_diffusion.py`: Do stable diffusion when random generation from `VQVAE` or `VAE` model.
+* `diffusion_visualize.py`: Generate the image through diffusion process.
+
+### About dataset & SSIM Score
+* We trained our VQVAE on the train and validate dataset provided by the OASIS dataset. Then, we tested the SSIM score on the test dataset, which yielded a score of approximately 0.78 to 0.79.
+* In the second stage, we employed the entire dataset as the training data to train the LDM (Latent Diffusion Model) in the stable diffusion framework. This allowed us to generate images from random noise.
+* Furthermore, we also used a transformer and treated as PixelCNN to randomly generate brain images.
 
 ## Run
+
 1. Requirements
-```
+```python
 einops==0.6.1
 torch==1.11.0+cu113
 torchvision==0.12.0+cu113
@@ -56,10 +53,25 @@ imageio==2.22.4
 3. For first stage
    1. run `prestage_train.py`. You can select the mode among `VAE` and `VQVAE` in `line 27` in this script.
 4. For second stage
-   1. run `latent_dataset.py`. This script is to collect latent data.
-   2. run `stable_diffusion.py`. If you want to use pixelCNN, you can run `pixelCNN.ipynb`
+   1. Choose which first stage model you use and run `latent_dataset.py`. This script will collect latent data.
+   2. Choose which first stage model you use and run `stable_diffusion.py`. 
+      1. If you want to use Transformer-like PixelCNN, you can run `pixelCNN.ipynb`
 
 ## Results
+
+#### VQVAE Reconstruction on Test (idx=441)
+![](visualize\VQVAE_vis\epoch_45\recon_441.png)
+
+#### VQVAE + Random Generation
+
+![](visualize\VQVAE_vis\epoch_45\gen_large_0.png)
+#### VQVAE + VisionTransformer (PixelCNN like)
+![](visualize\Transformer_vis\0.png )
+
+#### VQVAE + Stable Diffusion
+![](visualize\stable_diffusion_vis\epoch_120\0.png)
+![](visualize\ldm_vis\ldm_0.gif)
+> Diffusion Process through T
 
 ## Diffusion Process GIF
 
