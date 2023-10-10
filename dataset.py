@@ -44,5 +44,6 @@ def print_stats():
     print(f'Has isolated nodes: {data.has_isolated_nodes()}')
     print(f'Has self-loops: {data.has_self_loops()}')
     print(f'Is undirected: {data.is_undirected()}')
-    
-print_stats()
+
+# data = test_train()
+# print(data[0])
