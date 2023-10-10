@@ -1,11 +1,11 @@
 import torch
 from modules import VQVAE, Discriminator, Generator
-from utils import Config
+from utils import VQVAEConfig, GANConfig
 from dataset import Dataset
 from train import TrainVQVAE
 
 if __name__ == '__main__':
-    config = Config()
+    config = VQVAEConfig()
     vqvae_dataset = Dataset(batch_size=config.batch_size, root_dir = './AD_NC', fraction=0.1)
     print('Dataset loaded, beginning training.')
     vqvae = VQVAE()

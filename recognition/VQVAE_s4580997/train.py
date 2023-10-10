@@ -6,6 +6,7 @@ from utils import Config
 from dataset import Dataset
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
+from modules import GAN
 
 class Trainer(ABC) :
 
@@ -25,12 +26,23 @@ class Trainer(ABC) :
     def train(self) -> None :
         pass
 
-    @abstractmethod
-    def plot_loss(self, save = True) -> None :
-        pass
+    def plot(self, save = True) -> None :
+        plt.figure(figsize=(10, 5))
+        plt.plot(self.losses, label='Loss')
+        plt.title('Training Epochs against Loss')
+        plt.xlabel('Epochs')
+        plt.ylabel('Loss')
+        plt.legend()
+        plt.grid(True)
+
+        if save :
+            plt.savefig(self.savepath + '_training_loss.png')
+        else :
+            plt.show()
     
-    def save(self) -> None :
+    def save(self,) -> None :
         pass
+        
 
 class TrainVQVAE() :
     
@@ -80,7 +92,8 @@ class TrainVQVAE() :
         end = time.time()
         print(f"Total Time for training: {end - start:.2f}s")
 
-    def plot_loss(self, save = True) -> None :
+    @override
+    def plot(self, save = True) -> None :
         plt.figure(figsize=(10, 5))
         plt.plot(self.losses, label='Loss')
         plt.title('Training Epochs against Loss for VQVAE')
@@ -98,23 +111,28 @@ class TrainGAN(Trainer) :
     def __init__(self, model: nn.Module, dataset: Dataset, config: Config) :
         super().__init__(model, dataset, config)
         self.criterion = nn.BCEWithLogitsLoss().to(self.device)
-        self.optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)
-        self.losses = []
+        self.d_optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)
+        self.g_optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)
+        self.G_losses = []
+        self.D_losses = []
+        self.gan = GAN(features = 128)
         self.accuracies = []
     
     def train(self) -> None :
         pass
 
-    def plot_loss(self, save = True) -> None :
-        plt.figure(figsize=(10, 5))
-        plt.plot(self.losses, label='Loss')
-        plt.title('Training Epochs against Loss for VQVAE')
-        plt.xlabel('Epochs')
-        plt.ylabel('Reconstruction Loss')
+    
+    def plot(self, save = True) -> None :
+        plt.figure(figsize=(10,5))
+        plt.title("Generator and Discriminator Loss")
+        plt.plot(self.G_losses, label="Generator")
+        plt.plot(self.D_losses, label="Discriminator")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
         plt.legend()
         plt.grid(True)
 
         if save :
-            plt.savefig(self.savepath + '_training_loss.png')
+            plt.savefig(self.savepath + '_gan_loss.png')
         else :
             plt.show()
