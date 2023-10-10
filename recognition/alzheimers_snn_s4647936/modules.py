@@ -3,6 +3,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from PIL import Image
 
+"""
+Feature Extractor
+- Sub-network responsible for extracting features from an input image.
+- Implemented with simple convolutional neural network (CNN) structure.
+"""
 class FeatureExtractor(nn.Module):
     def __init__(self):
         super(FeatureExtractor, self).__init__()
@@ -11,8 +16,8 @@ class FeatureExtractor(nn.Module):
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5)  # assuming grayscale images
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5)
         
-        # Define a placeholder for fully connected layers (we'll adjust these later based on input image size)
-        self.fc1 = nn.Linear(64*50*50, 256)  # 50x50 is a placeholder; adjust based on actual output size
+        # Define fully connected layers (adjust based on input image size)
+        self.fc1 = nn.Linear(61*57*64, 256)  # Adjust here based on image size
         self.fc2 = nn.Linear(256, 2)  # 2-dimensional output for simplicity
         
     def forward(self, x):
@@ -29,6 +34,10 @@ class FeatureExtractor(nn.Module):
         
         return x
 
+"""
+Siamese Network
+- Uses two copies of 'FeatureExtractor' to process two images
+"""
 class SiameseNetwork(nn.Module):
     def __init__(self):
         super(SiameseNetwork, self).__init__()
@@ -56,6 +65,21 @@ image_path = "/home/Student/s4647936/PatternAnalysis-2023/recognition/alzheimers
 image = Image.open(image_path)
 width, height = image.size
 
-print(f"Image dimensions: {width} x {height}")
+# print(f"Image dimensions: {width} x {height}") # Result is 256 x 240
 
+"""
+Triplet Loss implementation
+- Beneficial to choose "hard" triplets
+- The anchor and positive would be two different "slices" from the same patient
+- The negative would be a "slice" from a different patient
+"""
+class TripletLoss(nn.Module):
+    def __init__(self, margin=1.0):
+        super(TripletLoss, self).__init__()
+        self.margin = margin
 
+    def forward(self, anchor, positive, negative):
+        distance_positive = (anchor - positive).pow(2).sum(1)  # Euclidean distance
+        distance_negative = (anchor - negative).pow(2).sum(1)  # Euclidean distance
+        losses = nn.functional.relu(distance_positive - distance_negative + self.margin)
+        return losses.mean()
