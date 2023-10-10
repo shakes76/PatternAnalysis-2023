@@ -309,13 +309,14 @@ for epoch in range(1, N_EPOCHS):
         print("Saving model based on improved combined metric!")
         dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
         # Save model and generate samples every 10 epochs
-        if epoch % save_interval == 0:
-            torch.save(model.state_dict(), f'samples/checkpoint_epoch{epoch}_vqvae.pt') 
+        #if epoch % save_interval == 0:
+        torch.save(model.state_dict(), f'samples/checkpoint_epoch{epoch}_vqvae.pt') 
     else:
         print(f"Not saving model! Last best combined metric: {BEST_METRIC:.4f}, SSIM: {BEST_SSIM:.4f}, Reconstruction Loss: {BEST_RECONS_LOSS:.4f}")
 
-    # Generate samples at the end of each epoch
-    generate_samples(epoch)
+    # Generate samples at the end of each 5th epoch
+    if epoch % save_interval == 0:
+        generate_samples(epoch)
 
     # Step the scheduler to adjust learning rate
     scheduler.step()
