@@ -14,7 +14,7 @@ class Normalise(object):
 
         mean = brain_pixels.mean()
         std = brain_pixels.std()
-        Normalised_image = (image - mean) / std
+        Normalised_image = torch.tensor((image - mean) / std, dtype=torch.float32)
         return {'image': Normalised_image, 'mask': mask}
 
 class ClipAndRescale(object):
@@ -45,35 +45,13 @@ class ClipAndRescale(object):
 
         return {'image': rescaled_image, 'mask': mask}
 
-class Rescale(object):
-    """Rescales the image and mask to the specified size."""
-    def __init__(self, output_size):
-        assert isinstance(output_size, (int, tuple))
-        self.output_size = output_size
-
-    def __call__(self, sample):
-        image, mask = sample['image'], sample['mask']
-        """ Rescales the image using bilinear interpolation, which is suitable for image data because it performs interpolation between pixel values, providing a smoother transition when resizing """
-        image = image.resize(self.output_size, Image.BILINEAR)
-        """ Rescales the mask using nearest-neighbor interpolation, ensuring that mask values remain discrete and preventing the introduction of new label values, which is critical for categorical data like segmentation masks """
-        mask = mask.resize(self.output_size, Image.NEAREST)
-        return {'image': image, 'mask': mask}
-
-class ToTensor(object):
-    """Converts the image and mask to PyTorch tensors."""
-    def __call__(self, sample):
-        image, mask = sample['image'], sample['mask']
-        image = transforms.functional.to_tensor(image)
-        mask = transforms.functional.to_tensor(mask).squeeze()
-        return {'image': image, 'mask': mask}
 
 def get_transform():
-    """Combines the Rescale, ToTensor, Normalise, and ClipAndRescale transformations into one."""
     return transforms.Compose([
-        Rescale((128, 128)),
-        ToTensor(),
-        Normalise(),
-        ClipAndRescale(),
+        transforms.Lambda(lambda sample: {'image': transforms.ToTensor()(sample['image']),
+                                          'mask': transforms.ToTensor()(sample['mask'])}),
+        transforms.Lambda(lambda sample: {'image': transforms.Resize((128, 128), antialias=True)(sample['image']),
+                                          'mask': transforms.Resize((128, 128), antialias=True)(sample['mask'])}),
     ])
 
 class ISICDataset(Dataset):
@@ -94,17 +72,19 @@ class ISICDataset(Dataset):
         return len(self.image_list)
 
     def __getitem__(self, idx):
-        """ file names """
         img_name = os.path.join(self.root_dir, self.image_list[idx])
         mask_name = os.path.join(self.maskdir, self.mask_list[idx])
-
-        """ RGB image, greyscale mask """
+        
         image = Image.open(img_name).convert('RGB')
         mask = Image.open(mask_name).convert('L')
+        
         sample = {'image': image, 'mask': mask}
+        
         if self.transform:
             sample = self.transform(sample)
-        return sample
+        
+        return sample  # Returning a dict instead of a tuple
+
 
 if __name__ == "__main__":
     # Loading the training, validation, and test datasets
