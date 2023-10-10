@@ -56,55 +56,52 @@ start = time.time()
 
 totalStep = len(ds.trainloader)
 
-try:
-	running_loss = 0.0
+running_loss = 0.0
+
+for epoch in range(numEpochs):
+	for i, (images, labels) in enumerate(ds.trainloader): # load a batch
+		images = images.to(device)
+		labels = labels.to(device)
 	
-	for epoch in range(numEpochs):
-		for i, (images, labels) in enumerate(ds.trainloader): # load a batch
-			images = images.to(device)
-			labels = labels.to(device)
+		# Add a graph representation of the network to our TensorBoard
+		if not addedGraph:
+			writer.add_graph(model, images)
+			writer.flush()
+			addedGraph = True
+
+		# Forward Pass
+		outputs = model(images)
+		loss = criterion(outputs, labels)
 		
-			# Add a graph representation of the network to our TensorBoard
-			if not addedGraph:
-				writer.add_graph(model, images)
-				writer.flush()
-				addedGraph = True
+		# Backward and optimize
+		optimizer.zero_grad()
+		loss.backward()
+		optimizer.step()
 
-			# Forward Pass
-			outputs = model(images)
-			loss = criterion(outputs, labels)
-			
-			# Backward and optimize
-			optimizer.zero_grad()
-			loss.backward()
-			optimizer.step()
-
-			running_loss += loss.item()
-		
-			if ((i + 1) % numBatchesBetweenLogging == 0):
-				# log the average loss for the past i batches
-				writer.add_scalar("training loss",
-                      running_loss / numBatchesBetweenLogging,
-                      epoch * len(ds.trainloader) + i)
-
-				# log a Matplotlib Figure showing the model's predictions on a
-				# random mini-batch
-				writer.add_figure('predictions vs. actuals',
-												plotting.plot_classes_preds(model, images, labels),
-												global_step=epoch * len(ds.trainloader) + i)
-
-				running_loss = 0.0
-		
-		# reduce the learning rate each epoch.
-		scheduler.step()
-except KeyboardInterrupt:
-  pass
-finally:
-	end = time.time()
-	elapsed = end - start
-	print("Training took " + str(elapsed) + " secs")
-
-	os.makedirs(os.path.dirname(savePath), exist_ok=True)
-	torch.save(model, savePath)
+		running_loss += loss.item()
 	
-	writer.close()
+		if ((i + 1) % numBatchesBetweenLogging == 0):
+			# log the average loss for the past i batches
+			writer.add_scalar("training loss",
+										running_loss / numBatchesBetweenLogging,
+										epoch * len(ds.trainloader) + i)
+
+			# log a Matplotlib Figure showing the model's predictions on a
+			# random mini-batch
+			writer.add_figure('predictions vs. actuals',
+											plotting.plot_classes_preds(model, images, labels),
+											global_step=epoch * len(ds.trainloader) + i)
+
+			running_loss = 0.0
+	
+	# reduce the learning rate each epoch.
+	scheduler.step()
+
+end = time.time()
+elapsed = end - start
+print("Training took " + str(elapsed) + " secs")
+
+os.makedirs(os.path.dirname(savePath), exist_ok=True)
+torch.save(model, savePath)
+
+writer.close()
