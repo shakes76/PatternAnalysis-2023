@@ -21,7 +21,7 @@ def main():
     """ load testing dataset """
     test_loader = Dataset(train=False).loader()
 
-    with open(file="models/sr_model_gan_2.pt", mode="rb") as f:
+    with open(file="models/sr_model.pt", mode="rb") as f:
         model.load_state_dict(
             state_dict=torch.load(f=f, map_location=torch.device('cpu')),
         )

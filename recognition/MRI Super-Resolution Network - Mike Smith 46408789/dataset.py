@@ -58,7 +58,7 @@ class Dataset(data.Dataset):
 
     def loader(self):
         """
-        get loader method
+        method to get data loader
         
         """
         return self._loader

@@ -4,21 +4,49 @@
 
 ## Description
 
-The MRI Super-Resolution Network developed for this project is a Super-Resolution Deep Convolutional Generative Adversarial Network (SR-DCGAN). This is a machine learning model designed to enhance the resolution of MRI images. This particular implementation uses downsampled (by a factor of 4) MRI images from the Alzheimer's Disease Neuroimaging Initiative (ADNI) MRI dataset. The dataset is preprocessed to create low-resolution versions of the images, simulating downsampled data.
+### Design Task
 
-The GAN consists of two neural networks: a generator and a discriminator. The generator creates high-resolution images from low-resolution inputs. The discriminator evaluates these generated images and real high-resolution images from the dataset, aiming to distinguish between them. Through adversarial training, the generator learns to create images that are increasingly difficult for the discriminator to differentiate from real high-resolution images. Both the generator and discriminator utilize deep convolutional neural networks (CNNs).
+The MRI Super-Resolution Network developed for this project is a Super-Resolution Deep Convolutional Generative Adversarial Network (SR-DCGAN). This particular implementation is designed to enhance the resolution of MRI images. It uses 4 times downsampled MRI images (60 x 64) from the Alzheimer's Disease Neuroimaging Initiative (ADNI) MRI dataset and attempts to generate higher resolution images (240 x 256) from the downsampled images. The dataset is preprocessed to create these low-resolution versions of the images which simulating the downsampled data.
 
-The core objective of the network is to perform super-resolution by increasing the spatial resolution of the input images. In the context of MRI images, this process helps to reconstruct detailed structures that are lost during downsampling. The training process uses adversarial loss to ensures the generated images are realistic and similar to real images.
+### Model Overview
+
+The GAN implementation consists of two neural networks being the generator and the discriminator. The generator network attempts to recreate high-resolution images from low-resolution inputs. The discriminator evaluates these generated images and real high-resolution images from the dataset, and aims to distinguish between them. Through the process of adversarial training, the generator learns to create images that are increasingly difficult for the discriminator to distinguish from the real high-resolution images. Similarly, the discriminator learns more complex patterns to better differentiate between the real and generated images. Both the generator and the discriminator uses a deep convolutional neural network (CNN) design.
+
+### Aims and Objectives
+
+The main aim and objective of the network is to accurately reconstruct the super-resolution version of the low-resolution input images. For MRI images especially, this process helps to reconstruct detailed structures that are lost during downsampling. Finally, as mentioned, the training process uses adversarial loss to ensure that the generated images are realistic and closely resemble the real images.
 
 ## Implementation
 
 ### Generator Network
+
+As mentioned, the generator network is a deep-convolutional network that consists of 8 convolutional layers. 
+
+All layer except the last layer use a rectified linear (ReLU) activation paired with batch normalisation. The ReLU introduces non-linearities into the network, this is especially important in deep networks consisting of many layers since these non-linearities help take full advantage of all layers in the network. Additionally, batch normalisation is introduced to help improve the efficiency of the training process. Batch normalisation can help address the internal covariance shift especially in deep neural networks. This optimisation process helps speed up training by making the optimisation process faster and more stable.
+
+For this generator model, layers 3 and 6 are upsampling convolutional layers using the `ConvTranspose` layer using a stride of 2. All other layers are implmented in a similar way using a stride length of 1 instead.
+
+The final layer does not have batch normalisation and uses a hyperbolic tangent activation (tanh) function. The lack of batch normalisation in the output of the generator is known to reduce sample oscillation and overall model instability. Finally the use of the hyperbolic tangent function is used to bound the outputs to be displayed as the output image.
+
+<!--
+References: https://machinelearningmastery.com/how-to-train-stable-generative-adversarial-networks/
+-->
 
 The code for the generator model can be found in the `modules.py` file in `Model_Generator` class. The following is structural desciption of the generator model.
 
 ![Generator](./figures/SR-DC-Generator.png)
 
 ### Discriminator Network
+
+Similarly, the discriminator model mainly consists of a deep-convolutional network consisting of 6 convolutional layers followed by a single fully connected layer that connects the final convolutional layer to the single sigmoid output.
+
+In contrast to the generator, all layers in the discriminator except for the first convolutional layer consists of a Leaky-ReLU actcivation followed by batch normalisation. The Leaky-ReLU, unlike the standard ReLU activation, allows for negative values which is more useful for the discriminator models ability to distiguish more distinct patterns to help with recognition. Additionally, a gradient of 0.2 is used for the negative values of the Leaky-ReLU activations. Furthermore, batch normalisation is used here again to imporve training efficiency.
+
+For the discriminator, layers 2, 3, 4 and 5 are donwsampling layers (from 240 x 256 down to 15 x 16). The downsampling layers are implemented as convolutional downsampling using a stride of 2. Layers 1 and 6 are implemented in a similar way with a stride of 1 instead.
+
+The first layer of the discriminator is identical to all other convolutional layers except for the lack of batch normalisation. Again, similar to the generator, this is done to reduce sample oscillation and overall model instability.
+
+The final output layer consists of a fully connected layer with a single sigmoid output. The sigmoid activation is used to bound the output between 0 to 1 representing the predicted outcome. Values close to 0 represent the generated upsampled images and values close to 1 represent the original full-resolution images.
 
 The code for the discriminator model can be found in the `modules.py` file in `Model_Discriminator` class. The following is structural desciption of the discriminator model.
 

@@ -7,14 +7,12 @@ from modules import Model_Generator, Model_Discriminator
 
 def main():
 
-    model_type = "gan"
-
     """ pytorch exe device """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"pytorch version: {torch.__version__}, exe device: {device}", flush=True)
 
     """ training params """
-    generator_lr = 3e-5 if model_type == "gan" else 1e-3
+    generator_lr = 3e-5
     discriminator_lr = 2e-5
     epochs = 300 if machine == "rangpur" else 3
 
@@ -28,45 +26,25 @@ def main():
     print(f"discriminator params: {sum([p.nelement() for p in discriminator.parameters()])}", flush=True)
 
     """ loss function """
-    loss_function = torch.nn.MSELoss(
-    ) if model_type == "cnn" else torch.nn.BCELoss(
-    ) if model_type == "gan" else None
+    loss_function = torch.nn.BCELoss()
 
-    """ optimiser for generator """
-    optimizer_generator = torch.optim.SGD(
-        params=generator.parameters(), lr=generator_lr, 
-        momentum=0.9, weight_decay=5e-4,
-    ) if model_type == "cnn" else torch.optim.Adam(
+    """ optimiser and variable learning rate scheduller for generator """
+    optimizer_generator = torch.optim.Adam(
         params=generator.parameters(), lr=generator_lr, betas=(0.5, 0.999),
-    ) if model_type == "gan" else None
+    )
+    lr_scheduler_generator = torch.optim.lr_scheduler.LambdaLR(
+        optimizer_generator, lr_lambda=lambda epoch: 0.95**epoch,
+    )
 
-    """ optimiser for discriminator """
-    optimizer_discriminator = torch.optim.SGD(
-        params=discriminator.parameters(), lr=discriminator_lr, 
-        momentum=0.9, weight_decay=5e-4,
-    ) if model_type == "cnn" else torch.optim.Adam(
+    """ optimiser and variable learning rate scheduller for discriminator """
+    optimizer_discriminator = torch.optim.Adam(
         params=discriminator.parameters(), lr=discriminator_lr, betas=(0.5, 0.999),
-    ) if model_type == "gan" else None
+    )
+    lr_scheduler_discriminator = torch.optim.lr_scheduler.LambdaLR(
+        optimizer_discriminator, lr_lambda=lambda epoch: 0.96**epoch,
+    )
 
-    """ variable learning rate scheduller for generator """
-    lambda_generator = lambda epoch: 0.95**epoch
-    lr_scheduler_generator = torch.optim.lr_scheduler.OneCycleLR(
-        optimizer_generator, max_lr=generator_lr, 
-        steps_per_epoch=len(train_loader), epochs=epochs,
-    ) if model_type == "cnn" else torch.optim.lr_scheduler.LambdaLR(
-        optimizer_generator, lr_lambda=lambda_generator,
-    ) if model_type == "gan" else None
-
-    """ variable learning rate scheduller for discriminator """
-    lambda_discriminator = lambda epoch: 0.96**epoch
-    lr_scheduler_discriminator = torch.optim.lr_scheduler.OneCycleLR(
-        optimizer_discriminator, max_lr=discriminator_lr, 
-        steps_per_epoch=len(train_loader), epochs=epochs,
-    ) if model_type == "cnn" else torch.optim.lr_scheduler.LambdaLR(
-        optimizer_discriminator, lr_lambda=lambda_discriminator,
-    ) if model_type == "gan" else None
-
-    """ train the model """
+    """ start training loop """
     generator.train()
     discriminator.train()
 
@@ -75,37 +53,34 @@ def main():
 
     for epoch in range(epochs):
         for i, (images, labels) in enumerate(train_loader):
+
+            """ send images and labels to hardware """
             images = images.to(device)
             labels = labels.to(device)
 
+            """ downsample dataset and attempt to reconstruct using generator """
             downsampled = torchvision.transforms.Resize(60, antialias=True)(images).to(device)
             upsampled = generator(downsampled)
             
             """ train discriminator """
-            if model_type == "gan": 
-                discriminator_original = discriminator(images)
-                discriminator_original_loss = loss_function(
-                    discriminator_original, torch.ones_like(discriminator_original),
-                )
-                discriminator_upsampled = discriminator(upsampled)
-                discriminator_upsampled_loss = loss_function(
-                    discriminator_upsampled, torch.zeros_like(discriminator_upsampled),
-                )
-                discriminator_loss = (discriminator_original_loss + discriminator_upsampled_loss) / 2
-                
-                """ discriminator backward pass """
-                discriminator.zero_grad()
-                discriminator_loss.backward(retain_graph=True)
-                optimizer_discriminator.step()
+            discriminator_original = discriminator(images)
+            discriminator_original_loss = loss_function(
+                discriminator_original, torch.ones_like(discriminator_original),
+            )
+            discriminator_upsampled = discriminator(upsampled)
+            discriminator_upsampled_loss = loss_function(
+                discriminator_upsampled, torch.zeros_like(discriminator_upsampled),
+            )
+            discriminator_loss = (discriminator_original_loss + discriminator_upsampled_loss) / 2
+            
+            """ discriminator backward pass """
+            discriminator.zero_grad()
+            discriminator_loss.backward(retain_graph=True)
+            optimizer_discriminator.step()
 
             """ train generator """
-            if model_type == "gan": outputs = discriminator(upsampled)
-            if model_type == "cnn": outputs = upsampled
-            generator_loss = loss_function(
-                outputs, images
-            ) if model_type == "cnn" else loss_function(
-                outputs, torch.ones_like(outputs)
-            ) if model_type == "gan" else None
+            outputs = discriminator(upsampled)
+            generator_loss = loss_function(outputs, torch.ones_like(outputs))
 
             """ generator backwards pass """
             optimizer_generator.zero_grad()
@@ -114,33 +89,22 @@ def main():
 
             """ print loss results """
             if (i + 1) % 300 == 0 or ((i + 1) % 10 == 0 and machine == "local"):
-                if model_type == "gan": print (
-                        "epoch: %d/%d, step: %d/%d, d loss: %.5f, g loss: %.5f" % (
-                            epoch + 1, epochs, i + 1, len(train_loader), 
-                            discriminator_loss.item(), generator_loss.item(),
-                        ), flush=True,
-                    )
-                if model_type == "cnn": print(
-                        "epoch: %d/%d, step: %d/%d, loss: %.5f" % (
-                            epoch + 1, epochs, i + 1, len(train_loader), 
-                            generator_loss.item(),
-                        ), flush=True,
-                    )
-         
-            """ step the lr scheduler for cnn """
-            if model_type == "cnn":
-                lr_scheduler_generator.step()
+                print (
+                    "epoch: %d/%d, step: %d/%d, d loss: %.5f, g loss: %.5f" % (
+                        epoch + 1, epochs, i + 1, len(train_loader), 
+                        discriminator_loss.item(), generator_loss.item(),
+                    ), flush=True,
+                )
 
-        """ step the lr schedulers for gan """
-        if model_type == "gan":
-            lr_scheduler_generator.step()
-            lr_scheduler_discriminator.step()
-            print(
-                "d lr: %.12f, g lr: %.12f" % (
-                    optimizer_discriminator.state_dict()["param_groups"][0]["lr"],
-                    optimizer_generator.state_dict()["param_groups"][0]["lr"],
-                ), flush=True,
-            )
+        """ step the lr schedulers """
+        lr_scheduler_generator.step()
+        lr_scheduler_discriminator.step()
+        print(
+            "d lr: %.12f, g lr: %.12f" % (
+                optimizer_discriminator.state_dict()["param_groups"][0]["lr"],
+                optimizer_generator.state_dict()["param_groups"][0]["lr"],
+            ), flush=True,
+        )
 
         """ save the model """
         if (epoch + 1) % 30 == 0 or (machine == "local" and epoch + 1 == epochs):
@@ -148,6 +112,7 @@ def main():
                 file="models/sr_model_%03d.pt" % (epoch + 1), mode="wb") as f:
                 torch.save(obj=generator.state_dict(), f=f)
 
+    """ print training time """
     print(f"training time: {round((time.time() - start) / 60)} mins", flush=True)
 
 
