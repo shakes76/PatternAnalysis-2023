@@ -70,7 +70,9 @@ In Pic12., the loss decreases to 0.0010 and SSIM increases to 97.0%. The image n
 
 
 
-Reference:
+## Reference:
+
 [1] resource from https://arxiv.org/pdf/1711.00937.pdf
+
 [2] resource from http://kvfrans.com/content/images/2016/08/vae.jpg
 
