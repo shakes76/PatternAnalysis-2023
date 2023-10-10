@@ -7,80 +7,89 @@ from torchvision.ops import nms, roi_align
 import ResNet
 from dataset import ISICDataset
 
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torchvision.ops import nms
+
 
 class RPN(nn.Module):
-
-    """
-    The RPN network takes as input the output features from the backbone network and outputs
-    a set of rectangular object proposals, each with an objectness score.
-    """
-
-    def __init__(self):
+    def __init__(self, in_channels=2048, anchor_sizes=[128, 256, 512], anchor_ratios=[0.5, 1, 2]):
         super(RPN, self).__init__()
-        self.conv = nn.Conv2d(2048, 512, kernel_size=3, stride=1, padding=1)
-        self.relu = nn.ReLU(inplace=True)
-        self.cls_score = nn.Conv2d(512, 2 * 9, kernel_size=1, stride=1)
-        self.bbox_pred = nn.Conv2d(512, 4 * 9, kernel_size=1, stride=1)
-        self.anchor_scales = [8, 16, 32]
-        self.anchor_ratios = [0.5, 1, 2]
 
-    def generate_base_anchors(self, feature_map_size, stride=32):
+        self.conv = nn.Conv2d(in_channels, 512, 3, 1, 1)
+        self.cls_score = nn.Conv2d(512, len(anchor_sizes) * len(anchor_ratios) * 2, 1, 1, 0)
+        self.bbox_pred = nn.Conv2d(512, len(anchor_sizes) * len(anchor_ratios) * 4, 1, 1, 0)
+
+        self.anchor_sizes = anchor_sizes
+        self.anchor_ratios = anchor_ratios
+
+    def forward(self, x):
+        # RPN forward to get objectness and bbox_deltas
+        x = self.conv(x)
+        objectness_score = self.cls_score(x)
+        bbox_deltas = self.bbox_pred(x)
+
+        # Generate anchors based on the feature map dimensions
+        feature_map_size = (x.size(2), x.size(3))
+        anchors = self.generate_anchors(feature_map_size)
+
+        # Apply bbox_deltas to anchors
+        refined_anchors = self.apply_deltas_to_anchors(anchors, bbox_deltas.detach())
+
+        # Filter anchors using NMS and objectness score
+        nms_indices = self.filter_anchors(refined_anchors, objectness_score)
+        final_anchors = refined_anchors[nms_indices]
+
+        return final_anchors
+
+    def generate_anchors(self, feature_map_size, stride=32):
+        anchors = []
+        for y in range(feature_map_size[0]):
+            for x in range(feature_map_size[1]):
+                for size in self.anchor_sizes:
+                    for ratio in self.anchor_ratios:
+                        center_x, center_y = stride * (x + 0.5), stride * (y + 0.5)
+                        height, width = size * torch.sqrt(torch.tensor(1.0 / ratio)), size * torch.sqrt(
+                            torch.tensor(ratio))
+                        anchors.append([center_x - 0.5 * width, center_y - 0.5 * height, center_x + 0.5 * width,
+                                        center_y + 0.5 * height])
+        return torch.tensor(anchors, dtype=torch.float32)
+
+    def apply_deltas_to_anchors(self, anchors, deltas):
 
         """
-        Generate the base anchors for a feature map.
-        :param feature_map_size: image size / stride
-        :param stride: scale factor for the image
-        :return: base anchors
+        Applies the deltas to the anchors to get the refined anchors.
+        :param anchors:  [9, 4], containing the coordinates of the anchors
+        :param deltas:  [4, 9, 8, 8], containing the deltas to be applied to the anchors
+        :return: [4, 9, 8, 8], containing the refined anchors
         """
 
-        tensor_ratios = torch.tensor(self.anchor_ratios)
-        tensor_scales = torch.tensor(self.anchor_scales)
+        print("anchors shape:", anchors.shape)
+        print("deltas shape:", deltas.shape)
+        expanded_anchors = anchors.view(1, 9, 8, 8, 4).expand(4, 9, 8, 8, 4).to(deltas.device)
+        print("expanded_anchors shape:", expanded_anchors.shape)
 
-        base_anchors = []
-        for scale in tensor_scales:
-            for ratio in tensor_ratios:
-                w = scale * torch.sqrt(ratio)
-                h = scale / torch.sqrt(ratio)
-                x1, y1, x2, y2 = -w / 2, -h / 2, w / 2, h / 2
+        # Expand dims to apply broadcasting
+        expanded_x = expanded_anchors[..., 0]
+        expanded_y = expanded_anchors[..., 1]
+        expanded_w = expanded_anchors[..., 2] - expanded_anchors[..., 0]
+        expanded_h = expanded_anchors[..., 3] - expanded_anchors[..., 1]
 
-                # Tile the base anchor across the feature map grid
-                shift_x = torch.arange(0, feature_map_size[1]) * stride
-                shift_y = torch.arange(0, feature_map_size[0]) * stride
-                shift_x, shift_y = torch.meshgrid(shift_x, shift_y)
-                shifts = torch.stack((shift_x, shift_y, shift_x, shift_y), dim=2)
-                shifts = shifts.reshape(-1, 4)
+        # Extract deltas
+        dx = deltas[:, 0::4, :, :]
+        dy = deltas[:, 1::4, :, :]
+        dw = deltas[:, 2::4, :, :]
+        dh = deltas[:, 3::4, :, :]
 
-                anchor = torch.tensor([x1, y1, x2, y2])
-                anchors = anchor[None, :] + shifts[:, None]
-                base_anchors.append(anchors)
-        base_anchors = torch.cat(base_anchors, dim=0)
-        return base_anchors
+        # Apply deltas
+        pred_ctr_x = expanded_x + dx * expanded_w
+        pred_ctr_y = expanded_y + dy * expanded_h
+        pred_w = torch.exp(dw) * expanded_w
+        pred_h = torch.exp(dh) * expanded_h
 
-    def apply_bbox_deltas(self, anchors, bbox_deltas):
-
-        """
-        Apply the bounding box deltas to the anchors to obtain the predicted bounding boxes.
-        :param anchors: base anchors
-        :param bbox_deltas: bounding box deltas
-        :return: predicted bounding boxes
-        """
-
-        widths = anchors[:, 2] - anchors[:, 0]
-        heights = anchors[:, 3] - anchors[:, 1]
-        ctr_x = anchors[:, 0] + 0.5 * widths
-        ctr_y = anchors[:, 1] + 0.5 * heights
-
-        dx = bbox_deltas[:, 0::4]
-        dy = bbox_deltas[:, 1::4]
-        dw = bbox_deltas[:, 2::4]
-        dh = bbox_deltas[:, 3::4]
-
-        pred_ctr_x = ctr_x + dx * widths
-        pred_ctr_y = ctr_y + dy * heights
-        pred_w = torch.exp(dw) * widths
-        pred_h = torch.exp(dh) * heights
-
-        pred_boxes = torch.zeros_like(bbox_deltas)
+        # Convert to x1, y1, x2, y2 format
+        pred_boxes = torch.zeros_like(deltas)
         pred_boxes[:, 0::4] = pred_ctr_x - 0.5 * pred_w
         pred_boxes[:, 1::4] = pred_ctr_y - 0.5 * pred_h
         pred_boxes[:, 2::4] = pred_ctr_x + 0.5 * pred_w
@@ -88,43 +97,18 @@ class RPN(nn.Module):
 
         return pred_boxes
 
-    def apply_nms(self, boxes, scores, threshold=0.5):
+    def filter_anchors(self, anchors, objectness_score, nms_thresh=0.7, pre_nms_top_n=6000, post_nms_top_n=300):
+        objectness_score = objectness_score.view(-1)
+        sorted_idx = torch.argsort(objectness_score, descending=True)
+        top_n_idx = sorted_idx[:pre_nms_top_n]
 
-        """
-        Apply non-maximum suppression to the predicted bounding boxes, discarding overlapping boxes.
-        :param boxes: bounding boxes to apply NMS to
-        :param scores: scores for each bounding box
-        :param threshold: IoU threshold for NMS
-        :return: indices of the bounding boxes to keep
-        """
+        top_n_anchors = anchors[top_n_idx]
+        top_n_scores = objectness_score[top_n_idx]
 
-        keep_indices = nms(boxes, scores, threshold)
-        return boxes[keep_indices], scores[keep_indices]
+        keep = nms(top_n_anchors, top_n_scores, nms_thresh)
+        keep = keep[:post_nms_top_n]
 
-    def forward(self, x):
-        x = self.conv(x)
-        x = self.relu(x)
-        objectness = self.cls_score(x)
-        bbox_deltas = self.bbox_pred(x)
-
-        # apply softmax to the objectness scores, get the probability each anchor contains an object
-        objectness_prob = F.softmax(objectness.view(objectness.size(0), 2, -1), dim=1)[:, 1, :]
-
-        feature_map_size = (int(x.shape[2]), int(x.shape[3]))
-        # generate the base anchors for the feature map
-        base_anchors = self.generate_base_anchors(feature_map_size=feature_map_size)
-
-        # repeat the base anchors for each pixel in the feature map
-        flattened_base_anchors = base_anchors.view(-1)
-        anchors = flattened_base_anchors.repeat(x.shape[2] * x.shape[3], 1)
-
-        # apply the bounding box deltas to the anchors to obtain the predicted bounding boxes
-        refined_anchors = self.apply_bbox_deltas(anchors, bbox_deltas.squeeze())
-
-        # apply non-maximum suppression to the predicted bounding boxes, discarding overlapping boxes
-        final_boxes, final_scores = self.apply_nms(refined_anchors, objectness_prob.squeeze())
-
-        return final_boxes, final_scores
+        return keep
 
 
 class RoIAlign(nn.Module):

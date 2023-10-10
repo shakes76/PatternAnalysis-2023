@@ -17,7 +17,7 @@ num_classes = 2  # For binary classification, we have 2 classes: 0 and 1
 model = MaskRCNN(num_classes)
 
 # If CUDA is available, move the model to GPU
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
 # Define the loss functions
@@ -31,6 +31,7 @@ optimizer = SGD(model.parameters(), lr=0.001, momentum=0.9)
 # Training loop
 for epoch in range(10):  # Number of epochs
     for i, (images, masks) in enumerate(train_loader):
+
         images, masks = images.to(device), masks.to(device)
 
         # Zero the parameter gradients
