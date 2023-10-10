@@ -4,7 +4,7 @@ import torchvision.models as models
 import torch.nn.init as init
 import torch
 
-
+# Referenced from: https://github.com/pytorch/examples/blob/main/siamese_network/main.py
 class SiameseResNet(nn.Module):
     def __init__(self):
         super(SiameseResNet, self).__init__()
@@ -12,6 +12,8 @@ class SiameseResNet(nn.Module):
         resnet = models.resnet18(pretrained=True)
         resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.embedding = nn.Sequential(*list(resnet.children())[:-1])
+        
+
 
     def forward_one(self, x):
         # Forward pass for one input
@@ -38,12 +40,24 @@ class ClassifierNet(nn.Module):
         for param in self.siamese_model.parameters():
             param.requires_grad = False  # Freeze Siamese model parameters
 
-        # Classifier head
+        # Classifier head with increased complexity
         self.classifier = nn.Sequential(
-            nn.Linear(512, 256),  # Assuming embedding size is 512 from ResNet18
+            nn.Linear(512, 512),  # Increase the number of units
             nn.ReLU(),
-            nn.Dropout(0.5),
-            nn.Linear(256, 1),
+            nn.BatchNorm1d(512),  # Added batch normalization
+            nn.Dropout(0.7),
+            
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.BatchNorm1d(256),  # Added batch normalization
+            nn.Dropout(0.7),
+
+            nn.Linear(256, 128),  # Additional hidden layer
+            nn.ReLU(),
+            nn.BatchNorm1d(128),  # Added batch normalization
+            nn.Dropout(0.7),
+
+            nn.Linear(128, 1),
             nn.Sigmoid()
         )
 
@@ -54,10 +68,9 @@ class ClassifierNet(nn.Module):
 
 
 
+# Referenced from: https://pyimagesearch.com/2021/01/18/contrastive-loss-for-siamese-networks-with-keras-and-tensorflow/
 class ContrastiveLoss(torch.nn.Module):
-    """
-    Contrastive loss function, assuming distance output from Siamese network.
-    """
+   
     def __init__(self, margin=1.0):
         super(ContrastiveLoss, self).__init__()
         self.margin = margin
@@ -71,16 +84,5 @@ class ContrastiveLoss(torch.nn.Module):
 
 
 
-        
-
-# def get_embedding_size(model, input_shape):
-#     dummy_input = torch.randn(1, *input_shape)
-#     dummy_output = model.forward_one(dummy_input)
-#     return dummy_output.size(1)  # get the size of the output embedding for a single image
-
-# # Example usage:
-# siamese = SiameseResNet()
-# embedding_size = get_embedding_size(siamese, (1,240,256))  # assuming your images are 224x224 grayscale
-# print(embedding_size)
 
 
