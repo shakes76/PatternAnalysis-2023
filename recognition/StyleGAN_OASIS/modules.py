@@ -1,9 +1,9 @@
-# -*- coding: utf-8 -*-
+    # -*- coding: utf-8 -*-
 """
 File: modules.py
 
 Purpose: Contains the necessary components for the Style GAN model. This includes
-        - Alpha Scheduler
+        - Alpha Scheduler to manage blending between progress GAN layers
         - Generator model including the mapping network and synthesis blocks
         - Discriminator model including convolution blocks
 
@@ -12,8 +12,7 @@ Purpose: Contains the necessary components for the Style GAN model. This include
 
 import numpy as np
 import torch
-from torch import nn, optim
-from torchvision import datasets, transforms
+from torch import nn
 import torch.nn.functional as F
 
 """
@@ -297,11 +296,9 @@ Parameters:
     channels        np.array[d] for channels at layer d
     rgb_ch          Number of RGB channels (3 for this project, 1 for grayscale)
     alphaSched      The AlphaScheduler object for managing the progresive GAN fading
-    is_progressive  True -> Progressively scale architecture on the fly
-                    False -> Define the full architecture on instantiation
 """
 class Generator(nn.Module):
-    def __init__(self, z_size, w_size, channels, rgb_ch, alphaSched, is_progressive):
+    def __init__(self, z_size, w_size, channels, rgb_ch, alphaSched):
         super(Generator, self).__init__()
         self.alphaSched = alphaSched
         self.normalise = RMS()
@@ -316,20 +313,16 @@ class Generator(nn.Module):
         self.synthesisNetwork.append(SynthesisInitialBlock(channels[0], channels[1], w_size))
         self.rgbOutput.append(Conv2dHe(channels[0], rgb_ch, kernel_size=1, stride=1, padding=0))
         
-        # Grow the architecture straight up if this is not a progressive GAN
-        if not is_progressive:
-            for d in range(1,len(self.channels)-1):
-                ch_in = int(self.channels[d])
-                ch_out = int(self.channels[d+1])
-                self.synthesisNetwork.append(SynthesisBlock(ch_in, ch_out, self.w_size))
-                self.rgbOutput.append(Conv2dHe(ch_out, self.rgb_ch, kernel_size=1, stride=1, padding=0))
+        for d in range(1,len(self.channels)-1):
+            ch_in = int(self.channels[d])
+            ch_out = int(self.channels[d+1])
+            self.synthesisNetwork.append(SynthesisBlock(ch_in, ch_out, self.w_size))
+            self.rgbOutput.append(Conv2dHe(ch_out, self.rgb_ch, kernel_size=1, stride=1, padding=0))
         
-    """
-    Only scale the architecture if the class was instantiated with is_progressive=False
-    """
+
     def scale(self, device):        
-        ch_in = int(self.channels[self.alphaSched.depth])
-        ch_out = int(self.channels[self.alphaSched.depth+1])
+        ch_in = int(self.channels[len(self.rgbOutput) - 1])
+        ch_out = int(self.channels[len(self.rgbOutput)])
         self.synthesisNetwork.append(SynthesisBlock(ch_in, ch_out, self.w_size).to(device))
         self.rgbOutput.append(Conv2dHe(ch_out, self.rgb_ch, kernel_size=1, stride=1, padding=0).to(device))
             
@@ -378,11 +371,9 @@ Parameters:
     channels    np.array[d] for channels at layer d
     rgb_ch      Number of RGB channels (3 for this project, 1 for grayscale)
     alphaSched  The AlphaScheduler object for managing the progresive GAN fading
-    is_progressive  True -> Progressively scale architecture on the fly
-                    False -> Define the full architecture on instantiation
 """   
 class Discriminator(nn.Module):
-    def __init__(self, channels, rgb_ch, alphaSched, is_progressive):
+    def __init__(self, channels, rgb_ch, alphaSched):
         super(Discriminator, self).__init__()
         ch_out = channels[-1]
         self.alphaSched = alphaSched
@@ -396,12 +387,11 @@ class Discriminator(nn.Module):
         self.rgbInput.append(Conv2dHe(rgb_ch, channels[1], kernel_size=1, stride=1, padding=0))
         
         # Grow the architecture straight up if this is not a progressive GAN
-        if not is_progressive:
-            for d in range(1,len(channels)-1):
-                ch_out = int(self.channels[d])
-                ch_in = int(self.channels[d+1])
-                self.rgbInput.append(Conv2dHe(self.rgb_ch, ch_in, kernel_size=1, stride=1, padding=0))
-                self.synthesis_network.append(ConvBlock(ch_in, ch_out))
+        for d in range(1,len(channels)-1):
+            ch_out = int(self.channels[d])
+            ch_in = int(self.channels[d+1])
+            self.rgbInput.append(Conv2dHe(self.rgb_ch, ch_in, kernel_size=1, stride=1, padding=0))
+            self.synthesis_network.append(ConvBlock(ch_in, ch_out))
             
         self.avg_pool = nn.AvgPool2d(kernel_size=2, stride=2)  
 
