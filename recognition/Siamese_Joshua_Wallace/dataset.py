@@ -57,16 +57,14 @@ class Dataset():
 
 
 class ADNIDataset(Dataset):
-    def __init__(self, imagefolder_dataset, transform, batch_size, root_dir, fraction):
+    def __init__(self, batch_size, root_dir, fraction):
         super().__init__(batch_size, root_dir, fraction)
-        self.imagefolder_dataset = imagefolder_dataset
-        self.transform = transform
 
     def __len__(self):
-        return len(self.imagefolder_dataset)
+        return len(super.root_dir)
 
     def __getitem__(self, index):
-        img, label = self.imagefolder_dataset[index]
+        img, label = super.root_d[index]
 
         img = self.transform(img)
         return img

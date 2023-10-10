@@ -256,11 +256,13 @@ class VQVAE(nn.Module):
                 kernel_size=1, 
                 stride=1)
         
-        self.quantizer = VectorQuantizer(p.num_embeddings, p.embedding_dim,
-                                           p.commitment_cost)
-        self.decoder = Decoder(p.embedding_dim,
-                                n_hidden, 
-                                n_residual)
+        self.quantizer = VectorQuantizer(n_embeddings, 
+            dim_embedding,
+            beta)
+        
+        self.decoder = Decoder(dim_embedding,
+            n_hidden, 
+            n_residual)
 
     def forward(self, x):
         x = self.encoder(x)

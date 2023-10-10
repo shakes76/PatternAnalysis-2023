@@ -10,7 +10,11 @@ from abc import ABC, abstractmethod
 
 class Train(ABC) :
     @abstractmethod
-    def __init__(self, model: nn.Module, dataset: Dataset, config: Config) -> None :
+    def __init__(self, config: Config) -> None :
+        # self.lr = config.lr
+        # self.wd = config.wd
+        # self.epochs = config.epochs
+        # self.device = config.device
         pass
     
     @abstractmethod
@@ -32,7 +36,7 @@ class Train(ABC) :
 class TrainVQVAE(Train) :
     
     def __init__(self, model: nn.Module, dataset: Dataset, config: Config) :
-        super().__init__()
+        super().__init__(config)
         self.savepath = config.savepath
         # Optimisation parameters
         self.lr = config.lr
@@ -55,15 +59,19 @@ class TrainVQVAE(Train) :
         self.model.train()
         start = time.time()
         for epoch in range(self.epochs) :
-            epoch_loss = 0
+            epoch_loss = []
             for i, (data, target) in enumerate(self.dataset.get_train()) :
+                data = data.to(self.device)
                 self.optimiser.zero_grad()
-                output = self.model(data[0], data[1])
-                loss = self.criterion(output, target.view(-1, 1))
+                vq_loss, z_q = self.model(data)
+                recons_error = F.mse_loss(z_q, data)
+
+                loss = vq_loss + recons_error
                 loss.backward()
                 self.optimiser.step()
-                epoch_loss += loss.item()
-                if i % 10 == 0 :
+
+                epoch_loss.append(recons_error.item())
+                if i % 100 == 0 :
                     print(f"Epoch: {epoch+1}/{self.epochs} Batch: {i+1}/{len(self.dataset.get_train())} Loss: {loss.item():.6f}")
             self.losses.append(epoch_loss / len(self.dataset.get_train()))
         end = time.time()
