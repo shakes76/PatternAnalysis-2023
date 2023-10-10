@@ -22,30 +22,60 @@ class Encoder(nn.Module):
     ReLU, 3x3 conv, ReLU, 1x1 conv), all having 256 hidden units.
     """
 
-    def __init__(self, no_channels, latent_dim):
+    def __init__(self, n_inputs, n_hidden_layers,n_residual_hidden_layers):
         super(Encoder, self).__init__()
-        self.no_channels = no_channels
+        self.n_channels = n_inputs
         # self.latent_dim = latent_dim
         self.conv1 = nn.Conv2d(
-            in_channels=no_channels,
-            out_channels=64,
+            in_channels=n_inputs,
+            out_channels=n_hidden_layers//2,
             kernel_size=4,
             stride=2,
             padding=1,
         )
 
         self.conv2 = nn.Conv2d(
-            in_channels=256, out_channels=256, kernel_size=4, stride=2, padding=1
+            in_channels=n_hidden_layers//2, 
+            out_channels=n_hidden_layers, 
+            kernel_size=4, 
+            stride=2, 
+            padding=1
         )
         self.conv3 = nn.Conv2d(
-            in_channels=256, out_channels=latent_dim, kernel_size=1, stride=1, padding=0
+            in_channels=n_hidden_layers, 
+            out_channels=n_hidden_layers, 
+            kernel_size=3, 
+            stride=1, 
+            padding=0
         )
 
-        self.residual_block = nn.Sequential(
+        self.residual_block_1 = nn.Sequential(
             nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(in_channels=n_hidden_layers, 
+                      out_channels=n_residual_hidden_layers, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1),
             nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=1, stride=1, padding=0),
+            nn.Conv2d(in_channels=n_residual_hidden_layers, 
+                      out_channels=n_hidden_layers, 
+                      kernel_size=1, 
+                      stride=1, 
+                      padding=0),
+        )
+        self.residual_block_2 = nn.Sequential(
+            nn.ReLU(),
+            nn.Conv2d(in_channels=n_hidden_layers, 
+                      out_channels=n_residual_hidden_layers, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=n_residual_hidden_layers, 
+                      out_channels=n_hidden_layers, 
+                      kernel_size=1, 
+                      stride=1, 
+                      padding=0),
         )
         self.relu = nn.ReLU()
 
@@ -53,8 +83,8 @@ class Encoder(nn.Module):
         out = self.conv1(x)
         out = self.relu(out)
         out = self.conv2(out)
-        out = self.residual_block(out)
-        out = self.residual_block(out)
+        out = self.residual_block_1(out)
+        out = self.residual_block_2(out)
         out = self.conv3(out)
         return out
 class Decoder(nn.Module):
@@ -69,69 +99,91 @@ class Decoder(nn.Module):
     after 250,000 steps with batch-size 128. For VIMCO we use 50 samples in 
     the multi-sample training objective.
     """
-    def __init__(self, no_channels, latent_dim):
+    def __init__(self, n_inputs, n_hidden_layers, n_residual_hidden_layers): #TODO: remove n_residual_layers?
         super(Decoder, self).__init__()
-        self.no_channels = no_channels
-        self.latent_dim = latent_dim
+        # self.no_channels = n_inputs
+        # self.latent_dim = latent_dim
         self.conv1 = nn.Conv2d(
-            in_channels=no_channels,
-            out_channels=256,
+            in_channels=n_inputs,
+            out_channels=n_hidden_layers,
             kernel_size=4,
             stride=2,
             padding=1,
         )
 
         self.transpose_conv1 = nn.ConvTranspose2d(
-            in_channels=256,
-            out_channels=256,
+            in_channels=n_hidden_layers,
+            out_channels=n_hidden_layers//2,
             kernel_size=4,
             stride=2,
             padding=1,
         )
         self.transpose_conv2 = nn.ConvTranspose2d(
-            in_channels=256,
-            out_channels=no_channels,
+            in_channels=n_hidden_layers//2,
+            out_channels=1, #TODO: set this no. channels as a constant in driver
             kernel_size=4,
             stride=2,
             padding=1,
         )
 
-        self.residual_block = nn.Sequential(
+        self.residual_block_1 = nn.Sequential(
             nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(in_channels=n_hidden_layers, 
+                      out_channels=n_residual_hidden_layers, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1),
             nn.ReLU(),
-            nn.Conv2d(256, 256, kernel_size=1, stride=1, padding=0),
+            nn.Conv2d(in_channels=n_residual_hidden_layers, 
+                      out_channels=n_hidden_layers, 
+                      kernel_size=1, 
+                      stride=1, 
+                      padding=0),
         )
+
+        self.residual_block_2 = nn.Sequential(
+            nn.ReLU(),
+            nn.Conv2d(in_channels=n_hidden_layers, 
+                      out_channels=n_residual_hidden_layers, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=n_residual_hidden_layers, 
+                      out_channels=n_hidden_layers, 
+                      kernel_size=1, 
+                      stride=1, 
+                      padding=0),
+        )  
 
         self.relu = nn.ReLU()
 
     def forward(self, x):
         out = self.conv1(out)
-        out = self.residual_block(out)
-        out = self.residual_block(out)
+        out = self.residual_block_1(out)
+        out = self.residual_block_2(out)
         out = self.transpose_conv1(out)
         out = self.transpose_conv2(x)
         return out
 
 class VQVAE(nn.Module):
-    def __init__(self, no_channels, latent_dim, num_embeddings):
+    def __init__(self, n_hidden_layers, n_residual_hidden_layers, n_embeddings, embeddings_dim, beta):
         super(VQVAE, self).__init__()
         
-        self.no_channels = no_channels
-        self.latent_dim = latent_dim
-        self.num_embeddings = num_embeddings
-
-        self.encoder = Encoder(no_channels, latent_dim)
-        self.decoder = Decoder(no_channels, latent_dim)
-        self.embedding = nn.Embedding(num_embeddings, latent_dim)
-
-        self.vector_quantization = VectorQuantizer(latent_dim, num_embeddings)
+        self.encoder = Encoder(n_inputs=1, 
+                               n_hidden_layers=n_hidden_layers, 
+                               n_residual_hidden_layers=n_residual_hidden_layers)
+        self.vector_quantizer = VectorQuantizer(n_embeddings=n_embeddings, embeddings_dim=embeddings_dim, beta=beta)
+        self.decoder = Decoder(n_inputs=embeddings_dim, 
+                               n_hidden_layers=n_hidden_layers, 
+                               n_residual_hidden_layers=n_residual_hidden_layers)
+        # self.embedding = nn.Embedding(num_embeddings, latent_dim)
     
     def forward(self, x):
         z = self.encoder(x)
-        embedding_loss, z_q = self.vector_quantization(z)
-        x_hat = self.decoder(z_q)
-        return embedding_loss, z, z_q
+        embedding_loss, z_q = self.vector_quantizer(z)
+        reconstructed_x = self.decoder(z_q)
+        return embedding_loss, reconstructed_x
 
 class VectorQuantizer(nn.Module):
     """
@@ -139,17 +191,17 @@ class VectorQuantizer(nn.Module):
 
     Referred to the paper and https://github.com/MishaLaskin/vqvae/blob/master/models/vqvae.py. 
     """
-    def __init__(self, no_embeddings, embeddings_dim, beta):
+    def __init__(self, n_embeddings, embeddings_dim, beta):
         super(VectorQuantizer, self).__init__()
         # Number of vectors in the codebook
-        self.no_embeddings = no_embeddings
-        # Dimension of embeddings - embeddings vector is of size: no_embeddings x embeddings_dim
+        self.n_embeddings = n_embeddings
+        # Dimension of embeddings - embeddings vector is of size: n_embeddings x embeddings_dim
         self.embeddings_dim = embeddings_dim
         # commitment cost - how much do we want to push the encoder output towards the closest embedding vector.
         self.beta = beta
         # Embedding object, and initialized uniformly. 
-        self.embedding = nn.Embedding(self.no_embeddings, self.embeddings_dim)
-        self.embedding.weight.data.uniform_(-1/self.no_embeddings, 1/self.no_embeddings)
+        self.embedding = nn.Embedding(self.n_embeddings, self.embeddings_dim)
+        self.embedding.weight.data.uniform_(-1/self.n_embeddings, 1/self.n_embeddings)
     
     def forward(self, z):
         """
@@ -182,7 +234,7 @@ class VectorQuantizer(nn.Module):
         min_encoding_indices = torch.argmin(distance, dim=1).unsqueeze(1)
         # z_q(x) is just the closest vector to z_e(x). 
         # 
-        min_encodings = torch.zeros(min_encoding_indices.shape[0], self.no_embeddings).to(device)
+        min_encodings = torch.zeros(min_encoding_indices.shape[0], self.n_embeddings).to(device)
         # use the k (min embeddings vector) as a mask, to create N x K matrix structure, where the min embedding indices are 1 in each row, and all others are 0. 
         min_encodings.scatter_(1, min_encoding_indices, 1)
 
