@@ -286,6 +286,8 @@ BEST_METRIC = -999  # initial value for the combination metric
 BEST_SSIM = 0  # just for logging purposes
 BEST_RECONS_LOSS = 999  # just for logging purposes
 
+save_interval = 10
+
 train_losses = []
 val_losses = []
 ssim_scores = []
@@ -308,7 +310,7 @@ for epoch in range(1, N_EPOCHS):
         dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
         # Save model and generate samples every 10 epochs
         if epoch % save_interval == 0:
-            torch.save(model.state_dict(), f'model_epoch_{epoch}/{dataset_name}_vqvae.pt') 
+            torch.save(model.state_dict(), f'samples/checkpoint_epoch{epoch}_vqvae.pt') 
     else:
         print(f"Not saving model! Last best combined metric: {BEST_METRIC:.4f}, SSIM: {BEST_SSIM:.4f}, Reconstruction Loss: {BEST_RECONS_LOSS:.4f}")
 
