@@ -1,3 +1,8 @@
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+
 class UNet(nn.Module):
     def __init__(self, n_channels, n_classes, width_multiplier=1, trilinear=True, use_ds_conv=False):
         """A simple 3D Unet, adapted from a 2D Unet from https://github.com/milesial/Pytorch-UNet/tree/master/unet
