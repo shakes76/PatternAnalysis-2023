@@ -1,15 +1,6 @@
-from tensorflow import keras
-from tensorflow.keras import layers
-from dataset import load_dataset
-from tensorflow.keras import layers, models
-
-
+import tensorflow as tf
 from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import LSTM, Dense
-from tensorflow.keras.callbacks import TensorBoard
-
-from tensorflow.keras.layers import Dense, Flatten, Conv2D, BatchNormalization, MaxPool2D, ReLU
-from tensorflow.keras import Model
+from tensorflow.keras.layers import Dense, Flatten, Conv2D, MaxPool2D
 
 """
 Model class used to create a Siamese Neural Network
@@ -51,6 +42,12 @@ class Model:
         anchor - the anchor image
         positive - image the same class as the anchor
         negative - image the opposite class of the anchor
+        margin - margin between positive and negative pairs, default is 0.1
+
+    triplet loss as defined by "https://en.wikipedia.org/wiki/Triplet_loss"
     """
-    def triplet_loss(self, anchor, positive, negative):
-        pass
+    def triplet_loss(self, anchor, positive, negative, margin=0.1):
+        pos_dist = tf.reduce_sum(tf.square(anchor - positive), axis=-1)
+        neg_dist = tf.reduce_sum(tf.square(anchor - negative), axis=-1)
+        loss = pos_dist - neg_dist + margin
+        return tf.maximum(0.0, loss)
