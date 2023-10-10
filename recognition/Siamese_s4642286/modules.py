@@ -9,13 +9,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if not torch.cuda.is_available():
-    print('CUDA not available. Running on CPU...')
-
-print(device)
-
-
 class SiameseNetwork(nn.Module):
     def __init__(self):
         super(SiameseNetwork, self).__init__()
