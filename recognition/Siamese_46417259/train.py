@@ -20,6 +20,18 @@ TEST_PATH = '/home/groups/comp3710/ADNI/AD_NC/test/'
 RESULTS_PATH = "/home/Student/s4641725/COMP3710/project_results/"
 
 # Loss Functions and Optimizers -----------------------------------
+class ContrastiveLoss(nn.Module):
+    def __init__(self, margin=1.0):
+        super(ContrastiveLoss, self).__init__()
+        self.margin = margin
+
+    def forward(self, output1, output2, label):
+        euclidean_distance = F.pairwise_distance(output1, output2)
+        loss = (label) * torch.pow(euclidean_distance, 2) + (1-label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2)
+        loss = torch.mean(loss)
+
+        return loss
+
 def contrastive_loss(x1:torch.Tensor, x2:torch.Tensor, label:torch.Tensor, margin:float=1.0):
     
     difference = F.pairwise_distance(x1, x2)
@@ -46,7 +58,7 @@ def initialise_training():
     siamese_net = SiameseNeuralNet().to(device)
     print(siamese_net)
 
-    criterion = contrastive_loss
+    criterion = ContrastiveLoss()
     optimiser = optim.Adam(siamese_net.parameters(), lr=1e-3, betas=(0.9, 0.999))
     return siamese_net, criterion, optimiser, device
 
@@ -143,11 +155,22 @@ def train_and_eval():
     plt.legend()
     plt.savefig(RESULTS_PATH + f"train_and_eval_loss_after_{num_epochs}_epochs.png")
 
+def test_loss():
+    cont_loss = ContrastiveLoss()
+    input1 = torch.rand(2, 4096)
+    input2 = torch.rand(2, 4096)
+    
+    labels = torch.Tensor([1,0])
+    old_loss = contrastive_loss(input1, input2, labels)
+    new_loss = cont_loss(input1, input2, labels)
+    print(old_loss)
+    print(new_loss)
+
+
 # new code here
 
 if __name__ == "__main__":
     # initialise_training()
     # load_from_checkpoint()
     train_and_eval()
-
-    
+    # test_loss()

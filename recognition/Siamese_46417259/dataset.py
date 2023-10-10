@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import random
 
 # global variables
-batch_size = 16
+batch_size = 32
 workers = 0
 
 # alias for testing on different machines
