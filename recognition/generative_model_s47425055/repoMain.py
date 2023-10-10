@@ -278,6 +278,23 @@ def generate_samples(epoch):
     plt.savefig(f'samples/loss_plot_epoch{epoch}.png', bbox_inches='tight')
     plt.close()
 
+def generate_sample_from_best_model():
+    # Load the best model
+    model.load_state_dict(torch.load(f'samples/checkpoint_epoch{N_EPOCHS}_vqvae.pt'))
+    model.eval()
+
+    # Get a sample from the test set
+    x, _ = next(iter(test_loader))
+    x = x[:32].to(DEVICE)
+    
+    # Use the model to generate a sample
+    x_tilde, _, _ = model(x)
+
+    # Save the generated sample
+    save_image(x_tilde.cpu().data, 'samples/best_model_sample.png')
+
+
+
 # Constants for determining the importance of SSIM and reconstruction loss
 ALPHA = 0.5  # weight for SSIM, range [0, 1]
 BETA = 1 - ALPHA  # weight for reconstruction loss
@@ -346,3 +363,7 @@ plt.tight_layout()
 #plt.show()
 plt.savefig('samples/combined_loss_plot.png', bbox_inches='tight')
 plt.close()
+
+
+# Call the function to generate and display a sample from the best model
+generate_sample_from_best_model()
