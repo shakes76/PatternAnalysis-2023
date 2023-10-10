@@ -2,22 +2,15 @@ import torch
 
 
 class Config() :
-    def __init__(self, 
-            lr=1e-3, 
-            wd=1e-5, 
-            epochs=10, 
-            batch_size=32, 
-            root_dir='./AD_CN',
-            gpu = 'cuda',
-            savepath = './models/siamese'
-    ) -> None :
+    def __init__(self) :
         
-        self.lr = lr
-        self.wd = wd
-        self.epochs = epochs
-        self.batch_size = batch_size
-        self.root_dir = root_dir
-        self.savepath = savepath
+        self.lr = 1e-4
+        self.wd = 1e-5
+        self.epochs = 1
+        self.batch_size = 32
+        self.root_dir = './AD_CN'
+        self.savepath = './models/vqvae'
+        gpu = 'cuda'
 
         if gpu == 'cuda' :
             self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

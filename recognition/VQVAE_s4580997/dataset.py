@@ -18,6 +18,7 @@ class Loader() :
         self.dataset = None
         self.loader = None
         self.transform = transform
+        self.var = None
     
     def load(self) -> None:
         dataset = ImageFolder(root=f"{self.path}", transform=self.transform)
@@ -42,7 +43,25 @@ class Loader() :
         if self.unloaded() :
             print('Retrieving dataset.')
             self.load()
-        return torch.var(self.loader.dataset.tensors[0])
+        if self.var == None :
+            self.var = self._get_variance()
+        return self.var
+
+    def _get_variance(self) -> float :
+        # Initiating variables
+        running_sum = 0.0
+        running_sum_sq = 0.0
+        total_pixels = 0
+        
+        for images, _ in self.loader:
+            running_sum += torch.sum(images)
+            running_sum_sq += torch.sum(images**2)
+            
+            total_pixels += torch.numel(images)
+        
+        mean = running_sum / total_pixels
+        var = (running_sum_sq / total_pixels) - mean**2
+        return var.item()  # Returns the variance as a Python float
     
     def __len__(self):
         return len(self.loader)

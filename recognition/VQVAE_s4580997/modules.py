@@ -62,14 +62,6 @@ class Encoder(nn.Module):
             padding=1
         )
 
-        self.conv3 = nn.Conv2d(
-            in_channels=n_hidden, 
-            out_channels=n_hidden,
-            kernel_size=3, 
-            stride=1,
-            padding=0
-        )
-
         self.residualBlock = ResidualBlock(
             n_hidden, 
             n_hidden, 
@@ -81,15 +73,13 @@ class Encoder(nn.Module):
 
     def forward(self, out):
         out = self.conv1(out)
-        print('ENCODER CONV1: ', out.shape)
+        # print('ENCODER CONV1: ', out.shape)
 
         out = self.relu(out)
         out = self.conv2(out)
-        print('ENCODER CONV2: ', out.shape)
+        # print('ENCODER CONV2: ', out.shape)
 
         out = self.residualBlock(out)
-        out = self.conv3(out)
-        print('ENCODER CONV3: ', out.shape)
 
         return out
     
@@ -108,7 +98,12 @@ class Decoder(nn.Module):
             padding=1,
         )
 
-        self.residualBlock = ResidualBlock(n_hidden, n_hidden, n_residual, 2)
+        self.residualBlock = ResidualBlock(
+            n_hidden, 
+            n_hidden, 
+            n_residual, 
+            2
+        )
 
         self.transpose1 = nn.ConvTranspose2d(
             in_channels=n_hidden,
@@ -120,6 +115,14 @@ class Decoder(nn.Module):
         
         self.transpose2 = nn.ConvTranspose2d(
             in_channels=n_hidden // 2,
+            out_channels=n_hidden // 4,
+            kernel_size=4,
+            stride=2,
+            padding=1,
+        )    
+
+        self.transpose3 = nn.ConvTranspose2d(
+            in_channels=n_hidden // 4,
             out_channels=out_channels,
             kernel_size=4,
             stride=2,
@@ -132,9 +135,11 @@ class Decoder(nn.Module):
         out = self.residualBlock(out)
 
         out = self.transpose1(out)
-        print('DECODER T1: ', out.shape)
+        # print('DECODER T1: ', out.shape)
         out = self.transpose2(out)
-        print('DECODER T2: ', out.shape)
+        # print('DECODER T2: ', out.shape)
+        out = self.transpose3(out)
+        # print('DECODER T3: ', out.shape)
 
         return out
 
@@ -154,8 +159,13 @@ class VectorQuantizer(nn.Module):
         self.dim_embeddings = dim_embeddings
         self.beta = beta
 
-        self.embedding = nn.Embedding(self.n_embeddings, self.dim_embeddings)
+        self.embedding = nn.Embedding(
+            self.n_embeddings, 
+            self.dim_embeddings
+        )
         self.embedding.weight.data.uniform_(-1.0 / self.n_embeddings, 1.0 / self.n_embeddings)
+
+        
 
     def forward(self, z):
         """
@@ -173,9 +183,7 @@ class VectorQuantizer(nn.Module):
 
         """
         # reshape z -> (batch, height, width, channel) and flatten
-        print('VQ BEFORE RESHAPE: ', z.shape)
         z = z.permute(0, 2, 3, 1).contiguous()
-        print('VQ AFTER RESHAPE: ', z.shape)
 
         z_flattened = z.view(-1, self.dim_embeddings)
 
@@ -193,7 +201,7 @@ class VectorQuantizer(nn.Module):
 
         # get quantized latent vectors
         z_q = torch.matmul(min_embeddingsncodings, self.embedding.weight).view(z.shape)
-        print('VQ MATMUL: ', z_q.shape)
+        # print('VQ MATMUL: ', z_q.shape)
 
         # compute loss for embedding
         loss = torch.mean((z_q.detach()-z)**2) + self.beta * \
@@ -201,7 +209,7 @@ class VectorQuantizer(nn.Module):
 
         # preserve gradients
         z_q = z + (z_q - z).detach()
-        print('VQ GRADIENTS: ', z_q.shape)
+        # print('VQ GRADIENTS: ', z_q.shape)
 
         # perplexity
         e_mean = torch.mean(min_embeddingsncodings, dim=0)
@@ -209,7 +217,7 @@ class VectorQuantizer(nn.Module):
 
         # reshape back to match original input shape
         z_q = z_q.permute(0, 3, 1, 2).contiguous()
-        print('VQ PERMUTE: ', z_q.shape)
+        # print('VQ PERMUTE: ', z_q.shape)
 
         return loss, z_q, perplexity, min_embeddingsncodings, min_embeddingsncoding_indices
 
@@ -222,6 +230,14 @@ class VQVAE(nn.Module):
             n_residual
         )
         
+        self.conv = nn.Conv2d(
+            in_channels=n_hidden, 
+            out_channels=dim_embedding,
+            kernel_size=1, 
+            stride=1,
+            padding=0
+        )
+
         self.quantizer = VectorQuantizer(
             n_embeddings, 
             dim_embedding,
@@ -229,7 +245,7 @@ class VQVAE(nn.Module):
         )
         
         self.decoder = Decoder(
-            n_hidden,
+            dim_embedding,
             n_hidden, 
             n_residual,
             channels
@@ -237,11 +253,13 @@ class VQVAE(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
-        print('PASSES ENCODING')
+        # print('PASSES ENCODING')
+        x = self.conv(x)
+        # print('CONV', x.shape)
         loss, x_q, perplexity, _, _ = self.quantizer(x)
-        print('PASSES VQ')
+        # print('PASSES VQ')
         x_hat = self.decoder(x_q)
-        print('PASSES DECODING')
+        # print('PASSES DECODING')
 
 
         return loss, x_hat, perplexity
