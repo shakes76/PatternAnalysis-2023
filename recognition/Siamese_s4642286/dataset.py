@@ -1,66 +1,60 @@
 """
 Name: dataset.py
 Student: Ethan Pinto (s4642286)
-Description: Containing the data loader for loading and preprocessing your data.
+Description: Creates the data loader for loading and preprocessing the ADNI Brain Data.
 """
 
-import torch
-import random
-from PIL import Image
+import numpy as np
+import itertools
 from torchvision import transforms, datasets
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, TensorDataset
+from PIL import Image
 
-dataroot = "/home/groups/comp3710"
 
-data_transform = transforms.Compose([
-        transforms.RandomSizedCrop(224),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                             std=[0.229, 0.224, 0.225])
-    ])
+# dataroot = "/home/groups/comp3710"
+train_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/train"
+test_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/test"
 
-ADNI_brain_data = datasets.ImageFolder(root=dataroot,
-                                           transform=data_transform)
 
-dataset_loader = DataLoader(ADNI_brain_data, batch_size=4,
-                            shuffle=True, num_workers=4)
+transform = transforms.Compose([
+    transforms.Resize((224, 224)),  # Resize images to a common size
+    transforms.ToTensor()  # Convert images to tensors
+])
 
-class ADNI_Dataset(Dataset):
-    def __init__(self, imageFolderDataset, transform=None):
-        self.imageFolderDataset = imageFolderDataset
-        self.transform = transform
-    
-    def __getitem__(self, index):
-        img0_tuple = random.choice(self.imageFolderDataset.imgs)
 
-    #We need to approximately 50% of images to be in the same class
-        should_get_same_class = random.randint(0,1) 
-        if should_get_same_class:
-            while True:
-                #Look until the same class image is found
-                img1_tuple = random.choice(self.imageFolderDataset.imgs) 
-                if img0_tuple[1] == img1_tuple[1]:
-                    break
-        else:
+train_dataset = datasets.ImageFolder(root=train_dataroot, transform=transform)
+test_dataset = datasets.ImageFolder(root=test_dataroot, transform=transform)
 
-            while True:
-                #Look untill a different class image is found
-                img1_tuple = random.choice(self.imageFolderDataset.imgs) 
-                if img0_tuple[1] != img1_tuple[1]:
-                    break
+# Assuming AD is class 0 and NC is class 1
+train_dataset.class_to_idx = {'AD': 0, 'NC': 1}
+test_dataset.class_to_idx = {'AD': 0, 'NC': 1}
+ 
 
-        img0 = Image.open(img0_tuple[0])
-        img1 = Image.open(img1_tuple[0])
+def make_paired_datasets(dataset):
+    X_pairs, y_pairs = [], []
 
-        img0 = img0.convert("L")
-        img1 = img1.convert("L")
+    for t in itertools.product(dataset, dataset):
+        pair_A, pair_B = t
+        img_A, label_A = t[0]
+        img_B, label_B = t[1]
 
-        if self.transform is not None:
-            img0 = self.transform(img0)
-            img1 = self.transform(img1)
-        
-        return img0, img1, torch.from_numpy(np.array([int(img1_tuple[1] != img0_tuple[1])], dtype=np.float32))
-    
-    def __len__(self):
-        return len(self.imageFolderDataset.imgs)
+        new_label = int(label_A == label_B)
+
+        X_pairs.append([img_A, img_B])
+        y_pairs.append(new_label)
+
+    X_pairs = np.array(X_pairs)
+    y_pairs = np.array(y_pairs)
+
+    return X_pairs, y_pairs
+
+
+X_train, y_train = make_paired_datasets(train_dataset.samples)
+X_test, y_test = make_paired_datasets(test_dataset.samples)
+
+train_set = TensorDataset(X_train, y_train)    # Wrap X and Y into a single training dataset
+test_set = TensorDataset(X_test, y_test)       # Wrap X and Y into a single test dataset
+
+# Define the data loaders
+trainloader = DataLoader(train_set, batch_size=64, shuffle=True)
+testloader = DataLoader(test_set, batch_size=64, shuffle=False)
