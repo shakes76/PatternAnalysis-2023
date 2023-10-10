@@ -44,7 +44,7 @@ with torch.no_grad():
         cond = torch.arange(0, 32, device=DEVICE, dtype=torch.long)
         sample_latent = net.sample_with_cond((1, 8, 16, 16), cond, True)
 
-        with imageio.get_writer(f'visualize/ldm_vis/ldm_{sample_n}.gif', mode="I",fps=30) as writer:
+        with imageio.get_writer(f'visualize/ldm_vis/ldm_{cur_idx}.gif', mode="I",fps=30) as writer:
             for idx, cur_sample in tqdm(enumerate(sample_latent), total=len(sample_latent)):
                 if idx % 20 != 0:
                     continue
