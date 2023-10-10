@@ -245,3 +245,75 @@ class VectorQuantizer(nn.Module):
         z_q = z_q.permute(0, 3, 1, 2).contiguous()
 
         return loss, z_q, perplexity, min_embeddingsncodings, min_embeddingsncoding_indices
+
+class VQVAE(nn.Module):
+    def __init__(self, n_hidden = 128, n_residual = 32, n_embeddings = 512, dim_embedding = 64, beta = 0.25):
+        super(VQVAE, self).__init__()
+        self.encoder = Encoder(1, n_hidden, 
+                                n_residual)
+        self.conv = nn.Conv2d(in_channels=n_hidden, 
+                out_channels=dim_embedding,
+                kernel_size=1, 
+                stride=1)
+        
+        self.quantizer = VectorQuantizer(p.num_embeddings, p.embedding_dim,
+                                           p.commitment_cost)
+        self.decoder = Decoder(p.embedding_dim,
+                                n_hidden, 
+                                n_residual)
+
+    def forward(self, x):
+        x = self.encoder(x)
+        
+        x = self.conv(x)
+        loss, x_q, perplexity, _ = self.quantizer(x)
+        x_hat = self.decoder(x_q)
+
+        return loss, x_hat, perplexity
+
+class Generator(nn.Module):
+    def __init__(self, latent_size):
+        super(Generator, self).__init__()
+        self.main = nn.Sequential(
+            nn.ConvTranspose2d(latent_size, 512, 4, 1, 0, bias=False),
+            nn.BatchNorm2d(512),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(512, 256, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(256, 128, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(128),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(128, 64, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(64),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(64, 3, 4, 2, 1, bias=False),
+            nn.Tanh()
+        )
+
+    def forward(self, input):
+        return self.main(input)
+
+# Discriminator model
+class Discriminator(nn.Module):
+    def __init__(self):
+        super(Discriminator, self).__init__()
+        self.main = nn.Sequential(
+            nn.Conv2d(3, 64, 4, 2, 1, bias=False),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(64, 128, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(128, 256, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(256),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(256, 512, 4, 2, 1, bias=False),
+            nn.BatchNorm2d(512),
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(512, 1, 4, 1, 0, bias=False),
+            nn.Flatten(),
+            nn.Sigmoid()
+        )
+
+    def forward(self, input):
+        return self.main(input).view(-1, 1).squeeze(1)
