@@ -1,9 +1,22 @@
-# Code Explain
+# Project Explain
 
 ## Coding Logic
-![image](https://github.com/Albert-bc/vq-vae/assets/59477394/5e6f585e-e2c5-4267-87f5-8ba068c54b84)
+In this VQ-VAE project, a VQ class, a decoder, an encoder with residual layer and residual block class is used in the model for training. 
+VQ works like the picture shown in the following workflow. Pictures are sent to Ze(x) via CNN. Which forms an encoder; q(z|x) aimed to find Zq(x) by using argmin (Euclidean distance, also can use cosine distance in our coding Euclidean distance is used to make things easier), which can find the closest vector out of codebook. Then the Zq(x) is given to the same CNN (transposed) to generate the image the same size with the input images.
 
-from https://medium.com/analytics-vidhya/blog-post-explained-creating-images-from-text-using-dall-e-4613376bbf10
+![image](https://github.com/Albert-bc/vq-vae/assets/59477394/12ed40ac-01f0-4973-98e4-4732acce94ad)
+(VQ-VAE)
+https://medium.com/analytics-vidhya/blog-post-explained-creating-images-from-text-using-dall-e-4613376bbf10
+
+In the above picture, input images are given to a Pixel CNN, which forms an encoder, the encoder with compress the size of the original image; the output images are also given through the same Pixel CNN (transpose) to make sure the input images have the same size with the output images. These steps are the same with VAE (Variational Auto-Encoding)
+
+![image](https://github.com/Albert-bc/vq-vae/assets/59477394/1f152a5a-a141-47b0-bac1-900900a258ae)
+(VAE)
+http://kvfrans.com/content/images/2016/08/vae.jpg
+
+However, the difference between VAE and VQVAE lies in how to build latent vector. Inside VAE, mean and deviation are used to form the latent space and it is continuous, so it is derivatively. However, inside VQVAE the latent space is discrete, not derivatively. The mean and deviation are used to form a discrete codebook. 
+	Inside VQ class, 3 parts are used to form the loss function: reconstruction loss (optimize encoder and decoder), take stop gradient (output from encoder) as a constant ->which let the embedding get closer and closer to the output, commitment loss (take embedding as a constant -> which let Ze(x) get closer and closer to embedding.
+
 
 
 
