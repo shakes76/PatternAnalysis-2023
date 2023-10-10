@@ -2,8 +2,9 @@ import torch
 import torch.nn as nn
 import math
 import numpy as np
-from module import ResnetBlock, AttnBlock, Downsample, Upsample, VectorQuantizer2
+from module import ResnetBlock, AttnBlock, Downsample, Upsample
 from einops import reduce
+
 class SkipOut(nn.Module):
     def __init__(self):
         super(SkipOut, self).__init__()
@@ -90,6 +91,13 @@ class LatentDiffusionModel(nn.Module):
             nn.SiLU(),
             nn.Linear(time_emb_size, time_emb_size),
         ) 
+        
+        self.cond_mlp = nn.Sequential(
+            nn.Embedding(32, ch),
+            nn.Linear(ch, ch),
+            nn.SiLU(),
+            nn.Linear(ch, ch),
+        ) 
 
         # UNet Setup
         res_params = {
@@ -140,15 +148,16 @@ class LatentDiffusionModel(nn.Module):
         noise_image = weight**0.5 * x + (1 - weight)**0.5 * noise
         return noise_image, noise
 
-    def forward(self, x, t):
+    def forward(self, x, t, cond):
         # Get time embedding
         self.time_embedding = self.time_embedding.to(t.device)
         time_emb = self.time_embedding[t]
         time_emb = self.time_mlp(time_emb)
+        cond_emb = self.cond_mlp(cond)
         h = x
         for layer in self.layers:
             if isinstance(layer, ResnetBlock):
-                h = layer(h, time_encode=time_emb)
+                h = layer(h, time_encode=time_emb + cond_emb)
             else:
                 h = layer(h)
         return h
@@ -174,6 +183,37 @@ class LatentDiffusionModel(nn.Module):
                 min_im = reduce(cur_xt, 'b c h w -> b 1 1 1', 'min')
                 max_im = reduce(cur_xt, 'b c h w -> b 1 1 1', 'max')
                 out_xt = (cur_xt - min_im) / (max_im - min_im)
+            if keep_mid:
+                ret.append(out_xt.cpu())
+        if keep_mid:
+            return ret
+        else:
+            return out_xt
+
+    def sample_with_cond(self, shape, cond, keep_mid=False):
+        device = next(self.parameters()).device
+        batch_size = cond.shape[0]
+        cur_xt = torch.randn(shape, device=device)
+        from einops import repeat
+        cur_xt = repeat(cur_xt, 'n c h w -> (n repeat) c h w', repeat=batch_size)
+        if keep_mid:
+            ret = [cur_xt.cpu()]
+        for t in range(self.T-1, -1, -1):
+            batch_t = torch.zeros(size=(batch_size, ), device=device, dtype=torch.long) + t
+            predicted_noise = self(cur_xt, batch_t, cond)
+            next_xt = self.a[t] ** -0.5 * (cur_xt - (1 - self.a[t]) / ((1 - self.a_bar[t]) ** 0.5) * predicted_noise)
+            if t != 0:
+                sigma = self.b[t] ** 0.5
+                next_xt += torch.randn(shape, device=device) * sigma
+            
+            cur_xt = next_xt
+
+            if t == 0 or keep_mid:
+                # Normalize the output lest the image be scaled.
+                # min_im = reduce(cur_xt, 'b c h w -> b 1 1 1', 'min')
+                # max_im = reduce(cur_xt, 'b c h w -> b 1 1 1', 'max')
+                # out_xt = (cur_xt - min_im) / (max_im - min_im)
+                out_xt = cur_xt
             if keep_mid:
                 ret.append(out_xt.cpu())
         if keep_mid:
