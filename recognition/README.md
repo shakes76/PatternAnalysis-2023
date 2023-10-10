@@ -7,14 +7,14 @@ VQ works like the picture shown in the following workflow. Pictures are sent to 
 ![image](https://github.com/Albert-bc/vq-vae/assets/59477394/12ed40ac-01f0-4973-98e4-4732acce94ad)
 (VQ-VAE)
 
-from https://arxiv.org/pdf/1711.00937.pdf
+resource: https://arxiv.org/pdf/1711.00937.pdf [1]
 
 In the above picture, input images are given to a Pixel CNN, which forms an encoder, the encoder with compress the size of the original image; the output images are also given through the same Pixel CNN (transpose) to make sure the input images have the same size with the output images. These steps are the same with VAE (Variational Auto-Encoding)
 
 ![image](https://github.com/Albert-bc/vq-vae/assets/59477394/1f152a5a-a141-47b0-bac1-900900a258ae)
 (VAE)
 
-from http://kvfrans.com/content/images/2016/08/vae.jpg
+resource: http://kvfrans.com/content/images/2016/08/vae.jpg [2]
 
 However, the difference between VAE and VQVAE lies in how to build latent vector. Inside VAE, mean and deviation are used to form the latent space and it is continuous, so it is derivatively. However, inside VQVAE the latent space is discrete, not derivatively. The mean and deviation are used to form a discrete codebook. 
 	Inside VQ class, 3 parts are used to form the loss function: reconstruction loss (optimize encoder and decoder), take stop gradient (output from encoder) as a constant ->which let the embedding get closer and closer to the output, commitment loss (take embedding as a constant -> which let Ze(x) get closer and closer to embedding.
@@ -67,4 +67,10 @@ Pic11.
 Pic12. (1024 x 1024 pixel) (No_14165_img_Loss_0.00107_SSIM_97.37%)
 
 In Pic12., the loss decreases to 0.0010 and SSIM increases to 97.0%. The image now looks quite reasonable clear, and SSIM is quite high. If we continue want to improve the resolution of the generated image, we can delete the line: transforms.Resize((128, 128)). This line only works to make sure the code works functionally on low memory GPU. Then, we can get the output image as clear as the input image
+
+
+
+Reference:
+[1] resource from https://arxiv.org/pdf/1711.00937.pdf
+[2] resource from http://kvfrans.com/content/images/2016/08/vae.jpg
 
