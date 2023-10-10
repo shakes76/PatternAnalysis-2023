@@ -25,3 +25,7 @@ class Prostate_3D(Dataset):
         if self.target_transform:
             label = self.target_transform(label)
         return data, label
+
+dataset = Prostate_3D(data_img_dir="/home/groups/comp3710/HipMRI_Study_open/semantic_MRs/",
+            label_img_dir="/home/groups/comp3710/HipMRI_Study_open/semantic_labels_only/")
+dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
