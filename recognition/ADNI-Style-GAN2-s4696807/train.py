@@ -4,6 +4,8 @@ from modules import *
 # Import other necessary torch libraries 
 import torch 
 from tqdm import tqdm 
+from torch import optim
+import matplotlib.pyplot as plt
 
 # Define constants and hyperparameters
 DATASET                 = "./OASIS"  # Path to the dataset
@@ -15,6 +17,7 @@ LOG_RESOLUTION          = 7  # Logarithmic resolution used for 128*128 images
 Z_DIM                   = 256  # Dimension of the latent space
 W_DIM                   = 256  # Dimension of the mapping network output
 LAMBDA_GP               = 10  # Weight for the gradient penalty term
+
 
 # Function to compute the gradient penalty for the discriminator
 def gradient_penalty(critic, real, fake, device="cpu"):
@@ -134,3 +137,52 @@ mapping_network     = MappingNetwork(Z_DIM, W_DIM).to(DEVICE)  # Initialize mapp
 gen                 = Generator(LOG_RESOLUTION, W_DIM).to(DEVICE)  # Initialize generator
 critic              = Discriminator(LOG_RESOLUTION).to(DEVICE)  # Initialize critic
 
+loader = get_loader(DATASET, LOG_RESOLUTION, BATCH_SIZE)
+
+gen                 = Generator(LOG_RESOLUTION, W_DIM).to(DEVICE)
+
+path_length_penalty = PathLengthPenalty(0.99).to(DEVICE)
+
+opt_gen             = optim.Adam(gen.parameters(), lr=LEARNING_RATE, betas=(0.0, 0.99))
+opt_critic          = optim.Adam(critic.parameters(), lr=LEARNING_RATE, betas=(0.0, 0.99))
+opt_mapping_network = optim.Adam(mapping_network.parameters(), lr=LEARNING_RATE, betas=(0.0, 0.99))
+
+gen.train()
+critic.train()
+mapping_network.train()
+
+Total_G_Losses = []
+Total_D_Losses = []
+
+for epoch in range(EPOCHS):
+    G_Losses , D_Losses = train_fn(
+        critic,
+        gen,
+        path_length_penalty,
+        loader,
+        opt_critic,
+        opt_gen,
+        opt_mapping_network,
+    )
+    
+    Total_G_Losses.extend(G_Losses)
+    Total_D_Losses.extend(D_Losses)
+    
+    if epoch % 20 == 0:
+        torch.save(gen.state_dict(), f'generator_epoch{epoch}.pt')
+
+plt.figure(figsize=(10,5))
+plt.title("Generator Loss During Training")
+plt.plot(Total_G_Losses, label="G", color="blue")
+plt.xlabel("iterations")
+plt.ylabel("Loss")
+plt.legend()
+plt.savefig('gen_loss.png')
+
+plt.figure(figsize=(10,5))
+plt.title("Discriminator Loss During Training")
+plt.plot(Total_D_Losses, label="D", color="orange")
+plt.xlabel("iterations")
+plt.ylabel("Loss")
+plt.legend()
+plt.savefig('dis_loss.png')
