@@ -36,7 +36,7 @@ class VQ(nn.Module):
         min_encode = torch.zeros(min_encode_index.size(0), self.K).to(device)
         min_encode.scatter_(1, min_encode_index, 1)  # [BHW X K]
 
-        # Quantize x and reshape
+        # Quantize x and reshape(unflatten)
         quantized_x = torch.matmul(min_encode, self.embedding.weight).view(x.shape)  # [BHW X D]
         quantized_x = quantized_x.view(x_shape)  # [B X H X W X D]
 
@@ -47,7 +47,7 @@ class VQ(nn.Module):
         # VQ loss function
         loss = commitment_loss * self.beta + embedding_loss
 
-        # Save gradients
+        # Convert quantized_x - x into constant, save gradient
         quantized_x = x + (quantized_x - x).detach()
 
         # Calculate perplexity
@@ -60,7 +60,7 @@ class VQ(nn.Module):
         return loss, quantized_x, perplexity
 
 
-# Define Encoder
+# Define Encoder (Usage of Pixel CNN)
 class Encoder(nn.Module):
     def __init__(self, in_channel, hidden_dim, num_res_layer, res_hidden_dim):
         super(Encoder, self).__init__()
@@ -108,6 +108,7 @@ class Residual_Block(nn.Module):
         x = F.relu(x)
         return x
 
+# Transpose of the Pixel CNN in Encoder
 class Decoder(nn.Module):
     def __init__(self, in_channel, hidden_dim, num_res_layer, res_hidden_dim):
         super(Decoder, self).__init__()
