@@ -98,3 +98,50 @@ class UpsamplingModule(nn.Module):
         out = self.conv(upsampled_x)
         out = self.relu(out)
         return out
+    
+# Localisation Module 
+# Recombines features together 
+class LocalisationModule(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(LocalisationModule, self).__init__()
+        # 3x3 convolutional layer
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
+        self.relu1 = nn.LeakyReLU(out_channels)
+        # 1x1 convolutional layer that halves the number of feature maps
+        self.conv2 = nn.Conv2d(out_channels, out_channels // 2, kernel_size=1, stride=1, padding=0)
+        self.relu2 = nn.LeakyReLU(out_channels//2)
+
+    def forward(self, x):
+        out = self.conv1(x)
+        out = self.relu1(x)
+        out = self.conv2(out)
+        out = self.relu2(x)
+        return out
+
+
+# Segmentation Module
+# this seems to be just storage, and that is added up later.
+# used to capture and store feature maps at different levels of abstraction 
+# Storage class - not sure if this is correct yet. 
+class SegmentationLayer(nn.Module):
+    def __init__(self):
+        super(SegmentationLayer, self).__init__()
+
+    def forward(self, x):
+        # This segmentation layer does not perform any operation,
+        # it simply passes the input feature map as-is.
+        return x
+
+
+# Softmax 
+# Place holder - this won't be actually required as its own class
+# I'll just add it into the network at the very end since its just a softmax layer 
+class SoftMaxLayer(nn.Module):
+    def __init__(self, num_classes):
+        super(SoftMaxLayer, self).__init__()
+        # ADD IN THE FINAL UNET MODEL. - 
+        self.softmax = nn.Softmax(dim=1)  # Softmax along dimension 1 (usually used for classification)
+
+    def forward(self, x):
+        out = self.softmax(x)
+        return out
