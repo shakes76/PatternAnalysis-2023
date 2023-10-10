@@ -65,3 +65,31 @@ class DoubleConv(nn.Module):
         return self.double_conv(x)
 
 
+class Down(nn.Module):
+    """Downscaling with maxpool then double conv"""
+
+    def __init__(self, in_channels, out_channels, conv_type=nn.Conv3d):
+        super().__init__()
+        self.maxpool_conv = nn.Sequential(
+            nn.MaxPool3d(2),
+            DoubleConv(in_channels, out_channels, conv_type=conv_type)
+        )
+
+    def forward(self, x):
+        return self.maxpool_conv(x)
+
+
+class Up(nn.Module):
+    """Upscaling then double conv"""
+
+    def __init__(self, in_channels, out_channels, trilinear=True):
+        super().__init__()
+
+        # if trilinear, use the normal convolutions to reduce the number of channels
+        if trilinear:
+            self.up = nn.Upsample(scale_factor=2, mode='trilinear', align_corners=True)
+            self.conv = DoubleConv(in_channels, out_channels, mid_channels=in_channels // 2)
+        else:
+            self.up = nn.ConvTranspose3d(in_channels, in_channels // 2, kernel_size=2, stride=2)
+            self.conv = DoubleConv(in_channels, out_channels)
+
