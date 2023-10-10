@@ -1,4 +1,2 @@
-images/
-lightning_logs/
-CIFAR10_data/
-CelebA_data/
+ViT_PytorchLightning/Data/
+ViT_PytorchLightning/lightning_logs
