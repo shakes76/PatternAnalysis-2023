@@ -118,9 +118,20 @@ After:
 This document provides the image transformation for the training, validation and test data and provides data augmentation for the training data. In addition, this document also provides the built-in dataloader function to load these three data sets.  
 For the image preprocessing of the training set, firstly, this project utilises the `CenterCrop` function to resize the image to *224x224*. Secondly, `RandomHorizontalFlip` and `RandomHorizontalFlip` are utilised for the augmentation operation. Thirdly, after transforming the image to the tensor with `ToTensor`, this project utilises a function `get_mean_and_std` to calculate the *mean* and *standard deviation* of the data in the training set. Finally, this project added some *GaussianNoise* to the image in the training set with the *mean* of 0 and the *standard deviation* of 0.05 for the classifier to have more robustness on the test set.  
 For the image preprocessing of the validation and test set, firstly, this project also utilises the `CenterCrop` function to resize the image to *224x224*. Secondly, after transforming the image to the tensor with `ToTensor`, this project utilises a function `get_mean_and_std` to calculate the *mean* and *standard deviation* of the data in the validation and test set.  
-  
+
 * modules.py  
 This document uses the `select_model` function in `utils/utils_model` to select the model that is set up in the `opt.model_name`. To be specific, the vit model is stored in the `model/vit.py`. By utilising this structure, the user can add different models to the repository `model` and utilise them in the future.  
+The specific `model/vit.py` contains the *class* and *functions* includes:  
+`class VisionTransformer(nn.Module)`:  
+This class handles the overall architecture construction and provides the `forward` function for prediction. The main workflow includes: split to patches->flatten->concat class token->add position embedding->utilise attention block->utilise MLP block.  
+`class PatchEmbed(nn.Module)`:  
+This class utilises the convolutional layer to segement the original images to samll patches and flatten it from [B, C, H, W] -> [B, C, HW].  
+`class Block(nn.Module)`:  
+This class is utilised to construct the overall transformer block. For the first part, firstly, it utilises the layer normalization to normalize the input data. Secondly, it uses the `class Attention(nn.Module)` to construct the multi-head self-attention mechanism. Thirdly, it utilises the drop path for stochastic depth and constructs a shortcut with the original input data. The second part of the block follows the same strategy as the first part and only needs to replace the `class Attention(nn.Module)` with `class Mlp(nn.Module)`. To be specific, the MLP block is a two-layer fully connected network with dropout and the activation function of GELU.  
+`_init_vit_weights(m)`:  
+A function allocates some initial weights to the model, this function reduce the converge time needed for the model.  
+`vit_base_patch16_224`, `vit_base_patch32_224`,`vit_base_patch8_224`:  
+This three function is utilised to call the `class VisionTransformer(nn.Module)` and the number after the patch means the patch size of the model. This project provide three different architecture of ViT. 
 Note:  
 When adding a new model to the repository `model`, the user should import the added document in `model/__init__.py`.  
 Example: if the user adds a resnet to the model they should add the following code to the `model/__init__.py`.  
@@ -171,6 +182,12 @@ Predict
 python predict.py --task test --save_path runs/vit --visual --tsne
 ```
 
+parameter  
+* normal parameters:  
+model_name:vit_base_patch8, image_size:224, image_channel:1, batch_size:32, epoch:250, patience:30. loss: CrossEntropyLoss, optimizer:AdamW, lr:1e-4, weight_decay:5e-4, momentum:0.9.  
+* model parameters:  
+patch_size:8, enbed_dim=256, number of attention blocks:6, number of heads:8, representation dimension:256.
+
 ## Result demonstration
 ### Optimization
 The image size after the preprocessing is 224x224. Firstly, I will determine the optimal patch size of the model with 8, 16, 32. To be specific, while train data has more than 8000 images, they all belong to 400 different patients. Hence, this project needs a small scale of the ViT architecture with 6 transformer blocks, 8 multi-heads and 256 embedding dimensions. In addition, the patch size of 8 need more than 30GB GPU memories and this project utilise a Nvidia A100 GPU in the overall train, validate and test period.  
@@ -196,12 +213,15 @@ Secondly, this project will determine the best batch size with 32,64,128.
 Through the optimization period, the best parameters for this project are epoch 250, batch size 32, learning rate 1e-4, early stop 30 epoches, 6 transformer blocks, 8 multi-heads, 256 embedding dimensions and 8 patch size.
   
 ### Result visulization
-The training and validating learning curve is shown as:  
+The result visulization section will present the best result after the optimization phase, the specific model parameter are: epoch 250, batch size 32, learning rate 1e-4, early stop 30 epoches, 6 transformer blocks, 8 multi-heads, 256 embedding dimensions and 8 patch size.  
+* The training and validating learning curve is shown as:  
 ![Alt text](https://drive.google.com/uc?export=view&id=1jJ1BTvNIMNWTwWfZgDp0oaisTd1H1gV_)  
-The test result for the overall labels and each label are shown as:  
+The figures contain the training and validating loss within 250 epoches. In addition, i also visulize the overall accuracy and mean accuracy through the training and validating procedure.   
+* The test result for the overall labels and each label are shown as:  
 ![Alt text](https://drive.google.com/uc?export=view&id=1hdWauLoUptOeFhS0_sLBuh768naeTxT8)   
 ![Alt text](https://drive.google.com/uc?export=view&id=1xqYs5lN9tLgjifRpCLJ2LwMMY2f_iV5y)  
-The tsne visulization is shown as:  
+* The tsne visulization is shown as:  
+The tsne maps the prediction result into an 2-D space and visualize the specific classification situation.  
 ![Alt text](https://drive.google.com/uc?export=view&id=1tPFtqE7GUUTI_YJbkIsk8vcks87ELviG)
 
 
