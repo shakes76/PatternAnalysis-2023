@@ -11,7 +11,6 @@ def load_data():
     Loads the data
     '''
     features = np.load('facebook_large/features.npy')
-    # print(features.dtype)
     features = torch.Tensor(np.load('facebook_large/features.npy'))
     edges = np.rot90(np.load('facebook_large/edges.npy'), 1)
     edges = torch.Tensor(edges.copy()).to(torch.int64)
@@ -49,5 +48,5 @@ def print_stats():
     print(f'Has self-loops: {data.has_self_loops()}')
     print(f'Is undirected: {data.is_undirected()}')
 
-data = test_train()
+# data = test_train()
 # print_stats()

@@ -17,13 +17,10 @@ class GCN(torch.nn.Module):
         self.conv2 = GCNConv(hidden_channels, self.dataset_num_classes)
         
     def forward(self, x, edge_index):
-        print('inside forward')
         x = self.conv1(x, edge_index)
-        print('finished conv1')
         x = x.relu()
         x = F.dropout(x, p=0.5, training=self.training)
         x = self.conv2(x, edge_index)
-        print('finished conv2')
         return x
 
 # model = GCN(hidden_channels=16)
