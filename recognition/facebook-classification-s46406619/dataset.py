@@ -2,16 +2,16 @@ import numpy as np
 import numpy.random as random
 import os
 import torch
-from sklearn.model_selection import train_test_split
 
 class Data:
-    def __init__(self, features, edges, y, split_indices):
+    def __init__(self, features, edges, y, train_split, test_split):
         self.X = features
         self.edges = edges
         self.y = y
-        self.split_indices = split_indices
+        self.train_split = train_split # train split
+        self.test_split = test_split # test split
 
-def load_data(test_size=0.2):
+def load_data(quiet=False, train_split=None, test_split=None, test_size=0.2):
     # set working directory
     os.chdir('C:/Area-51/2023-sem2/COMP3710/PatternAnalysis-2023/recognition/facebook-classification-s46406619')
 
@@ -22,16 +22,20 @@ def load_data(test_size=0.2):
     target = torch.tensor(facebook['target'])
 
     # let us get some information about this dataset
-    print('number of classes:', len(np.unique(target)))
-    print('features shape:', nodes.shape)
-    print('edges shape:', edges.shape)
+    if not quiet:
+        print('number of classes:', len(np.unique(target)))
+        print('features shape:', nodes.shape)
+        print('edges shape:', edges.shape)
 
     # create indices to determine train and test split
-    split_indices = random.random(size=int(np.round(len(target))))
-    for i in range(len(split_indices)):
-        if split_indices[i] < test_size:
-            split_indices[i] = 1 # test element
-        else:
-            split_indices[i] = 0 # train element
+    if train_split is None: # if the data has not been loaded before we generate a new split
+        train_split = []
+        test_split = []
+        split = random.random(size=int(np.round(len(target))))
+        for i in range(len(split)):
+            if split[i] < test_size:
+                test_split.append(i)
+            else:
+                train_split.append(i)
 
-    return Data(nodes, edges, target, torch.tensor(split_indices))
+    return Data(nodes, edges, target, train_split, test_split)
