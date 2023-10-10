@@ -65,3 +65,73 @@ def load_model(model_name, device, config):
     state_dict = torch.load(f=MODEL_PATH / f"{model_name}.pth")
     model.load_state_dict(state_dict)
     return model.to(device)
+
+import wandb
+sweep_config = {
+    "method": "grid",
+    "metric": {"goal": "maximize", "name": "test/epoch/acc"},
+}
+
+def create_new_sweep():
+    param_dict =  {
+            'epochs': {
+                'value': 35
+                },
+            'img_channel': {
+                'value': 1
+                },
+            'num_classes': {
+                'value': 1
+                },
+            'batch_size': {
+                'value': 512
+                },
+            'img_size': {
+                'values': [128, 256]
+                },
+            'patch_size': {
+                'values': [64, 128]
+                },
+            'embed_dim': {
+                'values': [64, 128, 256]
+                },
+            'depth': {
+                'values': [1, 3, 6]
+                },
+            'num_heads': {
+                'value': 8
+                },
+            'mlp_dim': {
+                'value': 1024
+                },
+            'drop_prob': {
+                'value': [0, 0.1]
+                },
+            'lr': {
+                'value': 0.001
+                },
+            'optimiser': {
+                'value': "SGD"
+                },
+            'linear_embed': {
+                'value': True
+                },
+            'data_augments': {
+                'value': "V_H_FLip_Rotate"
+                },
+            'weight_decay': {
+                'values': [0, 1e-6]
+            },
+            'mix_precision': {
+                'value': True
+                },
+            'lr_scheduler': {
+                'value': True
+                },
+            'max_lr': {
+                'value': 0.1
+            }
+        }   
+    sweep_config['parameters'] = param_dict
+    sweep_id  = wandb.sweep(sweep_config, project='ViT_Sweep')
+    return sweep_id
