@@ -65,7 +65,7 @@ def test_epoch(epoch):
             sample_latent = sample_latent * latents_std + latents_mean
     
             quant, diff_loss, ind = vae.quantize(sample_latent)
-            sample_img = vae.decode(sample_latent, cond)
+            sample_img = vae.decode(quant, cond)
             
             sample_img = compact_large_image(sample_img.cpu(), HZ=4, WZ=8)
             
