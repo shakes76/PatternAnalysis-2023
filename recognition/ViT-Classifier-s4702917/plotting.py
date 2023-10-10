@@ -12,11 +12,11 @@ process, used to make TensorBoard displays.
 """
 
 # helper function to show an image
-def matplotlib_imshow(img, one_channel=False):
+def matplotlib_imshow(img: torch.Tensor, one_channel=False):
 	if one_channel:
 		img = img.mean(dim=0)
 	img = img / 2 + 0.5     # unnormalize
-	npimg = img.numpy()
+	npimg = img.detach().cpu().numpy()
 	if one_channel:
 		plt.imshow(npimg, cmap="Greys")
 	else:
@@ -32,7 +32,7 @@ def images_to_probs(model, images):
 	output = model(images)
 	# convert output probabilities to predicted class
 	_, preds_tensor = torch.max(output, 1)
-	preds = np.squeeze(preds_tensor.numpy())
+	preds = np.squeeze(preds_tensor.detach().cpu().numpy())
 	return preds, [F.softmax(el, dim=0)[i].item() for i, el in zip(preds, output)]
 
 
