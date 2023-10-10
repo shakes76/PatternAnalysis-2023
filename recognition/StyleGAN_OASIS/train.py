@@ -60,8 +60,8 @@ Generator and Discriminator as they adversarially work together.
 def train_stylegan(cfg, device):
     data_size = getDataSize(cfg['image_folder'])
     alphaSched = AlphaScheduler(cfg['fade_epochs'], cfg['batch_sizes'], data_size)
-    generator = Generator(cfg['z_size'], cfg['w_size'], cfg['channels'], cfg['rgb_ch'], alphaSched, is_progressive=False).to(device)
-    discriminator = Discriminator(cfg['channels'], cfg['rgb_ch'], alphaSched, is_progressive=False).to(device)
+    generator = Generator(cfg['z_size'], cfg['w_size'], cfg['channels'], cfg['rgb_ch'], alphaSched).to(device)
+    discriminator = Discriminator(cfg['channels'], cfg['rgb_ch'], alphaSched).to(device)
     
     
     # initialize optimizers
@@ -74,10 +74,12 @@ def train_stylegan(cfg, device):
     
     generator.train()
     discriminator.train()
-    # start at step that corresponds to img size that we set in config
-    for layer_epochs in cfg['fade_epochs']:
+    
+    # Skip the 4x4 training and iterate from 8x8 onwards
+    for layer_epochs in cfg['fade_epochs'][1:]:
         loader = createDataLoader(cfg['image_folder'], 4 * 2 ** alphaSched.depth, cfg['batch_sizes'][alphaSched.depth-1])  
     
+        # Train for the number of epochs specified in the fade
         for epoch in range(layer_epochs):
             for real, _ in loader:
                 real = real.to(device)
@@ -131,7 +133,8 @@ def train_stylegan(cfg, device):
 
     
         torch.save(generator.state_dict(), cfg['generator_model_file'].format(alphaSched.depth))
-        torch.save(discriminator.state_dict(), cfg['discriminator_model_file'].format(alphaSched.depth))
+        # Don't save the discriminator, but uncomment below if you do
+        #torch.save(discriminator.state_dict(), cfg['discriminator_model_file'].format(alphaSched.depth))
         alphaSched.stepDepth()
 
 
@@ -139,32 +142,31 @@ def train_stylegan(cfg, device):
 Train a styleGAN on the OASIS brain dataset using a predefined configuration
 """
 def train_stylegan_oasis(is_rangpur=True):
-    cfg_win = {'epochs':20, 'batch_sizes':[256,128,128,64,16,8,8], 'channels':[512,512,256,128,64,32,16,4], 'rgb_ch':3
+    cfg_win = {'epochs':20, 'batch_sizes':[256,128,128,64,16,8], 'channels':[512,512,256,128,64,32,16,4], 'rgb_ch':3
             , 'fade_epochs': np.array([1, 1, 1, 1, 1, 1, 1])
             , 'depth': 6
             , 'image_folder': r'C:\Temp\keras_png_slices_data\keras_png_slices_data'
             , 'generator_model_file': 'C:\Temp\stylegan_depth_{0}.pth'
-            , 'discriminator_model_file': 'C:\Temp\gan_dis_depth_{0}.pth'
+            , 'discriminator_model_file': 'C:\Temp\stylegan_dis_depth_{0}.pth'
             , 'losses_file': 'C:\Temp\losses.csv'
-            , 'lr':0.001, 'mapping_lr':0.00001, 'lambda':10, 'beta1': 0.0, 'beta2': 0.999, 'z_size':256, 'w_size':256, 'img_size': 256}
+            , 'lr':0.001, 'mapping_lr':1e-5, 'lambda':10, 'beta1': 0.0, 'beta2': 0.99, 'z_size':256, 'w_size':256, 'img_size': 256}
         
 
-    cfg_rangpur = {'epochs':20, 'batch_sizes':[256,128,128,64,16,8,8], 'channels':[512,512,256,128,64,32,16,4], 'rgb_ch':3
-            , 'fade_epochs': np.array([30, 30, 30, 30, 30, 30, 30])
+    cfg_rangpur = {'epochs':20, 'batch_sizes':[256,128,128,64,16,8], 'channels':[512,512,256,128,64,32,16,4], 'rgb_ch':3
+            , 'fade_epochs': np.array([10, 10, 10, 10, 10, 10, 10])
             , 'depth': 6
             , 'image_folder': 'data/keras_png_slices_data'
             , 'generator_model_file': 'stylegan_depth_{0}.pth'
-            , 'discriminator_model_file': 'gan_dis_depth_{0}.pth'
+            , 'discriminator_model_file': 'stylegan_dis_depth_{0}.pth'
             , 'losses_file': 'losses.csv'
-            , 'lr':0.001, 'mapping_lr':0.00001, 'lambda':10, 'beta1': 0.0, 'beta2': 0.999, 'z_size':256, 'w_size':256, 'img_size': 256}
+            , 'lr':0.001, 'mapping_lr':1e-5, 'lambda':10, 'beta1': 0.0, 'beta2': 0.99, 'z_size':256, 'w_size':256, 'img_size': 256}
 
     if is_rangpur:
         cfg = cfg_rangpur
     else: 
         cfg = cfg_win
+
         
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     train_stylegan(cfg, device)
-    
-train_stylegan_oasis(is_rangpur=False)
