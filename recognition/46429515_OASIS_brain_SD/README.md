@@ -24,7 +24,7 @@ This diffusion model will be using a U-Net for the backwards process.
 
 ### Stable Diffusion Generating Outcomes
 >> link to images here (predict.py images in a folder into github)
-![test screenshot](/predict_output/generated_image_0.png) ![test screenshot 2](/predict_output/generated_image_1.png)
+![test screenshot](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_0.png) ![test screenshot 2](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_1.png)
 
 
 ### Dataset Creation - dataset.py
