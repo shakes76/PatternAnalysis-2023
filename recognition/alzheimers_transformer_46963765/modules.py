@@ -138,7 +138,7 @@ class ADNI_Transformer(nn.Module):
     def __init__(self, depth):
         super(ADNI_Transformer, self).__init__()    
         LATENT_DIM = 32
-        LATENT_EMB = 32
+        LATENT_EMB = 64
         latent_layers = 4
         latent_heads = 8
         classifier_out = 128
