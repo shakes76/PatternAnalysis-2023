@@ -62,6 +62,31 @@ class Siamese(nn.Module):
         x = self.conv(x)
         x = self.embedding(x)
         return x
+    
+class Residual(nn.Module):
+    def __init__(self, in_channels, n_hidden, n_residual):
+        super(Residual, self).__init__()
+
+        self.residual = nn.Sequential(
+            nn.ReLU(),
+            nn.Conv2d(in_channels=n_hidden, 
+                out_channels=n_residual, 
+                kernel_size=3, 
+                stride=1, 
+                padding=1
+            ),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=n_residual, 
+                out_channels=n_hidden, 
+                kernel_size=1, 
+                stride=1, 
+                padding=0
+            ),
+        )
+    
+    def forward(self, out):
+        return out + self.residual(out)
+
 
 class Encoder(nn.Module):
     """
@@ -91,11 +116,12 @@ class Encoder(nn.Module):
             padding=1
         )
 
-        self.residual1 = None
-        self.residual2 = None
+        self.residual1 = Residual(n_hidden, n_hidden, n_residual)
+        self.residual2 = Residual(n_hidden, n_hidden, n_residual)
 
         
         self.relu1 = nn.ReLU()
+        self.relu2 = nn.ReLU()
 
     def forward(self, out):
         out = self.conv1(out)
@@ -103,6 +129,7 @@ class Encoder(nn.Module):
         out = self.conv2(out)
         out = self.residual1(out)
         out = self.residual2(out)
+        out = self.relu2(out)
         return out
     
 class Decoder(nn.Module):
@@ -120,8 +147,10 @@ class Decoder(nn.Module):
             padding=1,
         )
 
-        self.residual1 = None
-        self.residual2 = None
+        self.residual1 = Residual(n_hidden, n_hidden, n_residual)
+        self.residual2 = Residual(n_hidden, n_hidden, n_residual)
+
+        self.relu = nn.ReLU()
 
         self.transpose1 = nn.ConvTranspose2d(
             in_channels=n_hidden,
@@ -143,6 +172,7 @@ class Decoder(nn.Module):
         out = self.conv1(out)
         out = self.residual1(out)
         out = self.residual2(out)
+        out = self.relu(out)
         out = self.transpose1(out)
         out = self.transpose2(out)
         return out
