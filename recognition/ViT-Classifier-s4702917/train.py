@@ -34,7 +34,7 @@ learningRate = 0.01
 gamma = 0.9
 trainFromLastRun = False
 savePath = "models/mnistClassifier.pth"
-numBatchesBetweenLogging = 1000
+numBatchesBetweenLogging = 100
 
 # Initialise Model
 if trainFromLastRun and os.path.exists(savePath):
@@ -61,12 +61,12 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learningRate)
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma)
 
+totalStep = len(ds.trainloader)
+
 # Training the model
 model.train()
-logger.info("> Training")
+logger.info(f"> Training, at most {numEpochs} with {totalStep} steps per epoch.")
 start = time.time()
-
-totalStep = len(ds.trainloader)
 
 running_loss = 0.0
 
