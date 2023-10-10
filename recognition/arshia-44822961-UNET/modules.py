@@ -120,31 +120,15 @@ class LocalisationModule(nn.Module):
 
 
 # Segmentation Module
-# this seems to be just storage, and that is added up later.
-# used to capture and store feature maps at different levels of abstraction 
-# Storage class - not sure if this is correct yet. 
+# reduces depth of feature maps to 1 
 class SegmentationLayer(nn.Module):
-    def __init__(self):
+    def __init__(self, in_channels, out_channels=1):
         super(SegmentationLayer, self).__init__()
+        self.segmentation = nn.Conv2d(in_channels, out_channels=1, kernel_size=1)
 
     def forward(self, x):
-        # This segmentation layer does not perform any operation,
-        # it simply passes the input feature map as-is.
-        return x
+        return self.segmentation(x)
 
-
-# Softmax 
-# Place holder - this won't be actually required as its own class
-# I'll just add it into the network at the very end since its just a softmax layer 
-class SoftMaxLayer(nn.Module):
-    def __init__(self, num_classes):
-        super(SoftMaxLayer, self).__init__()
-        # ADD IN THE FINAL UNET MODEL. - 
-        self.softmax = nn.Softmax(dim=1)  # Softmax along dimension 1 (usually used for classification)
-
-    def forward(self, x):
-        out = self.softmax(x)
-        return out
 
 class ImprovedUnet(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -212,13 +196,10 @@ class ImprovedUnet(nn.Module):
         out_channels = 32 
         self.conv_layer_2 = StandardConv(in_channels, out_channels)
 
-        # softmax layer 
+        # segmentation layer 
+
        
-
-
-
-
-
+       
 
     # TODO - fix naming 
     # VERIFY THAT CALLING THE FORWARD FUNCTION HERE MAKES SENSE 
@@ -261,6 +242,8 @@ class ImprovedUnet(nn.Module):
 
         # feed into localisation 2
         localisation_out_2 = self.localise_layer_1.forward(concat_1)
+
+
 
 
 
