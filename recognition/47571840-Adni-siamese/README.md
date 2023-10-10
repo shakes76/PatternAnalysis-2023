@@ -21,17 +21,20 @@ class ContrastiveLoss(torch.nn.Module):
         return loss_contrastive
 ```
 
-
-
 TBA graph
 TBA explanation of the graph
 
 ## ADNI Dataset
+The ADNI dataset consits of brain MRI images with the class labels AD (0) and NC(1). There are around the 
 
 ## Pre-processing
 
 ## Training
 
+| Siamese Model Name | Epoch | Learning Rate | Margin | Classifier Name            | Epoch | Learning Rate | Test Result | Notes                                    |
+| ------------------ | ----- | ------------- | ------ | -------------------------- | ----- | ------------- | ----------- | ---------------------------------------- |
+| siamese_50.pth     | 50    | 0.1           | 1      | classifier_model_50_30.pth | 30    | 0.01          |             | pre-trained = True for resnet18 backbone |
+| siamese_40.pth     | 40    | 0.01          | 1      | classifier_model_40_30.pth | 30    | 0.01          |             | pre-trained = True for resnet18 backbone |
 ## Testing
 
 ## Dependencies
