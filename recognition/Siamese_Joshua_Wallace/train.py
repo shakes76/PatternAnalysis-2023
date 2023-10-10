@@ -31,8 +31,8 @@ class Train() :
             self.dataset.load_train()
         
         self.model.train()
+        start = time.time()
         for epoch in range(self.epochs) :
-            start = time.time()
             epoch_loss = 0
             for i, (data, target) in enumerate(self.dataset.get_train()) :
                 self.optimiser.zero_grad()
@@ -43,9 +43,9 @@ class Train() :
                 epoch_loss += loss.item()
                 if i % 10 == 0 :
                     print(f"Epoch: {epoch+1}/{self.epochs} Batch: {i+1}/{len(self.dataset.get_train())} Loss: {loss.item():.6f}")
-            end = time.time()
             self.losses.append(epoch_loss / len(self.dataset.get_train()))
-            print(f"Time: {end - start:.2f}s")
+        end = time.time()
+        print(f"Total Time for training: {end - start:.2f}s")
     
     def test(self) -> None :
         if self.dataset.test_unloaded() :
@@ -54,14 +54,19 @@ class Train() :
         self.model.eval()
         test_loss = 0
         correct = 0
+        total_samples = 0
+        start = time.time()
         with torch.no_grad() :
             for i, (data, target) in enumerate(self.dataset.get_test()) :
                 output = self.model(data[0], data[1])
                 test_loss += self.criterion(output.squeeze(), target).item()
-                pred = torch.round(torch.sigmoid(output))
-                correct += (pred == target).float().sum()
-        test_loss /= len(self.dataset.dataset)
-        print(f"Test loss: {test_loss:.4f}, Accuracy: {correct}/{len(self.dataset.dataset.get_test())} ({100.*correct/len(self.dataset.get_test()):.0f}%)")
+                pred = torch.round(torch.sigmoid(output)).squeeze()
+                correct += (pred == target.squeeze()).float().sum().item()
+                total_samples += target.size(0)
+        test_loss /= len(self.dataset.get_test())
+        end = time.time()
+        print(f"Total Time for Testing: {end - start:.2f}s")
+        print(f"Test loss: {test_loss:.4f}, Accuracy: {correct}/{total_samples} ({100.*correct/total_samples:.0f}%)")
 
     def train_with_interval_testing(self) -> None :
         if self.dataset.train_unloaded() :

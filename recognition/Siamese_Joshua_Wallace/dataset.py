@@ -55,6 +55,7 @@ class Dataset():
     def test_unloaded(self) -> bool :
         return not self.test_loader
 
+
 class ADNIDataset(Dataset):
     def __init__(self, imagefolder_dataset, transform):
         self.imagefolder_dataset = imagefolder_dataset

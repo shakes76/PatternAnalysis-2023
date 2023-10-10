@@ -56,3 +56,4 @@ class Siamese(nn.Module):
         x = self.fc1(x)
         x = self.sigmoid(x)
         return x
+
