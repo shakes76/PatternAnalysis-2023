@@ -208,12 +208,11 @@ class LatentDiffusionModel(nn.Module):
             
             cur_xt = next_xt
 
-            if t == 0 or keep_mid:
-                # Normalize the output lest the image be scaled.
-                min_im = reduce(cur_xt, 'b c h w -> b 1 1 1', 'min')
-                max_im = reduce(cur_xt, 'b c h w -> b 1 1 1', 'max')
-                out_xt = (cur_xt - min_im) / (max_im - min_im)
-                out_xt = cur_xt
+            # Normalize the output lest the image be scaled.
+            min_im = reduce(cur_xt, 'b c h w -> b 1 1 1', 'min')
+            max_im = reduce(cur_xt, 'b c h w -> b 1 1 1', 'max')
+            out_xt = (cur_xt - min_im) / (max_im - min_im)
+            out_xt = cur_xt.detach()
             if keep_mid:
                 ret.append(out_xt.cpu())
         if keep_mid:
