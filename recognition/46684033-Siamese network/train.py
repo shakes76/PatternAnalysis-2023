@@ -66,19 +66,22 @@ def extract_embeddings(dataloader, model):
     return embeddings, labels
 
 
-class ContrastiveLoss(torch.nn.Module):
-    def __init__(self, margin=2.0):
+class ContrastiveLoss(nn.Module):
+    """
+    Contrastive loss
+    Takes embeddings of two samples and a target label == 1 if samples are from the same class and label == 0 otherwise
+    """
+
+    def __init__(self, margin):
         super(ContrastiveLoss, self).__init__()
         self.margin = margin
+        self.eps = 1e-9
 
-    def forward(self, output1, output2, label):
-        # Calculate the euclidian distance and calculate the contrastive loss
-        euclidean_distance = F.pairwise_distance(output1, output2, keepdim=True)
-
-        loss_contrastive = torch.mean((1 - label) * torch.pow(euclidean_distance, 2) +
-                                      (label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
-
-        return loss_contrastive
+    def forward(self, output1, output2, target, size_average=True):
+        distances = (output2 - output1).pow(2).sum(1)  # squared distances
+        losses = 0.5 * (target.float() * distances +
+                        (1 + -1 * target).float() * F.relu(self.margin - (distances + self.eps).sqrt()).pow(2))
+        return losses.mean() if size_average else losses.sum()
 
 
 class TripletLoss(nn.Module):
@@ -112,7 +115,7 @@ train_loader, test_loader = dataset.load_data2(train_path, test_path)
 model = modules.Siamese()
 model = model.to(device)
 
-criterion = ContrastiveLoss()
+criterion = ContrastiveLoss(1.0)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 total_steps = len(train_loader)
 
@@ -122,25 +125,26 @@ for epoch in range(num_epoch):
     correct = 0
     train_total = 0
 
+    #for BCELoss and contrastive loss
     for i, ((images1, images2), labels) in enumerate(train_loader):
-        # BCELoss
-        # optimizer.zero_grad()
-        # images1 = images1.to(device)
-        # images2 = images2.to(device)
-        # labels = labels.to(device)
-        # x = model(images1,images2).squeeze()
-        # loss = criterion(x, labels.float())
-        # loss.backward()
-        # optimizer.step()
-        #
-        # pred = torch.where(x > 0.5, 1, 0)
-        # correct += (pred == labels).sum().item()
-        # train_total += labels.size(0)
-        # if (i + 1) % 100 == 0:
-        #     print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: {}%"
-        #           .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item(), 100 * correct / train_total))
-
-        # contrastive loss
+    #     # BCELoss
+    #     # optimizer.zero_grad()
+    #     # images1 = images1.to(device)
+    #     # images2 = images2.to(device)
+    #     # labels = labels.to(device)
+    #     # x = model(images1,images2).squeeze()
+    #     # loss = criterion(x, labels.float())
+    #     # loss.backward()
+    #     # optimizer.step()
+    #     #
+    #     # pred = torch.where(x > 0.5, 1, 0)
+    #     # correct += (pred == labels).sum().item()
+    #     # train_total += labels.size(0)
+    #     # if (i + 1) % 100 == 0:
+    #     #     print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: {}%"
+    #     #           .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item(), 100 * correct / train_total))
+    #
+    #     # contrastive loss
         optimizer.zero_grad()
         images1 = images1.to(device)
         images2 = images2.to(device)
@@ -159,23 +163,23 @@ for epoch in range(num_epoch):
 
     # triplet loss
     # for i, (images1, images2, images3) in enumerate(train_loader):
-    #     #triplet loss
+    #
     #     optimizer.zero_grad()
     #     images1 = images1.to(device)
     #     images2 = images2.to(device)
     #     images3 = images3.to(device)
-    #     x, y, z = model(images1, images2)
+    #     x, y, z = model(images1, images2, images3)
     #     loss = criterion(x, y, z)
     #     loss.backward()
     #     optimizer.step()
     #
-    #     pred = F.pairwise_distance(x, y, keepdim=True)
     #
-    #     correct += (pred == labels).sum().item()
-    #     train_total += labels.size(0)
+    #
     #     if (i + 1) % 100 == 0:
     #         print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: {}%"
     #               .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item(), 100 * correct / train_total))
+    # train_embeddings_cl, train_labels_cl = extract_embeddings(train, model)
+    # plot_embeddings(train_embeddings_cl, train_labels_cl, epoch)
 
     # model.eval()
     #

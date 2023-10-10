@@ -87,6 +87,7 @@ def load_data2(train_path, test_path):
     test_loader = torch.utils.data.DataLoader(paired_testset, batch_size=64)
     return train_loader, test_loader
 class SiameseDatset_contrastive(torch.utils.data.Dataset):
+    #same person label ==1, else label ==0
     def __init__(self, dataset):
         self.dataset = dataset
         self.num_samples = len(dataset)
@@ -97,8 +98,10 @@ class SiameseDatset_contrastive(torch.utils.data.Dataset):
         idx2 = random.randint(0, self.num_samples - 1)
         image1, label1 = self.dataset[idx1]
         image2, label2 = self.dataset[idx2]
-
-        label = 0 if label1 == label2 else 1
+        if label1 == label2:
+            label = 1
+        else:
+            label = 0
 
         return (image1, image2), label
 
