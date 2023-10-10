@@ -5,6 +5,7 @@ from torch.utils.tensorboard import SummaryWriter
 import time
 import os
 
+import plotting
 import dataset as ds
 
 # Initialise device
@@ -21,6 +22,7 @@ learningRate = 0.01
 gamma = 0.9
 trainFromLastRun = False
 savePath = "models/mnistClassifier.pth"
+numBatchesBetweenLogging = 1000
 
 # Initialise Model
 if trainFromLastRun and os.path.exists(savePath):
@@ -55,6 +57,8 @@ start = time.time()
 totalStep = len(ds.trainloader)
 
 try:
+	running_loss = 0.0
+	
 	for epoch in range(numEpochs):
 		for i, (images, labels) in enumerate(ds.trainloader): # load a batch
 			images = images.to(device)
@@ -63,7 +67,7 @@ try:
 			# Add a graph representation of the network to our TensorBoard
 			if not addedGraph:
 				writer.add_graph(model, images)
-				writer.close()
+				writer.flush()
 				addedGraph = True
 
 			# Forward Pass
@@ -74,10 +78,22 @@ try:
 			optimizer.zero_grad()
 			loss.backward()
 			optimizer.step()
+
+			running_loss += loss.item()
 		
-			if ((i + 1) % 100 == 0):
-				print("Epoch [{}/{}], Step[{}/{}], Loss: {:.5f}"
-							.format(epoch+1, numEpochs, i+1, totalStep, loss.item()))
+			if ((i + 1) % numBatchesBetweenLogging == 0):
+				# log the average loss for the past i batches
+				writer.add_scalar("training loss",
+                      running_loss / numBatchesBetweenLogging,
+                      epoch * len(ds.trainloader) + i)
+
+				# log a Matplotlib Figure showing the model's predictions on a
+				# random mini-batch
+				writer.add_figure('predictions vs. actuals',
+												plotting.plot_classes_preds(model, images, labels),
+												global_step=epoch * len(ds.trainloader) + i)
+
+				running_loss = 0.0
 		
 		# reduce the learning rate each epoch.
 		scheduler.step()
@@ -90,3 +106,5 @@ finally:
 
 	os.makedirs(os.path.dirname(savePath), exist_ok=True)
 	torch.save(model, savePath)
+	
+	writer.close()
