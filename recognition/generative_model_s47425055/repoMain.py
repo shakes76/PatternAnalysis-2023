@@ -275,8 +275,8 @@ def generate_samples(epoch):
     grid_img = torchvision.utils.make_grid(images, nrow=8)
     plt.figure(figsize=(16,8))
     plt.imshow(grid_img.permute(1, 2, 0))
-    plt.axis('off')
-    plt.show()
+    plt.savefig(f'samples/loss_plot_epoch{epoch}.png', bbox_inches='tight')
+    plt.close()
 
 # Constants for determining the importance of SSIM and reconstruction loss
 ALPHA = 0.5  # weight for SSIM, range [0, 1]
@@ -342,4 +342,6 @@ plt.title('Structural Similarity (SSIM) score')
 plt.ylim(0, 1)  # since SSIM values lie between 0 and 1
 
 plt.tight_layout()
-plt.show()
+#plt.show()
+plt.savefig('samples/combined_loss_plot.png', bbox_inches='tight')
+plt.close()
