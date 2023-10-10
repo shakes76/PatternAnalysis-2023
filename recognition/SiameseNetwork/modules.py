@@ -1,11 +1,12 @@
 # containing the source code of the components of your model. 
 # Each component must be implementated as a class or a function
 
+import torch
 import torch.nn as nn
 
 # Build CNN network and get its embedding vector
 class CNN(nn.Module):
-    def __init__(self, out_):
+    def __init__(self):
         super(CNN, self).__init__()
         self.conv = nn.Sequential(
             
@@ -37,5 +38,18 @@ class CNN(nn.Module):
         out = out.view(out.size()[0], -1)
         out = self.fc(out)
         return out
+
+
+# construct the triplet loss  
+class TripletLoss(nn.Module):
+    def __ini__(self, margin=1):
+        super(TripletLoss, self).__init__()
     
-    
+    def forward(self, anchor, positive, negative):
+        # calculate euclidean distance from anchor to positive and negative 
+        anchor_positive = (anchor - positive).pow(2).sum(1)
+        anchor_negative = (anchor - negative).pow(2).sum(1)
+
+        # aclculate loss, use relu to ensure loss are non-negative
+        loss = torch.relu(anchor_positive - anchor_negative + self.margin)
+        return loss.mean()
