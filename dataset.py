@@ -1,11 +1,12 @@
 import numpy as np
 import torch
 from torch_geometric.data import Data
-from torch_geometric.transforms import RandomLinkSplit
+from torch_geometric.transforms import RandomNodeSplit
 
 
 def load_data():
     '''
+    Loads the data
     '''
     features = torch.Tensor(np.load('facebook_large/features.npy'))
     edges = np.rot90(np.load('facebook_large/edges.npy'), 1)
@@ -18,15 +19,30 @@ def load_data():
 
 def test_train():
     '''
-    Returns: train_data, val_data, test_data
+    Creates training, validation and test masks
     '''
     data = load_data()
-    transform = RandomLinkSplit(is_undirected=True)
+    split = RandomNodeSplit(num_val=0.2, num_test=0.1)
     
-    return transform(data)
+    return split(data)
 
-data = load_data()
-train_data, val_data, test_data = test_train()
-print('train: ', train_data.num_nodes)
-print('\nval: ', val_data.num_nodes)
-print('\ntest: ', test_data.num_nodes)
+
+def print_stats():
+    '''
+    Gather some statistics about the graph.
+    '''
+    data = test_train()
+    
+    print(data)
+    print(f'Number of nodes: {data.num_nodes}')
+    print(f'Number of edges: {data.num_edges}')
+    print(f'Average node degree: {data.num_edges / data.num_nodes:.2f}')
+    print(f'Number of training nodes: {data.train_mask.sum()}')
+    print(f'Number of validation nodes: {data.val_mask.sum()}')
+    print(f'Number of test nodes: {data.test_mask.sum()}')
+    print(f'Training node label rate: {int(data.train_mask.sum()) / data.num_nodes:.2f}')
+    print(f'Has isolated nodes: {data.has_isolated_nodes()}')
+    print(f'Has self-loops: {data.has_self_loops()}')
+    print(f'Is undirected: {data.is_undirected()}')
+    
+print_stats()
