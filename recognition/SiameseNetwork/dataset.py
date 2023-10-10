@@ -10,7 +10,7 @@ from PIL import Image
 device = torch.device('cuda')
 
 class CustomDataset(Dataset):
-    def __init__(self, ad_dir, nc_dir, transform=None):
+    def __init__(self, ad_dir, nc_dir, transform=None, validate=False, split_ratio=0.8):
         # get the file path
         self.ad_folder = ad_dir
         self.nc_folder = nc_dir
@@ -21,6 +21,20 @@ class CustomDataset(Dataset):
 
         # define the transform
         self.transform = transform
+
+        # splite data to train set and validation set
+        total_ad_samples = len(self.ad_names)
+        split_ad_samples = int(total_ad_samples * split_ratio)
+        total_nc_samples = len(self.nc_names)
+        split_nc_samples = int(total_nc_samples * split_ratio)
+
+        if validate:
+            self.ad_names = self.ad_names[split_ad_samples:]
+            self.nc_names = self.nc_names[split_nc_samples:]
+        else:
+            self.ad_names = self.ad_names[:split_ad_samples]
+            self.nc_names = self.nc_names[:split_nc_samples]
+
 
     def __len__(self):
         return 2 * min(len(self.AD_names), len(self.NC_names))
