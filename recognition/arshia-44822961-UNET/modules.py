@@ -22,6 +22,9 @@ class StandardConv(nn.Module):
 # two 3x3 layers and a drop out layer 
 # described as pre-activation res block with 2 convs with drop out layer in between 
 # entire feature mapping process using leaky relu as described by the paper. 
+
+# TODO - batch normalisation is incorrect 
+# The paper uses instance norm
 class ContextModule(nn.Module):
     def __init__(self, in_channels, out_channels, dropout_p=0.3):
         super(ContextModule, self).__init__()
@@ -59,3 +62,21 @@ class ContextModule(nn.Module):
         
         return out
 
+# added second conv block with stride 2 
+# MESSY??? combine with the other conv block when cleaning up. 
+class Conv2dStride2(nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size=3, padding=1):
+        super(Conv2dStride2, self).__init__()
+
+        # Define a 3x3 convolutional layer with stride 2 and optional padding
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=2, padding=padding)
+
+        # Leaky RELU 
+        self.relu = nn.LeakyReLU(out_channels)
+
+    def forward(self, x):
+        # Forward pass through the convolutional layer
+        out = self.conv(x)
+        out = self.relu(out)
+        return out
+    
