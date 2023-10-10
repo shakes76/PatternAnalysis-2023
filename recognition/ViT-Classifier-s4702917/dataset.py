@@ -21,6 +21,9 @@ class SquarePad:
 transform = transforms.Compose(
 	[transforms.ToTensor(),
 	SquarePad(),
+	# the images are grayscale already, with all channels equal,
+	# this just converts it to single-channel.
+	transforms.Grayscale(), 
 	transforms.Normalize((0.5,), (0.5,))])
 
 # datasets
