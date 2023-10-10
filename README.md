@@ -1,55 +1,65 @@
-# Pattern Analysis
-Pattern Analysis of various datasets by COMP3710 students at the University of Queensland.
+# Segmentation with the Improved U-Net Model (ISIC Dataset)
 
-We create pattern recognition and image processing library for Tensorflow (TF), PyTorch or JAX.
+Released by the International Skin Imaging Collaboration (ISIC), the ISICs 2017 dataset was utilised in the recurring challenge of Skin Lesion Analysis Towards Melanoma Detection
 
-This library is created and maintained by The University of Queensland [COMP3710](https://my.uq.edu.au/programs-courses/course.html?course_code=comp3710) students.
+The following is a solution which segments the ISIC data set using an improved U-Net architecture. The model strives to achieve a minimum DICE similarity coefficient of 0.8 on the test set for all labels.
 
-The library includes the following implemented in Tensorflow:
-* fractals 
-* recognition problems
+## ISIC Dataset
+The ISIC dataset consists of lesion images and their corresponding masks. We are able to download the test, training and validation set (2017) from the ISIC website
 
-In the recognition folder, you will find many recognition problems solved including:
-* OASIS brain segmentation
-* Classification
-etc.
+[INSERT MASKS]
 
-////////////
+### Data Preprocessing
+To process the images, all images were converted from a PIL image to a tensor and then cropped to a size of 128 x 128 in order to be run in the network and reduce training and inference time (all images had to be of same size). The lesion images were kept as RGB while the masks were made greyscale. 
 
-The following is a solution which segments the ISIC data set using an improved U-Net architecture.
-The model strives to achieve a minimum DICE similarity coefficient of 0.8 on the test set for all labels.
+## Architecture
+The structure followed was presented in 2018 [1], which improves upon the initial U-Net
 
-The improved U-Net differs from traditional U-Net in the following ways:
-- The modified U-Net is designed to process 3D input blocks of dimensions 128x128x128 voxels, enabling it to work with volumetric data common in medical imaging, unlike the traditional U-Net which typically handles 2D images.
-- Modules are crafted with specific convolutional layers, dropout layers, and upscaling methods to better handle the requirements of the task
-- Modified U-Net employs deep supervision by integrating segmentation layers at different levels of the network, allowing for more refined learning and error propagation through the network
-- Specialised DICE loss function used to handle class imbalances
-- Extensive data pre-processing (data normalisation then clipping images to a bound and rescaling)
-- Survival prediction based of radiomics
-- The testing procedure segments an entire patient at once to overcome potential problems with tile-based segmentation
+[INSERT FIGURE 2]
 
-//////////////////
+__Figure 2: The Improved U-Net Architecture [1]__
 
-ARCHITECTURE:
-- 
+Our model consists of 2 main sections: the encoder and decoder. The context aggregation pathway encodes and the localisation pathway decodes. Skip connections from the aggregation pathway to the localisation pathway share information about the images.
 
-PROCESS:
+### Context Modules
+Relevant features are extracted from the input through our context layers. Input is downsized in these layers using stride 2 3x3 convolutions. A batch dropout coefficient of 0.3 is incorporated during this contextualisation process in order to reduce overfitting risk. 
 
-DATA PREPROCESSING:
-- Each modality of each patient's data is normalised independently by subtracting the mean and dividing by the standard deviation of the brain region.
-- The normalised images are clipped at [−5,5] to remove outliers and are rescaled to [0,1], setting the non-brain region to 0.
+### Localisation Modules
+After the model has passed the inputs through the encoder (context modules), it is passed through the localisation modules and is also upscaled in order to generate an output. The localisation layers put the inputs through stride 1 3x3 convolutions and upscale afterwards.
 
-Training:
-- training data composed of randomly sampled patches size 128 x 128 x 128 voxels with a batch size of 2
-- trained over 300 epochs (1 epoch = iteration over 100 batches)
-- Adam optimiser used with initial learning rate of 5 * 10^(-4), following a learning rate sec of the initial learning rate * 0.985^(epoch) and a l2 weight decay of 10^(-5)
-- Multi-class Dice loss function used
-​- A variety of data augmentation techniques are applied on-the-fly during training to prevent overfitting. These include random rotations, random scaling, random elastic deformations, gamma correction augmentation, and mirroring.
+### Skip Connections
+Skip connects connect localisation layers to their corresponding context layer, allowing for communication of input data and recovery of finer details.
 
-Testing:
-- At test time, the entire patient data is segmented at once, leveraging the fully convolutional nature of the network
-- Test-time data augmentation is performed by mirroring the images and averaging the softmax outputs over several dropout samples
+### Segmentation Layers
+Segmentation layers are integrated throughout the localisation pathway at various levels and combining them via element wise summation in order to generate a final output.
+
+### Computation
+Leaky ReLU nonlinearities (incorporating a slope of 10^-2) are used for all feature map computing convolutions. Instance normalisation is also used instead of traditional batch.
+
+### Optimisation & Loss
+Adam optimiser with a learning rate of 5e-4 was used.
+
+### Performance Metric
+The performance of the model was evaluated with the Dice Similarity Coefficient (DSC). DSC is a measure used to gauge the similarity between two sets, often used in the context of comparing two images in biomedical image analysis.
+
+## Training & Validation: DSC and Loss Plots
+
+[INSERT IMAGES]
+
+## Training & Validation Visuals
+
+[INSERT IMAGES]
+
+## Test Visuals
+
+[INSERT IMAGES]
+
+## Dependencies
+
+[INSERT DEPENDENCIES]
  
+## References
+[1]: Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., Maier-Hein, K.H, "Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge". arXiv: Computer Vision and Pattern Recognition, 2018
 
 
 
