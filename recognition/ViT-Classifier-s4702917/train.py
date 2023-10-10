@@ -27,6 +27,11 @@ if (not torch.cuda.is_available()):
  
 # Hyper-parameters
 numEpochs = 40
+# Train at least this many epochs before
+# letting the validation accuracy control
+# whether to cutoff.
+minEpochBeforeValidationCutoff = 10
+validationEpochsToAverageOver = 4
 # If we've been training for more than 1.5 hrs we
 # should stop so we don't get force-quit by the scheduler.
 maxTrainTime = 1.5 * 60 * 60
@@ -35,6 +40,8 @@ gamma = 0.9
 trainFromLastRun = False
 savePath = "models/mnistClassifier.pth"
 numBatchesBetweenLogging = 100
+
+minEpochBeforeValidationCutoff = max(minEpochBeforeValidationCutoff, validationEpochsToAverageOver * 2)
 
 # Initialise Model
 if trainFromLastRun and os.path.exists(savePath):
@@ -69,11 +76,25 @@ logger.info(f"> Training, at most {numEpochs} with {totalStep} steps per epoch."
 start = time.time()
 
 running_loss = 0.0
+validation_accuracies = []
 
 for epoch in range(numEpochs):
+	validation_total = 0
+	validation_correct = 0
+	
 	for i, (images, labels) in enumerate(ds.trainloader): # load a batch
 		images = images.to(device)
 		labels = labels.to(device)
+		
+		# Reserve the last 10% of the training set for
+		# validation.
+		if i / totalStep > 0.9:
+			outputs = model(images)
+			_, predicted = torch.max(outputs.data, 1)
+		
+			validation_total += labels.size(0)
+			validation_correct += (predicted == labels).sum().item()
+			continue
 	
 		# Add a graph representation of the network to our TensorBoard
 		if not addedGraph:
@@ -96,15 +117,15 @@ for epoch in range(numEpochs):
 			# log the average loss for the past i batches
 			writer.add_scalar("training loss",
 										running_loss / numBatchesBetweenLogging,
-										epoch * len(ds.trainloader) + i)
+										epoch * totalStep + i)
 
 			# log a Matplotlib Figure showing the model's predictions on a
 			# random mini-batch
 			writer.add_figure('predictions vs. actuals',
 											plotting.plot_classes_preds(model, images, labels),
-											global_step=epoch * len(ds.trainloader) + i)
+											global_step=epoch * totalStep + i)
 
-			logger.info("Epoch [{}/{}], Step[{}/{}] Average Loss: {:.5f}"
+			logger.info("Epoch [{}/{}], Step[{}/{}], Average Loss: {:.5f}"
 						.format(epoch+1, numEpochs, i+1, totalStep, running_loss / numBatchesBetweenLogging))
 
 			running_loss = 0.0
@@ -113,8 +134,26 @@ for epoch in range(numEpochs):
 			# of all loops to prevent the training progress from being lost.
 			if time.time() - start > maxTrainTime:
 				break
+		
+		# Update validation accuracy list, do cutoff based on it, and add that info to the writer
+		validation_accuracies.append(validation_correct / validation_total)
+
+		writer.add_scalar("validation accuracy", validation_accuracies[-1], global_step=epoch * totalStep + i)
+		logger.info("Epoch [{}/{}], Validation Accuracy: {:.5f}"
+					.format(epoch+1, numEpochs, validation_accuracies[-1]))
+  
+		# If at least minEpochBeforeValidationCutoff epochs have been finished, and the average validation accuracy in
+		# the last validationEpochsToAverageOver epochs was less than the average accuracy of the previous
+		# validationEpochsToAverageOver, exit the training since the model is starting to overfit.
+		if epoch + 1 > minEpochBeforeValidationCutoff and \
+    		sum(validation_accuracies[-2*validationEpochsToAverageOver:-validationEpochsToAverageOver]) > \
+      		sum(validation_accuracies[:-validationEpochsToAverageOver]):
+			logger.info("Exiting early since accuracy on validation set has started dropping.")
+			break
+
 		if time.time() - start > maxTrainTime:
-				break
+			logger.info("Exiting early to prevent from running overtime.")
+			break
 	
 	# reduce the learning rate each epoch.
 	scheduler.step()
