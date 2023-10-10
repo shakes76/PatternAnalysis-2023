@@ -76,17 +76,43 @@ Following that, the dataset then undergoes standardization through normalization
 
 ### Example Inputs and Outputs
 
+The following are a few examples of inputs and outputs of the generator along with the original images. The original image (column 1), the downsampled (column 2) and the reconstructed images (column 3).
+
 ![Inputs_Outputs](./figures/Example_Inputs_Outputs.png)
 
 ### Training Results (Epoch vs Loss)
 
+As mentioned in the model descriptions, adverserial loss was used to train this GAN network. The loss for both the generator and the discriminator for the first 100 epochs are shown as follows.
+
 ![Training_Loss](./figures/Training_Loss.png)
+
+Shown above, the generator loss tends to be high during the start of training before it decreases as training progresses. Likewise, the discriminator loss dips initially before recovering to a more stable level as training progresses.
+
+Additionally, due to the chaotic nature of training GAN networks, a veriable learning rate scheduller was also used. This will be further discussed later.
 
 ## Reproducibility
 
 ### Hyperparameters
 
+The final model was run in 300 epochs with a batch size of 16 resulting in 1345 batches per epoch for the ADNI dataset. 
+
+As mentioned adverserial loss was used for the training process. To implement this, a Binary Cross-Entropy (BCE) loss was used for the output of the discriminator. This particular loss function is used as the output of the discrinimator is essentially classifying images into two classes: real and generated.
+
+Finally, the Adam optimiser is used with betas values of 0.5 and 0.999. This optimiser along with these values are found to produce the more optimal results for this model.
+
 ### Variable Learning Rate Scheduller
+
+Furthermore a variable learning rate scheduller is used to help the network converge during the training process. The learning rates for the generator and the discriminator are defined as follows:
+
+$lr_{generator} = 3\times10^{-5}\times 0.95^{epoch}$
+
+$lr_{discriminator} = 2\times10^{-5}\times 0.96^{epoch}$
+
+These relationships ensure that the generator has a higher learning rate during the start of training to prevent the discriminator from learning too quickly relative to the generator. 
+
+Eventually, the generator learning rate drops below that of the discriminator since the images become increasing difficult to differentiate. Finally, the decaying nature of the learning rate helps ensure stability during training.
+
+The learning rate of the generator and the discriminator for the first 100 epochs are shown in the following plot.
 
 ![Variable_LR](./figures/Variable_LR.png)
 
