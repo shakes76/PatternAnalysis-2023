@@ -6,13 +6,15 @@ VQ works like the picture shown in the following workflow. Pictures are sent to 
 
 ![image](https://github.com/Albert-bc/vq-vae/assets/59477394/12ed40ac-01f0-4973-98e4-4732acce94ad)
 (VQ-VAE)
-https://medium.com/analytics-vidhya/blog-post-explained-creating-images-from-text-using-dall-e-4613376bbf10
+
+from https://arxiv.org/pdf/1711.00937.pdf
 
 In the above picture, input images are given to a Pixel CNN, which forms an encoder, the encoder with compress the size of the original image; the output images are also given through the same Pixel CNN (transpose) to make sure the input images have the same size with the output images. These steps are the same with VAE (Variational Auto-Encoding)
 
 ![image](https://github.com/Albert-bc/vq-vae/assets/59477394/1f152a5a-a141-47b0-bac1-900900a258ae)
 (VAE)
-http://kvfrans.com/content/images/2016/08/vae.jpg
+
+from http://kvfrans.com/content/images/2016/08/vae.jpg
 
 However, the difference between VAE and VQVAE lies in how to build latent vector. Inside VAE, mean and deviation are used to form the latent space and it is continuous, so it is derivatively. However, inside VQVAE the latent space is discrete, not derivatively. The mean and deviation are used to form a discrete codebook. 
 	Inside VQ class, 3 parts are used to form the loss function: reconstruction loss (optimize encoder and decoder), take stop gradient (output from encoder) as a constant ->which let the embedding get closer and closer to the output, commitment loss (take embedding as a constant -> which let Ze(x) get closer and closer to embedding.
