@@ -4,6 +4,7 @@
 - Validation Set (https://www.geeksforgeeks.org/training-neural-networks-with-validation-using-pytorch/)
 
 # NOTES:
+- Data Augmentation
 - Path: /home/Student/s4737925/Project/PatternAnalysis-2023/recognition/ADNI_TRANSFORMER_47379251
 - tensorboard --logdir=runs
 - In ReadMe add briefly something about Alzheimers (The motivation)
@@ -40,5 +41,3 @@
 77 - test_val_m
 78 - 0.1 dp test
 79 - 0.1 dp t+v
-
-- In Git Commit add -m "Validation"

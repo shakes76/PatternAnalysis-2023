@@ -229,23 +229,25 @@ def train_valid(epoch):
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
-        if epoch%1==0: 
-            progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
     writer.add_scalar("Train Loss/Epochs", train_loss, epoch) 
     valid_loss = 0.0
     acc = 0
     net.eval()     # Optional when not using Model Specific layer
-    for batch_idx, (inputs, targets) in enumerate(validloader):
+    for batch_idx_valid, (inputs_valid, targets_valid) in enumerate(validloader):
         # Transfer Data to GPU if available
-        inputs, targets = inputs.to(device), targets.to(device)
-        outputs = net(inputs)
-        loss = criterion(outputs, targets)
-        valid_loss += loss.item()
-        _, predicted = outputs.max(1)
-        total += targets.size(0)
-        correct += predicted.eq(targets).sum().item()
-        if (100.*correct/total) > acc: acc = 100.*correct/total
+        inputs_valid, targets_valid = inputs_valid.to(device), targets_valid.to(device)
+        outputs_valid = net(inputs_valid)
+        loss_valid = criterion(outputs_valid, targets_valid)
+        valid_loss += loss_valid.item()
+        _, predicted_valid = outputs_valid.max(1)
+        total_valid += targets_valid.size(0)
+        correct_valid += predicted_valid.eq(targets_valid).sum().item()
+        if (100.*correct_valid/total_valid) > acc: acc = 100.*correct_valid/total_valid
+    if epoch%1==0: 
+            progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
+            progress_bar(batch_idx_valid, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                % (valid_loss/(batch_idx_valid+1), 100.*correct_valid/total_valid, correct_valid, total_valid))
     if epoch==0: 
         log = "Learning Rate: " + str(args.lr) + "\nOptimizer: " + str(args.opt) + "\nModel: " + str(args.net)\
             + "\nBatch Size: " + str(args.bs) + "\nEpoch: " + str(args.n_epochs)\
