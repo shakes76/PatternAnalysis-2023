@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow import keras
-from modules import VQVAETrainer
-from dataset import get_train_dataset, get_dataset_variance, get_test_dataset
+from modules import VQVAETrainer, get_pixel_cnn
+from dataset import get_train_dataset, get_dataset_variance, get_validate_dataset, get_test_dataset
 from matplotlib import pyplot as plt
 
 def plot_history(history):
@@ -22,6 +22,7 @@ def plot_history(history):
     plt.close()
 
 train_ds = get_test_dataset()
+
 def train_vqvae():
     '''Train the VQ-VAE model'''
     train_variance = get_dataset_variance(train_ds)
@@ -52,6 +53,20 @@ def train_pixelcnn():
     codebook_indices = quantizer.get_code_indices(flat_enc_outputs)
     codebook_indices = codebook_indices.numpy().reshape(encoded_outputs.shape[:-1])
     #print(f"Shape of the training data for PixelCNN: {codebook_indices.shape}")
+    # Compile and train
+    pixelcnn_input_shape = encoded_outputs.shape[1:-1]
+    pixel_cnn = get_pixel_cnn(pixelcnn_input_shape, vqvae_trainer.num_embeddings)
+    pixel_cnn.compile(
+        optimizer=keras.optimizers.Adam(3e-4),
+        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        metrics=["accuracy"],
+    )
+    pixel_cnn.fit(
+        x=codebook_indices,
+        y=codebook_indices,
+        epochs=5,
+        validation_split=0.1,
+    )
     
 if __name__=='__main__':
     train_pixelcnn()
