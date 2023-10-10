@@ -4,14 +4,18 @@ from torch_geometric.data import Data
 from torch_geometric.transforms import RandomNodeSplit
 
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 def load_data():
     '''
     Loads the data
     '''
+    features = np.load('facebook_large/features.npy')
+    # print(features.dtype)
     features = torch.Tensor(np.load('facebook_large/features.npy'))
     edges = np.rot90(np.load('facebook_large/edges.npy'), 1)
-    edges = torch.Tensor(edges.copy())
-    targets = torch.Tensor(np.load('facebook_large/target.npy'))
+    edges = torch.Tensor(edges.copy()).to(torch.int64)
+    targets = torch.Tensor(np.load('facebook_large/target.npy')).to(torch.int64)
     
     data = Data(x=features, edge_index=edges, edge_attr=None, y=targets)
     
@@ -45,5 +49,5 @@ def print_stats():
     print(f'Has self-loops: {data.has_self_loops()}')
     print(f'Is undirected: {data.is_undirected()}')
 
-# data = test_train()
-# print(data[0])
+data = test_train()
+# print_stats()
