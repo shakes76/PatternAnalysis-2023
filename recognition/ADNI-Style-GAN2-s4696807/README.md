@@ -230,7 +230,7 @@ A graph of the loss for both the generator and discriminator networks of the mod
 
 ![Generator Loss](assets/gen_loss.png)
 
-![Discriminator Loss](assets/model_loss.png)
+![Discriminator Loss](assets/disc_loss.png)
 
 We can also see in the models above that the loss for both networks seems to converge around _, then remains quite stable for the rest of the training.  This further reinforces what we see with the results of each 20 epochs, as the improvement from epoch 20 to 100 was negligable.  This just means that with the current model and data that I will not get any more accurate in it's image generation no matter how many epoch we run it for. 
 
