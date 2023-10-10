@@ -60,17 +60,17 @@ imageio==2.22.4
 ## Results
 
 #### VQVAE Reconstruction on Test (idx=441)
-![](visualize\VQVAE_vis\epoch_45\recon_441.png)
+![](visualize/VQVAE_vis/epoch_45/recon_441.png)
 
 #### VQVAE + Random Generation
 
-![](visualize\VQVAE_vis\epoch_45\gen_large_0.png)
+![](visualize/VQVAE_vis/epoch_45/gen_large_0.png)
 #### VQVAE + VisionTransformer (PixelCNN like)
-![](visualize\Transformer_vis\0.png )
+![](visualize/Transformer_vis/0.png )
 
 #### VQVAE + Stable Diffusion
-![](visualize\stable_diffusion_vis\epoch_120\0.png)
-![](visualize\ldm_vis\ldm_0.gif)
+![](visualize/stable_diffusion_vis/epoch_120/0.png)
+![](visualize/ldm_vis/ldm_0.gif)
 > Diffusion Process through T
 
 ## Diffusion Process GIF
