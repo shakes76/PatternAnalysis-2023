@@ -24,7 +24,7 @@ class Model(Module):
             Dropout2d(p=0.3),
         )
         self.linear = Sequential(
-            Linear(256, 2)
+            Linear(256, 1)
         )
     
     def forward_one(self, img):
