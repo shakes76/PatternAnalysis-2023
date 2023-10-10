@@ -18,6 +18,7 @@ from skimage.metrics import structural_similarity as ssim
 # Constants
 BATCH_SIZE = 32
 N_EPOCHS = 60
+BEST_EPOCH = 0
 PRINT_INTERVAL = 100
 DATASET_PATH = './OASIS'
 NUM_WORKERS = 1
@@ -278,9 +279,9 @@ def generate_samples(epoch):
     plt.savefig(f'samples/loss_plot_epoch{epoch}.png', bbox_inches='tight')
     plt.close()
 
-def generate_sample_from_best_model():
+def generate_sample_from_best_model(BEST_EPOCH):
     # Load the best model
-    model.load_state_dict(torch.load(f'samples/checkpoint_epoch{N_EPOCHS}_vqvae.pt'))
+    model.load_state_dict(torch.load(f'samples/checkpoint_epoch{BEST_EPOCH}_vqvae.pt'))
     model.eval()
 
     # Get a sample from the test set
@@ -326,7 +327,7 @@ for epoch in range(1, N_EPOCHS):
         print("Saving model based on improved combined metric!")
         dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
         # Save model and generate samples every 10 epochs
-        #if epoch % save_interval == 0:
+        BEST_EPOCH = epoch
         torch.save(model.state_dict(), f'samples/checkpoint_epoch{epoch}_vqvae.pt') 
     else:
         print(f"Not saving model! Last best combined metric: {BEST_METRIC:.4f}, SSIM: {BEST_SSIM:.4f}, Reconstruction Loss: {BEST_RECONS_LOSS:.4f}")
@@ -366,4 +367,4 @@ plt.close()
 
 
 # Call the function to generate and display a sample from the best model
-generate_sample_from_best_model()
+generate_sample_from_best_model(BEST_EPOCH)
