@@ -1,7 +1,12 @@
 import tensorflow as tf
 
 
-def load_dataset(path):
+def load_dataset(path: str) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
+    """
+    Loads the dataset from the given path
+    :param path: Path to the dataset
+    :return: train_ds, val_ds, test_ds
+    """
     train_data_path = path + "/train"
     test_data_path = path + "/test"
 
