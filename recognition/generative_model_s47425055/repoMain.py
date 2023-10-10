@@ -255,7 +255,7 @@ def validate():
     
     return np.asarray(val_loss).mean(0), avg_ssim  # return SSIM score and loss
 
-def generate_samples():
+def generate_samples(epoch):
     model.eval()  # make sure model is in eval mode
     x, _ = next(iter(test_loader)) # x, _ = test_loader.__iter__().next()
     x = x[:32].to(DEVICE)
@@ -267,7 +267,7 @@ def generate_samples():
     dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
     save_image(
         images,
-        f'samples/vqvae_reconstructions_{dataset_name}.png',
+        f'samples/vqvae_reconstructions_{epoch}.png',
         nrow=8
     )
 
@@ -286,7 +286,7 @@ BEST_METRIC = -999  # initial value for the combination metric
 BEST_SSIM = 0  # just for logging purposes
 BEST_RECONS_LOSS = 999  # just for logging purposes
 
-save_interval = 10
+save_interval = 5
 
 train_losses = []
 val_losses = []
@@ -315,28 +315,31 @@ for epoch in range(1, N_EPOCHS):
         print(f"Not saving model! Last best combined metric: {BEST_METRIC:.4f}, SSIM: {BEST_SSIM:.4f}, Reconstruction Loss: {BEST_RECONS_LOSS:.4f}")
 
     # Generate samples at the end of each epoch
-    generate_samples()
+    generate_samples(epoch)
 
     # Step the scheduler to adjust learning rate
     scheduler.step()
 
+# Loss plots
 plt.figure(figsize=(12, 5))
 
-# Plot training and validation losses
+# Assuming each loss value is a tuple where the first value is the reconstruction loss
+train_recons_losses = [x[0] for x in train_losses]
+val_recons_losses = [x[0] for x in val_losses]
+
 plt.subplot(1, 2, 1)
-train_losses_array = np.array(train_losses)
-plt.plot(train_losses_array[:, 0], label="Overall Training Loss")
-plt.plot(train_losses_array[:, 1], label="Reconstruction Training Loss")
-plt.plot(train_losses_array[:, 2], label="VQ Training Loss")
-plt.plot(np.array(val_losses)[:, 0], label="Validation Loss", linestyle="--")
-plt.title("Losses over epochs")
+plt.plot(train_recons_losses, label='Train Loss')
+plt.plot(np.arange(0, len(train_recons_losses), len(train_recons_losses) // len(val_recons_losses)), 
+         val_recons_losses, '-x', label='Validation Loss')
+plt.title('Reconstruction Loss')
 plt.legend()
 
-# Plot SSIM scores
+# SSIM plot
 plt.subplot(1, 2, 2)
-plt.plot(ssim_scores, label="Validation SSIM", linestyle="--")
-plt.title("SSIM over epochs")
-plt.legend()
+plt.plot(np.arange(0, len(train_recons_losses), len(train_recons_losses) // len(ssim_scores)), 
+         ssim_scores, '-x')
+plt.title('Structural Similarity (SSIM) score')
+plt.ylim(0, 1)  # since SSIM values lie between 0 and 1
 
 plt.tight_layout()
 plt.show()
