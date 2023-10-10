@@ -15,7 +15,7 @@ def load_dataset(path: str) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.D
         train_data_path,
         validation_split=0.2,
         subset="training",
-        image_size=(64, 64),
+        image_size=(60, 64),
         batch_size=32,
         seed=321,
         color_mode="grayscale",
@@ -26,7 +26,7 @@ def load_dataset(path: str) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.D
         train_data_path,
         validation_split=0.2,
         subset="validation",
-        image_size=(64, 64),
+        image_size=(60, 64),
         batch_size=32,
         seed=321,
         color_mode="grayscale",
@@ -34,7 +34,7 @@ def load_dataset(path: str) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.D
 
     print(f"Loading test data from {test_data_path}")
     test_ds = tf.keras.utils.image_dataset_from_directory(
-        test_data_path, image_size=(64, 64), batch_size=32, color_mode="grayscale"
+        test_data_path, image_size=(60, 64), batch_size=32, color_mode="grayscale"
     )
 
     print("Finished loading dataset")
