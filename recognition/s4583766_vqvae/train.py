@@ -15,6 +15,8 @@ import torch
 import torchvision
 from dataset import load_dataset
 from modules import VQVAE, Decoder, Encoder
+from torch import nn
+from torch.nn import functional as F
 
 # Setup file paths
 PATH = os.getcwd() + '/'
@@ -49,9 +51,40 @@ if not torch.cuda.is_available():
 
 # Hyper-parameters
 
-load_dataset(data_path_training, BATCH_SIZE)
+train_dl, data_variance = load_dataset(data_path_training, BATCH_SIZE)
 
 vqvae = VQVAE(n_hidden_layers=N_HIDDEN_LAYERS, n_residual_hidden_layers=N_RESIDUAL_HIDDENS, n_embeddings=N_EMBEDDINGS, embeddings_dim=EMBEDDINGS_DIM, beta=BETA).to(device)
+vqvae = vqvae.to(device)
 optimizer = torch.optim.Adam(vqvae.parameters(), lr=LEARNING_RATE)
+recon_losses = []
+# print(vqvae)
 
-print(vqvae)
+vqvae.train()
+# Run training
+for epoch in range(EPOCHS):
+	train_loss = []
+	avg_train_loss = 0
+	for batch_idx, (data, _) in enumerate(train_dl):
+		data = data.to(device)
+		optimizer.zero_grad()
+
+		vq_loss, z_q = vqvae(data)
+		recons_error = F.mse_loss(z_q, data) / data_variance
+
+		loss = vq_loss + recons_error
+		loss.backward()
+		optimizer.step()
+
+		train_loss.append(recons_error.item())
+
+		if batch_idx % 100 == 0:
+			print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+			epoch, batch_idx * len(data), len(train_dl.dataset),
+			100. * batch_idx / len(train_dl),
+			recons_error.item() / len(data)))
+
+	avg_train_loss = sum(train_loss) / len(train_loss)
+	recon_losses.append(avg_train_loss)
+	print('====> Epoch: {} Average loss: {:.4f}'.format(
+		epoch, avg_train_loss))
+

@@ -47,5 +47,8 @@ def load_dataset(data_path_training, batch_size):
     train_ds = ImageFolder(data_path_training, transform=transform_train)
     train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
     # show_batch(train_dl)
+    # Calculate the variance of the data
+    data_variance = np.var(train_ds[0][0].numpy())
+    # print(data_variance)
 
-    return train_dl
+    return train_dl, data_variance
