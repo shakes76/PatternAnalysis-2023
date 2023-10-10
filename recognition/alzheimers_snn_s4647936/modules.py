@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from PIL import Image
 
 class FeatureExtractor(nn.Module):
     def __init__(self):
@@ -44,4 +45,17 @@ class SiameseNetwork(nn.Module):
         output1 = self.forward_one(input1)
         output2 = self.forward_one(input2)
         return output1, output2
+    
+"""
+Determine dataset image dimensions
+"""
+# Path to images
+image_path = "/home/Student/s4647936/PatternAnalysis-2023/recognition/alzheimers_snn_s4647936/AD_NC/train/AD/336537_97.jpeg"  # Adjust this path as per your directory structure
+
+# Open the image and determine its size
+image = Image.open(image_path)
+width, height = image.size
+
+print(f"Image dimensions: {width} x {height}")
+
 
