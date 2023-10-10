@@ -58,7 +58,7 @@ def show_image(tensor_image):
     plt.show()
 
 if __name__ == "__main__":
-    dataloader = create_dataloader("D:\keras_png_slices_data\keras_png_slices_data\keras_png_slices_test");
+    dataloader = create_dataloader("D:\keras_png_slices_data\keras_png_slices_data\keras_png_slices_test")
     
     images = next(iter(dataloader))
 

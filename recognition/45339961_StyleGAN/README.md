@@ -4,7 +4,7 @@
 - Introduces a mapping framework alongside the generator.
 - Introduces Affine Transformation (A) and Adapative Normalisation (AdaIN).
 - Adds noise throughout the network, not just the beginning. Also scaled the noise with B.
-![Architecture for StyleGAN](misc/image.png)
+![Alt text](image.png)
 - IN extends Batch Normalisation
 - AdaIN extends IN
 
