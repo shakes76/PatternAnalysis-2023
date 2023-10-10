@@ -34,7 +34,7 @@ def get_latent_set(mode='VQVAE', load_epoch=49, dataset_mode='all', device=None)
                 data.to(device) for data in batch_data]
             batch_size = raw_img.shape[0]
             latent = net.encode(raw_img, z_idx)
-            latent, diff_loss, ind = net.quantize(latent)
+            # latent, diff_loss, ind = net.quantize(latent)
             latents.append(latent.detach())
             z_indices.append(z_idx)
         latents = torch.cat(latents)

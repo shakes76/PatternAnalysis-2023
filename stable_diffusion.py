@@ -46,7 +46,7 @@ with torch.no_grad():
 # Setup configs abou diffusion model
 net = LatentDiffusionModel(in_channels=8, ch=32).to(DEVICE)
 criteria = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(net.parameters(), lr=1e-4)
+optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
 
 # Get dataloader
 print("Latent shape:", normalized_latents.shape)
@@ -64,7 +64,7 @@ def test_epoch(epoch):
             sample_latent = net.sample_with_cond((1, 8, 16, 16), cond)
             sample_latent = sample_latent * latents_std + latents_mean
     
-            # quant, diff_loss, ind = vae.quantize(sample_latent)
+            quant, diff_loss, ind = vae.quantize(sample_latent)
             sample_img = vae.decode(sample_latent, cond)
             
             sample_img = compact_large_image(sample_img.cpu(), HZ=4, WZ=8)
