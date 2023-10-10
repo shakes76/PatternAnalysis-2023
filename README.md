@@ -35,6 +35,7 @@ Stable Diffusion on OASIS Dataset
 * `prestage_train.py`: Training Script for first stage.
 
 ### Second Stage
+* `latent_dataset.py`: Collect the latent data given an first stage mode.
 * `pixelCNN.py`: Do pixelCNN when random generation from VQVAE model.
 * `model_diffusion.py`: The model of stable diffusion. It's UNet.
 * `stable_diffusion.py`: Do stable diffusion when random generation from `VQVAE` or `VAE` model.
@@ -55,7 +56,7 @@ imageio==2.22.4
 3. For first stage
    1. run `prestage_train.py`. You can select the mode among `VAE` and `VQVAE` in `line 27` in this script.
 4. For second stage
-   1. TODO, collect indices data to another place.
+   1. run `latent_dataset.py`. This script is to collect latent data.
    2. run `stable_diffusion.py`. If you want to use pixelCNN, you can run `pixelCNN.ipynb`
 
 ## Results
