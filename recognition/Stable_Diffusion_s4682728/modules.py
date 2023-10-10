@@ -4,7 +4,7 @@ import torch.nn as nn
 class DiffusionProcess(nn.Module):
     def __init__(self, betas, num_steps):
         super(DiffusionProcess, self).__init__()
-        self.betas = betas  # List of beta values for each time step
+        self.betas = betas  
         self.num_steps = num_steps
 
     def forward(self, x):
@@ -30,29 +30,6 @@ class ChannelAttention(nn.Module):
         y = self.avg_pool(x).view(b, c)
         y = self.fc(y).view(b, c, 1, 1)
         return x * y.expand_as(x)
-
-
-# class Block(nn.Module):
-#     def __init__(self, in_c, out_c, dropout=0.0):
-#         super().__init__()
-#         self.conv1 = nn.Conv2d(in_c, out_c, kernel_size=3, padding=1)
-#         self.conv2 = nn.Conv2d(out_c, out_c, kernel_size=3, padding=1)
-#         self.bnorm1 = nn.BatchNorm2d(out_c)
-#         self.bnorm2 = nn.BatchNorm2d(out_c)
-#         self.relu = nn.ReLU()
-#         self.dropout = nn.Dropout(dropout)
-#         self.attention = ChannelAttention(out_c)
-
-#     def forward(self, x):
-#         x = self.conv1(x)
-#         x = self.bnorm1(x)
-#         x = self.relu(x)
-#         x = self.dropout(x)
-#         x = self.conv2(x)
-#         x = self.bnorm2(x)
-#         x = self.attention(x)
-#         x = self.relu(x)
-#         return x
 
 class ResNetBlock(nn.Module):
     def __init__(self, in_channels, out_channels, dropout=0.0):
@@ -87,7 +64,6 @@ class ResNetBlock(nn.Module):
         
         return out
 
-# Modified Encoder Block
 class EncoderBlock(nn.Module):
     def __init__(self, in_c, out_c, num_blocks=2):
         super().__init__()
@@ -101,7 +77,6 @@ class EncoderBlock(nn.Module):
         x = self.pool(x)
         return x, skip
 
-# Modified Decoder Block
 class DecoderBlock(nn.Module):
     def __init__(self, num_in, num_out, num_blocks=2):
         super().__init__()
@@ -115,32 +90,47 @@ class DecoderBlock(nn.Module):
             x = block(x)
         return x
 
-# Diffusion Network with U-Net architecture
 class DiffusionNetwork(nn.Module):
     def __init__(self):
         super().__init__()
         
-        down_channels = (1, 64, 128, 256, 512)
-        up_channels = (1024, 512, 256, 128, 64)
-
-        self.downs = nn.ModuleList([EncoderBlock(down_channels[i], down_channels[i+1]) for i in range(len(down_channels)-1)])
-        self.ups = nn.ModuleList([DecoderBlock(up_channels[i], up_channels[i+1]) for i in range(len(up_channels)-1)])
+        self.down1 = EncoderBlock(1, 64)
+        self.down2 = EncoderBlock(64, 128)
+        self.down3 = EncoderBlock(128, 256)
+        self.down4 = EncoderBlock(256, 512)
         
-        self.bottle_neck = ResNetBlock(down_channels[-1], up_channels[0])
-
-        self.norm_out = nn.BatchNorm2d(up_channels[-1])  # Feature normalization
-        self.out = nn.Conv2d(up_channels[-1], 1, kernel_size=1, padding=0)
+        self.bottle_neck = ResNetBlock(512, 1024)
+        
+        self.up1 = DecoderBlock(1024, 512)
+        self.up2 = DecoderBlock(512, 256)
+        self.up3 = DecoderBlock(256, 128)
+        self.up4 = DecoderBlock(128, 64)
+        
+        self.norm_out = nn.BatchNorm2d(64) 
+        self.out = nn.Conv2d(64, 1, kernel_size=1, padding=0)
 
     def forward(self, x):
         residuals = []
-        for down in self.downs:
-            x, skip = down(x)
-            residuals.append(skip)
-
+        
+        x, skip1 = self.down1(x)
+        residuals.append(skip1)
+        
+        x, skip2 = self.down2(x)
+        residuals.append(skip2)
+        
+        x, skip3 = self.down3(x)
+        residuals.append(skip3)
+        
+        x, skip4 = self.down4(x)
+        residuals.append(skip4)
+        
         x = self.bottle_neck(x)
-
-        for up in self.ups:
-            x = up(x, residuals.pop())
-
-        x = self.norm_out(x)  # Feature normalization before the output layer
+        
+        x = self.up1(x, residuals.pop())
+        x = self.up2(x, residuals.pop())
+        x = self.up3(x, residuals.pop())
+        x = self.up4(x, residuals.pop())
+        
+        x = self.norm_out(x)
+        
         return self.out(x)
