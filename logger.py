@@ -76,7 +76,7 @@ class Logger:
         plt.legend()
 
         plt.subplot(2, 2, 2)
-        plt.plot(*m_f(self.data['reg_loss']), label='regularization Loss', c='orange')
+        plt.plot(*m_f(self.data['diff_loss']), label='regularization Loss', c='orange')
         plt.legend()
 
         plt.subplot(2, 2, 3)
@@ -105,6 +105,6 @@ class Logger:
         
 
 if __name__ == '__main__':
-    logger = Logger(reset=False, file_name='VQVAE_log.txt')
+    logger = Logger(reset=False, file_name='VAE_log.txt')
     logger.load('VAE_log.txt')
     logger.show_plot()
