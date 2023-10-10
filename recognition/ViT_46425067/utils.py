@@ -7,6 +7,14 @@ Scripts for misc functions used in training, saving and loading the model
 """
 import torch
 from pathlib import Path
+from modules import ViT
+import platform
+
+OS = platform.system()
+if OS == "Windows":
+    MODEL_PATH = Path("E:/UNI 2023 SEM 2/COMP3710/Lab3/recognition/ViT_46425067/models")
+else:
+    MODEL_PATH = Path("./models")
 
 def accuracy(y_pred, y):
     """calculates the average accuracy over a batch given the y logits and y targets
@@ -30,12 +38,11 @@ def save_model(model, model_name):
         model (nn.Module): trained model
         model_name (str): name of the model to save as
     """
-    MODEL_PATH = Path(f"./models/")
     MODEL_PATH.mkdir(parents=True, exist_ok=True)
     torch.save(obj=model.state_dict(), f=MODEL_PATH / f"{model_name}.pth")
     
 
-def load_model(path, model, device):
+def load_model(model_name, device, config):
     """loads the weights onto a pre-initialised model
 
     Args:
@@ -44,7 +51,17 @@ def load_model(path, model, device):
         device (str): load model onto CUDA or cpu 
 
     Returns:
-        _type_: _description_
+        nn.Module: _description_
     """
-    model.load_state_dict(torch.load(f=path))
+    model = ViT(img_size=config.img_size,
+                    patch_size=config.patch_size,
+                    img_channels=config.img_channel,
+                    num_classes=config.num_classes,
+                    embed_dim=config.embed_dim,
+                    depth=config.depth,
+                    num_heads=config.num_heads,
+                    mlp_dim=config.mlp_dim,
+                    drop_prob=config.drop_prob).to(device)
+    state_dict = torch.load(f=MODEL_PATH / f"{model_name}.pth")
+    model.load_state_dict(state_dict)
     return model.to(device)
