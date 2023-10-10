@@ -2,7 +2,6 @@ import torch
 import time
 import torch.nn as nn
 import torch.nn.functional as F
-from modules import Siamese
 from utils import Config
 from dataset import Dataset
 import matplotlib.pyplot as plt
@@ -60,17 +59,19 @@ class TrainVQVAE(Train) :
         start = time.time()
         for epoch in range(self.epochs) :
             epoch_loss = []
-            for i, (data, target) in enumerate(self.dataset.get_train()) :
+            for i, (data, _) in enumerate(self.dataset.get_train()) :
                 data = data.to(self.device)
                 self.optimiser.zero_grad()
-                vq_loss, z_q = self.model(data)
-                recons_error = F.mse_loss(z_q, data)
+                
+                embedding_loss, x_hat, perplexity = self.model(data)
+                recon_loss = torch.mean((x_hat - data)**2) / self.dataset.train_var()
+                loss = recon_loss + embedding_loss
 
-                loss = vq_loss + recons_error
                 loss.backward()
                 self.optimiser.step()
 
-                epoch_loss.append(recons_error.item())
+                epoch_loss.append(loss.item())
+
                 if i % 100 == 0 :
                     print(f"Epoch: {epoch+1}/{self.epochs} Batch: {i+1}/{len(self.dataset.get_train())} Loss: {loss.item():.6f}")
             self.losses.append(epoch_loss / len(self.dataset.get_train()))

@@ -3,66 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-class Siamese(nn.Module):
-
-    def __init__(self):
-        super(Siamese, self).__init__()
-
-        self.conv = nn.Sequential(
-            nn.Conv2d(3, 64, kernel_size=10), nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Conv2d(64, 128, kernel_size=7), nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Conv2d(128, 256, kernel_size=4), nn.ReLU(),
-            nn.MaxPool2d(2),
-            nn.Conv2d(256, 512, kernel_size=4), nn.ReLU()
-        )
-
-        self.embedding = nn.Sequential(
-            nn.Linear(128*24*24, 512),
-            nn.Linear(512, 1),
-
-            nn.ReLU()
-        )
-
-        # Classify whether the images belong to the same class or different classes
-        self.fc = nn.Sequential(
-            nn.Sigmoid()
-        )
-
-        # self.conv1 = nn.Conv2d(3, 64, 10)
-        # self.conv2 = nn.Conv2d(64, 128, 7)
-        # self.conv3 = nn.Conv2d(128, 256, 4)
-        # self.conv4 = nn.Conv2d(256, 512, 4)
-
-        # self.pool1 = nn.MaxPool2d(2, stride=2)
-        # self.pool2 = nn.MaxPool2d(2, stride=2)
-        # self.pool3 = nn.MaxPool2d(2, stride=2)
-        # self.pool4 = nn.MaxPool2d(2, stride=2)
-
-        # self.relu1 = nn.ReLU(inplace=True)
-        # self.relu2 = nn.ReLU(inplace=True)
-        # self.relu3 = nn.ReLU(inplace=True)
-        # self.relu4 = nn.ReLU(inplace=True)
-
-        # self.fc1 = nn.Linear(128*24*24, 512)
-        # self.fc2 = nn.Linear(512, 1)
-
-        # self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x1, x2):
-        h1 = self.sub_forward(x1)
-        h2 = self.sub_forward(x2)
-        diff = torch.abs(h1 - h2)
-        scores = self.fc(diff)
-        
-        return scores
-
-    def sub_forward(self, x):
-        x = self.conv(x)
-        x = self.embedding(x)
-        return x
     
 class Residual(nn.Module):
     def __init__(self, in_channels, n_hidden, n_residual):
@@ -70,7 +10,7 @@ class Residual(nn.Module):
 
         self.residual = nn.Sequential(
             nn.ReLU(),
-            nn.Conv2d(in_channels=n_hidden, 
+            nn.Conv2d(in_channels=in_channels, 
                 out_channels=n_residual, 
                 kernel_size=3, 
                 stride=1, 
@@ -249,12 +189,15 @@ class VectorQuantizer(nn.Module):
 class VQVAE(nn.Module):
     def __init__(self, n_hidden = 128, n_residual = 32, n_embeddings = 512, dim_embedding = 64, beta = 0.25):
         super(VQVAE, self).__init__()
-        self.encoder = Encoder(1, n_hidden, 
-                                n_residual)
+
+        self.encoder = Encoder(3, 
+            n_hidden, 
+            n_residual)
+        
         self.conv = nn.Conv2d(in_channels=n_hidden, 
-                out_channels=dim_embedding,
-                kernel_size=1, 
-                stride=1)
+            out_channels=dim_embedding,
+            kernel_size=1, 
+            stride=1)
         
         self.quantizer = VectorQuantizer(n_embeddings, 
             dim_embedding,
@@ -268,7 +211,7 @@ class VQVAE(nn.Module):
         x = self.encoder(x)
         
         x = self.conv(x)
-        loss, x_q, perplexity, _ = self.quantizer(x)
+        loss, x_q, perplexity, _, _ = self.quantizer(x)
         x_hat = self.decoder(x_q)
 
         return loss, x_hat, perplexity
