@@ -24,7 +24,7 @@ print("DEVICE:", DEVICE)
 # |         > VQVAE       |
 # =========================
 
-mode = 'VQVAE'
+mode = 'VAE'
 
 
 # =========================
@@ -42,7 +42,7 @@ if mode == 'VQVAE':
 elif mode == 'VAE':
     net = VAE().to(DEVICE)
 discriminator = NLayerDiscriminator(
-    input_nc=1, ndf=128, n_layers=4).apply(weights_init).to(device=DEVICE)
+    input_nc=1, n_layers=3).apply(weights_init).to(device=DEVICE)
 
 # Learning rate choose. You can adjust learning rate here,
 # And don't adjust betas, it's optimized.
@@ -52,7 +52,7 @@ opt_d = torch.optim.Adam(discriminator.parameters(),
                          lr=learning_rate, betas=(0.5, 0.9))
 
 # Keep training if epoch is not zero
-start_epoch = 34
+start_epoch = 0
 # Only train to end_epoch-1
 end_epoch = 70
 
@@ -64,8 +64,8 @@ batch_size = 6
 # disc_start: which iteration should activate discriminator
 # auxiliary start: which epoch should activate 
 #       auxiliary (random generated images) score 
-disc_start_iter = 10000
-auxiliary_start_epoch = max(disc_start_iter // ITER_PER_EPOCH, 5)
+disc_start_iter = 250
+auxiliary_start_epoch = 0
 
 cur_iter = ITER_PER_EPOCH * start_epoch
 
@@ -78,8 +78,8 @@ cur_iter = ITER_PER_EPOCH * start_epoch
 if start_epoch != 0:
     # For example, if we start at epoch 7 and we need to load epoch 6.
     try:
-        net = torch.load(f'{ckpt_folder}/epoch_AE_{start_epoch-1}.pt')
-        # discriminator = torch.load(f'{ckpt_folder}/epoch_D_{start_epoch-1}.pt')
+        net = torch.load(f'model_ckpt/{mode}/epoch_AE_{start_epoch-1}.pt')
+        discriminator = torch.load(f'model_ckpt/{mode}/epoch_D_{start_epoch-1}.pt')
     except Exception as e:
         print("Fail to load model", e)
 else:
@@ -127,7 +127,6 @@ def calculate_weight_sampler(net, dataloader):
     # Update this counting table into network
     net.update_sampler(weight_sampler)
 
-
 def train_epoch(net, dataloader, auxiliary=True):
     global cur_iter
     epoch_info = defaultdict(lambda: 0)
@@ -135,14 +134,15 @@ def train_epoch(net, dataloader, auxiliary=True):
         raw_img, seg_img, brain_idx, z_idx = [
             data.to(DEVICE) for data in batch_data]
 
-        # Get weight of each loss 
-        # (w_kld is no effect when mode is VQVAE)
+        # Get weight of each loss
         w_recon, w_kld, w_dis = weight_scheduler(
-            cur_iter, change_cycle=ITER_PER_EPOCH, disc_start=disc_start_iter)
+            cur_iter, change_cycle=ITER_PER_EPOCH)
 
         # ===================
         # | Train Generator |
         # ===================
+
+        # Train Generator
         opt.zero_grad()
 
         ''' !!!
@@ -154,29 +154,27 @@ def train_epoch(net, dataloader, auxiliary=True):
             for origial VAE, latent is mean & std
             for VQVAE, latent is the discrete indices.
         '''
-        recon_img, regularization, latent = net(raw_img, z_idx)
+        recon_img, diff_loss, ind = net(raw_img, z_idx)
 
         # Reconstruction Term (L1 Loss)
         recon_loss = torch.abs(raw_img.contiguous() - recon_img.contiguous())
         recon_loss = torch.sum(recon_loss) / recon_loss.shape[0]
 
-        if w_dis > 0:
-            # Reconstruction Term (GAN Loss)
-            logits_fake = discriminator(recon_img.contiguous(), z_idx)
-            g1_loss = -torch.mean(logits_fake)
+        # Reconstruction Term (GAN Loss)
+        logits_fake = discriminator(recon_img.contiguous(), z_idx)
+        g1_loss = -torch.mean(logits_fake)
 
-            # Adjust discriminator weight
-            #   adjust rate is determined by the gradient. 
-            #   If G_loss is too smooth and reconstruction loss will dominate the loss
-            #   Then we sacle G_loss to make it more influential. 
-            recon_grads = torch.norm(torch.autograd.grad(
-                recon_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
-            g1_grads = torch.norm(torch.autograd.grad(
-                g1_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
-            g_weight = recon_grads / (g1_grads + 1e-4)
-
-            # For fear that gradient explode occur, we clamp the sacle.
-            g_weight = torch.clamp(g_weight, 0.0, 1e4).detach()
+        # Adjust discriminator weight
+        #   adjust rate is determined by the gradient. 
+        #   If G_loss is too smooth and reconstruction loss will dominate the loss
+        #   Then we sacle G_loss to make it more influential. 
+        recon_grads = torch.norm(torch.autograd.grad(
+            recon_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
+        # For fear that gradient explode occur, we clamp the sacle.
+        g1_grads = torch.norm(torch.autograd.grad(
+            g1_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
+        d1_weight = recon_grads / (g1_grads + 1e-4)
+        d1_weight = torch.clamp(d1_weight, 0.0, 1e4).detach()
 
         # Apply auxiliary loss (gen from sample and trained as GAN)
         if auxiliary:
@@ -185,74 +183,68 @@ def train_epoch(net, dataloader, auxiliary=True):
 
             # Random generate z_idx, here we named t.
             t = torch.randint(low=0, high=32, size=(raw_img.shape[0],)).cuda()
+
             gen_img = net.sample(raw_img.shape[0], t)
             logits_gen = discriminator(gen_img.contiguous(), t)
             g2_loss = -torch.mean(logits_gen)
-            net.train()
+            g2_grads = torch.norm(torch.autograd.grad(
+                g2_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
+            d2_weight = recon_grads / (g2_grads + 1e-4)
+            d2_weight = torch.clamp(d2_weight, 0.0, 1e4).detach()
 
         # Construct all the loss we calculated
-        loss = w_recon * recon_loss 
-        regularization = regularization.mean()
-        if mode == 'VAE':
-            loss += w_kld * regularization.mean() 
-        elif mode == 'VQVAE':
-            loss += 1.0 * regularization.mean()
-        if w_dis > 0:
-            loss = loss + w_dis * g_weight * g1_loss
+        w_diff = 1.0 if mode == 'VQVAE' else w_dis
+        loss = w_recon * recon_loss + w_dis * diff_loss.mean() + w_dis * \
+            d1_weight * g1_loss
         if auxiliary:
-            loss = loss + w_dis * g_weight * g2_loss
+            loss = loss + w_dis * d2_weight * g2_loss
 
         loss.backward()
         opt.step()
 
-        # We train discriminator early one epoch
-        if cur_iter > disc_start_iter - ITER_PER_EPOCH:
-            # =======================
-            # | Train Discriminator |
-            # =======================
-            opt_d.zero_grad()
+        # =======================
+        # | Train Discriminator |
+        # =======================
+        opt_d.zero_grad()
 
-            # We should detach or it'll backprop generator side. 
-            #  (It'll occurs error that said we should retain_graph)
-            recon_img = recon_img.detach()
-            logits_real = discriminator(raw_img.contiguous().detach(), z_idx)
-            logits_fake = discriminator(recon_img.contiguous().detach(), z_idx)
+        # We should detach or it'll backprop generator side. 
+        # (It'll occurs error that said we should retain_graph)
+        recon_img = recon_img.detach()
+        logits_real = discriminator(raw_img.contiguous().detach(), z_idx)
+        logits_fake = discriminator(recon_img.contiguous().detach(), z_idx)
 
-            # Here we adopt hinge loss
-            loss_real = torch.mean(F.relu(1. - logits_real))
-            loss_fake = torch.mean(F.relu(1. + logits_fake))
+        # Here we adopt hinge loss
+        loss_real = torch.mean(F.relu(1. - logits_real))
+        loss_fake = torch.mean(F.relu(1. + logits_fake))
 
-            if auxiliary:
-                logits_gen = discriminator(gen_img.contiguous().detach(), t)
-                loss_gen = torch.mean(F.relu(1. + logits_gen))
-                # First 0.5 is discriminator factor, Second 0.5 is from hinge loss
-                d_loss = 0.5 * 0.5 * ( loss_real + 0.5 * (loss_fake + loss_gen))
-            else:
-                d_loss = 0.5 * 0.5 * (loss_real + loss_fake)
+        if auxiliary:
+            logits_gen = discriminator(gen_img.contiguous().detach(), t)
+            loss_gen = torch.mean(F.relu(1. + logits_gen))
+            # First 0.5 is discriminator factor, Second 0.5 is from hinge loss
+            d_loss = 0.5 * 0.5 * (loss_real + loss_fake + loss_gen)
+        else:
+            d_loss = 0.5 * 0.5 * (loss_real + loss_fake)
 
-            d_loss.backward()
-            opt_d.step()
+        d_loss.backward()
+        opt_d.step()
 
-        # Gather training info to a dict.
+        # info to dict
         cur_info = {
             'recon_loss': recon_loss.item(),
-            'reg_loss': regularization.item(),
+            'diff_loss': diff_loss.item(),
+            'fake_recon_loss': g1_loss.item(),
+            'discriminator_loss': d_loss.item(),
             'w_recon': w_recon,
+            # 'w_perceptual': w_perceptual,
+            "w_dis": w_dis * d1_weight,
         }
-        # If weight of discriminator is larger than 0, update d loss
-        if w_dis > 0:
-            cur_info.update({
-                'fake_recon_loss': g1_loss.item(),
-                'discriminator_loss': d_loss.item(),
-                "w_dis": w_dis * g_weight,
-            })
-        # If we use auxiliary, try to update the information of sample images
         if auxiliary:
             cur_info.update({
                 'fake_sample_loss': g2_loss.item(),
+                "w_sample": w_dis * d2_weight,
             })
 
-        # Record epoch info, it should be sacled for batch_size
+        # record epoch info
         for k, v in cur_info.items():
             epoch_info[k] += v * len(raw_img)
         epoch_info['total_num'] += len(raw_img)
@@ -261,18 +253,14 @@ def train_epoch(net, dataloader, auxiliary=True):
         logger.update_dict(cur_info)
         cur_iter += 1
 
-        # If now_step is reached ITER_PER_EPOCH, break the loop
-        #   and finish this epoch.
         if now_step % ITER_PER_EPOCH == 0 and now_step != 0:
             break
-
     # Mean the info
     for k in epoch_info:
         if k != 'total_num':
             epoch_info[k] /= epoch_info['total_num']
 
     return epoch_info
-
 
 def test_epoch(net, dataloader, folder):
 
@@ -337,7 +325,7 @@ data_limit = None
 # Get dataloader
 train_dataloader = get_dataloader(
     mode='train_and_validate', batch_size=batch_size, limit=data_limit)
-test_dataloader = get_dataloader(mode='test', batch_size=8, limit=data_limit)
+test_dataloader = get_dataloader(mode='test', batch_size=16, limit=data_limit)
 
 start_auxiliary = False
 for epoch in range(start_epoch, 50):
