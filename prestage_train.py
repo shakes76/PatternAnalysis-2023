@@ -33,7 +33,7 @@ mode = 'VAE'
 
 # vis_folder: reconstruction & random generated images will save here.
 # ckpt_folder: model's checkpoints (discriminator included) will save here.
-vis_folder = f'{mode}_vis'
+vis_folder = f'visualize/{mode}_vis'
 ckpt_folder = f'model_ckpt/{mode}'
 
 # Define autoencoder architechture and discriminator
@@ -193,9 +193,13 @@ def train_epoch(net, dataloader, auxiliary=True):
             d2_weight = torch.clamp(d2_weight, 0.0, 1e4).detach()
 
         # Construct all the loss we calculated
-        w_diff = 1.0 if mode == 'VQVAE' else w_dis
-        loss = w_recon * recon_loss + w_dis * diff_loss.mean() + w_dis * \
-            d1_weight * g1_loss
+        if mode == 'VQVAE':
+            loss = w_recon * recon_loss + w_dis * diff_loss.mean() + w_dis * \
+                d1_weight * g1_loss
+        else:
+            diff_loss = diff_loss.mean()
+            loss = w_recon * recon_loss + w_kld * diff_loss.mean() + w_dis * \
+                d1_weight * g1_loss
         if auxiliary:
             loss = loss + w_dis * d2_weight * g2_loss
 

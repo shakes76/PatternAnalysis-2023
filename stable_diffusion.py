@@ -69,7 +69,7 @@ def test_epoch(epoch):
             
             sample_img = compact_large_image(sample_img.cpu(), HZ=4, WZ=8)
             
-            plt.imsave(f'stable_diffusion_vis/epoch_{epoch}/{cur_idx}.png', sample_img[0] * 0.5 + 0.5, cmap='gray')
+            plt.imsave(f'visualize/stable_diffusion_vis/epoch_{epoch}/{cur_idx}.png', sample_img[0] * 0.5 + 0.5, cmap='gray')
 
 for epochs in range(150):
     total_loss, total_len = 0, 0
