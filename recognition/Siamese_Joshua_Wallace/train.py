@@ -6,11 +6,33 @@ from modules import Siamese
 from utils import Config
 from dataset import Dataset
 import matplotlib.pyplot as plt
+from abc import ABC, abstractmethod
 
-class Train() :
+class Train(ABC) :
+    @abstractmethod
+    def __init__(self, model: nn.Module, dataset: Dataset, config: Config) -> None :
+        pass
+    
+    @abstractmethod
+    def train(self) -> None :
+        pass
+    
+    @abstractmethod
+    def test(self) -> None :
+        pass
+    
+    @abstractmethod
+    def plot_loss(self) -> None :
+        pass
+    
+    @abstractmethod
+    def plot_accuracies(self) -> None :
+        pass
+
+class TrainVQVAE(Train) :
     
     def __init__(self, model: nn.Module, dataset: Dataset, config: Config) :
-
+        super().__init__()
         self.savepath = config.savepath
         # Optimisation parameters
         self.lr = config.lr
@@ -84,3 +106,7 @@ class Train() :
     
     def plot_accuracies(self) -> None :
         pass
+
+class TrainGAN(Train) :
+    def __init__(self, model: nn.Module, dataset: Dataset, config: Config) -> None:
+        super().__init__(model, dataset, config)

@@ -57,7 +57,8 @@ class Dataset():
 
 
 class ADNIDataset(Dataset):
-    def __init__(self, imagefolder_dataset, transform):
+    def __init__(self, imagefolder_dataset, transform, batch_size, root_dir, fraction):
+        super().__init__(batch_size, root_dir, fraction)
         self.imagefolder_dataset = imagefolder_dataset
         self.transform = transform
 
@@ -65,14 +66,7 @@ class ADNIDataset(Dataset):
         return len(self.imagefolder_dataset)
 
     def __getitem__(self, index):
-        img1, label1 = self.imagefolder_dataset[index]
-        # Get another image from the same class
-        while True:
-            index2 = random.choice(range(len(self.imagefolder_dataset)))
-            img2, label2 = self.imagefolder_dataset[index2]
-            if label1 == label2:
-                break
+        img, label = self.imagefolder_dataset[index]
 
-        img1 = self.transform(img1)
-        img2 = self.transform(img2)
-        return (img1, img2), torch.tensor(int(label1 == label2), dtype=torch.float32)
+        img = self.transform(img)
+        return img
