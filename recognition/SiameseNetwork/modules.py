@@ -5,9 +5,9 @@ import torch
 import torch.nn as nn
 
 # Build CNN network and get its embedding vector
-class CNN(nn.Module):
+class Embedding(nn.Module):
     def __init__(self):
-        super(CNN, self).__init__()
+        super(Embedding, self).__init__()
         self.conv = nn.Sequential(
             
             nn.Conv2d(1, 32, kernel_size=3, padding=1),
@@ -53,3 +53,17 @@ class TripletLoss(nn.Module):
         # aclculate loss, use relu to ensure loss are non-negative
         loss = torch.relu(anchor_positive - anchor_negative + self.margin)
         return loss.mean()
+    
+
+# construct the siamese network
+class SiameseNet(nn.Module):
+    def __init__(self, embbeding):
+        super(SiameseNet, self).__init__()
+        self.embbeding = embbeding
+
+    def forward(self, anchor, positive, negative):
+        # use the embbeding class to ge the embedding of anchor, positive and negative samples
+        embbeding_anchor = self.embbeding(anchor)
+        embbeding_positive = self.embbeding(positive)
+        embbeding_negative = self.embbeding(negative)
+        return embbeding_anchor, embbeding_positive, embbeding_negative
