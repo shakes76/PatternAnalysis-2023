@@ -1,134 +1,91 @@
-import tensorflow as tf
+import numpy as np
+from tensorflow import keras
+import os
 
 
-def load_dataset(path: str) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
+def load_jpegs_at_path(path: str) -> list[np.ndarray]:
     """
-    Loads the dataset from the given path
+    Loads all jpeg images from the given path
+    :param path: Path to the directory containing the images
+    :return: List of image data
+    """
+
+    return [
+        keras.utils.img_to_array(
+            keras.utils.load_img(
+                f"{path}/{p}", target_size=(60, 64), color_mode="grayscale"
+            )
+        )
+        / 255.0
+        for p in os.listdir(path)
+        if p.endswith(".jpeg")
+    ]
+
+
+def create_pairs(x1, x2, label):
+    np.random.shuffle(x1)
+    np.random.shuffle(x2)
+
+    return [((x1[i], x2[i]), label) for i in range(min(len(x1), len(x2)))]
+
+
+def load_dataset(
+    path: str,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Loads the ADNI dataset from the given path
     :param path: Path to the dataset
-    :return: train_ds, val_ds, test_ds
+    :return train_X, train_y, validate_X, validate_y, test_X, test_y
     """
-    print(f"Loading AD training data")
-    train_ad_ds = tf.keras.utils.image_dataset_from_directory(
-        path + "/train/AD",
-        labels=None,
-        label_mode=None,
-        image_size=(60, 64),
-        batch_size=None,
-        seed=321,
-        color_mode="grayscale",
-        shuffle=True,
-    )
+    print("Loading dataset")
 
-    train_ad_ds = train_ad_ds.map(lambda x: x / 255.0)
+    print("Loading training data")
 
-    print(f"Loading NC training data")
-    train_nc_ds = tf.keras.utils.image_dataset_from_directory(
-        path + "/train/NC",
-        labels=None,
-        label_mode=None,
-        image_size=(60, 64),
-        batch_size=None,
-        seed=321,
-        color_mode="grayscale",
-        shuffle=True,
-    )
+    train_AD = load_jpegs_at_path(f"{path}/train/AD")
+    train_NC = load_jpegs_at_path(f"{path}/train/NC")
 
-    train_nc_ds = train_nc_ds.map(lambda x: x / 255.0)
+    print("Creating pairs")
 
-    print(f"Loading AD test data")
-    test_ad_ds = tf.keras.utils.image_dataset_from_directory(
-        path + "/test/AD",
-        labels=None,
-        label_mode=None,
-        image_size=(60, 64),
-        batch_size=None,
-        seed=321,
-        color_mode="grayscale",
-        shuffle=True,
-    )
+    train_both_AD = create_pairs(train_AD, train_AD, 1)
+    train_both_NC = create_pairs(train_NC, train_NC, 1)
+    train_mixed_1 = create_pairs(train_AD, train_NC, 0)
+    train_mixed_2 = create_pairs(train_NC, train_AD, 0)
 
-    test_ad_ds = test_ad_ds.map(lambda x: x / 255.0)
+    print("Shuffling")
 
-    print(f"Loading NC test data")
-    test_nc_ds = tf.keras.utils.image_dataset_from_directory(
-        path + "/test/NC",
-        labels=None,
-        label_mode=None,
-        image_size=(60, 64),
-        batch_size=None,
-        seed=321,
-        color_mode="grayscale",
-        shuffle=True,
-    )
+    train = train_both_AD + train_both_NC + train_mixed_1 + train_mixed_2
+    np.random.shuffle(train)
 
-    test_nc_ds = test_nc_ds.map(lambda x: x / 255.0)
+    print("Creating numpy arrays")
+    train_X = np.array([t[0] for t in train])
+    train_y = np.array([t[1] for t in train])
 
-    print("Finished loading test data")
+    print("Loading testing data")
 
-    train_both_ad_ds = tf.data.Dataset.zip(
-        (
-            train_ad_ds.shuffle(train_ad_ds.cardinality()),
-            train_ad_ds.shuffle(train_ad_ds.cardinality()),
-        )
-    )
-    train_both_nc_ds = tf.data.Dataset.zip(
-        (
-            train_nc_ds.shuffle(train_nc_ds.cardinality()),
-            train_nc_ds.shuffle(train_nc_ds.cardinality()),
-        )
-    )
-    train_diff_ds = tf.data.Dataset.zip(
-        (
-            train_ad_ds.shuffle(train_ad_ds.cardinality()),
-            train_nc_ds.shuffle(train_nc_ds.cardinality()),
-        )
-    )
+    test_AD = load_jpegs_at_path(f"{path}/test/AD")
+    test_NC = load_jpegs_at_path(f"{path}/test/NC")
 
-    train_ds = (
-        train_both_ad_ds.concatenate(train_both_nc_ds)
-        .concatenate(train_diff_ds)
-        .shuffle(
-            train_both_ad_ds.cardinality()
-            + train_both_nc_ds.cardinality()
-            + train_diff_ds.cardinality()
-        )
-    )
-    to_take = round(0.2 * len(train_ds))
-    validate_ds = train_ds.take(to_take)
-    train_ds = train_ds.skip(to_take)
+    print("Creating pairs")
 
-    test_both_ad_ds = tf.data.Dataset.zip(
-        (
-            test_ad_ds.shuffle(train_ad_ds.cardinality()),
-            test_ad_ds.shuffle(train_ad_ds.cardinality()),
-        )
-    )
-    test_both_nc_ds = tf.data.Dataset.zip(
-        (
-            test_nc_ds.shuffle(train_nc_ds.cardinality()),
-            test_nc_ds.shuffle(train_nc_ds.cardinality()),
-        )
-    )
-    test_diff_ds = tf.data.Dataset.zip(
-        (
-            test_ad_ds.shuffle(train_ad_ds.cardinality()),
-            test_nc_ds.shuffle(train_nc_ds.cardinality()),
-        )
-    )
+    test_both_AD = create_pairs(test_AD, test_AD, 1)
+    test_both_NC = create_pairs(test_NC, test_NC, 1)
+    test_mixed_1 = create_pairs(test_AD, test_NC, 0)
+    test_mixed_2 = create_pairs(test_NC, test_AD, 0)
 
-    test_ds = (
-        test_both_ad_ds.concatenate(test_both_nc_ds)
-        .concatenate(test_diff_ds)
-        .shuffle(
-            test_both_ad_ds.cardinality()
-            + test_both_nc_ds.cardinality()
-            + test_diff_ds.cardinality()
-        )
-    )
+    print("Shuffling")
 
-    print("Finished loading dataset")
-    print("Train size:", len(train_ds))
-    print("Validation size:", len(validate_ds))
-    print("Test size:", len(test_ds))
+    test = test_both_AD + test_both_NC + test_mixed_1 + test_mixed_2
+    np.random.shuffle(test)
 
-    return train_ds.batch(32), validate_ds.batch(32), test_ds.batch(32)
+    test_X = np.array([t[0] for t in test])
+    test_y = np.array([t[1] for t in test])
+
+    num_validate = len(train_X) // 5
+
+    validate_X = train_X[:num_validate]
+    validate_y = train_y[:num_validate]
+
+    train_X = train_X[num_validate:]
+    train_y = train_y[num_validate:]
+
+    return train_X, train_y, validate_X, validate_y, test_X, test_y
