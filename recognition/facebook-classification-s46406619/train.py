@@ -14,22 +14,18 @@ def run_training(lr=0.02, num_epochs=100):
         optimizer.zero_grad() # clear gradients
         h, z = model(data.X, data.edges) # forward pass
         
-        # disregard all test labels from criterion
+        # keep only training elements
         y_train = data.y[data.train_split]
         z = z[data.train_split]
-#        for i in range(len(z)):
-#            if data.split[i] == 1: # remove all test elements
-#                z = torch.cat([z[0:i], z[i+1:]])
-#                y_train = torch.cat([y_train[0:i], y_train[i+1:]])
-
+        
         loss = criterion(z, y_train) # calculate loss
         acc = model.accuracy(y_train, z.argmax(dim=1)) # calculate accuracy
         loss.backward() # compute gradients
         optimizer.step() # tune parameters
         
         # print metrics every 5 epochs
-        if epoch % 5 == 0:
-            print(f'Epoch {epoch:>3} | Loss: {loss:.2f} | Acc: {acc*100:.2f}%')
+        if (epoch + 1) % 5 == 0:
+            print(f'Epoch {epoch + 1:>3} | Loss: {loss:.2f} | Acc: {acc*100:.2f}%')
 
     torch.save(model, 'model.pth')
 

@@ -10,10 +10,9 @@ data = load_data(quiet=True, train_split=model.train_split, test_split=model.tes
 # perform prediction on test set
 h, z = model(data.X, data.edges) # forward pass
 
-# disregard all training labels
+# keep only testing elements
 y_pred = data.y[data.test_split]
 z = z[data.test_split]
 
 acc = model.accuracy(y_pred, z.argmax(dim=1)) # calculate accuracy
 print('test accuracy:', acc.item())
-print('size of test set:', len(y_pred))
