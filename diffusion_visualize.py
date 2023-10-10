@@ -38,14 +38,16 @@ with torch.no_grad():
     print(normalized_latents.shape)
 
     # We only sample 6 images (and each images contain 32 idx)
-    sample_n = 1
+    sample_n = 6
     # Scaling
     for cur_idx in range(sample_n):
         cond = torch.arange(0, 32, device=DEVICE, dtype=torch.long)
         sample_latent = net.sample_with_cond((1, 8, 16, 16), cond, True)
 
-        with imageio.get_writer(f'ldm_{sample_n}.gif', mode="I",fps=30) as writer:
+        with imageio.get_writer(f'visualize/ldm_vis/ldm_{sample_n}.gif', mode="I",fps=30) as writer:
             for idx, cur_sample in tqdm(enumerate(sample_latent), total=len(sample_latent)):
+                if idx % 20 != 0:
+                    continue
                 cur_sample = cur_sample.to(DEVICE)
                 cur_sample = cur_sample * latents_std + latents_mean
                 quant, diff_loss, ind = vae.quantize(cur_sample)
