@@ -33,7 +33,7 @@ The end of epoch 4:
 Looks almost identical to the end of epoch 10:
 ![Epoch 10](doc/%5B10,10%5D%5B169,169%5Doutput.png)
 
-
+For future model applications, the number of epochs could likely be reduced to decrease training time without significantly impacting model performance.
 
 #### Loss Function - MSE
 The MSE (Mean Squared Error) loss function was used with mean reduction:
