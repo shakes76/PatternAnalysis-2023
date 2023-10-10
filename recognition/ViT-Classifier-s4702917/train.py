@@ -130,30 +130,30 @@ for epoch in range(numEpochs):
 
 			running_loss = 0.0
 
-			# if more than maxTrainTime seconds have passed since training started, exit out
-			# of all loops to prevent the training progress from being lost.
-			if time.time() - start > maxTrainTime:
-				break
-		
-		# Update validation accuracy list, do cutoff based on it, and add that info to the writer
-		validation_accuracies.append(validation_correct / validation_total)
-
-		writer.add_scalar("validation accuracy", validation_accuracies[-1], global_step=epoch * totalStep + i)
-		logger.info("Epoch [{}/{}], Validation Accuracy: {:.5f}"
-					.format(epoch+1, numEpochs, validation_accuracies[-1]))
-  
-		# If at least minEpochBeforeValidationCutoff epochs have been finished, and the average validation accuracy in
-		# the last validationEpochsToAverageOver epochs was less than the average accuracy of the previous
-		# validationEpochsToAverageOver, exit the training since the model is starting to overfit.
-		if epoch + 1 > minEpochBeforeValidationCutoff and \
-    		sum(validation_accuracies[-2*validationEpochsToAverageOver:-validationEpochsToAverageOver]) > \
-      		sum(validation_accuracies[:-validationEpochsToAverageOver]):
-			logger.info("Exiting early since accuracy on validation set has started dropping.")
-			break
-
+		# if more than maxTrainTime seconds have passed since training started, exit out
+		# of all loops to prevent the training progress from being lost.
 		if time.time() - start > maxTrainTime:
-			logger.info("Exiting early to prevent from running overtime.")
 			break
+		
+	# Update validation accuracy list, do cutoff based on it, and add that info to the writer
+	validation_accuracies.append(validation_correct / validation_total)
+
+	writer.add_scalar("validation accuracy", validation_accuracies[-1], global_step=epoch * totalStep + i)
+	logger.info("Epoch [{}/{}], Validation Accuracy: {:.5f}"
+				.format(epoch+1, numEpochs, validation_accuracies[-1]))
+
+	# If at least minEpochBeforeValidationCutoff epochs have been finished, and the average validation accuracy in
+	# the last validationEpochsToAverageOver epochs was less than the average accuracy of the previous
+	# validationEpochsToAverageOver, exit the training since the model is starting to overfit.
+	if epoch + 1 > minEpochBeforeValidationCutoff and \
+			sum(validation_accuracies[-2*validationEpochsToAverageOver:-validationEpochsToAverageOver]) > \
+				sum(validation_accuracies[:-validationEpochsToAverageOver]):
+		logger.info("Exiting early since accuracy on validation set has started dropping.")
+		break
+
+	if time.time() - start > maxTrainTime:
+		logger.info("Exiting early to prevent from running overtime.")
+		break
 	
 	# reduce the learning rate each epoch.
 	scheduler.step()
