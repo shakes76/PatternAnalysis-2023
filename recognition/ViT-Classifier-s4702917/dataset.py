@@ -21,7 +21,6 @@ class SquarePad:
 transform = transforms.Compose(
 	[transforms.ToTensor(),
 	SquarePad(),
- 	transforms.Resize(),
 	transforms.Normalize((0.5,), (0.5,))])
 
 # datasets
