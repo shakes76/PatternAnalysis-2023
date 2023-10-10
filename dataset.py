@@ -97,7 +97,7 @@ class MyDataset(torch.utils.data.Dataset):
 __DATASET__ = {}
 
 def get_dataloader(mode='train', batch_size=8, limit=None):
-    assert mode in ['train', 'test', 'validate', 'train_and_validate']
+    assert mode in ['train', 'test', 'validate', 'train_and_validate', 'all']
     # To some issue, we may call get_dataloader twice.
     if (mode, limit) in __DATASET__:
         print("Call multiple times get_dataloader on same dataset. Reuse dataset")
@@ -107,6 +107,12 @@ def get_dataloader(mode='train', batch_size=8, limit=None):
         train_dataset = MyDataset(mode='train', limit=limit)
         validate_dataset = MyDataset(mode='validate', limit=limit)
         dataset = torch.utils.data.ConcatDataset([train_dataset, validate_dataset])
+    elif mode =='all':
+        # Build concat dataset
+        train_dataset = MyDataset(mode='train', limit=limit)
+        validate_dataset = MyDataset(mode='validate', limit=limit)
+        test_dataset = MyDataset(mode='test', limit=limit)
+        dataset = torch.utils.data.ConcatDataset([train_dataset, validate_dataset, test_dataset])
     else:
         dataset = MyDataset(mode=mode, limit=limit)
         
