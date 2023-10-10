@@ -59,7 +59,7 @@ class ADNI_Dataset:
             transform_method = transforms.Compose([
             transforms.ToTensor(),
             transforms.CenterCrop(240),
-            transforms.Grayscale(num_output_channels=3),
+            transforms.Grayscale(num_output_channels=1),
             transforms.Normalize((0.1232,), (0.2308,))
             ])
             

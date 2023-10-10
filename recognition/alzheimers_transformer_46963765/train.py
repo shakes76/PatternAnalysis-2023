@@ -15,7 +15,7 @@ def train(epochs, depth):
 
     dataset = ds.ADNI_Dataset()
     train_loader = dataset.get_train_loader()
-    optimizer = optim.Adam(model.parameters(), 0.005)
+    optimizer = optim.Adam(model.parameters(), 0.05)
     criterion = nn.BCELoss()
     batch_losses = []
 
@@ -30,7 +30,6 @@ def train(epochs, depth):
                 images = images.to(device)
                 labels = labels.to(device)
                 outputs = model(images)
-                
                 loss = criterion(outputs.squeeze().to(torch.float), labels.to(torch.float))
                 loss.backward()
                 optimizer.step()
@@ -45,7 +44,7 @@ def train(epochs, depth):
 
 
 if __name__ == "__main__":
-    epochs = 75
+    epochs = 0
     depth = 2
     
     model, losses = train(epochs, depth)

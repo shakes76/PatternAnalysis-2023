@@ -28,11 +28,11 @@ def test_accuracy(model):
 
             images = images.to(device) 
             labels = labels.to(device)
-            
-            outputs = model(images)
-            predictions = (outputs >= 0.5).squeeze().long()
+            outputs = model(images).squeeze()
+            predictions = (outputs >= 0.5).long()
             correct_predictions += (predictions == labels).sum().item()
             total_samples += labels.size(0)
 
+
     accuracy = correct_predictions / total_samples
-    return accuracy
+    return accuracy*100
