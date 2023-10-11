@@ -1,6 +1,5 @@
 from torchvision import datasets, transforms
 from torch.utils.data import Dataset
-import torch
 import torch.nn as nn
 
 # Image size and batch size

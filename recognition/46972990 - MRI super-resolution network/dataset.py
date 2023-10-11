@@ -1,7 +1,8 @@
 import os
 from modules import SuperResolutionDataset
+import torch
 from torchvision import transforms
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 import matplotlib.pyplot as plt
 
 # Paths to the images
@@ -11,10 +12,19 @@ TEST_PATH = os.path.join(BASE_PATH, "test")
 
 BATCH_SIZE = 32
 
-def get_train_loader():
-    dataset = SuperResolutionDataset(TRAIN_PATH)
-    data_loader = DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
-    return data_loader
+def get_train_and_validation_loaders():
+    full_dataset = SuperResolutionDataset(TRAIN_PATH)
+    total_size = len(full_dataset)
+    train_size = int(0.8 * total_size) #80% train and 20% validation
+    val_size = total_size - train_size
+
+    torch.manual_seed(42)
+    
+    train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size])
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    validation_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    
+    return train_loader, validation_loader
 
 def get_test_loader():
     dataset = SuperResolutionDataset(TEST_PATH)
@@ -22,7 +32,7 @@ def get_test_loader():
     return data_loader
 
 # Get the train and test loaders
-train_loader = get_train_loader()
+train_loader, validation_loader = get_train_and_validation_loaders()
 test_loader = get_test_loader()
 
 # Extract a single batch from the train loader
