@@ -13,8 +13,8 @@ In terms of cost-effectiveness, generating synthetic brain images reduces the ne
 # Project Structure
 - `modules.py`: The Generator and Discriminator networks as well as the layers and block that make them up. 
 - `dataset.py`: Data loader and preprocessing for the OASIS brain dataset, performing augmentation.
-- `train.py`: Training process of for the generator and discriminator networks and the loss calculations and optimization.
-- `predict.py`: Use of the model and display of the progress of the loss for both networks and generated images. 
+- `train.py`: Training process of for the generator and discriminator networks, saving of models and graphing loss.
+- `predict.py`: Loading models to generate images with different style vectors
 
 
 
