@@ -83,3 +83,6 @@ class Decoder(nn.Module):
         x1 = torch.cat((x1, x2), dim=1)  # add shortcut layer and input layer together
         x1 = self.conv_relu(x1)
         return x1
+
+
+unet = UNet3D().to(device)
