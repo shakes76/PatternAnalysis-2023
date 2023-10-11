@@ -19,10 +19,9 @@ In terms of cost-effectiveness, generating synthetic brain images reduces the ne
 
 
 # How to Use
-In order to run this model on the OASIS dataset and see the generated images, you can run the predict.py file.
-This file imports the necessary dataset, modules and training process from the dataset.py, modules.py and train.py files respectively.
-It trains the model on the OASIS dataset and then provides the loss for each epoch as well as the generated images. After the training
-is complete it plots a graph of the losses of the generator and discriminator networks over time to show that they begin to converge. 
+In order to run this model on the OASIS dataset and see the generated images, you can run the train.py file. This file imports the necessary dataset, modules from the dataset.py, modules.py files respectively. It trains the model on the OASIS dataset saves the models state every 20 epochs to be used for generation later. After the training is complete it plots a graph of the losses of the generator and discriminator networks over time to show that they begin to converge. 
+
+In order to generate the sample images you can run the predict.py file which imports everything from train.  It will load each of the saved models and generate 20 images for each with 5 different style vectors. 
 
 
 
