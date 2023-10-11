@@ -51,7 +51,7 @@ def main():
     dice_loss = DiceLoss()
     optimizer = torch.optim.Adam(unet.parameters())
 
-    epoch = 30
+    epoch = 1
     loss_list = []
     valid_dsc_list = []
     test_dsc_list = []
@@ -59,6 +59,7 @@ def main():
     ag = Augment()
 
     # train loop
+    print("Training Begin")
     for i in range(epoch):
         unet.train()
         for index, data in enumerate(trainloader, 0):
@@ -89,11 +90,10 @@ def main():
         val_loss /= num_batches
         dice_all /= num_batches
         loss_list.append(val_loss)
-        valid_dsc_list.append(dice_all)
+        valid_dsc_list.append(dice_all.item())
+        print('Epoch'+str(i)+'Finished', flush=True)
         print(f"Avg loss: {val_loss:>8f}", flush=True)
-        print(f"DSC: {dice_all:>8f} \n", flush=True)
-
-        print('One Epoch Finished', flush=True)
+        print(f"Valid DSC: {dice_all:>8f}", flush=True)
         torch.save(unet.state_dict(), 'net_paras.pth')
 
         # run on test set after the train is finished
@@ -109,8 +109,8 @@ def main():
                 pred = unet(X)
                 dice_all += (1 - dice_loss(pred, y))
         dice_all = dice_all / num_batches
-        test_dsc_list.append(dice_all)
-        print(f"Dice: \n DSC: {dice_all:>8f} \n", flush=True)
+        test_dsc_list.append(dice_all.item())
+        print(f"Test DSC: {dice_all:>8f} \n", flush=True)\
 
     np.save('valid_loss.npy', loss_list)
     np.save('valid.npy', valid_dsc_list)
