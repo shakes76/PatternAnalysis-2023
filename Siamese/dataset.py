@@ -19,8 +19,8 @@ class ADNIDataset(Dataset):
         self.nc_images = [self.transform(Image.open(os.path.join(self.nc_path, img))) for img in
                           os.listdir(self.nc_path)]
 
-        self.ad_images = torch.stack(self.ad_images).unsqueeze(1)
-        self.nc_images = torch.stack(self.nc_images).unsqueeze(1)
+        self.ad_images = torch.stack(self.ad_images)
+        self.nc_images = torch.stack(self.nc_images)
 
 
     def __len__(self):
