@@ -104,13 +104,13 @@ def main():
   model.eval()
 
   #Load dataset
-  test_data =MoleData("/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Test_v2_Data",
-    "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Test_v2_Part1_GroundTruth",
-    "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Test_v2_Part3_GroundTruth.csv",
+  val_data =MoleData("/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Validation_Data",
+    "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Validation_Part1_GroundTruth",
+    "/content/drive/MyDrive/ColabNotebooks/ISIC-2017-DATA/ISIC-2017_Validation_Part3_GroundTruth (1).csv",
     )
-  test_data = torch.utils.data.Subset(test_data, range(100))
-  test_dataloader = torch.utils.data.DataLoader(
-      test_data,
+  val_data = torch.utils.data.Subset(val_data, range(100))
+  val_dataloader = torch.utils.data.DataLoader(
+      val_data,
       batch_size=1,
       shuffle=True,
       collate_fn=lambda x:tuple(zip(*x)),
@@ -118,7 +118,7 @@ def main():
 
   accuracy = []
   iou = []
-  for index, data in enumerate(test_data):
+  for index, data in enumerate(val_data):
     image, target = data
     predictions = model([image])
     temp_correct, temp_iou = evaluate_single_sample(image,target, predictions)
