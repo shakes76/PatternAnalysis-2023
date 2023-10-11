@@ -17,7 +17,7 @@ from skimage.metrics import structural_similarity as ssim
 
 # Constants
 BATCH_SIZE = 32
-N_EPOCHS = 60
+N_EPOCHS = 300
 BEST_EPOCH = 0
 PRINT_INTERVAL = 100
 DATASET_PATH = './OASIS'
@@ -256,6 +256,26 @@ def validate():
     
     return np.asarray(val_loss).mean(0), avg_ssim  # return SSIM score and loss
 
+def test():
+    model.eval()  # Switch to evaluation mode
+    ssim_accum = 0.0  # Accumulator for SSIM scores
+    batch_count = 0   # Counter for batches
+    with torch.no_grad():  # No gradient required for testing
+        for batch_idx, (x, _) in enumerate(test_loader):
+            x = x.to(DEVICE)
+            x_tilde, _, _ = model(x)
+            # Compute SSIM for the current batch and accumulate
+            ssim_accum += compute_ssim(x, x_tilde)
+            batch_count += 1
+    # Calculate the average SSIM for all batches
+    avg_ssim = ssim_accum / batch_count
+    # print average ssim score for the test set
+    print(f"Average Test SSIM: {avg_ssim:.4f}")
+    return avg_ssim  # return SSIM score
+
+
+
+
 def generate_samples(epoch):
     model.eval()  # make sure model is in eval mode
     x, _ = next(iter(test_loader)) # x, _ = test_loader.__iter__().next()
@@ -304,7 +324,7 @@ BEST_METRIC = -999  # initial value for the combination metric
 BEST_SSIM = 0  # just for logging purposes
 BEST_RECONS_LOSS = 999  # just for logging purposes
 
-save_interval = 5
+save_interval = 10
 
 train_losses = []
 val_losses = []
@@ -312,10 +332,11 @@ ssim_scores = []
 
 for epoch in range(1, N_EPOCHS):
     print(f"Epoch {epoch}:")
-    train()
+    train_loss = train()
     
     # Modify this line to unpack both loss and SSIM
     val_loss, val_ssim = validate()
+    test_ssim = test()
     # Calculate the combined metric
     combined_metric = ALPHA * val_ssim + BETA * (1 - val_loss[0])  # assuming lower reconstruction loss is better, thus the (1 - val_loss[0])
 
@@ -328,7 +349,8 @@ for epoch in range(1, N_EPOCHS):
         dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
         # Save model and generate samples every 10 epochs
         BEST_EPOCH = epoch
-        torch.save(model.state_dict(), f'samples/checkpoint_epoch{epoch}_vqvae.pt') 
+        if epoch % save_interval == 0:
+            torch.save(model.state_dict(), f'samples/checkpoint_epoch{epoch}_vqvae.pt') 
     else:
         print(f"Not saving model! Last best combined metric: {BEST_METRIC:.4f}, SSIM: {BEST_SSIM:.4f}, Reconstruction Loss: {BEST_RECONS_LOSS:.4f}")
 
