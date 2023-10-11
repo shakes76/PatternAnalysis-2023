@@ -1,31 +1,48 @@
 import glob
 import torch
-from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
-import nibabel as nib
+import torchvision.transforms as transforms
 
 
-class Prostate_3D(Dataset):
-    def __init__(self, data_img_dir, label_img_dir, transform=None, target_transform=None):
-        self.data_img_path = glob.glob(data_img_dir + '*.nii.gz')
-        self.label_img_path = glob.glob(label_img_dir + '*.nii.gz')
-        #self.data = nib.load(self.data_img_path).get_fdata()
-        #self.label = nib.load(self.label_img_path).get_fdata()
-        self.transform = transform
-        self.target_transform = target_transform
+class NiiImageLoader(DataLoader):
+    def __init__(self, image_path, mask_path):
+        self.inputs = []
+        self.masks = []
+        # retrieve path from dataset
+        for f in sorted(glob.iglob(image_path)):
+            self.inputs.append(f)
+        for f in sorted(glob.iglob(mask_path)):
+            self.masks.append(f)
+        self.to_tensor = transforms.ToTensor()
 
     def __len__(self):
-        return len(self.label_img_path)
+        return len(self.inputs)
 
+    # open files
     def __getitem__(self, idx):
-        data = torch.from_numpy(nib.load(self.data_img_path[idx]).get_fdata()).unsqueeze(0)
-        label = torch.from_numpy(nib.load(self.label_img_path[idx]).get_fdata()).unsqueeze(0)
-        if self.transform:
-            data = self.transform(data)
-        if self.target_transform:
-            label = self.target_transform(label)
-        return data, label
+        image_p = self.inputs[idx]
+        mask_p = self.masks[idx]
 
-dataset = Prostate_3D(data_img_dir="/home/groups/comp3710/HipMRI_Study_open/semantic_MRs/",
-            label_img_dir="/home/groups/comp3710/HipMRI_Study_open/semantic_labels_only/")
-dataloader = DataLoader(dataset, batch_size=1, shuffle=True)
+        image = nibabel.load(image_p)
+        image = np.asarray(image.dataobj)
+
+        mask = nibabel.load(mask_p)
+        mask = np.asarray(mask.dataobj)
+
+        image = self.to_tensor(image)
+        image = image.unsqueeze(0)
+        image = image.data
+
+        mask = self.to_tensor(mask)
+        mask = mask.unsqueeze(0)
+        mask = mask.data
+
+        return image, mask
+
+
+# # load the dataset
+dataset = NiiImageLoader("/home/groups/comp3710/HipMRI_Study_open/semantic_MRs/*",
+                         "/home/groups/comp3710/HipMRI_Study_open/semantic_labels_only/*")
+
+# split the dataset
+trainloader, valloader, testloader = torch.utils.data.random_split(dataset, [179, 16, 16])
