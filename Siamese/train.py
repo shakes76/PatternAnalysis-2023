@@ -21,7 +21,7 @@ def train(model, dataloader, device, optimizer, epoch):
         optimizer.step()
 
         print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-            epoch, batch_idx * len(images_1), len(dataloader.dataset),
+            epoch, batch_idx * len(images_1), len(dataloader),
                    100. * batch_idx / len(dataloader), loss.item()))
 
 
