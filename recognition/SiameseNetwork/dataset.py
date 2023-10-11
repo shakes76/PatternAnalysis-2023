@@ -4,7 +4,7 @@ import os
 import random
 import torch
 import torchvision.transforms as transforms
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
 device = torch.device('cuda')
@@ -37,7 +37,7 @@ class CustomDataset(Dataset):
 
 
     def __len__(self):
-        return 2 * min(len(self.AD_names), len(self.NC_names))
+        return 2 * min(len(self.ad_names), len(self.nc_names))
 
     def __getitem__(self, index):
 
@@ -102,3 +102,26 @@ def compute_mean_std(img_folder):
     std = torch.sqrt((sum_px_sq / num_px) - (mean ** 2))
 
     return mean.item(), std.item()
+
+# a function to load all required data
+def load_data(train_folder_path, train_ad_path, train_nc_path, test_ad_path, test_nc_path, batch_size=32):
+    # calculate mean and std for train set
+    mean, std = compute_mean_std(train_folder_path)
+
+    # define transform
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.Normalize((mean,), (std,))
+    ])
+
+    # create dataset
+    train_set = CustomDataset(ad_dir=train_ad_path, nc_dir=train_nc_path, transform=transform, validate=False, split_ratio=0.8)
+    validation_set = CustomDataset(ad_dir=train_ad_path, nc_dir=train_nc_path, transform=transform, validate=True, split_ratio=0.8)
+    test_set = CustomDataset(ad_dir=test_ad_path, nc_dir=test_nc_path, transform=transform, validate=False, split_ratio=1)
+
+    # create dataloader
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
+    validation_loader = DataLoader(validation_set, batch_size=batch_size, shuffle=False)
+    test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False)
+
+    return train_loader, validation_loader, test_loader
