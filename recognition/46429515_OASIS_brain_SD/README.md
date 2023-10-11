@@ -17,15 +17,28 @@ This diffusion model will be using a U-Net for the backwards process.
 * Numpy: `>=1.24.3`
 * Pillow (PIL): `>=10.0.0`
 * Torchvision: `>=0.15.2`
-* Matplotlib: `>=3.7.2`
 
 
 ## Usage Example
 
-### Stable Diffusion Generating Outcomes
-> link to images here (predict.py images in a folder into github)
+### Stable Diffusion Generating Outcomes - predict.py
+The images generated from the noisy image inputs (images that came from epoch 0 of training with learning rate of 0.001) have resulted in images that look more like details of a brain rather than the entire shape of a brain itself. Reasons for this may be because of the training, possibly meaning that the model has not trained enough to learn the defining shape of a brain.
 
 ![generated image 1](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_0.png) ![generated image 2](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_1.png) ![generated image 3](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_2.png) ![generated image 4](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_3.png) ![generated image 5](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_4.png) ![generated image 6](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_5.png) ![generated image 7](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_6.png) ![generated image 8](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_7.png) ![generated image 9](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_8.png) ![generated image 10](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_9.png) 
+
+In this file, the parameters of the saved model is loaded into a newly instanced model. 
+
+The preprocessing done on the input images is simply a resizing and normalizing:
+
+```python
+preprocess = transforms.Compose([
+    transforms.Resize((utils.IMAGE_SIZE, utils.IMAGE_SIZE)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.5], std=[0.5]),
+])
+```
+
+The saving of the generated images is done similarly for training images which can be found in the code.
 
 
 ### Dataset Creation - dataset.py
@@ -92,6 +105,8 @@ loss.backward()
 
 In this model, the loss function is simply using the L1 loss (Mean Absolute Squared) where the loss is calculated based on the noise and the predicted noise obtained from the sampled noise and backwards process noise respectively.
 
+\[ \frac{1}{n} \sum | \text{noise} - \text{predicted noise} | \]
+
 The get_loss function can be found in utils.py in the train.py section.
 
 ### Sampling - train.py
@@ -137,6 +152,8 @@ The Adam optimizer is a popular choice for deep learning modules as it adapts le
 
 The batch size was sized to be 32 as the provided OASIS dataset have been sliced into 32 per case. The image size has been selected to be 128x128 as 64x64 is considered to be too small for proper clarity of the image outputs and 256x256 may be too big for some of the images from the dataset provided, thus possibly adding inaccuracy to the model.
 
+The number of discrete steps, T, was set to be 500, as it would provide a finer control over denoising process while not taking too long for the model to be trained compared to 200 where it was faster but of lower quality denoising, and 1000, where it would have a higher quality denoising but slower computational complexitity.
+
 
 ## Future Direction
 
@@ -145,10 +162,9 @@ There are multiple ways that this stable diffusion model from scratch can be imp
 * Changing from simple UNet to other models such as ResNet or Conditional U-Nets
 * Change the beta schedule equation used (sinusoidal, etc.)
 * Improve accuracy of the model by applying different transformations to the initial images
+* Obtain generated images that result in the shape of a brain with its details
 
 
 ## References
-
-### Code referenced from:
 * https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL (Heavily Referenced)
 * https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/annotated_diffusion.ipynb
