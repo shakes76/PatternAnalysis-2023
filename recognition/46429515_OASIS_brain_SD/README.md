@@ -200,5 +200,5 @@ There are multiple ways that this stable diffusion model from scratch can be imp
 
 
 ## References
-* https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL (Heavily Referenced)
-* https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/annotated_diffusion.ipynb
+* [A Diffusion Model from Scratch in Pytorch](https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL) (Heavily Referenced)
+* [The Annotated Diffusion Model](https://colab.research.google.com/github/huggingface/notebooks/blob/main/examples/annotated_diffusion.ipynb)
