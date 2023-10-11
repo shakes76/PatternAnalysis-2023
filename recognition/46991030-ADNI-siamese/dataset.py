@@ -31,11 +31,21 @@ def create_pairs(x1, x2, label):
 
 def load_dataset(
     path: str,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+) -> tuple[
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+]:
     """
     Loads the ADNI dataset from the given path
     :param path: Path to the dataset
-    :return train_X, train_y, validate_X, validate_y, test_X, test_y
+    :return train_X1, train_X2, train_y, validate_X1, validate_X2, validate_y, test_X1, test_X2, test_y
     """
     print("Loading dataset")
 
@@ -46,10 +56,10 @@ def load_dataset(
 
     print("Creating pairs")
 
-    train_both_AD = create_pairs(train_AD, train_AD, 1)
-    train_both_NC = create_pairs(train_NC, train_NC, 1)
-    train_mixed_1 = create_pairs(train_AD, train_NC, 0)
-    train_mixed_2 = create_pairs(train_NC, train_AD, 0)
+    train_both_AD = create_pairs(train_AD, train_AD, 0)
+    train_both_NC = create_pairs(train_NC, train_NC, 0)
+    train_mixed_1 = create_pairs(train_AD, train_NC, 1)
+    train_mixed_2 = create_pairs(train_NC, train_AD, 1)
 
     print("Shuffling")
 
@@ -67,10 +77,10 @@ def load_dataset(
 
     print("Creating pairs")
 
-    test_both_AD = create_pairs(test_AD, test_AD, 1)
-    test_both_NC = create_pairs(test_NC, test_NC, 1)
-    test_mixed_1 = create_pairs(test_AD, test_NC, 0)
-    test_mixed_2 = create_pairs(test_NC, test_AD, 0)
+    test_both_AD = create_pairs(test_AD, test_AD, 0)
+    test_both_NC = create_pairs(test_NC, test_NC, 0)
+    test_mixed_1 = create_pairs(test_AD, test_NC, 1)
+    test_mixed_2 = create_pairs(test_NC, test_AD, 1)
 
     print("Shuffling")
 
@@ -80,7 +90,7 @@ def load_dataset(
     test_X = np.array([t[0] for t in test])
     test_y = np.array([t[1] for t in test])
 
-    num_validate = len(train_X) // 5
+    num_validate = len(train_X) // 5  # 20% split
 
     validate_X = train_X[:num_validate]
     validate_y = train_y[:num_validate]
@@ -88,4 +98,14 @@ def load_dataset(
     train_X = train_X[num_validate:]
     train_y = train_y[num_validate:]
 
-    return train_X, train_y, validate_X, validate_y, test_X, test_y
+    return (
+        train_X[:, 0],
+        train_X[:, 1],
+        train_y.astype(np.float32),
+        validate_X[:, 0],
+        validate_X[:, 1],
+        validate_y.astype(np.float32),
+        test_X[:, 0],
+        test_X[:, 1],
+        test_y.astype(np.float32),
+    )
