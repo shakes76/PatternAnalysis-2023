@@ -27,3 +27,12 @@ def load_images(dir_path=data_directory, label_mapping=label_mapping):
     Images, Labels = shuffle(Images, Labels, random_state=0)
 
     return Images, Labels
+def preprocess_data(Images, Labels):
+    Images = Images / 255.0
+    Labels = to_categorical(Labels, num_labels)
+    return Images, Labels
+
+def load_and_preprocess_data():
+    Images, Labels = load_images()
+    Images, Labels = preprocess_data(Images, Labels)
+    return Images, Labels
