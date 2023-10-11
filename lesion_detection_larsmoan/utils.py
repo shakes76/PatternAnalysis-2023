@@ -16,3 +16,7 @@ def get_data_dir():
         )
     p = Path(path)
     return p
+
+
+if __name__ == "__main__":
+    print(get_data_dir())
