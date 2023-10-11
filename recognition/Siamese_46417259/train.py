@@ -147,9 +147,12 @@ def train_classifier_one_epoch(model: nn.Module,
         # forward pass
         x = x.to(device)
         label = label.to(device)
+        label = label.float()
 
         optimiser.zero_grad()
         out = model(x)
+        out = out.view(-1)
+
         loss = criterion(out, label)
 
         # Backward and optimize
@@ -182,7 +185,10 @@ def eval_classifier_one_epoch(model: nn.Module,
         for images, labels in test_loader:
             images = images.to(device)
             labels = labels.to(device)
+            labels = labels.float()
+
             outputs = model(images)
+            outputs = outputs.view(-1)
 
             loss = criterion(outputs, labels)
             total_loss += loss.item()

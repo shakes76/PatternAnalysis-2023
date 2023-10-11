@@ -65,7 +65,8 @@ class SiameseMLP(nn.Module):
             nn.ReLU(),
             nn.Linear(128, 16),
             nn.ReLU(),
-            nn.Linear(16, 1)
+            nn.Linear(16, 1),
+            nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -99,10 +100,24 @@ def test_entire_net():
 def test_mlp():
     backbone = SiameseTwin()
     mlp = SiameseMLP(backbone)
-    input1 = torch.rand(2, 3, 240, 256)
+    input1 = torch.rand(2, 3, 240, 240)
     out = mlp(input1)
     print(out.shape)
     print(out)
+
+    out = out.view(-1)
+    print(out.shape)
+    print(out)
+
+    criterion = nn.BCELoss()
+    label = torch.tensor([0, 0]).to(torch.float32)
+    loss = criterion(out, label)
+    print(loss)
+
+    # input = torch.randn(3, 2, requires_grad=True)
+    # target = torch.rand(3, 2, requires_grad=False)
+    # loss = F.binary_cross_entropy(torch.sigmoid(input), target)
+    # print(loss)
 
 
 if __name__ == "__main__":
