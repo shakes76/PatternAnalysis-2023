@@ -42,7 +42,7 @@ The performance of the model was evaluated with the Dice Similarity Coefficient 
 
 ## Training & Validation: DSC and Loss Plots
 
-./recognition/plots/ValidationSegmentsEpoch1.png
+![ValidationSegEpoch1Plot](./recognition/plots/ValidationSegmentsEpoch1.png)
 
 ## Training & Validation Visuals
 
