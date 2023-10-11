@@ -33,17 +33,17 @@ class RawSiameseModel(nn.Module):
             nn.Sigmoid()
         )
 
-        self.apply(self._init_weights)
+    #     self.apply(self._init_weights)
     
-    def _init_weights(self, module):
-        if isinstance(module, nn.Conv2d):
-            module.weight.data.normal_(mean=0.0, std=1e-2)
-            if module.bias is not None:
-                module.bias.data.normal_(mean=0.5, std=1e-2)
-        elif isinstance(module, nn.Linear):
-            module.weight.data.normal_(mean=0.0, std=2e-1)
-            if module.bias is not None:
-                module.bias.data.normal_(mean=0.5, std=1e-2)
+    # def _init_weights(self, module):
+    #     if isinstance(module, nn.Conv2d):
+    #         module.weight.data.normal_(mean=0.0, std=1e-2)
+    #         if module.bias is not None:
+    #             module.bias.data.normal_(mean=0.5, std=1e-2)
+    #     elif isinstance(module, nn.Linear):
+    #         module.weight.data.normal_(mean=0.0, std=2e-1)
+    #         if module.bias is not None:
+    #             module.bias.data.normal_(mean=0.5, std=1e-2)
 
     def forward(self, x):
         output = self.model1(x)
@@ -77,14 +77,24 @@ class SiameseModel(nn.Module): # may not need this
 
 class BinaryModelClassifier(nn.Module):
 
-    def __init__(self, siamese_model):
+    def __init__(self):
         super(BinaryModelClassifier, self).__init__()
 
         # dummy linear layer
         self.binary_layer = nn.Sequential(
-            nn.Linear(4096, 128),
+            nn.Linear(4096, 2048),
             nn.ReLU(),
-            nn.Linear(128, 1),
+            nn.Linear(2048, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 512),
+            nn.ReLU(),
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 1),
             nn.Sigmoid()
         )
 
@@ -99,7 +109,7 @@ class ContrastiveLossFunction(nn.Module):
         self.margin = 0.2
 
     def forward(self, output1, output2, label): 
-        output = torch.abs(output1 - output2)
+        output = F.pairwise_distance(output1, output2)
         loss_contrastive = torch.mean((1-label) * torch.pow(output, 2) + (label) * torch.pow(torch.clamp(self.margin - output, min=0.0), 2))
 
         return loss_contrastive
