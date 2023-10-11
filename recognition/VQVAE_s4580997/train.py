@@ -106,7 +106,7 @@ class TrainVQVAE() :
 
     def save(self, newpath = None) -> None :
         if newpath :
-            torch.save(self.model.state_dict(), newpath + '/vqvae.pth')
+            torch.save(self.model.state_dict(), newpath)
         else :
             torch.save(self.model.state_dict(), self.savepath + '/vqvae.pth')
 
@@ -187,10 +187,10 @@ class TrainGAN() :
         else :
             plt.show()
     
-    def save(self, newpath = None) -> None :
-        if newpath :
-            torch.save(self.gan.discriminator.state_dict(), newpath)
-            torch.save(self.gan.generator.state_dict(), newpath)
+    def save(self, discriminator_path = None, generator_path = None) -> None :
+        if discriminator_path and generator_path :
+            torch.save(self.gan.discriminator.state_dict(), discriminator_path)
+            torch.save(self.gan.generator.state_dict(), generator_path)
         else :
             torch.save(self.gan.discriminator.state_dict(), self.savepath + '/generator.pth')
             torch.save(self.gan.generator.state_dict(), self.savepath + '/discriminator.pth')

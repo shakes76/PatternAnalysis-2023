@@ -6,9 +6,9 @@ class Predict() :
     def __init__(self, path, input, n = 16, savepath = './') :
         self.path = path
         self.savepath = savepath
-        self.model = torch.load(self.path)
+        model = torch.load(self.path)
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model = self.model.to(self.device)
+        self.model = model.to(self.device)
         self.model.eval()
         self.output = None
         self.input = input
