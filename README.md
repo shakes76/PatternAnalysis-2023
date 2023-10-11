@@ -7,8 +7,6 @@ The following is a solution which segments the ISIC data set using an improved U
 ## ISIC Dataset
 The ISIC dataset consists of lesion images and their corresponding masks. We are able to download the test, training and validation set (2017) from the ISIC website
 
-[INSERT MASKS]
-
 ### Data Preprocessing
 To process the images, all images were converted from a PIL image to a tensor and then cropped to a size of 128 x 128 in order to be run in the network and reduce training and inference time (all images had to be of same size). The lesion images were kept as RGB while the masks were made greyscale. 
 
@@ -44,7 +42,7 @@ The performance of the model was evaluated with the Dice Similarity Coefficient 
 
 ## Training & Validation: DSC and Loss Plots
 
-[INSERT IMAGES]
+./recognition/plots/ValidationSegmentsEpoch1.png
 
 ## Training & Validation Visuals
 
