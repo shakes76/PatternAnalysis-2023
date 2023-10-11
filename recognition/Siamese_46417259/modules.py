@@ -48,12 +48,16 @@ class SiameseNeuralNet(nn.Module):
         out = F.sigmoid(self.fc(out))
         return out, x1_features, x2_features
     
+    def get_backbone(self):
+        return self.backbone
+    
 class SiameseMLP(nn.Module):
     
     def __init__(self, backbone: SiameseTwin) -> None:
         super(SiameseMLP, self).__init__()
         
         self.backbone = backbone
+        self.backbone.eval()
         self.mlp = nn.Sequential(
             nn.Linear(4096, 1024),
             nn.ReLU(),
@@ -66,7 +70,9 @@ class SiameseMLP(nn.Module):
 
     def forward(self, x):
         # get the feature vector from the siamese twin
-        out = self.backbone(x) # size [{batch_size}, 4096]
+        self.backbone.eval()
+        with torch.no_grad():
+            out = self.backbone(x) # size [{batch_size}, 4096]
         out = self.mlp(out)
         return out
 

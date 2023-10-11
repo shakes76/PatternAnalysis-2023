@@ -134,6 +134,71 @@ def eval_siamese_one_epoch(model: nn.Module,
 
     return total_loss, mean_loss, elapsed
 
+def train_classifier_one_epoch(model: nn.Module,
+                                criterion: nn.Module,
+                                optimiser: optim.Optimizer,
+                                device: torch.device,
+                                train_loader: torch.utils.data.DataLoader):
+    model.train()
+    start = time.time()
+    num_batches = len(train_loader)
+    total_loss = 0.0
+    for i, (x, label) in enumerate(train_loader, 0):
+        # forward pass
+        x = x.to(device)
+        label = label.to(device)
+
+        optimiser.zero_grad()
+        out = model(x)
+        loss = criterion(out, label)
+
+        # Backward and optimize
+        loss.backward()
+        optimiser.step()
+
+        if (i+1) % 100 == 0:
+            print(f"Step [{i+1}/{len(train_loader)}] Loss: {loss.item()}")
+
+        total_loss += loss.item()
+
+    mean_loss = total_loss / num_batches
+    end = time.time()
+    elapsed = end - start
+
+    return total_loss, mean_loss, elapsed
+
+def eval_classifier_one_epoch(model: nn.Module,
+                                criterion: nn.Module,
+                                device: torch.device,
+                                test_loader: torch.utils.data.DataLoader):
+    model.eval()
+    start = time.time()
+    num_batches = len(test_loader)
+    total_loss = 0.0
+    with torch.no_grad(): # disables gradient calculation
+        correct = 0
+        total = 0
+        total_loss = 0.0
+        for images, labels in test_loader:
+            images = images.to(device)
+            labels = labels.to(device)
+            outputs = model(images)
+
+            loss = criterion(outputs, labels)
+            total_loss += loss.item()
+
+            predicted = torch.round(outputs)
+            # _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+        print('Test Accuracy: {} %'.format(100 * correct / total))
+        mean_loss = total_loss / num_batches
+    end = time.time()
+    elapsed = end - start
+
+    return total_loss, mean_loss, elapsed
+
 def test_loss():
     cont_loss = ContrastiveLoss()
     input1 = torch.rand(2, 4096)
@@ -157,7 +222,7 @@ if __name__ == "__main__":
     training_losses = []
     eval_losses = []
 
-    print('starting main training and validation loop')
+    print('starting training and validation loop for Siamese backbone')
     start = time.time()
 
     for epoch in range(starting_epoch, num_epochs):
@@ -174,17 +239,57 @@ if __name__ == "__main__":
     end = time.time()
     elapsed = end - start
     print("Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
-    
-    print('END')
 
     plt.figure(figsize=(10,5))
     plt.title("Training and Evaluation Loss During Training")
     plt.plot(training_losses, label="Train")
     plt.plot(eval_losses, label="Eval")
-    plt.xlabel("iterations")
+    plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig(RESULTS_PATH + f"train_and_eval_loss_after_{num_epochs}_epochs_2.png")
+    plt.savefig(RESULTS_PATH + f"Siamese_train_and_eval_loss_after_{num_epochs}_epochs.png")
+ 
+    # classifier training
+    starting_epoch = 0
+    train_loader = load_data(training=True, Siamese=False, random_seed=random_seed)
+    test_loader = load_data(training=False, Siamese=False, random_seed=random_seed)
+
+    backbone = siamese_net.get_backbone()
+    classifier = SiameseMLP(backbone)
+    criterion = nn.BCELoss()
+    optimiser = optim.Adam(classifier.parameters(), lr=1e-3, betas=(0.9, 0.999))
+
+    training_losses = []
+    eval_losses = []
+    print('starting training and validation loop for Classifier')
+    start = time.time()
+
+    for epoch in range(starting_epoch, num_epochs):
+        print(f'Training Epoch {epoch+1}')
+        train_loss, avg_train_loss, elapsed = train_classifier_one_epoch(classifier, criterion, optimiser, device, train_loader)
+        training_losses.append(avg_train_loss)
+        print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Total loss: {train_loss:.4f}. Average loss: {avg_train_loss:.4f}')
+
+        print(f'Validating Epoch {epoch+1}')
+        eval_loss, avg_eval_loss, elapsed = eval_classifier_one_epoch(classifier, criterion, device, test_loader)
+        eval_losses.append(avg_eval_loss)
+        print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Total loss: {eval_loss:.4f}. Average loss: {avg_eval_loss:.4f}')
+
+    end = time.time()
+    elapsed = end - start
+    print("Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
+
+    plt.figure(figsize=(10,5))
+    plt.title("Training and Evaluation Loss During Training")
+    plt.plot(training_losses, label="Train")
+    plt.plot(eval_losses, label="Eval")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.savefig(RESULTS_PATH + f"Classifier_train_and_eval_loss_after_{num_epochs}_epochs.png")
+
+
+    print('END')
 
 
     # load_from_checkpoint()
