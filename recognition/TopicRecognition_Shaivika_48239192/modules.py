@@ -39,9 +39,9 @@ class PatchEncoder(layers.Layer):
         positions = tf.range(start=0, limit=self.num_patches, delta=1)
         encoded = self.projection(patch) + self.position_embedding(positions)
         return encoded
-    
+
 def create_classifier():
-        inputs = layers.Input(shape=image_shape)
+    inputs = layers.Input(shape=image_shape)
     augmented = data_augmentation(inputs)
     patches = Patches(patch_size)(augmented)
     encoded_patches = PatchEncoder(num_patches, projection_dim)(patches)
