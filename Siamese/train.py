@@ -32,7 +32,9 @@ def validate(model, dataloader, criterion):
     pass
 
 
-def main(epochs=10, batch_size=32):
+if __name__ == '__main__':
+    epochs = 10
+    batch_size = 32
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -48,7 +50,3 @@ def main(epochs=10, batch_size=32):
         train(model, train_dataloader, device, optimizer, epoch, batch_size)
 
     torch.save(model.state_dict(), "siamese_network.pt")
-
-
-if __name__ == '__main__':
-    main()
