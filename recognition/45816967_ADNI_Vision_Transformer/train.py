@@ -20,3 +20,4 @@ print(nextimg)
 for img in nextimg:
   plt.imshow(imgs[0], cmap = 'gray')
   plt.show()
+
