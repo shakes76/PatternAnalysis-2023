@@ -39,3 +39,27 @@ class PatchEncoder(layers.Layer):
         positions = tf.range(start=0, limit=self.num_patches, delta=1)
         encoded = self.projection(patch) + self.position_embedding(positions)
         return encoded
+    
+def create_classifier():
+        inputs = layers.Input(shape=image_shape)
+    augmented = data_augmentation(inputs)
+    patches = Patches(patch_size)(augmented)
+    encoded_patches = PatchEncoder(num_patches, projection_dim)(patches)
+
+    for _ in range(transformer_layers):
+        x1 = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
+        attention_output = layers.MultiHeadAttention(
+            num_heads=num_heads, key_dim=projection_dim, dropout=0.1
+        )(x1, x1)
+        x2 = layers.Add()([attention_output, encoded_patches])
+        x3 = layers.LayerNormalization(epsilon=1e-6)(x2)
+        x3 = mlp(x3, hidden_units=transformer_units, dropout_rate=0.1)
+        encoded_patches = layers.Add()([x3, x2])
+
+    representation = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
+    representation = layers.Flatten()(representation)
+    representation = layers.Dropout(0.5)(representation)
+    features = mlp(representation, hidden_units=mlp_head_units, dropout_rate=0.5)
+    logits = layers.Dense(num_classes, activation="sigmoid")(features)
+    model = keras.Model(inputs=inputs, outputs=logits)
+    return model
