@@ -198,6 +198,7 @@ There are multiple ways that this stable diffusion model from scratch can be imp
 * Improve accuracy of the model by applying different transformations to the initial images
 * Changing the number of epochs and change learning rates
 * Higher discrete timestep interval for noising/denoising process
+* Dataset adapatable to all sorts of MRI images (assuming the dataset is in the same format)
 
 Areas of significance that needs to be improved upon:
 * Obtaining desired images (brains) from results of generating images
