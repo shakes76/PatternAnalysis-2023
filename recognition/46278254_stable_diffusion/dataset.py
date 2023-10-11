@@ -1,9 +1,7 @@
 import torch
-import numpy as np
 from glob import glob
 from PIL import Image
 from tqdm import tqdm
-from einops import rearrange, repeat
 import torchvision.transforms as transforms
 
 
@@ -95,7 +93,9 @@ class MyDataset(torch.utils.data.Dataset):
         brain_idx, z_idx = self.brain_index[idx]
         return raw_img_tensor, (seg_img_tensor*3).long(), brain_idx, z_idx
 
+
 __DATASET__ = {}
+
 
 def get_dataloader(mode='train', batch_size=8, limit=None):
     assert mode in ['train', 'test', 'validate', 'train_and_validate', 'all']
@@ -104,27 +104,28 @@ def get_dataloader(mode='train', batch_size=8, limit=None):
         print("Call multiple times get_dataloader on same dataset. Reuse dataset")
         dataset = __DATASET__[(mode, limit)]
     elif mode == 'train_and_validate':
-        # Build concat dataset
+        # Build concat dataset that contains train & validate
         train_dataset = MyDataset(mode='train', limit=limit)
         validate_dataset = MyDataset(mode='validate', limit=limit)
-        dataset = torch.utils.data.ConcatDataset([train_dataset, validate_dataset])
-    elif mode =='all':
-        # Build concat dataset
+        dataset = torch.utils.data.ConcatDataset(
+            [train_dataset, validate_dataset])
+    elif mode == 'all':
+        # Build concat dataset that contains train & validate & test
         train_dataset = MyDataset(mode='train', limit=limit)
         validate_dataset = MyDataset(mode='validate', limit=limit)
         test_dataset = MyDataset(mode='test', limit=limit)
-        dataset = torch.utils.data.ConcatDataset([train_dataset, validate_dataset, test_dataset])
+        dataset = torch.utils.data.ConcatDataset(
+            [train_dataset, validate_dataset, test_dataset])
     else:
         dataset = MyDataset(mode=mode, limit=limit)
-        
+
+    # For some debug issue, if called dataset multiple times, 
+    # It'll save the result and avoid reading twice.
     __DATASET__[(mode, limit)] = dataset
+
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=batch_size,
         shuffle=(mode == 'train' or mode == 'train_and_validate'))
 
     return dataloader
-
-
-if __name__ == '__main__':
-    dataloader = get_dataloader('train')
