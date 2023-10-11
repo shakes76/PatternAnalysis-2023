@@ -2,13 +2,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from modules import ESPCN
-from dataset import get_train_and_validation_loaders
+from dataset import get_train_and_validation_loaders, get_test_loader
 import time
 import matplotlib.pyplot as plt
 
 # Create the model and load training data
 model = ESPCN(upscale_factor=4, channels=1)
 train_loader, validation_loader = get_train_and_validation_loaders()
+test_loader = get_test_loader()
 
 # Move the model onto the GPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -19,7 +20,7 @@ model.to(device)
 # Set training parameters
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-num_epochs = 10
+num_epochs = 2
 
 # Sample images for visualization
 data_iter = iter(validation_loader)
@@ -88,6 +89,22 @@ for epoch in range(num_epochs):
     visualize_progress(model, sample_downscaled_images, sample_original_images)
 
 print("Finished training.")
+
+# Testing the models
+def evaluate_model(model, test_loader, device, criterion):
+    model.eval()
+    total_loss = 0.0
+    with torch.no_grad():
+        for i, data in enumerate(test_loader):
+            inputs, labels = data
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            total_loss += loss.item()
+    return total_loss / len(test_loader)
+
+test_loss = evaluate_model(model, test_loader, device, criterion)
+print(f"Test Loss: {test_loss:.4f}")
 
 # Save the final model
 torch.save(model.state_dict(), 'final_model.pth')
