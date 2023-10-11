@@ -11,3 +11,6 @@ we also want to plot the data
 so we are going to have to reshape the data to make it 2 dimensional and then use sklearn.manifold.TSNE and seaborn to be able to plot the data. the dream is that we have globs of colour that are seperated properly
 look at https://www.datatechnotes.com/2020/11/tsne-visualization-example-in-python.html for an example
 
+paths i took
+results
+what i did

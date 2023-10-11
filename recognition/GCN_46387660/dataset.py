@@ -1,33 +1,24 @@
-import pandas as pd
 import torch
-from torch.utils.data import Dataset
-from sklearn.preprocessing import OrdinalEncoder
+import numpy as np
+from torch_geometric.data import Data
 
-class DataLoader(Dataset):
-    def __init__(self, file_name):
-        # extract data from the csv file
-        data = pd.read_csv(file_name)
+# Load dataset from npz file
+data = np.load('facebook.npz')
+       
+# allocate x, y and edge_index tensors
+x = torch.from_numpy(data['features']).to(torch.float)
+y = torch.from_numpy(data['target']).to(torch.long)
+edge_index = torch.from_numpy(data['edges']).to(torch.long)
+# changes the edge index to a list of index tuples
+edge_index = edge_index.t().contiguous()
 
-        y = data.iloc[:,-1:]
-        ordinalEncoder = OrdinalEncoder()
-        ordinalEncoder.fit_transform(data[['page_type']])
+# create dataset
+data = Data(x=x, y=y, edge_index=edge_index)
+
+# check if there are any errors in the dataset
+data.validate(raise_on_error=True)
+
+# shuffle. then split data into train and test
 
 
-        x = data.iloc[:, :-1].values
-        y = data.iloc[:,-1:].values
 
-        # MIGHT WANT TO SCALE IT LOOK INTO IT want to scale it here
-        x_train = x
-        y_train = y
-
-        # convert to torch tensors
-        self.X_train = torch.tensor(x_train, dtype = torch.float32)
-        self.y_train = torch.tensor(y_train)
-
-    def __len__(self):
-        return self.y_train.shape[0]
-    
-    def __getitem__(self, index):
-        features = self.X_train[index]
-        label = self.y_train[index]
-        return features, label
