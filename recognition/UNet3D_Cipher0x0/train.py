@@ -1,31 +1,40 @@
 from dataset import *
 from modules import *
 
-import sys
 
-path = '*/file.txt'
-sys.stdout = open(path, 'w')
+def main():
+    # change path to current directory
+    os.chdir(os.path.dirname(__file__))
 
-epoch = 200
-unet = UNet(1,6).cuda()
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.SGD(unet.parameters(), lr=0.1, momentum=0.9)
-scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,max_lr=0.1, steps_per_epoch=len(dataloader) // 1 + 1, epochs=epoch)
+    # check whether gpu is available
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    print(device, flush=True)
+    torch.cuda.empty_cache()
 
-unet.train()
-loss_info = []
-for epoch in range(epoch):
-    for i, (inputs, labels) in enumerate(dataloader):
-        # zero the parameter gradients
-        optimizer.zero_grad()
+    # build model and optimizer
+    loss_fn = nn.CrossEntropyLoss().to(device)
+    optimizer = torch.optim.Adam(model.parameters())
 
-        # forward + backward + optimize
-        outputs = unet(inputs.float().cuda())
-        loss = criterion(outputs, labels.cuda())
-        loss.backward()
-        optimizer.step()
+    epoch = 30
 
-    print('[Epoch:'+ str(epoch) +'] [Loss:' + str(loss) + "]")
-    sys.stdout.flush()
+    # train loop
+    for i in range(epoch):
+        unet.train()
+        for index, data in enumerate(trainloader, 0):
+            image, mask = data
+            image, mask = ag.crop_and_augment(image, mask)
+            image = image.unsqueeze(0)
+            image = image.float().to(device)
+            mask = mask.long().to(device)
+            optimizer.zero_grad()
+            pred = unet(image)
+            loss = loss_fn(pred, mask)
+            loss.backward()
+            optimizer.step()
 
-torch.save(unet, "*/unet3d.pth")
+        print('One Epoch Finished', flush=True)
+        torch.save(unet.state_dict(), 'net_paras.pth')
+
+
+if __name__ == "__main__":
+    main()
