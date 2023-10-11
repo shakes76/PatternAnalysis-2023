@@ -33,7 +33,7 @@ def plot_results(samples, pred_masks, num_samples):
             ax[i, 1].set_title("Actual Mask")
             ax[i, 2].set_title("Predicted Mask")
     plt.tight_layout()
-    plt.savefig("results_plot.png", dpi=300)  # Save the figure
+    plt.savefig("test_results_plot.png", dpi=300)  # Save the figure
     plt.show()
 
 def main():
