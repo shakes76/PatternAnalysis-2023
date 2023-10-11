@@ -1,10 +1,24 @@
-# Recognition Tasks
-Various recognition tasks solved in deep learning frameworks.
+# Classify Alzheimer’s disease of the ADNI brain data using perceiver transformer
+### Rohan Kollambalath
 
-Tasks may include:
-* Image Segmentation
-* Object detection
-* Graph node classification
-* Image super resolution
-* Disease classification
-* Generative modelling with StyleGAN and Stable Diffusion
+## Purpose
+
+## Set-Up
+
+## Dependencies
+
+## Implementation
+
+## Data Processing
+
+## Perceiver Modules
+
+## Image Encoding
+
+## Classification
+
+### Results
+
+### Appendix
+#### A: Pre-Processed Data from Dataset
+#### B: Hyperparameters 
