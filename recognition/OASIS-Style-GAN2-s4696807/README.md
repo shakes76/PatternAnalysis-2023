@@ -221,7 +221,7 @@ This is a small sample of images from the OASIS dataset used in order to give so
 ### Style Vector Noise of 5
 ![Epoch1/w5](assets/generated_samples/epoch0/w5/img_0.png)
 
-In the training images captured above after a single epoch, the generator and discriminator models are just starting to grasp the fundamental structure of the brain images. However, at this early stage, the generator model is yet to fully recognise that the images are supposed to be in black and white, as it initially generates them in color. Subsequent epochs will likely see a rapid adjustment as the generator learns to produce black and white images.
+In the training images obtained after a single epoch, we observe that the generator and discriminator models are in the early stages of comprehending the basic structure of the brain images. However, at this nascent point in training, the generator model has not yet fully comprehended that the images should be in black and white, leading to an initial production of color images. It is expected that in the ensuing epochs, the generator will undergo a swift adjustment and learn to produce black and white images, aligning more closely with the intended output. This adaptation is indicative of the model's learning capability and its potential to quickly fine-tune its performance in response to training.
 
 
 ## Generated Images after 20 Epochs
