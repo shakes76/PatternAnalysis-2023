@@ -287,9 +287,9 @@ A graph of the loss for both the generator and discriminator networks of the mod
 
 ![Discriminator Loss](assets/disc_loss.png)
 
-We can also see in the models above that the loss for both networks seems to converge around _, then remains quite stable for the rest of the training.  This further reinforces what we see with the results of each 20 epochs, as the improvement from epoch 100 to 180 was negligable.  This just means that with the current model and data that I will not get any more accurate in it's image generation no matter how many epoch we run it for. 
+We can also see in the models above that the loss for both networks seems to converge around 10,000 iterations, then remains quite stable for the rest of the training.  This further reinforces what we see with the results of each 20 epochs, as the improvement from epoch 100 to 180 was negligable.  This just means that with the current model and data that I will not get any more accurate in it's image generation no matter how many epoch we run it for. 
 
-Since, the results are quite good this isn't really a problem, however it is good to not that the reason for this is probably due to the small size of the data that was used.  In total, with the used of some preprocessing the total training images used each epoch was 708.  Considering this thw results achieved using the StyleGAN2 model are quite impressive, further adding to it's reputation as one of the more prominant generation architectures in computer vision. 
+Since, the results are quite good this isn't really a problem, however it is good to not that the reason for this is probably due to the small size of the data that was used.  In total, with the used of some preprocessing the total training images used each epoch was 708.  Considering this the results achieved using the StyleGAN2 model are quite impressive, further adding to it's reputation as one of the more prominant generation architectures in computer vision. 
 
 
 
