@@ -9,14 +9,10 @@ import torchvision.transforms as transforms
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
-
-# Path
-# data_path_root = "/s4699048/Datasets/keras_png_slices_data/"  # 336 Workstation Path
-data_path_root = "/Datasets/keras_png_slices_data/"
-
+    
 # ----------------
 # Data Loader
-def generateDataLoader():
+def generateDataLoader(imageHeight: int, imageWidth: int, batch_size: int, data_path_root: str):
     """
     Imports the datasets & creates the dataloaders for the train, test & validation partitions of the dataset.
     Returns: trainset, train_loader, testset, test_loader, validationset, validation_loader
@@ -27,17 +23,17 @@ def generateDataLoader():
     trainset = torchvision.datasets.ImageFolder(root=data_path_root+"keras_png_slices_train",
                             transform=transforms.Compose([
                                 #    transforms.Resize(image_size),
-                                # transforms.Resize((2 ** log_resolution, 2 ** log_resolution)),
+                                transforms.Resize((imageHeight, imageWidth)),
                                 #    transforms.CenterCrop(image_size),
-                                # transforms.RandomHorizontalFlip(p=0.5),
+                                transforms.RandomHorizontalFlip(p=0.5),
                                 transforms.ToTensor(),
-                                # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                             ]))
     
     testset = torchvision.datasets.ImageFolder(root=data_path_root+"keras_png_slices_test",
                             transform=transforms.Compose([
                                 #    transforms.Resize(image_size),
-                                transforms.Resize((2 ** log_resolution, 2 ** log_resolution)),
+                                transforms.Resize((imageHeight, imageWidth)),
                                 #    transforms.CenterCrop(image_size),
                                 transforms.RandomHorizontalFlip(p=0.5),
                                 transforms.ToTensor(),
@@ -47,7 +43,7 @@ def generateDataLoader():
     validationset = torchvision.datasets.ImageFolder(root=data_path_root+"keras_png_slices_validate",
                             transform=transforms.Compose([
                                 #    transforms.Resize(image_size),
-                                transforms.Resize((2 ** log_resolution, 2 ** log_resolution)),
+                                transforms.Resize((imageHeight, imageWidth)),
                                 #    transforms.CenterCrop(image_size),
                                 transforms.RandomHorizontalFlip(p=0.5),
                                 transforms.ToTensor(),
