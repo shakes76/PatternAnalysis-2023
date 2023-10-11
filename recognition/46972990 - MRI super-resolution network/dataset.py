@@ -9,9 +9,6 @@ BASE_PATH = "C:\\Users\\User\\OneDrive\\Bachelor of Computer Science\\Semester 6
 TRAIN_PATH = os.path.join(BASE_PATH, "train")
 TEST_PATH = os.path.join(BASE_PATH, "test")
 
-# Image size and batch size
-IMG_WIDTH = 256
-IMG_HEIGHT = 240
 BATCH_SIZE = 32
 
 def get_train_loader():
@@ -31,6 +28,8 @@ test_loader = get_test_loader()
 # Extract a single batch from the train loader
 data_iter = iter(train_loader)
 downscaled_images, original_images = next(data_iter)
+
+print(original_images[0].shape)
 
 # Convert the images from tensor format back to PIL for display
 def tensor_to_PIL(tensor):

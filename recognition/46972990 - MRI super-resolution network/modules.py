@@ -1,5 +1,7 @@
 from torchvision import datasets, transforms
 from torch.utils.data import Dataset
+import torch
+import torch.nn as nn
 
 # Image size and batch size
 IMG_WIDTH = 256
@@ -19,18 +21,24 @@ class DownsampleTransform:
         return self.down_transform(img)
     
 class SuperResolutionDataset(Dataset):
+    """
+    This class will create datasets consisting of downsampled images and original images.
+    """
     def __init__(self, path):
-        self.resize_transform = transforms.Resize((IMG_HEIGHT, IMG_WIDTH))
+        self.resize_transform = transforms.Compose([
+            transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
+            transforms.Resize((IMG_HEIGHT, IMG_WIDTH))
+        ])
         self.data = datasets.ImageFolder(root=path, transform=self.resize_transform)
         
         self.down_transform = transforms.Compose([
             DownsampleTransform(),
             transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # Normalizing to [-1, 1]
+            transforms.Normalize((0.5,), (0.5,))
         ])
         self.orig_transform = transforms.Compose([
             transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  # Normalizing to [-1, 1]
+            transforms.Normalize((0.5,), (0.5,))
         ])
     
     def __len__(self):
