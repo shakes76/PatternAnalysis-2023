@@ -20,7 +20,7 @@ model.to(device)
 # Set training parameters
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
-num_epochs = 2
+num_epochs = 10
 
 # Sample images for visualization
 data_iter = iter(validation_loader)
@@ -86,7 +86,7 @@ for epoch in range(num_epochs):
     end_time = time.time()  # End time of epoch
     epoch_duration = end_time - start_time
     print(f"Completed in {epoch_duration:.2f} seconds.")
-    visualize_progress(model, sample_downscaled_images, sample_original_images)
+    #visualize_progress(model, sample_downscaled_images, sample_original_images)
 
 print("Finished training.")
 
