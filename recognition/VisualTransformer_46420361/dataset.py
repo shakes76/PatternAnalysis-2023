@@ -20,3 +20,5 @@ def load_dataset(image_size, batch_sizes, path):
     dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
 
     return dataloader, dataset
+
+# KEEP PATIENTS DATA TOGETHER TO PREVENT DATA LEAKAGE AND OVERFITTING
