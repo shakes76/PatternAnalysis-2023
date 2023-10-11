@@ -25,7 +25,7 @@ This diffusion model will be using a U-Net for the backwards process.
 ### Stable Diffusion Generating Outcomes
 > link to images here (predict.py images in a folder into github)
 
-![test screenshot](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_0.png) ![test screenshot 2](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_1.png)
+![generated image 1](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_0.png) ![generated image 2](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_1.png) ![generated image 3](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_2.png) ![generated image 4](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_3.png) ![generated image 5](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_4.png) ![generated image 6](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_5.png) ![generated image 7](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_6.png) ![generated image 8](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_7.png) ![generated image 9](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_8.png) ![generated image 10](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_9.png) 
 
 
 ### Dataset Creation - dataset.py
@@ -45,7 +45,7 @@ validate_loader = DataLoader(validate_data, batch_size=batch_size)
 
 ### Noise Scheduler (Forward Process) - module.py
 
-In this process, we build more gradually noisy images to be inputted into our model. Here, noise-levels/varianes are pre-computed and we sample each timestep image separately (Sums of Gaussians = Gaussian). The output of the noisy images can be seen as follows (code referenced from https://colab.research.google.com/drive/1sjy9odlSSy0RBVgMTgP7s99NXsqglsUL):
+In this process, we build more gradually noisy images to be inputted into our model. Here, noise-levels/varianes are pre-computed and we sample each timestep image separately (Sums of Gaussians = Gaussian). 
 
 The precomputed values can be seen in the module.py section in utils.py
 The diffusion noising code can be found in the noise scheduler section in module.py
@@ -86,10 +86,13 @@ self.time_mlp = nn.Sequential(
 Diffusion models calculate the distance of the predicted noise and actual noise in the image to determine the loss (denoising score similarity equivalent to variational inference). The loss function is simply used in the training process as follows:
 
 ```python
-loss = get_loss(model, images, t)
+loss = utils.get_loss(model, images, t)
 loss.backward()
 ```
 
+In this model, the loss function is simply using the L1 loss (Mean Absolute Squared) where the loss is calculated based on the noise and the predicted noise obtained from the sampled noise and backwards process noise respectively.
+
+The get_loss function can be found in utils.py in the train.py section.
 
 ### Sampling - train.py
 
