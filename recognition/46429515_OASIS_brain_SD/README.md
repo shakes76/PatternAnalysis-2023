@@ -19,6 +19,39 @@ This diffusion model will be using a U-Net for the backwards process.
 * Torchvision: `>=0.15.2`
 
 
+## File Structure and Installation
+
+1. Clone/Download the repository
+2. Install required dependencies
+3. Download Preprocessed OASIS MRI dataset from [here](https://cloudstor.aarnet.edu.au/plus/s/tByzSZzvvVh0hZA) and unpack into a folder called data
+
+The file structure should end up looking like this:
+
+```
+46429515_OASIS_brain_SD(-topic-recognition)/
+├─ data/keras_png_slices_data/
+│  ├─ keras_png_slices_seg_test/
+│  ├─ keras_png_slices_seg_train/
+│  ├─ keras_png_slices_seg_validate/
+│  ├─ keras_png_slices_test/
+│  ├─ keras_png_slices_train/
+│  ├─ keras_png_slices_validate/
+├─ predict_image/
+│  ├─ input_image_0.png
+│  ├─ input_image_1.png
+│  ├─ ...
+│  ├─ input_image_9.png
+├─ predict_output
+│  ├─ ...
+├─ README.md
+├─ dataset.py
+├─ module.py
+├─ predict.py
+├─ train.py
+└  utils.py
+```
+
+
 ## Usage Example
 
 ### Stable Diffusion Generating Outcomes - predict.py
