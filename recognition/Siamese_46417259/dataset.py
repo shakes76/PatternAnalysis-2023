@@ -73,6 +73,18 @@ class PairedDataset(torch.utils.data.Dataset):
             if choice == index:
                 continue
 
+            filepath1 = self.image_folder.imgs[index][0]
+            filepath2 = self.image_folder.imgs[choice][0]
+
+            start, end = filepath1.rfind('/') + 1, filepath1.rfind('_')
+            patient_id1 = filepath1[start:end]
+            start, end = filepath2.rfind('/') + 1, filepath2.rfind('_')
+            patient_id2 = filepath2[start:end]
+
+            # only pair up different patients
+            if patient_id1 == patient_id2:
+                continue
+
             img2, label2 = self.image_folder[choice]
             if similarity == 1:
                 match_found = label1 == label2
@@ -81,8 +93,6 @@ class PairedDataset(torch.utils.data.Dataset):
 
         # only include the filepaths in the dataset if specifically requested
         if self.debug_mode:
-            filepath1 = self.image_folder.imgs[index][0]
-            filepath2 = self.image_folder.imgs[choice][0]
             return img1, img2, similarity, filepath1[-20:-5], filepath2[-20:-5]
         # otherwise save some memory
         return img1, img2, similarity
@@ -128,6 +138,11 @@ def load_data(training:bool, Siamese:bool, random_seed=None) -> torch.utils.data
 #
 def test_load_data_basic():
     dataloader = load_data(training=True, Siamese=True)
+    dataloader.dataset.debug_mode = True
+
+    onepair = dataloader.dataset.__getitem__(0)
+    print(f'filepath 1 = {onepair[3]}, filepath 2 = {onepair[4]}')
+
     next_batch = next(iter(dataloader))
     print(next_batch[0][0].shape)
 
@@ -231,9 +246,9 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     print("Device: ", device)
 
-    # test_load_data_basic()
-    test_visualise_data_MLP()
-    test_visualise_data_Siamese()
+    test_load_data_basic()
+    # test_visualise_data_MLP()
+    # test_visualise_data_Siamese()
     # test_paired_dataset()
 
 

@@ -93,7 +93,7 @@ def train_siamese_one_epoch(model: nn.Module,
         optimiser.step()
 
         if (i+1) % 100 == 0:
-            print(f"Step [i+1/{len(train_loader)}] Loss: {loss.item()}")
+            print(f"Step [{i+1}/{len(train_loader)}] Loss: {loss.item()}")
 
         total_loss += loss.item()
 
@@ -123,7 +123,7 @@ def eval_siamese_one_epoch(model: nn.Module,
             loss = criterion(x1_features, x2_features, labels)
 
             if (i+1) % 100 == 0:
-                print(f"Step [i+1/{len(test_loader)}] Loss: {loss.item()}")
+                print(f"Step [{i+1}/{len(test_loader)}] Loss: {loss.item()}")
 
             total_loss += loss.item()
         
@@ -134,6 +134,66 @@ def eval_siamese_one_epoch(model: nn.Module,
 
     return total_loss, mean_loss, elapsed
 
+def test_loss():
+    cont_loss = ContrastiveLoss()
+    input1 = torch.rand(2, 4096)
+    input2 = torch.rand(2, 4096)
+    
+    labels = torch.Tensor([1,0])
+    old_loss = contrastive_loss(input1, input2, labels)
+    new_loss = cont_loss(input1, input2, labels)
+    print(old_loss)
+    print(new_loss)
+
+if __name__ == "__main__":
+    starting_epoch = 0
+    num_epochs = 10
+    random_seed = 69
+
+    train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
+    test_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
+    siamese_net, criterion, optimiser, device = initialise_training()
+
+    training_losses = []
+    eval_losses = []
+
+    print('starting main training and validation loop')
+    start = time.time()
+
+    for epoch in range(starting_epoch, num_epochs):
+        print(f'Training Epoch {epoch+1}')
+        train_loss, avg_train_loss, elapsed = train_siamese_one_epoch(siamese_net, criterion, optimiser, device, train_loader)
+        training_losses.append(avg_train_loss)
+        print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Total loss: {train_loss:.4f}. Average loss: {avg_train_loss:.4f}')
+
+        print(f'Validating Epoch {epoch+1}')
+        eval_loss, avg_eval_loss, elapsed = eval_siamese_one_epoch(siamese_net, criterion, device, test_loader)
+        eval_losses.append(avg_eval_loss)
+        print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Total loss: {eval_loss:.4f}. Average loss: {avg_eval_loss:.4f}')
+
+    end = time.time()
+    elapsed = end - start
+    print("Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
+    
+    print('END')
+
+    plt.figure(figsize=(10,5))
+    plt.title("Training and Evaluation Loss During Training")
+    plt.plot(training_losses, label="Train")
+    plt.plot(eval_losses, label="Eval")
+    plt.xlabel("iterations")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.savefig(RESULTS_PATH + f"train_and_eval_loss_after_{num_epochs}_epochs_2.png")
+
+
+    # load_from_checkpoint()
+    # train_and_eval()
+    # test_loss()
+
+#
+# Deprecated
+#
 def train_and_eval():
     starting_epoch = 0
     num_epochs = 5
@@ -220,63 +280,3 @@ def train_and_eval():
     plt.ylabel("Loss")
     plt.legend()
     plt.savefig(RESULTS_PATH + f"train_and_eval_loss_after_{num_epochs}_epochs.png")
-
-def test_loss():
-    cont_loss = ContrastiveLoss()
-    input1 = torch.rand(2, 4096)
-    input2 = torch.rand(2, 4096)
-    
-    labels = torch.Tensor([1,0])
-    old_loss = contrastive_loss(input1, input2, labels)
-    new_loss = cont_loss(input1, input2, labels)
-    print(old_loss)
-    print(new_loss)
-
-
-# new code here
-
-if __name__ == "__main__":
-    starting_epoch = 0
-    num_epochs = 5
-    random_seed = 69
-
-    train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
-    test_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
-    siamese_net, criterion, optimiser, device = initialise_training()
-
-    training_losses = []
-    eval_losses = []
-
-    print('starting main training and validation loop')
-    start = time.time()
-
-    for epoch in range(starting_epoch, num_epochs):
-        print(f'Training Epoch {epoch+1}')
-        train_loss, avg_train_loss, elapsed = train_siamese_one_epoch(siamese_net, criterion, optimiser, device, train_loader)
-        training_losses.append(avg_train_loss)
-        print(f'Training Epoch {epoch+1} took {elapsed} seconds. Total loss: {train_loss}. Average loss: {avg_train_loss}')
-
-        print(f'Validating Epoch {epoch+1}')
-        eval_loss, avg_eval_loss, elapsed = eval_siamese_one_epoch(siamese_net, criterion, device, test_loader)
-        eval_losses.append(avg_eval_loss)
-        print(f'Validating Epoch {epoch+1} took {elapsed} seconds. Total loss: {eval_loss}. Average loss: {avg_eval_loss}')
-
-    end = time.time()
-    elapsed = end - start
-    print("Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
-    
-    print('END')
-
-    plt.figure(figsize=(10,5))
-    plt.title("Training and Evaluation Loss During Training")
-    plt.plot(training_losses, label="Train")
-    plt.plot(eval_losses, label="Eval")
-    plt.xlabel("iterations")
-    plt.ylabel("Loss")
-    plt.legend()
-    plt.savefig(RESULTS_PATH + f"train_and_eval_loss_after_{num_epochs}_epochs.png")
-
-
-    # load_from_checkpoint()
-    # train_and_eval()
-    # test_loss()
