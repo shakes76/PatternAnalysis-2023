@@ -201,26 +201,76 @@ After completing the StyleGAN2's training on the OASIS brain dataset for 180 epo
 ## Training Images
 ![Training Images](assets/training_images_examples.png)
 
+This is a small sample of images from the OASIS dataset used in order to give some context to how accurate or inaccurate the generated images are in compassison to these. 
+
 
 ## Generated Images after 1 Epoch
-### Style Vector of 1 
+### Style Vector Noise of 1 
 ![Epoch1/w1](assets/generated_samples/epoch0/w1/img_0.png)
 
-### Style Vector of 5
+### Style Vector Noise of 2 
+![Epoch1/w2](assets/generated_samples/epoch0/w2/img_0.png)
+
+### Style Vector Noise of 3 
+![Epoch1/w3](assets/generated_samples/epoch0/w3/img_0.png)
+
+### Style Vector Noise of 4 
+![Epoch1/w4](assets/generated_samples/epoch0/w4/img_0.png)
+
+### Style Vector Noise of 5
 ![Epoch1/w5](assets/generated_samples/epoch0/w5/img_0.png)
+
+As shown above in the training images, after one run through the dataset the generator and discriminator models are beginning to understand the general shape of the brain images.  However, it is clear that the generator model is still learning that the images are black and white as opposed to color.  In later epoch it quickly learns this and all of the images are returned black and white. 
+
 
 ## Generated Images after 20 Epochs
 ### Style Vector of 1 
 ![Epoch20/w1](assets/generated_samples/epoch20/w1/img_18.png)
 
+### Style Vector Noise of 2 
+![Epoch1/w2](assets/generated_samples/epoch20/w2/img_0.png)
+
+### Style Vector Noise of 3 
+![Epoch1/w3](assets/generated_samples/epoch20/w3/img_0.png)
+
+### Style Vector Noise of 4 
+![Epoch1/w4](assets/generated_samples/epoch20/w4/img_0.png)
+
 ### Style Vector of 5
 ![Epoch20/w5](assets/generated_samples/epoch20/w5/img_9.png)
+
+
+## Generated Images after 100 Epochs 
+### Style Vector of 1 
+![Epoch180/w1](assets/generated_samples/epoch180/w1/img_5.png)
+
+### Style Vector Noise of 2 
+![Epoch1/w2](assets/generated_samples/epoch180/w2/img_0.png)
+
+### Style Vector Noise of 3 
+![Epoch1/w3](assets/generated_samples/epoch180/w3/img_0.png)
+
+### Style Vector Noise of 4 
+![Epoch1/w4](assets/generated_samples/epoch180/w4/img_0.png)
+
+### Style Vector Boise of 5
+![Epoch180/w5](assets/generated_samples/epoch180/w5/img_12.png)
+
 
 ## Generated Images after 180 Epochs 
 ### Style Vector of 1 
 ![Epoch180/w1](assets/generated_samples/epoch180/w1/img_5.png)
 
-### Style Vector of 5
+### Style Vector Noise of 2 
+![Epoch1/w2](assets/generated_samples/epoch180/w2/img_0.png)
+
+### Style Vector Noise of 3 
+![Epoch1/w3](assets/generated_samples/epoch180/w3/img_0.png)
+
+### Style Vector Noise of 4 
+![Epoch1/w4](assets/generated_samples/epoch180/w4/img_0.png)
+
+### Style Vector Noise of 5
 ![Epoch180/w5](assets/generated_samples/epoch180/w5/img_12.png)
 
 
@@ -231,9 +281,16 @@ A graph of the loss for both the generator and discriminator networks of the mod
 
 ![Discriminator Loss](assets/disc_loss.png)
 
-We can also see in the models above that the loss for both networks seems to converge around _, then remains quite stable for the rest of the training.  This further reinforces what we see with the results of each 20 epochs, as the improvement from epoch 20 to 100 was negligable.  This just means that with the current model and data that I will not get any more accurate in it's image generation no matter how many epoch we run it for. 
+We can also see in the models above that the loss for both networks seems to converge around _, then remains quite stable for the rest of the training.  This further reinforces what we see with the results of each 20 epochs, as the improvement from epoch 100 to 180 was negligable.  This just means that with the current model and data that I will not get any more accurate in it's image generation no matter how many epoch we run it for. 
 
 Since, the results are quite good this isn't really a problem, however it is good to not that the reason for this is probably due to the small size of the data that was used.  In total, with the used of some preprocessing the total training images used each epoch was 708.  Considering this thw results achieved using the StyleGAN2 model are quite impressive, further adding to it's reputation as one of the more prominant generation architectures in computer vision. 
+
+
+
+# Possible Improvements
+In order to improve the results and the run time of StyleGAN2 model used on this dataset, the number of input and output channels could be changed as well as the TORGB block removed.  As the dataset is black and white there is no need for three input channels in the model and further no need for the TORGB block.  The removal of these would make the model perform better as it would have less computations per layer and less input and output channels, allowing it to run faster.
+
+Furthermore, as discussed earlier increasing the size of the dataset being trained on could also have positive effects on the accuracy of the images being produced.  As the current model seemed to hit a wall around the 100 epoch range, but increasing the dataset size would help resolve this. 
 
 
 
