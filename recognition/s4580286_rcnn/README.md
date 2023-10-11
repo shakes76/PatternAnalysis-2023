@@ -36,18 +36,21 @@ To run, this code requires access to the 2017 ISIC dataset. This was downloaded 
 The training and testing data was pre-split; this was retained as the training and test set. Due to memory constraints, a random subset of 500 images was taken from the training data. The pretrained model used a batch size of 16 with a learning rate of 0.02 with stochastic gradient descent. As a smaller batch size of 2 (1/8 of the original) was taken due to memory constraints, the original learning rate was divided by 8 to get a learning rate of 0.0025, which was used for this implementation. 30 epochs were chosen, as after 30, the minima of loss was found (see visualisation below).
 
 ![image](https://github.com/Shreya-Personal/s4580286/assets/141000874/49f39e6d-9331-4244-a868-10db38b4789a)
+
 Figure 3: Loss vs Epochs
 
 
 ## Performance
 Below is a small sample to show the results. It shows the original image, the ground truth, and its predicted mask, label, and bounding box.
 
-![Picture1](https://github.com/Shreya-Personal/s4580286/assets/141000874/300b9f7b-c371-4f8a-8503-448b091d21c8)
+![Picture1](https://github.com/Shreya-Personal/s4580286/assets/141000874/41470911-97c3-476c-886d-a853dd343698)
+
 Figure 4: Example of groundtruth vs prediction
 
-The accuracy of the labels gave an accuracy of 68% for the classification of the mole as benign or melanoma. However, the IOU saw a median of 0.795, as shown in the boxplot below.
+The accuracy of the labels gave an accuracy of 66% for the classification of the mole as benign or melanoma. However, the IOU saw a median of 0.83, as shown in the boxplot below.
 
-<img width="430" alt="image" src="https://github.com/Shreya-Personal/s4580286/assets/141000874/7b022975-caf4-440b-a93a-1029be9573af">
+![Boxplot](https://github.com/Shreya-Personal/s4580286/assets/141000874/c0249bb4-30e8-435f-9128-d7fb5cae27b0)
+
 
 Figure 5: IoU Boxplot
 
