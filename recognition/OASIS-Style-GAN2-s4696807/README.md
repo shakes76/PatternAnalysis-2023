@@ -19,9 +19,9 @@ In terms of cost-effectiveness, generating synthetic brain images reduces the ne
 
 
 # How to Use
-In order to run this model on the OASIS dataset and see the generated images, you can run the train.py file. This file imports the necessary dataset, modules from the dataset.py, modules.py files respectively. It trains the model on the OASIS dataset saves the models state every 20 epochs to be used for generation later. After the training is complete it plots a graph of the losses of the generator and discriminator networks over time to show that they begin to converge. 
+In order to run this model on the OASIS dataset and see the generated images, you can run the `train.py` file. This file imports the necessary dataset, modules from the `dataset.py`, `modules.py` files respectively. It trains the model on the OASIS dataset saves the models state every 20 epochs to be used for generation later. After the training is complete it plots a graph of the losses of the generator and discriminator networks over time to show that they begin to converge. 
 
-In order to generate the sample images you can run the predict.py file which imports everything from train.  It will load each of the saved models and generate 20 images for each with 5 different style vectors. 
+In order to generate the sample images you can run the `predict.py` file which imports everything from train.  It will load each of the saved models and generate 20 images for each with 5 different style vectors. 
 
 
 
@@ -42,7 +42,8 @@ StyleGAN2 restricts the use of the adaptive instance noramlisation, get away fro
 
 
 # Model Architecture Implementation
-The implementation of the StyleGAN2 model used in this report is taken directly from the original paper, however it has been simplified drastically and made to be more compact and readable due to the simpler nature of this specific generation task. We will cover all of the important layers explaining their usages and the theory behind them.  These networks and layers can be seen in the modules.py file. 
+The implementation of the StyleGAN2 model used in this report is taken directly from the original paper, however it has been simplified drastically and made to be more compact and readable due to the simpler nature of this specific generation task. We will cover all of the important layers explaining their usages and the theory behind them.  These networks and layers can be seen in the modules.py file.
+
 
 ## Noise Mapping Network
 The Mapping Network, implemented as a subclass of nn.Module, serves a crucial role in StyleGAN2. Its purpose is to map a given noise vector, denoted as z, to the style vector w. The network architecture is defined by a series of eight EqualizedLinear layers, followed by ReLU activation functions. This architecture helps to introduce non-linearity and complexity into the mapping process.
@@ -107,21 +108,21 @@ The Discriminator architecture involves transforming an input image of resolutio
 
 In the __init__ method, several parameters are provided, including log_resolution, n_features, and max_features. log_resolution represents the logarithm base 2 of the image resolution, n_features specifies the number of features in the initial convolution layer, and max_features sets the maximum number of features in any Discriminator block. The initialization process involves calculating the number of features for each block, creating a from_rgb layer for converting RGB images to feature maps, defining the number of Discriminator blocks, and creating instances of these blocks. Additionally, the architecture incorporates a minibatch standard deviation operation, which helps the Discriminator capture variations within the batch or image.
 
-In the forward method, the input x is processed through the from_rgb layer and then through the sequence of Discriminator blocks. After passing through these blocks, a minibatch standard deviation operation is applied to capture variations within the batch or image. A final 3x3 convolution is performed, and the feature map is flattened before passing through a linear layer to obtain the classification score. The result of this Discriminator is used to distinguish between real and generated images during training.
+In the __forward__ method, the input x is processed through the from_rgb layer and then through the sequence of Discriminator blocks. After passing through these blocks, a minibatch standard deviation operation is applied to capture variations within the batch or image. A final 3x3 convolution is performed, and the feature map is flattened before passing through a linear layer to obtain the classification score. The result of this Discriminator is used to distinguish between real and generated images during training.
 
 ### Discriminator Block
 A Discriminator Block is a building block used in the Discriminator architecture. It consists of two 3x3 convolutions with a residual connection.
 
 In the __init__ method, in_features and out_features are provided as parameters, representing the number of input and output features, respectively. The Discriminator Block includes a residual block with down-sampling, a 1x1 convolution layer for the residual connection, a block layer with two 3x3 convolutions and Leaky ReLU activation, down-sampling using AvgPool2d, and a scale factor.
 
-The forward method takes x as the input feature map. It first calculates the residual using the residual block and down-sampling. Then, x passes through the block layer with two 3x3 convolutions and Leaky ReLU activation. After down-sampling, the result is added to the residual, and scaling is applied. The final result is returned.
+The __forward__ method takes x as the input feature map. It first calculates the residual using the residual block and down-sampling. Then, x passes through the block layer with two 3x3 convolutions and Leaky ReLU activation. After down-sampling, the result is added to the residual, and scaling is applied. The final result is returned.
 
 ### Equalised Linear Layer
 The EqualizedLinear class represents a linear layer with equalized learning rate, an important concept in StyleGAN2.
 
 In the __init__ method, in_features, out_features, and bias are provided as parameters. These parameters define the input and output dimensions and whether bias should be included. The EqualizedLinear layer includes weight parameters with equalized learning rates and bias.
 
-In the forward method, x represents the input tensor. The linear transformation is applied to x using the weight and bias parameters. This operation ensures that the learning rates for the weights are equalized, contributing to stable training and improved performance.
+In the __forward__ method, x represents the input tensor. The linear transformation is applied to x using the weight and bias parameters. This operation ensures that the learning rates for the weights are equalized, contributing to stable training and improved performance.
 
 
 ## Equalised Convolutional Layer
@@ -129,14 +130,14 @@ The EqualizedConv2d class represents a 2D convolutional layer with equalized lea
 
 In the __init__ method, several parameters are provided, including in_features, out_features, kernel_size, and padding. These parameters define the properties of the convolution layer, such as input and output features, kernel size, and padding. The EqualizedConv2d layer incorporates weight parameters with equalized learning rates and bias.
 
-In the forward method, x represents the input feature map. The convolution operation is applied to x using the weight and bias parameters, with padding as specified. This operation ensures that the learning rates for the weights are equalized, contributing to stable training and improved performance.
+In the __forward__ method, x represents the input feature map. The convolution operation is applied to x using the weight and bias parameters, with padding as specified. This operation ensures that the learning rates for the weights are equalized, contributing to stable training and improved performance.
 
 ### Equalised Weight 
 The EqualizedWeight class represents a parameter used in convolutional and linear layers for equalized learning rates.
 
 In the __init__ method, shape is provided, which specifies the shape of the weight parameter. The initialization process includes defining a constant c and initializing the weights from a normal distribution with mean 0 and standard deviation 1.
 
-In the forward method, the weights are scaled by the constant c and returned. This scaling ensures that the learning rates for the weights are equalized, contributing to stable training and improved performance.
+In the __forward__ method, the weights are scaled by the constant c and returned. This scaling ensures that the learning rates for the weights are equalized, contributing to stable training and improved performance.
 
 
 ## Perceptual Path Normalisation
@@ -145,7 +146,7 @@ Perceptual Path Length Normalization, also known as the PathLengthPenalty class,
 ### PathLengthPenalty
 In the __init__ method, the beta constant is provided, which is used to calculate an exponential moving average a. The initialization process sets up parameters for tracking steps, an exponential sum, and a.
 
-The forward method takes two inputs: w, representing the style vectors, and x, representing the generated images. Within this method, random noise y is generated to compute a certain output. The gradients with respect to w are calculated and used to compute norm. The loss is calculated based on the difference between norm and the exponential moving average a. The penalty term is returned.
+The __forward__ method takes two inputs: w, representing the style vectors, and x, representing the generated images. Within this method, random noise y is generated to compute a certain output. The gradients with respect to w are calculated and used to compute norm. The loss is calculated based on the difference between norm and the exponential moving average a. The penalty term is returned.
 
 
 ## Utilities 
@@ -220,7 +221,7 @@ This is a small sample of images from the OASIS dataset used in order to give so
 ### Style Vector Noise of 5
 ![Epoch1/w5](assets/generated_samples/epoch0/w5/img_0.png)
 
-As shown above in the training images, after one run through the dataset the generator and discriminator models are beginning to understand the general shape of the brain images.  However, it is clear that the generator model is still learning that the images are black and white as opposed to color.  In later epoch it quickly learns this and all of the images are returned black and white. 
+In the training images captured above after a single epoch, the generator and discriminator models are just starting to grasp the fundamental structure of the brain images. However, at this early stage, the generator model is yet to fully recognise that the images are supposed to be in black and white, as it initially generates them in color. Subsequent epochs will likely see a rapid adjustment as the generator learns to produce black and white images.
 
 
 ## Generated Images after 20 Epochs
@@ -239,7 +240,7 @@ As shown above in the training images, after one run through the dataset the gen
 ### Style Vector of 5
 ![Epoch20/w5](assets/generated_samples/epoch20/w5/img_9.png)
 
-As you can see after just 20 epochs through the dataset the generator is beginning to produce images that are beginning to look like the brain dataset in terms of colour and shape.  Although there are still a few inaccuracies with the images that will hopefully be cleaned up in further epochs. 
+After just 20 epochs of training with the dataset, the generator exhibits promising signs of progress. It is beginning to craft images that show notable similarities to the brain dataset in terms of both color and shape. These early outcomes are quite encouraging. However, it is essential to acknowledge that a few discrepancies and imperfections are still present within the generated images at this stage. These imperfections, while relatively minor, are areas for improvement that we anticipate will be addressed and refined in the upcoming epochs of training. As the generator continues to learn and adapt, we can look forward to these inaccuracies being gradually cleaned up and the images becoming more faithful representations of the brain dataset, ultimately leading to a higher quality output.
 
 
 ## Generated Images after 100 Epochs 
@@ -258,7 +259,7 @@ As you can see after just 20 epochs through the dataset the generator is beginni
 ### Style Vector Boise of 5
 ![Epoch100/w5](assets/generated_samples/epoch100/w5/img_13.png)
 
-Now the images are really beginning to take shape and look very recognisable to the dataset.  There are still a few little kinks and not all of the images produced look realistic but it is still a successful result considering it has only been 100 epochs with a relatively small dataset.
+After a full 100 epochs of training, the generated images have evolved significantly and are noticeably resembling the dataset in a more pronounced manner. They are becoming increasingly recognizable, bearing a striking resemblance to the original brain dataset in terms of their characteristics. However, it's important to acknowledge that a few minor irregularities, often referred to as "kinks," still persist in the images. Notably, not every single image produced exhibits a completely realistic quality. Yet, it's crucial to emphasize that achieving this level of success in just 100 epochs with a relatively small dataset is a significant accomplishment. Despite the remaining imperfections, these results are indicative of the model's capacity to learn and adapt, and further refinement over additional epochs is likely to produce better results.
 
 
 ## Generated Images after 180 Epochs 
@@ -277,7 +278,7 @@ Now the images are really beginning to take shape and look very recognisable to 
 ### Style Vector Noise of 5
 ![Epoch180/w5](assets/generated_samples/epoch180/w5/img_12.png)
 
-As you can see there has not been too much progress since epoch 100.  The images are getting slightly better but as will be shown below in the loss graph the generator and discrimiantor losses are remaining relatively stable and have converged.  Thus in order to produce better images changes may have to be made to the model and or dataset.
+Post-epoch 100, it becomes evident that the progress in image quality has been relatively gradual. The images have undergone some incremental enhancements, but a closer examination of the loss graph reveals that the generator and discriminator losses have reached a point of stability and convergence. This stability suggests that the model's current configuration may have reached its maximum potential in terms of performance. To drive further improvements in the quality of generated images, it is likely that adjustments to the model architecture and dataset composition will be necessary. Consequently, in order to achieve the desired image quality, it may be advantageous to explore modifications that can propel the model beyond its current limitations.
 
 
 ## Generator and Discriminator Loss
