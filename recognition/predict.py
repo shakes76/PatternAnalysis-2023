@@ -26,7 +26,7 @@ def plot_results(samples, pred_masks, num_samples):
     fig, ax = plt.subplots(num_samples, 3, figsize=(15, 5*num_samples)) 
     for i in range(num_samples):
         ax[i, 0].imshow(samples[i]['image'].permute(1, 2, 0))
-        ax[i, 1].imshow(samples[i]['mask'].squeeze(), cmap="gray")
+        ax[i, 1].im3show(samples[i]['mask'].squeeze(), cmap="gray")
         ax[i, 2].imshow(pred_masks[i].squeeze(), cmap="gray")
         if i == 0: 
             ax[i, 0].set_title("Input Image")
