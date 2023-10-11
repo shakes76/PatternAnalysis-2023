@@ -1,79 +1,72 @@
 import torch
-from torch.utils.data import DataLoader
-from torchvision import transforms
+import torch.nn.functional as F  # For calculating the loss
 import matplotlib.pyplot as plt
 from dataset import ISICDataset, get_transform
 from modules import UNet2D
-from PIL import Image
-import numpy as np
 
-# Assuming that the model is saved in a file named 'model.pth'
-MODEL_PATH = 'model_epoch_1.pth'
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+def dice_coefficient(predicted, target):
+    smooth = 1.0  # To avoid division by zero
+    predicted_flat = predicted.view(-1)
+    target_flat = target.view(-1)
+    intersection = (predicted_flat * target_flat).sum()
+    return (2. * intersection + smooth) / (predicted_flat.sum() + target_flat.sum() + smooth)
 
-def predict(model, dataloader, device):
+def predict_and_evaluate(model, sample, device):
     model.eval()
-    all_preds = []
+    image = sample['image'].unsqueeze(0).to(device)
+    mask = sample['mask'].unsqueeze(0).to(device)
     with torch.no_grad():
-        for i, batch in enumerate(dataloader):
-            inputs = batch['image'].to(device)
-            outputs = model(inputs)
-            print("Max and Min of output data:", outputs.max().item(), outputs.min().item())
-            preds = torch.argmax(outputs, dim=1).cpu().numpy()
-            print("Unique values in prediction:", np.unique(preds[0]))
-            all_preds.extend(preds)
-            # Plotting the first predicted mask
-            if i == 0:
-                plt.imshow(preds[0], cmap='gray')
-                plt.title("Sample Prediction")
-                plt.show()
-    return all_preds
+        output = model(image)
+    pred_mask = (output > 0.5).float()
+    loss = F.binary_cross_entropy_with_logits(output, mask)
+    dice = dice_coefficient(pred_mask, mask)
+    return pred_mask.squeeze().cpu(), loss.item(), dice.item()
 
-def visualize_predictions(images, predictions, num_samples=5):
-    fig, ax = plt.subplots(num_samples, 2, figsize=(10, 20))
-    
+def plot_results(samples, pred_masks, num_samples):
+    fig, ax = plt.subplots(num_samples, 3, figsize=(15, 5*num_samples)) 
     for i in range(num_samples):
-        # Option 1: Convert the float32 array to uint8 before converting to a PIL Image.
-        img = transforms.ToPILImage()(images[i].squeeze().astype(np.uint8)) 
-        
-        ax[i, 0].imshow(img)
-        ax[i, 0].set_title('Original Image')
-        ax[i, 0].axis('off')
-        
-        ax[i, 1].imshow(predictions[i], cmap='gray')
-        ax[i, 1].set_title('Predicted Mask')
-        ax[i, 1].axis('off')
-
+        ax[i, 0].imshow(samples[i]['image'].permute(1, 2, 0))
+        ax[i, 1].imshow(samples[i]['mask'].squeeze(), cmap="gray")
+        ax[i, 2].imshow(pred_masks[i].squeeze(), cmap="gray")
+        if i == 0: 
+            ax[i, 0].set_title("Input Image")
+            ax[i, 1].set_title("Actual Mask")
+            ax[i, 2].set_title("Predicted Mask")
     plt.tight_layout()
+    plt.savefig("results_plot.png", dpi=300)  # Save the figure
     plt.show()
 
-if __name__ == "__main__":
-    # Load model
-    model = UNet2D(in_channels=3, num_classes=1).to(DEVICE)  
-    model.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
-
-    # Load data
+def main():
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model_path = "model_checkpoints/model_epoch_30.pth"
+    model = UNet2D(in_channels=3, num_classes=1).to(device)
+    model.load_state_dict(torch.load(model_path, map_location=device))
     test_dataset = ISICDataset(dataset_type='test', transform=get_transform())
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
-
-    # Visualize some images directly from the loader
-    for i, batch in enumerate(test_loader):
-        images = batch['image'].numpy().transpose((0, 2, 3, 1)) # Bring channel to last axis
-        print("Max and Min of image data:", images[0].max(), images[0].min())
-        # Assuming your images are in [0, 1] range
-        images = images * 255  # Bringing to [0, 255] if they are in [0, 1] range
-        fig, axs = plt.subplots(1, 5, figsize=(15, 5))
-        for ax, img in zip(axs, images):
-            ax.imshow(img.astype(np.uint8))  # Ensure type is uint8
-            ax.axis('off')
-        plt.show()
-        if i == 0: # Breaking after visualizing the first batch
-            break
     
-    # Get predictions
-    predictions = predict(model, test_loader, DEVICE)
+    num_samples = 5
+    total_loss = 0.0
+    total_dice = 0.0
+    
+    samples = []
+    pred_masks = []
+    for i in range(num_samples):
+        sample = test_dataset[i]
+        pred_mask, loss, dice = predict_and_evaluate(model, sample, device)
+        
+        samples.append(sample)
+        pred_masks.append(pred_mask)
+        
+        total_loss += loss
+        total_dice += dice
+        
+    # Plot the results
+    plot_results(samples, pred_masks, num_samples)
+    
+    avg_loss = total_loss / num_samples
+    avg_dice = total_dice / num_samples
+    
+    print(f"Average Test Loss: {avg_loss:.4f}")
+    print(f"Average Dice Coefficient: {avg_dice:.4f}")
 
-    # Visualize
-    images = [batch['image'] for batch in test_loader]
-    images = torch.cat(images, dim=0).numpy().transpose((0, 2, 3, 1))
-    visualize_predictions(images, predictions)
+if __name__ == "__main__":
+    main()
