@@ -1,1 +1,0 @@
-# Siamese Network for Alzheimer's Disease Classification
