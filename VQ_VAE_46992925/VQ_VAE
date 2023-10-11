@@ -6,6 +6,7 @@ https://www.youtube.com/watch?v=1ZHzAOutcnw
 import os
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.transforms as transforms
 import numpy as np
 from tqdm import tqdm
@@ -36,8 +37,14 @@ def load_data_from_folder(name):
 
 print("> Loading Test data")
 
-train_data = torch.from_numpy(load_data_from_folder("keras_png_slices_test/")).to(device)
-train_loader = torch.utils.data.DataLoader(train_data, batch_size=128, shuffle=True)
+########## TODO THIS IS NOT SEGMENTATION!! SPLIT TRAINING INTO TRAIN AND TEST!!!
+
+train_data = torch.from_numpy(load_data_from_folder("keras_png_slices_train/")).to(device)
+test_data = torch.from_numpy(load_data_from_folder("keras_png_slices_test/")).to(device)
+
+train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=128, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=128, shuffle=True)
+
 
 print("> Test Data Finsihed Loading")
 print("The shape of the data is: ", train_data.shape)
@@ -99,18 +106,59 @@ class VQVAE(nn.Module):
         # Compute losses
         commitment_loss = torch.mean((quant_out.detach() - quant_input)**2)
         codebook_loss = torch.mean((quant_out - quant_input.detach())**2)
-        total_losses = codebook_loss + self.beta*commitment_loss
+        
         
         # Straight through gradient estimator
         quant_out = quant_input + (quant_out - quant_input).detach()        # Detach ~ ignored for back-prop
         quant_out = quant_out.reshape((B, H, W, C)).permute(0, 3, 1, 2)
         min_encoding_indices = min_encoding_indices.reshape((-1, quant_out.size(-2), quant_out.size(-1)))
-    
-    
+        
         # Decoding
         decoder_input = self.post_quant_conv(quant_out)
         output = self.decoder(decoder_input)
+        
+        # Reconstruction Loss, and find the total loss
+        reconstruction_loss = F.mse_loss(x, output)
+        total_losses = reconstruction_loss + codebook_loss + self.beta*commitment_loss
+        
         return output, total_losses
     
-model = VQVAE()
+    
+# ------------------------------------------------
+# Training
+
+########################## TODO THERE IS NO RECONSTRUCTION LOSS!!
+
+# Hyperparams
+learning_rate = 1.e-3
+num_epochs = 3
+
+
+model = VQVAE().to(device)
 print(model)
+
+optimiser = torch.optim.Adam(model.parameters(), learning_rate)
+
+for epoch_num, epoch in enumerate(tqdm(range(num_epochs))):
+    model.train()
+    for train_batch in tqdm(train_dataloader):
+        images, labels = train_batch
+        images = images.to(device)
+        
+        output, total_losses = model(images)
+
+        optimiser.zero_grad()       # Reset gradients to zero for back-prop
+        total_losses.backward()     # Calculate grad
+        optimiser.step()
+        
+    # Evaluate
+    model.eval()
+    
+    for test_batch in tqdm(test_dataloader):
+        images, labels = test_batch
+        images = images.to(device)
+        
+        with torch.no_grad():
+            output, total_losses = model(images)
+            
+    print("Epoch {} of {}. Total Loss: {}".format(epoch_num, num_epochs, total_losses))
