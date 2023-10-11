@@ -1,6 +1,7 @@
 import numpy as np
 from tensorflow import keras
 import os
+import constants
 
 
 def load_jpegs_at_path(path: str) -> list[np.ndarray]:
@@ -13,7 +14,9 @@ def load_jpegs_at_path(path: str) -> list[np.ndarray]:
     return [
         keras.utils.img_to_array(
             keras.utils.load_img(
-                f"{path}/{p}", target_size=(60, 64), color_mode="grayscale"
+                f"{path}/{p}",
+                target_size=constants.IMAGE_INPUT_SHAPE[:2],
+                color_mode="grayscale",
             )
         )
         / 255.0
