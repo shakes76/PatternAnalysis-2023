@@ -16,8 +16,12 @@ class ADNIDataset(Dataset):
         self.transform = transform
         self.downsample_factor = downsample_factor
         self.image_files = []
-        for subfolder in ['AD', 'NC']:
-            self.image_files.extend([os.path.join(dp, f) for dp, dn, filenames in os.walk(os.path.join(root_dir, subfolder)) for f in filenames if f.endswith('.jpeg')])
+        self.labels = []
+
+        for subfolder, label in [('AD', 0), ('NC', 1)]:
+            files_in_subfolder = [os.path.join(dp, f) for dp, dn, filenames in os.walk(os.path.join(root_dir, subfolder)) for f in filenames if f.endswith('.jpeg')]
+            self.image_files.extend(files_in_subfolder)
+            self.labels.extend([label] * len(files_in_subfolder))
 
     def __len__(self):
         return len(self.image_files)
@@ -34,7 +38,9 @@ class ADNIDataset(Dataset):
             image = self.transform(image)
             downsampled_image = self.transform(downsampled_image)
 
-        return downsampled_image, image
+        label = self.labels[idx]
+
+        return downsampled_image, image, label
 
 def image_transform():
     return transforms.Compose([
