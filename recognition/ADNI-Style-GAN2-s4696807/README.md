@@ -301,7 +301,7 @@ Furthermore, as discussed earlier increasing the size of the dataset being train
 
 
 # Conclusion
-To conlude, this StyleGAN2 model used in this report was used to successfully generate realistic brain images, utilising both preprocessing as well as StyleGAN2's unique style vector to extend these to images that contained multiple brain realsitic brain segments facing in both the left and right direction.  It was found that at after around 20 epochs that the model hit it's limit to how realistic it could become, and it is though that the already high quality images could be further improved through the use of a larger dataset.  
+To conlude, this StyleGAN2 model used in this report was used to successfully generate realistic brain images, utilising both preprocessing as well as StyleGAN2's unique style vector to extend these to images that contained multiple brain realsitic brain segments facing in both the left and right direction.  It was found that at after around 100 epochs that the model hit it's limit to how realistic it could become, and it is though that the already high quality images could be further improved through the use of a larger dataset.  
 
 
 
