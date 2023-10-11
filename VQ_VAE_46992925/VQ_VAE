@@ -25,10 +25,9 @@ print("Torch version ", torch.__version__)
 path = "C:/Users/61423/COMP3710/data/keras_png_slices_data/"
 #path = "//puffball.labs.eait.uq.edu.au/s4699292/Documents/2023 Sem2/Comp3710/keras_png_slices_data/keras_png_slices_data/"
 
-
 def load_data_from_folder(name):
     data = []
-    i = 0
+    #i = 0
     
     for filename in tqdm(os.listdir(path+name)):            # tqdm adds loading bar!
         
@@ -37,37 +36,48 @@ def load_data_from_folder(name):
         image = np.array(image)
         
         # Ensure the image has the shape (C, H, W)
-        image = np.expand_dims(image, axis=2)
+        image = np.expand_dims(image, axis=0)        
+        #image = image.reshape((1, image.shape[0], image.shape[1]))
+        
         data.append(image)
 
-        if i == 10:
-            return np.array(data)
-        i += 1
+        #if i == 100:
+        #    return np.array(data)
+        #i += 1
 
     return np.array(data)
 
-# C, H, W (Numpy array)
+# Loading
+# B, C, H, W (Numpy array)
 print("> Loading Training data")
-train_data = load_data_from_folder("keras_png_slices_train/")
+train_data = (load_data_from_folder("keras_png_slices_train/"))
 print("> Loading Test data")
-test_data = load_data_from_folder("keras_png_slices_test/")
+test_data = (load_data_from_folder("keras_png_slices_test/"))
 
 print("The shape of the (training) data is: ", train_data.shape)
+print("The shape of the (testing) data is: ", test_data.shape)
 
-# Normalise
+# Transforms and tensor
 mean = np.mean(train_data)
 std = np.std(train_data)
-data_transform = transforms.Compose([transforms.ToTensor(),  # Convert to PyTorch tensor
-    transforms.Normalize(mean, std)])
 
-train_data = [data_transform(item) for item in train_data]
-test_data = [data_transform(item) for item in test_data]
+transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)])
 
+train_data = torch.stack([transform(item) for item in train_data]).permute(0, 2, 3, 1)
+test_data = torch.stack([transform(item) for item in test_data]).permute(0, 2, 3, 1)
+
+print("The shape of the (training) data is: ", train_data.shape)
+print("The shape of the (testing) data is: ", test_data.shape)
+
+# DataLoaders
 # B, C, H, W
 train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=128, shuffle=True)
 test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=128, shuffle=True)
 
-# TODO NORMALISE!!!!!
+plt.imshow(train_data[0][0])
+plt.title("First Training image")
+plt.gray()
+plt.show()
 
 print("> Data Loading Finished")
 
@@ -96,7 +106,7 @@ class VQVAE(nn.Module):
         
         # Commitment loss beta
         self.beta = 0.2
-        self.alpha = 0.1
+        self.alpha = 1.0
         
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(4, 16, kernel_size=4, stride=2, padding=1),
@@ -160,11 +170,11 @@ class VQVAE(nn.Module):
 
 ########################## TODO THERE IS NO RECONSTRUCTION LOSS!!
 
+losses = []     # for visualisation
 
 # Hyperparams
-learning_rate = 1.e-4
-num_epochs = 1
-
+learning_rate = 1.e-3
+num_epochs = 2
 
 model = VQVAE().to(device)
 print(model)
@@ -196,6 +206,8 @@ for epoch_num, epoch in enumerate(tqdm(range(num_epochs))):
 
             
     print("Epoch {} of {}. Total Loss: {}".format(epoch_num, num_epochs, total_losses))
+    
+    losses.append(total_losses)     # To graph losses
 
 
 # -------------------------------------------------
@@ -203,6 +215,8 @@ for epoch_num, epoch in enumerate(tqdm(range(num_epochs))):
 
 # C, H, W
 input_img = test_data[0]
+
+# Reshape to B, C, H, W for the model
 input_img = input_img.reshape(1, 1, input_img.size(-2), input_img.size(-1))
 input_img = input_img.to(device, dtype=torch.float32)
 
@@ -227,4 +241,10 @@ plt.imshow(input_img[0][0].cpu().numpy(), cmap='gray')  # Assuming single-channe
 plt.subplot(1, 2, 2)
 plt.title("Model Output")
 plt.imshow(output[0][0].cpu().numpy(), cmap='gray')  # Assuming single-channel output
+plt.show()
+
+plt.plot(losses)
+plt.title("Losses")
+plt.xlabel("Num Epochs")
+plt.ylabel("Loss")
 plt.show()
