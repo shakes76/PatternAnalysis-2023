@@ -256,6 +256,7 @@ if __name__ == "__main__":
 
     backbone = siamese_net.get_backbone()
     classifier = SiameseMLP(backbone)
+    classifier = classifier.to(device)
     criterion = nn.BCELoss()
     optimiser = optim.Adam(classifier.parameters(), lr=1e-3, betas=(0.9, 0.999))
 
