@@ -10,28 +10,31 @@ As proposed by [Shi, 2016](https://arxiv.org/abs/1609.05158), the model utilises
 ### Data Processing and Training Procedure
 The original MRI images are 240px $\times$ 256px:
 
-![Original Images](doc/original.png)
+<img src="doc/original.png" width="600">
 
 As they are loaded, a Random Horizontal Flip is applied:
 
-![Flipped Images](doc/original-flipped.png)
+<img src="doc/original-flipped.png" width="600">
 
 Once loaded, they are downsampled by a factor of 4 using the Resize() transform:
 
-![Downsampled Images](doc/downsampled.png)
+<img src="doc/downsampled.png" width="600">
 
 These downsampled images are fed into the model, and the model loss is calculated using the original images. The test set is used to generate regular checkpoint outputs during training, and these are later inspected to verify the model isn't getting overfitted.
 
 The model was trained for 10 epochs, which likely that 10 epochs is more than necessary. This can be seen in the loss plot:
 
-![Loss Plot](doc/lossplot.png)
+<img src="doc/lossplot.png" width="600">
 
 We see a steep drop followed by stability for the rest of the training. Examining the checkpoint images supports this.
 
 The end of epoch 4:
-![Epoch 4](doc/%5B4,10%5D%5B160,169%5Doutput.png)
+
+<img src="doc/%5B4,10%5D%5B160,169%5Doutput.png" width="600">
+
 Looks almost identical to the end of epoch 10:
-![Epoch 10](doc/%5B10,10%5D%5B169,169%5Doutput.png)
+
+<img src="doc/%5B10,10%5D%5B169,169%5Doutput.png" width="600">
 
 For future model applications, the number of epochs could likely be reduced to decrease training time without significantly impacting model performance.
 
