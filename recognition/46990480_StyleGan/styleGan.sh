@@ -16,5 +16,5 @@ conda activate comp3710
 echo "Environment Selected"
 
 echo "Starting Script"
-python ~/dataset.py
+python ~/train.py
 echo "Script Finished"
