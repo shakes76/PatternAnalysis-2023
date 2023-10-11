@@ -17,9 +17,10 @@ class MyDataset(torch.utils.data.Dataset):
         '''
         assert mode in ['train', 'test', 'validate']
 
+        main_folder = '../../../keras_png_slices_data/keras_png_slices_data'
         # folder_name
-        folder_name = f'../keras_png_slices_data/keras_png_slices_data/keras_png_slices_{mode}'
-        seg_folder_name = f'../keras_png_slices_data/keras_png_slices_data/keras_png_slices_seg_{mode}'
+        folder_name = f'{main_folder}/keras_png_slices_{mode}'
+        seg_folder_name = f'{main_folder}/keras_png_slices_seg_{mode}'
         self.raw_img = []
         self.seg_img = []
         self.brain_index = []
