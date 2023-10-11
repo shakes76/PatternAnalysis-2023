@@ -1,9 +1,14 @@
 import os
 import torch
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
 
-# Check for CUDA availability
-print(torch.cuda.is_available())
+# Paths to the images
+BASE_PATH = "C:\\Users\\User\\OneDrive\\Bachelor of Computer Science\\Semester 6 2023\\COMP3710\\ADNI_AD_NC_2D\\AD_NC"
+TRAIN_PATH = os.path.join(BASE_PATH, "train")
+TEST_PATH = os.path.join(BASE_PATH, "test")
 
-# Get the name of the GPU (if available)
-if torch.cuda.is_available():
-    print(torch.cuda.get_device_name(0))
+# Image size and batch size
+IMG_WIDTH = 256
+IMG_HEIGHT = 240
+BATCH_SIZE = 32
