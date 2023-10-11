@@ -1,61 +1,42 @@
+# train.py
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader
-from torch.optim import SGD
-from dataset import ISICDataset  # Assuming dataset.py is in the same directory
-from modules import MaskRCNN  # Assuming modules.py is in the same directory
-import os
-os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
+from dataset import ISICDataset  # 确保这一行正确地导入了您的数据集类
+from modules import MaskRCNNModule
 
-# Initialize the dataset
+# 初始化模型
+mask_rcnn_model = MaskRCNNModule(pretrained=False)
+model = mask_rcnn_model.get_model()
+model.train()
+
+# 创建数据加载器
 train_dataset = ISICDataset(path="E:/comp3710/ISIC2018", type="Training")
-val_dataset = ISICDataset(path="E:/comp3710/ISIC2018", type="Validation")
-
 train_loader = DataLoader(train_dataset, batch_size=4, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=4, shuffle=False)
 
-# Initialize the model
-num_classes = 2  # For binary classification, we have 2 classes: 0 and 1
-model = MaskRCNN(num_classes)
+# 定义优化器和损失函数（如果需要的话）
+optimizer = torch.optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
 
-# If CUDA is available, move the model to GPU
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-device = torch.device("cpu")
-model.to(device)
+# 训练循环
+for epoch in range(10):  # 假设我们训练10个epoch
+    for images, targets in train_loader:
+        # 模型预测
+        loss_dict = model(images, targets)
 
-# Define the loss functions
-classification_loss = nn.CrossEntropyLoss()
-bbox_loss = nn.SmoothL1Loss()
-mask_loss = nn.BCEWithLogitsLoss()
+        # 计算总损失
+        losses = sum(loss for loss in loss_dict.values())
 
-# Initialize the optimizer
-optimizer = SGD(model.parameters(), lr=0.001, momentum=0.9)
-
-# Training loop
-for epoch in range(10):  # Number of epochs
-    for i, (images, masks) in enumerate(train_loader):
-
-        images, masks = images.to(device), masks.to(device)
-
-        # Zero the parameter gradients
+        # 清除之前的梯度
         optimizer.zero_grad()
 
-        # Forward pass
-        classification, boxes, predicted_masks = model(images)
+        # 反向传播
+        losses.backward()
 
-        # Calculate the loss
-        loss_cls = classification_loss(classification)
-        loss_bbox = bbox_loss(boxes)
-        loss_mask = mask_loss(predicted_masks, masks)
-
-        # Combine the losses
-        total_loss = loss_cls + loss_bbox + loss_mask
-
-        # Backward pass and optimization
-        total_loss.backward()
+        # 更新权重
         optimizer.step()
 
-        print(f"Epoch [{epoch+1}/10], Step [{i+1}/{len(train_loader)}], Loss: {total_loss.item():.4f}")
+        print(f"Loss: {losses.item()}")
 
-# Save the model
+    print(f"Epoch {epoch + 1} completed")
+
+# 保存模型
 torch.save(model.state_dict(), "mask_rcnn_model.pth")
