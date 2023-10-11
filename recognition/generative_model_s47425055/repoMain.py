@@ -29,6 +29,22 @@ LAMDA = 1
 LR = 1e-3
 DEVICE = torch.device('cuda')
 
+# Constants for determining the importance of SSIM and reconstruction loss
+ALPHA = 0.5  # weight for SSIM, range [0, 1]
+BETA = 1 - ALPHA  # weight for reconstruction loss
+
+BEST_METRIC = -999  # initial value for the combination metric
+BEST_SSIM = 0  # just for logging purposes
+BEST_RECONS_LOSS = 999  # just for logging purposes
+
+save_interval = 10
+
+#train_losses = []
+train_losses_epoch = [] # Will hold tuple of (reconstruction loss, VQ loss) per epoch
+val_losses = [] # Will hold tuple of (reconstruction loss, VQ loss) per epoch for validation
+ssim_scores = [] # Will hold SSIM scores for validation set
+
+
 # Directories
 Path('models').mkdir(exist_ok=True)
 Path('samples').mkdir(exist_ok=True)
@@ -184,17 +200,21 @@ scheduler = torch.optim.lr_scheduler.StepLR(opt, step_size=10, gamma=0.9)  # for
 
 def train():
     model.train()
+    total_loss_recons = 0.0
+    total_loss_vq = 0.0
+    num_batches = 0
+
     for batch_idx, (x, _) in enumerate(train_loader):
         start_time = time.time()
         x = x.to(DEVICE)
 
         opt.zero_grad()
-
         x_tilde, z_e_x, z_q_x = model(x)
         z_q_x.retain_grad()
 
         loss_recons = F.mse_loss(x_tilde, x)
         loss_recons.backward(retain_graph=True)
+        total_loss_recons += loss_recons.item()
 
         # Straight-through estimator
         z_e_x.backward(z_q_x.grad, retain_graph=True)
@@ -214,7 +234,7 @@ def train():
         log_px = nll.sum() / N + np.log(128) - np.log(K * 2)
         log_px /= np.log(2)
 
-        train_losses.append((log_px.item(), loss_recons.item(), loss_vq.item()))
+        #train_losses.append((log_px.item(), loss_recons.item(), loss_vq.item()))
 
         if (batch_idx + 1) % PRINT_INTERVAL == 0:
             print('\tIter [{}/{} ({:.0f}%)]\tLoss: {} Time: {}'.format(
@@ -223,7 +243,14 @@ def train():
                 np.mean(train_losses[-PRINT_INTERVAL:], axis=0),
                 time.time() - start_time
             ))
-        #return np.asarray(train_loss).mean(0)[0]  # return average reconstruction loss
+        total_loss_vq += loss_vq.item()
+        num_batches += 1
+    avg_loss_recons = total_loss_recons / num_batches
+    avg_loss_vq = total_loss_vq / num_batches
+
+    train_losses_epoch.append((avg_loss_recons, avg_loss_vq))
+    print('Epoch Loss: Recons {:.4f}, VQ {:.4f}'.format(avg_loss_recons, avg_loss_vq))
+        
 
 def validate():
     model.eval()  # Switch to evaluation mode
@@ -288,7 +315,7 @@ def generate_samples(epoch):
     dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
     save_image(
         images,
-        f'samples/vqvae_reconstructions_{epoch}.png',
+        f'samples2/vqvae_reconstructions_{epoch}.png',
         nrow=8
     )
 
@@ -296,12 +323,12 @@ def generate_samples(epoch):
     grid_img = torchvision.utils.make_grid(images, nrow=8)
     plt.figure(figsize=(16,8))
     plt.imshow(grid_img.permute(1, 2, 0))
-    plt.savefig(f'samples/loss_plot_epoch{epoch}.png', bbox_inches='tight')
+    plt.savefig(f'samples2/loss_plot_epoch{epoch}.png', bbox_inches='tight')
     plt.close()
 
 def generate_sample_from_best_model(BEST_EPOCH):
     # Load the best model
-    model.load_state_dict(torch.load(f'samples/checkpoint_epoch{BEST_EPOCH}_vqvae.pt'))
+    model.load_state_dict(torch.load(f'samples2/checkpoint_epoch{BEST_EPOCH}_vqvae.pt'))
     model.eval()
 
     # Get a sample from the test set
@@ -312,81 +339,86 @@ def generate_sample_from_best_model(BEST_EPOCH):
     x_tilde, _, _ = model(x)
 
     # Save the generated sample
-    save_image(x_tilde.cpu().data, 'samples/best_model_sample.png')
+    save_image(x_tilde.cpu().data, 'samples2/best_model_sample.png')
+
+def plot_losses_and_scores():
+    # Extract training losses for reconstruction and VQ
+    train_recons_losses, train_vq_losses = zip(*train_losses_epoch)
+    
+    # Extract validation losses
+    val_recons_losses, val_vq_losses = zip(*val_losses)
+    
+    epochs = range(len(train_recons_losses))
+
+    # Plotting
+    plt.figure(figsize=(12, 5))
+
+    # Plot reconstruction losses
+    plt.subplot(1, 3, 1)
+    plt.plot(epochs, train_recons_losses, '-o', label='Training Recon Loss')
+    plt.plot(epochs, val_recons_losses, '-o', label='Validation Recon Loss')
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend()
+
+    # Plot VQ losses
+    plt.subplot(1, 3, 2)
+    plt.plot(epochs, train_vq_losses, '-o', label='Training VQ Loss')
+    plt.plot(epochs, val_vq_losses, '-o', label='Validation VQ Loss')
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend()
+
+    # Plot SSIM scores
+    plt.subplot(1, 3, 3)
+    plt.plot(epochs, ssim_scores, '-o', label='Validation SSIM')
+    plt.xlabel("Epochs")
+    plt.ylabel("SSIM Score")
+    plt.legend()
+
+    plt.tight_layout()
+    plt.savefig('samples2/loss_ssim_plot.png', bbox_inches='tight')
+    plt.close()
 
 
-
-# Constants for determining the importance of SSIM and reconstruction loss
-ALPHA = 0.5  # weight for SSIM, range [0, 1]
-BETA = 1 - ALPHA  # weight for reconstruction loss
-
-BEST_METRIC = -999  # initial value for the combination metric
-BEST_SSIM = 0  # just for logging purposes
-BEST_RECONS_LOSS = 999  # just for logging purposes
-
-save_interval = 10
-
-train_losses = []
-val_losses = []
-ssim_scores = []
 
 for epoch in range(1, N_EPOCHS):
     print(f"Epoch {epoch}:")
-    train_loss = train()
+    train()
     
     # Modify this line to unpack both loss and SSIM
     val_loss, val_ssim = validate()
-    test_ssim = test()
+    #test_ssim = test()
     # Calculate the combined metric
     combined_metric = ALPHA * val_ssim + BETA * (1 - val_loss[0])  # assuming lower reconstruction loss is better, thus the (1 - val_loss[0])
 
     # Check the combined metric for improvements
     if combined_metric > BEST_METRIC:                        
         BEST_METRIC = combined_metric
-        BEST_SSIM = val_ssim
+        BEST_SSIM = avg_ssim
+        BEST_EPOCH = epoch
         BEST_RECONS_LOSS = val_loss[0]
         print("Saving model based on improved combined metric!")
         dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
         # Save model and generate samples every 10 epochs
-        BEST_EPOCH = epoch
         if epoch % save_interval == 0:
-            torch.save(model.state_dict(), f'samples/checkpoint_epoch{epoch}_vqvae.pt') 
+            torch.save(model.state_dict(), f'samples2/checkpoint_epoch{epoch}_vqvae.pt') 
     else:
         print(f"Not saving model! Last best combined metric: {BEST_METRIC:.4f}, SSIM: {BEST_SSIM:.4f}, Reconstruction Loss: {BEST_RECONS_LOSS:.4f}")
 
     # Generate samples at the end of each 5th epoch
     if epoch % save_interval == 0:
         generate_samples(epoch)
-
+    # Testing the model after training
+    test_ssim = test()
+    print(f"Average SSIM on Test Set: {test_ssim:.4f}")
     # Step the scheduler to adjust learning rate
     scheduler.step()
 
-# Loss plots
-plt.figure(figsize=(12, 5))
+    avg_loss_recons = total_loss_recons / num_batches
+    avg_loss_vq = total_loss_vq / num_batches
+    train_losses_epoch.append((avg_loss_recons, avg_loss_vq))
 
-# Assuming each loss value is a tuple where the first value is the reconstruction loss
-train_recons_losses = [x[0] for x in train_losses]
-val_recons_losses = [x[0] for x in val_losses]
-
-plt.subplot(1, 2, 1)
-plt.plot(train_recons_losses, label='Train Loss')
-plt.plot(np.arange(0, len(train_recons_losses), len(train_recons_losses) // len(val_recons_losses)), 
-         val_recons_losses, '-x', label='Validation Loss')
-plt.title('Reconstruction Loss')
-plt.legend()
-
-# SSIM plot
-plt.subplot(1, 2, 2)
-plt.plot(np.arange(0, len(train_recons_losses), len(train_recons_losses) // len(ssim_scores)), 
-         ssim_scores, '-x')
-plt.title('Structural Similarity (SSIM) score')
-plt.ylim(0, 1)  # since SSIM values lie between 0 and 1
-
-plt.tight_layout()
-#plt.show()
-plt.savefig('samples/combined_loss_plot.png', bbox_inches='tight')
-plt.close()
-
-
-# Call the function to generate and display a sample from the best model
+plot_losses_and_scores()
+# Generate a sample from the best model for inspection
 generate_sample_from_best_model(BEST_EPOCH)
