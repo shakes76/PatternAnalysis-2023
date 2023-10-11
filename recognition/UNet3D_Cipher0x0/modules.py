@@ -85,4 +85,6 @@ class Decoder(nn.Module):
         return x1
 
 
+device = 'cuda' if torch.cuda.is_available() else 'cpu'
+torch.cuda.empty_cache()
 unet = UNet3D().to(device)

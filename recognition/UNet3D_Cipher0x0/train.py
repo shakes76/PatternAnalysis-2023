@@ -1,6 +1,8 @@
 from dataset import *
 from modules import *
 
+import os
+
 
 class DiceLoss(nn.Module):
     def __init__(self, weight=None, size_average=True):
@@ -43,11 +45,6 @@ class DiceLoss(nn.Module):
 def main():
     # change path to current directory
     os.chdir(os.path.dirname(__file__))
-
-    # check whether gpu is available
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
-    print(device, flush=True)
-    torch.cuda.empty_cache()
 
     # build model and optimizer
     loss_fn = nn.CrossEntropyLoss().to(device)
