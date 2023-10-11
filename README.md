@@ -13,11 +13,11 @@ To process the images, all images were converted from a PIL image to a tensor an
 ## Architecture
 The structure followed was presented in 2018 [1], which improves upon the initial U-Net
 
-[INSERT FIGURE 2]
+![Model Overview](./recognition/plots/model_overview.png)
 
-__Figure 2: The Improved U-Net Architecture [1]__
+__Figure 2 (above): The Improved U-Net Architecture [1]__
 
-Our model consists of 2 main sections: the encoder and decoder. The context aggregation pathway encodes and the localisation pathway decodes. Skip connections from the aggregation pathway to the localisation pathway share information about the images.
+Our model consists of 2 main sections: the encoder and decoder. The context aggregation pathway encodes and the localisation pathway decodes. Skip connections from the aggregation pathway to the localisation pathway share information about the images. The model will be trained with 30 epochs.
 
 ### Context Modules
 Relevant features are extracted from the input through our context layers. Input is downsized in these layers using stride 2 3x3 convolutions. A batch dropout coefficient of 0.3 is incorporated during this contextualisation process in order to reduce overfitting risk. 
@@ -40,17 +40,21 @@ Adam optimiser with a learning rate of 5e-4 was used.
 ### Performance Metric
 The performance of the model was evaluated with the Dice Similarity Coefficient (DSC). DSC is a measure used to gauge the similarity between two sets, often used in the context of comparing two images in biomedical image analysis.
 
-## Training & Validation: DSC and Loss Plots
+## Training & Validation: DSC and Loss Plots over Epochs
 
+![Dice Plot](./recognition/plots/results_dice.png)
+![Loss Plot](./recognition/plots/results_loss.png)
+
+## Validation Visuals For Epochs
 ![ValidationSegEpoch1Plot](./recognition/plots/ValidationSegmentsEpoch1.png)
+![ValidationSegEpoch5Plot](./recognition/plots/ValidationSegmentsEpoch5.png)
+![ValidationSegEpoch15Plot](./recognition/plots/ValidationSegmentsEpoch15.png)
+![ValidationSegEpoch30Plot](./recognition/plots/ValidationSegmentsEpoch30.png)
 
-## Training & Validation Visuals
-
-[INSERT IMAGES]
-
-## Test Visuals
-
-[INSERT IMAGES]
+## Test Visuals & Predictions For Final Model
+![Test Plot](./recognition/plots/test_plot.png)
+Average Test Loss: 0.6384
+Average Dice Coefficient: 0.6579
 
 ## Dependencies
 
