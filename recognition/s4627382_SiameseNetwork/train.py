@@ -5,6 +5,7 @@
 import dataset, modules
 import torch
 import torch.optim as optim
+from annoy import AnnoyIndex
 device = torch.device('cuda')
 
 # data path
@@ -24,7 +25,8 @@ model = modules.SiameseNet(embbeding)
 model.to(device)
 
 # define loss function
-criterion = modules.TripletLoss()
+margin = 1
+criterion = modules.TripletLoss(margin)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 
@@ -44,7 +46,16 @@ def train(train_loader, epoches):
 
             # front propagation
             emb_anchor, emb_positive, emb_negative = model(anchor, positive, negative)
-            loss = criterion(emb_anchor, emb_positive, emb_negative)
+            mask = modules.semi_hard_triplet_mining(emb_anchor, emb_positive, emb_negative, margin)
+
+            masked_emb_anchor = emb_anchor[mask]
+
+            if len(emb_anchor[mask]) == 0:
+                del emb_anchor, emb_positive, emb_negative
+                torch.cuda.empty_cache()
+                continue
+
+            loss = criterion(masked_emb_anchor, emb_positive[mask], emb_negative[mask])
 
             # calculate accuracy
             batch_accuracy = calculate_accuracy(emb_anchor, emb_positive, emb_negative)
@@ -57,7 +68,8 @@ def train(train_loader, epoches):
             optimizer.step()
 
         # save the model after each epoch
-        torch.save(model.state_dict(), "D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/SiameseNetwork/SiameseNet.pth")
+        torch.save(model.state_dict(),
+                    "D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/s4627382_SiameseNetwork/SiameseNet.pth")
         
         # calculate accuracy
         avg_accuracy = total_accuracy / total_samples
@@ -123,8 +135,8 @@ def calculate_accuracy(anchor, positive, negative, threshold=0.5):
 def main():
     # train the model
     epoches = 10
-    # print("Training")
-    # train(train_loader, epoches)
+    print("Training")
+    train(train_loader, epoches)
 
     # validate the model
     print("Validating")

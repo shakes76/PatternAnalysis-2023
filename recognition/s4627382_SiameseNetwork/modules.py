@@ -30,10 +30,10 @@ class Embedding(nn.Module):
             nn.Linear(128*32*30, 256),
             nn.ReLU(inplace=True),
 
-            nn.Linear(256, 128),
+            nn.Linear(256, 256),
             nn.ReLU(inplace=True),
 
-            nn.Linear(128, 2),
+            nn.Linear(256, 2),
             )
         
     def forward(self, x):
@@ -74,3 +74,25 @@ class SiameseNet(nn.Module):
         embedding_positive = self.embedding(positive)
         embedding_negative = self.embedding(negative)
         return embedding_anchor, embedding_positive, embedding_negative
+    
+
+# The definition of semi_hard_triplet is the triplets such that the distance of 
+# anchor to negative smaller than anchor to positive, but the differences are still smaller than the margin
+# This function returns a boolean tensor with shape [batch_size]
+def semi_hard_triplet_mining(emb_anchor, emb_positive, emb_negative, margin):
+    # calculate distance from anchor to positive and negative samples
+    anchor_positive = (emb_anchor - emb_positive).pow(2).sum(1).sqrt()
+    anchor_negative = (emb_anchor - emb_negative).pow(2).sum(1).sqrt()
+
+    # print("min posi: ", torch.min(anchor_positive).item())
+    # print("max posi: ", torch.max(anchor_positive).item())
+    # print("min nega: ", torch.min(anchor_negative).item())
+    # print("max nega: ", torch.max(anchor_negative).item())
+
+    # find the semi_hard_triplets
+    hard_triplets = anchor_positive > anchor_negative
+
+    semi_hard_triplets = (anchor_positive < anchor_negative) & (anchor_negative - anchor_positive < margin)
+
+    triplet_mask = hard_triplets | semi_hard_triplets
+    return triplet_mask
