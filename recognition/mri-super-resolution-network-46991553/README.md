@@ -5,7 +5,38 @@ As proposed by [Shi, 2016](https://arxiv.org/abs/1609.05158), the model utilises
 
 ### Model Architecture
 
+The model consists of multiple 2d convolutional layers to extract features, using LeakyReLU activation functions. The model architecture is as follows:
 
+    SuperResolutionModel(
+        (inputs): Sequential(
+            (0): Conv2d(3, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (1): LeakyReLU(negative_slope=0.01, inplace=True)
+            (2): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (3): LeakyReLU(negative_slope=0.01, inplace=True)
+            (4): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (5): LeakyReLU(negative_slope=0.01, inplace=True)
+            (6): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (7): LeakyReLU(negative_slope=0.01, inplace=True)
+            (8): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (9): LeakyReLU(negative_slope=0.01, inplace=True)
+            (10): Conv2d(128, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+            (11): LeakyReLU(negative_slope=0.01, inplace=True)
+            (12): Conv2d(128, 48, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+        )
+        (outputs): Sequential(
+            (0): PixelShuffle(upscale_factor=4)
+        )
+    )
+
+The model was visualised using ``visualkeras``*:
+
+<img src="doc/modelvisual.png" width="600">
+
+*Note that in order to use ``visualkeras``, the model was rebuilt in ``tensorflow.keras``, which is why the output layer is called ``TensorFlowOpLayer`` instead of ``PixelShuffle``.
+
+This demonstrates the idea of learning the feature maps in the low-resolution space, and only constructing the high-resolution at the output layer to reduce computational complexity.
+
+Tanh, ReLU and LeakyReLU were all tested for the activation functions, and LeakyReLU resulted in the clearest image outputs.
 
 ### Data Processing and Training Procedure
 The original MRI images are 240px $\times$ 256px:
