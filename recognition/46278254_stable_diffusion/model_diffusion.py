@@ -4,6 +4,7 @@ import math
 import numpy as np
 from module import ResnetBlock, AttnBlock, Downsample, Upsample
 from einops import reduce
+from util import sinusoidal_embedding
 
 class SkipOut(nn.Module):
     def __init__(self):
@@ -52,16 +53,6 @@ class MyBlock(nn.Module):
         out = self.conv2(out)
         out = self.activation(out)
         return out
-def sinusoidal_embedding(n, d):
-    # Returns the standard positional embedding
-    embedding = torch.zeros(n, d)
-    wk = torch.tensor([1 / 10_000 ** (2 * j / d) for j in range(d)])
-    wk = wk.reshape((1, d))
-    t = torch.arange(n).reshape((n, 1))
-    embedding[:,::2] = torch.sin(t * wk[:,::2])
-    embedding[:,1::2] = torch.cos(t * wk[:,::2])
-
-    return embedding
 
 class LatentDiffusionModel(nn.Module):
     def __init__(self, *, in_channels, ch, dropout=0.0, T=1000):
