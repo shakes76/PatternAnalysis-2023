@@ -23,12 +23,13 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
     '''
     wrapiter = (lambda iter: tqdm(iter)) if pg else (lambda iter: iter)
 
-    train_loader = create_train_dataloader()
+    train_loader, valid_loader = create_train_dataloader(val_pct=0.2)
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.Adam(mdl.parameters(), lr=1e-3)
+    optimizer = torch.optim.RAdam(mdl.parameters(), lr=1e-4)
     mdl.train()
     time_start = time.time()
     for epoch in range(epochs):
+        # Training loop
         for images, labels in wrapiter(train_loader):
             images = images.to(device)
             labels = labels.to(device)
@@ -40,9 +41,23 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
             loss.backward()
             optimizer.step()
 
+        # Validation loop
+        with torch.no_grad():
+            total = 0
+            correct = 0
+            for images, labels in wrapiter(valid_loader):
+                images = images.to(device)
+                labels = labels.to(device)
+                # Forward pass
+                outputs = mdl(images)
+                _, predicted = torch.max(outputs.data, 1)
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
+
         # Training report
         time_elapsed = time.time() - time_start
-        print(f'Epoch [{epoch+1:02}/{epochs:02}]  Loss: {loss.item():.5f}  ({strftime(time_elapsed)})')
+        print(f'Epoch [{epoch+1:02}/{epochs:02}]  Loss: {loss.item():.5f}  ',
+              f'Val Acc: {correct/total:.5f}  ({strftime(time_elapsed)})')
 
 def test_model(mdl: Any, device: torch.device, pg: bool = False) -> None:
     '''Test the given model on the ADNI test dataset.'''
