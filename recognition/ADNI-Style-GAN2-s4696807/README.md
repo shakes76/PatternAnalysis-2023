@@ -201,7 +201,7 @@ After completing the StyleGAN2's training on the OASIS brain dataset for 180 epo
 ## Training Images
 ![Training Images](assets/training_images_examples.png)
 
-This is a small sample of images from the OASIS dataset used in order to give some context to how accurate or inaccurate the generated images are in compassison to these. 
+This is a small sample of images from the OASIS dataset used in order to give some context to how accurate or inaccurate the generated images are in compassison to these. You can compare these to the generate images below. 
 
 
 ## Generated Images after 1 Epoch
@@ -228,33 +228,37 @@ As shown above in the training images, after one run through the dataset the gen
 ![Epoch20/w1](assets/generated_samples/epoch20/w1/img_18.png)
 
 ### Style Vector Noise of 2 
-![Epoch1/w2](assets/generated_samples/epoch20/w2/img_0.png)
+![Epoch20/w2](assets/generated_samples/epoch20/w2/img_4.png)
 
 ### Style Vector Noise of 3 
-![Epoch1/w3](assets/generated_samples/epoch20/w3/img_0.png)
+![Epoch20/w3](assets/generated_samples/epoch20/w3/img_3.png)
 
 ### Style Vector Noise of 4 
-![Epoch1/w4](assets/generated_samples/epoch20/w4/img_0.png)
+![Epoch20/w4](assets/generated_samples/epoch20/w4/img_9.png)
 
 ### Style Vector of 5
 ![Epoch20/w5](assets/generated_samples/epoch20/w5/img_9.png)
 
+As you can see after just 20 epochs through the dataset the generator is beginning to produce images that are beginning to look like the brain dataset in terms of colour and shape.  Although there are still a few inaccuracies with the images that will hopefully be cleaned up in further epochs. 
+
 
 ## Generated Images after 100 Epochs 
 ### Style Vector of 1 
-![Epoch180/w1](assets/generated_samples/epoch180/w1/img_5.png)
+![Epoch100/w1](assets/generated_samples/epoch100/w1/img_9.png)
 
 ### Style Vector Noise of 2 
-![Epoch1/w2](assets/generated_samples/epoch180/w2/img_0.png)
+![Epoch100/w2](assets/generated_samples/epoch100/w2/img_1.png)
 
 ### Style Vector Noise of 3 
-![Epoch1/w3](assets/generated_samples/epoch180/w3/img_0.png)
+![Epoch100/w3](assets/generated_samples/epoch100/w3/img_11.png)
 
 ### Style Vector Noise of 4 
-![Epoch1/w4](assets/generated_samples/epoch180/w4/img_0.png)
+![Epoch100/w4](assets/generated_samples/epoch100/w4/img_6.png)
 
 ### Style Vector Boise of 5
-![Epoch180/w5](assets/generated_samples/epoch180/w5/img_12.png)
+![Epoch100/w5](assets/generated_samples/epoch100/w5/img_13.png)
+
+Now the images are really beginning to take shape and look very recognisable to the dataset.  There are still a few little kinks and not all of the images produced look realistic but it is still a successful result considering it has only been 100 epochs with a relatively small dataset.
 
 
 ## Generated Images after 180 Epochs 
@@ -262,16 +266,18 @@ As shown above in the training images, after one run through the dataset the gen
 ![Epoch180/w1](assets/generated_samples/epoch180/w1/img_5.png)
 
 ### Style Vector Noise of 2 
-![Epoch1/w2](assets/generated_samples/epoch180/w2/img_0.png)
+![Epoch180/w2](assets/generated_samples/epoch180/w2/img_12.png)
 
 ### Style Vector Noise of 3 
-![Epoch1/w3](assets/generated_samples/epoch180/w3/img_0.png)
+![Epoch180/w3](assets/generated_samples/epoch180/w3/img_4.png)
 
 ### Style Vector Noise of 4 
-![Epoch1/w4](assets/generated_samples/epoch180/w4/img_0.png)
+![Epoch180/w4](assets/generated_samples/epoch180/w4/img_16.png)
 
 ### Style Vector Noise of 5
 ![Epoch180/w5](assets/generated_samples/epoch180/w5/img_12.png)
+
+As you can see there has not been too much progress since epoch 100.  The images are getting slightly better but as will be shown below in the loss graph the generator and discrimiantor losses are remaining relatively stable and have converged.  Thus in order to produce better images changes may have to be made to the model and or dataset.
 
 
 ## Generator and Discriminator Loss
