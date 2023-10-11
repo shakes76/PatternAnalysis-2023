@@ -57,8 +57,14 @@ Average Test Loss: 0.6384
 Average Dice Coefficient: 0.6579
 
 ## Dependencies
-
-[INSERT DEPENDENCIES]
+torch = 1.10.0
+torchvision = 0.11.1
+Pillow = 8.4.0
+matplotlib = 3.4.3
+tqdm = 4.62.3
+numpy = 1.21.2
+statistics = 1.0.3.5
+Python = 3.9.13
  
 ## References
 [1]: Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., Maier-Hein, K.H, "Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge". arXiv: Computer Vision and Pattern Recognition, 2018
