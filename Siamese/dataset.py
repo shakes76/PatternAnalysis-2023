@@ -39,3 +39,12 @@ class ADNIDataset(Dataset):
 
         return img1, img2, label
 
+
+def get_train_dataset(data_path):
+    train_dataset = ADNIDataset(os.path.join(data_path, 'train'))
+    return train_dataset
+
+
+def get_test_dataset(data_path):
+    test_dataset = ADNIDataset(os.path.join(data_path, 'test'))
+    return test_dataset

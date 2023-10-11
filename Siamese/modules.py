@@ -6,8 +6,8 @@ import torchvision
 class SiameseNetwork(nn.Module):
     def __init__(self):
         super(SiameseNetwork, self).__init__()
-        # get VGG16 model
-        self.VGG16 = torchvision.models.resnet18(weights=None)
+        # get resnet model
+        self.resnet = torchvision.models.resnet18(weights=None)
 
         # over-write the first conv layer to be able to read ADNI images
         # as resnet18 reads (3,x,x) where 3 is RGB channels
@@ -56,12 +56,3 @@ class SiameseNetwork(nn.Module):
         output = self.sigmoid(output)
 
         return output
-
-class ContrastiveLoss(nn.Module):
-    def __init__(self, margin=2.0):
-        super(ContrastiveLoss, self).__init__()
-        self.margin = margin
-
-    def forward(self, output1, output2, label):
-        # TODO: Implement the contrastive loss
-        return torch.tensor(0)

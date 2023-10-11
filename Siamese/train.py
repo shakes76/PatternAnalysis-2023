@@ -1,27 +1,52 @@
 import torch
 import torch.optim as optim
-from modules import SiameseNetwork, ContrastiveLoss
-from dataset import get_dataloader
+from torch import nn
+from modules import SiameseNetwork
+from dataset import get_train_dataset
 
-def train_epoch(model, dataloader, criterion, optimizer):
-    # TODO: Implement training logic for one epoch
-    pass
 
-def validate_epoch(model, dataloader, criterion):
+def train(model, dataloader, device, optimizer, epoch):
+
+    model.train()
+
+    #  using `BCELoss` as the loss function
+    criterion = nn.BCELoss()
+
+    for batch_idx, (images_1, images_2, targets) in enumerate(dataloader):
+        images_1, images_2, targets = images_1.to(device), images_2.to(device), targets.to(device)
+        optimizer.zero_grad()
+        outputs = model(images_1, images_2).squeeze()
+        loss = criterion(outputs, targets)
+        loss.backward()
+        optimizer.step()
+
+        print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
+            epoch, batch_idx * len(images_1), len(dataloader.dataset),
+                   100. * batch_idx / len(dataloader), loss.item()))
+
+
+
+def validate(model, dataloader, criterion):
     # TODO: Implement validation logic for one epoch
     pass
 
-def main():
+
+def main(epochs=10):
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
     # Initialize model, criterion, and optimizer
-    model = SiameseNetwork()
-    criterion = ContrastiveLoss()
+    model = SiameseNetwork().to(device)
     optimizer = optim.Adam(model.parameters())
 
     # Get dataloaders
-    train_dataloader, val_dataloader, test_dataloader = get_dataloader()
+    train_dataloader = get_train_dataset('E:/comp3710/AD_NC')
 
-    # TODO: Training loop
-    pass
+    for epoch in range(1, epochs + 1):
+        train(model, train_dataloader, device, optimizer, epoch)
+
+    torch.save(model.state_dict(), "siamese_network.pt")
+
 
 if __name__ == '__main__':
     main()
