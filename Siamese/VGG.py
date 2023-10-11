@@ -1,8 +1,9 @@
 import torch
 from torch import nn
+from torch.hub import load_state_dict_from_url
 
 
-def make_layers(config, batch_norm=False, in_channels=3):
+def make_layers(cfg, batch_norm=False, in_channels=3):
     """
     Make layers for VGG
     :param config: configuration of VGG
@@ -16,7 +17,7 @@ def make_layers(config, batch_norm=False, in_channels=3):
     4 * 4 * 512 = 8192
     """
     layers = []
-    for v in config:
+    for v in cfg:
         if v == 'M':
             layers += [torch.nn.MaxPool2d(kernel_size=2, stride=2)]
         else:
@@ -35,7 +36,7 @@ cfgs = {
 
 
 class VGG(nn.Module):
-    def __init__(self, features, num_classes=2):
+    def __init__(self, features, num_classes=1000):
         """
         VGG constructor
         :param features: features of VGG
@@ -86,3 +87,11 @@ class VGG(nn.Module):
             elif isinstance(m, nn.Linear):
                 nn.init.normal_(m.weight, 0, 0.01)
                 nn.init.constant_(m.bias, 0)
+
+
+def VGG16(pretrained, in_channels, **kwargs):
+    model = VGG(make_layers(cfgs["D"], batch_norm = False, in_channels = in_channels), **kwargs)
+    if pretrained:
+        state_dict = load_state_dict_from_url("https://download.pytorch.org/models/vgg16-397923af.pth", model_dir="./model_data")
+        model.load_state_dict(state_dict)
+    return model
