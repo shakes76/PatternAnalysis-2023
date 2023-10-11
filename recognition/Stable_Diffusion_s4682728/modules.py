@@ -1,5 +1,4 @@
-import torch
-import torch.nn as nn
+from imports import *
 
 class DiffusionProcess(nn.Module):
     def __init__(self, betas, num_steps):

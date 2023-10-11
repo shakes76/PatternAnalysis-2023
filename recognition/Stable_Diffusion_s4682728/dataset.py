@@ -1,8 +1,4 @@
-import torch
-import os
-from PIL import Image
-from torchvision.transforms import Compose, Grayscale, ToTensor, Lambda
-from torch.utils.data import Dataset, DataLoader, ConcatDataset
+from imports import *
 
 class ImageDataset(Dataset):
     def __init__(self, directory, image_transforms=None):
@@ -23,9 +19,9 @@ class ImageDataset(Dataset):
         return image
 
 def process_dataset(batch_size=8, is_validation=False,
-                    train_dir="/workspace/data/train", 
-                    test_dir="/workspace/data/test", 
-                    val_dir="/workspace/data/validate"):
+                    train_dir="/home/groups/comp3710/OASIS/keras_png_slices_train", 
+                    test_dir="/home/groups/comp3710/OASIS/keras_png_slices_test", 
+                    val_dir="/home/groups/comp3710/OASIS/keras_png_slices_validate"):
     
     # Given images are preprocessed with the size of 256 x 256
     image_transforms = Compose([
@@ -46,3 +42,31 @@ def process_dataset(batch_size=8, is_validation=False,
         combined_data = ConcatDataset([train_data, test_data])
 
         return DataLoader(combined_data, batch_size=batch_size, shuffle=True)
+
+####################################################################### 
+# dataset tester
+
+# if __name__ == '__main__':
+#     image_dir = os.path.expanduser('/home/groups/comp3710/OASIS/keras_png_slices_train')
+#     save_dir = os.path.expanduser('~/demo_eiji/sd/images')  # New directory for saved images
+
+#     # Check if Python can see the path
+#     if os.path.exists(image_dir):
+#         print(f"Directory exists: {image_dir}")
+#     else:
+#         print(f"Directory does not exist: {image_dir}")
+#         print(f"Current working directory: {os.getcwd()}")
+
+#     # Initialize DataLoader
+#     data_loader = process_dataset(batch_size=4)
+
+#     # Fetch and visualize a batch of images
+#     batch = next(iter(data_loader))
+#     for i, image in enumerate(batch):
+#         plt.subplot(1, 4, i+1)
+#         plt.imshow(image.squeeze(0))
+#         plt.axis('off')
+        
+#     # Save the image
+#     save_path = os.path.join(save_dir, f'image_{i}.png')
+#     plt.savefig(save_path)
