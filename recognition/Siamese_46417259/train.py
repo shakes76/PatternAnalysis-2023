@@ -55,7 +55,8 @@ def initialise_training():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     print("Device: ", device)
 
-    siamese_net = SiameseNeuralNet().to(device)
+    siamese_net = SiameseNeuralNet()
+    siamese_net = siamese_net.to(device)
     print(siamese_net)
 
     criterion = ContrastiveLoss()
@@ -67,6 +68,71 @@ def load_from_checkpoint(filename:str):
 
 def save_checkpoint():
     pass
+
+def train_siamese_one_epoch(model: nn.Module, 
+                            criterion: nn.Module, 
+                            optimiser: optim.Optimizer, 
+                            device: torch.device,
+                            train_loader: torch.utils.data.DataLoader):
+    model.train()
+    start = time.time()
+    num_batches = len(train_loader)
+    total_loss = 0.0
+    for i, (x1, x2, label) in enumerate(train_loader, 0):
+        # forward pass
+        x1 = x1.to(device)
+        x2 = x2.to(device)
+        label = label.to(device)
+
+        optimiser.zero_grad()
+        sameness, x1_features, x2_features = model(x1, x2)
+        loss = criterion(x1_features, x2_features, label)
+
+        # Backward and optimize
+        loss.backward()
+        optimiser.step()
+
+        if (i+1) % 100 == 0:
+            print(f"Step [i+1/{len(train_loader)}] Loss: {loss.item()}")
+
+        total_loss += loss.item()
+
+    mean_loss = total_loss / num_batches
+    end = time.time()
+    elapsed = end - start
+
+    return total_loss, mean_loss, elapsed
+
+def eval_siamese_one_epoch(model: nn.Module,
+                            criterion: nn.Module,
+                            device: torch.device,
+                            test_loader: torch.utils.data.DataLoader):
+    model.eval()
+    start = time.time()
+    num_batches = len(test_loader)
+    total_loss = 0.0
+    with torch.no_grad(): # disables gradient calculation
+        # correct = 0
+        # total = 0
+        for i, (x1, x2, labels) in enumerate(test_loader, 0):
+            x1 = x1.to(device)
+            x2 = x2.to(device)
+            labels = labels.to(device)
+            sameness, x1_features, x2_features = model(x1, x2)
+
+            loss = criterion(x1_features, x2_features, labels)
+
+            if (i+1) % 100 == 0:
+                print(f"Step [i+1/{len(test_loader)}] Loss: {loss.item()}")
+
+            total_loss += loss.item()
+        
+        mean_loss = total_loss / num_batches
+        
+    end = time.time()
+    elapsed = end - start
+
+    return total_loss, mean_loss, elapsed
 
 def train_and_eval():
     starting_epoch = 0
@@ -170,7 +236,47 @@ def test_loss():
 # new code here
 
 if __name__ == "__main__":
-    # initialise_training()
+    starting_epoch = 0
+    num_epochs = 5
+    random_seed = 69
+
+    train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
+    test_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
+    siamese_net, criterion, optimiser, device = initialise_training()
+
+    training_losses = []
+    eval_losses = []
+
+    print('starting main training and validation loop')
+    start = time.time()
+
+    for epoch in range(starting_epoch, num_epochs):
+        print(f'Training Epoch {epoch+1}')
+        train_loss, avg_train_loss, elapsed = train_siamese_one_epoch(siamese_net, criterion, optimiser, device, train_loader)
+        training_losses.append(avg_train_loss)
+        print(f'Training Epoch {epoch+1} took {elapsed} seconds. Total loss: {train_loss}. Average loss: {avg_train_loss}')
+
+        print(f'Validating Epoch {epoch+1}')
+        eval_loss, avg_eval_loss, elapsed = eval_siamese_one_epoch(siamese_net, criterion, device, test_loader)
+        eval_losses.append(avg_eval_loss)
+        print(f'Validating Epoch {epoch+1} took {elapsed} seconds. Total loss: {eval_loss}. Average loss: {avg_eval_loss}')
+
+    end = time.time()
+    elapsed = end - start
+    print("Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
+    
+    print('END')
+
+    plt.figure(figsize=(10,5))
+    plt.title("Training and Evaluation Loss During Training")
+    plt.plot(training_losses, label="Train")
+    plt.plot(eval_losses, label="Eval")
+    plt.xlabel("iterations")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.savefig(RESULTS_PATH + f"train_and_eval_loss_after_{num_epochs}_epochs.png")
+
+
     # load_from_checkpoint()
-    train_and_eval()
+    # train_and_eval()
     # test_loss()
