@@ -325,7 +325,7 @@ class Discriminator(nn.Module):
         return self.main(input).view(-1, 1).squeeze(1)
 
 class GAN(nn.Module):
-    def __init__(self, latent_size):
+    def __init__(self, features = 128, latent_size = 128):
         super(GAN, self).__init__()
         self.generator = Generator(latent_size)
         self.discriminator = Discriminator()

@@ -3,9 +3,9 @@ import torch
 
 class VQVAEConfig() :
     def __init__(self) :
-        self.lr = 1e-4
+        self.lr = 1e-3
         self.wd = 1e-5
-        self.epochs = 1
+        self.epochs = 5
         self.batch_size = 32
         self.root_dir = './AD_CN'
         self.savepath = './models/vqvae'
@@ -13,7 +13,7 @@ class VQVAEConfig() :
 
 class GANConfig() :
     def __init__(self) :
-        self.lr = 1e-4
+        self.lr = 1e-3
         self.wd = 1e-5
         self.epochs = 1
         self.batch_size = 32

@@ -2,7 +2,6 @@ import torch
 import time
 import torch.nn as nn
 import torch.nn.functional as F
-from utils import Config
 from dataset import Dataset
 import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
@@ -11,7 +10,7 @@ from modules import GAN
 class Trainer(ABC) :
 
     @abstractmethod
-    def __init__(self, model: nn.Module, dataset: Dataset, config: Config) :
+    def __init__(self, model: nn.Module, dataset: Dataset, config) :
         self.lr = config.lr
         self.wd = config.wd
         self.epochs = config.epochs
@@ -46,7 +45,7 @@ class Trainer(ABC) :
 
 class TrainVQVAE() :
     
-    def __init__(self, model: nn.Module, dataset: Dataset, config: Config) :
+    def __init__(self, model: nn.Module, dataset: Dataset, config) :
 
         self.savepath = config.savepath
         # Optimisation parameters
@@ -92,7 +91,6 @@ class TrainVQVAE() :
         end = time.time()
         print(f"Total Time for training: {end - start:.2f}s")
 
-    @override
     def plot(self, save = True) -> None :
         plt.figure(figsize=(10, 5))
         plt.plot(self.losses, label='Loss')
@@ -107,19 +105,69 @@ class TrainVQVAE() :
         else :
             plt.show()
 
-class TrainGAN(Trainer) :
-    def __init__(self, model: nn.Module, dataset: Dataset, config: Config) :
-        super().__init__(model, dataset, config)
+    def save(self, newpath = None) -> None :
+        if newpath :
+            torch.save(self.model.state_dict(), newpath + 'vqvae.pth')
+        else :
+            torch.save(self.model.state_dict(), self.savepath + 'vqvae.pth')
+
+class TrainGAN() :
+    def __init__(self, model: nn.Module, dataset: Dataset, config) :
+        self.savepath = config.savepath
+        self.lr = config.lr
+        self.wd = config.wd
+        self.epochs = config.epochs
+
+        self.device = config.device
+        self.model = model.to(self.device)
+        self.dataset = dataset
+
         self.criterion = nn.BCEWithLogitsLoss().to(self.device)
-        self.d_optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)
-        self.g_optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)
+        self.gan = GAN(features = 128)
+        self.d_optimiser = torch.optim.Adam(self.gan.discriminator.parameters(), lr=self.lr, weight_decay=self.wd)
+        self.g_optimiser = torch.optim.Adam(self.gan.generator.parameters(), lr=self.lr, weight_decay=self.wd)
         self.G_losses = []
         self.D_losses = []
-        self.gan = GAN(features = 128)
-        self.accuracies = []
+        self.latent = 128
     
-    def train(self) -> None :
-        pass
+    
+    def train(self):
+        fixed_noise = torch.randn(64, self.params.channel_noise, 1, 1).to(self.device)
+        self.gan.generator.train()
+        self.gan.discriminator.train()
+        for epoch in range(self.epochs):
+            print("Training Epoch: ", epoch + 1)
+            for i, (data, _) in enumerate(self.dataset.get_train()):
+                real_data = data.to(self.device)
+                batch_size = real_data.size(0)
+
+                #Generate fake image to pass through to model
+                noise = torch.randn(batch_size, self.latent, 1, 1).to(self.device)
+                fake_img = self.gan.generator(noise)
+
+                D_real = self.gan.discriminator(real_data).reshape(-1)
+                D_real_loss = self.criterion(D_real, torch.ones_like(D_real))
+                D_fake = self.gan.discriminator(fake_img.detach()).reshape(-1)
+                D_fake_loss = self.criterion(D_fake, torch.zeros_like(D_fake))
+                D_loss = (D_fake_loss + D_real_loss) / 2
+                self.gan.discriminator.zero_grad()
+                D_loss.backward()
+                self.d_optimiser.step()
+
+                out = self.gan.discriminator(fake_img).reshape(-1)
+                G_loss = self.criterion(out, torch.ones_like(out))
+                self.gan.generator.zero_grad()
+                G_loss.backward()
+                self.g_optimiser.step()
+
+                if (i % 100 == 0):
+                    print(
+                    f"Epoch [{epoch+1}/{self.epochs}] Batch {i}/{len(self.train_loader)} \
+                    Loss D: {D_loss:.4f}, loss G: {G_loss:.4f}"
+                )
+                self.G_losses.append(G_loss.item())
+                self.D_losses.append(D_loss.item())                    
+
 
     
     def plot(self, save = True) -> None :
@@ -136,3 +184,11 @@ class TrainGAN(Trainer) :
             plt.savefig(self.savepath + '_gan_loss.png')
         else :
             plt.show()
+    
+    def save(self, newpath = None) -> None :
+        if newpath :
+            torch.save(self.gan.discriminator.state_dict(), newpath + 'generator.pth')
+            torch.save(self.gan.generator.state_dict(), newpath + '_discriminator.pth')
+        else :
+            torch.save(self.gan.discriminator.state_dict(), self.savepath + 'generator.pth')
+            torch.save(self.gan.generator.state_dict(), self.savepath + '_discriminator.pth')
