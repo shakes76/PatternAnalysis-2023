@@ -11,7 +11,6 @@ class TestGenerativeModel(unittest.TestCase):
             self.assertEqual(batch[0][0], 32)
             self.assertEqual(batch[0][1], 1)
     
-    
     def test_training_script(self):
         # Run the training script (train.py)
         train_process = subprocess.run(["python", "train.py"], capture_output=True, text=True, shell=True)
