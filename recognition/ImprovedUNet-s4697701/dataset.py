@@ -36,9 +36,9 @@ class ISICDataset(Dataset):
         - transform (callable, optional): Optional transform to be applied on a sample.
         """
         assert dataset_type in ['training', 'validation', 'test'], "Invalid dataset type. Must be one of ['training', 'validation', 'test']"
-        self.root_dir = os.path.join('../../Data', dataset_type)
+        self.root_dir = os.path.join('../../../Data', dataset_type)
         mask = dataset_type + "_mask"
-        self.maskdir = os.path.join('../../Data', mask)
+        self.maskdir = os.path.join('../../../Data', mask)
         self.transform = transform
 
         """ sort by masks and lesion images """

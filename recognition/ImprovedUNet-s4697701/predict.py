@@ -73,7 +73,7 @@ def main():
     generating predictions, evaluating them, and visualizing the results.
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model_path = "model_checkpoints/model_epoch_30.pth"
+    model_path = "EDIT YOUR MODEL PATH HERE"
     model = UNet2D(in_channels=3, num_classes=1).to(device)
     model.load_state_dict(torch.load(model_path, map_location=device))
     test_dataset = ISICDataset(dataset_type='test', transform=get_transform())
