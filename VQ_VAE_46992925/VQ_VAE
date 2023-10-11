@@ -28,6 +28,8 @@ path = "//puffball.labs.eait.uq.edu.au/s4699292/Documents/2023 Sem2/Comp3710/ker
 
 def load_data_from_folder(name):
     data = []
+
+    i = 0
     
     for filename in tqdm(os.listdir(path+name)):            # tqdm adds loading bar!
         
@@ -40,15 +42,28 @@ def load_data_from_folder(name):
 
         data.append(image)
 
+        if i == 50:
+            return np.array(data)
+        i += 1
+
     return np.array(data)
 
-####### TODO THIS IS NOT SEGMENTATION!! SPLIT TRAINING INTO TRAIN AND TEST!!!
-
-# C, H, W
+# C, H, W (Numpy array)
 print("> Loading Training data")
-train_data = torch.from_numpy(load_data_from_folder("keras_png_slices_train/")).to(device)
+train_data = load_data_from_folder("keras_png_slices_train/")
 print("> Loading Test data")
-test_data = torch.from_numpy(load_data_from_folder("keras_png_slices_test/")).to(device)
+test_data = load_data_from_folder("keras_png_slices_test/")
+
+print("The shape of the (training) data is: ", train_data.shape)
+
+# Normalise
+mean = np.mean(train_data)
+std = np.std(train_data)
+data_transform = transforms.Compose([transforms.ToTensor(),  # Convert to PyTorch tensor
+    transforms.Normalize(mean, std)])
+
+train_data = (data_transform(train_data)).to(device)
+test_data = (data_transform(test_data)).to(device)
 
 # B, C, H, W
 train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=128, shuffle=True)
@@ -57,7 +72,6 @@ test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=128, shuffle
 # TODO NORMALISE!!!!!
 
 print("> Data Loading Finished")
-print("The shape of the (training) data is: ", train_data.shape)
 
 
 # ------------------------------------------------
@@ -80,11 +94,12 @@ class VQVAE(nn.Module):
         )
         
         self.pre_quant_conv = nn.Conv2d(4, 2, kernel_size=1)        # TODO FC layer??
-        self.embedding = nn.Embedding(num_embeddings=64, embedding_dim=2)
+        self.embedding = nn.Embedding(num_embeddings=256, embedding_dim=2)
         self.post_quant_conv = nn.Conv2d(2, 4, kernel_size=1)
         
         # Commitment loss beta
         self.beta = 0.2
+        self.alpha = 0.1
         
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(4, 16, kernel_size=4, stride=2, padding=1),
@@ -134,9 +149,11 @@ class VQVAE(nn.Module):
         
         # Reconstruction Loss, and find the total loss
         reconstruction_loss = F.mse_loss(x, output)
-        total_losses = reconstruction_loss + codebook_loss + self.beta*commitment_loss
-        print("The reconstruction loss makes up {}% of the total loss ({}/{})"
-            .format(reconstruction_loss*100//(total_losses), int(reconstruction_loss), int(total_losses)))
+        total_losses = self.alpha*reconstruction_loss + codebook_loss + self.beta*commitment_loss
+
+        # TODO ensure the losses are balanced
+        #print("The reconstruction loss makes up {}% of the total loss ({}/{})"
+        #    .format(reconstruction_loss*100//(total_losses), int(reconstruction_loss), int(total_losses)))
         
         return output, total_losses
     
@@ -148,8 +165,8 @@ class VQVAE(nn.Module):
 
 
 # Hyperparams
-learning_rate = 1.e-3
-num_epochs = 5
+learning_rate = 1.e-4
+num_epochs = 2
 
 
 model = VQVAE().to(device)
@@ -182,8 +199,6 @@ for epoch_num, epoch in enumerate(tqdm(range(num_epochs))):
 
             
     print("Epoch {} of {}. Total Loss: {}".format(epoch_num, num_epochs, total_losses))
-
-
 
 
 # -------------------------------------------------
