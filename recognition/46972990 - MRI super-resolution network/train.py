@@ -4,6 +4,7 @@ import torch.optim as optim
 from modules import ESPCN
 from dataset import get_train_and_validation_loaders
 import time
+import matplotlib.pyplot as plt
 
 # Create the model and load training data
 model = ESPCN(upscale_factor=4, channels=1)
@@ -12,12 +13,41 @@ train_loader, validation_loader = get_train_and_validation_loaders()
 # Move the model onto the GPU
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(f"Device: {device}")
+print(torch.cuda.get_device_name(torch.cuda.current_device()))
 model.to(device)
 
 # Set training parameters
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 num_epochs = 10
+
+# Sample images for visualization
+data_iter = iter(validation_loader)
+sample_downscaled_images, sample_original_images = next(data_iter)
+sample_downscaled_images, sample_original_images = sample_downscaled_images.to(device), sample_original_images.to(device)
+
+def visualize_progress(model, downscaled, original):
+    # Set model to evaluation mode for inference
+    model.eval()
+    with torch.no_grad():
+        upscaled = model(downscaled)
+    # Convert tensors to numpy arrays for visualization
+    downscaled = downscaled[0].cpu().squeeze().numpy()
+    upscaled = upscaled[0].cpu().squeeze().numpy()
+    original = original[0].cpu().squeeze().numpy()
+    
+    # Plotting
+    plt.figure(figsize=(15,5))
+    plt.subplot(1, 3, 1)
+    plt.imshow(downscaled, cmap='gray')
+    plt.title("Downscaled")
+    plt.subplot(1, 3, 2)
+    plt.imshow(upscaled, cmap='gray')
+    plt.title("Upscaled by Model")
+    plt.subplot(1, 3, 3)
+    plt.imshow(original, cmap='gray')
+    plt.title("Original")
+    plt.show()
 
 print("Started training...")
 for epoch in range(num_epochs):
@@ -55,6 +85,7 @@ for epoch in range(num_epochs):
     end_time = time.time()  # End time of epoch
     epoch_duration = end_time - start_time
     print(f"Completed in {epoch_duration:.2f} seconds.")
+    visualize_progress(model, sample_downscaled_images, sample_original_images)
 
 print("Finished training.")
 
