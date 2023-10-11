@@ -5,6 +5,16 @@ from dataset import ISICDataset, get_transform
 from modules import UNet2D
 
 def dice_coefficient(predicted, target):
+    """
+    Compute the Dice coefficient, a measure for the overlap between two samples.
+    
+    Parameters:
+    - predicted (Tensor): The predicted segmentation mask.
+    - target (Tensor): The ground truth segmentation mask.
+    
+    Returns:
+    - float: Dice coefficient.
+    """
     smooth = 1.0  # To avoid division by zero
     predicted_flat = predicted.view(-1)
     target_flat = target.view(-1)
@@ -12,6 +22,19 @@ def dice_coefficient(predicted, target):
     return (2. * intersection + smooth) / (predicted_flat.sum() + target_flat.sum() + smooth)
 
 def predict_and_evaluate(model, sample, device):
+    """
+    Generate predictions using the model and evaluate them against the ground truth.
+    
+    Parameters:
+    - model (UNet2D): The model used for prediction.
+    - sample (dict): A dictionary containing the input image and target mask.
+    - device (torch.device): Device to which Tensors should be moved before computation.
+    
+    Returns:
+    - Tensor: Predicted mask.
+    - float: Binary cross entropy loss.
+    - float: Dice coefficient.
+    """
     model.eval()
     image = sample['image'].unsqueeze(0).to(device)
     mask = sample['mask'].unsqueeze(0).to(device)
@@ -23,6 +46,14 @@ def predict_and_evaluate(model, sample, device):
     return pred_mask.squeeze().cpu(), loss.item(), dice.item()
 
 def plot_results(samples, pred_masks, num_samples):
+    """
+    Visualize and save the input images, ground truth masks, and predicted masks.
+    
+    Parameters:
+    - samples (list): List of samples containing images and masks.
+    - pred_masks (list): List of predicted masks.
+    - num_samples (int): Number of samples to display.
+    """
     fig, ax = plt.subplots(num_samples, 3, figsize=(15, 5*num_samples)) 
     for i in range(num_samples):
         ax[i, 0].imshow(samples[i]['image'].permute(1, 2, 0))
@@ -37,6 +68,10 @@ def plot_results(samples, pred_masks, num_samples):
     plt.show()
 
 def main():
+    """
+    Main function to run the entire pipeline of loading the model, 
+    generating predictions, evaluating them, and visualizing the results.
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_path = "model_checkpoints/model_epoch_30.pth"
     model = UNet2D(in_channels=3, num_classes=1).to(device)
