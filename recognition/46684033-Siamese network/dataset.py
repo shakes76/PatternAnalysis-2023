@@ -87,10 +87,10 @@ def load_data2(train_path, test_path):
 
     paired_trainset = SiameseDatset_contrastive(trainset)
     paired_validationset = SiameseDatset_contrastive(validation_set)
-    paired_testset = SiameseDatset_contrastive(testset)
+    #paired_testset = SiameseDatset_contrastive(testset)
     train_loader = torch.utils.data.DataLoader(paired_trainset, batch_size=64, shuffle=True)
     validation_loader = torch.utils.data.DataLoader(paired_validationset, batch_size=64, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(paired_testset, batch_size=64)
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=True)
     return train_loader,validation_loader,test_loader
 class SiameseDatset_contrastive(torch.utils.data.Dataset):
     #same person label ==1, else label ==0
@@ -150,3 +150,57 @@ class SiameseDatset_triplet(torch.utils.data.Dataset):
 
     def __len__(self):
         return self.num_samples
+
+class SiameseDatset_test(torch.utils.data.Dataset):
+    def __init__(self, trainset,testset):
+        self.trainset = trainset
+        self.testset = testset
+        self.num_samples_train = len(trainset)
+        self.num_samples_test = len(testset)
+
+    def __getitem__(self, idx):
+        idx1 = random.randint(0, self.num_samples_test - 1)
+        idx2 = random.randint(0, self.num_samples_train - 1)
+        idx3 = random.randint(0, self.num_samples_train - 1)
+        idx4 = random.randint(0, self.num_samples_train - 1)
+        idx5 = random.randint(0, self.num_samples_train - 1)
+        idx6 = random.randint(0, self.num_samples_train - 1)
+        idx7 = random.randint(0, self.num_samples_train - 1)
+        test_image, label1 = self.testset[idx1]
+
+        #get positive image
+        pos_image1, label2 = self.trainset[idx2]
+        while(label1 != label2 or idx1==idx2):
+            idx2 = random.randint(0, self.num_samples_train - 1)
+            pos_image1, label2 = self.trainset[idx2]
+
+        pos_image2, label2 = self.trainset[idx2]
+        while (label1 != label2 or idx1 == idx3):
+            idx3 = random.randint(0, self.num_samples_train - 1)
+            pos_image2, label2 = self.trainset[idx3]
+
+        pos_image3, label2 = self.trainset[idx4]
+        while (label1 != label2 or idx1 == idx4):
+            idx4 = random.randint(0, self.num_samples_train - 1)
+            pos_image3, label2 = self.trainset[idx4]
+
+        #get negative image
+        neg_image1, label3 = self.trainset[idx5]
+        while (label1 == label3):
+            idx5 = random.randint(0, self.num_samples_train - 1)
+            neg_image1, label3 = self.trainset[idx5]
+
+        neg_image2, label3 = self.trainset[idx6]
+        while (label1 == label3):
+            idx6 = random.randint(0, self.num_samples_train - 1)
+            neg_image2, label3 = self.trainset[idx6]
+
+        neg_image3, label3 = self.trainset[idx7]
+        while (label1 == label3):
+            idx7 = random.randint(0, self.num_samples_train - 1)
+            neg_image3, label3 = self.trainset[idx7]
+
+        return test_image, pos_image1,pos_image2,pos_image3, neg_image1,neg_image2,neg_image3, label1
+
+    def __len__(self):
+        return self.num_samples_test
