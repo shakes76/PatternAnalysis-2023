@@ -78,14 +78,20 @@ def load_data(train_path, test_path):
 # for debug only
 # train_loader, validation_loader, test_loader = load_data(train_path, test_path)
 def load_data2(train_path, test_path):
-    trainset = torchvision.datasets.ImageFolder(root=train_path, transform=transform)
+    dataset = torchvision.datasets.ImageFolder(root=train_path, transform=transform)
     testset = torchvision.datasets.ImageFolder(root=test_path, transform=transform)
 
+    val_size = int(0.2 * len(dataset))
+    train_size = len(dataset) - val_size
+    trainset, validation_set = torch.utils.data.random_split(dataset, [train_size, val_size])
+
     paired_trainset = SiameseDatset_contrastive(trainset)
+    paired_validationset = SiameseDatset_contrastive(validation_set)
     paired_testset = SiameseDatset_contrastive(testset)
     train_loader = torch.utils.data.DataLoader(paired_trainset, batch_size=64, shuffle=True)
+    validation_loader = torch.utils.data.DataLoader(paired_validationset, batch_size=64, shuffle=True)
     test_loader = torch.utils.data.DataLoader(paired_testset, batch_size=64)
-    return train_loader, test_loader
+    return train_loader,validation_loader,test_loader
 class SiameseDatset_contrastive(torch.utils.data.Dataset):
     #same person label ==1, else label ==0
     def __init__(self, dataset):

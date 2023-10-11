@@ -26,14 +26,14 @@ test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 trainset = torchvision.datasets.ImageFolder(root=train_path, transform=transform)
 testset = torchvision.datasets.ImageFolder(root=test_path, transform=transform)
 train = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True)
-test = torch.utils.data.DataLoader(testset, batch_size=64)
+test = torch.utils.data.DataLoader(testset, batch_size=64,shuffle=True)
 
 import matplotlib
 
 matplotlib.use('TkAgg')
 
 plt.ion()
-def plot_embeddings(embeddings, targets, plot_number, xlim=None, ylim=None):
+def plot_embeddings(embeddings, targets, plot_number,plot_name, xlim=None, ylim=None):
     plt.figure(figsize=(10, 10))
     for i in range(2):
         inds = np.where(targets == i)[0]
@@ -43,7 +43,7 @@ def plot_embeddings(embeddings, targets, plot_number, xlim=None, ylim=None):
     if ylim:
         plt.ylim(ylim[0], ylim[1])
     plt.legend(ADNI_class)
-    plt.savefig(f"plot_{plot_number+1}.png")
+    plt.savefig(f"{plot_name}_{plot_number+1}.png")
     plt.close()
 
 
@@ -105,26 +105,34 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning VUDA not Found. Using CPU")
 # hyperparameters
-num_epoch = 10
+num_epoch = 60
 learning_rate = 0.001
 
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 
-train_loader, test_loader = dataset.load_data2(train_path, test_path)
+train_loader, validation_loader, test_loader = dataset.load_data2(train_path, test_path)
 model = modules.Siamese()
 model = model.to(device)
 
-criterion = ContrastiveLoss(1.0)
+criterion = ContrastiveLoss(2.0)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 total_steps = len(train_loader)
 
 model.train()
 print("training starts")
+
+training_loss = []
+training_accuracy = []
+validation_loss = []
+validation_accuracy = []
+loss = 0
 for epoch in range(num_epoch):
     correct = 0
     train_total = 0
-
+    total_loss_this_epoch = []
+    total_val_loss_this_epoch = []
+    model.train()
     #for BCELoss and contrastive loss
     for i, ((images1, images2), labels) in enumerate(train_loader):
     #     # BCELoss
@@ -154,12 +162,23 @@ for epoch in range(num_epoch):
         loss.backward()
         optimizer.step()
 
+        #accuracy test
+        distances = (y - x).pow(2).sum(1)
+        #average loss in this epoch
+        total_loss_this_epoch.append(loss.item())
         if (i + 1) % 100 == 0:
-            print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: %"
-                  .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item()))
+                print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: %"
+                      .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item()))
+
+
+    training_loss.append(sum(total_loss_this_epoch)/len(total_loss_this_epoch))
+
 
     train_embeddings_cl, train_labels_cl = extract_embeddings(train, model)
-    plot_embeddings(train_embeddings_cl, train_labels_cl,epoch)
+    plot_embeddings(train_embeddings_cl, train_labels_cl,epoch,"trainingv2")
+
+    test_embeddings_cl, test_labels_cl = extract_embeddings(test, model)
+    plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "testv2")
 
     # triplet loss
     # for i, (images1, images2, images3) in enumerate(train_loader):
@@ -181,25 +200,43 @@ for epoch in range(num_epoch):
     # train_embeddings_cl, train_labels_cl = extract_embeddings(train, model)
     # plot_embeddings(train_embeddings_cl, train_labels_cl, epoch)
 
-    # model.eval()
-    #
-    # val_loss = 0.0
-    # correct = 0
-    # total = 0
-    #
-    # with torch.no_grad():
-    #     for i, ((images1,images2), labels) in enumerate(test_loader):
-    #         images1 = images1.to(device)
-    #         images2 = images2.to(device)
-    #         labels = labels.to(device)
-    #         output = model(images1,images2).squeeze()
-    #         val_loss = criterion(output, labels.float())
-    #
-    #         pred = torch.where(output > 0.5, 1, 0)
-    #         correct += (pred == labels).sum().item()
-    #         total += labels.size(0)
-    #
-    # print(
-    #     f"Epoch [{epoch + 1}/{num_epoch}] \
-    #             training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}, validation accuracy: {100 * correct / total}%"
-    # )
+    model.eval()
+
+    val_loss = 0.0
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for i, ((images1,images2), labels) in enumerate(validation_loader):
+            images1 = images1.to(device)
+            images2 = images2.to(device)
+            labels = labels.to(device)
+            x,y = model(images1,images2)
+            val_loss = criterion(x,y, labels.float())
+            total_val_loss_this_epoch.append(val_loss)
+
+    print(
+        f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}"
+    )
+
+    validation_loss.append(sum(total_val_loss_this_epoch)/len(total_val_loss_this_epoch))
+    if min(validation_loss) > val_loss.item():
+        torch.save(model,r"C:\Users\wongm\Desktop\COMP3710\project\siamese.pth")
+        print("new min val_loss, model saved")
+
+epochs = list(range(1, num_epoch + 1))
+# Plot both training and validation loss
+plt.figure(figsize=(8, 6))
+plt.plot(epochs, training_loss,linestyle='-', label='Training Loss')
+plt.plot(epochs, validation_loss, linestyle='-', label='Validation Loss')
+plt.title('Training and Validation Loss Over Epochs')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.savefig(f"loss_plot .png")
+plt.show(block=True)
+
+#TODO
+#test metric = 1.0
+#test different learning rate
+#test accuracy after saving good model
