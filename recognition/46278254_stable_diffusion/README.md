@@ -94,7 +94,6 @@ The image below represents the progression of stable diffusion. As time passes, 
 ## Algorithm Overview
 
 1. I've applied VAE/VQVAE to the OASIS dataset, achieving a high SSIM score of approximately 0.78.
-Here's your description with improved grammar:
 
 2. In the first stage of training, which involves training an autoencoder on the OASIS dataset, I have explored several enhancements:
    1. Introduced a GAN component to improve image reconstruction clarity (VAEGAN).
@@ -104,7 +103,7 @@ Here's your description with improved grammar:
    5. Implemented a cyclical annealing schedule for VAE to prevent mode collapse.
    6. For VQVAE, I employed a weighted sampler to sample the discrete latent space and used it to train the decoder and discriminator within the sampled space.
 
-7. After training the VQVAE, I applied DDPM (Denoising Diffusion Probabilistic Models) to the latent space, which is the core idea behind stable diffusion.
+3. After training the VQVAE, I applied DDPM (Denoising Diffusion Probabilistic Models) to the latent space, which is the core idea behind stable diffusion.
    * Stable diffusion encompasses two critical contributions: DDPM applied to the latent space and cross-attention across different modalities. However, as we don't have sophisticated embeddings, we opted to use a condition (the z-index of the brain) to guide the diffusion model in generating the latent based on the provided z-index.
 
 ## Total Flow Chart
