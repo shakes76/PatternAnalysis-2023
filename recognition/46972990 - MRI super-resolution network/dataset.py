@@ -30,13 +30,12 @@ def get_data_loader(path):
 
     return data_loader
 
-# Testing to ensure that the data loader is working correctly
-train_loader = get_data_loader(TRAIN_PATH)
-dataiter = iter(train_loader)
-images, _ = next(dataiter)
+def get_train_loader():
+    return get_data_loader(TRAIN_PATH)
 
-print("Images shape:", images.shape)
-print(len(train_loader.dataset))
-image = images[0].numpy().transpose((1, 2, 0)) * 0.5 + 0.5
-plt.imshow(image)
-plt.show()
+def get_test_loader():
+    return get_data_loader(TEST_PATH)
+
+# Get the train and test loaders
+train_loader = get_train_loader()
+test_loader = get_test_loader()
