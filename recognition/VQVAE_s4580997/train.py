@@ -59,8 +59,7 @@ class TrainVQVAE() :
         self.optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)
         self.criterion = nn.BCEWithLogitsLoss().to(self.device)
         
-        self.losses = []
-        self.accuracies = []
+        self.losses = list()
 
     def train(self) -> None :
         if self.dataset.train_unloaded() :
@@ -69,7 +68,7 @@ class TrainVQVAE() :
         self.model.train()
         start = time.time()
         for epoch in range(self.epochs) :
-            epoch_loss = []
+            epoch_loss = list()
             for i, (data, label) in enumerate(self.dataset.get_train()) :
                 self.optimiser.zero_grad()
 
@@ -87,7 +86,7 @@ class TrainVQVAE() :
 
             average_epoch_loss = sum(epoch_loss) / len(epoch_loss)
             self.losses.append(average_epoch_loss)
-
+        print(self.losses)
         end = time.time()
         print(f"Total Time for training: {end - start:.2f}s")
 
@@ -107,9 +106,9 @@ class TrainVQVAE() :
 
     def save(self, newpath = None) -> None :
         if newpath :
-            torch.save(self.model.state_dict(), newpath + 'vqvae.pth')
+            torch.save(self.model.state_dict(), newpath + '/vqvae.pth')
         else :
-            torch.save(self.model.state_dict(), self.savepath + 'vqvae.pth')
+            torch.save(self.model.state_dict(), self.savepath + '/vqvae.pth')
 
 class TrainGAN() :
     def __init__(self, model: nn.Module, dataset: Dataset, config) :
@@ -126,17 +125,18 @@ class TrainGAN() :
         self.gan = GAN(features = 128)
         self.d_optimiser = torch.optim.Adam(self.gan.discriminator.parameters(), lr=self.lr, weight_decay=self.wd)
         self.g_optimiser = torch.optim.Adam(self.gan.generator.parameters(), lr=self.lr, weight_decay=self.wd)
-        self.G_losses = []
-        self.D_losses = []
+        self.G_losses = list()
+        self.D_losses = list()
         self.latent = 128
     
     
     def train(self):
-        fixed_noise = torch.randn(64, self.params.channel_noise, 1, 1).to(self.device)
         self.gan.generator.train()
         self.gan.discriminator.train()
+        start = time.time()
         for epoch in range(self.epochs):
-            print("Training Epoch: ", epoch + 1)
+            G_epoch_loss = list()
+            D_epoch_loss = list()
             for i, (data, _) in enumerate(self.dataset.get_train()):
                 real_data = data.to(self.device)
                 batch_size = real_data.size(0)
@@ -160,15 +160,17 @@ class TrainGAN() :
                 G_loss.backward()
                 self.g_optimiser.step()
 
-                if (i % 100 == 0):
-                    print(
-                    f"Epoch [{epoch+1}/{self.epochs}] Batch {i}/{len(self.train_loader)} \
-                    Loss D: {D_loss:.4f}, loss G: {G_loss:.4f}"
-                )
-                self.G_losses.append(G_loss.item())
-                self.D_losses.append(D_loss.item())                    
+                G_epoch_loss.append(G_loss.item())
+                D_epoch_loss.append(G_loss.item())
+                if (i % 10 == 0):
+                    print(f"Epoch: {epoch+1}/{self.epochs} Batch: {i+1}/{len(self.dataset.get_train())} Loss D: {D_loss.item():.6f}, Loss G: {G_loss.item():.6f}")
+            
+            self.G_losses.append(sum(G_epoch_loss) / len(G_epoch_loss))
+            self.D_losses.append(sum(D_epoch_loss) / len(D_epoch_loss))  
 
-
+        print(self.D_losses)
+        end = time.time()
+        print(f"Total Time for training: {end - start:.2f}s")
     
     def plot(self, save = True) -> None :
         plt.figure(figsize=(10,5))
@@ -187,8 +189,8 @@ class TrainGAN() :
     
     def save(self, newpath = None) -> None :
         if newpath :
-            torch.save(self.gan.discriminator.state_dict(), newpath + 'generator.pth')
-            torch.save(self.gan.generator.state_dict(), newpath + '_discriminator.pth')
+            torch.save(self.gan.discriminator.state_dict(), newpath)
+            torch.save(self.gan.generator.state_dict(), newpath)
         else :
-            torch.save(self.gan.discriminator.state_dict(), self.savepath + 'generator.pth')
-            torch.save(self.gan.generator.state_dict(), self.savepath + '_discriminator.pth')
+            torch.save(self.gan.discriminator.state_dict(), self.savepath + '/generator.pth')
+            torch.save(self.gan.generator.state_dict(), self.savepath + '/discriminator.pth')

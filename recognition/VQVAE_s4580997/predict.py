@@ -11,11 +11,12 @@ class Predict() :
         self.model = self.model.to(self.device)
         self.model.eval()
         self.output = None
+        self.input = input
         self.n = n
 
     def generate(self) :
         with torch.no_grad() :
-            output = self.model(input)
+            output = self.model(self.input)
             output = output.cpu().numpy()
     
     def show_generated(self, save = True) :
