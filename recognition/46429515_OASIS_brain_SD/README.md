@@ -56,7 +56,7 @@ The file structure should end up looking like this:
 ## Usage Example
 
 ### Stable Diffusion Generating Outcomes - predict.py
-The images generated from the noisy image inputs (images that came from epoch 0 of training with learning rate of 0.001) have resulted in images that look more like details of a brain rather than the entire shape of a brain itself. Reasons for this may be because of the training, possibly meaning that the model has not trained enough to learn the defining shape of a brain.
+The images generated from the noisy image inputs (images that came from epoch 0 of training with learning rate of 0.001) have resulted in images that look more like some details of a brain rather than the entire shape of a brain itself. Reasons for this may be because of the training, possibly meaning that the model has not trained enough to learn the defining shape of a brain.
 
 ![generated image 1](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_0.png) ![generated image 2](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_1.png) ![generated image 3](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_2.png) ![generated image 4](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_3.png) ![generated image 5](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_4.png) ![generated image 6](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_5.png) ![generated image 7](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_6.png) ![generated image 8](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_7.png) ![generated image 9](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_8.png) ![generated image 10](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_9.png) 
 
@@ -196,7 +196,11 @@ There are multiple ways that this stable diffusion model from scratch can be imp
 * Changing from simple UNet to other models such as ResNet or Conditional U-Nets
 * Change the beta schedule equation used (sinusoidal, etc.)
 * Improve accuracy of the model by applying different transformations to the initial images
-* Obtain generated images that result in the shape of a brain with its details
+* Changing the number of epochs and change learning rates
+* Higher discrete timestep interval for noising/denoising process
+
+Areas of significance that needs to be improved upon:
+* Obtaining desired images (brains) from results of generating images
 
 
 ## References
