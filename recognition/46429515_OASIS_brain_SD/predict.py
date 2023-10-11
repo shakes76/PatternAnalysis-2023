@@ -60,14 +60,14 @@ with torch.no_grad():
         # Preprocess input data
         input_tensor = preprocess(input_data)
         input_batch = input_tensor.unsqueeze(0)
-    
+
         output = model(input_batch, t)
-    
+        
         img_size = utils.IMAGE_SIZE
         img = torch.randn((1, 1, img_size, img_size), device=device)
         num_images = 1
         stepsize = int(utils.T/num_images)
-    
+
         for i in range(0, utils.T)[::-1]:
             t = torch.full((1,), i, device=device, dtype=torch.long)
             img = utils.sample_timestep(model, img, t)
