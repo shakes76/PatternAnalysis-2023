@@ -54,7 +54,11 @@ class RPN(nn.Module):
                             torch.tensor(ratio))
                         anchors.append([center_x - 0.5 * width, center_y - 0.5 * height, center_x + 0.5 * width,
                                         center_y + 0.5 * height])
-        return torch.tensor(anchors, dtype=torch.float32)
+
+        anchors = torch.tensor(anchors, dtype=torch.float32)
+        print(f"anchors shape when generate: {anchors.shape}")
+
+        return anchors
 
     def apply_deltas_to_anchors(self, anchors, deltas):
 
@@ -65,10 +69,10 @@ class RPN(nn.Module):
         :return: [4, 9, 8, 8], containing the refined anchors
         """
 
-        print("anchors shape:", anchors.shape)
-        print("deltas shape:", deltas.shape)
+        print(f"anchors shape before apply deltas: {anchors.shape}")
+
+        # Expand dims to apply broadcasting
         expanded_anchors = anchors.view(1, 9, 8, 8, 4).expand(4, 9, 8, 8, 4).to(deltas.device)
-        print("expanded_anchors shape:", expanded_anchors.shape)
 
         # Expand dims to apply broadcasting
         expanded_x = expanded_anchors[..., 0]
@@ -97,13 +101,27 @@ class RPN(nn.Module):
 
         return pred_boxes
 
-    def filter_anchors(self, anchors, objectness_score, nms_thresh=0.7, pre_nms_top_n=6000, post_nms_top_n=300):
+    def filter_anchors(self, anchors, objectness_score, nms_thresh=0.7, pre_nms_top_n=2000, post_nms_top_n=300):
+        print(f"anchors shape: {anchors.shape}")
+        print(f"objectness_score shape: {objectness_score.shape}")
         objectness_score = objectness_score.view(-1)
+        anchors = anchors.view(-1, 4)
+
+        pre_nms_top_n = min(pre_nms_top_n, objectness_score.nelement())
+        print(pre_nms_top_n)
+
         sorted_idx = torch.argsort(objectness_score, descending=True)
+        print(f"sorted_idx shape: {sorted_idx}")
         top_n_idx = sorted_idx[:pre_nms_top_n]
+        print(f"Max index in top_n_idx: {top_n_idx.max()}, anchors shape: {anchors.shape}")
+
+        if top_n_idx.max() >= anchors.shape[0]:
+            print("Index out of bounds. Cannot proceed.")
 
         top_n_anchors = anchors[top_n_idx]
         top_n_scores = objectness_score[top_n_idx]
+        print(f"top_n_anchors shape: {top_n_anchors.shape}")
+        print(f"top_n_scores shape: {top_n_scores.shape}")
 
         keep = nms(top_n_anchors, top_n_scores, nms_thresh)
         keep = keep[:post_nms_top_n]

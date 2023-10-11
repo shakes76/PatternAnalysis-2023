@@ -4,6 +4,8 @@ from torch.utils.data import DataLoader
 from torch.optim import SGD
 from dataset import ISICDataset  # Assuming dataset.py is in the same directory
 from modules import MaskRCNN  # Assuming modules.py is in the same directory
+import os
+os.environ['CUDA_LAUNCH_BLOCKING'] = "1"
 
 # Initialize the dataset
 train_dataset = ISICDataset(path="E:/comp3710/ISIC2018", type="Training")
@@ -18,6 +20,7 @@ model = MaskRCNN(num_classes)
 
 # If CUDA is available, move the model to GPU
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+device = torch.device("cpu")
 model.to(device)
 
 # Define the loss functions
