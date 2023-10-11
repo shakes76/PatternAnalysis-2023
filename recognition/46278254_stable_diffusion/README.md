@@ -84,7 +84,7 @@ The image below is generated using a transformer to predict the prior in the cod
 
 The image below is generated using a latent diffusion model, or stable diffusion, which denoises the latent representation obtained from a random normal distribution. This denoised latent is then used as the input for image generation by the decoder. Additionally, we have a z-index condition, to further constrain the latent and the generated image.
 
-![](visualize/stable_diffusion_vis/epoch_120/0.png)
+![](visualize/stable_diffusion_VQVAE_vis/epoch_120/0.png)
 
 The image below represents the progression of stable diffusion. As time passes, the brain image becomes progressively clearer.
 ![](visualize/ldm_vis/ldm_0.gif)
