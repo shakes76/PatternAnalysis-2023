@@ -21,8 +21,8 @@ from model_diffusion import LatentDiffusionModel
 DEVICE = torch.device("cuda")
 print("DEVICE:", DEVICE)
 
-mode = 'VQVAE'
-load_epoch = 45
+mode = 'VAE'
+load_epoch = 31
 
 # Get latent set
 latent_set = torch.load(f'collected_latents/{mode}_{load_epoch}.pt')
@@ -32,6 +32,9 @@ vae.eval()
 # Try to normalize latents with conditions
 with torch.no_grad():
     latents, z_indices = latent_set.tensors[0], latent_set.tensors[1]
+    if mode == 'VAE':
+        latents, _ = vae.reparameterization(latents)
+
     normalized_latents = latents
     latents_mean = torch.zeros([32, *latents.shape[1:]]).to(device=latents.device)
     latents_std = torch.zeros_like(latents_mean)
@@ -41,10 +44,12 @@ with torch.no_grad():
         latents_mean[cur_z_idx] = reduce(latents[chosen], 'n c h w -> 1 c h w', 'min')
         latents_std[cur_z_idx] = reduce(latents[chosen], 'n c h w -> 1 c h w', 'max') - latents_mean[cur_z_idx]
         normalized_latents[chosen] = (latents[chosen] - latents_mean[cur_z_idx]) / latents_std[cur_z_idx]
+        # Move 0 ~ 1 to -1, 1
+        normalized_latents[chosen] = 2* (normalized_latents[chosen] - 0.5)
     print(normalized_latents.shape)
 
 # Setup configs abou diffusion model
-net = LatentDiffusionModel(in_channels=8, ch=32).to(DEVICE)
+net = LatentDiffusionModel(in_channels=latents.shape[1], ch=32).to(DEVICE)
 criteria = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net.parameters(), lr=1e-3)
 
@@ -53,25 +58,32 @@ print("Latent shape:", normalized_latents.shape)
 dataset = TensorDataset(normalized_latents, z_indices)
 dataloader = DataLoader(dataset=dataset, batch_size=32, shuffle=True)
 
+reset_dir(f'visualize/stable_diffusion_{mode}_vis')
 def test_epoch(epoch):
     with torch.no_grad():
-        reset_dir(f'stable_diffusion_vis/epoch_{epoch}')
+        reset_dir(f'visualize/stable_diffusion_{mode}_vis/epoch_{epoch}')
         # We only sample 6 images (and each images contain 32 idx)
         sample_n = 6
         # Scaling
         for cur_idx in range(sample_n):
             cond = torch.arange(0, 32, device=DEVICE, dtype=torch.long)
-            sample_latent = net.sample_with_cond((1, 8, 16, 16), cond)
+            sample_latent = net.sample_with_cond((1, latents.shape[1], 16, 16), cond)
+            # move (-1, 1) to (0, 1)
+            sample_latent = sample_latent * 0.5 + 0.5
             sample_latent = sample_latent * latents_std + latents_mean
-    
-            quant, diff_loss, ind = vae.quantize(sample_latent)
-            sample_img = vae.decode(quant, cond)
+            if mode == 'VQVAE':
+                quant, diff_loss, ind = vae.quantize(sample_latent)
+                sample_img = vae.decode(quant, cond)
+            elif mode =='VAE':
+                sample_img = vae.decode(sample_latent, cond)
             
             sample_img = compact_large_image(sample_img.cpu(), HZ=4, WZ=8)
             
-            plt.imsave(f'visualize/stable_diffusion_vis/epoch_{epoch}/{cur_idx}.png', sample_img[0] * 0.5 + 0.5, cmap='gray')
+            plt.imsave(f'visualize/stable_diffusion_{mode}_vis/epoch_{epoch}/{cur_idx}.png', sample_img[0] * 0.5 + 0.5, cmap='gray')
 
-for epochs in range(150):
+total_epochs = 400
+for epochs in range(total_epochs):
+    reset_dir(f'model_ckpt/stable_diffusion_{mode}')
     total_loss, total_len = 0, 0
     for latent, zs in tqdm(dataloader, total=len(dataloader)):
         latent = latent.cuda()
@@ -89,8 +101,8 @@ for epochs in range(150):
 
         total_loss += loss.item()
         total_len += 1
-    if epochs % 10 == 0:
-        torch.save(net, f'model_ckpt/stable_diffusion/UNet_{epochs}.pt')
+    if epochs % 25 == 0 or epochs == total_epochs-1:
+        torch.save(net, f'model_ckpt/stable_diffusion_{mode}/UNet_{epochs}.pt')
         test_epoch(epochs)
     print(f"epoch {epochs:4d}, loss {total_loss / total_len:.5f}")
 

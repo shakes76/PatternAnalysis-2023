@@ -43,8 +43,8 @@ def get_latent_set(mode='VQVAE', load_epoch=49, dataset_mode='all', device=None)
     return dataset
 
 if __name__ == '__main__':
-    mode = 'VQVAE'
-    load_epoch = 45
+    mode = 'VAE'
+    load_epoch = 31
     test_save = True
     if test_save:
         latent_set = get_latent_set(mode, load_epoch)
