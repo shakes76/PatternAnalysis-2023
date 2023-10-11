@@ -2,6 +2,7 @@ import glob
 import torch
 import nibabel
 import numpy as np
+import torchio as tio
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms
 
@@ -38,6 +39,29 @@ class NiiImageLoader(DataLoader):
         mask = self.to_tensor(mask)
         mask = mask.unsqueeze(0)
         mask = mask.data
+
+        return image, mask
+
+
+class Augment:
+    """Class for data augmentation"""
+    def __init__(self):
+        self.shrink = tio.CropOrPad((16, 32, 32))
+        self.flip0 = tio.transforms.RandomFlip(0, flip_probability=1)  # flip the data randomly
+        self.flip1 = tio.transforms.RandomFlip(1, flip_probability=1)
+        self.flip2 = tio.transforms.RandomFlip(2, flip_probability=1)
+
+        nothing = tio.transforms.RandomFlip(0, flip_probability=0)
+        bias_field = tio.transforms.RandomBiasField()
+        blur = tio.transforms.RandomBlur()
+        spike = tio.transforms.RandomSpike()
+        prob = {nothing: 0.7, bias_field: 0.1, blur: 0.1, spike: 0.1}
+        self.oneof = tio.transforms.OneOf(prob)  # randomly choose one augment method from the three
+
+    def crop_and_augment(self, image, mask):
+        image = self.shrink(image)
+        mask = self.shrink(mask)
+        image = self.oneof(image)
 
         return image, mask
 

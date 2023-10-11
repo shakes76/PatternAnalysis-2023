@@ -56,6 +56,8 @@ def main():
     valid_dsc_list = []
     test_dsc_list = []
 
+    ag = Augment()
+
     # train loop
     for i in range(epoch):
         unet.train()
