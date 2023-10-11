@@ -24,7 +24,7 @@ This diffusion model will be using a U-Net for the backwards process.
 1. Clone/Download the repository
 2. Install required dependencies
 3. Download Preprocessed OASIS MRI dataset from [here](https://cloudstor.aarnet.edu.au/plus/s/tByzSZzvvVh0hZA) and unpack into a folder called `data`
-4. Download the saved model [here] (https://drive.google.com/file/d/1lUw6vFhkJU0Egfd-I_aGPKP7OYLN4g6i/view?usp=sharing) and unpack into the folder
+4. Download the saved model [here](https://drive.google.com/file/d/1lUw6vFhkJU0Egfd-I_aGPKP7OYLN4g6i/view?usp=sharing) and unpack into the folder
 
 The file structure should end up looking like this:
 
