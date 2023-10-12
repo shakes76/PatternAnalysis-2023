@@ -1,7 +1,6 @@
 import csv
 import numpy as np
 
-
 """Create Adjacency matrix from the musae_facebook_edges.csv file"""
 def create_adjacency_matrix():
     data = []
@@ -9,6 +8,7 @@ def create_adjacency_matrix():
     # Read the CSV data from musae_facebook_edges.csv file
     with open('../../../facebook_large/musae_facebook_edges.csv', 'r') as file:
         reader = csv.reader(file, delimiter=',')
+        next(reader)
         data = list(reader)
 
     # Determine all unique nodes, it will convert it to a list and sort it, then create a mapping of node to its index
@@ -32,7 +32,6 @@ def create_adjacency_matrix():
 
     # Every node links to itself so the following must be done
     np.fill_diagonal(adjacency_matrix, 1)
-
     return adjacency_matrix
 
 adjacency_matrix = create_adjacency_matrix()
