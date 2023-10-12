@@ -22,15 +22,12 @@ class StandardConv(nn.Module):
 # two 3x3 layers and a drop out layer 
 # described as pre-activation res block with 2 convs with drop out layer in between 
 # entire feature mapping process using leaky relu as described by the paper. 
-
-# TODO - batch normalisation is incorrect 
-# The paper uses instance norm
 class ContextModule(nn.Module):
     def __init__(self, in_channels, out_channels, dropout_p=0.3):
         super(ContextModule, self).__init__()
 
-        # Batch normalisation before ReLU
-        self.bn1 = nn.BatchNorm2d(in_channels)
+        # instance norm 
+        self.bn1 = nn.InstanceNorm2d(in_channels)
         self.relu1 = nn.LeakyReLU(inplace=True)
 
         # First convolutional layer
@@ -39,8 +36,8 @@ class ContextModule(nn.Module):
         # Dropout layer in between 
         self.dropout = nn.Dropout2d(p=dropout_p)
 
-        # Batch normalisation before ReLU
-        self.bn2 = nn.BatchNorm2d(out_channels)
+        # fix with instance norm instead. 
+        self.bn2 = nn.InstanceNorm2d(out_channels)
 
         # RELU 
         self.relu2 = nn.LeakyReLU(out_channels)
@@ -80,24 +77,17 @@ class Conv2dStride2(nn.Module):
         out = self.relu(out)
         return out
     
-# Upsampling Module 
-# As per paper 
+# Update upsampling module code - don't need upsample and conv2d. 
+# Replacing with ConvTranspose2d
 class UpsamplingModule(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UpsamplingModule, self).__init__()
-
-        # Upsampling layer (repeat each feature voxel twice in each spatial dimension)
-        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
-        # 3x3 convolutional layer that halves the number of feature maps
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
-        #Leakly Relu 
-        self.relu = nn.LeakyReLU(out_channels)
+        self.upsample = nn.ConvTranspose2d(in_channels=in_channels, out_channels=out_channels, 
+                                           kernel_size=3, stride=2, padding=1, output_padding=0)
 
     def forward(self, x):
         upsampled_x = self.upsample(x)
-        out = self.conv(upsampled_x)
-        out = self.relu(out)
-        return out
+        return upsampled_x
     
 # Localisation Module 
 # Recombines features together 
@@ -107,13 +97,15 @@ class LocalisationModule(nn.Module):
         # 3x3 convolutional layer
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
         self.relu1 = nn.LeakyReLU(out_channels)
-        # 1x1 convolutional layer that halves the number of feature maps
+        # instance normalisation in between - not batch 
+        self.norm = nn.BatchNorm2d(num_features=out_channels)
         self.conv2 = nn.Conv2d(out_channels, out_channels // 2, kernel_size=1, stride=1, padding=0)
         self.relu2 = nn.LeakyReLU(out_channels//2)
 
     def forward(self, x):
         out = self.conv1(x)
         out = self.relu1(x)
+        out = self.norm(x)
         out = self.conv2(out)
         out = self.relu2(x)
         return out
@@ -121,13 +113,21 @@ class LocalisationModule(nn.Module):
 
 # Segmentation Module
 # reduces depth of feature maps to 1 
-class SegmentationLayer(nn.Module):
+class SegmentationModule(nn.Module):
     def __init__(self, in_channels, out_channels=1):
         super(SegmentationLayer, self).__init__()
-        self.segmentation = nn.Conv2d(in_channels, out_channels=1, kernel_size=1)
+        self.segmentation = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x):
         return self.segmentation(x)
+
+class UpScaleModule(nn.Module):
+    def __init__(self):
+        super(UpScaleModule, self).__init__()
+        self.upscale = nn.Upsample(scale_factor=2, mode='nearest')
+
+    def forward(self, x):
+        return self.upscale(x)
 
 
 class ImprovedUnet(nn.Module):
@@ -183,10 +183,15 @@ class ImprovedUnet(nn.Module):
         in_channels = 128
         out_channels = 64
         self.upsample_layer_2 = UpsamplingModule(in_channels, out_channels)
-
+        
         in_channels = 64 
         out_channels = 32 
         self.localise_layer_2 = LocalisationModule(in_channels, out_channels)
+
+        in_channels =  64
+        out_channels = 64 
+        self.segmentation_layer_1 = SegmentationModule(in_channels, out_channels)
+        self.upscale_1 = UpScaleModule()
 
         in_channels = 32
         out_channels = 16
@@ -196,10 +201,13 @@ class ImprovedUnet(nn.Module):
         out_channels = 32 
         self.conv_layer_2 = StandardConv(in_channels, out_channels)
 
-        # segmentation layer 
+        in_channels = 32
+        out_channels = 64 
+        self.segmentation_layer_2 = SegmentationModule(in_channels, out_channels)
+        self.upscale_2 = UpScaleModule()
 
        
-       
+
 
     # TODO - fix naming 
     # VERIFY THAT CALLING THE FORWARD FUNCTION HERE MAKES SENSE 
@@ -241,13 +249,21 @@ class ImprovedUnet(nn.Module):
         concat_2 = torch.cat((element_sum_3, upsample_out_2))
 
         # feed into localisation 2
-        localisation_out_2 = self.localise_layer_1.forward(concat_1)
+        localisation_out_2 = self.localise_layer_1.forward(concat_2)
 
+        # after localisation 2, place into the segment layer. 
+        segment_out_1 = self.segmentation_layer_1.forward(localisation_out_2)
+        # upscale segment layer. 
+        upscale_out_1 = self.upscale_1.forward(segment_out_1)
 
+        
+        # localise 3 
+        
+        # segment out 3 
 
+        # upscale 2 
 
-
-
+        # sum 
         
 
 
