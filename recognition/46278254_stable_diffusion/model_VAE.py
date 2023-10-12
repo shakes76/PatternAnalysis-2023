@@ -11,11 +11,14 @@ from torch.utils.data import WeightedRandomSampler
 from module import ResnetBlock, AttnBlock, Downsample, Upsample, VectorQuantizer2
 from util import sinusoidal_embedding
 
+
 class Encoder(nn.Module):
     def __init__(self, *, ch, ch_mult=(1, 2, 4, 8), num_res_blocks,
                  attn_resolutions, dropout=0.0, resamp_with_conv=True, in_channels,
                  resolution, z_channels, double_z=True, pos_len=32, **ignores):
         '''
+            Define encoder for autoencoder.
+
             ch: base number of all channels, int
             ch_mult: channal number of each blocks, [int...]
             num_res_blocks: numbers of resblocks in each block, int.
@@ -35,17 +38,17 @@ class Encoder(nn.Module):
         # Time embedding Setup
         time_emb_size = ch
         self.time_embedding = sinusoidal_embedding(pos_len, time_emb_size)
-        
+
         self.time_mlp = nn.Sequential(
             nn.Linear(time_emb_size, time_emb_size),
             nn.SiLU(),
             nn.Linear(time_emb_size, time_emb_size),
-        ) 
+        )
 
-        # Setup 
+        # Setup
         res_params = {
-            'time_emb_size' : time_emb_size,
-            'dropout' : dropout
+            'time_emb_size': time_emb_size,
+            'dropout': dropout
         }
 
         self.layers = nn.ModuleList([])
@@ -63,7 +66,7 @@ class Encoder(nn.Module):
 
                 # Resblock like Unet
                 self.layers.append(ResnetBlock(in_channels=block_in,
-                              out_channels=block_out, **res_params))
+                                               out_channels=block_out, **res_params))
 
                 # Attention Block (Only add when resolution is low enough.)
                 if curr_res in attn_resolutions:
@@ -89,7 +92,6 @@ class Encoder(nn.Module):
             nn.Conv2d(block_in, z_channels * (2 if double_z else 1), 3, 1, 1)
         ])
 
-
     def forward(self, x, t):
         # Get time embedding
         self.time_embedding = self.time_embedding.to(t.device)
@@ -108,10 +110,15 @@ class Encoder(nn.Module):
         # This function is for adpative loss for discriminator.
         return self.layers[-1].weight
 
+
 class Decoder(nn.Module):
     def __init__(self, *, ch, out_ch, ch_mult=(1, 2, 4, 8), num_res_blocks,
                  attn_resolutions, dropout=0.0, resamp_with_conv=True,
                  resolution, z_channels, tanh_out=False, pos_len=32, **ignores):
+        '''
+            Define decoder for autoencoder.
+            Parameters setting please refer to Encoder.
+        '''
         super().__init__()
         self.ch = ch
         self.num_resolutions = len(ch_mult)
@@ -121,17 +128,17 @@ class Decoder(nn.Module):
         # Time embedding Setup
         time_emb_size = ch
         self.time_embedding = sinusoidal_embedding(pos_len, time_emb_size)
-        
+
         self.time_mlp = nn.Sequential(
             nn.Linear(time_emb_size, time_emb_size),
             nn.SiLU(),
             nn.Linear(time_emb_size, time_emb_size),
-        ) 
+        )
 
-        # Setup 
+        # Setup
         res_params = {
-            'time_emb_size' : time_emb_size,
-            'dropout' : dropout
+            'time_emb_size': time_emb_size,
+            'dropout': dropout
         }
 
         # Calculate block_in & current resolution
@@ -157,21 +164,20 @@ class Decoder(nn.Module):
             block_out = ch*ch_mult[i_level]
             for i_block in range(self.num_res_blocks+1):
                 self.layers.append(ResnetBlock(in_channels=block_in,
-                                          out_channels=block_out, **res_params))
+                                               out_channels=block_out, **res_params))
                 if curr_res in attn_resolutions:
                     self.layers.append(AttnBlock(block_out))
                 block_in = block_out
             if i_level != 0:
                 self.layers.append(Upsample(block_in, resamp_with_conv))
                 curr_res = curr_res * 2
-        
+
         # End part
         self.layers += [
             nn.GroupNorm(32, block_in),
             nn.SiLU(),
             nn.Conv2d(block_in, out_ch, 3, 1, 1)
         ]
-
 
     def forward(self, x, t):
         # Get time embedding
@@ -189,7 +195,7 @@ class Decoder(nn.Module):
         if self.tanh_out:
             h = torch.tanh(h)
         return h
-    
+
     def get_last_layer(self):
         # This function is for adpative loss for discriminator.
         return self.layers[-1].weight
@@ -198,6 +204,10 @@ class Decoder(nn.Module):
 class VAE(nn.Module):
     def __init__(self, *, ch=64, ch_mult=[1, 1, 2, 2, 4], num_res_blocks=2,
                  attn_resolutions=[16], dropout=0.0, resamp_with_conv=True, resolution=256, z_channels=16, embed_dim=16, pos_len=32):
+        '''
+            Define vanilla VAE model with reparametrization trick. 
+            Parameters setting please refer to Encoder.
+        '''
         super().__init__()
         params = {
             'ch': ch,
@@ -286,9 +296,14 @@ class VAE(nn.Module):
         # This function is for adpative loss for discriminator.
         return self.encoder.get_last_layer()
 
+
 class VQVAE(nn.Module):
     def __init__(self, *, ch=64, ch_mult=[1, 1, 2, 2, 4], num_res_blocks=2,
                  attn_resolutions=[16], dropout=0.0, resamp_with_conv=True, resolution=256, z_channels=16, embed_dim=8, n_embed=256, pos_len=32):
+        '''
+            Define VQVAE model. 
+            Parameters setting please refer to Encoder.
+        '''
         super().__init__()
         params = {
             'ch': ch,
@@ -310,7 +325,8 @@ class VQVAE(nn.Module):
         self.decoder = Decoder(tanh_out=True, **params)
         self.pos_len = pos_len
 
-        self.quantize = VectorQuantizer2(n_e=n_embed, e_dim=embed_dim, beta=0.25)
+        self.quantize = VectorQuantizer2(
+            n_e=n_embed, e_dim=embed_dim, beta=0.25)
         # For convienient purpose, store the z-shape.
         latent_wh = resolution // 2 ** (len(ch_mult)-1)
         self.z_shape = [latent_wh, latent_wh]
@@ -333,9 +349,16 @@ class VQVAE(nn.Module):
         # Generate z space from w random sampler.
         with torch.no_grad():
             w, h, n_embed = self.weight_sampler.shape
-            weight_sampler = rearrange(self.weight_sampler, 'h w nE -> (h w) nE')
-            ind = torch.tensor(list(WeightedRandomSampler(weight_sampler, num_samples=batch_size))).detach()
+            # Change indices record into S, nE shape
+            weight_sampler = rearrange(
+                self.weight_sampler, 'h w nE -> (h w) nE')
+            # Weighted sample from distribution
+            ind = torch.tensor(list(WeightedRandomSampler(
+                weight_sampler, num_samples=batch_size))).detach()
+            # Reshape into correct type
             ind = rearrange(ind, '(h w) nE -> h w nE', w=w)
+            # To correct device.
+            # Note that there're some issue using WeightedRandomSampler in GPU)
             ind = ind.to(device)
         z_q = self.quantize.embedding(ind)
         z_q = rearrange(z_q, 'h w b c -> b c h w')
@@ -347,23 +370,21 @@ class VQVAE(nn.Module):
         device = next(self.parameters()).device
 
         with torch.no_grad():
+            # This part is same as sample. Please check the above funciton.
             w, h, n_embed = self.weight_sampler.shape
-            weight_sampler = rearrange(self.weight_sampler, 'h w nE -> (h w) nE')
-            ind = torch.tensor(list(WeightedRandomSampler(weight_sampler, num_samples=1))).detach()
+            weight_sampler = rearrange(
+                self.weight_sampler, 'h w nE -> (h w) nE')
+            ind = torch.tensor(list(WeightedRandomSampler(
+                weight_sampler, num_samples=1))).detach()
             ind = rearrange(ind, '(h w) nE -> h w nE', w=w)
             ind = ind.to(device)
         z_q = self.quantize.embedding(ind)
         z_q = rearrange(z_q, 'h w b c -> b c h w')
 
         z_q = repeat(z_q, 'b c h w -> (repeat b) c h w', repeat=self.pos_len)
+        # Should sample z_index from 0 to self.pos_len (32 in OASIS dataset)
         t = torch.arange(0, self.pos_len, device=device, dtype=torch.long)
-        # out: will contain pos_len images
-        out = []
-        for i in range(0, self.pos_len, batch_size):
-            start, end = i, min(self.pos_len, i+batch_size)
-            out.append(self.decode(z_q[start:end], t[start:end]))
-        out = torch.cat(out)
- 
+
         return self.decode(z_q, t)
 
     def forward(self, x, t):
@@ -379,18 +400,7 @@ class VQVAE(nn.Module):
     def get_encoder_last_layer(self):
         # This function is for adpative loss for discriminator.
         return self.encoder.get_last_layer()
-    
+
     def update_sampler(self, weight_sampler):
+        # Update weight sampler for weighted sampling
         self.weight_sampler = weight_sampler.detach()
-
-if __name__ == '__main__':
-
-    net = VQVAE().cuda()
-    x_shape = (2, 1, 256, 256)
-    n = x_shape[0]
-    x = torch.randn(x_shape).cuda()
-    t = torch.randint(low=0, high=32, size=(n,)).cuda()
-    print(summary(net, input_data=(x, t)))
-    net(x, t)
-    with torch.no_grad():
-        net.sample(3)
