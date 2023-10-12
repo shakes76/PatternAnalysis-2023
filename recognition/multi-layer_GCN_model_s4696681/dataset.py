@@ -53,7 +53,7 @@ def normalise_adjacency_matrix(adjacency_matrix):
  Hence I will create an n-dimensional bag of words feature vector for each node"""
 def create_feature_vectors():
     # Load data from a JSON file
-    with open('../../../facebook_large\musae_facebook_features.json', 'r') as file:
+    with open('../../../facebook_large/musae_facebook_features.json', 'r') as file:
         data = json.load(file)
 
     # Convert string keys to integers
@@ -75,6 +75,40 @@ def create_feature_vectors():
     feature_vectors = np.array(feature_list, dtype=int)
     return feature_vectors
 
-feature_vectors = create_feature_vectors()
-print(feature_vectors)
+# feature_vectors = create_feature_vectors()
+# print(feature_vectors)
 
+
+
+"""I will create a mapper function for the class labels since they are in string format.
+ 0 = politician, 1 = governmental orginisations, 2 = television shows and 3 = companies"""
+def mapper(x):
+    if x == "politician":
+        y = 0
+    elif x == "government":
+        y = 1
+    elif x == "tvshow":
+        y = 2
+    elif x == "company":
+        y = 3
+    return y
+
+"""Labels in musae_facebook_target.csv are in string format thus we will convert them to an integer value so they can be used with the model"""
+def convert_labels():
+    processed_data = []
+
+    # Read the CSV data
+    with open('../../../facebook_large/musae_facebook_target.csv', 'r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        
+        for row in reader:
+            id_ = int(row['id'])
+            page_type = mapper(row['page_type'])
+            processed_data.append([id_, page_type])
+
+    # Convert the processed data into a numpy array
+    node_labels = np.array(processed_data, dtype=int)
+    return node_labels
+
+node_labels = convert_labels()
+print(node_labels[:5])
