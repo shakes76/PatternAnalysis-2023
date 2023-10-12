@@ -28,3 +28,22 @@ history = model.fit(x_train, y_train, batch_size=16, epochs=30, validation_split
 loss, accuracy = model.evaluate(x_test, y_test)
 print(f"Test loss: {round(loss, 2)}")
 print(f"Test accuracy: {round(accuracy * 100, 2)} %")
+# Save the trained model
+model.save('model/trained_model.h5')
+
+# Plot training history
+plt.plot(history.history['accuracy'], label="train_acc")
+plt.plot(history.history['val_accuracy'], label="val_acc")
+plt.title('model accuracy')
+plt.ylabel('accuracy')
+plt.xlabel('epoch')
+plt.legend(['Train', 'Validation'], loc='upper left')
+plt.show()
+
+plt.plot(history.history['loss'], label="train_loss")
+plt.plot(history.history['val_loss'], label="val_loss")
+plt.title('model loss')
+plt.ylabel('loss')
+plt.xlabel('epoch')
+plt.legend(['Train', 'Validation'], loc='upper left')
+plt.show()
