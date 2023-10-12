@@ -6,6 +6,7 @@ from torch import optim
 from dataset import generateDataLoader
 from modules import Generator, Discriminator, MappingNetwork, PathLengthPenalty
 from tqdm import tqdm
+import time
 
 # Device Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -196,6 +197,7 @@ def train_fn(
 
 
 print("> Training")
+start = time.time()  # time generation
 # Train loop
 for epoch in range(num_epochs):
     train_fn(
@@ -211,3 +213,8 @@ for epoch in range(num_epochs):
 torch.save(generator.state_dict(), save_path + f"GENERATOR_{modelName}.pth")
 torch.save(discriminator.state_dict(), save_path + f"DISCRIMINATOR_{modelName}.pth")
 torch.save(mapping_network.state_dict(), save_path + f"MAPPING_NETWORK_{modelName}.pth")
+
+end = time.time()
+elapsed = end - start
+print("Training took " + str(elapsed) + " secs or " + str(elapsed / 60) + " mins in total")
+print("> Done")
