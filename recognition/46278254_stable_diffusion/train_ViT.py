@@ -2,18 +2,14 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from einops import rearrange, repeat, reduce
+from einops import rearrange, repeat
 from collections import defaultdict
 from torch.utils.data import TensorDataset, DataLoader
 # ==== import from this folder ==== #
 from model_VAE import VQVAE
-from model_discriminator import NLayerDiscriminator, weights_init
-from dataset import get_dataloader
-from util import reset_dir, weight_scheduler, compact_large_image, sinusoidal_embedding
-from logger import Logger
+from util import compact_large_image, sinusoidal_embedding
 DEVICE = torch.device("cuda")
 print("DEVICE:", DEVICE)
 
