@@ -11,8 +11,6 @@ from torch.utils.data import random_split
 
 
 
-ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
-
 
 #-------- TRANSFORMERS FOR TRAINING AND TESTING -----------
 
@@ -24,6 +22,13 @@ def get_transforms_training():
          # Adjust these values if needed, for 1 channel
     ])
 
+def get_transforms_validation():
+    return transforms.Compose([
+        transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
+        transforms.ToTensor(),
+        # Adjust these values if needed, for 1 channel
+    ])
+
 
 def get_transforms_testing():
     return transforms.Compose([
@@ -31,6 +36,8 @@ def get_transforms_testing():
         transforms.ToTensor(),
           # Adjust these values if needed, for 1 channel
     ]) 
+
+
 
 #--------- CREATE DATASET CLASS --------------------
 
@@ -47,6 +54,7 @@ class SiameseDataset(Dataset):
 
     def make_pairs(self):
         # Referred and modified from: https://keras.io/examples/vision/siamese_contrastive/ 
+
         # Create a dictionary for each class and its corresponding indices
         class_indices = {cls: np.where(np.array([label for _, label in self.image_list]) == cls)[0] 
                  for cls in self.classes}
@@ -74,8 +82,8 @@ class SiameseDataset(Dataset):
 
             seen_pairs.add(pair)
             pairs.append(list(pair))
-            # Positive pair is labelled 0
-            labels.append(0)
+            # Positive pair is labelled 1
+            labels.append(1)
 
             # Negative pair
             label2 = random.choice([cls for cls in self.classes if cls != label1])
@@ -91,8 +99,8 @@ class SiameseDataset(Dataset):
             
             seen_pairs.add(pair)
             pairs.append(list(pair))
-             # Negative pair is labelled 1
-            labels.append(1)
+             # Negative pair is labelled 0
+            labels.append(0)
         
         return pairs, labels
 
@@ -118,7 +126,7 @@ class SiameseDataset(Dataset):
 #------------- FUNCTION TO BE CALLED TO RETURN DATALOADER -----------------
 
 
-def create_siamese_dataloader(root_dir, batch_size=32, shuffle=True, transform=None, split_flag=True):
+def create_siamese_dataloader(root_dir, batch_size=32, shuffle=True, split_flag=True):
     data = datasets.ImageFolder(root=root_dir, transform=None)
     print("Total Number of images:", len(data))
 
@@ -133,8 +141,8 @@ def create_siamese_dataloader(root_dir, batch_size=32, shuffle=True, transform=N
         train_image_list = [(data.imgs[i][0], data.targets[i]) for i in train_data.indices]
         val_image_list = [(data.imgs[i][0], data.targets[i]) for i in val_data.indices]
 
-        train_siamese_dataset = SiameseDataset(train_image_list, transforms=transform)
-        val_siamese_dataset = SiameseDataset(val_image_list, transforms=transform)
+        train_siamese_dataset = SiameseDataset(train_image_list, transforms=get_transforms_training())
+        val_siamese_dataset = SiameseDataset(val_image_list, transforms=get_transforms_validation())
 
         print("Training Pairs Length:", len(train_siamese_dataset))
         print("Validation Pairs Length:", len(val_siamese_dataset))
@@ -143,11 +151,12 @@ def create_siamese_dataloader(root_dir, batch_size=32, shuffle=True, transform=N
         val_loader = DataLoader(val_siamese_dataset, batch_size=batch_size, shuffle=False)
 
         return train_loader, val_loader
-    else:
-        siamese_dataset = SiameseDataset(data.imgs, transforms=transform)
-        data_loader = DataLoader(siamese_dataset, batch_size=batch_size, shuffle=shuffle)
-        return data_loader
 
+    # If no splitting is required, just use testing transform. Reserved for testing
+    else:
+        siamese_dataset = SiameseDataset(data.imgs, transforms=get_transforms_testing())
+        data_loader = DataLoader(siamese_dataset, batch_size=batch_size, shuffle=False)
+        return data_loader
 
 
 
@@ -156,10 +165,9 @@ def create_siamese_dataloader(root_dir, batch_size=32, shuffle=True, transform=N
 ############ CHECKING IF DATALOADER WORKS ######################
 
 # ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
-# train_loader, val_loader = create_siamese_dataloader(ROOT_DIR_TRAIN, batch_size=32, transform=get_transforms_training(), split_flag=True)
+# train_loader, val_loader = create_siamese_dataloader(ROOT_DIR_TRAIN, batch_size=32, split_flag=True)
 
-
-# Get the first batch from the train_loader
+# # Get the first batch from the train_loader
 # first_batch = next(iter(train_loader))
 
 # img1_batch, img2_batch, labels_batch, img1_path_batch, img2_path_batch = first_batch
@@ -173,55 +181,17 @@ def create_siamese_dataloader(root_dir, batch_size=32, shuffle=True, transform=N
 #     print(f"Label {i + 1}:", labels_batch[i].item(), "\n")
 #     print("-----------------------------\n")
 
-######### CHECK FOR LEAKAGE ########################
-# def check_for_leakage_from_loaders(train_loader, val_loader):
-#     # 1. Extract image paths from both loaders
-#     train_image_paths = []
-#     for (img1_batch, img2_batch, _, img1_path_batch, img2_path_batch) in train_loader:
-#         train_image_paths.extend(img1_path_batch)
-#         train_image_paths.extend(img2_path_batch)
-#     train_image_paths = set(train_image_paths)
-
-#     val_image_paths = []
-#     for (img1_batch, img2_batch, _, img1_path_batch, img2_path_batch) in val_loader:
-#         val_image_paths.extend(img1_path_batch)
-#         val_image_paths.extend(img2_path_batch)
-#     val_image_paths = set(val_image_paths)
 
 
-#     # 2. Check for image overlaps
-#     common_images = train_image_paths.intersection(val_image_paths)
-#     if common_images:
-#         print(f"Found {len(common_images)} overlapping images between train and val sets!")
-#     else:
-#         print("No overlapping images between train and val sets.")
-    
-#     # 3. Check for pair overlaps in Siamese dataset
-#     train_pairs = set()
-#     for (img1_batch, img2_batch, _, img1_path_batch, img2_path_batch) in train_loader:
-#         for img1_path, img2_path in zip(img1_path_batch, img2_path_batch):
-#             train_pairs.add(tuple(sorted([img1_path, img2_path])))
 
-#     val_pairs = set()
-#     for (img1_batch, img2_batch, _, img1_path_batch, img2_path_batch) in val_loader:
-#         for img1_path, img2_path in zip(img1_path_batch, img2_path_batch):
-#             val_pairs.add(tuple(sorted([img1_path, img2_path])))
 
-#     common_pairs = train_pairs.intersection(val_pairs)
-#     if common_pairs:
-#         print(f"Found {len(common_pairs)} overlapping pairs between train and val sets!")
-#     else:
-#         print("No overlapping pairs between train and val sets.")
 
-# # After creating your dataloaders, call the function:
-# check_for_leakage_from_loaders(train_loader, val_loader)
-
-def get_classification_dataloader(root_dir, batch_size=32, shuffle=True, transform=None, split_flag=True):
-    data = datasets.ImageFolder(root=root_dir, transform=transform)
+def get_classification_dataloader(root_dir, batch_size=32, shuffle=True, split_flag=True):
+    data = datasets.ImageFolder(root=root_dir, transform=None)
     print("Total Number of images:", len(data))
     print(data.classes)           # List of class names
     print(data.class_to_idx)
-
+    
     if split_flag:
         val_split = 0.2
         train_len = int((1.0 - val_split) * len(data))
@@ -231,24 +201,26 @@ def get_classification_dataloader(root_dir, batch_size=32, shuffle=True, transfo
 
         print(len(train_data))
         print(len(val_data))
+        
+        train_data.dataset.transform = get_transforms_training()
+        val_data.dataset.transform = get_transforms_validation()
+
 
         train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=shuffle)
         val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False)
 
-        # print(len(train_loader))
-        # print(len(val_loader))
-
         return train_loader, val_loader
 
     else:
-        # If no splitting is required, return only the train loader
-        train_loader = DataLoader(data, batch_size=batch_size, shuffle=shuffle)
+        # If no splitting is required, just use testing transform. Reserved for testing
+        data.transform = get_transforms_testing()
+        train_loader = DataLoader(data, batch_size=batch_size, shuffle=False)
         return train_loader
 
 
 #### CHECK DATA LOADER FOR CLASSIFICATION #####
 # ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
-# train_loader,val_loader = get_classification_dataloader(ROOT_DIR_TRAIN,batch_size=32, transform=get_transforms_training(), split_flag=True)
+# train_loader,val_loader = get_classification_dataloader(ROOT_DIR_TRAIN,batch_size=32,split_flag=True)
 
 # train_images, train_labels = next(iter(train_loader))
 # print("Training Images:", train_images)
