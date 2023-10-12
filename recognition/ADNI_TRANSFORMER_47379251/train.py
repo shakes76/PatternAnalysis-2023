@@ -119,7 +119,6 @@ elif args.net=="CrossViT":
     dropout = 0.1,
     emb_dropout = 0.1
 )
-
 # For Multi-GPU
 if 'cuda' in device:
     torch.cuda.empty_cache()
@@ -204,7 +203,9 @@ def train_valid(epoch):
         print(net.train())
     train_loss = 0
     correct = 0
+    correct_valid = 0
     total = 0
+    total_valid = 0
     print('\nEpoch: %d' % epoch)
     for batch_idx, (inputs, targets) in enumerate(trainloader):
         inputs, targets = inputs.to(device), targets.to(device)
@@ -229,6 +230,9 @@ def train_valid(epoch):
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
+        if epoch%1==0: 
+            progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
+                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))    
     writer.add_scalar("Train Loss/Epochs", train_loss, epoch) 
     valid_loss = 0.0
     acc = 0
@@ -243,11 +247,9 @@ def train_valid(epoch):
         total_valid += targets_valid.size(0)
         correct_valid += predicted_valid.eq(targets_valid).sum().item()
         if (100.*correct_valid/total_valid) > acc: acc = 100.*correct_valid/total_valid
-    if epoch%1==0: 
+        if epoch%1==0: 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))
-            progress_bar(batch_idx_valid, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                % (valid_loss/(batch_idx_valid+1), 100.*correct_valid/total_valid, correct_valid, total_valid))
+                % (valid_loss/(batch_idx_valid+1), 100.*correct_valid/total_valid, correct_valid, total_valid))    
     if epoch==0: 
         log = "Learning Rate: " + str(args.lr) + "\nOptimizer: " + str(args.opt) + "\nModel: " + str(args.net)\
             + "\nBatch Size: " + str(args.bs) + "\nEpoch: " + str(args.n_epochs)\

@@ -26,6 +26,7 @@
 - Patch Size - 64 (56.255), 128 (56.7), 32 (54.388), 256 (44.8), 16 (51.7)
 - Dimensionality Head - 1024 (56.7)(56.7), 256 (58.22), 128 (57.84), 512 (58.6), 768 (55.82)
 - Normalisation
+- Resize (128x128, patch - 128) (65.6667)
 - Crop
 - Flip
 - LR Scheduler
@@ -35,9 +36,7 @@
 - Epoch - 35 (64.2), 50 (65), 60 (65.3), 120 (66), 200 (66.7), 300 (65)
 - Dropout
 # Jobs:
-190 - val
-188 - 200e 
-76 - test_m
-77 - test_val_m
-78 - 0.1 dp test
-79 - 0.1 dp t+v
+140 - img size 128
+144 - without flip
+146 - with flip and crop
+243 - removed RandomResizedCrop

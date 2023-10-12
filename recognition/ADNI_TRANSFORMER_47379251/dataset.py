@@ -87,16 +87,43 @@ def get_mean_std(loader):
     return mean, std
 # Data
 print('==> Preparing data..') 
-def Normalize(dataset):
-    loader = torch.utils.data.DataLoader(dataset, batch_size=bs, shuffle=True)
-    mean, std = get_mean_std(loader)   
+def normalize_train():
+    transform_train = transforms.Compose([
+    transforms.Resize((size,size)),
+    transforms.ToTensor(),
+])
+    trainset = torchvision.datasets.ImageFolder(root='/home/groups/comp3710/ADNI/AD_NC/train', transform=transform_train)
+    #torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
+    #trainset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
+    trainloader = torch.utils.data.DataLoader(trainset, batch_size=bs, shuffle=True)   
+    mean, std = get_mean_std(trainloader) 
+    return mean,std
+def normalize_test():
+    transform_test = transforms.Compose([
+    transforms.Resize((size,size)),
+    transforms.ToTensor(),
+])
+    testset = torchvision.datasets.ImageFolder(root='/home/groups/comp3710/ADNI/AD_NC/test', transform=transform_test)
+    #torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
+    #trainset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
+    testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)   
+    mean, std = get_mean_std(testloader) 
+    return mean, std      
 
+#mean, std = normalize_train()
+#mean_test, std_test = normalize_test()
+#print("Normalization", mean, std)
+#print("Normalization Test", mean_test, std_test)
 transform_train = transforms.Compose([
     transforms.Resize((size,size)),
-    transforms.RandomCrop(size, padding=4),
+    transforms.RandomCrop(size),
     transforms.RandomHorizontalFlip(),
+    #transforms.RandomResizedCrop(size),
+    #transforms.RandomRotation(),
+    #transforms.RandomVerticalFlip(),
     transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
+    # transforms.Normalize(mean=mean, std=std),
     #transforms.Normalize((0.5, 0.5, 0.5), (0.2, 0.2, 0.2)),
 ])
 
@@ -104,7 +131,7 @@ transform_test = transforms.Compose([
     transforms.Resize((size,size)),
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
-    #transforms.Normalize((0.5, 0.5, 0.5), (0.2, 0.2, 0.2)),
+    #transforms.Normalize(mean=mean_test, std=std_test),
 ])
 
 # Prepare dataset
