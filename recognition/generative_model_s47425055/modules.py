@@ -3,11 +3,27 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from skimage.metrics import structural_similarity as ssim
-import numpy as np
-import matplotlib.pyplot as plt
-import torchvision
 
+import numpy as np
+import torchvision
+from torchvision.utils import save_image
+from itertools import cycle
+import matplotlib.pyplot as plt
+from skimage.metrics import structural_similarity as ssim
+
+
+import time
+from pathlib import Path
+
+
+
+from torchvision import datasets, transforms
+
+from torch.distributions.normal import Normal
+from torch.distributions import kl_divergence
+
+
+DEVICE = torch.device('cuda')
 
 def to_scalar(arr):
     if type(arr) == list:
@@ -87,6 +103,7 @@ def plot_losses_and_scores():
     plt.tight_layout()
     plt.savefig('samples2/loss_ssim_plot.png', bbox_inches='tight')
     plt.close()
+
 def save_and_display_images(images, filename, nrow=8):
     """Saves and displays a grid of images."""
     # Save the image
@@ -102,6 +119,7 @@ def save_and_display_images(images, filename, nrow=8):
 def generate_samples(model, test_loader, epoch):
     """Generates and saves reconstructed samples for a given epoch."""
     model.eval()  # Set model to evaluation mode
+    test_loader_iter = cycle(test_loader) # Initialize cycling iterator here
     x, _ = next(test_loader_iter)  # Get a batch of samples using the cycling iterator
     x = x[:32].to(DEVICE)
 
@@ -110,15 +128,21 @@ def generate_samples(model, test_loader, epoch):
     images = (torch.cat([x, x_tilde], 0).cpu().data + 1) / 2
 
     # Save and display the reconstructed images
-    filename = f'samples3/vqvae_reconstructions_{epoch}'
-    save_and_display_images(images, filename, nrow=8)
+    #filename = f'samples3/vqvae_reconstructions_{epoch}'
+    #save_and_display_images(images, filename, nrow=8)
+    grid_img = torchvision.utils.make_grid(x_tilde.cpu().data, nrow=8)
+    plt.figure(figsize=(16,8))
+    plt.imshow(grid_img.permute(1, 2, 0))
+    plt.savefig(f'samples3/vqvae_reconstructions_{epoch}.png', bbox_inches='tight')
+    plt.close()
 
 def generate_sample_from_best_model(model, test_loader, best_epoch):
     """Generates and saves a sample using the best model from a given epoch."""
-    # Load the best model's weights
-    model.load_state_dict(torch.load(f'samples3/checkpoint_epoch{best_epoch}_vqvae.pt'))
     model.eval()
-
+    # Load the best model's weights
+    #model.load_state_dict(torch.load(f'samples3/checkpoint_epoch{best_epoch}_vqvae.pt'))
+    
+    test_loader_iter = cycle(test_loader) # Initialize cycling iterator here
     # Get a sample from the test set
     x, _ = next(test_loader_iter)  # Get a batch of samples using the cycling iterator
     x = x[:32].to(DEVICE)
@@ -127,9 +151,14 @@ def generate_sample_from_best_model(model, test_loader, best_epoch):
     x_tilde, _, _ = model(x)
 
     # Save the reconstructed image
-    filename = 'samples3/best_model_sample'
-    save_and_display_images(x_tilde.cpu().data, filename)
-
+    #filename = 'models2/best_model_sample'
+    #save_and_display_images(x_tilde.cpu().data, filename)
+    #save_image(x_tilde.cpu().data, filename)
+    grid_img = torchvision.utils.make_grid(x_tilde.cpu().data, nrow=8)
+    plt.figure(figsize=(16,8))
+    plt.imshow(grid_img.permute(1, 2, 0))
+    plt.savefig(f'models2/best_model_sample.png', bbox_inches='tight')
+    plt.close()
 
 class VQEmbedding(nn.Module):
     def __init__(self, K, D):
