@@ -17,9 +17,7 @@ class Context(nn.module):
     def forward(self, input):
         out = input
         out = F.leaky_relu(self.instNorm(out), self.neagative_slope)
-        out = self.conv(out)
         out = self.dropOut(out)
-        out = self.conv(out)
         out = F.leaky_relu(self.instNorm(out), self.neagative_slope)
         return torch.sum(out, input)
 
