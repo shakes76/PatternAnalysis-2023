@@ -1,41 +1,5 @@
 import torch.nn as nn
 
-
-def path(defaultChannels, initialChannels, maxChannels):
-    """Completes the convolutional layer workflow of the specified channels
-
-    Parameters:
-        defaultChannels (int): the number of channels in the original input
-        initialChannels (int): the initial resolution of the input at the beginning of encode/decode
-        maxChannels (int): the max resolution of the input after the encode/decode
-
-    Returns:
-        (null)
-    """
-    channels = initialChannels
-
-    # For encoding path (starting res < ending res)
-    if initialChannels < maxChannels:
-        nn.ReLU(nn.Conv2d(in_channels=defaultChannels, out_channels = initialChannels, kernel_size=3,stride=2))
-        nn.ReLU(nn.Conv2d(in_channels=initialChannels, out_channels = initialChannels, kernel_size=3,stride=2))
-        while channels <= maxChannels:
-            nn.ReLU(nn.Conv2d(in_channels=channels, out_channels = channels*2, kernel_size=3,stride=2))
-            channels *= 2
-            nn.ReLU(nn.Conv2d(in_channels=channels, out_channels = channels, kernel_size=3,stride=2))
-            if channels != maxChannels:
-                nn.MaxPool2d(kernel_size=3,stride=2)
-
-    # For decoding path (ending res > starting res)
-    else:
-        while channels >= maxChannels:
-            nn.ReLU(nn.Conv2d(in_channels=channels, out_channels = channels/2, kernel_size=3,stride=2))
-            channels /= 2
-            nn.ReLU(nn.Conv2d(in_channels=channels, out_channels = channels, kernel_size=3,stride=2))
-
-            if channels != maxChannels:
-                nn.ReLU(nn.ConvTranspose2d(in_channels=1024,out_channels=512,kernel_size=3,stride=2))
-
-
 class UNET(nn.Module):
     """UNet model for image segmentation."""
     def __init__(self):
@@ -47,28 +11,67 @@ class UNET(nn.Module):
         self.maxChannels = 128
         self.endingChannels = 2
 
-        self.encodePath = nn.Sequential(
-            path(self.defaultChannels, self.initialChannels, self.maxChannels)
-        )
+        def encode_block(in_channels,out_channels):
+            path = nn.Sequential(
+                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=2, padding=1),
+                nn.ReLU(),
+                nn.MaxPool2d(kernel_size=3, stride=2)
+            )
+            return path
+        
+        def decode_block(in_channels,out_channels):
+            path = nn.Sequential(
+                nn.ConvTranspose2d(in_channels,out_channels,kernel_size=3,stride=2,padding=1),
+                nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1),
+                nn.ReLU(),
+                nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=2, padding=1),
+                nn.ReLU(),  
+            )
 
-        self.decodePath = nn.Sequential(
-            path(self.defaultChannels, self.maxChannels, self.initialChannels)
-        )
+        # The encoding path 
+        self.encode1 = encode_block(3,64)
+        self.encode2 = encode_block(64,128)
+        self.encode3 = encode_block(128,256)
+        self.encode4 = encode_block(256,512)
+        self.encode5 = encode_block(512,1024)
 
-        def forward(self, x):
-            """Passes the data through the encode and decode paths.
+        # The decoding path
+        self.decode1 = decode_block(1024,512)
+        self.decode2 = decode_block(512,256)
+        self.decode3 = decode_block(256,128)
+        self.decode4 = decode_block(128,64)
+        self.decode_output = decode_block(64, 2)
 
-            Parameters: 
-                x (tensor): the data as a tensor.
+            
+    def forward(self, x):
+        """Passes the data through the encode and decode paths.
 
-            Returns: 
-                output (tensor): the output tensor image.
+        Parameters: 
+            x (tensor): the data as a tensor.
 
-            """
-            encode = self.encodePath(x)
-            decode = self.decodePath(x)
-            output = nn.ReLU(nn.Conv2d(self.initialChannels, self.endingChannels, kernel_size=3,stride=2))
-            return output
+        Returns: 
+            output (tensor): the output tensor image.
+
+        """
+        encode1 = self.encode1(x)
+        encode2 = self.encode2(encode1)
+        encode3 = self.encode3(encode2)
+        encode4 = self.encode4(encode3)
+        encode5 = self.encode5(encode4)
+
+        decode1 = self.decode1(encode5)
+        decode2 = self.decode2(decode1)
+        decode3 = self.decode3(decode2)
+        decode4 = self.decode4(decode3)
+        output = self.decode_output(decode4)
+
+        return output
+    
+
+        
+
         
 
         
