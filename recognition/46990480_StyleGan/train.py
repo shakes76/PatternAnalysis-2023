@@ -5,6 +5,7 @@ import torch
 from torch import optim
 from dataset import generateDataLoader
 from modules import Generator, Discriminator, MappingNetwork, PathLengthPenalty
+from tqdm import tqdm
 
 # Device Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -66,3 +67,147 @@ print(mapping_network)
 generator.train()
 discriminator.train()
 mapping_network.train()
+
+def WGAN_GP_LOSS(discriminator, real, fake, device="cpu"):
+    '''
+    Computes gradient penalty (loss) for WGAN-GP
+    '''
+    BATCH_SIZE, C, H, W = real.shape
+    beta = torch.rand((BATCH_SIZE, 1, 1, 1)).repeat(1, C, H, W).to(device)
+    interpolated_images = real * beta + fake.detach() * (1 - beta)
+    interpolated_images.requires_grad_(True)
+
+    # Calculate discriminator scores
+    mixed_scores = discriminator(interpolated_images)
+ 
+    # Take the gradient of the scores with respect to the images
+    gradient = torch.autograd.grad(
+        inputs=interpolated_images,
+        outputs=mixed_scores,
+        grad_outputs=torch.ones_like(mixed_scores),
+        create_graph=True,
+        retain_graph=True,
+    )[0]
+    gradient = gradient.view(gradient.shape[0], -1)
+    gradient_norm = gradient.norm(2, dim=1)
+    gradient_penalty = torch.mean((gradient_norm - 1) ** 2)
+    return gradient_penalty
+
+def get_w(batch_size, log_resolution):
+    '''
+    Creates a style latent vector w, from a random noise z latent vector.
+    '''
+    # Random noise z latent vector
+    z = torch.randn(batch_size, w_dim).to(device)
+
+    # Forward pass z through the mapping network to generate w latent vector
+    w = mapping_network(z)
+    return w[None, :, :].expand(log_resolution, -1, -1)
+
+def get_noise(batch_size):
+    '''
+    Generates a random noise vector for a batch of images
+    '''
+    noise = []
+    resolution = 4
+
+    for i in range(log_resolution):
+        if i == 0:
+            n1 = None
+        else:
+            n1 = torch.randn(batch_size, 1, resolution, resolution, device=device)
+        n2 = torch.randn(batch_size, 1, resolution, resolution, device=device)
+
+        noise.append((n1, n2))
+
+        resolution *= 2
+
+    return noise
+
+def train_fn(
+    discriminator,
+    generator,
+    path_length_penalty,
+    loader,
+    opt_discriminator,
+    opt_generator,
+    opt_mapping_network,
+):
+    '''
+    Main training loop for the model
+    '''
+    loop = tqdm(loader, leave=True)
+
+    for batch_idx, (real, _) in enumerate(loop): # load a batch of images (depicted by the batch size)
+        # Real image batch
+        real = real.to(device)
+
+        # Batch size
+        current_batch_size = real.shape[0]
+
+        w = get_w(current_batch_size, log_resolution)
+        noise = get_noise(current_batch_size)
+        with torch.cuda.amp.autocast():
+            # Generate a fake image batch with the Generator
+            fake = generator(w, noise)
+            
+            # Forward pass the fake image through the discriminator
+            discriminator_fake = discriminator(fake.detach())
+            
+            # Forward pass the real image through the discriminator
+            discriminator_real = discriminator(real)
+            criterion = WGAN_GP_LOSS(discriminator, real, fake, device=device)
+            loss_discriminator = (
+                -(torch.mean(discriminator_real) - torch.mean(discriminator_fake))
+                + lambda_gp * criterion
+                + (0.001 * torch.mean(discriminator_real ** 2))
+            )
+
+        # Update Discriminator Neural Network => maximize log(D(x)) + log(1 - D(G(z)))
+        discriminator.zero_grad()
+        loss_discriminator.backward()
+        opt_discriminator.step()
+
+        # Forward pass the fake batch of generated images through the discriminator
+        gen_fake = discriminator(fake)
+
+        # Compute the generator loss
+        loss_gen = -torch.mean(gen_fake)
+
+        if batch_idx % 16 == 0:
+            plp = path_length_penalty(w, fake)
+            if not torch.isnan(plp):
+                loss_gen = loss_gen + plp
+
+        # Update the networks
+        mapping_network.zero_grad()
+        generator.zero_grad()
+        loss_gen.backward()
+        opt_generator.step()
+        opt_mapping_network.step()
+        # G_losses.append(gp.item())
+        # D_losses.append(loss_discriminator.item())
+
+        # logging with tqdm
+        loop.set_postfix(
+            gp=criterion.item(),
+            loss_critic=loss_discriminator.item(),
+        )
+
+
+print("> Training")
+# Train loop
+for epoch in range(num_epochs):
+    train_fn(
+        discriminator,
+        generator,
+        path_length_penalty,
+        train_loader,
+        opt_discriminator,
+        opt_generator,
+        opt_mapping_network,
+    )
+# Save the models
+torch.save(generator.state_dict(), save_path + f"GENERATOR_{modelName}.pth")
+torch.save(discriminator.state_dict(), save_path + f"DISCRIMINATOR_{modelName}.pth")
+torch.save(mapping_network.state_dict(), save_path + f"MAPPING_NETWORK_{modelName}.pth")
