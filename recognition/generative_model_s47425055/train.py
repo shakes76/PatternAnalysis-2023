@@ -130,8 +130,9 @@ def validate():
             val_loss.append(to_scalar([loss_recons, loss_vq]))
 
             # Compute SSIM for the current batch and accumulate
-            ssim_accum += compute_ssim(x, x_tilde)
-
+            ssim_current = compute_ssim(x, x_tilde)
+            ssim_accum += ssim_current
+            
             batch_count += 1
             num_batches += 1
     if num_batches > 0:
@@ -148,22 +149,9 @@ def validate():
     combined_metric = ALPHA * avg_ssim - BETA * avg_loss_recons
         
     return combined_metric
-    """
-    # Calculate the average SSIM for all batches
-    avg_ssim = ssim_accum / batch_count
-
-    # Display the average validation loss
-    mean_val_loss = np.asarray(val_loss).mean(0)
-    print('\nValidation Loss: {}'.format(mean_val_loss))
-    # print average ssim score
-    print(f"Average Validation SSIM: {avg_ssim:.4f}")
-
-    # Append the metrics to the lists
-    val_losses.append(mean_val_loss)
-    ssim_scores.append(avg_ssim)
     
-    return np.asarray(val_loss).mean(0), avg_ssim  # return SSIM score and loss
-    """
+
+    
 def test():
     model.eval()  # Switch to evaluation mode
     ssim_accum = 0.0  # Accumulator for SSIM scores
@@ -187,7 +175,7 @@ total_loss_recons = 0.0
 
 
 if __name__ == '__main__':
-    test_loader_iter = cycle(test_loader) # Initialize cycling iterator here
+    
     for epoch in range(1, N_EPOCHS):
         print(f"Epoch {epoch}:")
         train()
@@ -198,10 +186,11 @@ if __name__ == '__main__':
         # Check the combined metric for improvements
         if combined_metric > BEST_METRIC:                        
             BEST_METRIC = combined_metric
+            BEST_EPOCH = epoch
             print("Saving model based on improved combined metric!")
             dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
-            torch.save(model.state_dict(), MODEL_PATH_TEMPLATE.format(epoch))
-            BEST_EPOCH = epoch
+            torch.save(model.state_dict(), f'models3/checkpoint_epoch{BEST_EPOCH}_vqvae.pt')
+            
             with open("best_epoch.txt", "w") as file:
                 file.write(str(BEST_EPOCH))
 
