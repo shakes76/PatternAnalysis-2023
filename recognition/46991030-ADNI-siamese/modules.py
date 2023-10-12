@@ -57,8 +57,7 @@ def snn():
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
             ),
             tf.keras.layers.Flatten(),
-            tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Dense(10, activation="relu"),
+            tf.keras.layers.Dense(64, activation="relu"),
         ]
     )
 
@@ -76,3 +75,23 @@ def snn():
     model.compile(optimizer="RMSProp", loss=loss, metrics=["accuracy"])
 
     return model
+
+
+def snn_classifier(model: tf.keras.Model):
+    input = tf.keras.layers.Input(shape=constants.IMAGE_INPUT_SHAPE)
+    classifier = tf.keras.models.Sequential(
+        [
+            input,
+            model,
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dense(1, activation="sigmoid"),
+        ]
+    )
+
+    classifier.compile(
+        optimizer=tf.optimizers.SGD(learning_rate=0.001),
+        loss="binary_crossentropy",
+        metrics=["accuracy"],
+    )
+
+    return classifier

@@ -44,6 +44,12 @@ def load_dataset(
     np.ndarray,
     np.ndarray,
     np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
+    np.ndarray,
 ]:
     """
     Loads the ADNI dataset from the given path
@@ -73,6 +79,9 @@ def load_dataset(
     train_X = np.array([t[0] for t in train])
     train_y = np.array([t[1] for t in train])
 
+    all_train_X = np.concatenate([train_AD, train_NC], axis=0)
+    all_train_y = np.array([0] * len(train_AD) + [1] * len(train_NC))
+
     print("Loading testing data")
 
     test_AD = load_jpegs_at_path(f"{path}/test/AD")
@@ -98,8 +107,17 @@ def load_dataset(
     validate_X = train_X[:num_validate]
     validate_y = train_y[:num_validate]
 
+    all_validate_X = all_train_X[: len(all_train_X) // 5]
+    all_validate_y = all_train_y[: len(all_train_y) // 5]
+
+    all_train_X = all_train_X[len(all_train_X) // 5 :]
+    all_train_y = all_train_y[len(all_train_y) // 5 :]
+
     train_X = train_X[num_validate:]
     train_y = train_y[num_validate:]
+
+    all_test_X = np.concatenate([test_AD, test_NC], axis=0)
+    all_test_y = np.array([0] * len(test_AD) + [1] * len(test_NC))
 
     return (
         train_X[:, 0],
@@ -111,4 +129,10 @@ def load_dataset(
         test_X[:, 0],
         test_X[:, 1],
         test_y.astype(np.float32),
+        all_train_X,
+        all_train_y,
+        all_validate_X,
+        all_validate_y,
+        all_test_X,
+        all_test_y,
     )
