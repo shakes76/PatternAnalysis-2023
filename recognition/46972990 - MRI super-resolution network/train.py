@@ -4,7 +4,8 @@ import torch.optim as optim
 from modules import ESPCN
 from dataset import get_train_and_validation_loaders, get_test_loader
 import time
-import matplotlib.pyplot as plt
+
+MODEL_PATH = "recognition\\46972990 - MRI super-resolution network\\model.pth"
 
 # Create the model and load training data
 model = ESPCN(upscale_factor=4, channels=1)
@@ -38,12 +39,11 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
-
     train_loss = running_loss / len(train_loader)
     print(f"Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss:.4f}", end=" - ")
     
     # Validation Loop
-    model.eval()  # set the model to evaluation mode
+    model.eval()
     with torch.no_grad():
         val_loss = 0.0
         for i, data in enumerate(validation_loader, 0):
@@ -55,13 +55,14 @@ for epoch in range(num_epochs):
     val_loss = val_loss / len(validation_loader)
     print(f"Validation Loss: {val_loss:.4f}", end=" - ")
 
-    end_time = time.time()  # End time of epoch
+    # Time taken for epoch
+    end_time = time.time()
     epoch_duration = end_time - start_time
     print(f"Completed in {epoch_duration:.2f} seconds.")
 
 print("Finished training.")
 
-# Testing the models
+# Testing the model
 def evaluate_model(model, test_loader, device, criterion):
     model.eval()
     total_loss = 0.0
@@ -74,8 +75,9 @@ def evaluate_model(model, test_loader, device, criterion):
             total_loss += loss.item()
     return total_loss / len(test_loader)
 
+# Output testing loss
 test_loss = evaluate_model(model, test_loader, device, criterion)
 print(f"Test Loss: {test_loss:.4f}")
 
 # Save the final model
-torch.save(model.state_dict(), 'final_model.pth')
+torch.save(model.state_dict(), MODEL_PATH)

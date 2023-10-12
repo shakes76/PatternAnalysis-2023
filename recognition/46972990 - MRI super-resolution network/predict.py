@@ -4,15 +4,20 @@ from modules import ESPCN
 from dataset import get_test_loader
 import random
 
+MODEL_PATH = "recognition\\46972990 - MRI super-resolution network\\model.pth"
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# Load the model
 model = ESPCN(upscale_factor=4, channels=1)
-model.load_state_dict(torch.load('final_model.pth'))
+model.load_state_dict(torch.load(MODEL_PATH))
 model = model.to(device).eval()
 
+# Load the test data
 test_loader = get_test_loader()
 test_data_list = list(test_loader)
 
+# Initialise a list of downscaled and original images
 selected_downscaled_images = []
 selected_original_images = []
 
@@ -30,12 +35,11 @@ sample_downscaled_images = torch.stack(selected_downscaled_images).to(device)
 sample_original_images = torch.stack(selected_original_images).to(device)
 
 def visualize_progress(model, downscaled, original, num_images=5):
-    # Set model to evaluation mode for inference
     model.eval()
     with torch.no_grad():
         upscaled = model(downscaled)
     
-    # Loop through the desired number of images
+    # Loop through the desired number of images (default 5)
     for i in range(min(num_images, downscaled.shape[0])):
         # Convert tensors to numpy arrays for visualization
         downscaled_img = downscaled[i].cpu().squeeze().numpy()
