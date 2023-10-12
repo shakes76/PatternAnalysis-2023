@@ -21,3 +21,10 @@ model.compile(
     loss=keras.losses.CategoricalCrossentropy(),
     metrics=[keras.metrics.CategoricalAccuracy(name="accuracy")],
 )
+# Train the model
+history = model.fit(x_train, y_train, batch_size=16, epochs=30, validation_split=0.25)
+
+# Evaluate the model
+loss, accuracy = model.evaluate(x_test, y_test)
+print(f"Test loss: {round(loss, 2)}")
+print(f"Test accuracy: {round(accuracy * 100, 2)} %")
