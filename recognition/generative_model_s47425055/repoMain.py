@@ -46,8 +46,8 @@ ssim_scores = [] # Will hold SSIM scores for validation set
 
 
 # Directories
-Path('models').mkdir(exist_ok=True)
-Path('samples').mkdir(exist_ok=True)
+Path('models3').mkdir(exist_ok=True)
+Path('samples2').mkdir(exist_ok=True)
 
 def to_scalar(arr):
     if type(arr) == list:
@@ -240,7 +240,7 @@ def train():
             print('\tIter [{}/{} ({:.0f}%)]\tLoss: {} Time: {}'.format(
                 batch_idx * len(x), len(train_loader.dataset),
                 PRINT_INTERVAL * batch_idx / len(train_loader),
-                np.mean(train_losses[-PRINT_INTERVAL:], axis=0),
+                np.mean(train_losses_epoch[-PRINT_INTERVAL:], axis=0),
                 time.time() - start_time
             ))
         total_loss_vq += loss_vq.item()
@@ -253,6 +253,7 @@ def train():
         
 
 def validate():
+    global BEST_SSIM
     model.eval()  # Switch to evaluation mode
     val_loss = []
     ssim_accum = 0.0  # Accumulator for SSIM scores
@@ -270,6 +271,8 @@ def validate():
             batch_count += 1
     # Calculate the average SSIM for all batches
     avg_ssim = ssim_accum / batch_count
+    if avg_ssim > BEST_SSIM:
+        BEST_SSIM = avg_ssim
 
     # Display the average validation loss
     mean_val_loss = np.asarray(val_loss).mean(0)
@@ -409,8 +412,8 @@ for epoch in range(1, N_EPOCHS):
     # Generate samples at the end of each 5th epoch
     if epoch % save_interval == 0:
         generate_samples(epoch)
-    # Testing the model after training
-    test_ssim = test()
+    
+    
     print(f"Average SSIM on Test Set: {test_ssim:.4f}")
     # Step the scheduler to adjust learning rate
     scheduler.step()
@@ -418,6 +421,10 @@ for epoch in range(1, N_EPOCHS):
     avg_loss_recons = total_loss_recons / num_batches
     avg_loss_vq = total_loss_vq / num_batches
     train_losses_epoch.append((avg_loss_recons, avg_loss_vq))
+
+# After all epochs are done
+avg_test_ssim = test()  # Testing
+print(f"Finished Training. Best SSIM on Validation set: {BEST_SSIM:.4f}. SSIM on Test set: {avg_test_ssim:.4f}")
 
 plot_losses_and_scores()
 # Generate a sample from the best model for inspection
