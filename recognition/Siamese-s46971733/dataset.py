@@ -32,6 +32,9 @@ test_dirs_full = []
 test_dirs_AD = os.listdir(TESTIMAGEPATH + '\\AD')
 test_dirs_NC = os.listdir(TESTIMAGEPATH + '\\NC')
 
+train_dirs_full_brain = []
+test_dirs_full_brain = []
+
 # Appending full image paths.
 for i in os.listdir(TRAINIMAGEPATH):
     if i == 'AD':
@@ -49,6 +52,11 @@ for i in os.listdir(TESTIMAGEPATH):
         for j in test_dirs_NC:
             test_dirs_full.append(os.path.join(TESTIMAGEPATH, 'NC', j))
 
+train_brain_sets_AD = len(train_dirs_AD)/20
+train_brain_sets_NC = len(train_dirs_NC)/20
+
+test_brain_sets_AD = len(test_dirs_AD)/20
+test_brain_sets_NC = len(test_dirs_NC)/20
 
 #print(train_dirs_full)
 
@@ -147,11 +155,100 @@ class ImageDataset(Dataset):
         else:
             return anchor_data, anchor_label
 
+class ImageDataset3D(Dataset):
+    """
+    Custom Dataset made by splitting ADNI paths into anchors, positives, negatives and labels.
+
+    __getitem__ method based on https://medium.com/@Skpd/triplet-loss-on-imagenet-dataset-a2b29b8c2952
+      - Modified to fit dataset and for use in train.py
+    """
+    def __init__(self, image_dir, transform=None, clas=0):
+        self.image_segs = image_dir
+        self.clas = clas
+
+        # Create list of image labels.
+        self.label_list = [image[0].split('\\')[-2] for image in self.image_segs]
+
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.image_segs)
+
+    def __getitem__(self, idx):
+        img_path = self.image_segs[idx]
+        # Read image and extract anchor label.
+
+        anchor_data = []
+        positive_image = []
+        negative_image = []
+
+        anchor_label = img_path[0].split('\\')[-2]
+
+        if not self.clas:
+            positive_list = []
+            negative_list = []
+
+            # Obtain list of positive and negative images.
+            for j in range(len(self.image_segs)):
+                if self.image_segs[j] == img_path:
+                    continue
+                elif self.label_list[j] == anchor_label:
+                    positive_list.append(self.image_segs[j])
+                else:
+                    negative_list.append(self.image_segs[j])
+
+            # Randomly select a positive and negative image from list.
+            positive = random.choice(positive_list)
+            negative = random.choice(negative_list)
+
+
+        # For each slice of the brain.
+        for i in range(20):
+
+            anchor_data.append(cv2.imread(img_path[i]))
+
+            # If training, use triplet.
+            if not self.clas:
+
+                # Convert paths into images.
+                positive_image.append(cv2.imread(positive[i]))
+                negative_image.append(cv2.imread(negative[i]))
+
+            # # If transforms are given.
+            # if self.transform is not None:
+            #     # apply the transformations to image
+            #     # e.g. transform [H, W, n] format to [n, H, W]
+            #     anchor_data = self.transform(anchor_data)
+            #     if self.clas:
+            #         positive_image = self.transform(positive_image)
+            #         negative_image = self.transform(negative_image)
+
+        if anchor_label == 'AD':
+            anchor_label = 1
+        else:
+            anchor_label = 0
+
+        test1 = positive[0].split('\\')[-2]
+        test2 = negative[0].split('\\')[-2]
+
+        if not self.clas:
+            return anchor_data, positive_image, negative_image, anchor_label
+        else:
+            return anchor_data, anchor_label
+
 
 def get_dataset(train, clas):
+    # if train == 1 and clas == 0:
+    #     return ImageDataset(train_dirs_full, transform=transform, train=1)
+    # elif train == 1 and clas == 1:
+    #     return ImageDataset(train_dirs_full, transform=transform, train=0)
+    # else:
+    #     return ImageDataset(test_dirs_full, transform=transform, train=0)
+
     if train == 1 and clas == 0:
-        return ImageDataset(train_dirs_full, transform=transform, train=1)
+        return ImageDataset3D(train_dirs_full_brain, transform=transform, clas=0)
     elif train == 1 and clas == 1:
-        return ImageDataset(train_dirs_full, transform=transform, train=0)
+        return ImageDataset3D(train_dirs_full_brain, transform=transform, clas=1)
     else:
-        return ImageDataset(test_dirs_full, transform=transform, train=0)
+        return ImageDataset3D(test_dirs_full_brain, transform=transform, clas=0)
+
