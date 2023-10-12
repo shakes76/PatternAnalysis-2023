@@ -3,7 +3,7 @@ from torchvision import transforms, datasets
 from sklearn.model_selection import train_test_split
 
 # Define the data directory
-data_dir = "ADNI"
+data_dir = "ADNI/"
 
 def test():
     # Create the ImageFolder dataset
