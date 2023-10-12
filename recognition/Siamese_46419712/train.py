@@ -5,7 +5,7 @@ import os
 import torch.nn as nn
 import numpy as np
 
-from modules import RawSiameseModel, ContrastiveLossFunction, BinaryModelClassifier
+from modules import RawSiameseModel, ContrastiveLossFunction, BinaryModelClassifier, ResNet18Siamese
 from dataset import load_train_data, load_test_data, load_train_data_classifier
 
 SIAMESE_LOSS_SAVE_PATH = "siamese_loss_plot.png"
@@ -43,6 +43,8 @@ def train_siamese(model, train_loader, criterion, optimizer, loss_list, schedule
             print (">>>>> Step [{}/{}] Loss: {:.5f}"
                     .format(i+1, len(train_loader), loss.item()))
 
+        # break
+
 def validate_siamese(model, val_loader, criterion, val_loss_list):
     model.eval()
 
@@ -78,10 +80,12 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
 
         # save loss for graph
         loss_list.append(loss.item())
-        
         if (i+1) % 40 == 0:
             print (">>>>> Step [{}/{}] Loss: {:.5f}"
                     .format(i+1, len(train_loader), loss.item()))
+        
+        # break
+
 
 # def validate_classifier(cModel, sModel, val_loader, criterion, val_loss_list):
 #     pass
@@ -108,6 +112,7 @@ def test_model(model, cModel, test_loader):
             print(label.view(-1, 1))
             total_test += label.size(0)
             correct_predict += (predicted == label.view(-1, 1)).sum().item()
+            # break
     
     return correct_predict/total_test
 
@@ -183,14 +188,15 @@ if __name__ == '__main__':
 
     #########  TRAINING SIAMASE MODEL ##########
     # Testing model
-    model = RawSiameseModel().to(device)
+    # model = RawSiameseModel().to(device)
+    model = ResNet18Siamese().to(device)
 
     # hyper parameters
-    num_epochs = 20
+    num_epochs = 40
     learning_rate = 0.0005
 
     criterion = ContrastiveLossFunction()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate) # Optimize model parameter
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.9, 0.999)) # Optimize model parameter
 
     #Piecewise Linear Schedule
     total_step = len(train_loader)
@@ -214,6 +220,8 @@ if __name__ == '__main__':
         avg_loss_list.append(np.mean(loss_list))
         loss_list = []
         save_loss_plot(avg_loss_list, epoch) # save loss plot for siamese train
+
+        # break
 
 
     save_loss_plot(avg_loss_list, epoch)
@@ -250,6 +258,8 @@ if __name__ == '__main__':
         avg_classifier_loss_list.append(np.mean(classifier_loss_list))
         classifier_loss_list = []
         save_loss_plot(avg_classifier_loss_list, epoch, siamese=False) # save loss plot for siamese train
+
+        # break
 
     save_loss_plot(avg_classifier_loss_list, epoch, siamese=False)
 

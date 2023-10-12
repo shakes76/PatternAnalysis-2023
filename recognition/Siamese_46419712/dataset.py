@@ -41,28 +41,28 @@ class PairedDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.trainset)
 
-def split_dataset(dataset, seed=True):
+def split_dataset(dataset, seed=False):
 
     if seed:
         generator = torch.Generator().manual_seed(35)
     else:
         generator = torch.Generator()
 
-    # follow the principle -> 80% train 20% val
-    train_set, val_set = torch.utils.data.random_split(dataset, [0.8, 0.2], generator=generator)
+    # follow the principle -> 90% train 10% val
+    train_set, val_set = torch.utils.data.random_split(dataset, [0.9, 0.1], generator=generator)
 
     return train_set, val_set
 
 def load_train_data():
     path="/home/groups/comp3710/ADNI/AD_NC/train"
     # this for testing
-    # path="./AD_NC/train"
+    path="./AD_NC/train"
 
-    torch.manual_seed(33) # for reproduce in the future
+    # torch.manual_seed(33) # for reproduce in the future
     # Data transformation
     transform_train = transforms.Compose([
-        transforms.Resize(105),
-        transforms.CenterCrop(105),
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
         # transforms.RandomHorizontalFlip(),
         # transforms.RandomVerticalFlip(),
         # transforms.RandomRotation(15),
@@ -91,11 +91,11 @@ def load_train_data():
 
 def load_train_data_classifier():
     path="/home/groups/comp3710/ADNI/AD_NC/train"
-    # path="./AD_NC/train"
+    path="./AD_NC/train"
 
     transform_train = transforms.Compose([
-        transforms.Resize(105),
-        transforms.CenterCrop(105),
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
         # transforms.RandomHorizontalFlip(),
         # transforms.RandomVerticalFlip(),
         # transforms.RandomRotation(15),
@@ -112,7 +112,7 @@ def load_train_data_classifier():
 def load_test_data():
     path="/home/groups/comp3710/ADNI/AD_NC/test"
     # this for testing
-    # path="./AD_NC/test"
+    path="./AD_NC/test"
     # dataset = torchvision.datasets.ImageFolder(root=path, transform=transforms.ToTensor())
 
     # # Calculate the mean and standard deviation
@@ -121,8 +121,8 @@ def load_test_data():
 
     # Data transformation
     transform_test = transforms.Compose([
-        transforms.Resize(105),
-        transforms.CenterCrop(105),
+        transforms.Resize(224),
+        transforms.CenterCrop(224),
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) # standard scaling for normalize, doesn't know much on the status of the entire dataset
     ])
