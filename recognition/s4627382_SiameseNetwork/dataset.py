@@ -8,6 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
 device = torch.device('cuda')
+batch_size = 32
 
 class CustomDataset(Dataset):
     def __init__(self, ad_dir, nc_dir, transform=None, validate=False, split_ratio=0.8):
@@ -104,7 +105,7 @@ def compute_mean_std(img_folder):
     return mean.item(), std.item()
 
 # a function to load all required data
-def load_data(train_folder_path, train_ad_path, train_nc_path, test_ad_path, test_nc_path, batch_size=32):
+def load_data(train_folder_path, train_ad_path, train_nc_path, test_ad_path, test_nc_path, batch_size=batch_size):
     # calculate mean and std for train set
     mean, std = compute_mean_std(train_folder_path)
 
