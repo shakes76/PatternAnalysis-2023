@@ -37,8 +37,6 @@ class ESPCN(nn.Module):
         self.feature_extraction = nn.Sequential(
             nn.Conv2d(input_channels, 64, kernel_size=5, padding=2),
             nn.Tanh(),
-            nn.Conv2d(64, 64, kernel_size=3, padding=1),
-            nn.Tanh(),
             nn.Conv2d(64, 32, kernel_size=3, padding=1),
             nn.Tanh()
         )
@@ -47,7 +45,6 @@ class ESPCN(nn.Module):
         self.sub_pixel = nn.Sequential(
             nn.Conv2d(32, input_channels * (upscale_factor ** 2), kernel_size=3, padding=1),
             nn.PixelShuffle(upscale_factor),
-            nn.Sigmoid()  # To ensure output values are between 0 and 1
         )
 
     def forward(self, x):
