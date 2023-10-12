@@ -58,6 +58,35 @@ train_brain_sets_NC = len(train_dirs_NC)/20
 test_brain_sets_AD = len(test_dirs_AD)/20
 test_brain_sets_NC = len(test_dirs_NC)/20
 
+# Appending full brain paths.
+for i in os.listdir(TRAINIMAGEPATH):
+    if i == 'AD':
+        for s in range(int(train_brain_sets_AD)):
+            temp_full_paths = []
+            for j in train_dirs_AD[20*s:20*s + 20]:
+                temp_full_paths.append(os.path.join(TRAINIMAGEPATH, 'AD', j))
+            train_dirs_full_brain.append(temp_full_paths)
+    else:
+        for s in range(int(train_brain_sets_NC)):
+            temp_full_paths = []
+            for j in train_dirs_NC[20*s:20*s + 20]:
+                temp_full_paths.append(os.path.join(TRAINIMAGEPATH, 'NC', j))
+            train_dirs_full_brain.append(temp_full_paths)
+
+for i in os.listdir(TESTIMAGEPATH):
+    if i == 'AD':
+        for s in range(int(test_brain_sets_AD)):
+            temp_full_paths = []
+            for j in test_dirs_AD[20*s:20*s + 20]:
+                temp_full_paths.append(os.path.join(TESTIMAGEPATH, 'AD', j))
+            test_dirs_full_brain.append(temp_full_paths)
+    else:
+        for s in range(int(test_brain_sets_NC)):
+            temp_full_paths = []
+            for j in test_dirs_NC[20*s:20*s + 20]:
+                temp_full_paths.append(os.path.join(TESTIMAGEPATH, 'NC', j))
+            test_dirs_full_brain.append(temp_full_paths)
+
 #print(train_dirs_full)
 
 ##### Temp Code for Visualising Images.
@@ -201,16 +230,15 @@ class ImageDataset3D(Dataset):
             positive = random.choice(positive_list)
             negative = random.choice(negative_list)
 
-
         # For each slice of the brain.
         for i in range(20):
-
             anchor_data.append(cv2.imread(img_path[i]))
 
             # If training, use triplet.
             if not self.clas:
 
                 # Convert paths into images.
+
                 positive_image.append(cv2.imread(positive[i]))
                 negative_image.append(cv2.imread(negative[i]))
 
