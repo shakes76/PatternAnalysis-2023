@@ -47,7 +47,7 @@ approximately 0.1, indicating that the model successfully upscales the MRI scans
 The trained model achieves its goal of significantly increasing the resolution of brain MRI scans.
 However, it is not a flawless model. A comparison of the input, model output, and goal images can be
 seen below. This sample was chosen randomly, but it readily illustrates the model's effectiveness.
-It should be noted that while the images have been scaled the same visible dimensions, no change has
+It should be noted that while the images have been scaled, they same visible dimensions below; no change has
 been made to their pixels, which results in evident differences in image quality.
 
 ![Comparison of input, output and goak](/recognition/super_resolution_network_s4696612/Comparison.png)
