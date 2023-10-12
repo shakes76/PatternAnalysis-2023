@@ -101,7 +101,7 @@ for i in os.listdir(TESTIMAGEPATH):
 #
 # plt.show()
 
-image_size = 32
+image_size = 210
 # Only works if 32? do I need to change resnet?
 
 # Transforms to be applied to data loaders.
@@ -157,14 +157,6 @@ class ImageDataset(Dataset):
             positive_image = cv2.imread(positive)
             negative_image = cv2.imread(negative)
 
-        # fig, axs = plt.subplots(3)
-        #
-        # axs[0].imshow(anchor_data)
-        # axs[1].imshow(positive_image)
-        # axs[2].imshow(negative_image)
-        #
-        # plt.show()
-
         # If transforms are given.
         if self.transform is not None:
             # apply the transformations to image
@@ -207,9 +199,9 @@ class ImageDataset3D(Dataset):
         img_path = self.image_segs[idx]
         # Read image and extract anchor label.
 
-        anchor_data = []
-        positive_image = []
-        negative_image = []
+        anchor_full_data = []
+        positive_images = []
+        negative_images = []
 
         anchor_label = img_path[0].split('\\')[-2]
 
@@ -232,37 +224,51 @@ class ImageDataset3D(Dataset):
 
         # For each slice of the brain.
         for i in range(20):
-            anchor_data.append(cv2.imread(img_path[i]))
+
+            anchor_data = cv2.imread(img_path[i])
+
+            if i == 0 and idx == 0:
+                print(f"Anchor data before transform: {anchor_data.shape}")
+
+            # If transforms are given.
+            if self.transform is not None:
+                # apply the transformations to image
+                # e.g. transform [H, W, n] format to [n, H, W]
+                anchor_data = self.transform(anchor_data)
+
+            if i == 0 and idx == 0:
+                print(f"Anchor data after transform: {anchor_data.shape}")
+
+            anchor_full_data.append(anchor_data)
 
             # If training, use triplet.
             if not self.clas:
 
                 # Convert paths into images.
+                positive_image = cv2.imread(positive[i])
+                negative_image = cv2.imread(negative[i])
 
-                positive_image.append(cv2.imread(positive[i]))
-                negative_image.append(cv2.imread(negative[i]))
+                # If transforms are given.
+                if self.transform is not None:
+                    positive_image = self.transform(positive_image)
+                    negative_image = self.transform(negative_image)
 
-            # # If transforms are given.
-            # if self.transform is not None:
-            #     # apply the transformations to image
-            #     # e.g. transform [H, W, n] format to [n, H, W]
-            #     anchor_data = self.transform(anchor_data)
-            #     if self.clas:
-            #         positive_image = self.transform(positive_image)
-            #         negative_image = self.transform(negative_image)
+                positive_images.append(positive_image)
+                negative_images.append(negative_image)
 
         if anchor_label == 'AD':
             anchor_label = 1
         else:
             anchor_label = 0
 
-        test1 = positive[0].split('\\')[-2]
-        test2 = negative[0].split('\\')[-2]
+        anchor_full_data = torch.stack(anchor_full_data, dim=1)
 
         if not self.clas:
-            return anchor_data, positive_image, negative_image, anchor_label
+            positive_images = torch.stack(positive_images, dim=1)
+            negative_images = torch.stack(negative_images, dim=1)
+            return anchor_full_data, positive_images, negative_images, anchor_label
         else:
-            return anchor_data, anchor_label
+            return anchor_full_data, anchor_label
 
 
 def get_dataset(train, clas):
