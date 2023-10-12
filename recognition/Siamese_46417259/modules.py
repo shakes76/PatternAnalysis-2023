@@ -38,16 +38,16 @@ class SiameseNeuralNet(nn.Module):
         super(SiameseNeuralNet, self).__init__()
 
         self.backbone = SiameseTwin()
-        self.fc = nn.Linear(4096, 1)
+        # self.fc = nn.Linear(4096, 1)
 
     def forward(self, x1, x2):
         x1_features = self.backbone(x1)
         x2_features = self.backbone(x2)
         # out = F.pairwise_distance(x_features, y_features, keepdim=True)
         # out = torch.absolute(pairwise_subtraction(x_features, y_features))
-        out = torch.absolute(x1_features - x2_features)
-        out = F.sigmoid(self.fc(out))
-        return out, x1_features, x2_features
+        # out = torch.absolute(x1_features - x2_features)
+        # out = F.sigmoid(self.fc(out))
+        return x1_features, x2_features
     
     def get_backbone(self):
         return self.backbone
@@ -61,10 +61,13 @@ class SiameseMLP(nn.Module):
         self.backbone.eval()
         self.mlp = nn.Sequential(
             nn.Linear(4096, 1024),
+            # nn.BatchNorm1d(1024),
             nn.ReLU(),
             nn.Linear(1024, 128),
+            # nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Linear(128, 16),
+            # nn.BatchNorm1d(16),
             nn.ReLU(),
             nn.Linear(16, 1),
             nn.Sigmoid()

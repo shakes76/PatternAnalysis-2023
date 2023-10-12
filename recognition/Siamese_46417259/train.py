@@ -95,7 +95,7 @@ def save_checkpoint(epoch:int, model:nn.Module, optimizer:optim.Optimizer, train
     }, RESULTS_PATH + f"{model.__class__.__name__}_checkpoint.tar"
     )
 
-def train_siamese_one_epoch(model: nn.Module, 
+def train_siamese_one_epoch(model: SiameseNeuralNet, 
                             criterion: nn.Module, 
                             optimiser: optim.Optimizer, 
                             device: torch.device,
@@ -112,7 +112,7 @@ def train_siamese_one_epoch(model: nn.Module,
         label = label.to(device)
 
         optimiser.zero_grad()
-        sameness, x1_features, x2_features = model(x1, x2)
+        x1_features, x2_features = model(x1, x2)
         loss = criterion(x1_features, x2_features, label)
 
         # Backward and optimize
@@ -133,7 +133,7 @@ def train_siamese_one_epoch(model: nn.Module,
 
     return loss_list, mean_loss, elapsed
 
-def eval_siamese_one_epoch(model: nn.Module,
+def eval_siamese_one_epoch(model: SiameseNeuralNet,
                             criterion: nn.Module,
                             device: torch.device,
                             test_loader: torch.utils.data.DataLoader):
@@ -149,7 +149,7 @@ def eval_siamese_one_epoch(model: nn.Module,
             x1 = x1.to(device)
             x2 = x2.to(device)
             labels = labels.to(device)
-            sameness, x1_features, x2_features = model(x1, x2)
+            x1_features, x2_features = model(x1, x2)
 
             loss = criterion(x1_features, x2_features, labels)
 
@@ -299,7 +299,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     plt.title("Training and Evaluation Loss During Training")
     plt.plot(training_losses, label="Train")
     plt.plot(eval_losses, label="Eval")
-    plt.xlabel("Epochs")
+    plt.xlabel("Epochs / 10")
     plt.ylabel("Loss")
     plt.legend()
     plt.savefig(RESULTS_PATH + f"Siamese_train_and_eval_loss_after_{total_epochs}_epochs.png")
@@ -357,12 +357,16 @@ if __name__ == "__main__":
     # net = Siamese_training(20, 69)
     # classifier_training(net.backbone, 20, 69)
 
+    # training Siamese workflow
+    Siamese_training(50, 69)
+
     # train classifier from existing Siamese model workflow
     checkpoint = "SiameseNeuralNet_checkpoint.tar"
     siamese_net, criterion, optimiser, device = initialise_Siamese_training()
-    _, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
+    start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
+    print(f"best epoch: {start_epoch - 1}")
     print(f"training losses: {training_losses}")
     print(f"eval losses: {eval_losses}")
 
-    classifier_training(siamese_net.backbone, 2, 69)
+    classifier_training(siamese_net.backbone, 10, 69)
 
