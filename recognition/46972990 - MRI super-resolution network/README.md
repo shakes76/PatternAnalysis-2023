@@ -28,18 +28,20 @@ The ESPCN model is built using PyTorch (version 2.1.0+cu121) and PyTorch Vision 
 
 ## Data Preprocessing
 The file structure of the dataset consists of the following:
-ADNI_AD_NC_2D/  
-└── AD_NC/  
-   ├── test/  
-   │  ├── AD/  
-   │  │  └── images.jpeg  
-   │  └── NC/  
-   │     └── images.jpeg  
-   └── train/  
-      ├── AD/  
-      │  └── images.jpeg  
-      └── NC/  
-         └── images.jpeg  
+'''
+ADNI_AD_NC_2D/
+└── AD_NC/
+   ├── test/
+   │  ├── AD/
+   │  │  └── images.jpeg
+   │  └── NC/
+   │     └── images.jpeg
+   └── train/
+      ├── AD/
+      │  └── images.jpeg
+      └── NC/
+         └── images.jpeg
+'''
 
 Note that there exists an AD and NC folder for both the train and test folders. Since the purpose of this recognition task only focuses on up-scaling the images, these two labels are ignored. The images.jpeg represents a number of jpeg images but for simplification, has been shown once in the file structure diagram.
 
