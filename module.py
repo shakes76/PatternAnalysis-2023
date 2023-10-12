@@ -45,3 +45,83 @@ class PositionalImageEmbedding(nn.Module):
         x = x.permute(2, 0, 1)
 
         return x
+
+class PerceiverAttentionBlock(nn.Module):
+    """
+    Perceiver Attention Block
+
+    This module is used for both cross-attention and the latent transformer.
+
+    Args:
+        embed_dim (int): Dimension of the embedded representations.
+        mlp_dim (int): Dimension of the feedforward network hidden layer.
+        n_heads (int): Number of attention heads.
+        dropout (float, optional): Dropout probability. Default is 0.0.
+
+    Inputs:
+        latent (Tensor): The query tensor of shape [LATENT_DIM x BATCH_SIZE x EMBED_DIM].
+        image (Tensor): The key and value tensor of shape [PIXELS x BATCH_SIZE x EMBED_DIM].
+
+    Outputs:
+        Tensor: The output tensor of shape [LATENT_DIM x BATCH_SIZE x EMBED_DIM].
+
+    """
+
+    def __init__(self, embed_dim, mlp_dim, n_heads, dropout=0.0):
+        super().__init__()
+
+        # Layer Normalization for the image
+        self.lnorm1 = nn.LayerNorm(embed_dim)
+
+        # Multi-Head Self-Attention
+        self.attn = nn.MultiheadAttention(embed_dim=embed_dim, num_heads=n_heads)
+
+        # Layer Normalization for the output of the attention
+        self.lnorm2 = nn.LayerNorm(embed_dim)
+
+        # First linear layer
+        self.linear1 = nn.Linear(embed_dim, mlp_dim)
+
+        # GELU activation function
+        self.act = nn.GELU()
+
+        # Second linear layer
+        self.linear2 = nn.Linear(mlp_dim, embed_dim)
+
+        # Dropout layer
+        self.drop = nn.Dropout(dropout)
+
+    def forward(self, latent, image):
+        """
+        Forward pass of the Perceiver Attention Block.
+
+        Args:
+            latent (Tensor): The query tensor of shape [LATENT_DIM x BATCH_SIZE x EMBED_DIM].
+            image (Tensor): The key and value tensor of shape [PIXELS x BATCH_SIZE x EMBED_DIM].
+
+        Returns:
+            Tensor: The output tensor of shape [LATENT_DIM x BATCH_SIZE x EMBED_DIM].
+
+        """
+
+        # Layer normalization and self-attention
+        out = self.lnorm1(image)
+        out, _ = self.attn(query=latent, key=image, value=image)
+
+        # Compute the first residual connection
+        resid = out + latent
+
+        # Layer normalization and feedforward network
+        out = self.lnorm2(resid)
+        out = self.linear1(out)
+        out = self.act(out)
+        out = self.linear2(out)
+        out = self.drop(out)
+
+        # Compute the second residual connection
+        out = out + resid
+
+        return out
+    
+
+
