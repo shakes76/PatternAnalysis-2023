@@ -5,6 +5,8 @@ import numpy as np
 import time
 from pathlib import Path
 import matplotlib.pyplot as plt
+import torch.nn.functional as F
+from torch.distributions.normal import Normal
 from modules import VectorQuantizedVAE, compute_ssim, weights_init, to_scalar, plot_losses_and_scores
 from dataset import train_loader, val_loader, test_loader
 
@@ -21,6 +23,10 @@ LAMDA = 1
 LR = 1e-3
 DEVICE = torch.device('cuda')
 
+# Global best epoch and model path
+BEST_EPOCH = 0
+MODEL_PATH_TEMPLATE = 'models/checkpoint_epoch{}_vqvae.pt'
+
 # Constants for determining the importance of SSIM and reconstruction loss
 ALPHA = 0.5  # weight for SSIM, range [0, 1]
 BETA = 1 - ALPHA  # weight for reconstruction loss
@@ -31,7 +37,7 @@ save_interval = 10
 
 
 #directory creation
-train_losses = []
+train_losses_epoch = []
 val_losses = []
 ssim_scores = []
 
@@ -104,17 +110,33 @@ def validate():
     val_loss = []
     ssim_accum = 0.0  # Accumulator for SSIM scores
     batch_count = 0   # Counter for batches
+    total_loss_recons = 0.0
+    total_loss_vq = 0.0
     with torch.no_grad():  # No gradient required for validation
         for batch_idx, (x, _) in enumerate(val_loader):
             x = x.to(DEVICE)
             x_tilde, z_e_x, z_q_x = model(x)
             loss_recons = F.mse_loss(x_tilde, x)
+            total_loss_recons += loss_recons.item()
             loss_vq = F.mse_loss(z_q_x, z_e_x.detach())
+            total_loss_vq += loss_vq.item()
             val_loss.append(to_scalar([loss_recons, loss_vq]))
 
             # Compute SSIM for the current batch and accumulate
             ssim_accum += compute_ssim(x, x_tilde)
-            batch_count += 1
+            ssim_accum += ssim_accum
+        batch_count += 1
+
+    avg_loss_recons = total_loss_recons / num_batches
+    avg_loss_vq = total_loss_vq / num_batches
+    avg_ssim = ssim_accum / num_batches
+        
+    val_losses.append((avg_loss_recons, avg_loss_vq))
+    ssim_scores.append(avg_ssim)
+    combined_metric = ALPHA * avg_ssim - BETA * avg_loss_recons
+        
+    return combined_metric
+    """
     # Calculate the average SSIM for all batches
     avg_ssim = ssim_accum / batch_count
 
@@ -129,7 +151,7 @@ def validate():
     ssim_scores.append(avg_ssim)
     
     return np.asarray(val_loss).mean(0), avg_ssim  # return SSIM score and loss
-
+    """
 def test():
     model.eval()  # Switch to evaluation mode
     ssim_accum = 0.0  # Accumulator for SSIM scores
@@ -147,7 +169,8 @@ def test():
     print(f"Average Test SSIM: {avg_ssim:.4f}")
     return avg_ssim  # return SSIM score
 
-
+train_losses_epoch = []
+total_loss_recons = 0.0
 
 
 if __name__ == '__main__':
@@ -156,38 +179,40 @@ if __name__ == '__main__':
         print(f"Epoch {epoch}:")
         train()
         
-        # Modify this line to unpack both loss and SSIM
-        val_loss, val_ssim = validate()
-        #test_ssim = test()
+        
+       
+       
         # Calculate the combined metric
-        combined_metric = ALPHA * val_ssim + BETA * (1 - val_loss[0])  # assuming lower reconstruction loss is better, thus the (1 - val_loss[0])
+        combined_metric = validate()
 
         # Check the combined metric for improvements
         if combined_metric > BEST_METRIC:                        
             BEST_METRIC = combined_metric
-            BEST_SSIM = avg_ssim
-            BEST_EPOCH = epoch
-            BEST_RECONS_LOSS = val_loss[0]
             print("Saving model based on improved combined metric!")
             dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
-            # Save model and generate samples every 10 epochs
-            if epoch % save_interval == 0:
-                torch.save(model.state_dict(), f'samples2/checkpoint_epoch{epoch}_vqvae.pt') 
+            torch.save(model.state_dict(), MODEL_PATH_TEMPLATE.format(epoch))
+            BEST_EPOCH = epoch
+
+            # Log the best reconstruction loss and SSIM
+            BEST_SSIM = ssim_scores[-1]
+            BEST_RECONS_LOSS = val_losses[-1][0]
+        
         else:
             print(f"Not saving model! Last best combined metric: {BEST_METRIC:.4f}, SSIM: {BEST_SSIM:.4f}, Reconstruction Loss: {BEST_RECONS_LOSS:.4f}")
 
         # Generate samples at the end of each 5th epoch
-        #if epoch % save_interval == 0:
-            #generate_samples(epoch)
-        # Testing the model after training
-        test_ssim = test()
-        print(f"Average SSIM on Test Set: {test_ssim:.4f}")
+        if epoch % save_interval == 0:
+            generate_samples(model, test_loader, epoch)
+        
         # Step the scheduler to adjust learning rate
         scheduler.step()
-
-        avg_loss_recons = total_loss_recons / num_batches
-        avg_loss_vq = total_loss_vq / num_batches
-        train_losses_epoch.append((avg_loss_recons, avg_loss_vq))
+    # Testing the model after training
+    test_ssim = test()
+    print(f"Average SSIM on Test Set: {test_ssim:.4f}")
 
     plot_losses_and_scores()
+
+    # Saving the best epoch for future reference (to be used in predict.py)
+    with open("best_epoch.txt", "w") as file:
+        file.write(str(BEST_EPOCH))
     
