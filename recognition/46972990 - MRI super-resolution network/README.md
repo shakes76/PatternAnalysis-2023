@@ -48,3 +48,14 @@ Note that there exists an AD and NC folder for both the train and test folders. 
 For data preprocessing, each image is converted to grayscale and resized to have a width of 256 pixels and a height of 240 pixels. Each image is then split into two image pairs. The first image undergoes the down-scale transformation (by a factor of 4) then is converted to a tensor and normalised. The second image maintains its original resolution and is converted to a tensor and normalised. This creates a dataset that matches every image with its down-scaled image.
 
 The training data is split into two subsets. The first subset consists of 80% of the total training data and is used specifically for training of the model. The second subset contains the remaining 20% and is used for validation purposes during training of the model.
+
+## Model Usage
+The model takes a down-scaled image (by a factor of 4) from the ADNI dataset and outputs an up-scaled version of the image that aims to improve the resolution and visual clarity of the down-scaled image. The output image can be compared with the original image to perceptually measure the performance of the model.
+
+Here is an example input to the model:
+
+![A down-scaled image.](images/Downscaled_image.png?raw=true "Down-scaled image example.")
+
+Then, the output from the model will produce this image:
+
+![An up-scaled image.](images/Upscaled_image.png?raw=true "Up-scaled image example.")
