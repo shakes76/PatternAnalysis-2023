@@ -3,6 +3,10 @@ This project implements a brain MRI super-resolution network by training on the 
 
 As proposed by [Shi, 2016](https://arxiv.org/abs/1609.05158), the model utilises efficient sub-pixel convolution by extracting feature maps in the low-resolution space. This reduces computational complexity by waiting until the end of the model to reconstruct to higher dimensions.
 
+An example of the model upsampling a low-resolution image to a higher resolution image:
+
+<img src="doc/example.png" width="600">
+
 ### Model Architecture
 
 The model consists of multiple 2d convolutional layers to extract features, using LeakyReLU activation functions. The model architecture is as follows:
