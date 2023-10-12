@@ -62,8 +62,8 @@ batch_size = 6
 
 # Stage threshold
 # disc_start: which iteration should activate discriminator
-# auxiliary start: which epoch should activate 
-#       auxiliary (random generated images) score 
+# auxiliary start: which epoch should activate
+#       auxiliary (random generated images) score
 disc_start_iter = 250
 auxiliary_start_epoch = 0
 
@@ -79,7 +79,8 @@ if start_epoch != 0:
     # For example, if we start at epoch 7 and we need to load epoch 6.
     try:
         net = torch.load(f'model_ckpt/{mode}/epoch_AE_{start_epoch-1}.pt')
-        discriminator = torch.load(f'model_ckpt/{mode}/epoch_D_{start_epoch-1}.pt')
+        discriminator = torch.load(
+            f'model_ckpt/{mode}/epoch_D_{start_epoch-1}.pt')
     except Exception as e:
         print("Fail to load model", e)
 else:
@@ -94,6 +95,7 @@ logger = Logger(file_name=f'{mode}_log.txt', reset=(start_epoch == 0))
 # ========================================
 # |  Function that only used in VQVAE    |
 # ========================================
+
 
 def calculate_weight_sampler(net, dataloader):
     '''
@@ -128,6 +130,7 @@ def calculate_weight_sampler(net, dataloader):
 
     # Update this counting table into network
     net.update_sampler(weight_sampler)
+
 
 def train_epoch(net, dataloader, auxiliary=True):
     global cur_iter
@@ -167,9 +170,9 @@ def train_epoch(net, dataloader, auxiliary=True):
         g1_loss = -torch.mean(logits_fake)
 
         # Adjust discriminator weight
-        #   adjust rate is determined by the gradient. 
+        #   adjust rate is determined by the gradient.
         #   If G_loss is too smooth and reconstruction loss will dominate the loss
-        #   Then we sacle G_loss to make it more influential. 
+        #   Then we sacle G_loss to make it more influential.
         recon_grads = torch.norm(torch.autograd.grad(
             recon_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
         g1_grads = torch.norm(torch.autograd.grad(
@@ -215,7 +218,7 @@ def train_epoch(net, dataloader, auxiliary=True):
         # =======================
         opt_d.zero_grad()
 
-        # We should detach or it'll backprop generator side. 
+        # We should detach or it'll backprop generator side.
         # (It'll occurs error that said we should retain_graph)
         recon_img = recon_img.detach()
         logits_real = discriminator(raw_img.contiguous().detach(), z_idx)
@@ -276,6 +279,7 @@ def train_epoch(net, dataloader, auxiliary=True):
 
     return epoch_info
 
+
 def test_epoch(net, dataloader, folder):
     '''
         This function will do three things.
@@ -303,7 +307,8 @@ def test_epoch(net, dataloader, folder):
         brain_indices.append(brain_idx.detach().cpu())
 
         # Calculate total ssim. (Window size is 11x11)
-        total_ssim += ssim(raw_img* 0.5 + 0.5, recon_img * 0.5 + 0.5).item() * raw_img.shape[0]
+        total_ssim += ssim(raw_img * 0.5 + 0.5, recon_img *
+                           0.5 + 0.5).item() * raw_img.shape[0]
 
     # Concat all the tensor and compact into large one
     recon_imgs, brain_indices = torch.concat(
@@ -321,8 +326,8 @@ def test_epoch(net, dataloader, folder):
     sample_n = 3
     for cur_idx in range(sample_n):
 
-        # Get 32 images from net. 
-        # Each latent of image are all the same but with different z_idx 
+        # Get 32 images from net.
+        # Each latent of image are all the same but with different z_idx
         gen_imgs = net.sample_for_visualize(raw_img.shape[0]).detach().cpu()
         for z_idx, gen_img in enumerate(gen_imgs.numpy()):
             plt.imsave(f'{folder}/gen_{cur_idx}_{z_idx}.png',
@@ -331,10 +336,11 @@ def test_epoch(net, dataloader, folder):
         # Gerneate one big image contain 32 brains
         gen_imgs = compact_large_image(gen_imgs, HZ=4, WZ=8)[0]
         plt.imsave(f'{folder}/gen_large_{cur_idx}.png',
-                gen_imgs * 0.5 + 0.5, cmap='gray')
-        
+                   gen_imgs * 0.5 + 0.5, cmap='gray')
+
     # Return ssim score as our testing score
     return total_ssim / len(dataloader.dataset)
+
 
 # data_limit: we only read data_limit images for loading dataset faster
 # This parameter is for debugging.
@@ -359,7 +365,7 @@ for epoch in range(start_epoch, 50):
         ks = ['recon_loss', 'reg_loss', 'fake_recon_loss',
               'fake_sample_loss', 'discriminator_loss']
         return ' '.join(f"{k[:-5]}: {epoch_info[k]:6.4f}" for k in ks if k in epoch_info)
-    
+
     # Train the network
     net.train()
     train_info = train_epoch(net, train_dataloader, auxiliary=start_auxiliary)
@@ -370,7 +376,8 @@ for epoch in range(start_epoch, 50):
         # Only VQVAE should we calculate weight sampler (for better auxiliary sample)
         if mode == 'VQVAE':
             calculate_weight_sampler(net, train_dataloader)
-        ssim_score = test_epoch(net, test_dataloader, f'{vis_folder}/epoch_{epoch}')
+        ssim_score = test_epoch(net, test_dataloader,
+                                f'{vis_folder}/epoch_{epoch}')
 
     # Save the model
     torch.save(net, f'{ckpt_folder}/epoch_AE_{epoch}.pt')
