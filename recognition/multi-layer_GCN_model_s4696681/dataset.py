@@ -2,6 +2,7 @@ import csv
 import numpy as np
 from scipy.linalg import sqrtm
 import json
+from sklearn.model_selection import train_test_split
 
 """Create Adjacency matrix from the musae_facebook_edges.csv file"""
 def create_adjacency_matrix():
@@ -44,7 +45,7 @@ def normalise_adjacency_matrix(adjacency_matrix):
     adjacency_normed = D_invsqrt @ adjacency_matrix @ D_invsqrt
     return adjacency_normed
 
-#adjacency_normed = normalise_adjacency_matrix(create_adjacency_matrix())
+adjacency_normed = normalise_adjacency_matrix(create_adjacency_matrix())
 #print(adjacency_normed)
 
 
@@ -75,7 +76,7 @@ def create_feature_vectors():
     feature_vectors = np.array(feature_list, dtype=int)
     return feature_vectors
 
-# feature_vectors = create_feature_vectors()
+feature_vectors = create_feature_vectors()
 # print(feature_vectors)
 
 
@@ -111,4 +112,12 @@ def convert_labels():
     return node_labels
 
 node_labels = convert_labels()
-print(node_labels[:5])
+# print(node_labels[:5])
+
+node_ids = feature_vectors[:, 0]
+train_ids, test_ids = train_test_split(node_ids, test_size=0.2, random_state=42)
+train_features = feature_vectors[np.isin(feature_vectors[:, 0], train_ids)][:, 1:]
+test_features = feature_vectors[np.isin(feature_vectors[:, 0], test_ids)][:, 1:]
+
+train_labels = node_labels[np.isin(node_labels[:, 0], train_ids)][:, 1]
+test_labels = node_labels[np.isin(node_labels[:, 0], test_ids)][:, 1]
