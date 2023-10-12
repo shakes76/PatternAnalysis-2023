@@ -1,5 +1,6 @@
 import csv
 import numpy as np
+from scipy.linalg import sqrtm
 
 """Create Adjacency matrix from the musae_facebook_edges.csv file"""
 def create_adjacency_matrix():
@@ -34,5 +35,13 @@ def create_adjacency_matrix():
     np.fill_diagonal(adjacency_matrix, 1)
     return adjacency_matrix
 
-adjacency_matrix = create_adjacency_matrix()
-print(adjacency_matrix)
+def normalise_adjacency_matrix(adjacency_matrix):
+    D = np.zeros_like(adjacency_matrix)
+    np.fill_diagonal(D, np.asarray(adjacency_matrix.sum(axis=1)).flatten())
+    D_invsqrt = np.linalg.inv(sqrtm(D))
+    adjacency_normed = D_invsqrt @ adjacency_matrix @ D_invsqrt
+    return adjacency_normed
+
+#adjacency_normed = normalise_adjacency_matrix(create_adjacency_matrix())
+#print(adjacency_normed)
+
