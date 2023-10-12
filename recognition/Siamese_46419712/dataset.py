@@ -1,10 +1,8 @@
-from tabnanny import check
 import torchvision
 import torch
 import torchvision.transforms as transforms
 import random
 import numpy as np
-import matplotlib.pyplot as plt
 
 TRAIN_PATH = "/home/groups/comp3710/ADNI/AD_NC/train"
 TRAIN_PATH = "./AD_NC/train"
@@ -23,15 +21,28 @@ class PairedDataset(torch.utils.data.Dataset):
 
         check_same_class = random.randint(0,1) 
         
-        while True:
-            img1, label1 = random.choice(self.trainset)
+        if check_same_class:
+            while True:
+                #Look untill the same class image is found
+                img1, label1 = random.choice(self.trainset)
+                if torch.equal(img0, img1):
+                    continue
 
-            if not torch.equal(img0, img1):
+                if label1 == label0:
+                    break
+        else:
+            while True:
+                #Look untill a different class image is found
+                img1, label1 = random.choice(self.trainset)
+                
+                if torch.equal(img0, img1):
+                    continue
+                
+                if label1 != label0:
+                    break
+        
+        return img0, img1, torch.from_numpy(np.array([int(label0 != label1)], dtype=np.float32))
 
-                if label1 == label0 and check_same_class:
-                    break
-                elif label1 != label0 and not check_same_class:
-                    break
     
     def __len__(self):
         return len(self.trainset)
@@ -54,13 +65,13 @@ def load_train_data():
     # torch.manual_seed(33) # for reproduce in the future
     # Data transformation
     transform_train = transforms.Compose([
-        transforms.Resize(224),
-        transforms.CenterCrop(224),
+        transforms.Resize(105),
+        transforms.CenterCrop(105),
         # transforms.RandomHorizontalFlip(),
         # transforms.RandomVerticalFlip(),
         # transforms.RandomRotation(15),
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
     load_train_image = torchvision.datasets.ImageFolder(root=path, transform=transform_train)
@@ -79,13 +90,13 @@ def load_train_data_classifier():
     path = TRAIN_PATH
 
     transform_train = transforms.Compose([
-        transforms.Resize(224),
-        transforms.CenterCrop(224),
+        transforms.Resize(105),
+        transforms.CenterCrop(105),
         # transforms.RandomHorizontalFlip(),
         # transforms.RandomVerticalFlip(),
         # transforms.RandomRotation(15),
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
 
     trainset = torchvision.datasets.ImageFolder(root=path, transform=transform_train)
@@ -99,10 +110,10 @@ def load_test_data():
 
     # Data transformation
     transform_test = transforms.Compose([
-        transforms.Resize(224),
-        transforms.CenterCrop(224),
+        transforms.Resize(105),
+        transforms.CenterCrop(105),
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) # standard scaling for normalize, doesn't know much on the status of the entire dataset
+        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) # standard scaling for normalize, doesn't know much on the status of the entire dataset
     ])
 
     testset = torchvision.datasets.ImageFolder(root=path, transform=transform_test)
