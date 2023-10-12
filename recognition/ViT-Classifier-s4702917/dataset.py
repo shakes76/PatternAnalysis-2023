@@ -24,7 +24,7 @@ train_transform = transforms.Compose(
 	# the images are grayscale already, with all channels equal,
 	# this just converts it to single-channel.
 	transforms.Grayscale(),
-	transforms.RandomResizedCrop(size=(256, 256), antialias=True), # a bit of data augmentation
+	transforms.RandomResizedCrop(size=(256, 256), scale=(0.5,1), antialias=True), # a bit of data augmentation
 	transforms.RandomHorizontalFlip(p=0.5), # a bit of data augmentation
 	transforms.Normalize((0.5,), (0.5,))]
  )
