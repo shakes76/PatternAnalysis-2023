@@ -11,66 +11,69 @@ from PIL import Image
 import torch.optim as optim
 import torch.nn.functional as F
 
-from dataset import create_siamese_dataloader,get_transforms_training, get_transforms_testing
-from modules import SiameseNetwork
+
+from dataset import create_siamese_dataloader,get_classification_dataloader,get_transforms_training, get_transforms_testing
+from modules import SiameseResNet, ContrastiveLoss, ClassifierNet
 
 
-
-
-print("------Testing---------")
-ROOT_DIR_TEST = "/home/groups/comp3710/ADNI/AD_NC/test"
-test_loader = create_siamese_dataloader(ROOT_DIR_TEST, batch_size=32, transform=get_transforms_testing())
-
-# h, w = 240, 256
-# input_shape=(1, h, w)
-model = SiameseNetwork()
-
-# Load the saved model weights
-model_path = '/home/Student/s4757184/Pattern_Project/PatternAnalysis-2023/recognition/47571840-Adni-siamese/model_3_20epoch.pth'
-model.load_state_dict(torch.load(model_path))
-
-
-# Move the model to the device
+#----SET UP DEVICE-----
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = model.to(device)
 
-# # Your testing loop
-# correct_pairs = 0
-# total_pairs = 0
+#-----LOAD TEST SET------
+ROOT_DIR_TEST = "/home/groups/comp3710/ADNI/AD_NC/test"
+test_loader = get_classification_dataloader(ROOT_DIR_TEST, batch_size=32,split_flag = False)
 
-# with torch.no_grad():
-#     for img1, img2, labels in test_loader:
-#         img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
-#         outputs = model(img1, img2)
-#         predicted = (outputs > 0.5).float().squeeze()  # Ensure squeezing if necessary
-#         correct_pairs += (predicted == labels).sum().item()
-#         total_pairs += labels.size(0)
+#----DEFINE MODEL PATHS----
+siamese_weights = 'siamese_50.pth'
+classifier_weights = "best_classifier_model_50_30_3.pth"
 
-# accuracy = 100.0 * correct_pairs / total_pairs
-# print(f"Accuracy on test data: {accuracy:.2f}%")
+#---LOAD MODELS-------
+siamese_model = SiameseResNet().to(device)
+siamese_model.load_state_dict(torch.load(siamese_weights, map_location=device))
+siamese_model.eval()
+
+classifier = ClassifierNet(siamese_model).to(device)
+classifier.load_state_dict(torch.load(classifier_weights, map_location=device))
+classifier.eval()
+
+#----DEFINE PREDICT FUNCTION-----
+def predict(input_image):
+    
+    # Extract the embedding of the input image using Siamese Network
+    embedding = siamese_model.forward_one(input_image)
+    
+    # Get prediction probability from classifier
+    prediction_prob = classifier.classifier(embedding)
+
+    return embedding,prediction_prob
+
+#---EXAMPLE USAGE-------
+
+images, labels = next(iter(test_loader))
+images, labels = images.to(device), labels.to(device)
+print(labels)
+
+# Selecting a sample image tensor to predict
+sample_image_tensor = images[0].unsqueeze(0) 
+
+# Predicting
+embedding, predicted_prob_tensor = predict(sample_image_tensor)
+
+# Extracting the probability and using round to get the class prediction
+predicted_prob = predicted_prob_tensor.item()
+predicted_class = round(predicted_prob)
+
+# Extracting the true label
+true_label = labels[0].item()
+
+# Printing results
+print(f"Predicted probability: {predicted_prob:.4f}")
+print(f"Predicted class: {predicted_class}")
+print(f"True label: {true_label}")
+
+# Checking the correctness
+is_correct = predicted_class == true_label
+print(f"Is the prediction correct? {'Yes' if is_correct else 'No'}")
 
 
-
-# If you've saved the model
-# model = SiameseNetwork()
-# model.load_state_dict(torch.load("path_to_saved_model.pth"))
-# model.to(device)
-
-model.eval()  # Set the model to evaluation mode
-
-correct = 0
-total = 0
-
-with torch.no_grad():  # No need to compute gradients during evaluation
-    for img1, img2, labels in test_loader:
-        img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
-
-        outputs = model(img1, img2).squeeze()
-        preds = (outputs >= 0.5).float().squeeze()
-        
-        total += labels.size(0)
-        correct += (preds == labels).sum().item()
-
-accuracy = 100 * correct / total
-print(f"Accuracy on test data: {accuracy:.2f}%")
 
