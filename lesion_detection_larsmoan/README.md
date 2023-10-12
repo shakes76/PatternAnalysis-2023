@@ -1,14 +1,14 @@
-Certainly! A README file for a Python machine learning project should be clear, concise, and provide all the necessary information for someone new to the project. Here's a basic skeleton:
-
----
-
 ## Project Title
 
 Brief description of the project, its objectives, and its significance.
 
+
+
+
 ### Table of Contents
 - [Project Title](#project-title)
   - [Table of Contents](#table-of-contents)
+  - [Todo](#todo)
   - [Installation](#installation)
   - [Dataset](#dataset)
   - [Usage](#usage)
@@ -18,6 +18,13 @@ Brief description of the project, its objectives, and its significance.
   - [Contributing](#contributing)
   - [License](#license)
   - [Acknowledgements](#acknowledgements)
+
+### Todo
+- [ ] Create my own training script that works on top of yolov7/train.py
+- [ ] Manage a way of logging the runs to wandb
+- [ ] Zip and upload dataset to gdrive, and make functions for fetching the dataset from the cluster.
+- [ ] Make training scripts for use on the rangpur cluster.
+
 
 ### Installation
 
@@ -42,10 +49,10 @@ Brief description of the project, its objectives, and its significance.
   ```
 
 ### Model Architecture
+The model and architecture used in this project is the open source yolov7 model:
 
-- Description of the model(s) used.
-- Reasoning behind choosing this model.
-- Any reference papers or sources.
+https://github.com/WongKinYiu/yolov7
+
 
 ### Training
 
