@@ -5,7 +5,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from einops import rearrange, repeat, reduce
+from einops import rearrange, reduce
 from collections import defaultdict
 # ==== import from this folder ==== #
 from model_VAE import VAE, VQVAE
@@ -99,6 +99,8 @@ def calculate_weight_sampler(net, dataloader):
     '''
         This function will calculate the indices distribution at each pixel & channel.
     '''
+
+    # Collect all the indices appears after quantized from encoder.
     indices = []
     for now_step, batch_data in tqdm(enumerate(dataloader), total=len(dataloader)):
         raw_img, seg_img, brain_idx, z_idx = [
@@ -115,7 +117,7 @@ def calculate_weight_sampler(net, dataloader):
     # Concat all indices for easy processing
     indices = torch.cat(indices)
 
-    # Shrink the c, this is just an indices so c is 1.
+    # Shrink the c. In OASIS dataset, c = 1.
     indices = reduce(indices, 'b c h w -> b h w', 'min')
     indices = rearrange(indices, 'b h w -> h w b')
 
@@ -170,10 +172,10 @@ def train_epoch(net, dataloader, auxiliary=True):
         #   Then we sacle G_loss to make it more influential. 
         recon_grads = torch.norm(torch.autograd.grad(
             recon_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
-        # For fear that gradient explode occur, we clamp the sacle.
         g1_grads = torch.norm(torch.autograd.grad(
             g1_loss, net.get_decoder_last_layer(), retain_graph=True)[0]).detach()
         d1_weight = recon_grads / (g1_grads + 1e-4)
+        # For fear that gradient explode occur, we clamp the sacle.
         d1_weight = torch.clamp(d1_weight, 0.0, 1e4).detach()
 
         # Apply auxiliary loss (gen from sample and trained as GAN)
@@ -184,6 +186,7 @@ def train_epoch(net, dataloader, auxiliary=True):
             # Random generate z_idx, here we named t.
             t = torch.randint(low=0, high=32, size=(raw_img.shape[0],)).cuda()
 
+            # This part is same as d1_weight
             gen_img = net.sample(raw_img.shape[0], t)
             logits_gen = discriminator(gen_img.contiguous(), t)
             g2_loss = -torch.mean(logits_gen)
@@ -203,6 +206,7 @@ def train_epoch(net, dataloader, auxiliary=True):
         if auxiliary:
             loss = loss + w_dis * d2_weight * g2_loss
 
+        # Update generator weights
         loss.backward()
         opt.step()
 
@@ -217,7 +221,7 @@ def train_epoch(net, dataloader, auxiliary=True):
         logits_real = discriminator(raw_img.contiguous().detach(), z_idx)
         logits_fake = discriminator(recon_img.contiguous().detach(), z_idx)
 
-        # Here we adopt hinge loss
+        # Here we adopt hinge loss for discriminator.
         loss_real = torch.mean(F.relu(1. - logits_real))
         loss_fake = torch.mean(F.relu(1. + logits_fake))
 
@@ -225,21 +229,25 @@ def train_epoch(net, dataloader, auxiliary=True):
             logits_gen = discriminator(gen_img.contiguous().detach(), t)
             loss_gen = torch.mean(F.relu(1. + logits_gen))
             # First 0.5 is discriminator factor, Second 0.5 is from hinge loss
+
+            # Note that this is imbalance score. I think it should be
+            # 0.5 * 0.5 * (loss_real + 0.5 * (loss_fake + loss_gen))
+            # However, now it's fine.
             d_loss = 0.5 * 0.5 * (loss_real + loss_fake + loss_gen)
         else:
             d_loss = 0.5 * 0.5 * (loss_real + loss_fake)
 
+        # Update discriminator weights
         d_loss.backward()
         opt_d.step()
 
-        # info to dict
+        # Collect all infos into dict
         cur_info = {
             'recon_loss': recon_loss.item(),
             'diff_loss': diff_loss.item(),
             'fake_recon_loss': g1_loss.item(),
             'discriminator_loss': d_loss.item(),
             'w_recon': w_recon,
-            # 'w_perceptual': w_perceptual,
             "w_dis": w_dis * d1_weight,
         }
         if auxiliary:
@@ -257,8 +265,10 @@ def train_epoch(net, dataloader, auxiliary=True):
         logger.update_dict(cur_info)
         cur_iter += 1
 
+        # If now step is reached, end this epoch.
         if now_step % ITER_PER_EPOCH == 0 and now_step != 0:
             break
+
     # Mean the info
     for k in epoch_info:
         if k != 'total_num':
@@ -267,7 +277,12 @@ def train_epoch(net, dataloader, auxiliary=True):
     return epoch_info
 
 def test_epoch(net, dataloader, folder):
-
+    '''
+        This function will do three things.
+        1. Calculate SSIM score and return it.
+        2. Generate reconstruction images and save it into folder
+        3. Generate random images (weighted random in VQVAE) and save it into folder.
+    '''
     # Clean Directory
     reset_dir(folder)
 
@@ -321,9 +336,8 @@ def test_epoch(net, dataloader, folder):
     # Return ssim score as our testing score
     return total_ssim / len(dataloader.dataset)
 
-# This parameter is for debugging.
-# Should remove this when submit.
 # data_limit: we only read data_limit images for loading dataset faster
+# This parameter is for debugging.
 data_limit = None
 
 # Get dataloader
