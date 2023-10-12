@@ -30,6 +30,8 @@ class NLayerDiscriminator(nn.Module):
         super(NLayerDiscriminator, self).__init__()
 
         # Time embedding Setup
+        # Time embedding in this funtion is the z-index of brain.
+        # And this condition is conditional GAN.
         time_emb_size = 32
         self.time_embedding = sinusoidal_embedding(
             pos_len=32, time_emb_size=time_emb_size)
@@ -42,6 +44,8 @@ class NLayerDiscriminator(nn.Module):
 
         kw = 4
         padw = 1
+
+        # First Layers: an classic conv2d
         self.convs = nn.ModuleList([
             nn.Sequential(
                 nn.Conv2d(input_nc, ndf, kernel_size=kw,
@@ -51,7 +55,9 @@ class NLayerDiscriminator(nn.Module):
         ])
         nf_mult = 1
         nf_mult_prev = 1
-        for n in range(1, n_layers):  # gradually increase the number of filters
+
+        # Mid Layers: gradually increase the number of filters
+        for n in range(1, n_layers):
             nf_mult_prev = nf_mult
             nf_mult = min(2 ** n, 8)
             self.convs += [
@@ -69,10 +75,12 @@ class NLayerDiscriminator(nn.Module):
             nn.GroupNorm(ndf//4, ndf * nf_mult),
             nn.LeakyReLU(0.2, True)
         ]
+        # Final Layers: predict true or false in one channel.
         self.conv_out = nn.Conv2d(
             ndf * nf_mult, 1, kernel_size=kw, stride=1, padding=padw)
 
-        # Build time emb
+        # Build time embedding block.
+        # Time embedding will added after convolution in mid layers
         self.time_emb = nn.ModuleList([])
         for conv in self.convs:
             if isinstance(conv, nn.Conv2d):
@@ -82,6 +90,7 @@ class NLayerDiscriminator(nn.Module):
                     nn.SiLU(),
                 ))
 
+        # Should we add attention in discriminator
         if attn:
             self.attn = AttnBlock(8 * ndf)
         else:
@@ -97,6 +106,8 @@ class NLayerDiscriminator(nn.Module):
         cnt = 0
         for conv in self.convs:
             h = conv(h)
+            # Put every time emb after conv2d.
+            # Note that first conv will not be included because it's encapsuled by nn.Sequential
             if isinstance(conv, nn.Conv2d):
                 h = h + self.time_emb[cnt](time_emb)[:, :, None, None]
                 cnt += 1
