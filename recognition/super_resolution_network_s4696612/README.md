@@ -35,7 +35,7 @@ model development.
 
 ## Training
 The loss for the training data and validation set throughout training were recorded and compared.
-The model's loss quickly converged to approximiately 0.09 in all trials. This can be seen in the
+The model's loss quickly converged to approximately 0.09 in all trials. This can be seen in the
 below plot of the losses. In this plot, the orange line indicates the validation set's loss, and
 the blue line is the training set's loss. The model is not overly overfitted since the validation
 set's loss is very similar to the training set. Furthermore, the test set had similar loss of 
