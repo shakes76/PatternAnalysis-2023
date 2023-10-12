@@ -13,7 +13,7 @@ if not torch.cuda.is_available():
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 
-model = torch.load(r"C:/Users/wongm/Desktop/COMP3710/project/siamese_epcoh30.pth")
+model = torch.load(r"C:/Users/wongm/Desktop/COMP3710/project/siamese_epoch_lr=0.0150.pth")
 model.eval()
 
 
@@ -34,7 +34,7 @@ correct = 0
 total = 0
 
 with torch.no_grad():
-    for i, (test_images,pos_image1,pos_image2,pos_image3, neg_image1,neg_image2,neg_image3,test_labels) in enumerate(test_loader):
+    for i, (test_images,pos_image1,pos_image2,pos_image3,pos_image4,pos_image5, neg_image1,neg_image2,neg_image3,neg_image4,neg_image5,test_labels) in enumerate(test_loader):
         test_images = test_images.to(device)
         pos_image1 = pos_image1.to(device)
         neg_image1 = neg_image1.to(device)
@@ -42,24 +42,64 @@ with torch.no_grad():
         neg_image2 = neg_image2.to(device)
         pos_image3 = pos_image3.to(device)
         neg_image3 = neg_image3.to(device)
+        pos_image4 = pos_image4.to(device)
+        neg_image4 = neg_image4.to(device)
+        pos_image5 = pos_image5.to(device)
+        neg_image5 = neg_image5.to(device)
         test_labels = test_labels.to(device)
 
-
-        x1, y1 = model(test_images,pos_image1)
-        x2, y2 = model(test_images, pos_image2)
-        x3, y3 = model(test_images, pos_image3)
         # accuracy test
-        pos_distances1 = (y1 - x1).pow(2).sum(1)
-        pos_distances2 = (y2 - x2).pow(2).sum(1)
-        pos_distances3 = (y3 - x3).pow(2).sum(1)
-        mean_pos_distances = (pos_distances1 + pos_distances2 + pos_distances3) / 3
-        x4, y4 = model(test_images,neg_image1)
-        x5, y5 = model(test_images, neg_image2)
-        x6, y6 = model(test_images, neg_image3)
-        neg_distances1 = (y4 - x4).pow(2).sum(1)
-        neg_distances2 = (y5 - x5).pow(2).sum(1)
-        neg_distances3 = (y6 - x6).pow(2).sum(1)
-        mean_neg_distances = (neg_distances1 + neg_distances2 + neg_distances3) / 3
+        px1, py1 = model(test_images, pos_image1)
+        px2, py2 = model(test_images, pos_image2)
+        px3, py3 = model(test_images, pos_image3)
+        px4, py4 = model(test_images, pos_image4)
+        px5, py5 = model(test_images, pos_image5)
+        pos_distances = []
+        pos_distances.append((py1 - px1).pow(2).sum(1))
+        pos_distances.append((py2 - px2).pow(2).sum(1))
+        pos_distances.append((py3 - px3).pow(2).sum(1))
+        pos_distances.append((py4 - px4).pow(2).sum(1))
+        pos_distances.append((py5 - px5).pow(2).sum(1))
+        pos = torch.cat((pos_distances[0].unsqueeze(1), pos_distances[1].unsqueeze(1), pos_distances[2].unsqueeze(1),
+                   pos_distances[3].unsqueeze(1), pos_distances[4].unsqueeze(1)), dim=1)
+        # Find the indices of the minimum and maximum values in each row
+        min_indices = torch.argmin(pos, dim=1)
+        max_indices = torch.argmax(pos, dim=1)
+
+        # Create a mask to exclude the min and max values
+        mask = torch.ones(pos.size()).to(device)
+        for i in range(64):
+            mask[i, min_indices[i]] = 0
+            mask[i, max_indices[i]] = 0
+        filtered_tensor = pos * mask
+
+        mean_pos_distances = filtered_tensor.sum(dim=1) / 3
+
+        nx1, ny1 = model(test_images, neg_image1)
+        nx2, ny2 = model(test_images, neg_image2)
+        nx3, ny3 = model(test_images, neg_image3)
+        nx4, ny4 = model(test_images, neg_image4)
+        nx5, ny5 = model(test_images, neg_image5)
+
+        neg_distances1 = (ny1 - nx1).pow(2).sum(1).unsqueeze(1)
+        neg_distances2 = (ny2 - nx2).pow(2).sum(1).unsqueeze(1)
+        neg_distances3 = (ny3 - nx3).pow(2).sum(1).unsqueeze(1)
+        neg_distances4 = (ny4 - nx4).pow(2).sum(1).unsqueeze(1)
+        neg_distances5 = (ny5 - nx5).pow(2).sum(1).unsqueeze(1)
+        neg = torch.cat((neg_distances1,neg_distances2,neg_distances3,neg_distances4,neg_distances5),dim=1)
+
+        min_indices = torch.argmin(neg, dim=1)
+        max_indices = torch.argmax(neg, dim=1)
+
+        # Create a mask to exclude the min and max values
+        mask = torch.ones(pos.size()).to(device)
+        for i in range(64):
+            mask[i, min_indices[i]] = 0
+            mask[i, max_indices[i]] = 0
+        filtered_tensor = neg * mask
+
+        mean_neg_distances = filtered_tensor.sum(dim=1) / 3
+
         pred = torch.where(mean_pos_distances < mean_neg_distances, 1, 0)
 
         correct += (pred == 1).sum().item()
