@@ -18,7 +18,7 @@ def get_validate_dataset():
         'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_validate',
         label_mode=None,
         color_mode='grayscale',
-        batch_size=128,
+        #batch_size=128,
         image_size=(256, 256)
     )
     normalization_layer = tf.keras.layers.Rescaling(1./255, offset=-0.5)
@@ -40,7 +40,7 @@ def get_test_dataset():
 def preview_images():
     train_ds = get_train_dataset()
     plt.figure(figsize=(10,10))
-    plt.title("Sample of images from OASIS train dataset")
+    plt.title("Sample of images froxm OASIS train dataset")
     for i in range(9):
         plt.subplot(3, 3, i+1)
         plt.imshow(next(iter(train_ds))[i])

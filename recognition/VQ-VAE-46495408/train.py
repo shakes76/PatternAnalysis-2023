@@ -1,4 +1,5 @@
 import tensorflow as tf
+import random
 from tensorflow import keras
 from modules import VQVAETrainer, get_pixel_cnn
 from dataset import get_train_dataset, get_dataset_variance, get_validate_dataset, get_test_dataset
@@ -22,10 +23,10 @@ def plot_history(history):
     plt.close()
 
 train_ds = get_test_dataset()
+train_variance = get_dataset_variance(train_ds)
 
 def train_vqvae():
     '''Train the VQ-VAE model'''
-    train_variance = get_dataset_variance(train_ds)
     vqvae_trainer = VQVAETrainer(train_variance, latent_dim=32, num_embeddings=128)
     # Define the optimizer
     optimizer = keras.optimizers.Adam()
@@ -40,9 +41,41 @@ def train_vqvae():
     # Plot and save the training history
     plot_history(vqvae_history)
     
+def visualize_vqvae_results():
+    # Load the trained weights to vq-vae trainer
+    vqvae_trainer = VQVAETrainer(train_variance, latent_dim=32, num_embeddings=128)
+    vqvae_trainer.load_weights('recognition/VQ-VAE-46495408/checkpoint/vqvae_ckpt')
+    
+    trained_vqvae_model = vqvae_trainer.vqvae
+    encoder = vqvae_trainer.vqvae.get_layer("encoder")
+    quantizer = vqvae_trainer.vqvae.get_layer("vector_quantizer")
+    
+    test_images = get_test_dataset().take(1)
+    test_batch = next(iter(test_images))
+    reconstructions_test = trained_vqvae_model.predict(test_images)
+    rec_batch = reconstructions_test
+    
+    n = 1
+    plt.figure(figsize=(10, 10))
+    for i in random.sample(range(0, 127), 10):
+        ssim = tf.image.ssim(test_batch[i], rec_batch[i], max_val=1.0)
+        # Plot the ssim
+        
+        plt.subplot(10, 2, n)
+        plt.imshow(test_batch[i])
+        plt.title("Original")
+        plt.axis("off")
+        
+        plt.subplot(10, 2, n + 1)
+        plt.imshow(rec_batch[i])
+        plt.title("Reconstructed")
+        plt.axis("off")
+        n += 2
+        
+    plt.show()
+    
 def train_pixelcnn():
     # Load the trained weights to vq-vae trainer
-    train_variance = get_dataset_variance(train_ds)
     vqvae_trainer = VQVAETrainer(train_variance, latent_dim=32, num_embeddings=128)
     vqvae_trainer.load_weights('recognition/VQ-VAE-46495408/checkpoint/vqvae_ckpt')
     encoder = vqvae_trainer.vqvae.get_layer("encoder")
@@ -69,4 +102,4 @@ def train_pixelcnn():
     )
     
 if __name__=='__main__':
-    train_pixelcnn()
+    visualize_vqvae_results()
