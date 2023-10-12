@@ -17,12 +17,12 @@ def load_data(filepath: str = data_dir + 'facebook.npz') -> (Data, Data, Data):
     y = torch.tensor(target, dtype=torch.int64)
 
     test_size = 0.2  # 20% of the data for testing
-    val_size = 0.1   # 10% of the data for validation
+    val_size = 0.1  # 10% of the data for validation
 
     num_nodes = x.size(0)
-    num_test = int(num_nodes * test_size) # Calculate number of test nodes
-    num_val = int(num_nodes * val_size) # Calculate number of validation nodes
-    num_train = num_nodes - num_test - num_val # Calculate number of train nodes
+    num_test = int(num_nodes * test_size)  # Calculate number of test nodes
+    num_val = int(num_nodes * val_size)  # Calculate number of validation nodes
+    num_train = num_nodes - num_test - num_val  # Calculate number of train nodes
 
     # Generate list of node indices, then shuffle them.
     indices = np.arange(num_nodes)

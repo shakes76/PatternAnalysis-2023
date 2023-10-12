@@ -1,6 +1,7 @@
 from dataset import load_data
 from modules import Model
 import torch
+from sklearn.metrics import accuracy_score
 
 print("PyTorch Version:", torch.__version__)
 
@@ -12,9 +13,9 @@ data, features = load_data() # Get features to get their shape.
 data = data.to(device)
 
 num_epochs = 200
-num_features = features.shape[1] # 128 for default data
+num_features = features.shape[1]  # 128 for default data
 hidden_dim = 64
-num_classes = 4 # politicians, governmental organizations, television shows and companies
+num_classes = 4  # politicians, governmental organizations, television shows and companies
 learning_rate = 0.01
 
 model = Model(num_features, hidden_dim, num_classes)
@@ -24,15 +25,26 @@ criterion = torch.nn.CrossEntropyLoss()
 
 model = model.to(device)
 
+# ----- Training -----
+print("--- Training ---")
 model.train()
 for epoch in range(num_epochs):
     total_loss = 0
 
-    out = model(data) # Pass the whole graph in.
-    loss = criterion(out[data.train_mask], data.y[data.train_mask]) # Only calculate loss with train nodes.
+    out = model(data)  # Pass the whole graph in.
+    loss = criterion(out[data.train_mask], data.y[data.train_mask])  # Only calculate loss with train nodes.
     loss.backward()
     optimizer.step()
     total_loss += loss.item()
     optimizer.zero_grad()
 
     print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {total_loss:.4f}")
+
+# ----- Testing -----
+print("--- Testing ---")
+model.eval()
+with torch.no_grad():
+    out = model(data)
+    _, predicted = torch.max(out[data.test_mask], 1)  # Get classes with the highest probablities (note that we only use test nodes).
+    accuracy = accuracy_score(data.y[data.test_mask], predicted)
+print(f"Test Accuracy: {100 * accuracy:.2f}%")
