@@ -3,7 +3,7 @@ from PIL import Image
 import os
 
 # custom dataset
-class ISICDataset(Datset):
+class ISICDataset(Dataset):
     def __init__(self, img_dir, transform):
         super(ISICDataset, self).__init__()
         self.img_dir = img_dir
@@ -16,7 +16,7 @@ class ISICDataset(Datset):
 
     # get specific item from dataset
     def __getitem__(self, idx):
-        img_path = os.path.join(self.img, self.image_files[idx])
+        img_path = os.path.join(self.img_dir, self.image_files[idx])
         image = Image.open(img_path)
         if self.transform:
             image = self.transform(image)
