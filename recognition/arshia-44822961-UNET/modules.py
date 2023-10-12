@@ -184,8 +184,8 @@ class ImprovedUnet(nn.Module):
         out_channels = 64
         self.upsample_layer_2 = UpsamplingModule(in_channels, out_channels)
         
-        in_channels = 64 
-        out_channels = 32 
+        in_channels = 128 
+        out_channels = 64 
         self.localise_layer_2 = LocalisationModule(in_channels, out_channels)
 
         in_channels =  64
@@ -193,20 +193,39 @@ class ImprovedUnet(nn.Module):
         self.segmentation_layer_1 = SegmentationModule(in_channels, out_channels)
         self.upscale_1 = UpScaleModule()
 
-        in_channels = 32
-        out_channels = 16
+        in_channels = 64
+        out_channels = 32
         self.upsample_layer_3 = UpsamplingModule(in_channels, out_channels)
 
-        in_channels = 16
+        # localise layer three here.
+        # input 64 
+        in_channels = 64 
         out_channels = 32 
-        self.conv_layer_2 = StandardConv(in_channels, out_channels)
+        self.localise_layer_3 = LocalisationModule(in_channels, out_channels)
 
+        # fourth upsample layer 
+        in_channels = 32 
+        out_channels = 16 
+        self.upsample_layer_4 = UpsamplingModule(in_channels, out_channels)
+
+        # second segmentation and subsequent uspcale module here.
         in_channels = 32
         out_channels = 64 
         self.segmentation_layer_2 = SegmentationModule(in_channels, out_channels)
         self.upscale_2 = UpScaleModule()
 
-       
+        # final standard conv 
+        in_channels = 32
+        out_channels = 32 
+        self.conv_layer_2 = StandardConv(in_channels, out_channels)
+         
+        # Third segmentation layer 
+        in_channels = 32
+        out_channels = 64 
+        self.segmentation_layer_3 = SegmentationModule(in_channels, out_channels)
+        
+        # Soft max layer 
+        self.softmax = nn.Softmax(dim=1)
 
 
     # TODO - fix naming 
@@ -250,24 +269,36 @@ class ImprovedUnet(nn.Module):
 
         # feed into localisation 2
         localisation_out_2 = self.localise_layer_1.forward(concat_2)
+        upsample_out_3 = self.upsample_layer_3.forward(localisation_out_2)
 
         # after localisation 2, place into the segment layer. 
         segment_out_1 = self.segmentation_layer_1.forward(localisation_out_2)
         # upscale segment layer. 
         upscale_out_1 = self.upscale_1.forward(segment_out_1)
 
-        
         # localise 3 
+        concat_3 = torch.cat((element_sum_2, upsample_out_3))
+        localisation_out_3 = self.localise_layer_3.forward(concat_3)
+        
+        upsample_out_4 = self.upsample_layer_4.forward(localisation_out_3)
         
         # segment out 3 
+        segment_out_2 = self.segmentation_layer_2.forward(localisation_out_3)
 
-        # upscale 2 
+        # element wise sum first. 
+        element_sum_5 = segment_out_2 + segment_out_1
+        upscale_out_2 = self.upscale_2.forward(element_sum_5)
+
+        concat_4 = torch.cat((element_sum_1, upscale_out_2))
+        
+        out = self.conv_layer_2.forward(concat_4)
+
+        segment_3 = self.segmentation_layer_3.forward(out) 
 
         # sum 
+        out_fin = upsample_out_4 + segment_3 
         
-
-
-        pass 
+        return self.softmax(out_fin)
 
 
         
