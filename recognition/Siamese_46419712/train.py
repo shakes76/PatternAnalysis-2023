@@ -23,11 +23,11 @@ def train_siamese(model, train_loader, criterion, optimizer, loss_list, schedule
         img1 = img1.to(device)
         labels = labels.to(device)
 
+        optimizer.zero_grad()
+
         output1 = model(img0)
         output2 = model(img1)
         loss = criterion(output1, output2, labels)
-
-        optimizer.zero_grad()
 
         loss.backward()
 
@@ -36,7 +36,8 @@ def train_siamese(model, train_loader, criterion, optimizer, loss_list, schedule
         # save loss for graph
         loss_list.append(loss.item())
         
-        scheduler.step()
+        # scheduler.step()
+
 
         if (i+1) % 40 == 0:
             print (">>>>> Step [{}/{}] Loss: {:.5f}"
@@ -65,11 +66,11 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
         img, label = val
         img = img.to(device)
         label = label.to(device).float()
+        optimizer.zero_grad()
 
         fv1 = model(img)
-
         output = cModel(fv1)
-        loss = criterion(output, label.reshape(-1,1))
+        loss = criterion(output, label.view(-1,1))
 
         optimizer.zero_grad()
         loss.backward()
@@ -98,15 +99,15 @@ def test_model(model, cModel, test_loader):
 
             fv = model(img)
             output = cModel(fv)
-
-            _, predicted = torch.max(output.data, 1)
+            print(output.data)
+            predicted = (output > 0.5).float()
             print(">>>>> Predicted")
             print(predicted)
 
             print(">>>>> Actual")
-            print(label)
+            print(label.view(-1, 1))
             total_test += label.size(0)
-            correct_predict += (predicted == label).sum().item()
+            correct_predict += (predicted == label.view(-1, 1)).sum().item()
     
     return correct_predict/total_test
 
@@ -186,15 +187,15 @@ if __name__ == '__main__':
 
     # hyper parameters
     num_epochs = 20
-    learning_rate = 0.1
+    learning_rate = 0.0005
 
     criterion = ContrastiveLossFunction()
-    optimizer = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.5) # Optimize model parameter
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate) # Optimize model parameter
 
     #Piecewise Linear Schedule
     total_step = len(train_loader)
     # adjust the learning rate during training -> potentially help reach convergence state faster while also ensure it does not over train
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=learning_rate, steps_per_epoch=total_step, epochs=num_epochs)
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=learning_rate, steps_per_epoch=total_step, epochs=num_epochs) # temporary remove scheduler
 
     loss_list = []
     avg_loss_list = []
@@ -206,9 +207,9 @@ if __name__ == '__main__':
     for epoch in range(num_epochs):
         print ("Epoch [{}/{}]".format(epoch + 1, num_epochs))
         train_siamese(model, train_loader, criterion, optimizer, loss_list, scheduler)
-        validate_siamese(model, val_loader, criterion, val_loss_list)
-        save_loss_plot(val_loss_list, train=False) # save loss plot for siamese validate
-        save_model(epoch, model, criterion, optimizer, scheduler) # save model for every epoch
+        # validate_siamese(model, val_loader, criterion, val_loss_list)
+        # save_loss_plot(val_loss_list, train=False) # save loss plot for siamese validate
+        # save_model(epoch, model, criterion, optimizer, scheduler) # save model for every epoch
 
         avg_loss_list.append(np.mean(loss_list))
         loss_list = []
@@ -227,7 +228,7 @@ if __name__ == '__main__':
     #########  TRAINING BINARY CLASSIFIER MODEL ########## 
     # hyper parameters for classifier
 
-    num_epochs = 60
+    num_epochs = 10
     learning_rate = 0.001
     cModel = BinaryModelClassifier().to(device)
 
@@ -244,13 +245,13 @@ if __name__ == '__main__':
     for epoch in range(num_epochs):
         print ("Epoch [{}/{}]".format(epoch + 1, num_epochs))
         train_classifier(model, cModel, train_loader_classifier, criterionB, optimizerB, classifier_loss_list)
-        save_model(epoch, cModel, criterionB, optimizerB, scheduler, 1) # save model for every epoch
+        # save_model(epoch, cModel, criterionB, optimizerB, scheduler, 1) # save model for every epoch
 
         avg_classifier_loss_list.append(np.mean(classifier_loss_list))
         classifier_loss_list = []
         save_loss_plot(avg_classifier_loss_list, epoch, siamese=False) # save loss plot for siamese train
 
-    save_loss_plot(avg_classifier_loss_list, epoch)
+    save_loss_plot(avg_classifier_loss_list, epoch, siamese=False)
 
 
     end = time.time() #time generation
