@@ -3,6 +3,9 @@
 This folder contains the implementation of a semi-supervised multi-layer GCN (Graph Convolutional Network) for Facebook's Large Page-Page Network dataset 
 Hyperlink to dataset: https://snap.stanford.edu/data/facebook-large-page-page-network.html
 
+## Forewarning
+I find it easier and more efficient to code in jupyter notebook as I can run specific blocks of code, and have the ability to have markdown cells that I like to write about my code in. Most of my commits will have .ipynb files included in them but before every commit I will ensure I copy the code I make in the notebooks to their corresponding .py files.
+
 
 ## Overview
 Semi-supervised Graph Convolutional Networks (GCNs) for node classification leverage labeled and unlabeled data within a graph to classify nodes. They operate by learning a function that maps a node's features and its topological structure within the graph to an output label. During training, the model uses the available labels in a limited subset of nodes to optimize the classification function, while also considering the graph structure and feature similarity among neighboring nodes. This approach allows the model to generalize and predict labels for unseen or unlabeled nodes in the graph, enhancing performance particularly when labeled data are scarce. 
