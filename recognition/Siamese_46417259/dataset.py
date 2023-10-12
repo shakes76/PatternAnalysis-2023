@@ -11,6 +11,8 @@ import random
 batch_size = 64
 workers = 0
 
+# TODO: deterministic pairing for validation set
+
 # alias for testing on different machines
 MAC = -1
 RANGPUR = 1

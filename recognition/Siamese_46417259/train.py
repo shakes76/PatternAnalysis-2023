@@ -51,7 +51,7 @@ def contrastive_loss(x1:torch.Tensor, x2:torch.Tensor, label:torch.Tensor, margi
         
 
 # Training Loop ----------------------------------
-def initialise_training():
+def initialise_Siamese_training():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     print("Device: ", device)
 
@@ -63,11 +63,37 @@ def initialise_training():
     optimiser = optim.Adam(siamese_net.parameters(), lr=1e-3, betas=(0.9, 0.999))
     return siamese_net, criterion, optimiser, device
 
-def load_from_checkpoint(filename:str):
-    pass
+def initialise_classifier_training(backbone: torch.nn.Module):
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
+    print("Device: ", device)
 
-def save_checkpoint():
-    pass
+    classifier = SiameseMLP(backbone)
+    classifier = classifier.to(device)
+    print(classifier)
+
+    criterion = nn.BCELoss()
+    optimiser = optim.Adam(classifier.mlp.parameters(), lr=1e-3, betas=(0.9, 0.999))
+    return classifier, criterion, optimiser, device
+
+def load_from_checkpoint(filename:str, model:nn.Module, optimizer:optim.Optimizer):
+    checkpoint = torch.load(RESULTS_PATH + filename)
+    model.load_state_dict(checkpoint['model_state_dict'])
+    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    starting_epoch = checkpoint['epoch']
+    training_loss = checkpoint['loss_train']
+    eval_loss = checkpoint['loss_eval']
+    print(f"Resuming {model.__class__.__name__} training from epoch {str(starting_epoch)}")
+    return starting_epoch, model, optimizer, training_loss, eval_loss
+
+def save_checkpoint(epoch:int, model:nn.Module, optimizer:optim.Optimizer, training_loss:list, eval_loss:list):
+    torch.save({
+        'epoch': epoch + 1,
+        'model_state_dict': model.state_dict(),
+        'optimizer_state_dict': optimizer.state_dict(),
+        'loss_train': training_loss,
+        'loss_eval': eval_loss
+    }, RESULTS_PATH + f"{model.__class__.__name__}_checkpoint_after_{epoch + 1}_epochs.tar"
+    )
 
 def train_siamese_one_epoch(model: nn.Module, 
                             criterion: nn.Module, 
@@ -78,6 +104,7 @@ def train_siamese_one_epoch(model: nn.Module,
     start = time.time()
     num_batches = len(train_loader)
     total_loss = 0.0
+    loss_list = []
     for i, (x1, x2, label) in enumerate(train_loader, 0):
         # forward pass
         x1 = x1.to(device)
@@ -96,12 +123,15 @@ def train_siamese_one_epoch(model: nn.Module,
             print(f"Step [{i+1}/{len(train_loader)}] Loss: {loss.item()}")
 
         total_loss += loss.item()
+        
+        if (i+1) % (num_batches // 10) == 0:
+            loss_list.append(loss.item())
 
     mean_loss = total_loss / num_batches
     end = time.time()
     elapsed = end - start
 
-    return total_loss, mean_loss, elapsed
+    return loss_list, mean_loss, elapsed
 
 def eval_siamese_one_epoch(model: nn.Module,
                             criterion: nn.Module,
@@ -114,6 +144,7 @@ def eval_siamese_one_epoch(model: nn.Module,
     with torch.no_grad(): # disables gradient calculation
         # correct = 0
         # total = 0
+        loss_list = []
         for i, (x1, x2, labels) in enumerate(test_loader, 0):
             x1 = x1.to(device)
             x2 = x2.to(device)
@@ -126,13 +157,16 @@ def eval_siamese_one_epoch(model: nn.Module,
                 print(f"Step [{i+1}/{len(test_loader)}] Loss: {loss.item()}")
 
             total_loss += loss.item()
+
+            if (i+1) % (num_batches // 10) == 0:
+                loss_list.append(loss.item())
         
         mean_loss = total_loss / num_batches
         
     end = time.time()
     elapsed = end - start
 
-    return total_loss, mean_loss, elapsed
+    return loss_list, mean_loss, elapsed
 
 def train_classifier_one_epoch(model: nn.Module,
                                 criterion: nn.Module,
@@ -143,6 +177,7 @@ def train_classifier_one_epoch(model: nn.Module,
     start = time.time()
     num_batches = len(train_loader)
     total_loss = 0.0
+    loss_list = []
     for i, (x, label) in enumerate(train_loader, 0):
         # forward pass
         x = x.to(device)
@@ -164,11 +199,14 @@ def train_classifier_one_epoch(model: nn.Module,
 
         total_loss += loss.item()
 
+        if (i+1) % (num_batches // 10) == 0:
+            loss_list.append(loss.item())
+
     mean_loss = total_loss / num_batches
     end = time.time()
     elapsed = end - start
 
-    return total_loss, mean_loss, elapsed
+    return loss_list, mean_loss, elapsed
 
 def eval_classifier_one_epoch(model: nn.Module,
                                 criterion: nn.Module,
@@ -182,7 +220,8 @@ def eval_classifier_one_epoch(model: nn.Module,
         correct = 0
         total = 0
         total_loss = 0.0
-        for images, labels in test_loader:
+        loss_list = []
+        for i, (images, labels) in enumerate(test_loader):
             images = images.to(device)
             labels = labels.to(device)
             labels = labels.float()
@@ -198,12 +237,16 @@ def eval_classifier_one_epoch(model: nn.Module,
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
+            if (i+1) % (num_batches // 10) == 0:
+                loss_list.append(loss.item())
+
         print('Test Accuracy: {} %'.format(100 * correct / total))
         mean_loss = total_loss / num_batches
+    
     end = time.time()
     elapsed = end - start
 
-    return total_loss, mean_loss, elapsed
+    return loss_list, mean_loss, elapsed
 
 def test_loss():
     cont_loss = ContrastiveLoss()
@@ -217,30 +260,42 @@ def test_loss():
     print(new_loss)
 
 if __name__ == "__main__":
-    starting_epoch = 0
-    num_epochs = 10
+    #
+    #
+    # Siamese training
+    #
+    #
+    Siamese_checkpoint_filename = None
+
+    num_epochs = 20
     random_seed = 69
 
     train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
     test_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
-    siamese_net, criterion, optimiser, device = initialise_training()
+    siamese_net, criterion, optimiser, device = initialise_Siamese_training()
 
-    training_losses = []
-    eval_losses = []
+    if Siamese_checkpoint_filename is not None:
+        starting_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(Siamese_checkpoint_filename, siamese_net, optimiser)
+    else:
+        starting_epoch = 0
+        training_losses, eval_losses = [], []
 
     print('starting training and validation loop for Siamese backbone')
     start = time.time()
 
     for epoch in range(starting_epoch, num_epochs):
         print(f'Training Epoch {epoch+1}')
-        train_loss, avg_train_loss, elapsed = train_siamese_one_epoch(siamese_net, criterion, optimiser, device, train_loader)
-        training_losses.append(avg_train_loss)
-        print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Total loss: {train_loss:.4f}. Average loss: {avg_train_loss:.4f}')
+        loss_list, avg_train_loss, elapsed = train_siamese_one_epoch(siamese_net, criterion, optimiser, device, train_loader)
+        training_losses += loss_list
+        print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_train_loss:.4f}')
 
         print(f'Validating Epoch {epoch+1}')
-        eval_loss, avg_eval_loss, elapsed = eval_siamese_one_epoch(siamese_net, criterion, device, test_loader)
-        eval_losses.append(avg_eval_loss)
-        print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Total loss: {eval_loss:.4f}. Average loss: {avg_eval_loss:.4f}')
+        loss_list, avg_eval_loss, elapsed = eval_siamese_one_epoch(siamese_net, criterion, device, test_loader)
+        eval_losses += loss_list
+        print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
+
+        if (epoch + 1) % 5 == 0:
+            save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
 
     end = time.time()
     elapsed = end - start
@@ -255,32 +310,42 @@ if __name__ == "__main__":
     plt.legend()
     plt.savefig(RESULTS_PATH + f"Siamese_train_and_eval_loss_after_{num_epochs}_epochs.png")
  
+    #
+    #
     # classifier training
-    starting_epoch = 0
+    #
+    #
+    classifier_checkpoint_filename = None
+
+    num_epochs = 20
     train_loader = load_data(training=True, Siamese=False, random_seed=random_seed)
     test_loader = load_data(training=False, Siamese=False, random_seed=random_seed)
 
     backbone = siamese_net.get_backbone()
-    classifier = SiameseMLP(backbone)
-    classifier = classifier.to(device)
-    criterion = nn.BCELoss()
-    optimiser = optim.Adam(classifier.mlp.parameters(), lr=1e-3, betas=(0.9, 0.999))
+    classifier, criterion, optimiser, device = initialise_classifier_training(backbone)
 
-    training_losses = []
-    eval_losses = []
+    if classifier_checkpoint_filename is not None:
+        starting_epoch, classifier, optimiser, training_losses, eval_losses = load_from_checkpoint(classifier_checkpoint_filename, classifier, optimiser)
+    else:
+        starting_epoch = 0
+        training_losses, eval_losses = [], []
+
     print('starting training and validation loop for Classifier')
     start = time.time()
 
     for epoch in range(starting_epoch, num_epochs):
         print(f'Training Epoch {epoch+1}')
-        train_loss, avg_train_loss, elapsed = train_classifier_one_epoch(classifier, criterion, optimiser, device, train_loader)
-        training_losses.append(avg_train_loss)
-        print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Total loss: {train_loss:.4f}. Average loss: {avg_train_loss:.4f}')
+        loss_list, avg_train_loss, elapsed = train_classifier_one_epoch(classifier, criterion, optimiser, device, train_loader)
+        training_losses += loss_list
+        print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_train_loss:.4f}')
 
         print(f'Validating Epoch {epoch+1}')
-        eval_loss, avg_eval_loss, elapsed = eval_classifier_one_epoch(classifier, criterion, device, test_loader)
-        eval_losses.append(avg_eval_loss)
-        print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Total loss: {eval_loss:.4f}. Average loss: {avg_eval_loss:.4f}')
+        loss_list, avg_eval_loss, elapsed = eval_classifier_one_epoch(classifier, criterion, device, test_loader)
+        eval_losses += loss_list
+        print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
+
+        if (epoch + 1) % 5 == 0:
+            save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
 
     end = time.time()
     elapsed = end - start
@@ -290,7 +355,7 @@ if __name__ == "__main__":
     plt.title("Training and Evaluation Loss During Training")
     plt.plot(training_losses, label="Train")
     plt.plot(eval_losses, label="Eval")
-    plt.xlabel("Epochs")
+    plt.xlabel("Epochs / 10")
     plt.ylabel("Loss")
     plt.legend()
     plt.savefig(RESULTS_PATH + f"Classifier_train_and_eval_loss_after_{num_epochs}_epochs.png")
@@ -300,95 +365,4 @@ if __name__ == "__main__":
 
 
     # load_from_checkpoint()
-    # train_and_eval()
     # test_loss()
-
-#
-# Deprecated
-#
-def train_and_eval():
-    starting_epoch = 0
-    num_epochs = 5
-    random_seed = 69
-
-    train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
-    siamese_net, criterion, optimiser, device = initialise_training()
-
-    total_step = len(train_loader)
-
-    # scheduler = optim.lr_scheduler.ExponentialLR(optimiser, 0.99)
-
-    training_losses = []
-
-    siamese_net.train()
-    print("> Training")
-    start = time.time() #time generation
-    for epoch in range(starting_epoch, num_epochs):
-    # For each batch in the dataloader
-        for i, (x1, x2, label) in enumerate(train_loader, 0):
-            # forward pass
-            x1 = x1.to(device)
-            x2 = x2.to(device)
-            label = label.to(device)
-
-            optimiser.zero_grad()
-            sameness, x1_features, x2_features = siamese_net(x1, x2)
-            loss = criterion(x1_features, x2_features, label)
-
-            # Backward and optimize
-            loss.backward()
-            optimiser.step()
-
-            if (i+1) % 100 == 0:
-                print("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
-                    .format(epoch+1, num_epochs, i+1, total_step, loss.item()))
-            
-            training_losses.append(loss.item()) 
-        # stepping LR scheduler every epoch rather than every batch
-        # scheduler.step()
-    end = time.time()
-    elapsed = end - start
-    print("Training took " + str(elapsed) + " secs of " + str(elapsed/60) + " mins in total")
-
-    # --------------
-    # Test the model
-    print("> Testing")
-    start = time.time() #time generation
-    siamese_net.eval()
-    test_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
-
-    eval_losses = []
-
-    with torch.no_grad(): # disables gradient calculation
-        correct = 0
-        total = 0
-        for x1, x2, labels in test_loader:
-            x1 = x1.to(device)
-            x2 = x2.to(device)
-            labels = labels.to(device)
-            sameness, x1_features, x2_features = siamese_net(x1, x2)
-            predicted = torch.round(sameness)
-
-            loss = criterion(x1_features, x2_features, labels)
-            # _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-
-            eval_losses.append(loss.item())
-            
-        print('Test Accuracy: {} %'.format(100 * correct / total))
-    
-    end = time.time()
-    elapsed = end - start
-    print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
-
-    print('END')
-
-    plt.figure(figsize=(10,5))
-    plt.title("Training and Evaluation Loss During Training")
-    plt.plot(training_losses, label="Train")
-    plt.plot(eval_losses, label="Eval")
-    plt.xlabel("iterations")
-    plt.ylabel("Loss")
-    plt.legend()
-    plt.savefig(RESULTS_PATH + f"train_and_eval_loss_after_{num_epochs}_epochs.png")
