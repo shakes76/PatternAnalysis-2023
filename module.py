@@ -2,15 +2,19 @@ import torch
 import torch.nn as nn
 
 class PositionalImageEmbedding(nn.Module):
-    def __init__(self, input_channels, embed_dim, bands=4):
-        """
+    """
         Initialise the PositionalImageEmbedding module.
 
-        Params:
+        Args:
             input_channels (int): Number of input channels in the image.
             embed_dim (int): Dimension of the embedded image representation.
             bands (int): Number of Fourier feature bands for positional encoding.
+        
+        
+        Returns:
+            (Tensor): Embedded image representation of shape (HEIGHT*WIDTH x BATCH_SIZE x EMBED_DIM).
         """
+    def __init__(self, input_channels, embed_dim, bands=4):
         super().__init__()
 
         # Initialise the Fourier features for positional encoding
@@ -123,5 +127,95 @@ class PerceiverAttentionBlock(nn.Module):
 
         return out
     
+class LatentTransformer(nn.Module):
+    """
+    Latent Transformer module with multiple decoder layers.
+
+    Args:
+        embed_dim (int): Dimension of the embedded representations.
+        mlp_dim (int): Dimension of the feedforward network hidden layer.
+        n_heads (int): Number of attention heads.
+        dropout (float): Dropout probability.
+        n_layers (int): Number of decoder layers.
+        
+    Returns:
+            Tensor: Transformed latent tensor of shape [LATENT_DIM x BATCH_SIZE x EMBED_DIM].
+
+
+    """
+
+    def __init__(self, embed_dim, mlp_dim, n_heads, dropout, n_layers):
+        super().__init__()
+
+        # Create a list of decoder layers (PerceiverAttention blocks)
+        self.transformer = nn.ModuleList([
+            PerceiverAttentionBlock(
+                embed_dim=embed_dim, 
+                mlp_dim=mlp_dim, 
+                n_heads=n_heads, 
+                dropout=dropout) 
+            for _ in range(n_layers)
+        ])
+
+    def forward(self, l):
+        """
+        Forward pass of the LatentTransformer module.
+
+        Args:
+            l (Tensor): Latent tensor of shape [LATENT_DIM x BATCH_SIZE x EMBED_DIM].
+
+        Returns:
+            Tensor: Transformed latent tensor of shape [LATENT_DIM x BATCH_SIZE x EMBED_DIM].
+
+        """
+        for transform in self.transformer:
+            l = transform(l, l)
+        return l
+
+class PerceiverBlock(nn.Module):
+    """
+    Block consisting of one cross-attention layer and one latent transformer.
+
+    Args:
+        embed_dim (int): Dimension of the embedded representations.
+        attn_mlp_dim (int): Dimension of the cross-attention's feedforward network hidden layer.
+        trnfr_mlp_dim (int): Dimension of the latent transformer's feedforward network hidden layer.
+        trnfr_heads (int): Number of attention heads for the latent transformer.
+        dropout (float): Dropout probability.
+        trnfr_layers (int): Number of layers in the latent transformer.
+
+    """
+
+    def __init__(self, embed_dim, attn_mlp_dim, trnfr_mlp_dim, trnfr_heads, dropout, trnfr_layers):
+        super().__init()
+        
+        # Cross-Attention layer
+        self.cross_attn = PerceiverAttention(
+            embed_dim, attn_mlp_dim, n_heads=1, dropout=dropout)
+
+        # Latent Transformer module
+        self.latent_transformer = LatentTransformer(
+            embed_dim, trnfr_mlp_dim, trnfr_heads, dropout, trnfr_layers)
+
+    def forward(self, x, l):
+        """
+        Forward pass of the PerceiverBlock module.
+
+        Args:
+            x (Tensor): Input tensor of shape [PIXELS x BATCH_SIZE x EMBED_DIM].
+            l (Tensor): Latent tensor of shape [LATENT_DIM x BATCH_SIZE x EMBED_DIM].
+
+        Returns:
+            Tensor: Transformed latent tensor of shape [LATENT_DIM x BATCH_SIZE x EMBED_DIM].
+
+        """
+        # Apply cross-attention on the input and latent tensor
+        l = self.cross_attn(x, l)
+
+        # Apply the latent transformer
+        l = self.latent_transformer(l)
+
+        return l
+
 
 
