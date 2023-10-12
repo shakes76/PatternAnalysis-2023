@@ -87,12 +87,12 @@ def load_from_checkpoint(filename:str, model:nn.Module, optimizer:optim.Optimize
 
 def save_checkpoint(epoch:int, model:nn.Module, optimizer:optim.Optimizer, training_loss:list, eval_loss:list):
     torch.save({
-        'epoch': epoch + 1,
+        'epoch': epoch,
         'model_state_dict': model.state_dict(),
         'optimizer_state_dict': optimizer.state_dict(),
         'loss_train': training_loss,
         'loss_eval': eval_loss
-    }, RESULTS_PATH + f"{model.__class__.__name__}_checkpoint_after_{epoch + 1}_epochs.tar"
+    }, RESULTS_PATH + f"{model.__class__.__name__}_checkpoint.tar"
     )
 
 def train_siamese_one_epoch(model: nn.Module, 
@@ -283,6 +283,7 @@ if __name__ == "__main__":
     print('starting training and validation loop for Siamese backbone')
     start = time.time()
 
+    previous_best_loss = float('inf')
     for epoch in range(starting_epoch, num_epochs):
         print(f'Training Epoch {epoch+1}')
         loss_list, avg_train_loss, elapsed = train_siamese_one_epoch(siamese_net, criterion, optimiser, device, train_loader)
@@ -294,8 +295,9 @@ if __name__ == "__main__":
         eval_losses += loss_list
         print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 
-        if (epoch + 1) % 5 == 0:
+        if avg_eval_loss < previous_best_loss:
             save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
+            previous_best_loss = avg_eval_loss
 
     end = time.time()
     elapsed = end - start
@@ -333,6 +335,7 @@ if __name__ == "__main__":
     print('starting training and validation loop for Classifier')
     start = time.time()
 
+    previous_best_loss = float('inf')
     for epoch in range(starting_epoch, num_epochs):
         print(f'Training Epoch {epoch+1}')
         loss_list, avg_train_loss, elapsed = train_classifier_one_epoch(classifier, criterion, optimiser, device, train_loader)
@@ -344,8 +347,9 @@ if __name__ == "__main__":
         eval_losses += loss_list
         print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 
-        if (epoch + 1) % 5 == 0:
+        if avg_eval_loss < previous_best_loss:
             save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
+            previous_best_loss = avg_eval_loss
 
     end = time.time()
     elapsed = end - start
