@@ -26,3 +26,23 @@ The ESPCN model is specifically designed for image super-resolution tasks. It us
 ## Model Requirements
 The ESPCN model is built using PyTorch (version 2.1.0+cu121) and PyTorch Vision (version 0.16.0+cu121). Other packages used are OS, MatPlotLib, Time, and Random. The OS package is used for storing the path to the dataset. This is an important step as the dataset used for this model is stored locally outside of the project space due to the large size of the dataset. MatPlotLib (version 3.8.0) is used for the visualisation of the images in the dataset. The Time and Random packages are used to measure the time taken to train for each epoch and for randomly selecting a images from the dataset for making predictions. Whilst not a requirement, it is recommeded that a GPU device is used for training to help parallelise computations used during training to speed up the process.
 
+## Data Preprocessing
+The file structure of the dataset consists of the following:
+ADNI_AD_NC_2D/
+└── AD_NC/
+   ├── test/
+   │  ├── AD/
+   │  │  └── images.jpeg
+   │  └── NC/
+   │     └── images.jpeg
+   └── train/
+      ├── AD/
+      │  └── images.jpeg
+      └── NC/
+         └── images.jpeg
+
+Note that there exists an AD and NC folder for both the train and test folders. Since the purpose of this recognition task only focuses on up-scaling the images, these two labels are ignored. The images.jpeg represents a number of jpeg images but for simplification, has been shown once in the file structure diagram.
+
+For data preprocessing, each image is converted to grayscale and resized to have a width of 256 pixels and a height of 240 pixels. Each image is then split into two image pairs. The first image undergoes the down-scale transformation (by a factor of 4) then is converted to a tensor and normalised. The second image maintains its original resolution and is converted to a tensor and normalised. This creates a dataset that matches every image with its down-scaled image.
+
+The training data is split into two subsets. The first subset consists of 80% of the total training data and is used specifically for training of the model. The second subset contains the remaining 20% and is used for validation purposes during training of the model.
