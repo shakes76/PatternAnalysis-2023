@@ -22,3 +22,7 @@ The ESPCN model is specifically designed for image super-resolution tasks. It us
 * Conv4: This fourth convolutional layer takes the 32 feature maps and produces (channels * (upscale_factor ** 2)) feature maps. In this case of this particular recognition task, the channels is 1 (since grayscale) and the upscale factor is 4. So the output of this convolutional layer is 16 feature maps.
 * PixelShuffle: This layer rearranges elements in the feature map from the depth dimension to the spatial dimensions, thereby achieving upscaling.
 * RELU: The Rectified Linear Unit activation function introduces non-linearity after each convolutional layer.
+
+## Model Requirements
+The ESPCN model is built using PyTorch (version 2.1.0+cu121) and PyTorch Vision (version 0.16.0+cu121). Other packages used are OS, MatPlotLib, Time, and Random. The OS package is used for storing the path to the dataset. This is an important step as the dataset used for this model is stored locally outside of the project space due to the large size of the dataset. MatPlotLib (version 3.8.0) is used for the visualisation of the images in the dataset. The Time and Random packages are used to measure the time taken to train for each epoch and for randomly selecting a images from the dataset for making predictions. Whilst not a requirement, it is recommeded that a GPU device is used for training to help parallelise computations used during training to speed up the process.
+
