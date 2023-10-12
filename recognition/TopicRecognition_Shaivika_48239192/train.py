@@ -13,3 +13,11 @@ x_train = Images[train_indices]
 y_train = Labels[train_indices]
 x_test = Images[test_indices]
 y_test = Labels[test_indices]
+
+# Create and compile the model
+model = create_classifier()
+model.compile(
+    optimizer=keras.optimizers.Adam(learning_rate=0.0001),
+    loss=keras.losses.CategoricalCrossentropy(),
+    metrics=[keras.metrics.CategoricalAccuracy(name="accuracy")],
+)
