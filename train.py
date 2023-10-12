@@ -22,6 +22,8 @@ def train():
     optimizer.step()  # Update parameters based on gradients.
     return loss
 
-for epoch in range(1, 101):
+for epoch in range(1, 10):
     loss = train()
     print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}')
+
+torch.save(model, 'GCN.pt')

@@ -4,8 +4,6 @@ from torch_geometric.data import Data
 from torch_geometric.transforms import RandomNodeSplit
 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 def load_data():
     '''
     Loads the data
@@ -25,7 +23,7 @@ def test_train():
     Creates training, validation and test masks
     '''
     data = load_data()
-    split = RandomNodeSplit(num_val=0.2, num_test=0.1)
+    split = RandomNodeSplit(num_val=0.5, num_test=0.4)
     
     return split(data)
 
