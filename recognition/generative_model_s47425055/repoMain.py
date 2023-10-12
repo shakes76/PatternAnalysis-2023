@@ -342,7 +342,12 @@ def generate_sample_from_best_model(BEST_EPOCH):
     x_tilde, _, _ = model(x)
 
     # Save the generated sample
-    save_image(x_tilde.cpu().data, 'samples2/best_model_sample.png')
+    #save_image(x_tilde.cpu().data, 'samples2/best_model_sample.png')
+    grid_img = torchvision.utils.make_grid(images, nrow=8)
+    plt.figure(figsize=(16,8))
+    plt.imshow(grid_img.permute(1, 2, 0))
+    plt.savefig(f'samples2/best_model_sample.png', bbox_inches='tight')
+    plt.close()
 
 def plot_losses_and_scores():
     # Extract training losses for reconstruction and VQ
@@ -398,7 +403,7 @@ for epoch in range(1, N_EPOCHS):
     # Check the combined metric for improvements
     if combined_metric > BEST_METRIC:                        
         BEST_METRIC = combined_metric
-        BEST_SSIM = avg_ssim
+        BEST_SSIM = val_ssim
         BEST_EPOCH = epoch
         BEST_RECONS_LOSS = val_loss[0]
         print("Saving model based on improved combined metric!")
@@ -414,13 +419,10 @@ for epoch in range(1, N_EPOCHS):
         generate_samples(epoch)
     
     
-    print(f"Average SSIM on Test Set: {test_ssim:.4f}")
+    
     # Step the scheduler to adjust learning rate
     scheduler.step()
 
-    avg_loss_recons = total_loss_recons / num_batches
-    avg_loss_vq = total_loss_vq / num_batches
-    train_losses_epoch.append((avg_loss_recons, avg_loss_vq))
 
 # After all epochs are done
 avg_test_ssim = test()  # Testing
