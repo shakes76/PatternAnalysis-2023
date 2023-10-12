@@ -56,11 +56,11 @@ class ResNetSiamese(nn.Module):
 
         self.fv = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(25088, 4096),
+            nn.Linear(4608, 8192),
             nn.ReLU(inplace=True),
-            nn.Linear(4096, 4096),
+            nn.Linear(8192, 8192),
             nn.ReLU(inplace=True),
-            nn.Linear(4096, 1024)
+            nn.Linear(8192, 4096)
         )
 
     def _make_layer(self, block, planes, num_blocks, stride):
@@ -95,49 +95,34 @@ class RawSiameseModel(nn.Module):
         # Follow https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf -> Siamese Neural Networks for One-shot Image Recognition
         # first convolution layer
         self.model1 = nn.Sequential(
-            nn.Conv2d(in_channels=3, out_channels=96, kernel_size=11, stride=4),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2))
-
-        self.model2 = nn.Sequential(
-            nn.Conv2d(in_channels=96, out_channels=256, kernel_size=5, stride=1),
-            nn.ReLU(inplace=True),
+            nn.Conv2d(in_channels=3, out_channels=64, kernel_size=10, stride=1),
+            nn.ReLU(),
             nn.MaxPool2d(kernel_size=2)
         )
 
-        # self.model3 = nn.Sequential(
-        #     nn.Conv2d(in_channels=128, out_channels=128, kernel_size=3, stride=1),
-        #     nn.ReLU(inplace=True),
-        #     nn.MaxPool2d(kernel_size=2)
-        # )
-
-        self.model4 = nn.Sequential(
-            nn.Conv2d(in_channels=256, out_channels=384, kernel_size=3, stride=1),
-            nn.ReLU(inplace=True),
-            nn.Flatten(),
-            nn.Linear(384, 4096),
-            nn.ReLU(inplace=True),
-            nn.Linear(4096, 1024),
-            nn.ReLU(inplace=True),
-            nn.Linear(1024, 256)
+        self.model2 = nn.Sequential(
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=7, stride=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2)
         )
 
-    #     self.apply(self._init_weights)
-    
-    # def _init_weights(self, module):
-    #     if isinstance(module, nn.Conv2d):
-    #         module.weight.data.normal_(mean=0.0, std=1e-2)
-    #         if module.bias is not None:
-    #             module.bias.data.normal_(mean=0.5, std=1e-2)
-    #     elif isinstance(module, nn.Linear):
-    #         module.weight.data.normal_(mean=0.0, std=2e-1)
-    #         if module.bias is not None:
-    #             module.bias.data.normal_(mean=0.5, std=1e-2)
+        self.model3 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=128, kernel_size=4, stride=1),
+            nn.ReLU(),
+            nn.MaxPool2d(kernel_size=2)
+        )
+
+        self.model4 = nn.Sequential(
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=4, stride=1),
+            nn.ReLU(),
+            nn.Flatten(),
+            nn.Linear(256 * 6 * 6, 4096),
+        )
 
     def forward(self, x):
         output = self.model1(x)
         output = self.model2(output)
-        # output = self.model3(output)
+        output = self.model3(output)
         output = self.model4(output)
 
         return output
@@ -171,11 +156,11 @@ class BinaryModelClassifier(nn.Module):
 
         # dummy linear layer
         self.binary_layer = nn.Sequential(
-            nn.Linear(1024, 256),
+            nn.Linear(4096, 1024),
             nn.ReLU(),
-            nn.Linear(256, 64),
+            nn.Linear(1024, 128),
             nn.ReLU(),
-            nn.Linear(64, 1),
+            nn.Linear(128, 1),
             nn.Sigmoid()
         )
 
@@ -194,4 +179,3 @@ class ContrastiveLossFunction(nn.Module):
         loss_contrastive = torch.mean((1-label) * torch.pow(output, 2) + (label) * torch.pow(torch.clamp(self.margin - output, min=0.0), 2))
 
         return loss_contrastive
-            
