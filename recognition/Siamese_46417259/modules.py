@@ -29,7 +29,8 @@ class SiameseTwin(nn.Module):
         out = F.relu(self.conv4(out))
 
         out = torch.flatten(out, 1)
-        out = F.sigmoid(self.fc(out))
+        out = self.fc(out)
+        # out = F.sigmoid(self.fc(out))
         return out
     
 class SiameseNeuralNet(nn.Module):
@@ -84,9 +85,10 @@ def test_one_twin():
     test = SiameseTwin()
     print(test)
 
-    input = torch.rand(1, 3, 240, 256)
+    input = torch.rand(2, 3, 240, 240)
     x = test(input)
     print(x.shape)
+    print(x)
 
 def test_entire_net():
     net = SiameseNeuralNet()
@@ -100,6 +102,10 @@ def test_entire_net():
 def test_mlp():
     backbone = SiameseTwin()
     mlp = SiameseMLP(backbone)
+
+    print("num of parameters overall: ", sum([param.nelement() for param in mlp.parameters()]))
+    print("num of mlp params: ", sum([param.nelement() for param in mlp.mlp.parameters()]))
+
     input1 = torch.rand(2, 3, 240, 240)
     out = mlp(input1)
     print(out.shape)
@@ -110,9 +116,16 @@ def test_mlp():
     print(out)
 
     criterion = nn.BCELoss()
-    label = torch.tensor([0, 0]).to(torch.float32)
+    label = torch.tensor([1, 0]).float()
     loss = criterion(out, label)
     print(loss)
+
+    predicted = (out > 0.5).float()
+    print(predicted)
+    # _, predicted = torch.max(outputs.data, 1)
+    total = label.size(0)
+    correct = (predicted == label).sum().item()
+    print(total, correct)
 
     # input = torch.randn(3, 2, requires_grad=True)
     # target = torch.rand(3, 2, requires_grad=False)
@@ -120,10 +133,12 @@ def test_mlp():
     # print(loss)
 
 
+
+
 if __name__ == "__main__":
-    # test_one_twin()
+    test_one_twin()
     # test_entire_net()
-    test_mlp()
+    # test_mlp()
 
 
 

@@ -264,7 +264,7 @@ if __name__ == "__main__":
     classifier = SiameseMLP(backbone)
     classifier = classifier.to(device)
     criterion = nn.BCELoss()
-    optimiser = optim.Adam(classifier.parameters(), lr=1e-3, betas=(0.9, 0.999))
+    optimiser = optim.Adam(classifier.mlp.parameters(), lr=1e-3, betas=(0.9, 0.999))
 
     training_losses = []
     eval_losses = []
