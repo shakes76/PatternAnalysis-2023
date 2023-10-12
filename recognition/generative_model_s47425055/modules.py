@@ -102,7 +102,7 @@ def save_and_display_images(images, filename, nrow=8):
 def generate_samples(model, test_loader, epoch):
     """Generates and saves reconstructed samples for a given epoch."""
     model.eval()  # Set model to evaluation mode
-    x, _ = next(iter(test_loader))  # Get a batch of samples
+    x, _ = next(test_loader_iter)  # Get a batch of samples using the cycling iterator
     x = x[:32].to(DEVICE)
 
     # Reconstruct the images using the model
@@ -120,7 +120,7 @@ def generate_sample_from_best_model(model, test_loader, best_epoch):
     model.eval()
 
     # Get a sample from the test set
-    x, _ = next(iter(test_loader))
+    x, _ = next(test_loader_iter)  # Get a batch of samples using the cycling iterator
     x = x[:32].to(DEVICE)
 
     # Reconstruct the image using the model
