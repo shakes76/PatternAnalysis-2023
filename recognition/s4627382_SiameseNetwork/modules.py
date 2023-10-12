@@ -10,24 +10,24 @@ class Embedding(nn.Module):
         super(Embedding, self).__init__()
         self.conv = nn.Sequential(
             
-            nn.Conv2d(1, 32, kernel_size=3, padding=1),
-            nn.BatchNorm2d(32),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2), # size: 256*240 -> 128*120
-
-            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.Conv2d(1, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2), # size: 128*120 -> 64*60
+            nn.MaxPool2d(kernel_size=2, stride=2), # size: 256*240 -> 128*120
 
             nn.Conv2d(64, 128, kernel_size=3, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2), # size: 64*60 -> 32*30
+            nn.MaxPool2d(kernel_size=2, stride=2), # size: 128*120 -> 64*60
+
+            # nn.Conv2d(64, 128, kernel_size=3, padding=1),
+            # nn.BatchNorm2d(128),
+            # nn.ReLU(inplace=True),
+            # nn.MaxPool2d(kernel_size=2, stride=2), # size: 64*60 -> 32*30
             )
         
         self.fc = nn.Sequential(
-            nn.Linear(128*32*30, 256),
+            nn.Linear(128*64*60, 256),
             nn.ReLU(inplace=True),
 
             nn.Linear(256, 256),

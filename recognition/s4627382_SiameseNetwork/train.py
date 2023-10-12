@@ -48,14 +48,12 @@ def train(train_loader, epoches):
             emb_anchor, emb_positive, emb_negative = model(anchor, positive, negative)
             mask = modules.semi_hard_triplet_mining(emb_anchor, emb_positive, emb_negative, margin)
 
-            masked_emb_anchor = emb_anchor[mask]
-
             if len(emb_anchor[mask]) == 0:
                 del emb_anchor, emb_positive, emb_negative
                 torch.cuda.empty_cache()
                 continue
 
-            loss = criterion(masked_emb_anchor, emb_positive[mask], emb_negative[mask])
+            loss = criterion(emb_anchor[mask], emb_positive[mask], emb_negative[mask])
 
             # calculate accuracy
             batch_accuracy = calculate_accuracy(emb_anchor, emb_positive, emb_negative)
