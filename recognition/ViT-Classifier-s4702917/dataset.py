@@ -1,7 +1,7 @@
 # imports
 import numpy as np
 import torch
-import torchvision.transforms as transforms
+import torchvision.transforms.v2 as transforms
 import torchvision.transforms.functional as F
 from torchvision.datasets import ImageFolder
 
@@ -18,17 +18,30 @@ class SquarePad:
 		padding = (hp, vp, hp, vp)
 		return F.pad(image, padding, 0, 'constant')
 
-transform = transforms.Compose(
+train_transform = transforms.Compose(
 	[transforms.ToTensor(),
 	SquarePad(),
 	# the images are grayscale already, with all channels equal,
 	# this just converts it to single-channel.
-	transforms.Grayscale(), 
-	transforms.Normalize((0.5,), (0.5,))])
+	transforms.Grayscale(),
+	transforms.RandomResizedCrop(size=(256, 256), antialias=True), # a bit of data augmentation
+	transforms.RandomHorizontalFlip(p=0.5), # a bit of data augmentation
+	transforms.Normalize((0.5,), (0.5,))]
+ )
+
+# No data augmentation when testing.
+test_transform = transforms.Compose(
+	[transforms.ToTensor(),
+	SquarePad(),
+	# the images are grayscale already, with all channels equal,
+	# this just converts it to single-channel.
+	transforms.Grayscale(),
+	transforms.Normalize((0.5,), (0.5,))]
+ )
 
 # datasets
-trainset = ImageFolder("/home/groups/comp3710/ADNI/AD_NC/train", transform=transform)
-testset = ImageFolder("/home/groups/comp3710/ADNI/AD_NC/test", transform=transform)
+trainset = ImageFolder("/home/groups/comp3710/ADNI/AD_NC/train", transform=train_transform)
+testset = ImageFolder("/home/groups/comp3710/ADNI/AD_NC/test", transform=test_transform)
 
 # dataloaders
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchSize,
