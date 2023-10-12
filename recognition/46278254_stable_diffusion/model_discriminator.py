@@ -1,7 +1,7 @@
 # reference: https://huggingface.co/spaces/danurahul/gan/blob/main/taming-transformers/taming/modules/discriminator/model.py
 import torch
 import torch.nn as nn
-from module import AttnBlock
+from modules import AttnBlock
 
 from util import sinusoidal_embedding
 

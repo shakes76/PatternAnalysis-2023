@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import math
-from module import ResnetBlock, AttnBlock, Downsample, Upsample
+from modules import ResnetBlock, AttnBlock, Downsample, Upsample
 from einops import reduce, repeat
 
 

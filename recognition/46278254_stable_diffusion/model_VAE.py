@@ -8,7 +8,7 @@ from tqdm import tqdm
 from torch.utils.data import WeightedRandomSampler
 
 # Self defined modules
-from module import ResnetBlock, AttnBlock, Downsample, Upsample, VectorQuantizer2
+from modules import ResnetBlock, AttnBlock, Downsample, Upsample, VectorQuantizer2
 from util import sinusoidal_embedding
 
 
