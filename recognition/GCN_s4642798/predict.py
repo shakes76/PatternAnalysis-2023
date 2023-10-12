@@ -3,6 +3,7 @@ import modules
 import torch
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
+import numpy as np
 
 
 def visualize(name, h, color):
@@ -12,7 +13,13 @@ def visualize(name, h, color):
     plt.xticks([])
     plt.yticks([])
 
-    plt.scatter(z[:, 0], z[:, 1], s=70, c=color)
+    for i in range(dataset.number_classes):
+        indices = np.where(color == i)
+        indices = indices[0]
+        plt.scatter(z[indices, 0], z[indices, 1], label=i)
+
+    plt.title("tSNE Visualised")
+    plt.legend()
     filename = "{}.png".format(name)
     plt.savefig(filename)
     plt.show()
@@ -22,10 +29,6 @@ def visualize(name, h, color):
 model = modules.GCN(
     dataset.sample_size, dataset.number_features, dataset.number_classes, 16
 )
-
-model.eval()
-out = model(dataset.X, dataset.edges_sparse)
-visualize("tsne_pre_train", out, color=dataset.y)
 
 model.load_state_dict(torch.load("best_model.pt"))
 
