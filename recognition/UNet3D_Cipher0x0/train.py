@@ -46,17 +46,17 @@ def main():
     # change path to current directory
     os.chdir(os.path.dirname(__file__))
 
-    # build model and optimizer
-    loss_fn = nn.CrossEntropyLoss().to(device)
-    dice_loss = DiceLoss()
-    optimizer = torch.optim.Adam(unet.parameters())
-
-    epoch = 1
+    epoch = 100
     loss_list = []
     valid_dsc_list = []
     test_dsc_list = []
 
     ag = Augment()
+
+    # build model and optimizer
+    loss_fn = nn.CrossEntropyLoss().to(device)
+    dice_loss = DiceLoss()
+    optimizer = torch.optim.SGD(unet.parameters(), lr=0.001, momentum=0.9)
 
     # train loop
     print("Training Begin")
