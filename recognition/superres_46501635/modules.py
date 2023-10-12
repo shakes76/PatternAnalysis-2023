@@ -29,16 +29,28 @@ Peak signal to noise ratio (PSNR) is used as performance metric
 
 import torch.nn as nn
 
-class ESPCNN(nn.Module):
+class ESPCN(nn.Module):
     def __init__(self, upscale_factor, input_channels=1):
-        super(ESPCNN, self).__init__()
+        super(ESPCN, self).__init__()
 
         # Feature extraction!
         self.feature_extraction = nn.Sequential(
             nn.Conv2d(input_channels, 64, kernel_size=5, padding=2),
-            # tanh 
+            nn.Tanh(),
             nn.Conv2d(64, 64, kernel_size=3, padding=1),
-            # tanh
+            nn.Tanh(),
             nn.Conv2d(64, 32, kernel_size=3, padding=1),
-            # tanh
+            nn.Tanh()
         )
+
+        # Second part: upscaling using sub-pixel convolution
+        self.sub_pixel = nn.Sequential(
+            nn.Conv2d(32, input_channels * (upscale_factor ** 2), kernel_size=3, padding=1),
+            nn.PixelShuffle(upscale_factor),
+            nn.Sigmoid()  # To ensure output values are between 0 and 1
+        )
+
+    def forward(self, x):
+        x = self.feature_extraction(x)
+        x = self.sub_pixel(x)
+        return x
