@@ -26,7 +26,7 @@ if (not torch.cuda.is_available()):
 	logger.warning("Warning: Cuda not available, using CPU instead.")
  
 # Hyper-parameters
-numEpochs = 100
+numEpochs = 400
 # Train at least this many epochs before
 # letting the validation accuracy control
 # whether to cutoff.
@@ -38,7 +38,7 @@ maxTrainTime = 8 * 60 * 60
 learningRate = 0.01
 gamma = 0.99
 trainFromLastRun = False
-savePath = "models/mnistClassifier.pth"
+savePath = "models/vitClassifier.pth"
 numBatchesBetweenLogging = 100
 
 minEpochBeforeValidationCutoff = max(minEpochBeforeValidationCutoff, validationEpochsToAverageOver * 2)

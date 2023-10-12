@@ -3,7 +3,7 @@
 #SBATCH -n 1
 #SBATCH --job-name=train_vit
 #SBATCH --cpus-per-task 1
-#SBATCH -t 0-02:00              # time limit: (D-HH:MM) 
+#SBATCH -t 0-09:00              # time limit: (D-HH:MM) 
 #SBATCH --mail-type=END
 #SBATCH --mail-user=s4702917@student.uq.edu.au
 #SBATCH -o output/vit_out.txt
