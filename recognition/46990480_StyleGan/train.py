@@ -9,6 +9,7 @@ from tqdm import tqdm
 import time
 from torchvision.utils import save_image
 import os
+import matplotlib.pyplot as plt
 
 # Device Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -142,6 +143,11 @@ def generate_examples(gen, epoch, n=100):
             save_image(img*0.5+0.5, f"saved_examples_{modelName}/epoch{epoch}/img_{i}.png")
 
     gen.train()
+
+# Lists to keep track of progress
+G_losses = []
+D_losses = []
+
 def train_fn(
     discriminator,
     generator,
@@ -203,8 +209,8 @@ def train_fn(
         loss_gen.backward()
         opt_generator.step()
         opt_mapping_network.step()
-        # G_losses.append(gp.item())
-        # D_losses.append(loss_discriminator.item())
+        G_losses.append(gp.item())
+        D_losses.append(loss_discriminator.item())
 
         # logging with tqdm
         loop.set_postfix(
@@ -239,4 +245,16 @@ torch.save(mapping_network.state_dict(), save_path + f"MAPPING_NETWORK_{modelNam
 end = time.time()
 elapsed = end - start
 print("Training took " + str(elapsed) + " secs or " + str(elapsed / 60) + " mins in total")
+
+# Generate & Save Training Loss plot
+plt.figure(figsize=(10, 5))
+plt.title("Generator and Discriminator Loss During Training")
+plt.plot(G_losses, label="Generator")
+plt.plot(D_losses, label="Discriminator")
+plt.xlabel("Iterations")
+plt.ylabel("Loss")
+plt.legend()
+plt.show()
+plt.savefig(f'{output_path}saved_examples_{modelName}/trainingLossPlot.png')
+
 print("> Done")
