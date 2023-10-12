@@ -11,48 +11,44 @@ from PIL import Image
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
 import torch.nn.functional as F
+from torch.nn import BCELoss
 
-from dataset import create_siamese_dataloader,get_transforms_training, get_transforms_testing
+from dataset import create_siamese_dataloader,get_classification_dataloader,get_transforms_training, get_transforms_testing
 from modules import SiameseResNet, ContrastiveLoss, ClassifierNet
-
-
-
-
-
 
 #--------- SET DEVICE --------------
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print(device)
 
-#-------- LOAD TRAINING DATA --------
-ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
-train_loader, val_loader = create_siamese_dataloader(ROOT_DIR_TRAIN, batch_size=32, transform=get_transforms_training(), split_flag=True)
+#-----------------------------------TRAINING THE SIAMESE NETWORK-----------------------
 
-#---------- HYPERPARAMETERS --------
-learning_rate =  0.01 
-num_epochs = 40
-margin = 1
-
-
-#--------- INITIATE MODEL -------
-model = SiameseResNet().to(device)
-
-#---------- DEFINE LOSS AND OPTIMISER ------
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-criterion = ContrastiveLoss(margin=margin)
-
-
-#---------- TRAINING LOOP ----------
 print("---------Training Siamese Network---------")
 
-import matplotlib.pyplot as plt
+#-------- LOAD TRAINING DATA --------
+ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
+train_loader, val_loader = create_siamese_dataloader(ROOT_DIR_TRAIN, batch_size=32, split_flag=True)
 
-# Initialize lists to store loss values
+#---------- HYPERPARAMETERS --------
+learning_rate =  0.1 
+num_epochs = 40
+margin = 1
+print("learning rate for siamese:",learning_rate)
+
+#--------- INITIATE SIAMESE MODEL --------------
+model_siamese = SiameseResNet().to(device)
+
+#---------- DEFINE LOSS AND OPTIMISER ------
+optimizer = optim.Adam(model_siamese.parameters(), lr=learning_rate)
+criterion = ContrastiveLoss(margin=margin)
+
+#---------- TRAINING LOOP SIAMESE----------
+print("---------Training Siamese Network---------")
+
 train_losses = []
 val_losses = []
 
 for epoch in range(num_epochs):
-    model.train()
+    model_siamese.train()
     running_loss = 0
 
     for batch_idx, (img1, img2, labels, _, _) in enumerate(train_loader):
@@ -60,7 +56,7 @@ for epoch in range(num_epochs):
 
         optimizer.zero_grad()
 
-        distances = model(img1, img2)
+        distances = model_siamese(img1, img2)
         loss = criterion(distances, labels)
         loss.backward()
         optimizer.step()
@@ -71,13 +67,13 @@ for epoch in range(num_epochs):
     train_losses.append(avg_train_loss)  # Store the training loss
 
     # Validation
-    model.eval()  # Set the model to evaluation mode
+    model_siamese.eval()  # Set the model to evaluation mode
     val_loss = 0.0
     with torch.no_grad():
          for batch_idx, (img1, img2, labels, _, _) in enumerate(val_loader):
             img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
 
-            distances = model(img1, img2)
+            distances = model_siamese(img1, img2)
             loss = criterion(distances, labels)
             
             val_loss += loss.item()
@@ -87,13 +83,15 @@ for epoch in range(num_epochs):
 
     print('[Epoch %d] training loss: %.3f, validation loss: %.3f' % (epoch + 1, avg_train_loss, avg_val_loss))
 
-print("Training complete")
+print("Training complete Siamese")
 
-# Save Model
+# Save Model 
 print("Saved siamese after training")
-torch.save(model.state_dict(), 'siamese_40.pth')
+siamese_path = 'siamese_40_2.pth'
+torch.save(model_siamese.state_dict(), siamese_path)
 
-# Plot the training and validation loss
+# Plot losses
+print("Saved loss plot Siamese")
 plt.figure(figsize=(10, 5))
 plt.plot(train_losses, label="Training Loss", color="blue")
 plt.plot(val_losses, label="Validation Loss", color="red")
@@ -105,58 +103,182 @@ plt.grid(True)
 plt.tight_layout()
 
 # Save the plot as an image
-plt.savefig("loss_curve.png")
+plt.savefig("siamese_loss_curve_siamese_40_2.png")
 
 
 
 
 
+#--------------------------------TRAINING THE CLASSIFIER NETWORK-----------------------------------
+print("---------Training Classifier Network---------")
 
-# #------------------- TESTING -------------------------
-# print("------Testing---------")
-# ROOT_DIR_TEST = "/home/groups/comp3710/ADNI/AD_NC/test"
-# test_loader = create_siamese_dataloader(ROOT_DIR_TEST, batch_size=32, transform=get_transforms_testing(),split_flag = False)
+#-------- LOAD TRAINING DATA --------
+ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
+train_loader, val_loader = get_classification_dataloader(ROOT_DIR_TRAIN, batch_size=32,split_flag=True)
+
+#-------LOAD SIAMESE MODEL----------
+siamese_model = SiameseResNet().to(device)
+siamese_model.load_state_dict(torch.load(siamese_path, map_location=device))
+siamese_model.eval()
+
+#--------- INITIATE CLASSIFIER MODEL --------------
+classifier = ClassifierNet(siamese_model).to(device)
+
+#---------- HYPERPARAMETERS ------------
+learning_rate = 0.01
+print("learning rate for classifier:",learning_rate)
+num_epochs = 20
 
 
-# model.eval()
+#---------- DEFINE LOSS AND OPTIMISER ------
+criterion = BCELoss()
+optimizer = optim.Adam(classifier.parameters(), lr=learning_rate,weight_decay=1e-5)
+scheduler = StepLR(optimizer, step_size=10, gamma=0.1)
 
-# correct = 0
-# total = 0
+#---------- TRAINING LOOP CLASSIFIER----------
 
-# with torch.no_grad():  # No need to compute gradients during evaluation
-#     for img1, img2, labels,_,_ in test_loader:
-#         img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
+train_losses = []
+val_losses = []
+train_accuracies = []
+val_accuracies = []
 
-#         outputs = model(img1, img2).squeeze()
-#         preds = (outputs >= 0.5).float().squeeze()
+# Initialize a variable to track the best validation accuracy
+best_val_accuracy = 0.0
+best_model_path = "best_classifier_model_40_20.pth"
+
+for epoch in range(num_epochs):
+    classifier.train()
+    running_loss = 0
+    correct_train = 0
+    total_train = 0
+
+    for batch_idx, (imgs, labels) in enumerate(train_loader):
+        imgs, labels = imgs.to(device), labels.float().to(device)
         
-#         total += labels.size(0)
-#         correct += (preds == labels).sum().item()
+        optimizer.zero_grad()
+        outputs = classifier(imgs).squeeze()
+        
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
 
-# accuracy = 100 * correct / total
-# print(f"Accuracy on test data: {accuracy:.2f}%")
+        running_loss += loss.item()
+
+        preds = outputs.round()  # Round the predictions
+        correct_train += (preds == labels).float().sum()
+        total_train += labels.size(0)
+
+    avg_train_loss = running_loss / len(train_loader)
+    train_accuracy = correct_train / total_train
+    train_losses.append(avg_train_loss)
+    train_accuracies.append(train_accuracy)
+
+    # Validation
+    classifier.eval()
+    val_loss = 0.0
+    correct_val = 0
+    total_val = 0
+    with torch.no_grad():
+         for batch_idx, (imgs, labels) in enumerate(val_loader):
+            imgs, labels = imgs.to(device), labels.float().to(device)
+
+            outputs = classifier(imgs).squeeze()
+            loss = criterion(outputs, labels)
+            
+            val_loss += loss.item()
+
+            preds = outputs.round()  # Round the predictions
+            correct_val += (preds == labels).float().sum()
+            total_val += labels.size(0)
+
+    avg_val_loss = val_loss / len(val_loader)
+    val_accuracy = correct_val / total_val
+    val_losses.append(avg_val_loss)
+    val_accuracies.append(val_accuracy)
+
+    if val_accuracy > best_val_accuracy:
+        best_val_accuracy = val_accuracy
+        torch.save(classifier.state_dict(), best_model_path)
+        
+
+    scheduler.step()
+
+    print(f'[Epoch {epoch + 1}] train loss: {avg_train_loss:.3f}, train accuracy: {train_accuracy:.3f}, val loss: {avg_val_loss:.3f}, val accuracy: {val_accuracy:.3f}')
+
+print("Training complete")
+
+# Save the trained classifier model after all training epoch
+classifier_save_path = "classifier_model_40_20.pth"
+torch.save(classifier.state_dict(), classifier_save_path)
+print(f"Saved classifier model to {classifier_save_path}")
 
 
-# # Save the training and validation loss plot
-# plt.figure(figsize=(10, 5))
-# plt.plot(train_loss_list, label='Training Loss')
-# plt.plot(val_loss_list, label='Validation Loss')
-# plt.title('Training and Validation Loss over Epochs')
-# plt.xlabel('Epochs')
-# plt.ylabel('Loss')
-# plt.legend()
-# plt.savefig('training_validation_loss_90_nonorm_withinitweights.png')  # Save the figure
-# plt.close()  # Close the figure to prevent it from being displayed
+# Plotting training and validation loss
+plt.figure(figsize=(7, 5))
+plt.plot(train_losses, label="Training Loss")
+plt.plot(val_losses, label="Validation Loss")
+plt.title("Loss vs. Epochs")
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.legend()
 
-# # Save the training and validation accuracy plot
-# plt.figure(figsize=(10, 5))
-# plt.plot(train_accuracy_list, label='Training Accuracy')
-# plt.plot(val_accuracy_list, label='Validation Accuracy')
-# plt.title('Training and Validation Accuracy over Epochs')
-# plt.xlabel('Epochs')
-# plt.ylabel('Accuracy')
-# plt.legend()
-# plt.savefig('training_validation_accuracy_90_nonorm_withinitweights.png')  # Save the figure
-# plt.close() 
-# print("Plots saved")
+# Save the loss plot as an image
+loss_plot_save_path = "classifier_loss_plot_classifier_model_40_20.png"
+plt.savefig(loss_plot_save_path)
+print(f"Saved loss plot to {loss_plot_save_path}")
 
+plt.close()  
+
+# Convert tensors to CPU and then to numpy arrays
+train_accuracies_np = [acc.cpu().numpy() for acc in train_accuracies]
+val_accuracies_np = [acc.cpu().numpy() for acc in val_accuracies]
+
+# Plotting training and validation accuracy
+plt.figure(figsize=(7, 5))
+plt.plot(train_accuracies_np, label="Training Accuracy")
+plt.plot(val_accuracies_np, label="Validation Accuracy")
+plt.title("Accuracy vs. Epochs")
+plt.xlabel("Epochs")
+plt.ylabel("Accuracy")
+plt.legend()
+
+# Save the accuracy plot as an image
+accuracy_plot_save_path = "classifier_accuracy_plot_classifier_model_40_20.png"
+plt.savefig(accuracy_plot_save_path)
+print(f"Saved accuracy plot to {accuracy_plot_save_path}")
+
+plt.close() 
+
+
+#-------------------TESTING------------------------------
+# Load test set
+ROOT_DIR_TEST = "/home/groups/comp3710/ADNI/AD_NC/test"
+test_loader = get_classification_dataloader(ROOT_DIR_TEST, batch_size=32,split_flag = False)
+
+classifier = ClassifierNet(siamese_model).to(device)
+classifier.load_state_dict(torch.load(best_model_path, map_location=device))
+classifier.eval()
+
+test_loss = 0.0
+correct_test = 0
+total_test = 0
+
+with torch.no_grad():
+    for imgs, labels in test_loader:
+        imgs, labels = imgs.to(device), labels.float().to(device)
+        
+        outputs = classifier(imgs).squeeze()
+        
+        # Compute loss
+        loss = criterion(outputs, labels)
+        test_loss += loss.item()
+
+        # Compute accuracy
+        preds = outputs.round()
+        correct_test += (preds == labels).float().sum()
+        total_test += labels.size(0)
+
+avg_test_loss = test_loss / len(test_loader)
+test_accuracy = correct_test / total_test
+
+print(f"Test Loss: {avg_test_loss:.3f}, Test Accuracy: {test_accuracy:.3f}")
