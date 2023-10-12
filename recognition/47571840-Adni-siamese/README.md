@@ -25,21 +25,33 @@ TBA graph
 TBA explanation of the graph
 
 ## ADNI Dataset
-The ADNI dataset consits of brain MRI images with the class labels AD (0) and NC(1). There are 21520 images for the training dataset and 9000 images for testing. 
+The ADNI dataset consits of brain MRI images with the class labels AD (0) and NC(1). There are 21520 images for the training dataset and 9000 images for testing. Images in the dataset has the dimensions 240x256
+
 AD            |  NC
 :-------------------------:|:-------------------------:
 ![](images_for_readme/218391_78_AD.jpeg)  |  ![](images_for_readme/808819_88_NC.jpeg)
 
 ## Pre-processing the Dataset
+The training data of the ADNI dataset is split into 80% training  and 20% validation data.
 
-## Training
+To train the siamese subnetwork, the training data and validation data needs to be grouped into pairs. Pairs that are in the same class are labelled as 1 and pairs that are in different classes are labelled as 0. The process of grouping the dataset into pairs can be found in dataset.py.
+To train the classifier, the training data and validation is loaded as normal without grouping them to pairs.
+
+The training data goes through this preprocessing steps: 
+1. Convert images into grayscale
+2. Do data augmentation by RandomHorizontalFlip
+3. Convert images to tensors 
+
+## Training Parameters and Results
+The
 the hyperparameters for the best model with the best test score
 how did i reach that best test score
 | Siamese Model Name | Epoch | Learning Rate | Margin | Classifier Name            | Epoch | Learning Rate | Test Result | Notes                                    |
 | ------------------ | ----- | ------------- | ------ | -------------------------- | ----- | ------------- | ----------- | ---------------------------------------- |
 | siamese_50.pth     | 50    | 0.1           | 1      | classifier_model_50_30.pth | 30    | 0.01          |             | pre-trained = True for resnet18 backbone |
 | siamese_40.pth     | 40    | 0.01          | 1      | classifier_model_40_30.pth | 30    | 0.01          |             | pre-trained = True for resnet18 backbone |
-## Testing
+
+## Testing Results
 add model after testing
 
 ## Dependencies and Reproducability
