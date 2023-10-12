@@ -5,7 +5,7 @@ from torch_geometric.data import Data
 # Directory for data
 data_dir = 'data/'
 
-def load_data(filepath: str = data_dir + 'facebook.npz') -> (Data, Data, Data):
+def load_data(filepath: str = data_dir + 'facebook.npz', test_size=0.2, val_size=0.1) -> (Data, Data, Data):
     # Load the data
     data = np.load(filepath)
     edges = data['edges']
@@ -15,9 +15,6 @@ def load_data(filepath: str = data_dir + 'facebook.npz') -> (Data, Data, Data):
     edges_coo = torch.tensor(edges, dtype=torch.int64).t().contiguous()
     x = torch.tensor(features, dtype=torch.float32)
     y = torch.tensor(target, dtype=torch.int64)
-
-    test_size = 0.2  # 20% of the data for testing
-    val_size = 0.1  # 10% of the data for validation
 
     num_nodes = x.size(0)
     num_test = int(num_nodes * test_size)  # Calculate number of test nodes

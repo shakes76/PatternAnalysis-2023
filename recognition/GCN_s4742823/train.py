@@ -8,8 +8,11 @@ print("PyTorch Version:", torch.__version__)
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+test_size = 0.1
+val_size = 0.1
+
 # load_data() can take a filepath, otherwise will use default filepath in method.
-data, features = load_data() # Get features to get their shape.
+data, features = load_data(test_size=test_size, val_size=val_size) # Get features to get their shape.
 data = data.to(device)
 
 num_epochs = 200
@@ -25,10 +28,13 @@ criterion = torch.nn.CrossEntropyLoss()
 
 model = model.to(device)
 
+best_model = None
+best_accuracy = 0
+
 # ----- Training -----
 print("--- Training ---")
-model.train()
 for epoch in range(num_epochs):
+    model.train()
     total_loss = 0
 
     out = model(data)  # Pass the whole graph in.
@@ -37,6 +43,18 @@ for epoch in range(num_epochs):
     optimizer.step()
     total_loss += loss.item()
     optimizer.zero_grad()
+
+    # --- Validation ---
+    model.eval()
+
+    out = model(data)
+    loss = criterion(out[data.val_mask], data.y[data.val_mask])
+    _, predicted = torch.max(out[data.val_mask], 1)
+    accuracy = accuracy_score(data.y[data.val_mask], predicted)
+    if accuracy > best_accuracy:
+        best_accuracy = accuracy
+        best_model = model.state_dict()
+
 
     print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {total_loss:.4f}")
 
