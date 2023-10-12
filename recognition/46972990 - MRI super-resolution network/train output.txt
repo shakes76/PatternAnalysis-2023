@@ -1,0 +1,15 @@
+Device: cuda
+NVIDIA GeForce RTX 4080
+Started training...
+Epoch 1/10, Training Loss: 0.0191 - Validation Loss: 0.0088 - Completed in 59.15 seconds.
+Epoch 2/10, Training Loss: 0.0086 - Validation Loss: 0.0085 - Completed in 27.02 seconds.
+Epoch 3/10, Training Loss: 0.0083 - Validation Loss: 0.0082 - Completed in 27.33 seconds.
+Epoch 4/10, Training Loss: 0.0081 - Validation Loss: 0.0080 - Completed in 26.69 seconds.
+Epoch 5/10, Training Loss: 0.0079 - Validation Loss: 0.0078 - Completed in 27.05 seconds.
+Epoch 6/10, Training Loss: 0.0077 - Validation Loss: 0.0077 - Completed in 26.98 seconds.
+Epoch 7/10, Training Loss: 0.0081 - Validation Loss: 0.0082 - Completed in 27.18 seconds.
+Epoch 8/10, Training Loss: 0.0076 - Validation Loss: 0.0075 - Completed in 26.78 seconds.
+Epoch 9/10, Training Loss: 0.0074 - Validation Loss: 0.0075 - Completed in 27.14 seconds.
+Epoch 10/10, Training Loss: 0.0074 - Validation Loss: 0.0074 - Completed in 26.86 seconds.
+Finished training.
+Test Loss: 0.0077
