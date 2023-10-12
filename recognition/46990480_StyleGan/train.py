@@ -7,6 +7,8 @@ from dataset import generateDataLoader
 from modules import Generator, Discriminator, MappingNetwork, PathLengthPenalty
 from tqdm import tqdm
 import time
+from torchvision.utils import save_image
+import os
 
 # Device Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -125,6 +127,21 @@ def get_noise(batch_size):
 
     return noise
 
+def generate_examples(gen, epoch, n=100):
+    '''
+    Saves n number of sample images generated from random noise at a specified training epoch.
+    '''
+    gen.eval()
+    for i in range(n):
+        with torch.no_grad():
+            w = get_w(1, log_resolution)
+            noise = get_noise(1)
+            img = gen(w, noise)
+            if not os.path.exists(f'saved_examples_{modelName}/epoch{epoch}'):
+                os.makedirs(f'saved_examples_{modelName}/epoch{epoch}')
+            save_image(img*0.5+0.5, f"saved_examples_{modelName}/epoch{epoch}/img_{i}.png")
+
+    gen.train()
 def train_fn(
     discriminator,
     generator,
@@ -195,9 +212,9 @@ def train_fn(
             loss_critic=loss_discriminator.item(),
         )
 
-
 print("> Training")
 start = time.time()  # time generation
+
 # Train loop
 for epoch in range(num_epochs):
     train_fn(
@@ -209,6 +226,11 @@ for epoch in range(num_epochs):
         opt_generator,
         opt_mapping_network,
     )
+
+    # Save example images every 50 epochs
+    if epoch % 50 == 0:
+    	generate_examples(generator, epoch)
+
 # Save the models
 torch.save(generator.state_dict(), save_path + f"GENERATOR_{modelName}.pth")
 torch.save(discriminator.state_dict(), save_path + f"DISCRIMINATOR_{modelName}.pth")
