@@ -2,7 +2,9 @@ import torch.nn as nn
     
 class ESPCN(nn.Module):
     """
-    Implementation adapted to PyTorch from Tensorflow from https://keras.io/examples/vision/super_resolution_sub_pixel/
+    Implementation adapted to PyTorch from Tensorflow from https://keras.io/examples/vision/super_resolution_sub_pixel/.
+    The ESPCN (Efficient Sub-Pixel CNN) model aims to reconstruct a high-resolution version of an image by leveraging
+    efficient sub-pixel convolution layers to learn image upscaling filters.
     """
     def __init__(self, upscale_factor=4, channels=1):
         super(ESPCN, self).__init__()
