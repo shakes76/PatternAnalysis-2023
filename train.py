@@ -11,7 +11,7 @@ model = GCN(hidden_channels=16)
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
 criterion = torch.nn.CrossEntropyLoss()
 
-def train():
+def step_forward():
     model.train()
     optimizer.zero_grad()  # Clear gradients.
     
@@ -22,8 +22,13 @@ def train():
     optimizer.step()  # Update parameters based on gradients.
     return loss
 
-for epoch in range(1, 10):
-    loss = train()
-    print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}')
+def train(epochs=10):
+    for epoch in range(1, epochs):
+        loss = step_forward()
+        print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}')
 
-torch.save(model, 'GCN.pt')
+def save_model():
+    torch.save(model, 'GCN.pt')
+
+train()
+save_model()
