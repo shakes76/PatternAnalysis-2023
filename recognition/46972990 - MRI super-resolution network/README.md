@@ -12,3 +12,13 @@ efficient sub-pixel convolution layers to learn image upscaling filters. In the 
 
 ## Model Architecture
 ![Model architecture](images/Digraph.png?raw=true "Torchviz visualisation of the ESPCN model.")
+
+## Model Description
+The ESPCN model is specifically designed for image super-resolution tasks. It uses convolutional layers to extract hierarchical features from the low-resolution input image, then it uses a final convolutional layer followed by a pixel shuffling to up-scale the image to the desired resolution (back to the original image's resolution for this specific task). The use of the pixel shuffle operation makes this method efficient and allows it to achieve good super-resolution performance with relatively few parameters. The model itself consists of:
+
+* Conv1: A convolutional layer that takes a grayscale image (channels = 1) and outputs 64 feature maps whilst using a 5x5 kernel size with padding of 2 and using reflection padding mode. The reflection padding mode is used to reduce border artifacts in the case that a brain MRI image is touching the border of the image.
+* Conv2: The second convolutional layer that takes the 64 feature maps from before and outputs another 64 feature maps. It uses a 3x3 kernel with padding of 1.
+* Conv3: The third convolutional layer that takes the 64 feature maps and outputs 32 feature maps using a 3x3 kernel and with padding of 1.
+* Conv4: This fourth convolutional layer takes the 32 feature maps and produces (channels * (upscale_factor ** 2)) feature maps. In this case of this particular recognition task, the channels is 1 (since grayscale) and the upscale factor is 4. So the output of this convolutional layer is 16 feature maps.
+* PixelShuffle: This layer rearranges elements in the feature map from the depth dimension to the spatial dimensions, thereby achieving upscaling.
+* RELU: The Rectified Linear Unit activation function introduces non-linearity after each convolutional layer.
