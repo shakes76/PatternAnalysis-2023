@@ -259,16 +259,8 @@ def test_loss():
     print(old_loss)
     print(new_loss)
 
-if __name__ == "__main__":
-    #
-    #
-    # Siamese training
-    #
-    #
-    Siamese_checkpoint_filename = None
-
-    num_epochs = 20
-    random_seed = 69
+def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
+    Siamese_checkpoint_filename = checkpoint
 
     train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
     test_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
@@ -284,7 +276,7 @@ if __name__ == "__main__":
     start = time.time()
 
     previous_best_loss = float('inf')
-    for epoch in range(starting_epoch, num_epochs):
+    for epoch in range(starting_epoch, total_epochs):
         print(f'Training Epoch {epoch+1}')
         loss_list, avg_train_loss, elapsed = train_siamese_one_epoch(siamese_net, criterion, optimiser, device, train_loader)
         training_losses += loss_list
@@ -301,7 +293,7 @@ if __name__ == "__main__":
 
     end = time.time()
     elapsed = end - start
-    print("Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
+    print("Siamese Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
 
     plt.figure(figsize=(10,5))
     plt.title("Training and Evaluation Loss During Training")
@@ -310,20 +302,16 @@ if __name__ == "__main__":
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig(RESULTS_PATH + f"Siamese_train_and_eval_loss_after_{num_epochs}_epochs.png")
- 
-    #
-    #
-    # classifier training
-    #
-    #
-    classifier_checkpoint_filename = None
+    plt.savefig(RESULTS_PATH + f"Siamese_train_and_eval_loss_after_{total_epochs}_epochs.png")
 
-    num_epochs = 20
+    return siamese_net
+
+def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=None, checkpoint=None):
+    classifier_checkpoint_filename = checkpoint
+
     train_loader = load_data(training=True, Siamese=False, random_seed=random_seed)
     test_loader = load_data(training=False, Siamese=False, random_seed=random_seed)
 
-    backbone = siamese_net.get_backbone()
     classifier, criterion, optimiser, device = initialise_classifier_training(backbone)
 
     if classifier_checkpoint_filename is not None:
@@ -336,7 +324,7 @@ if __name__ == "__main__":
     start = time.time()
 
     previous_best_loss = float('inf')
-    for epoch in range(starting_epoch, num_epochs):
+    for epoch in range(starting_epoch, total_epochs):
         print(f'Training Epoch {epoch+1}')
         loss_list, avg_train_loss, elapsed = train_classifier_one_epoch(classifier, criterion, optimiser, device, train_loader)
         training_losses += loss_list
@@ -353,7 +341,7 @@ if __name__ == "__main__":
 
     end = time.time()
     elapsed = end - start
-    print("Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
+    print("Classifier Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
 
     plt.figure(figsize=(10,5))
     plt.title("Training and Evaluation Loss During Training")
@@ -362,11 +350,9 @@ if __name__ == "__main__":
     plt.xlabel("Epochs / 10")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig(RESULTS_PATH + f"Classifier_train_and_eval_loss_after_{num_epochs}_epochs.png")
+    plt.savefig(RESULTS_PATH + f"Classifier_train_and_eval_loss_after_{total_epochs}_epochs.png")
 
+if __name__ == "__main__":
+    net = Siamese_training(20, 69)
+    classifier_training(net.backbone, 20, 69)
 
-    print('END')
-
-
-    # load_from_checkpoint()
-    # test_loss()
