@@ -62,7 +62,7 @@ plt.plot(np.arange(1, len(train_loss_all) + 1), train_loss_all, label="Training 
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.title("Training and Validation Loss")
-plt.legend(loc="lower right", fontsize="x-large")
+plt.legend(loc="upper right", fontsize="x-large")
 plt.savefig("gcn_loss.png")
 
 torch.save(model.state_dict(), "best_model.pt")
