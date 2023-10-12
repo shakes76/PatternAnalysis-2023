@@ -15,6 +15,10 @@ train_nc_path = "D:/Study/MLDataSet/AD_NC/train/NC"
 test_ad_path = "D:/Study/MLDataSet/AD_NC/test/AD"
 test_nc_path = "D:/Study/MLDataSet/AD_NC/test/NC"
 
+# hyperparameters
+margin = 0.5
+epoches = 8
+
 # create data loader
 train_loader, validation_loader, test_loader = dataset.load_data(
     train_folder_path, train_ad_path, train_nc_path, test_ad_path, test_nc_path, batch_size=32)
@@ -25,20 +29,20 @@ model = modules.SiameseNet(embbeding)
 model.to(device)
 
 # define loss function
-margin = 1
+
 criterion = modules.TripletLoss(margin)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 
 # train
 def train(train_loader, epoches):
-
     for epoch in range(epoches):
         # set model to train mode
         model.train()
-
+        skip = 0
         total_accuracy = 0
         total_samples = 0
+        highest_val_accuracy = 0
 
         for anchor, positive, negative in train_loader:
             # move data to gpu
@@ -46,15 +50,17 @@ def train(train_loader, epoches):
 
             # front propagation
             emb_anchor, emb_positive, emb_negative = model(anchor, positive, negative)
-            mask = modules.semi_hard_triplet_mining(emb_anchor, emb_positive, emb_negative, margin)
+            mask = modules.semi_hard_triplet_mining(emb_anchor, emb_positive, emb_negative, int(len(emb_anchor) * 0.5), margin)
+            # mask = modules.semi_hard_triplet_mining(emb_anchor, emb_positive, emb_negative, margin)
 
             if len(emb_anchor[mask]) == 0:
+                skip += 1
                 del emb_anchor, emb_positive, emb_negative
                 torch.cuda.empty_cache()
                 continue
-
+            
             loss = criterion(emb_anchor[mask], emb_positive[mask], emb_negative[mask])
-
+            
             # calculate accuracy
             batch_accuracy = calculate_accuracy(emb_anchor, emb_positive, emb_negative)
             total_accuracy += batch_accuracy * anchor.size(0)
@@ -65,14 +71,18 @@ def train(train_loader, epoches):
             loss.backward()
             optimizer.step()
 
-        # save the model after each epoch
-        torch.save(model.state_dict(),
-                    "D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/s4627382_SiameseNetwork/SiameseNet.pth")
-        
         # calculate accuracy
         avg_accuracy = total_accuracy / total_samples
+
+        validate_loss, validate_accuracy = validate(validation_loader)
+
+        print(f"Epoch [{epoch+1}/{epoches}], Loss: {loss.item():.4f}, Accuracy: {avg_accuracy:.4f}, validate loss: {validate_loss:.4f}, validate accuracy: {validate_accuracy:.4f}")
         
-        print(f"Epoch [{epoch+1}/{epoches}], Loss: {loss.item():.4f}, Accuracy: {avg_accuracy:.4f}")
+        # save the model
+        if validate_accuracy > highest_val_accuracy:
+            torch.save(model.state_dict(),
+                       "D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/s4627382_SiameseNetwork/SiameseNet.pth")
+            highest_val_accuracy = validate_accuracy
 
 # validate
 def validate(validation_loader):
@@ -95,18 +105,39 @@ def validate(validation_loader):
             total_accuracy += calculate_accuracy(emb_anchor, emb_positive, emb_negative)
     
     # calculate average loss and average accuracy
-    ave_loss = total_loss/len(validation_loader)
-    ave_accuracy = total_accuracy/len(validation_loader)
-    print(f"Average loss: {ave_loss:.4f} \n Average accuracy: {ave_accuracy:.4f}")
+    validate_loss = total_loss/len(validation_loader)
+    validate_accuracy = total_accuracy/len(validation_loader)
 
-    return ave_loss, ave_accuracy
+    return validate_loss, validate_accuracy
 
 
 # test
 def test(test_loader):
-    # set model to evaluation mode
+        # set model to evaluation mode
     model.eval()
-    # TODO
+    total_loss = 0
+    total_accuracy = 0
+
+    with torch.no_grad():
+        for anchor, positive, negative in test_loader:
+            # move data to gpu
+            anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
+
+            # front propagation
+            emb_anchor, emb_positive, emb_negative = model(anchor, positive, negative)
+            loss = criterion(emb_anchor, emb_positive, emb_negative)
+
+            # get loss and accuracy
+            total_loss += loss.item()
+            total_accuracy += calculate_accuracy(emb_anchor, emb_positive, emb_negative)
+    
+    # calculate average loss and average accuracy
+    test_loss = total_loss/len(test_loader)
+    test_accuracy = total_accuracy/len(test_loader)
+    print(f"Test loss: {test_loss:.4f}, Test accuracy: {test_accuracy:.4f}")
+
+    return test_loss, test_accuracy
+
 
 
 # calculate accuracy, 
@@ -131,14 +162,20 @@ def calculate_accuracy(anchor, positive, negative, threshold=0.5):
     return accuracy
 
 def main():
-    # train the model
-    epoches = 10
-    print("Training")
-    train(train_loader, epoches)
+    mod = 1
 
-    # validate the model
-    print("Validating")
-    validate(validation_loader)
+    if mod:
+        # train the model
+        print("Training")
+        train(train_loader, epoches)
+
+    else:
+        print("Testing")
+        model.load_state_dict(
+        torch.load("D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/s4627382_SiameseNetwork/SiameseNet.pth"))
+        test(test_loader)
+
+    print("Done")
     
 
 if __name__ == "__main__":
