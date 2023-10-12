@@ -50,7 +50,7 @@ For data preprocessing, each image is converted to grayscale and resized to have
 The training data is split into two subsets. The first subset consists of 80% of the total training data and is used specifically for training of the model. The second subset contains the remaining 20% and is used for validation purposes during training of the model.
 
 ## Model Usage
-The model takes a down-scaled image (by a factor of 4) from the ADNI dataset and outputs an up-scaled version of the image that aims to improve the resolution and visual clarity of the down-scaled image. The output image can be compared with the original image to perceptually measure the performance of the model.
+The model takes a down-scaled image (by a factor of 4 which gives an image with a width of 64 pixels and height of 60 pixels) from the ADNI dataset and outputs an up-scaled version of the image that aims to improve the resolution and visual clarity of the down-scaled image. The output image can be compared with the original image to perceptually measure the performance of the model.
 
 Here is an example input to the model:
 
@@ -59,3 +59,25 @@ Here is an example input to the model:
 Then, the output from the model will produce this image:
 
 ![An up-scaled image.](images/Upscaled_image.png?raw=true "Up-scaled image example.")
+
+The model can be trained on the given dataset or could be deployed on other datasets. Here is the process of training on this particular dataset with 10 epochs:
+
+```
+Device: cuda
+NVIDIA GeForce RTX 4080
+Started training...
+Epoch 1/10, Training Loss: 0.0191 - Validation Loss: 0.0088 - Completed in 59.15 seconds.
+Epoch 2/10, Training Loss: 0.0086 - Validation Loss: 0.0085 - Completed in 27.02 seconds.
+Epoch 3/10, Training Loss: 0.0083 - Validation Loss: 0.0082 - Completed in 27.33 seconds.
+Epoch 4/10, Training Loss: 0.0081 - Validation Loss: 0.0080 - Completed in 26.69 seconds.
+Epoch 5/10, Training Loss: 0.0079 - Validation Loss: 0.0078 - Completed in 27.05 seconds.
+Epoch 6/10, Training Loss: 0.0077 - Validation Loss: 0.0077 - Completed in 26.98 seconds.
+Epoch 7/10, Training Loss: 0.0081 - Validation Loss: 0.0082 - Completed in 27.18 seconds.
+Epoch 8/10, Training Loss: 0.0076 - Validation Loss: 0.0075 - Completed in 26.78 seconds.
+Epoch 9/10, Training Loss: 0.0074 - Validation Loss: 0.0075 - Completed in 27.14 seconds.
+Epoch 10/10, Training Loss: 0.0074 - Validation Loss: 0.0074 - Completed in 26.86 seconds.
+Finished training.
+Test Loss: 0.0077
+```
+
+After just 10 epochs, the results produce a reasonably clear image.
