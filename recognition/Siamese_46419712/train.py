@@ -72,9 +72,8 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
 
         fv1 = model(img)
         output = cModel(fv1)
-        loss = criterion(output, label.view(-1,1))
+        loss = criterion(output.view(-1), label)
 
-        optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
@@ -99,19 +98,20 @@ def test_model(model, cModel, test_loader):
         total_test = 0
         for img, label in test_loader:
             img = img.to(device)
-            label = label.to(device)
+            label = label.to(device).float()
 
             fv = model(img)
             output = cModel(fv)
-            print(output.data)
+            output = output.view(-1)
+            # print(output)
             predicted = (output > 0.5).float()
             print(">>>>> Predicted")
             print(predicted)
 
             print(">>>>> Actual")
-            print(label.view(-1, 1))
+            print(label)
             total_test += label.size(0)
-            correct_predict += (predicted == label.view(-1, 1)).sum().item()
+            correct_predict += (predicted == label).sum().item()
             # break
     
     return correct_predict/total_test
@@ -188,12 +188,12 @@ if __name__ == '__main__':
 
     #########  TRAINING SIAMASE MODEL ##########
     # Testing model
-    # model = RawSiameseModel().to(device)
-    model = ResNet18Siamese().to(device)
+    model = RawSiameseModel().to(device)
+    # model = ResNet18Siamese().to(device)
 
     # hyper parameters
-    num_epochs = 40
-    learning_rate = 0.0005
+    num_epochs = 10
+    learning_rate = 0.0001
 
     criterion = ContrastiveLossFunction()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.9, 0.999)) # Optimize model parameter
@@ -236,12 +236,12 @@ if __name__ == '__main__':
     #########  TRAINING BINARY CLASSIFIER MODEL ########## 
     # hyper parameters for classifier
 
-    num_epochs = 10
+    num_epochs = 40
     learning_rate = 0.001
     cModel = BinaryModelClassifier().to(device)
 
     criterionB = nn.BCELoss()
-    optimizerB = torch.optim.SGD(cModel.parameters(), lr=learning_rate)
+    optimizerB = torch.optim.Adam(cModel.parameters(), lr=learning_rate)
 
     classifier_loss_list = []
     avg_classifier_loss_list = []
