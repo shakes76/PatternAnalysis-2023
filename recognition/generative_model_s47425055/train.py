@@ -5,9 +5,10 @@ import numpy as np
 import time
 from pathlib import Path
 import matplotlib.pyplot as plt
+from itertools import cycle
 import torch.nn.functional as F
 from torch.distributions.normal import Normal
-from modules import VectorQuantizedVAE, compute_ssim, weights_init, to_scalar, plot_losses_and_scores
+from modules import VectorQuantizedVAE, compute_ssim, weights_init, to_scalar, plot_losses_and_scores, generate_samples
 from dataset import train_loader, val_loader, test_loader
 
 # Constants
@@ -25,7 +26,7 @@ DEVICE = torch.device('cuda')
 
 # Global best epoch and model path
 BEST_EPOCH = 0
-MODEL_PATH_TEMPLATE = 'models/checkpoint_epoch{}_vqvae.pt'
+MODEL_PATH_TEMPLATE = 'models2/checkpoint_epoch{}_vqvae.pt'
 
 # Constants for determining the importance of SSIM and reconstruction loss
 ALPHA = 0.5  # weight for SSIM, range [0, 1]
@@ -42,7 +43,7 @@ val_losses = []
 ssim_scores = []
 
 # Directories
-Path('models').mkdir(exist_ok=True)
+Path('models2').mkdir(exist_ok=True)
 Path('samples3').mkdir(exist_ok=True)
 
 # Model setup
@@ -98,8 +99,13 @@ def train():
             ))
         total_loss_vq += loss_vq.item()
         num_batches += 1
-    avg_loss_recons = total_loss_recons / num_batches
-    avg_loss_vq = total_loss_vq / num_batches
+    if num_batches > 0:
+        avg_loss_recons = total_loss_recons / num_batches
+        avg_loss_vq = total_loss_vq / num_batches
+    else:
+        avg_loss_recons = 0
+        avg_loss_vq = 0
+    
 
     train_losses_epoch.append((avg_loss_recons, avg_loss_vq))
     print('Epoch Loss: Recons {:.4f}, VQ {:.4f}'.format(avg_loss_recons, avg_loss_vq))
@@ -112,6 +118,7 @@ def validate():
     batch_count = 0   # Counter for batches
     total_loss_recons = 0.0
     total_loss_vq = 0.0
+    num_batches = 0
     with torch.no_grad():  # No gradient required for validation
         for batch_idx, (x, _) in enumerate(val_loader):
             x = x.to(DEVICE)
@@ -124,12 +131,17 @@ def validate():
 
             # Compute SSIM for the current batch and accumulate
             ssim_accum += compute_ssim(x, x_tilde)
-            ssim_accum += ssim_accum
-        batch_count += 1
 
-    avg_loss_recons = total_loss_recons / num_batches
-    avg_loss_vq = total_loss_vq / num_batches
-    avg_ssim = ssim_accum / num_batches
+            batch_count += 1
+            num_batches += 1
+    if num_batches > 0:
+        avg_loss_recons = total_loss_recons / num_batches
+        avg_loss_vq = total_loss_vq / num_batches
+        avg_ssim = ssim_accum / num_batches
+    else:
+        avg_loss_recons = 0
+        avg_loss_vq = 0
+        avg_ssim = 0
         
     val_losses.append((avg_loss_recons, avg_loss_vq))
     ssim_scores.append(avg_ssim)
@@ -165,6 +177,7 @@ def test():
             batch_count += 1
     # Calculate the average SSIM for all batches
     avg_ssim = ssim_accum / batch_count
+
     # print average ssim score for the test set
     print(f"Average Test SSIM: {avg_ssim:.4f}")
     return avg_ssim  # return SSIM score
@@ -174,13 +187,10 @@ total_loss_recons = 0.0
 
 
 if __name__ == '__main__':
-
+    test_loader_iter = cycle(test_loader) # Initialize cycling iterator here
     for epoch in range(1, N_EPOCHS):
         print(f"Epoch {epoch}:")
         train()
-        
-        
-       
        
         # Calculate the combined metric
         combined_metric = validate()
@@ -192,6 +202,8 @@ if __name__ == '__main__':
             dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
             torch.save(model.state_dict(), MODEL_PATH_TEMPLATE.format(epoch))
             BEST_EPOCH = epoch
+            with open("best_epoch.txt", "w") as file:
+                file.write(str(BEST_EPOCH))
 
             # Log the best reconstruction loss and SSIM
             BEST_SSIM = ssim_scores[-1]
@@ -206,6 +218,8 @@ if __name__ == '__main__':
         
         # Step the scheduler to adjust learning rate
         scheduler.step()
+    # Load the best model before testing
+    model.load_state_dict(torch.load(MODEL_PATH_TEMPLATE.format(BEST_EPOCH)))
     # Testing the model after training
     test_ssim = test()
     print(f"Average SSIM on Test Set: {test_ssim:.4f}")
