@@ -1,5 +1,5 @@
 import torch
-
+import matplotlib.pyplot as plt
 from modules import GCN
 from dataset import test_train
 
@@ -17,18 +17,37 @@ def step_forward():
     
     x = data.x.float()
     outputs = model(x, data.edge_index)  # Perform a single forward pass.
-    loss = criterion(outputs[data.train_mask], data.y[data.train_mask])  # Compute the loss solely based on the training nodes.
+    loss = criterion(outputs[data.val_mask], data.y[data.val_mask])  # Compute the loss solely based on the training nodes.
     loss.backward()  # Derive gradients.
     optimizer.step()  # Update parameters based on gradients.
     return loss
 
-def train(epochs=10):
+def train(epochs=300):
+    loss_list = []
+    
     for epoch in range(1, epochs):
         loss = step_forward()
+        loss_list.append(loss.item())
         print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}')
+    
+    plt.plot(loss_list)
+    plt.title('Training loss of 128-64-16 layer')
+    plt.xlabel('num of epochs')
+    plt.ylabel('training loss')
+    plt.show()
+    
+def test():
+    model.eval()
+    out = model(data.x, data.edge_index)
+    pred = out.argmax(dim=1)  # Use the class with highest probability.
+    test_correct = pred[data.test_mask] == data.y[data.test_mask]  # Check against ground-truth labels.
+    test_acc = int(test_correct.sum()) / int(data.test_mask.sum())  # Derive ratio of correct predictions.
+    print('test accuraccy:', test())
+    return test_acc
+
 
 def save_model():
     torch.save(model, 'GCN.pt')
 
 train()
-save_model()
+test()
