@@ -75,11 +75,26 @@ At first, two siamese networks were trained, each having different hyperparamete
 
 The classifer that has the highest accuracy is "best_classifier_model_50_30_3.pth" with the accuracy score of 0.721. To reach this accuracy, it involved a series of  experimental adjustments: making the classifier's architecture more complex, increasing the dropout rate of the classifier, introducing weight decay to the optimiser, adding a learning rate scheduler during training, and implementing a strategy to preserve the best classifier during training.
 
-ADD GRAPHS FOR THE BEST MODELS
+Below is the loss plot when training siamese.50.pth (the best siamese)
+![](images_for_readme/siamese_loss_curve_siamese_50.png) 
+Observing the plot above, the model converges to a low loss.
+
+Below is the loss and accuracy plot when training best_classifier_model_50_30_3.pth (the best classifier)
+Loss         |  Accuracy
+:-------------------------:|:-------------------------:
+![](![images_for_readme/218391_78_AD.jpeg](images_for_readme/classifier_loss_plot_classifier_model_50_30_3.png))  |  ![](images_for_readme/classifier_accuracy_plot_classifier_model_50_30_3.png)
+
+Observing the loss plot above, from the first epoch, the training loss has already reached a minimum loss. The validation loss in the first couple of epochs fluctuates and then reaches the minimum loss at 30 epochs.
+
+Observing the accuracy plot above, from the first epoch, the training accuracy is already above 0.9. The validation accuracy in the first couple of epochs fluctuates and then reaches the high accuracy at 23 epochs.
+
+From both plots above, it can be concluded that the classifier overfits to the training data. One way to remedy overfitting is to make the architecture a simpler since the current architecture can already learn well during the first few epochs. 
 
 
 ## Testing Results
-The best classifer was only able to reach 72%. To do inference on the trained siamese and classifier
+The best classifer was only able to reach 72% on the test set.
+ 
+ To do inference on a trained siamese and classifier, run the predict.py file. There is a section called "#----DEFINE MODEL PATHS----" where you can modify the paths of the trained models. The predict.py will do inference using both models of one input image.
 
 ## Dependencies and Reproducability
 
