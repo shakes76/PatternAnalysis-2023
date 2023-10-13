@@ -80,3 +80,106 @@ The model achieves reasonable accuracy and will perform well in production for t
 A T-SNE plot is made that shows the final embedding of the nodes before the linear layer is applied to reduce the final dimension. 128 embedded features are used and the first two T-SNE features are plotted. As can be seen, the classes are grouped together in the embedding with little overlap for most classes. This allows the linear model to distinguish between the classes in the high dimensional embedding space and output a value that can be used to derive the predicted class. 
 
 ![](figures/tsne.png)
+
+## Running
+The algorithm can be run in full by running
+> bash run_model.sh
+
+or can be trained using 
+> python3 train.py
+
+Alternatively, you can test the latest run of the training on a saved model using
+> python3 predict.py
+
+## Dependencies
+alembic==1.12.0
+asttokens==2.4.0
+backcall==0.2.0
+certifi==2023.7.22
+charset-normalizer==3.2.0
+cmaes==0.10.0
+cmake==3.27.5
+colorlog==6.7.0
+comm==0.1.4
+contourpy==1.1.1
+cycler==0.12.0
+debugpy==1.8.0
+decorator==5.1.1
+exceptiongroup==1.1.3
+executing==1.2.0
+filelock==3.12.4
+fonttools==4.43.0
+greenlet==3.0.0
+idna==3.4
+ipykernel==6.25.2
+ipython==8.16.0
+jedi==0.19.0
+Jinja2==3.1.2
+joblib==1.3.2
+jupyter_client==8.3.1
+jupyter_core==5.3.2
+kiwisolver==1.4.5
+lit==17.0.1
+Mako==1.2.4
+MarkupSafe==2.1.3
+matplotlib==3.8.0
+matplotlib-inline==0.1.6
+mpmath==1.3.0
+nest-asyncio==1.5.8
+networkx==3.1
+numpy==1.26.0
+nvidia-cublas-cu11==11.10.3.66
+nvidia-cuda-cupti-cu11==11.7.101
+nvidia-cuda-nvrtc-cu11==11.7.99
+nvidia-cuda-runtime-cu11==11.7.99
+nvidia-cudnn-cu11==8.5.0.96
+nvidia-cufft-cu11==10.9.0.58
+nvidia-curand-cu11==10.2.10.91
+nvidia-cusolver-cu11==11.4.0.1
+nvidia-cusparse-cu11==11.7.4.91
+nvidia-nccl-cu11==2.14.3
+nvidia-nvtx-cu11==11.7.91
+optuna==3.3.0
+packaging==23.1
+pandas==2.1.1
+parso==0.8.3
+pexpect==4.8.0
+pickleshare==0.7.5
+Pillow==10.0.1
+platformdirs==3.10.0
+prompt-toolkit==3.0.39
+psutil==5.9.5
+ptyprocess==0.7.0
+pure-eval==0.2.2
+pyg-lib==0.2.0+pt20cu118
+Pygments==2.16.1
+pyparsing==3.1.1
+python-dateutil==2.8.2
+pytz==2023.3.post1
+PyYAML==6.0.1
+pyzmq==25.1.1
+requests==2.31.0
+scikit-learn==1.3.1
+scipy==1.11.3
+seaborn==0.13.0
+six==1.16.0
+SQLAlchemy==2.0.21
+stack-data==0.6.2
+sympy==1.12
+threadpoolctl==3.2.0
+torch==2.0.1
+torch-cluster==1.6.1+pt20cu118
+torch-geometric==2.3.1
+torch-scatter==2.1.1+pt20cu118
+torch-sparse==0.6.17+pt20cu118
+torch-spline-conv==1.2.2+pt20cu118
+torchaudio==2.0.2
+torchvision==0.15.2
+tornado==6.3.3
+tqdm==4.66.1
+traitlets==5.10.1
+triton==2.0.0
+typing_extensions==4.8.0
+tzdata==2023.3
+urllib3==2.0.5
+wcwidth==0.2.8
