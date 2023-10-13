@@ -23,4 +23,4 @@ print("Testing SNN model")
 model.evaluate(test_ds, verbose=1)
 
 print("Saving SNN model")
-model.save("snn.h5")
+model.save("snn.keras")
