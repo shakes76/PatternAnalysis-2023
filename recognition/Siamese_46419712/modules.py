@@ -127,28 +127,6 @@ class RawSiameseModel(nn.Module):
 
         return output
 
-class SiameseModel(nn.Module): # may not need this
-
-    def __init__(self):
-        super(SiameseModel, self).__init__()
-        # Follow https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf -> Siamese Neural Networks for One-shot Image Recognition
-        # temporary separate to two class -> considered combine later
-        self.base_model = RawSiameseModel()
-
-        self.final_connect_layer = nn.Sequential(
-            nn.Linear(4096, 1),
-            nn.Sigmoid()
-        )
-    
-    def forward(self, img1, img2):
-        output1 = self.base_model(img1)
-        output2 = self.base_model(img2)
-        
-        output = torch.abs(output1 - output2)
-        output = self.final_connect_layer(output)
-
-        return output
-
 class BinaryModelClassifier(nn.Module):
 
     def __init__(self):
