@@ -69,3 +69,27 @@ class Encoder(nn.Module):
         attentionOut = self.attention(normalisation, normalisation, normalisation)[0]
         normalisation = self.norm(attentionOut + embeddedPatches)
         return (self.encoderMLP(normalisation) + attentionOut + embeddedPatches)
+    
+class ViT(nn.Module):
+    def __init__(self, args) -> None:
+        super(ViT, self).__init__()
+
+        self.dropout = args.dropout
+        self.num_classes = args.num_classes
+        self.num_encoders = args.num_encoders
+        self.latent_size = args.latent_size
+        
+        self.encoders = nn.ModuleList([Encoder(args) for i in range(self.num_encoders)])
+        self.embedding = InputEmbedding(args)
+        self.MLP = nn.Sequential(
+            nn.LayerNorm(self.latent_size),
+            nn.Linear(self.latent_size, self.latent_size),
+            nn.Linear(self.latent_size, self.num_classes)
+        )
+
+    def forward(self, input):
+        encoderOut = self.embedding(input)
+        for layer in self.encoders:
+            encoderOut = layer(encoderOut)
+        classTokenEmbedded = encoderOut[:, 0]
+        return self.MLP(classTokenEmbedded)
