@@ -1,6 +1,5 @@
 import subprocess
 import unittest
-import dataset
 
 class TestGenerativeModel(unittest.TestCase):
     def test_training_script(self):
