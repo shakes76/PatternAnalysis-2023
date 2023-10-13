@@ -140,7 +140,7 @@ output -> Num params:  21277921
 
 The neural network cannot distinguish between each timesteps as the network has its parameters shared across time but it is required to filter out noise of varying intensities. This is worked around by using positional embeddings which stores the noise intensity information. The positions index are calculated using sine and cosine: 
 
-$$P(k, 2i) = \sin(k / (n^{2i/d}))$$, $$P(k, 2i + 1) = \cos(k / (n^{2i/d}))$$
+$$P(k, 2i) = \sin(k / (n^{2i/d})), P(k, 2i + 1) = \cos(k / (n^{2i/d}))$$
 
 These are added as additional input alongside the noisy image. The following code is used in the U-Net model:
 
