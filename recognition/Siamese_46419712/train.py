@@ -48,14 +48,14 @@ def validate_siamese(model, val_loader, criterion, val_loss_list):
 
     with torch.no_grad():
         for val in val_loader:
-            img0, img1, labels = val
+            img0, img1, label = val
             img0 = img0.to(device)
             img1 = img1.to(device)
-            labels = labels.to(device)
+            label = label.to(device)
 
             output1 = model(img0)
             output2 = model(img1)
-            loss = criterion(output1, output2, labels)
+            loss = criterion(output1, output2, label)
             val_loss_list.append(loss.item())
 
 def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_list):
@@ -68,8 +68,8 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
         label = label.to(device).float()
         optimizer.zero_grad()
 
-        fv1 = sModel(img)
-        output = cModel(fv1)
+        fv = sModel(img)
+        output = cModel(fv)
         loss = criterion(output.view(-1), label)
 
         loss.backward()
@@ -82,7 +82,27 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
                     .format(i+1, len(train_loader), loss.item()))
 
 def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list):
-    pass
+    sModel.eval()
+    cModel.eval()
+
+    with torch.no_grad():
+        correct_predict = 0
+        total_test = 0
+        for img, label in val_loader:
+            img = img.to(device)
+            label = label.to(device).float()
+
+            fv = sModel(img) 
+            output = cModel(fv)
+
+            loss = criterion(output.view(-1), label)
+            val_loss_list.append(loss.item())
+
+            predicted = (output > 0.5).float()
+            total_test += label.size(0)
+            correct_predict += (predicted == label).sum().item()
+
+            print(f"Validate predict >>>> {100 * correct_predict / total_test}%")
 
 def test_model(model, cModel, test_loader):
     # evaluate the model
@@ -107,7 +127,6 @@ def test_model(model, cModel, test_loader):
             print(label)
             total_test += label.size(0)
             correct_predict += (predicted == label).sum().item()
-            # break
     
     return correct_predict/total_test
 
