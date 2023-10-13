@@ -14,3 +14,6 @@
     performs forward propagation and directional propagation.
 ## 6、utils/utils.py
     Other related tools
+
+## 7、train.py
+    Training file, called by run_train.sh
