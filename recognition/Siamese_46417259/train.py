@@ -12,7 +12,7 @@ import torch.nn.functional as F
 # import numpy as np
 import matplotlib.pyplot as plt
 
-from modules import SiameseTwin, SiameseNeuralNet, SiameseMLP
+from modules import SiameseTwin, SiameseNeuralNet, SiameseMLP, SimpleMLP
 from dataset import PairedDataset, load_data
 
 TRAIN_PATH = '/home/groups/comp3710/ADNI/AD_NC/train/'
@@ -73,6 +73,18 @@ def initialise_classifier_training(backbone: torch.nn.Module):
 
     criterion = nn.BCELoss()
     optimiser = optim.Adam(classifier.mlp.parameters(), lr=1e-3, betas=(0.9, 0.999))
+    return classifier, criterion, optimiser, device
+
+def initialise_classifier_training():
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
+    print("Device: ", device)
+    
+    classifier = SimpleMLP()
+    classifier = classifier.to(device)
+    print(classifier)
+
+    criterion = nn.BCELoss()
+    optimiser = optim.Adam(classifier.parameters(), lr=1e-3, betas=(0.9, 0.999))
     return classifier, criterion, optimiser, device
 
 def load_from_checkpoint(filename:str, model:nn.Module, optimizer:optim.Optimizer):
@@ -232,7 +244,13 @@ def eval_classifier_one_epoch(model: nn.Module,
             loss = criterion(outputs, labels)
             total_loss += loss.item()
 
-            predicted = torch.round(outputs)
+            # predicted = torch.round(outputs)
+            predicted = (outputs > 0.5).float()
+            print(">>>>> Predicted")
+            print(predicted)
+
+            print(">>>>> Actual")
+            print(labels)
             # _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
@@ -354,19 +372,19 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
 
 if __name__ == "__main__":
     # normal training workflow
-    net = Siamese_training(20, 69)
-    classifier_training(net.backbone, 20, 69)
+    # net = Siamese_training(20, 69)
+    # classifier_training(net.backbone, 20, 69)
 
     # training Siamese workflow
     # Siamese_training(50, 69, "SiameseNeuralNet_checkpoint.tar")
 
     # train classifier from existing Siamese model workflow
-    # checkpoint = "SiameseNeuralNet_checkpoint.tar"
-    # siamese_net, criterion, optimiser, device = initialise_Siamese_training()
-    # start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
-    # print(f"best epoch: {start_epoch - 1}")
-    # print(f"training losses: {training_losses}")
-    # print(f"eval losses: {eval_losses}")
+    checkpoint = "SiameseNeuralNet_checkpoint.tar"
+    siamese_net, criterion, optimiser, device = initialise_Siamese_training()
+    start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
+    print(f"best epoch: {start_epoch - 1}")
+    print(f"training losses: {training_losses}")
+    print(f"eval losses: {eval_losses}")
 
-    # classifier_training(siamese_net.backbone, 10, 69)
+    classifier_training(siamese_net.backbone, 10, 69)
 

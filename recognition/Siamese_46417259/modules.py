@@ -81,6 +81,28 @@ class SiameseMLP(nn.Module):
         out = self.mlp(out)
         return out
 
+class SimpleMLP(nn.Module):
+    def __init__(self) -> None:
+        super(SimpleMLP, self).__init__()
+        
+        self.mlp = nn.Sequential(
+            nn.Linear(4096, 1024),
+            # nn.BatchNorm1d(1024),
+            nn.ReLU(),
+            nn.Linear(1024, 128),
+            # nn.BatchNorm1d(128),
+            nn.ReLU(),
+            nn.Linear(128, 16),
+            # nn.BatchNorm1d(16),
+            nn.ReLU(),
+            nn.Linear(16, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        out = self.mlp(out)
+        return out
+
 #
 # testing scripts
 #
