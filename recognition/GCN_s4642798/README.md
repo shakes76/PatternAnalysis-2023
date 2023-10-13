@@ -74,6 +74,10 @@ matplotlib:3.7.2
 scikit-learn:1.3.0
 ```
 
+### Reproduciblility of Results
+
+The provided code, data, and detailed methodology documentation ensure the reproducibility of the results. Users can replicate the experiment by following the instructions and dependencies outlined, guaranteeing a high likelihood of achieving similar outcomes.
+
 ## Data Pre-Processing
 
 The data was loaded from an `.npz` file, resulting in three NumPy arrays: `edges` representing network edges, `features` for node features, and `target` for node classification labels. The NumPy arrays were converted to PyTorch tensors to work with PyTorch's deep learning framework. The `edges` tensor and `target` tensor were cast to the integer type (`int64`) to ensure compatibility with integer-based operations. Self-loops were added to the `edges` tensor to include edges from each node to itself. As mentioned above, this is often done in GCNs to ensure that each node's information is considered. The `edges` tensor was transformed into a sparse tensor format using `torch.sparse_coo_tensor`. This is useful for efficient storage and computation. The dataset was split into training, validation, and test sets using random sampling. The training set comprises `70%` of the data, the validation set `15%`, and the test set `15%`. Binary masks (Boolean tensors) were created to identify which data points belong to each split.
