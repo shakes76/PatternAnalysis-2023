@@ -269,3 +269,80 @@ class VectorQuantizer(nn.Module):
         z_q = z_q.permute(0, 3, 1, 2).contiguous()
 
         return embedding_loss, z_q
+    
+"""
+Architecture guidelines for stable Deep Convolutional GANs
+    • Replace any pooling layers with strided convolutions (discriminator) and fractional-strided convolutions (generator).
+    • Use batchnorm in both the generator and the discriminator.
+    • Remove fully connected hidden layers for deeper architectures.
+    • Use ReLU activation in generator for all layers except for the output, which uses Tanh.
+    • Use LeakyReLU activation in the discriminator for all layers.
+
+Note: no pooling layers are used. 
+"""
+class Discriminator(nn.Module):
+    """
+    Detect fake images from real images (encoder).
+
+    Takes a 3 x 64 x 64 image, and outputs a single number representing 
+    probability of it being real or fake. 
+    """
+    def __init__(self, channels_img, features_d):
+        super(Discriminator, self).__init__()
+        # Input: N x channels_img x 64 x 64
+        self.net = nn.Sequential(
+            nn.Conv2d(channels_img, features_d, kernel_size=4, stride=2, padding=1), # With a stride of 2, need padding of 1 - prevents downsampling.
+            nn.LeakyReLU(0.2), # Allows 0.2 of the negative
+            self._block(3, 64, 2),
+            self._block(64, 128, 2),
+            self._block(128, 256, 2),
+            self._block(256, 512, 2), 
+            nn.Conv2d(512, 1, kernel_size=4, stride=1, padding=0, bias=False),
+            nn.Flatten(),
+            nn.Sigmoid() # convert to probability output [0,1]
+        )
+
+    # Create a discriminator block with a convolutional layer, batch normalization, and leaky ReLU activation.
+    def _block(self, in_planes, planes, stride):
+        # Use of strided convolution is better than downsampling - model pools itself. 
+        return nn.Sequential(
+            nn.Conv2d(in_planes, planes, kernel_size=4, stride=stride, padding=1, bias=False),
+            nn.BatchNorm2d(planes),
+            nn.LeakyReLU(0.2, inplace=True)
+        )
+
+    def forward(self, x):
+        return self.net(x)
+    
+# Create the generator model.
+class Generator(nn.Module):
+    """ 
+    Produce fake images sampled from the latent space (decoder).
+
+    Needs to receive latent space vector as an input, and map to data space (image). 
+        - Hence, need to create an image that's the same size as training images (3x64x64).
+    Batch norm after the conv-transpose layers helps with vanishing gradient problem.
+        - normalizing input to have zero mean and unit variance = deals with poor initialization. 
+    """
+    def __init__(self, channels_noise, channels_img, features_g):
+        super(Generator, self).__init__()
+        # Input: N x channels_noise x 1 x 1
+        self.net = nn.Sequential(
+            self._block(channels_noise, 512, 1), 
+            self._block(512, 256, 2), 
+            self._block(256, 128, 2), 
+            self._block(128, 64, 2), 
+            nn.ConvTranspose2d(64, channels_img, kernel_size=4, stride=2, padding=1), # N x channels_img x 64 x 64
+            nn.Tanh() # convert to [-1, 1] 
+        )
+
+    # Create a generator block with a transposed convolutional layer, batch normalization, and ReLU activation.
+    def _block(self, in_plane, plane, stride):
+        return nn.Sequential(
+            nn.ConvTranspose2d(in_plane, plane, kernel_size=4, stride=stride, padding=1, bias=False),
+            nn.BatchNorm2d(plane),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        return self.net(x)
