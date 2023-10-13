@@ -22,5 +22,27 @@ optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 # Load the data
 train_loader, test_loader = get_dataloaders("C:\\Users\\soonw\\ADNI\\AD_NC", batch_size=batch_size)
 
+# Training loop
+losses = []
+for epoch in range(num_epochs):
+    model.train()
+    epoch_loss = 0
+    for batch_idx, (downsampled, original, _) in enumerate(train_loader):
+        downsampled, original = downsampled.to(device), original.to(device)
+
+        # Forward pass
+        outputs = model(downsampled)
+        loss = criterion(outputs, original)
+        epoch_loss += loss.item()
+
+        # Backward pass and optimization
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        if (batch_idx+1) % 10 == 0:
+            print(f"Epoch [{epoch+1}/{num_epochs}], Step [{batch_idx+1}/{len(train_loader)}], Loss: {loss.item():.4f}")
+    
+    losses.append(epoch_loss / len(train_loader))
 
 
