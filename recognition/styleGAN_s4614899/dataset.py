@@ -67,9 +67,9 @@ def get_loader(image_size):
 
 def check_loader():
     loader,_ = get_loader(256)
-    img  = next(iter(loader))
-    _,ax     = plt.subplots(3,3,figsize=(8,8))
-    plt.suptitle('Some real samples')
+    img = next(iter(loader))
+    _,ax = plt.subplots(3,3,figsize=(8,8))
+    plt.suptitle('Real sample images')
     ind = 0
     for k in range(3):
         for kk in range(3):
@@ -80,7 +80,7 @@ def check_loader():
         os.makedirs("output_images")
 
     # Save the figure to the specified path
-    save_path = os.path.join("output_images", "sample_grid.png")
+    save_path = os.path.join("output_images", "real_grid.png")
     plt.savefig(save_path)
 
     plt.close()
