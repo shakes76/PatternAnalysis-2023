@@ -1,5 +1,7 @@
 import os
 import cv2
+import zipfile
+import gdown
 
 def draw_yolo_bboxes_on_image(image_path, txt_path):
     """
@@ -62,6 +64,36 @@ def draw_yolo_bboxes_on_image(image_path, txt_path):
 
 
 
+def download_and_unzip(folder_path, download_url):
+    """
+    Checks if a folder exists at the specified path. 
+    If not, downloads a zip file from the provided URL using gdown and unzips it.
+    
+    Parameters:
+    - folder_path: Path to the folder you want to check.
+    - download_url: The gdown URL of the zip file to download if the folder doesn't exist.
+    """
+
+    # Check if folder exists
+    if not os.path.exists(folder_path):
+        print(f"Folder {folder_path} does not exist. Downloading the zip file...")
+        
+        # Download zip file using gdown
+        output = "temp_download.zip"
+        gdown.download(download_url, output, quiet=False)
+        
+        # Unzip the downloaded file
+        print("Unzipping the downloaded file...")
+        with zipfile.ZipFile(output, 'r') as zip_ref:
+            zip_ref.extractall(folder_path)
+        
+        # Delete the downloaded zip file
+        os.remove(output)
+        print(f"Files have been extracted to {folder_path}")
+    else:
+        print(f"Folder {folder_path} already exists.")
+
+
 
 
 def main(txt_folder_path, img_folder_path):
@@ -81,4 +113,10 @@ def main(txt_folder_path, img_folder_path):
 if __name__ == "__main__":
     TXT_FOLDER_PATH = "/Users/larsmoan/Documents/UQ/COMP3710/PatternAnalysis-2023/lesion_detection_larsmoan/data/ISIC_2017/yolo_labels"
     IMG_FOLDER_PATH = "/Users/larsmoan/Documents/UQ/COMP3710/PatternAnalysis-2023/lesion_detection_larsmoan/data/ISIC_2017/imgs"
-    main(TXT_FOLDER_PATH, IMG_FOLDER_PATH)
+    #main(TXT_FOLDER_PATH, IMG_FOLDER_PATH)
+    
+
+    dataset_folder = "path/to/check/folder"
+    url = "https://drive.google.com/19HcgRBuXyhzxsukE2jHPnBkC0hEk_aMJ"
+    download_and_unzip(dataset_folder, url)
+

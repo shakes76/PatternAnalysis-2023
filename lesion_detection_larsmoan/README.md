@@ -21,6 +21,7 @@ Brief description of the project, its objectives, and its significance.
 
 ### Todo
 - [ ] Create my own training script that works on top of yolov7/train.py
+- [ ] Make a downsampled version of the dataset.
 - [ ] Manage a way of logging the runs to wandb
 - [ ] Zip and upload dataset to gdrive, and make functions for fetching the dataset from the cluster.
 - [ ] Make training scripts for use on the rangpur cluster.
