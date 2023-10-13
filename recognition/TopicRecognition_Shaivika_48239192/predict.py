@@ -11,3 +11,7 @@ Images, Labels = load_and_preprocess_data()
 
 # Load the trained model
 model = tf.keras.models.load_model('model/trained_model.h5')
+
+# Make predictions
+y_pred = model.predict(Images)
+y_pred = np.argmax(y_pred, axis=1)
