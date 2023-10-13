@@ -60,7 +60,7 @@ Works with PyTorch Version 2.0.1 or above.
 
 ### Dataset
 
-Used the Alzheimer's Disease Neuroimaging Initiative (ADNI) MRI dataset. Available at: https://adni.loni.usc.edu/data-samples/access-data/
+Uses the Alzheimer's Disease Neuroimaging Initiative (ADNI) MRI dataset. Available at: https://adni.loni.usc.edu/data-samples/access-data/
 
 ### Hardware
 
@@ -70,9 +70,9 @@ It is recommended to use hardware acceleration in the form of GPUs when training
 
 ### Data Preprocessing
 
-Data preprocessing is performed in the `dataset.py` in the `Dataset` class. The initialisation function first determines the type of dataset (train or test) based on the train parameter. It constructs appropriate file paths for the dataset, considering whether it's meant for training or testing.
+Data preprocessing is performed in the `dataset.py` in the `Dataset` class. The initialisation function first determines the type of dataset (train or test) based on the train parameter. It navigates to the appropriate file paths for the dataset, considering whether it's meant for training or testing.
 
-Following that, the dataset then undergoes standardization through normalization. The mean and standard deviation values are set to 0.5 for each channel. Normalization ensures that the pixel values of the images are within a standardized range, making it easier for machine learning models to learn patterns from the data. Additionally, the images are converted into PyTorch tensors.
+Following that, the dataset then undergoes normalization. The mean and standard deviation values are set to 0.5 for each channel. Normalization ensures that the pixel values of the images are within a standardized range, making it easier for machine learning models to learn patterns from the data. Additionally, the images are converted into PyTorch tensors.
 
 ### Example Inputs and Outputs
 
@@ -102,7 +102,7 @@ Finally, the Adam optimiser is used with betas values of 0.5 and 0.999. These va
 
 ### Variable Learning Rate Scheduller
 
-Furthermore a variable learning rate scheduller is used in addition to the "built-in" expoenetial decays of the Adam optimiser. This is done to further improve the training process and to help the network converge during the training process. The learning rates for the generator and the discriminator are defined as follows:
+Furthermore a variable learning rate scheduller is used in addition to the "built-in" exponential decays of the Adam optimiser. This is done to further improve the training process and to help the network converge during the training process. The learning rates for the generator and the discriminator are defined as follows:
 
 $lr_{generator} = 3\times10^{-5}\times 0.95^{epoch}$
 
@@ -120,16 +120,16 @@ The learning rate of the generator and the discriminator for the first 100 epoch
 
 **Training Stability:** As mentioned in the previous section about the variable learning rate scheduller, GAN networks diverge easily when training and are very sensitive to the initial hyperparameters. The variable LR attempts to mitigate this by exponentially reducing the learning rate. This is not optimal because it required are larger number of epochs for the model to train.
 
-**Training Time:** Another current limitation is the amount of time it takes to train the current model. The model used to generate the output images in the resport ran for 300 epochs which took 258 minutes (4 hours and 18 minutes) on NVIDIA A100s using the ADNI dataset with a batch size of 16. This is because of the learning rate decay as previously mentioned. Improvements in training stability or increasing the batch size may allow for higher learning rates. However, GANs are extremely sensitive to these hyperparameters therefore other parameters may also need to be changed to ensure a convergent training process.
+**Training Time:** Another current limitation is the amount of time it takes to train the current model. The model used to generate the output images in the resport ran for 300 epochs which took 258 minutes (4 hours and 18 minutes) on NVIDIA A100 GPUs using the ADNI dataset with a batch size of 16. This is because of the learning rate decay as previously mentioned. Improvements in training stability or increasing the batch size may allow for higher learning rates. However, GANs are extremely sensitive to these hyperparameters therefore other parameters may also need to be changed to ensure a convergent training process.
 
 **Pixel-Level Artifacts:** Finally, GAN models tend to produce small pixel-level artifacts that is not present within the original image. For this model, these aretifacts are not very obvious unless one zooms further into the image. These can be a cause for concern since MRI images are crucial for diagnostics and artifacts in the images that may not exist in reality can be very serious. For this, a much improved model would have to be developed in order to further increase the similarity between the real and reconstructed images.
 
 ## References
 
-[^1] Brownlee, J. (2019) Tips for training stable generative Adversarial Networks, MachineLearningMastery.com. Available at: https://machinelearningmastery.com/how-to-train-stable-generative-adversarial-networks/
+[^1]: Brownlee, J. (2019) Tips for training stable generative Adversarial Networks, MachineLearningMastery.com. Available at: https://machinelearningmastery.com/how-to-train-stable-generative-adversarial-networks/
 
-[^2] Saxena, S. (2023) Introduction to batch normalization, Analytics Vidhya. Available at: https://www.analyticsvidhya.com/blog/2021/03/introduction-to-batch-normalization/#:~:text=Batch%20normalization%20is%20essential%20because,process%20more%20stable%20and%20faster.
+[^2]: Saxena, S. (2023) Introduction to batch normalization, Analytics Vidhya. Available at: https://www.analyticsvidhya.com/blog/2021/03/introduction-to-batch-normalization/#:~:text=Batch%20normalization%20is%20essential%20because,process%20more%20stable%20and%20faster.
 
-[^3] Hui, J. (2020) Gan - ways to improve gan performance, Medium. Available at: https://towardsdatascience.com/gan-ways-to-improve-gan-performance-acf37f9f59b
+[^3]: Hui, J. (2020) Gan - ways to improve gan performance, Medium. Available at: https://towardsdatascience.com/gan-ways-to-improve-gan-performance-acf37f9f59b
 
-[^4] Brownlee, J. (2021) Gentle introduction to the adam optimization algorithm for deep learning, MachineLearningMastery.com. Available at: https://machinelearningmastery.com/adam-optimization-algorithm-for-deep-learning/
+[^4]: Brownlee, J. (2021) Gentle introduction to the adam optimization algorithm for deep learning, MachineLearningMastery.com. Available at: https://machinelearningmastery.com/adam-optimization-algorithm-for-deep-learning/
