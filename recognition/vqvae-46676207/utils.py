@@ -31,11 +31,11 @@ TEST_INPUT_PATH = DATA_PATH + 'keras_png_slices_test/'           # test input
 VALID_TARGET_PATH = DATA_PATH + 'keras_png_slices_seg_validate/' # train target
 TRAIN_TARGET_PATH = DATA_PATH + 'keras_png_slices_seg_train/'    # valid target
 TEST_TARGET_PATH = DATA_PATH + 'keras_png_slices_seg_test/'      # test target
-MODEL_PATH = './vqvae2.pth'         # trained model
+MODEL_PATH = './vqvae2.pt'         # trained model
 TRAIN_TXT = './oasis_train.txt'     # info of img for train
 VALID_TXT = './oasis_valid.txt'     # info of img for valid
 TEST_TXT = './oasis_test.txt'       # info of img for test
-GENERATED_IMG_PATH = 'gened_imgs/'
+GENERATED_IMG_PATH = 'predicts/'
 
 # Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

@@ -33,7 +33,7 @@ def train_vae(trainloader, n_epochs, model, optimizer, criterion):
 
     return model
 
-def train_vqvae(epoch, loader: DataLoader, model, optimizer, scheduler, device):
+def train_vqvae(epoch, loader: DataLoader, model: VQVAE, optimizer, scheduler, device):
     criterion = nn.MSELoss()
 
     latent_loss_weight = 0.25
@@ -60,7 +60,6 @@ def train_vqvae(epoch, loader: DataLoader, model, optimizer, scheduler, device):
         mse_sum = recon_loss.item() * img.shape[0]
         mse_n = img.shape[0]
 
-        #if dist.is_primary():
         lr = optimizer.param_groups[0]["lr"]
 
         # loader.set_description(
@@ -148,7 +147,6 @@ def main_vqvae(args):
     for i in range(args.epoch):
         train_vqvae(i, trainloader, model, optimizer, scheduler, device)
 
-        # if dist.is_primary():
         torch.save(model.state_dict(), f"checkpoint/vqvae_{str(i + 1).zfill(3)}.pt")
 
 if __name__ == "__main__":
