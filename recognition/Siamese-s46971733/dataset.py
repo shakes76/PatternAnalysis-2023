@@ -32,17 +32,47 @@ test_dirs_full = []
 test_dirs_AD = os.listdir(TESTIMAGEPATH + '\\AD')
 test_dirs_NC = os.listdir(TESTIMAGEPATH + '\\NC')
 
+valid_dirs_full = []
+
 train_dirs_full_brain = []
 test_dirs_full_brain = []
+valid_dirs_full_brain = []
+
+temp_NC_full = []
+temp_AD_full = []
 
 # Appending full image paths.
+# for i in os.listdir(TRAINIMAGEPATH):
+#     if i == 'AD':
+#         for j in train_dirs_AD:
+#             train_dirs_full.append(os.path.join(TRAINIMAGEPATH, 'AD', j))
+#     else:
+#         for j in train_dirs_NC:
+#             train_dirs_full.append(os.path.join(TRAINIMAGEPATH, 'NC', j))
+
 for i in os.listdir(TRAINIMAGEPATH):
     if i == 'AD':
         for j in train_dirs_AD:
-            train_dirs_full.append(os.path.join(TRAINIMAGEPATH, 'AD', j))
+            temp_AD_full.append(os.path.join(TRAINIMAGEPATH, 'AD', j))
+        # Separate train dirs into train and valid.
+        train_len = int(round(0.8*len(temp_AD_full)/20))
+        train_dirs_full = temp_AD_full[:20*train_len]
+        valid_dirs_full = temp_AD_full[20*train_len:]
+
     else:
         for j in train_dirs_NC:
-            train_dirs_full.append(os.path.join(TRAINIMAGEPATH, 'NC', j))
+            temp_NC_full.append(os.path.join(TRAINIMAGEPATH, 'NC', j))
+        # Separate train dirs into train and valid.
+        train_len = int(round(0.8 * len(temp_NC_full) / 20))
+        train_dirs_full_NC = temp_NC_full[:20 * train_len]
+        valid_dirs_full_NC = temp_NC_full[20 * train_len:]
+
+        # Extend Train and Valid directories with the NC directories.
+        train_dirs_full.extend(train_dirs_full_NC)
+        valid_dirs_full.extend(valid_dirs_full_NC)
+
+        print(f"Train AD is {train_dirs_full}")
+        print(f"Valid AD is {valid_dirs_full}")
 
 for i in os.listdir(TESTIMAGEPATH):
     if i == 'AD':
@@ -225,10 +255,7 @@ class ImageDataset3D(Dataset):
         # For each slice of the brain.
         for i in range(20):
 
-            anchor_data = cv2.imread(img_path[i])
-
-            if i == 0 and idx == 0:
-                print(f"Anchor data before transform: {anchor_data.shape}")
+            anchor_data = cv2.imread(img_path[i], cv2.COLOR_BGR2GRAY)
 
             # If transforms are given.
             if self.transform is not None:
@@ -236,17 +263,14 @@ class ImageDataset3D(Dataset):
                 # e.g. transform [H, W, n] format to [n, H, W]
                 anchor_data = self.transform(anchor_data)
 
-            if i == 0 and idx == 0:
-                print(f"Anchor data after transform: {anchor_data.shape}")
-
             anchor_full_data.append(anchor_data)
 
             # If training, use triplet.
             if not self.clas:
 
                 # Convert paths into images.
-                positive_image = cv2.imread(positive[i])
-                negative_image = cv2.imread(negative[i])
+                positive_image = cv2.imread(positive[i], cv2.COLOR_BGR2GRAY)
+                negative_image = cv2.imread(negative[i], cv2.COLOR_BGR2GRAY)
 
                 # If transforms are given.
                 if self.transform is not None:
@@ -284,5 +308,5 @@ def get_dataset(train, clas):
     elif train == 1 and clas == 1:
         return ImageDataset3D(train_dirs_full_brain, transform=transform, clas=1)
     else:
-        return ImageDataset3D(test_dirs_full_brain, transform=transform, clas=0)
+        return ImageDataset3D(test_dirs_full_brain, transform=transform, clas=1)
 
