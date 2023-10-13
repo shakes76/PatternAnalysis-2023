@@ -25,7 +25,9 @@ Below is a graph that explains the data flow through the networks
 
 TBA GRAPH
 
-Pairs of images are fed into the Siamese networks to generate their embeddings. The euclidean distance between the pair of embeddings are then calculated and passed into the contrastive loss during training. A classifier is added on top of a siamese network to classify Alzhemier's Disease.
+Pairs of images are fed into the Siamese networks to generate their embeddings. The euclidean distance between the pair of embeddings are then calculated and passed into the contrastive loss during training. A classifier is added on top of a Siamese network to classify Alzhemier's Disease.
+
+The backbone architecture of the Siamese network is based on PyTorch's ResNet-18 with several modifications. The classifier's architecture consists of fully connected layers, utilising ReLU activation functions, dropout, and batch normalisations. Most importantly, the classifier model incorporates a pre-trained Siamese network, with its weights frozen during training.
 
 
 
@@ -39,9 +41,9 @@ AD            |  NC
 ## Pre-processing the Dataset
 The training data of the ADNI dataset is split into 80% training  and 20% validation data.
 
-To train the siamese subnetwork, the training data and validation data needs to be grouped into pairs. Pairs that are in the same class are labelled as 1 and pairs that are in different classes are labelled as 0. The process of grouping the dataset into pairs can be found in dataset.py.
+To train the siamese network, the training data and validation data needs to be grouped into pairs. Pairs that are in the same class are labelled as 1 and pairs that are in different classes are labelled as 0. The process of grouping the dataset into pairs can be found in dataset.py.
 
-To train the classifier, the training data and validation is loaded as normal without grouping them to pairs.
+To train the classifier, training and validation data are loaded using the DataLoader library, without organizing them into pairs.
 
 The training data goes through these preprocessing steps: 
 1. Convert images into grayscale
