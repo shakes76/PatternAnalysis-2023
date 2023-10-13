@@ -1,14 +1,15 @@
 import os
+import time
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 from torchvision import transforms
+from torch.cuda.amp import GradScaler, autocast  # Mixed precision training
 import matplotlib.pyplot as plt
 from dataset import SuperResolutionDataset
 from modules import ESPCN
-from torch.cuda.amp import GradScaler, autocast
-# will add in future
 
 # Hyperparameters
 BATCH_SIZE = 32
@@ -34,19 +35,32 @@ model = ESPCN().to(DEVICE)
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=LR)
 
-# Training and validation functions
-def train(model, loader, criterion, optimizer):
+# Dynamic learning rate scheduling
+scheduler = optim.lr_scheduler.OneCycleLR(optimizer, max_lr=LR, steps_per_epoch=len(train_loader), epochs=EPOCHS)
+
+# Mixed precision training
+scaler = GradScaler()
+
+
+# Training and validation functions with mixed precision
+def train(model, loader, criterion, optimizer, scaler):
     model.train()
     running_loss = 0.0
     for lr, hr in loader:
         lr, hr = lr.to(DEVICE), hr.to(DEVICE)
         optimizer.zero_grad()
-        outputs = model(lr)
-        loss = criterion(outputs, hr)
-        loss.backward()
-        optimizer.step()
+
+        with autocast():
+            outputs = model(lr)
+            loss = criterion(outputs, hr)
+
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+
         running_loss += loss.item()
     return running_loss / len(loader)
+
 
 def validate(model, loader, criterion):
     model.eval()
@@ -59,17 +73,28 @@ def validate(model, loader, criterion):
             running_loss += loss.item()
     return running_loss / len(loader)
 
+
 # Main training loop
 train_losses = []
 val_losses = []
 best_val_loss = float('inf')
 
 for epoch in range(EPOCHS):
-    train_loss = train(model, train_loader, criterion, optimizer)
+    start_time = time.time()
+
+    train_loss = train(model, train_loader, criterion, optimizer, scaler)
     val_loss = validate(model, val_loader, criterion)
+
+    end_time = time.time()  # End the timer
+    epoch_time = end_time - start_time  # Calculate the time taken for the epoch
+
     train_losses.append(train_loss)
     val_losses.append(val_loss)
-    print(f"Epoch {epoch+1}/{EPOCHS} - Train loss: {train_loss:.4f}, Validation loss: {val_loss:.4f}")
+    print(f"Epoch {epoch+1}/{EPOCHS} - Train loss: {train_loss:.4f}, Validation loss: {val_loss:.4f},"
+          f" Time: {epoch_time:.2f} seconds")
+
+    # Update learning rate
+    scheduler.step()
 
     # Save the best model
     if val_loss < best_val_loss:
