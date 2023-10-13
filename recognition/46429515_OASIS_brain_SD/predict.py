@@ -53,7 +53,7 @@ def save_tensor_image(image, counter):
 
 # Perform inference
 with torch.no_grad():
-    counter = 11
+    counter = 0
     t = torch.randint(0, utils.T, (utils.BATCH_SIZE,), device=device).long()
     
     for input_data in input_datas:
