@@ -17,7 +17,7 @@ This diffusion model will be using a U-Net for the backwards process.
 * Numpy: `>=1.24.3`
 * Pillow (PIL): `>=10.0.0`
 * Torchvision: `>=0.15.2`
-
+* Matplotlib: `>=3.7.1`
 
 ## File Structure and How to Use
 
@@ -59,7 +59,7 @@ In the terminal, move to the folder `46429515_OASIS_brain_SD` and then run the c
 python test_driver.py
 ```
 
-This will run the testscript that will check the dataset shape, and then proceed to run train.py and then predict.py (training the model, then loading the model and generating an image using the model)
+This will run the python file to run train.py and then predict.py while checking the exit code of the python files (training the model, then loading the model and generating an image using the model).
 
 
 ## Usage Example
@@ -190,6 +190,14 @@ The respective sections of the trainings can be found inside the train.py file.
 
 Alongside the saving of images and model parameters, the losses during training are also been printed out to the system.
 
+This is a plot of the losses over epochs during the training.
+
+![losses plot](/recognition/46429515_OASIS_brain_SD/util/loss_plot.png)
+
+From the training of the model, it can be seen that the loss initially is significantly high, as expected since the model has yet to learn about the shape and details of a brain using the provided OASIS dataset. Afterwards, there is a sharp drop in loss implying that the model has learned atleast the outline of a brain but it then does not seem to have reached a significant process in training in the later epochs.
+
+This plot may also correlate to the generation of the images using the model.
+
 ## Justification
 
 The Adam optimizer is a popular choice for deep learning modules as it adapts learning rates to each parameters during training, thus selecting a basic learning rate of 0.001 allows for balanced learning between initial progression and fine-tuning together with the optimizer's features.
@@ -197,6 +205,8 @@ The Adam optimizer is a popular choice for deep learning modules as it adapts le
 The batch size was sized to be 32 as the provided OASIS dataset have been sliced into 32 per case. The image size has been selected to be 128x128 as 64x64 is considered to be too small for proper clarity of the image outputs and 256x256 may be too big for some of the images from the dataset provided, thus possibly adding inaccuracy to the model.
 
 The number of discrete steps, T, was set to be 500, as it would provide a finer control over denoising process while not taking too long for the model to be trained compared to 200 where it was faster but of lower quality denoising, and 1000, where it would have a higher quality denoising but slower computational complexitity.
+
+Due to time constraints, training was set to be over the course of 500-800 epochs.
 
 
 ## Future Direction
