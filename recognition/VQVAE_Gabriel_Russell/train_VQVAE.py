@@ -28,11 +28,13 @@ class TrainVQVAE():
         self.model = self.model.to(self.device)
         data = dataset.OASISDataloader()
         self.train_loader = data.get_train()
+        self.val_loader = data.get_validate()
         self.optimizer = optim.Adam(self.model.parameters(), self.params.learn_rate)
         self.epochs = 2
+        self.reconstruction_err = []
+        self.validation_err = []
     
     def train(self):
-        reconstruction_error = []
         for epoch in range(self.epochs):
             print(f"Training on Epoch: {epoch + 1}")
             for i in enumerate(self.train_loader):
@@ -48,25 +50,52 @@ class TrainVQVAE():
 
                 self.optimizer.step()
 
-                reconstruction_error.append(reconstruction_err.item())
+                self.reconstruction_err.append(reconstruction_err.item())
                 if batch_num % 20 == 0:
-                    print('recon_error: %.3f' % np.mean(reconstruction_error[:]))
+                    print('Reconstruciton error for training: %.3f' % np.mean(self.reconstruction_err[:]))
                     print()
             print(f"EPOCH: {epoch + 1}\n")
-            print('Reconstruction Loss: %.3f' % np.mean(reconstruction_error[:]))
-
+            print('Reconstruction Loss: %.3f' % np.mean(self.reconstruction_err[:]))
+        
         #Filters and Plots Reconstruction Loss values
-        train_res_recon_error_smooth = savgol_filter(reconstruction_error, 375, 7)
+        train_res_recon_error_smooth = savgol_filter(self.reconstruction_err, 604, 7)
         f = plt.figure(figsize=(16,8))
         ax = f.add_subplot(1,2,1)
         ax.plot(train_res_recon_error_smooth)
         ax.set_yscale('log')
-        ax.set_title('Smoothed NMSE.')
+        ax.set_title('Reconstruction Loss after training')
         ax.set_xlabel('iteration')
-        plt.savefig("reconstruction_err.png")
+        plt.savefig("reconstruction_err_train.png")
 
         #Saves entire Model after training
         current_dir = os.getcwd()
         model_path = current_dir + "/VQVAE.pth"
         torch.save(self.model, model_path)
+
+    def validate(self):
+        model = torch.load("VQVAE.pth")
+        self.model.eval()
+        with torch.no_grad():
+            for i in enumerate(self.val_loader):
+                batch_num, img = i
+                img = img.to(self.device)
+
+                vec_quantizer_loss, recon, _ = model(img)
+                reconstruction_err = F.mse_loss(recon, img)/ self.params.data_var
+
+                self.validation_err.append(reconstruction_err.item())
+                if batch_num % 20 == 0:
+                    print('Reconstruction Error for validation set: %.3f' % np.mean(self.validation_err[:]))
+                    print()
+            #Filters and Plots Reconstruction Loss values
+        train_res_recon_error_smooth = savgol_filter( self.validation_err, 35, 7)
+        f = plt.figure(figsize=(16,8))
+        ax = f.add_subplot(1,2,1)
+        ax.plot(train_res_recon_error_smooth)
+        ax.set_yscale('log')
+        ax.set_title('Reconstruction Loss after Validating')
+        ax.set_xlabel('iteration')
+        plt.savefig("reconstruction_err_validate.png")
+
+
 

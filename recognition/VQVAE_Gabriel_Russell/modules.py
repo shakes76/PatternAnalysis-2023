@@ -32,14 +32,17 @@ class Parameters():
         self.embedding_dim = 64 #dimension for each embedding
         self.num_embeddings = 512 #Number of embeddings in codebook
         self.commitment_cost = 0.25 #Beta term in loss func
-        self.learn_rate = 1e-3 #Learning rate
+        self.learn_rate = 1e-3 #Learning rate for VQVAE
+        self.data_var = 0.0338 #calculated separately for training data
         self.grey_channel = 1 #Number of channels of image (all grey images)
+
+        self.gan_lr = 2e-4 #Learning rate for DCGAN
         self.features = 128
         self.channel_noise = 100
-        self.data_var = 0.0338 #calculated separately for training data
-        self.Gan_batch_size = 16
+        self.Gan_batch_size = 256
 
-    
+#Referenced From
+#https://colab.research.google.com/github/zalandoresearch/pytorch-vq-vae/blob/master/vq-vae.ipynb#scrollTo=kgrlIKYlrEXl
 """
 Residual layer containing [ReLU, 3x3 conv, ReLU, 1x1 conv]
 """
@@ -246,7 +249,8 @@ class VQVAEModel(nn.Module):
 """
 Building a DCGAN to generate images from trained images outputted by VQVAE
 """
-
+#Referenced From
+#https://github.com/aladdinpersson/Machine-Learning-Collection/blob/master/ML/Pytorch/GANs/2.%20DCGAN/model.py
 """
 Discriminator Class of DCGAN
 """

@@ -23,6 +23,8 @@ This Class handles the training part of the DCGAN.
 It takes in a data loader formed from the encoding indices 
 of the trained VQVAE model.
 """
+#Referenced from
+#https://github.com/aladdinpersson/Machine-Learning-Collection/blob/master/ML/Pytorch/GANs/2.%20DCGAN/train.py
 class TrainDCGAN():
     def __init__(self, train_loader):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -33,9 +35,9 @@ class TrainDCGAN():
         modules.initialize_weights(self.Generator)
 
         # data = dataset.OASISDataloader(), edit dataset file for DCGAN training data
-        self.epochs = 2
-        self.D_optim = optim.Adam(self.Discriminator.parameters(), lr = self.params.learn_rate, betas = (0.5, 0.999))
-        self.G_optim = optim.Adam(self.Generator.parameters(), lr = self.params.learn_rate, betas = (0.5, 0.999))
+        self.epochs = 50
+        self.D_optim = optim.Adam(self.Discriminator.parameters(), lr = self.params.gan_lr, betas = (0.5, 0.999))
+        self.G_optim = optim.Adam(self.Generator.parameters(), lr = self.params.gan_lr, betas = (0.5, 0.999))
 
         self.Discriminator.to(self.device)
         self.Generator.to(self.device)
@@ -44,7 +46,6 @@ class TrainDCGAN():
         self.train_loader = train_loader
 
     def train(self):
-        fixed_noise = torch.randn(64, self.params.channel_noise, 1, 1).to(self.device)
         self.Generator.train()
         self.Discriminator.train()
         for epoch in range(self.epochs):
@@ -57,7 +58,6 @@ class TrainDCGAN():
                 #Generate fake image to pass through to model
                 rand_noise = torch.randn(batch_size, 100,1,1).to(self.device)
                 fake_img = self.Generator(rand_noise)
-                print(fake_img.shape)
 
 
                 #Train Discriminator: max log(D(x)) + log(1 - D(G(z)))
@@ -77,7 +77,7 @@ class TrainDCGAN():
                 G_loss.backward()
                 self.G_optim.step()
 
-                if num % 100 == 0:
+                if num % 10 == 0:
                     print(
                 f"Epoch [{epoch}/{self.epochs}] Batch {num}/{len(self.train_loader)} \
                   Loss D: {D_loss:.4f}, loss G: {G_loss:.4f}"
