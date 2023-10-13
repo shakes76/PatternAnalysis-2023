@@ -8,6 +8,23 @@ def mlp(x, hidden_units, dropout_rate):
         x = layers.Dropout(dropout_rate)(x)
     return x
 
+learning_rate = 0.001
+weight_decay = 0.0001
+batch_size = 256
+image_size = 128
+patch_size = 6
+num_patches = (image_size // patch_size) ** 2
+projection_dim = 64
+num_heads = 4
+transformer_units = [
+    projection_dim * 2,
+    projection_dim,
+]
+transformer_layers = 8
+mlp_head_units = [2048, 1024]
+image_size = 128
+num_classes = 2
+
 class Patches(layers.Layer):
     def __init__(self, patch_size):
         super(Patches, self).__init__()
