@@ -105,12 +105,15 @@ With a custom dataset class created (OASISDataset), this will enable the images 
 
 ```python
 train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', 
-                        label_path=f'{root_path}/keras_png_slices_seg_train', transform=transform)
+                        label_path=f'{root_path}/keras_png_slices_seg_train', 
+                        transform=transform)
 test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', 
-                        label_path=f'{root_path}/keras_png_slices_seg_test', transform=transform)
+                        label_path=f'{root_path}/keras_png_slices_seg_test', 
+                        transform=transform)
 combined_data = ConcatDataset([train_data, test_data])
 validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', 
-                        label_path=f'{root_path}/keras_png_slices_seg_validate', transform=transform)
+                        label_path=f'{root_path}/keras_png_slices_seg_validate', 
+                        transform=transform)
 
 data_loader = DataLoader(combined_data, batch_size = BATCH_SIZE, shuffle=True, drop_last=True)
 validate_loader = DataLoader(validate_data, batch_size=batch_size)
