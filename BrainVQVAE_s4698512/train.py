@@ -109,10 +109,10 @@ def main():
     # Define Global hyper parameters (for both datasets)
 
     # Learning rate
-    learning_rate = 1.2e-4
+    learning_rate = 1.4e-4
 
     # Number of epochs during training
-    num_epochs = 60
+    num_epochs = 120
 
     # Trade off between reconstruction loss and KL Divergence loss
     # Reconstruction loss measures how similar of an output the model can produce from the input
@@ -120,7 +120,7 @@ def main():
     # of the VQ-VAE by forcing the encoder to follow a regularlised normal distribution in order to
     # prevent overfitting. A higher beta value (closer to 1) lowers KL Divergence Loss while a
     # lower beta value (closer to 0) lowers reconstruction loss.
-    beta = 0.35
+    beta = 1.5
 
     # Greyscale data: 1 channel
     num_channels = 1
