@@ -19,3 +19,10 @@ y_pred = np.argmax(y_pred, axis=1)
 # Generate a confusion matrix
 y_true = np.argmax(Labels, axis=1)
 cm = confusion_matrix(y_true, y_pred)
+
+# Plot a heatmap of the confusion matrix
+plt.figure(figsize=(10, 7))
+sns.heatmap(cm, annot=True, fmt='g')
+plt.xlabel("Predicted")
+plt.ylabel("True")
+plt.show()
