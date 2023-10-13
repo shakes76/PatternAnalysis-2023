@@ -1,3 +1,10 @@
+##################################
+#
+# Author: Joshua Wallace
+# SID: 45809978
+#
+###################################
+
 import torch
 import time
 import torch.nn as nn

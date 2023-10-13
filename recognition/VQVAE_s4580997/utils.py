@@ -1,10 +1,17 @@
+##################################
+#
+# Author: Joshua Wallace
+# SID: 45809978
+#
+###################################
+
 import torch
 
 class VQVAEConfig() :
     def __init__(self) :
         self.lr = 1e-3
         self.wd = 1e-5
-        self.epochs = 1
+        self.epochs = 10
         self.batch_size = 32
         self.root_dir = './AD_CN'
         self.savepath = './models/vqvae'
@@ -15,7 +22,7 @@ class GANConfig() :
     def __init__(self) :
         self.lr = 1e-3
         self.wd = 1e-5
-        self.epochs = 2
+        self.epochs = 10
         self.batch_size = 32
         self.root_dir = './AD_CN'
         self.savepath = './models/gan'

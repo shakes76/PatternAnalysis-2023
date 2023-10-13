@@ -1,3 +1,10 @@
+##################################
+#
+# Author: Joshua Wallace
+# SID: 45809978
+#
+###################################
+
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader, Subset
@@ -61,7 +68,7 @@ class Loader() :
         
         mean = running_sum / total_pixels
         var = (running_sum_sq / total_pixels) - mean**2
-        return var.item()  # Returns the variance as a Python float
+        return var.item()
     
     def __len__(self):
         return len(self.loader)

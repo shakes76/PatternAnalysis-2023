@@ -1,3 +1,10 @@
+##################################
+#
+# Author: Joshua Wallace
+# SID: 45809978
+#
+###################################
+
 import torch
 from modules import VQVAE, GAN
 from utils import VQVAEConfig, GANConfig
@@ -26,6 +33,6 @@ if __name__ == '__main__':
     gan_trainer.save(gan_config.discriminator_path, gan_config.generator_path)
     
     noise = torch.randn(128, 128, 1, 1).to(gan_config.device)
-    predictor = Predict(gan_config.model_path, noise, n = 16, savepath='./models/predictions/output')
+    predictor = Predict(noise, n = 16, savepath='./models/predictions/output', model=gan)
     predictor.generate()
     predictor.show_generated(save=True)
