@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # Load the data and convert them directly to PyTorch tensors with specified types
 facebook_data = np.load("/content/drive/MyDrive/gcn/draft/facebook.npz")
 
@@ -27,7 +29,7 @@ edges_with_loops = torch.vstack([edges, self_loops])
 adjacency_matrix = torch.sparse_coo_tensor(
     edges_with_loops.t(), torch.ones(edges_with_loops.size(0)),
     (X.size(0), X.size(0))
-)
+).to(device)
 
 # Split indices for training, validation, and test sets
 sample_size = X.size(0)
@@ -43,3 +45,10 @@ test_indices = indices[val_end:]
 train_mask = torch.zeros(sample_size, dtype=torch.bool).scatter_(0, train_indices, True)
 val_mask = torch.zeros(sample_size, dtype=torch.bool).scatter_(0, val_indices, True)
 test_mask = torch.zeros(sample_size, dtype=torch.bool).scatter_(0, test_indices, True)
+
+# Also make sure other data tensors are moved to the desired device
+X = X.to(device)
+y = y.to(device)
+train_mask = train_mask.to(device)
+val_mask = val_mask.to(device)
+test_mask = test_mask.to(device)
