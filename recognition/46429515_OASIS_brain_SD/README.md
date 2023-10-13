@@ -69,7 +69,7 @@ This will run the python file to run train.py and then predict.py while checking
 ### Stable Diffusion Generating Outcomes - predict.py
 The images generated from the noisy image inputs (images that came from epoch 0 of training with learning rate of 0.001) have resulted in images that look more like some details of a brain rather than the entire shape of a brain itself. This may be because of the training, possibly meaning that the model has not trained enough to learn the defining shape of a brain.
 
-![generated image 1](predict_output/generated_image_0.png) ![generated image 2](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_1.png) ![generated image 3](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_2.png) ![generated image 4](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_3.png) ![generated image 5](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_4.png) ![generated image 6](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_5.png) ![generated image 7](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_6.png) ![generated image 8](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_7.png) ![generated image 9](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_8.png) ![generated image 10](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_9.png) 
+![generated image 1](predict_output/generated_image_0.png) ![generated image 2](predict_output/generated_image_1.png) ![generated image 3](predict_output/generated_image_2.png) ![generated image 4](predict_output/generated_image_3.png) ![generated image 5](predict_output/generated_image_4.png) ![generated image 6](predict_output/generated_image_5.png) ![generated image 7](predict_output/generated_image_6.png) ![generated image 8](predict_output/generated_image_7.png) ![generated image 9](predict_output/generated_image_8.png) ![generated image 10](predict_output/generated_image_9.png) 
 
 A correlation for the model not generating brains as intended would be due to the training process of the model which can be seen in a loss over epochs plot (can be seen in Training section of the documentation). The cause for this loss/epoch graph may be due to the model used for stable diffusion as the model is a simple U-Net model which is not speciailized to learning important details in a short amount of time.
 
@@ -197,13 +197,13 @@ The respective sections of the trainings can be found inside the train.py file.
 
 Alongside the saving of images and model parameters, the losses during training are also been printed out to the system. The following image is a plot of the losses over epochs during the training.
 
-![losses plot](/recognition/46429515_OASIS_brain_SD/util/loss_plot.png)
+![losses plot](util/loss_plot.png)
 
 From the training of the model, it can be seen that the loss initially is significantly high, as expected since the model has yet to learn about the shape and details of a brain using the provided OASIS dataset. Afterwards, there is a sharp drop in loss implying that the model has learned atleast the outline of a brain but it then does not seem to have reached a significant process in training in the later epochs.
 
 The images outputted during the training loop appear to provide the shape and details of a brain, but it is blurry and not reaching the expectations of the training image (black background - white brain grayscaled). The following images are sample images of the training at epochs 710, 730, 770, 790.
 
-![epoch 710 image](/recognition/46429515_OASIS_brain_SD/image_output/epoch_710_step_000_generated.png) ![epoch 730 image](/recognition/46429515_OASIS_brain_SD/image_output/epoch_730_step_000_generated.png) ![epoch 770 image](/recognition/46429515_OASIS_brain_SD/image_output/epoch_770_step_000_generated.png) ![epoch 790 image](/recognition/46429515_OASIS_brain_SD/image_output/epoch_790_step_000_generated.png)
+![epoch 710 image](image_output/epoch_710_step_000_generated.png) ![epoch 730 image](image_output/epoch_730_step_000_generated.png) ![epoch 770 image](image_output/epoch_770_step_000_generated.png) ![epoch 790 image](image_output/epoch_790_step_000_generated.png)
 
 These images are a general idea of what the model has generated from denoising images after adding noise to the images. This possibly provides an insight to why the model does not properly generate an image of a brain as expected.
 
