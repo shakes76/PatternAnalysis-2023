@@ -1,0 +1,6 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs/PatternAnalysis-2023/v17/.wsuo
+/.vs/slnx.sqlite
