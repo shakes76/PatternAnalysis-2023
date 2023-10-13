@@ -12,6 +12,7 @@ import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from PIL import Image
+import matplotlib.pyplot as plt
 
 
 class SuperResolutionDataset(Dataset):
@@ -31,7 +32,7 @@ class SuperResolutionDataset(Dataset):
         :param mode    (str): 'train' or 'test' data to load.
         """
         self.root_dir = root_dir
-        self.transform =transform if transform is not None else transforms.Compose([transforms.ToTensor()])
+        self.transform = transform if transform is not None else transforms.Compose([transforms.ToTensor()])
         # default: convert images to tensors
         self.mode = mode
         self.AD_paths = sorted(os.listdir(os.path.join(root_dir, mode, 'AD')))
@@ -66,9 +67,37 @@ class SuperResolutionDataset(Dataset):
         return lr_image, hr_image
 
 
+def visualize_samples(data_loader, num_samples=2):
+    """
+    Function to visualize some samples from the DataLoader (for test aim)
+    :param data_loader: A DataLoader
+    :param num_samples: number of samples to show, it should <= batch_size (here=32)
+    :return: plot samples
+    """
+    # Get a batch of data
+    lr_images, hr_images = next(iter(data_loader))
+
+    fig, axes = plt.subplots(nrows=num_samples, ncols=2, figsize=(10, 4 * num_samples))
+    for i in range(num_samples):
+        # Display low-resolution image
+        axes[i, 0].imshow(lr_images[i].squeeze().numpy(), cmap='gray')
+        axes[i, 0].set_title('Low-Resolution Image')
+        axes[i, 0].axis('off')
+
+        # Display high-resolution image
+        axes[i, 1].imshow(hr_images[i].squeeze().numpy(), cmap='gray')
+        axes[i, 1].set_title('High-Resolution Image')
+        axes[i, 1].axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+
 if __name__ == '__main__':
     train_dataset = SuperResolutionDataset(root_dir='AD_NC', transform=None, mode='train')
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 
-    test_dataset = SuperResolutionDataset(root_dir='AD_NC', transform=None, mode='test')
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+    # test_dataset = SuperResolutionDataset(root_dir='AD_NC', transform=None, mode='test')
+    # test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
+
+    visualize_samples(train_loader)
