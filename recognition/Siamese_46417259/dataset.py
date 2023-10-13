@@ -30,7 +30,15 @@ else:
 savepath = "/home/Student/s4641725/COMP3710/project_results" 
 
 # transforms
-train_transforms = transforms.Compose([
+Siamese_train_transforms = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.CenterCrop(240),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomVerticalFlip(),
+    transforms.RandomRotation(45)
+])
+
+classifier_train_transforms = transforms.Compose([
     transforms.ToTensor(),
     transforms.CenterCrop(240),
 ])
@@ -106,7 +114,10 @@ class PairedDataset(torch.utils.data.Dataset):
 def load_data(training:bool, Siamese:bool, random_seed=None) -> torch.utils.data.DataLoader:
     if training:
         path = train_path
-        transforms = train_transforms
+        if Siamese:
+            transforms = Siamese_train_transforms
+        else:
+            transforms = classifier_train_transforms
     else:
         path = test_path
         transforms = test_transforms
@@ -207,7 +218,7 @@ def test_visualise_data_Siamese():
 
 def test_paired_dataset():
     source = dset.ImageFolder(root=train_path,
-                                transform=train_transforms
+                                transform=Siamese_train_transforms
                             )
     test = PairedDataset(source, show_debug_info=True)
     print(len(test))
@@ -259,7 +270,7 @@ if __name__ == "__main__":
 #
 def load_train_Siamese() -> torch.utils.data.DataLoader:
 
-    train_source = dset.ImageFolder(root=train_path, transform=train_transforms)
+    train_source = dset.ImageFolder(root=train_path, transform=Siamese_train_transforms)
 
     trainset = PairedDataset(train_source, show_debug_info=False)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
@@ -281,7 +292,7 @@ def load_test_Siamese() -> torch.utils.data.DataLoader:
 
 def load_train() -> torch.utils.data.DataLoader:
     # loading unitary training data for the MLP
-    train_source = dset.ImageFolder(root=train_path, transform=train_transforms)
+    train_source = dset.ImageFolder(root=train_path, transform=Siamese_train_transforms)
 
 def load_test() -> torch.utils.data.DataLoader:
     # load the testset
