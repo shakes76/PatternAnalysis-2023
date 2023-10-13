@@ -33,30 +33,31 @@ The file structure should end up looking like this:
 
 ```
 46429515_OASIS_brain_SD(-topic-recognition)/
-├─ data/keras_png_slices_data/
-│  ├─ keras_png_slices_seg_test/
-│  ├─ keras_png_slices_seg_train/
-│  ├─ keras_png_slices_seg_validate/
-│  ├─ keras_png_slices_test/
-│  ├─ keras_png_slices_train/
-│  ├─ keras_png_slices_validate/
-├─ predict_image/
-│  ├─ input_image_0.png
-│  ├─ input_image_1.png
-│  ├─ ...
-│  ├─ input_image_9.png
-├─ predict_output
-│  ├─ ...
-├─ util/
-│  ├─ loss_plot.png
-├─ README.md
-├─ best_model.pth
-├─ dataset.py
-├─ module.py
-├─ predict.py
-├─ train.py
-├─ utils.py
-└  train_predict.sh
+|- data/keras_png_slices_data/
+|  |- keras_png_slices_seg_test/
+|  |- keras_png_slices_seg_train/
+|  |- keras_png_slices_seg_validate/
+|  |- keras_png_slices_test/
+|  |- keras_png_slices_train/
+|  |- keras_png_slices_validate/
+|- image_output/
+|  |- epoch_710_step_000_generated.png
+|  |- ...
+|- predict_image/
+|  |- input_image_0.png
+|  |- ...
+|  |- input_image_9.png
+|- predict_output/
+|  |- ...
+|- util/
+|  |- loss_plot.png
+|- README.md
+|- dataset.py
+|- module.py
+|- predict.py
+|- train.py
+|- utils.py
+|_ train_predict.sh
 ```
 
 In the terminal, move to the folder `46429515_OASIS_brain_SD` and then run the bash script with the command:
