@@ -1,67 +1,32 @@
-import numpy as np
-from tensorflow import keras
-import os
-import constants
+import tensorflow as tf
 
 
-def load_jpegs_at_path(path: str) -> list[np.ndarray]:
-    """
-    Loads all jpeg images from the given path
-    :param path: Path to the directory containing the images
-    :return: List of image data
-    """
-
-    return [
-        keras.utils.img_to_array(
-            keras.utils.load_img(
-                f"{path}/{p}",
-                target_size=constants.IMAGE_INPUT_SHAPE[:2],
-                color_mode="grayscale",
-            )
-        )
-        / 255.0
-        for p in os.listdir(path)
-        if p.endswith(".jpeg")
-    ]
+@tf.function
+def load_jpeg(path: str):
+    return tf.image.per_image_standardization(
+        tf.cast(tf.io.decode_jpeg(tf.io.read_file(path), channels=1), dtype=tf.float32)
+    )
 
 
-def create_pairs(x1, x2, label):
-    np.random.shuffle(x1)
-    np.random.shuffle(x2)
+def get_jpegs_at_path(path: str) -> tf.data.Dataset:
+    return tf.data.Dataset.list_files(f"{path}/*.jpeg", shuffle=True)
 
-    return [((x1[i], x2[i]), label) for i in range(min(len(x1), len(x2)))]
+
+def create_pairs(x1: tf.data.Dataset, x2: tf.data.Dataset, label):
+    return tf.data.Dataset.zip((x1, x2)).map(
+        lambda x1, x2: (x1, x2, tf.constant(label, dtype=tf.float32))
+    )
 
 
 def load_dataset(
     path: str,
-) -> tuple[
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-    np.ndarray,
-]:
-    """
-    Loads the ADNI dataset from the given path
-    :param path: Path to the dataset
-    :return train_X1, train_X2, train_y, validate_X1, validate_X2, validate_y, test_X1, test_X2, test_y
-    """
+) -> tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]:
     print("Loading dataset")
 
-    print("Loading training data")
+    print("Finding training data")
 
-    train_AD = load_jpegs_at_path(f"{path}/train/AD")
-    train_NC = load_jpegs_at_path(f"{path}/train/NC")
+    train_AD = get_jpegs_at_path(f"{path}/train/AD")
+    train_NC = get_jpegs_at_path(f"{path}/train/NC")
 
     print("Creating pairs")
 
@@ -72,20 +37,28 @@ def load_dataset(
 
     print("Shuffling")
 
-    train = train_both_AD + train_both_NC + train_mixed_1 + train_mixed_2
-    np.random.shuffle(train)
+    train_ds = (
+        train_both_AD.concatenate(
+            train_both_NC,
+        )
+        .concatenate(
+            train_mixed_1,
+        )
+        .concatenate(
+            train_mixed_2,
+        )
+        .shuffle(
+            train_both_AD.cardinality()
+            + train_both_NC.cardinality()
+            + train_mixed_1.cardinality()
+            + train_mixed_2.cardinality()
+        )
+    )
 
-    print("Creating numpy arrays")
-    train_X = np.array([t[0] for t in train])
-    train_y = np.array([t[1] for t in train])
+    print("Finding testing data")
 
-    all_train_X = np.concatenate([train_AD, train_NC], axis=0)
-    all_train_y = np.array([0] * len(train_AD) + [1] * len(train_NC))
-
-    print("Loading testing data")
-
-    test_AD = load_jpegs_at_path(f"{path}/test/AD")
-    test_NC = load_jpegs_at_path(f"{path}/test/NC")
+    test_AD = get_jpegs_at_path(f"{path}/test/AD")
+    test_NC = get_jpegs_at_path(f"{path}/test/NC")
 
     print("Creating pairs")
 
@@ -96,43 +69,30 @@ def load_dataset(
 
     print("Shuffling")
 
-    test = test_both_AD + test_both_NC + test_mixed_1 + test_mixed_2
-    np.random.shuffle(test)
-
-    test_X = np.array([t[0] for t in test])
-    test_y = np.array([t[1] for t in test])
-
-    num_validate = len(train_X) // 5  # 20% split
-
-    validate_X = train_X[:num_validate]
-    validate_y = train_y[:num_validate]
-
-    all_validate_X = all_train_X[: len(all_train_X) // 5]
-    all_validate_y = all_train_y[: len(all_train_y) // 5]
-
-    all_train_X = all_train_X[len(all_train_X) // 5 :]
-    all_train_y = all_train_y[len(all_train_y) // 5 :]
-
-    train_X = train_X[num_validate:]
-    train_y = train_y[num_validate:]
-
-    all_test_X = np.concatenate([test_AD, test_NC], axis=0)
-    all_test_y = np.array([0] * len(test_AD) + [1] * len(test_NC))
-
-    return (
-        train_X[:, 0],
-        train_X[:, 1],
-        train_y.astype(np.float32),
-        validate_X[:, 0],
-        validate_X[:, 1],
-        validate_y.astype(np.float32),
-        test_X[:, 0],
-        test_X[:, 1],
-        test_y.astype(np.float32),
-        all_train_X,
-        all_train_y,
-        all_validate_X,
-        all_validate_y,
-        all_test_X,
-        all_test_y,
+    test_ds = (
+        test_both_AD.concatenate(
+            test_both_NC,
+        )
+        .concatenate(
+            test_mixed_1,
+        )
+        .concatenate(
+            test_mixed_2,
+        )
+        .shuffle(
+            test_both_AD.cardinality()
+            + test_both_NC.cardinality()
+            + test_mixed_1.cardinality()
+            + test_mixed_2.cardinality()
+        )
     )
+
+    print("Loading images")
+    train_ds = train_ds.map(lambda x1, x2, y: ((load_jpeg(x1), load_jpeg(x2)), y))
+
+    test_ds = test_ds.map(lambda x1, x2, y: ((load_jpeg(x1), load_jpeg(x2)), y))
+
+    validate_ds = train_ds.take(train_ds.cardinality() // 5)
+    train_ds = train_ds.skip(train_ds.cardinality() // 5)
+
+    return train_ds.batch(32), validate_ds.batch(32), test_ds.batch(32)
