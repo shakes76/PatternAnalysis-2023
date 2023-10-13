@@ -18,12 +18,12 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 Z_DIm = 512
 W_DIM = 512
 LAMBDA_GP = 10 # coefficient of gradient penalty
-BATCH_SIZES = [256,256,128,64,32,16]
+BATCH_SIZES = [256, 128, 64, 32, 16, 8]
 PROGRESSIVE_EPOCHS = [30] * len(BATCH_SIZES)
 IN_CHANNELS = 512
 CHANNELS_IMG = 3
 LR = 1e-3
-START_TRAIN_IMG_SIZE = 4
+START_TRAIN_IMG_SIZE = 4 # upsampling from 4*4
 
 # Regularization on the discriminator / critic
 def gradient_penalty(critic, real, fake, alpha, train_step, device="cpu"):
