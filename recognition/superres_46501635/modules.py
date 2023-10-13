@@ -31,23 +31,35 @@ import torch.nn as nn
 
 class ESPCN(nn.Module):
     def __init__(self, upscale_factor, input_channels=1):
+        # input channel 1 because only greyscale image 
         super(ESPCN, self).__init__()
 
         # Feature extraction!
         self.feature_extraction = nn.Sequential(
+            # 5x5 kernel and padding 2 to keep spatial dimensions
+            # (batch_size, 1, H, W) 
             nn.Conv2d(input_channels, 64, kernel_size=5, padding=2),
+            # (batch_size, 64, H, W)
             nn.Tanh(),
             nn.Conv2d(64, 32, kernel_size=3, padding=1),
+            # (batch_size, 32, H, W)
             nn.Tanh()
         )
 
         # Second part: upscaling using sub-pixel convolution
         self.sub_pixel = nn.Sequential(
+            # Increases number of channels by a factor of (upscale_factor ** 2)
             nn.Conv2d(32, input_channels * (upscale_factor ** 2), kernel_size=3, padding=1),
+            # (batch_size, input_channels * upscale_factor^2, H, W)
+            # this operation reshapes the tensor by splitting the channels into 
+            # (upscale_factor, upscale_factor) blocks and reshuffling them to increase the spatial dimensions.
             nn.PixelShuffle(upscale_factor),
+            # (batch_size, input_channels, H * upscale_factor, W * upscale_factor)
         )
 
     def forward(self, x):
         x = self.feature_extraction(x)
+        # takes input tensor 'x' and passes it through feature extraction layers,
+        # sub-pixel convolution layers to produce the super-resolved output
         x = self.sub_pixel(x)
         return x
