@@ -43,20 +43,22 @@ The file structure should end up looking like this:
 │  ├─ input_image_9.png
 ├─ predict_output
 │  ├─ ...
+├─ util/
+│  ├─ loss_plot.png
 ├─ README.md
 ├─ best_model.pth
 ├─ dataset.py
 ├─ module.py
 ├─ predict.py
 ├─ train.py
-├─ test_driver.py
-└  utils.py
+├─ utils.py
+└  train_predict.sh
 ```
 
 In the terminal, move to the folder `46429515_OASIS_brain_SD` and then run the command 
 
 ```
-python test_driver.py
+./train_predict.sh
 ```
 
 This will run the python file to run train.py and then predict.py while checking the exit code of the python files (training the model, then loading the model and generating an image using the model).
