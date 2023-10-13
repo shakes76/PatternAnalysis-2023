@@ -54,7 +54,7 @@ def train():
     test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
     model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-5)
     scheduler = ReduceLROnPlateau(optimizer, 'min')
 
     num_epochs = 10
@@ -73,12 +73,12 @@ def train():
             optimizer.zero_grad()
             outputs = model(images)
             loss = combined_loss(outputs, masks)
-            if images.is_cuda:
-                print("Images are on CUDA")
-            if masks.is_cuda:
-                print("Masks are on CUDA")
-            if outputs.is_cuda:
-                print("Outputs are on CUDA")
+            #if images.is_cuda:
+                #print("Images are on CUDA")
+            #if masks.is_cuda:
+                #print("Masks are on CUDA")
+            #if outputs.is_cuda:
+                #print("Outputs are on CUDA")
 
             loss.backward()
             optimizer.step()
