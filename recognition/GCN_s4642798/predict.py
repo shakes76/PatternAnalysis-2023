@@ -26,7 +26,7 @@ def plot_tsne(name, data, labels):
 
     plt.title("tSNE Visualised")
     plt.legend()
-    filename = "{}.png".format(name)
+    filename = "plots/{}.png".format(name)
     plt.savefig(filename)
 
 

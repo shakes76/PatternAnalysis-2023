@@ -71,7 +71,7 @@ def plot_accuracy(val_acc, train_acc):
     plt.ylabel("Accurarcy")
     plt.title("Training and Validation Accuracy")
     plt.legend(loc="lower right", fontsize="x-large")
-    plt.savefig("gcn_accuracy.png")
+    plt.savefig("plots/gcn_accuracy.png")
 
 
 def plot_loss(val_loss_all, train_loss_all):
@@ -87,7 +87,7 @@ def plot_loss(val_loss_all, train_loss_all):
     plt.ylabel("Loss")
     plt.title("Training and Validation Loss")
     plt.legend(loc="upper right", fontsize="x-large")
-    plt.savefig("gcn_loss.png")
+    plt.savefig("plots/gcn_loss.png")
 
 
 # initilize model with specified parameters, ADAM optimizer and Cross entropy loss
@@ -97,5 +97,9 @@ model = modules.GCN(
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 criterion = torch.nn.CrossEntropyLoss()
 
-train(100)  # train model over 100 epochs
+# train model over 100 epochs and plot accuracy and loss
+val_acc, train_acc, val_loss_all, train_loss_all, test_acc = train(2)
+plot_accuracy(val_acc, train_acc)
+plot_loss(val_loss_all, train_loss_all)
+
 torch.save(model.state_dict(), "best_model.pt")  # save model for later predictions
