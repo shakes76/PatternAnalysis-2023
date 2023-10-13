@@ -2,7 +2,8 @@
 """
 File: train.py
 
-This is a placeholder file
+Purpose: Run the training loop for a StyleGAN that implements special loss calculations
+         specific to StyleGANs, as well as alpha blending for Progressive GANs
 
 @author: Peter Beardsley
 """
@@ -21,9 +22,7 @@ their code from the gradient_penalty function for WGAN-GP loss.
 
 Note: This code is very specific and crafting it independently is beyond the
 scope of this course. So with full reference and acknowledgement I am using
-it as is, unaltered. Credit to Abd Elilah TAUIL. The source provided no
-explanation for how it works, so after my own research, I have detailed
-its inner workings in the README.md
+it as is, unaltered. Credit to Abd Elilah TAUIL.
 """
 def gradient_penalty(discriminator, real, fake, device):
     BATCH_SIZE, C, H, W = real.shape
@@ -72,12 +71,13 @@ def train_stylegan(cfg, device):
                             {"params": generator.mappingNetwork.parameters(), "lr": cfg['mapping_lr']}], lr=cfg['lr'], betas=(cfg['beta1'], cfg['beta2']))
     optimiser_discriminator = optim.Adam(discriminator.parameters(), lr=cfg['lr'], betas=(cfg['beta1'], cfg['beta2']))
     
+    # Set to training mode
     generator.train()
     discriminator.train()
     
     # Skip the 4x4 training and iterate from 8x8 onwards
     for layer_epochs in cfg['fade_epochs'][1:]:
-        loader = createDataLoader(cfg['image_folder'], 4 * 2 ** alphaSched.depth, cfg['batch_sizes'][alphaSched.depth-1])  
+        loader = createDataLoader(cfg['image_folder'], 4 * 2 ** alphaSched.depth, cfg['batch_sizes'][alphaSched.depth])  
     
         # Train for the number of epochs specified in the fade
         for epoch in range(layer_epochs):
@@ -132,34 +132,27 @@ def train_stylegan(cfg, device):
                 print('Epoch:', epoch+1,"/",layer_epochs, "   Depth:", alphaSched.depth, "   Alpha:", alphaSched.alpha)
 
     
-        torch.save(generator.state_dict(), cfg['generator_model_file'].format(alphaSched.depth))
-        # Don't save the discriminator, but uncomment below if you do
-        #torch.save(discriminator.state_dict(), cfg['discriminator_model_file'].format(alphaSched.depth))
         alphaSched.stepDepth()
-
+        torch.save(generator.state_dict(), cfg['generator_model_file'].format(alphaSched.depth))
+        
 
 """
 Train a styleGAN on the OASIS brain dataset using a predefined configuration
 """
 def train_stylegan_oasis(is_rangpur=True):
-    cfg_win = {'epochs':20, 'batch_sizes':[256,128,128,64,16,8], 'channels':[512,512,256,128,64,32,16,4], 'rgb_ch':3
-            , 'fade_epochs': np.array([1, 1, 1, 1, 1, 1, 1])
-            , 'depth': 6
+    cfg_win = {'batch_sizes':[256,128,128,64,16,8,8], 'channels':[512, 512,256,128,64,32,16,8,4], 'rgb_ch':3
+            , 'fade_epochs': np.array([30, 30, 30, 30, 30, 30, 30, 30])
             , 'image_folder': r'C:\Temp\keras_png_slices_data\keras_png_slices_data'
             , 'generator_model_file': 'C:\Temp\stylegan_depth_{0}.pth'
-            , 'discriminator_model_file': 'C:\Temp\stylegan_dis_depth_{0}.pth'
-            , 'losses_file': 'C:\Temp\losses.csv'
-            , 'lr':0.001, 'mapping_lr':1e-5, 'lambda':10, 'beta1': 0.0, 'beta2': 0.99, 'z_size':256, 'w_size':256, 'img_size': 256}
-        
-
-    cfg_rangpur = {'epochs':20, 'batch_sizes':[256,128,128,64,16,8], 'channels':[512,512,256,128,64,32,16,4], 'rgb_ch':3
-            , 'fade_epochs': np.array([10, 10, 10, 10, 10, 10, 10])
-            , 'depth': 6
-            , 'image_folder': 'data/keras_png_slices_data'
-            , 'generator_model_file': 'stylegan_depth_{0}.pth'
-            , 'discriminator_model_file': 'stylegan_dis_depth_{0}.pth'
             , 'losses_file': 'losses.csv'
-            , 'lr':0.001, 'mapping_lr':1e-5, 'lambda':10, 'beta1': 0.0, 'beta2': 0.99, 'z_size':256, 'w_size':256, 'img_size': 256}
+            , 'lr':0.001, 'mapping_lr':1e-5,'lambda':10, 'beta1': 0.0, 'beta2': 0.999, 'z_size':256, 'w_size':256, 'img_size': 256}
+    
+    cfg_rangpur = {'batch_sizes':[256,128,128,64,16,8,8], 'channels':[512, 512,256,128,64,32,16,8,4], 'rgb_ch':3
+            , 'fade_epochs': np.array([30, 30, 30, 30, 30, 30, 30, 30])
+            , 'image_folder': 'data/keras_png_slices_data'
+            , 'generator_model_file': 'C:\Temp\stylegan_depth_{0}.pth'
+            , 'losses_file': 'losses.csv'
+            , 'lr':0.001, 'mapping_lr':1e-5, 'lambda':10, 'beta1': 0.0, 'beta2': 0.999, 'z_size':256, 'w_size':256, 'img_size': 256}
 
     if is_rangpur:
         cfg = cfg_rangpur
