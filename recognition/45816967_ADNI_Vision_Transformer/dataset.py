@@ -96,3 +96,9 @@ def load_adni_images(datasplit = 0.2, verbose=False):
 		
 	return load_images_from_directories(train_dirs, datasplit=datasplit, verbose=verbose), load_images_from_directories(test_dirs, datasplit=0, verbose=verbose)
 
+def generate_adni_datasets(datasplit = 0.2, verbose = False):
+	train_imgs, test_imgs = load_adni_images(datasplit=datasplit, verbose = verbose)
+	train_set = ADNIDataset(train_imgs[0], transform=standardTransform)
+	val_set = ADNIDataset(train_imgs[1], transform=standardTransform)
+	test_set = ADNIDataset(test_imgs[0], transform=standardTransform)
+	return train_set, val_set, test_set
