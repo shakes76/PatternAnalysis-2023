@@ -115,19 +115,17 @@ class Classifier(nn.Module):
     def __init__(self, out_dimention, batch_size, latent_size) -> None:
         super(Classifier, self).__init__()
         
-        self.fc1 = nn.Conv2d(in_channels=32, out_channels=1, kernel_size=1)
-        self.relu = nn.ReLU() 
-        self.fc2 = nn.Conv1d(in_channels=32, out_channels=1, kernel_size=1)
+        self.fc1 = nn.LazyLinear(out_dimention)
+        self.fc2 = nn.LazyLinear(1)
         
         
     def forward(self, latent):
+        #32x32x64 latent  
         
-        #32x32x32 latent
         out = self.fc1(latent)
-        out = self.relu(out)
-        out = out.mean(dim=2).t()
+        out = out.mean(dim=0)
+        out = self.fc2(out)
         
-        # out 32x1
         return torch.sigmoid(out)
 
 
@@ -140,7 +138,7 @@ class ADNI_Transformer(nn.Module):
         LATENT_EMB = 64
         latent_layers = 4
         latent_heads = 8
-        classifier_out = 128
+        classifier_out = 16
         batch_size = 32
         
         # pretrained to default values       
@@ -173,6 +171,7 @@ class ADNI_Transformer(nn.Module):
         # classify the output
         output = self._classifier(latent)
         return output
-
-
-
+    
+    
+    
+    
