@@ -14,7 +14,7 @@ For reproducibility, a virtual environment is recommended with specified version
 
 ## 2. Example inputs & outputs
 Given an input of a low resolution MRI image, should return an upscaled version of the image as shown in the figure.
-![image of example input and output]
+![image of example input and output](recognition/super_resolution_DanielC/readme_resources/ExampleFigure.PNG)
 
 
 ## 3. Training & minimizing loss
