@@ -14,3 +14,13 @@ class Config():
                                                                       transforms.ToTensor()
                                                                       ])
                                        ,should_invert=False)
+    train_dataloader = DataLoader(siamese_dataset,
+                        shuffle=True,
+                        num_workers=8,
+                        batch_size=Config.train_batch_size)
+    net = SiameseNetwork()
+criterion = ContrastiveLoss()
+optimizer = optim.Adam(net.parameters(),lr = 0.0005 )
+counter = []
+loss_history = []
+iteration_number= 0
