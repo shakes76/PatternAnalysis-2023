@@ -6,32 +6,46 @@ import matplotlib.pyplot as plt
 
 
 def train_epoch():
-    model.train()
-    optimizer.zero_grad()
-    out = model(dataset.X, dataset.edges_sparse)
+    """
+    Function to train single epoch of the GCN model
+    """
+    model.train()  # Set model to train mode
+    optimizer.zero_grad()  # Clear previous calulated gradients
+    out = model(dataset.X, dataset.edges_sparse)  # Single Forward Pass
+
+    # Compute training loss and complete backward pass
     train_loss = criterion(out[dataset.train_mask], dataset.y[dataset.train_mask])
     train_loss.backward()
-    optimizer.step()
+
+    optimizer.step()  # Update model paramters
+    # Compute validation loss loss
     val_loss = criterion(out[dataset.val_mask], dataset.y[dataset.val_mask])
     return (train_loss, val_loss)
 
 
 def test(mask):
-    model.eval()
-    out = model(dataset.X, dataset.edges_sparse)
-    pred = out.argmax(dim=1)
-    test_correct = pred[mask] == dataset.y[mask]
-    test_acc = int(test_correct.sum()) / int(mask.sum())
+    """
+    Function to compute accuracy for a given set mask.
+    """
+    model.eval()  # Set to evaluation mode
+    out = model(dataset.X, dataset.edges_sparse)  # Peform Forward Pass
+    pred = out.argmax(dim=1)  # Obtain Predicted Class Lables
+    test_correct = pred[mask] == dataset.y[mask]  # Indexes of correct predictions
+    test_acc = int(test_correct.sum()) / int(mask.sum())  # Calculate accuracy
     return test_acc
 
 
-def train():
+def train(epochs):
+    """
+    Function to train the GCN model for a specified number of epochs
+    """
     val_acc = []
     train_acc = []
     val_loss_all = []
     train_loss_all = []
 
-    for epoch in range(1, 101):
+    # Loop over the specified number of epochs
+    for epoch in range(1, epochs + 1):
         train_loss, val_loss = train_epoch()
         val_acc.append(test(dataset.val_mask))
         train_acc.append(test(dataset.train_mask))
@@ -39,6 +53,7 @@ def train():
         train_loss_all.append(float(train_loss))
         print(f"Epoch: {epoch:03d}, Loss: {train_loss:.4f}")
 
+    # Calculate accuracy on test set
     test_acc = test(dataset.test_mask)
     print(f"Test Accuracy: {test_acc:.4f}")
 
@@ -46,6 +61,9 @@ def train():
 
 
 def plot_accuracy(val_acc, train_acc):
+    """
+    Function to plot the training and validaiton accuracy
+    """
     plt.figure(figsize=(12, 8))
     plt.plot(np.arange(1, len(val_acc) + 1), val_acc, label="Validation Accuracy")
     plt.plot(np.arange(1, len(train_acc) + 1), train_acc, label="Training Accuracy")
@@ -57,6 +75,9 @@ def plot_accuracy(val_acc, train_acc):
 
 
 def plot_loss(val_loss_all, train_loss_all):
+    """
+    Function to plot the training and validaiton loss
+    """
     plt.figure(figsize=(12, 8))
     plt.plot(np.arange(1, len(val_loss_all) + 1), val_loss_all, label="Validation Loss")
     plt.plot(
@@ -69,10 +90,12 @@ def plot_loss(val_loss_all, train_loss_all):
     plt.savefig("gcn_loss.png")
 
 
+# initilize model with specified parameters, ADAM optimizer and Cross entropy loss
 model = modules.GCN(
     dataset.sample_size, dataset.number_features, dataset.number_classes, 16
 )
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 criterion = torch.nn.CrossEntropyLoss()
-train()
-torch.save(model.state_dict(), "best_model.pt")
+
+train(100)  # train model over 100 epochs
+torch.save(model.state_dict(), "best_model.pt")  # save model for later predictions

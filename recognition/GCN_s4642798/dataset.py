@@ -3,6 +3,9 @@ import torch
 
 
 def load_data(filename):
+    """
+    Function to load data from .npz file and convert to tensors
+    """
     # Load data file
     facebook_data = np.load(filename)
 
@@ -25,6 +28,10 @@ def load_data(filename):
 
 
 def generate_data_info(X, y):
+    """
+    Function to determine sample size, number of features and number
+    of classes in the data
+    """
     # Save and output data information
     sample_size = int(X.size(0))
     number_features = int(X.size(1))
@@ -36,21 +43,27 @@ def generate_data_info(X, y):
 
 
 def generate_data_split(train_split, val_split, sample_size):
-    # Generate training and testing mask
+    """
+    Function to generate masks for the training, testing and validations sets
+    """
+    # Calculate the sizes of the training and validation set
     train_size = int(train_split * sample_size)
     val_size = int(val_split * sample_size)
 
+    # Generate random indices for shuffling the data
     rand_indicies = torch.randperm(sample_size)
-    train_indicies = rand_indicies[:train_size]
-    val_indicies = rand_indicies[train_size : (train_size + val_size)]
-    test_indicies = rand_indicies[(train_size + val_size) :]
 
+    # Create masks for the training, validation, and testing
+    # sets based on the random indices
+    train_indicies = rand_indicies[:train_size]
     train_mask = torch.zeros(sample_size, dtype=torch.bool)
     train_mask[train_indicies] = True
 
+    val_indicies = rand_indicies[train_size : (train_size + val_size)]
     val_mask = torch.zeros(sample_size, dtype=torch.bool)
     val_mask[val_indicies] = True
 
+    test_indicies = rand_indicies[(train_size + val_size) :]
     test_mask = torch.zeros(sample_size, dtype=torch.bool)
     test_mask[test_indicies] = True
 
@@ -63,6 +76,9 @@ def generate_data_split(train_split, val_split, sample_size):
 
 
 def preprocess_data(edges, X, y, sample_size):
+    """
+    Function to add self loops to adjaceny matrix and convert to sparse array.
+    """
     # Cast tensors that contain integer values to integer type
     edges = edges.to(torch.int64)
     y = y.to(torch.int64)

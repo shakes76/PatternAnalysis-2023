@@ -4,6 +4,10 @@ from torch.nn import Parameter
 
 
 class GCNConv(torch.nn.Module):
+    """
+    A class which represents a single convolution layer of the GCN
+    """
+
     def __init__(self, sample_size, in_channels, out_channels):
         super().__init__()
         self.sample_size = sample_size
@@ -44,6 +48,10 @@ class GCNConv(torch.nn.Module):
 
 
 class GCN(torch.nn.Module):
+    """
+    Class representing the 3 layer GCN network trained against the Facebook dataset
+    """
+
     def __init__(self, sample_size, number_features, number_classes, hidden_channels):
         super().__init__()
         self.conv1 = GCNConv(sample_size, number_features, 2 * hidden_channels)
