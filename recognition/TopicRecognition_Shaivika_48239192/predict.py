@@ -25,7 +25,16 @@ patch_size = 6
 Images, Labels = load_and_preprocess_data()
 
 # Load the trained model
-model = tf.keras.models.load_model('model/trained_model.h5')
+train_indices, test_indices = train_test_split(list(range(Images.shape[0])), train_size=0.8, test_size=0.2, shuffle=True)
+
+label_mapping = {
+    'AD': 0,
+    'CN': 1,
+}
+mapping_to_label = {v: k for k, v in label_mapping.items()}
+
+# Load and preprocess data
+Images, Labels = load_and_preprocess_data()
 
 # Make predictions
 y_pred = model.predict(Images)
