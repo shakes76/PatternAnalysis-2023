@@ -55,7 +55,7 @@ The file structure should end up looking like this:
 └  train_predict.sh
 ```
 
-In the terminal, move to the folder `46429515_OASIS_brain_SD` and then run the command 
+In the terminal, move to the folder `46429515_OASIS_brain_SD` and then run the bash script with the command:
 
 ```
 ./train_predict.sh
@@ -72,6 +72,11 @@ The images generated from the noisy image inputs (images that came from epoch 0 
 ![generated image 1](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_0.png) ![generated image 2](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_1.png) ![generated image 3](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_2.png) ![generated image 4](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_3.png) ![generated image 5](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_4.png) ![generated image 6](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_5.png) ![generated image 7](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_6.png) ![generated image 8](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_7.png) ![generated image 9](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_8.png) ![generated image 10](/recognition/46429515_OASIS_brain_SD/predict_output/generated_image_9.png) 
 
 A correlation for the model not generating brains as intended would be due to the training process of the model which can be seen in a loss over epochs plot (can be seen in Training section of the documentation). The cause for this loss/epoch graph may be due to the model used for stable diffusion as the model is a simple U-Net model which is not speciailized to learning important details in a short amount of time.
+
+It is possible that the model did not learn the shape of a brain. This can be seen from the blurry output from the training images at the higher epochs despite clearly having the shape of a brain with some details (images can be seen in Training section of documentation).
+
+
+### Saving Generated Images - predict.py
 
 In this file, the parameters of the saved model is loaded into a newly instanced model. The preprocessing done on the input images is simply a resizing and normalizing:
 
@@ -190,15 +195,18 @@ The model goes through training and saves the processed image every 10 epochs, a
 
 The respective sections of the trainings can be found inside the train.py file.
 
-Alongside the saving of images and model parameters, the losses during training are also been printed out to the system.
-
-This is a plot of the losses over epochs during the training.
+Alongside the saving of images and model parameters, the losses during training are also been printed out to the system. The following image is a plot of the losses over epochs during the training.
 
 ![losses plot](/recognition/46429515_OASIS_brain_SD/util/loss_plot.png)
 
 From the training of the model, it can be seen that the loss initially is significantly high, as expected since the model has yet to learn about the shape and details of a brain using the provided OASIS dataset. Afterwards, there is a sharp drop in loss implying that the model has learned atleast the outline of a brain but it then does not seem to have reached a significant process in training in the later epochs.
 
-This plot may also correlate to the generation of the images using the model.
+The images outputted during the training loop appear to provide the shape and details of a brain, but it is blurry and not reaching the expectations of the training image (black background - white brain grayscaled). The following images are sample images of the training at epochs 710, 730, 770, 790.
+
+![epoch 710 image](/recognition/46429515_OASIS_brain_SD/image_output/epoch_710_step_000_generated.png) ![epoch 730 image](/recognition/46429515_OASIS_brain_SD/image_output/epoch_730_step_000_generated.png) ![epoch 770 image](/recognition/46429515_OASIS_brain_SD/image_output/epoch_770_step_000_generated.png) ![epoch 790 image](/recognition/46429515_OASIS_brain_SD/image_output/epoch_790_step_000_generated.png)
+
+These images are a general idea of what the model has generated from denoising images after adding noise to the images. This possibly provides an insight to why the model does not properly generate an image of a brain as expected.
+
 
 ## Justification
 
@@ -208,7 +216,7 @@ The batch size was sized to be 32 as the provided OASIS dataset have been sliced
 
 The number of discrete steps, T, was set to be 500, as it would provide a finer control over denoising process while not taking too long for the model to be trained compared to 200 where it was faster but of lower quality denoising, and 1000, where it would have a higher quality denoising but slower computational complexitity.
 
-Due to time constraints, training was set to be over the course of 500-800 epochs.
+Due to time constraints, training was set to be over the course of 800 epochs.
 
 
 ## Future Direction
@@ -221,6 +229,7 @@ There are multiple ways that this stable diffusion model from scratch can be imp
 * Changing the number of epochs and change learning rates
 * Higher discrete timestep interval for noising/denoising process
 * Turn the dataset adapatable to all sorts of MRI images (assuming the dataset is in the same format)
+* Check and save best model parameters more often rather than 5 epochs intervals
 
 Areas of significance that needs to be improved upon:
 * Obtaining desired images (brains) from results of generating images
