@@ -1,3 +1,7 @@
+"""
+Author: William Barker
+SN: 4642798
+"""
 import torch
 import torch.nn.functional as F
 from torch.nn import Parameter

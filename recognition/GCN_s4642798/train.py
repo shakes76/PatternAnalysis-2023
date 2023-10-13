@@ -1,3 +1,7 @@
+"""
+Author: William Barker
+SN: 4642798
+"""
 import dataset
 import modules
 import torch

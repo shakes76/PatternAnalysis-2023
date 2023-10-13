@@ -1,3 +1,7 @@
+"""
+Author: William Barker
+SN: 4642798
+"""
 import numpy as np
 import torch
 
