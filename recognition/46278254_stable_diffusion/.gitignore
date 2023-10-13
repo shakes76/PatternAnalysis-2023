@@ -5,3 +5,5 @@ model_ckpt/*
 .vscode/*
 collected_latents/*
 playground/mnist/*
+# tmp file that generate report imgs
+tmp.py
