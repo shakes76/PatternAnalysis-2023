@@ -27,7 +27,7 @@ This diffusion model will be using a U-Net for the backwards process.
 
 1. Clone/Download the repository
 2. Install required dependencies
-3. Download Preprocessed OASIS MRI dataset from [here](https://cloudstor.aarnet.edu.au/plus/s/tByzSZzvvVh0hZA) and unpack into a folder called `data`
+3. Download Preprocessed OASIS MRI dataset from [__here__](https://cloudstor.aarnet.edu.au/plus/s/tByzSZzvvVh0hZA) and unpack into a folder called `data`
 
 The file structure should end up looking like this:
 
@@ -104,10 +104,13 @@ The saving of the generated images is done similarly for training images which c
 With a custom dataset class created (OASISDataset), this will enable the images to be transformed as desired, as well as implement the dataset into a dataloader to be used for our task, where our specified root_path is the path to the parent folder of images of the dataset and the batch size is 32 (can be found in utils.py).
 
 ```python
-train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', label_path=f'{root_path}/keras_png_slices_seg_train', transform=transform)
-test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', label_path=f'{root_path}/keras_png_slices_seg_test', transform=transform)
+train_data = OASISDataset(root=f'{root_path}/keras_png_slices_train', 
+                        label_path=f'{root_path}/keras_png_slices_seg_train', transform=transform)
+test_data = OASISDataset(root=f'{root_path}/keras_png_slices_test', 
+                        label_path=f'{root_path}/keras_png_slices_seg_test', transform=transform)
 combined_data = ConcatDataset([train_data, test_data])
-validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', label_path=f'{root_path}/keras_png_slices_seg_validate', transform=transform)
+validate_data = OASISDataset(root=f'{root_path}/keras_png_slices_validate', 
+                        label_path=f'{root_path}/keras_png_slices_seg_validate', transform=transform)
 
 data_loader = DataLoader(combined_data, batch_size = BATCH_SIZE, shuffle=True, drop_last=True)
 validate_loader = DataLoader(validate_data, batch_size=batch_size)
