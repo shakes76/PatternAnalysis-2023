@@ -15,13 +15,14 @@ val_size = 0.1
 data, features = load_data(test_size=test_size, val_size=val_size) # Get features to get their shape.
 data = data.to(device)
 
-num_epochs = 200
+num_epochs = 500
 num_features = features.shape[1]  # 128 for default data
 hidden_dim = 64
 num_classes = 4  # politicians, governmental organizations, television shows and companies
-learning_rate = 0.01
+learning_rate = 1e-2
+dropout_prob = 0.5
 
-model = Model(num_features, hidden_dim, num_classes)
+model = Model(num_features, hidden_dim, num_classes, dropout_prob)
 
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 criterion = torch.nn.CrossEntropyLoss()
