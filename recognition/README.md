@@ -33,7 +33,7 @@ Neural networks are trained using the backpropagation algorithm and variants of 
 where $z_i$ represents the neural network output for class $i$. After estimating the probabilities using the softmax function, the loss function is typically chosen to be the cross-entropy loss, defined to be
 ```math
 \begin{align}
-    \textrm{CrossEntropyLoss}(y, \hat{y}) = -\sum_{c=1}^C y_c \log(p_c),\label{eqn: crossEntropyloss}
+    \textrm{CrossEntropyLoss}(y, \hat{y}) = -\sum_{c=1}^C y_c \log(p_c)
 \end{align}
 ```
 where $y_c$ is a binary indicator indicating the true class of the sample, and $p_c$ is the output softmax probability of the sample belonging to that class (\cite{hastie_neural_2009}).
@@ -58,8 +58,25 @@ For a graph convolutional network, the message passing is done through the follo
 ```
 where $\sigma$ is a non-linear activation function such as the element-wise ReLU function, $W_0^{(l)}$ and $W_1^{(l)}$ are learnable $d_l \times d_{d+1}$ parameter matrices and $c_{i, j} = 1/\sqrt{D_{i,i}D_{j,j}}$ is a normalisation constant, where $D_{i,i}$ is the degree of node $v_i$. The final node representations $h^L$ can then be used for regression or node classification problems in the normal way described above. 
 
-## Training
+## Training and validation
+The model is trained using 80% of the labels as training data, and a holdout 20% as validation. The graph is loaded with embedded node features, and is split into batched using PyTorch geometric KNeigborLoader, which is a data loader that splits the graph into multiple subgraphs for training. The model consists of two graph convolutions, each with 128 channels, and passes the output into a relu function before the next layer. The final output is passed through a linear layer before being passed to the cross entropy loss function. The exponential learning rate schedular was trialed for a number of experiments, but was found to ultimately hinder performance. 
 
-## Validation
+The model is trained using stochastic gradient decent with a constant learning rate of 0.65 with no learning rate schedular, and is trained for 400 epochs. Validation is run on the final model to determine the accuracy on the holdout testing set, and the accuracy on the entire graph. The results are tabulated below
+
+| Metric | Result |
+|-----|-----|
+| Final Training loss | 0.34 |
+| Test loss | 0.38 |
+| Final Accuracy on Test Set | 0.88 |
+| Final Accuracy on full graph | 0.88 |
+| Class 0 | 0.80 |
+| Class 1 | 0.87 |
+| Class 2 | 0.91 |
+| Class 3 | 0.95 |
+
+The model achieves reasonable accuracy and will perform well in production for the last three classes. For the first class, the accuracy is 79%, so while most results can be trusted there is still a 20% chance that the page will be misclassified. 
 
 ## T-SNE
+A T-SNE plot is made that shows the final embedding of the nodes before the linear layer is applied to reduce the final dimension. 128 embedded features are used and the first two T-SNE features are plotted. As can be seen, the classes are grouped together in the embedding with little overlap for most classes. This allows the linear model to distinguish between the classes in the high dimensional embedding space and output a value that can be used to derive the predicted class. 
+
+![](figures/tsne.png)
