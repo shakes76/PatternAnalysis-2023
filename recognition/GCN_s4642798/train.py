@@ -4,14 +4,8 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 
-model = modules.GCN(
-    dataset.sample_size, dataset.number_features, dataset.number_classes, 16
-)
-optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
-criterion = torch.nn.CrossEntropyLoss()
 
-
-def train():
+def train_epoch():
     model.train()
     optimizer.zero_grad()
     out = model(dataset.X, dataset.edges_sparse)
@@ -31,38 +25,54 @@ def test(mask):
     return test_acc
 
 
-val_acc = []
-train_acc = []
-val_loss_all = []
-train_loss_all = []
+def train():
+    val_acc = []
+    train_acc = []
+    val_loss_all = []
+    train_loss_all = []
 
-for epoch in range(1, 101):
-    train_loss, val_loss = train()
-    val_acc.append(test(dataset.val_mask))
-    train_acc.append(test(dataset.train_mask))
-    val_loss_all.append(float(val_loss))
-    train_loss_all.append(float(train_loss))
-    print(f"Epoch: {epoch:03d}, Loss: {train_loss:.4f}")
+    for epoch in range(1, 101):
+        train_loss, val_loss = train_epoch()
+        val_acc.append(test(dataset.val_mask))
+        train_acc.append(test(dataset.train_mask))
+        val_loss_all.append(float(val_loss))
+        train_loss_all.append(float(train_loss))
+        print(f"Epoch: {epoch:03d}, Loss: {train_loss:.4f}")
 
-test_acc = test(dataset.test_mask)
-print(f"Test Accuracy: {test_acc:.4f}")
+    test_acc = test(dataset.test_mask)
+    print(f"Test Accuracy: {test_acc:.4f}")
 
-plt.figure(figsize=(12, 8))
-plt.plot(np.arange(1, len(val_acc) + 1), val_acc, label="Validation Accuracy")
-plt.plot(np.arange(1, len(train_acc) + 1), train_acc, label="Training Accuracy")
-plt.xlabel("Epochs")
-plt.ylabel("Accurarcy")
-plt.title("Training and Validation Accuracy")
-plt.legend(loc="lower right", fontsize="x-large")
-plt.savefig("gcn_accuracy.png")
+    return val_acc, train_acc, val_loss_all, train_loss_all, test_acc
 
-plt.figure(figsize=(12, 8))
-plt.plot(np.arange(1, len(val_loss_all) + 1), val_loss_all, label="Validation Loss")
-plt.plot(np.arange(1, len(train_loss_all) + 1), train_loss_all, label="Training Loss")
-plt.xlabel("Epochs")
-plt.ylabel("Loss")
-plt.title("Training and Validation Loss")
-plt.legend(loc="upper right", fontsize="x-large")
-plt.savefig("gcn_loss.png")
 
+def plot_accuracy(val_acc, train_acc):
+    plt.figure(figsize=(12, 8))
+    plt.plot(np.arange(1, len(val_acc) + 1), val_acc, label="Validation Accuracy")
+    plt.plot(np.arange(1, len(train_acc) + 1), train_acc, label="Training Accuracy")
+    plt.xlabel("Epochs")
+    plt.ylabel("Accurarcy")
+    plt.title("Training and Validation Accuracy")
+    plt.legend(loc="lower right", fontsize="x-large")
+    plt.savefig("gcn_accuracy.png")
+
+
+def plot_loss(val_loss_all, train_loss_all):
+    plt.figure(figsize=(12, 8))
+    plt.plot(np.arange(1, len(val_loss_all) + 1), val_loss_all, label="Validation Loss")
+    plt.plot(
+        np.arange(1, len(train_loss_all) + 1), train_loss_all, label="Training Loss"
+    )
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.title("Training and Validation Loss")
+    plt.legend(loc="upper right", fontsize="x-large")
+    plt.savefig("gcn_loss.png")
+
+
+model = modules.GCN(
+    dataset.sample_size, dataset.number_features, dataset.number_classes, 16
+)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
+criterion = torch.nn.CrossEntropyLoss()
+train()
 torch.save(model.state_dict(), "best_model.pt")
