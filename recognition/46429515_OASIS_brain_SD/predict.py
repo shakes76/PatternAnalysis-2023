@@ -53,7 +53,7 @@ def save_tensor_image(image, counter):
 
 # Perform inference
 with torch.no_grad():
-    counter = 0
+    counter = 11
     t = torch.randint(0, utils.T, (utils.BATCH_SIZE,), device=device).long()
     
     for input_data in input_datas:
@@ -64,7 +64,9 @@ with torch.no_grad():
         output = model(input_batch, t)
         
         img_size = utils.IMAGE_SIZE
-        img = torch.randn((1, 1, img_size, img_size), device=device)
+        
+        # Generate random noise sample image
+        img = torch.randn((1, 1, img_size, img_size), device=device) 
         num_images = 1
         stepsize = int(utils.T/num_images)
 
