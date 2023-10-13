@@ -65,7 +65,7 @@ def compute_ssim(x, x_tilde):
 
 
 
-def plot_losses_and_scores():
+def plot_losses_and_scores(train_losses_epoch, val_losses, ssim_scores):
     # Extract training losses for reconstruction and VQ
     train_recons_losses, train_vq_losses = zip(*train_losses_epoch)
     

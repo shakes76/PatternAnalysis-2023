@@ -13,7 +13,7 @@ from dataset import train_loader, val_loader, test_loader
 
 # Constants
 BATCH_SIZE = 32
-N_EPOCHS = 500
+N_EPOCHS = 20
 PRINT_INTERVAL = 100
 DATASET_PATH = './OASIS'
 NUM_WORKERS = 1
@@ -189,7 +189,7 @@ if __name__ == '__main__':
             BEST_EPOCH = epoch
             print("Saving model based on improved combined metric!")
             dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
-            torch.save(model.state_dict(), f'models3/checkpoint_epoch{BEST_EPOCH}_vqvae.pt')
+            torch.save(model.state_dict(), f'models2/checkpoint_epoch{BEST_EPOCH}_vqvae.pt')
             
             with open("best_epoch.txt", "w") as file:
                 file.write(str(BEST_EPOCH))
@@ -213,7 +213,7 @@ if __name__ == '__main__':
     test_ssim = test()
     print(f"Average SSIM on Test Set: {test_ssim:.4f}")
 
-    plot_losses_and_scores()
+    plot_losses_and_scores(train_losses_epoch, val_losses, ssim_scores)
 
     # Saving the best epoch for future reference (to be used in predict.py)
     with open("best_epoch.txt", "w") as file:
