@@ -9,6 +9,7 @@ def get_train_dataset():
         batch_size=128,
         image_size=(256, 256)
     )
+    # Normalize the dataset
     normalization_layer = tf.keras.layers.Rescaling(1./255, offset=-0.5)
     train_ds = train_ds.map(lambda x: normalization_layer(x))
     return train_ds
@@ -21,6 +22,7 @@ def get_validate_dataset():
         #batch_size=128,
         image_size=(256, 256)
     )
+    # Normalize the dataset
     normalization_layer = tf.keras.layers.Rescaling(1./255, offset=-0.5)
     validate_ds = validate_ds.map(lambda x: normalization_layer(x))
     return validate_ds
@@ -33,17 +35,19 @@ def get_test_dataset():
         batch_size=128,
         image_size=(256, 256)
     )
+    # Normalize the dataset
     normalization_layer = tf.keras.layers.Rescaling(1./255, offset=-0.5)
     test_ds = test_ds.map(lambda x: normalization_layer(x))
     return test_ds
 
 def preview_images():
-    train_ds = get_train_dataset()
+    train_ds = next(iter(get_train_dataset().take(1)))
     plt.figure(figsize=(10,10))
     plt.title("Sample of images froxm OASIS train dataset")
+    
     for i in range(9):
         plt.subplot(3, 3, i+1)
-        plt.imshow(next(iter(train_ds))[i])
+        plt.imshow(train_ds[i])
         plt.axis('off')
     plt.show()
     
@@ -55,6 +59,7 @@ def get_dataset_variance(dataset):
         num_samples += len(batch)
         sum += tf.reduce_sum(batch)
     mu = sum / (num_samples * 256 ** 2)
+    
     # Calculate the variance
     variance = 0
     for batch in dataset:

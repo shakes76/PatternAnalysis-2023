@@ -2,7 +2,7 @@ import tensorflow as tf
 import random
 from tensorflow import keras
 from modules import VQVAETrainer, get_pixel_cnn
-from dataset import get_train_dataset, get_dataset_variance, get_validate_dataset, get_test_dataset
+from dataset import get_train_dataset, get_test_dataset, get_dataset_variance
 from matplotlib import pyplot as plt
 
 def plot_history(history):
@@ -52,26 +52,42 @@ def visualize_vqvae_results():
     
     test_images = get_test_dataset().take(1)
     test_batch = next(iter(test_images))
+    # Get the reconstruction results
     reconstructions_test = trained_vqvae_model.predict(test_images)
     rec_batch = reconstructions_test
+    # Get the codebook indice
+    encoded_outputs = encoder.predict(test_images)
+    flat_enc_outputs = encoded_outputs.reshape(-1, encoded_outputs.shape[-1])
+    codebook_indices = quantizer.get_code_indices(flat_enc_outputs)
+    codebook_indices = codebook_indices.numpy().reshape(encoded_outputs.shape[:-1])
     
     n = 1
-    plt.figure(figsize=(10, 10))
-    for i in random.sample(range(0, 127), 10):
+    num_samples = 10
+    plt.figure(figsize=(10, 30))
+    for i in random.sample(range(0, 127), num_samples):
         ssim = tf.image.ssim(test_batch[i], rec_batch[i], max_val=1.0)
-        # Plot the ssim
         
-        plt.subplot(10, 2, n)
+        # Plot the original image
+        plt.subplot(num_samples, 3, n)
         plt.imshow(test_batch[i])
         plt.title("Original")
         plt.axis("off")
         
-        plt.subplot(10, 2, n + 1)
+        # Plot the discrete code
+        plt.subplot(num_samples, 3, n + 1)
+        plt.imshow(codebook_indices[i])
+        plt.title("SSIM: {:.2f} \nCode".format(ssim))
+        plt.axis("off")
+        
+        # Plot the reconstructed image
+        plt.subplot(num_samples, 3, n + 2)
         plt.imshow(rec_batch[i])
         plt.title("Reconstructed")
         plt.axis("off")
-        n += 2
+        n += 3
         
+    plt.tight_layout()
+    plt.savefig('recognition/VQ-VAE-46495408/results/vqvae_test_images.png')
     plt.show()
     
 def train_pixelcnn():
@@ -80,12 +96,14 @@ def train_pixelcnn():
     vqvae_trainer.load_weights('recognition/VQ-VAE-46495408/checkpoint/vqvae_ckpt')
     encoder = vqvae_trainer.vqvae.get_layer("encoder")
     quantizer = vqvae_trainer.vqvae.get_layer("vector_quantizer")
+    
     # Generate the codebook indices
     encoded_outputs = encoder.predict(train_ds)
     flat_enc_outputs = encoded_outputs.reshape(-1, encoded_outputs.shape[-1])
     codebook_indices = quantizer.get_code_indices(flat_enc_outputs)
     codebook_indices = codebook_indices.numpy().reshape(encoded_outputs.shape[:-1])
     #print(f"Shape of the training data for PixelCNN: {codebook_indices.shape}")
+    
     # Compile and train
     pixelcnn_input_shape = encoded_outputs.shape[1:-1]
     pixel_cnn = get_pixel_cnn(pixelcnn_input_shape, vqvae_trainer.num_embeddings)
