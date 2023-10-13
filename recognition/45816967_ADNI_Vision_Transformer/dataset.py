@@ -32,46 +32,52 @@ def load_images_from_directories(dirs, datasplit=0., verbose=False):
 	val_paths = []
 	train_images = []
 	val_images = []
+	print(dirs)
 	for dir in dirs:
+		temp_image_paths = []
 		for filename in glob(dir[0], recursive=True):
+			temp_image_paths.append(filename)
 			image_paths.append(filename)
-	image_paths = sorted(image_paths)
-	
-	curr_patient = ""
-	count = 0
-	for ip in image_paths:
-		patient_id = ip.split("/")[-1].split("_")[0]
-		# print(patient_id)
-		if (curr_patient != patient_id):
-			curr_patient = patient_id
-			count += 1
-		if (datasplit != 0.):
+		temp_image_paths = sorted(temp_image_paths)
+		curr_patient = ""
+		count = 0
+		for filename in temp_image_paths:
+			patient_id = filename.split("/")[-1].split("_")[0]
 			# print(patient_id)
-			if (count % (round(1/datasplit)) == 0):
-				count = 0
-			if (count == 0):
-				# print("val")
-				val_paths.append(ip)
-				img = Image.open(ip)
-				val_images.append([img.copy(), dir[1]])
-				img.close()
+			if (curr_patient != patient_id):
+				curr_patient = patient_id
+				count += 1
+			if (datasplit != 0.):
+				# print(patient_id)
+				if (count % (round(1/datasplit)) == 0):
+					count = 0
+				if (count == 0):
+					# print("val")
+					val_paths.append(filename)
+					img = Image.open(filename)
+					val_images.append([img.copy(), dir[1]])
+					img.close()
+				else:
+					# print("train")
+					train_paths.append(filename)
+					img = Image.open(filename)
+					train_images.append([img.copy(), dir[1]])
+					img.close()
 			else:
-				# print("train")
-				train_paths.append(ip)
-				img = Image.open(ip)
+				train_paths.append(filename)
+				img = Image.open(filename)
 				train_images.append([img.copy(), dir[1]])
 				img.close()
-		else:
-			train_paths.append(ip)
-			img = Image.open(ip)
-			train_images.append([img.copy(), dir[1]])
-			img.close()
+	# image_paths = sorted(image_paths)
+	
+	# for ip in image_paths:
+		
 			
 	if verbose:
 		print("Set1: ", train_paths[:2])
 		print("Set2: ", val_paths[:2])
 		for ip in image_paths[:10]:
-			im = Image.open(ip)
+			im = Image.open(ip[0])
 			plt.figure()
 			plt.imshow(im, cmap="gray")
 
