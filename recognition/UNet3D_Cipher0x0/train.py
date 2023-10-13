@@ -51,8 +51,6 @@ def main():
     valid_dsc_list = []
     test_dsc_list = []
 
-    ag = Augment()
-
     # build model and optimizer
     loss_fn = nn.CrossEntropyLoss().to(device)
     dice_loss = DiceLoss()
@@ -64,7 +62,6 @@ def main():
         unet.train()
         for index, data in enumerate(trainloader, 0):
             image, mask = data
-            image, mask = ag.crop_and_augment(image, mask)
             image = image.unsqueeze(0)
             image = image.float().to(device)
             mask = mask.long().to(device)
@@ -72,7 +69,7 @@ def main():
             pred = unet(image)
             loss = loss_fn(pred, mask)
             loss.backward()
-            optimizer.step()
+            optimizer.step(),
 
         # run the model on the val set after each train loop
         unet.eval()
