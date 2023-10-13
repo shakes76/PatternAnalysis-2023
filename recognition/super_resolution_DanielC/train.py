@@ -3,8 +3,6 @@ from utils import *
 from dataset import *
 import torch
 import time
-import matplotlib.pyplot as plt
-import numpy as np
 
 # -------
 # Initialise device
@@ -37,7 +35,7 @@ start = time.time()
 for epoch in range(num_epochs):
     for i, (images, _) in enumerate(train_loader):
 
-        low_res_images = downsample_tensor(images)
+        low_res_images = resize_tensor(images)
 
         low_res_images.to(device)
         images.to(device)
@@ -46,7 +44,7 @@ for epoch in range(num_epochs):
         outputs = model(low_res_images)
         loss = criterion(outputs, images)
 
-        # Backward and optimize
+        # Backward propogration and optimize
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
