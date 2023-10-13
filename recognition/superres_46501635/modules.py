@@ -36,11 +36,12 @@ class ESPCN(nn.Module):
 
         # Feature extraction!
         self.feature_extraction = nn.Sequential(
-            # 5x5 kernel and padding 2 to keep spatial dimensions
+            # Spatial dimensions do not change in feature extraction phase
             # (batch_size, 1, H, W) 
             nn.Conv2d(input_channels, 64, kernel_size=5, padding=2),
             # (batch_size, 64, H, W)
-            nn.Tanh(),
+            nn.Tanh(), # Tanh used to output values [-1,1] which is beneficial for image data, especially when normalised to same range.
+                       # prevents saturation and vanishing gradient problems better than sigmoid or relu
             nn.Conv2d(64, 32, kernel_size=3, padding=1),
             # (batch_size, 32, H, W)
             nn.Tanh()
