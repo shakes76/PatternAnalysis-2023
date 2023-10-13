@@ -101,7 +101,7 @@ def plot_losses_and_scores(train_losses_epoch, val_losses, ssim_scores):
     plt.legend()
 
     plt.tight_layout()
-    plt.savefig('samples2/loss_ssim_plot.png', bbox_inches='tight')
+    plt.savefig('samples6/loss_ssim_plot.png', bbox_inches='tight')
     plt.close()
 
 def save_and_display_images(images, filename, nrow=8):
@@ -128,13 +128,18 @@ def generate_samples(model, test_loader, epoch):
     images = (torch.cat([x, x_tilde], 0).cpu().data + 1) / 2
 
     # Save and display the reconstructed images
+    
     #filename = f'samples3/vqvae_reconstructions_{epoch}'
     #save_and_display_images(images, filename, nrow=8)
-    grid_img = torchvision.utils.make_grid(x_tilde.cpu().data, nrow=8)
+    grid_img = torchvision.utils.make_grid(images, nrow=8)
     plt.figure(figsize=(16,8))
     plt.imshow(grid_img.permute(1, 2, 0))
-    plt.savefig(f'samples3/vqvae_reconstructions_{epoch}.png', bbox_inches='tight')
+    plt.savefig(f'samples6/vqvae_reconstructions_{epoch}.png', bbox_inches='tight')
     plt.close()
+
+
+
+    
 
 def generate_sample_from_best_model(model, test_loader, best_epoch):
     """Generates and saves a sample using the best model from a given epoch."""
@@ -149,15 +154,16 @@ def generate_sample_from_best_model(model, test_loader, best_epoch):
 
     # Reconstruct the image using the model
     x_tilde, _, _ = model(x)
+    images = (torch.cat([x, x_tilde], 0).cpu().data + 1) / 2
 
     # Save the reconstructed image
     #filename = 'models2/best_model_sample'
     #save_and_display_images(x_tilde.cpu().data, filename)
     #save_image(x_tilde.cpu().data, filename)
-    grid_img = torchvision.utils.make_grid(x_tilde.cpu().data, nrow=8)
+    grid_img = torchvision.utils.make_grid(images, nrow=8)
     plt.figure(figsize=(16,8))
     plt.imshow(grid_img.permute(1, 2, 0))
-    plt.savefig(f'models2/best_model_sample.png', bbox_inches='tight')
+    plt.savefig(f'samples6/best_model_sample.png', bbox_inches='tight')
     plt.close()
 
 class VQEmbedding(nn.Module):
