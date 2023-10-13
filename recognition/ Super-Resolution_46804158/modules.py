@@ -3,10 +3,10 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 
-upscale_factor = 3
+upscale_factor = 4
 
 class SuperResolutionModel(nn.Module):
-    def __init__(self, upscale_factor=3, channels=3):
+    def __init__(self, upscale_factor=4, channels=3):
             super(SuperResolutionModel, self).__init__()
             self.conv_args = {
                 "kernel_size": 3,

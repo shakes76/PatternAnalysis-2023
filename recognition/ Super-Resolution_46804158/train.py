@@ -12,6 +12,7 @@ num_epochs = 10
 # Initialize the dataset and data loaders
 data_loader = ADNIDataset()
 train_loader = data_loader.train_loader
+target_loader = data_loader.target_loader
 test_loader = data_loader.test_loader
 
 # Initialize the model
@@ -30,11 +31,13 @@ for epoch in range(num_epochs):
     model.train()
     train_loss = 0.0
 
-    for batch in train_loader:
-        inputs, targets = batch
+    for train_batch, target_batch in zip(train_loader, target_loader):
+        inputs, targets = train_batch # input shape is: 60x60, target shape is: 240x240
         optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, targets)
+        outputs = model(inputs) #outputs shape is: 240x240
+        # print(outputs.shape,targets.shape)
+        # exit()
+        loss = criterion(outputs, targets) # Compare with outputs and targets
         loss.backward()
         optimizer.step()
         train_loss += loss.item()
