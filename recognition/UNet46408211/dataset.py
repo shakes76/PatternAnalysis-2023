@@ -9,17 +9,7 @@ import os
 import PIL.Image as Image
 import PIL
 from torch.utils.data import Dataset, DataLoader
-
-# image_dir = '../data/ISIC-2017_Training_Data'
-# mask_dir = '../data/ISIC-2017_Training_Part1_GroundTruth'
-
-#----------------------------------------------------------------------
-# set the device to cuda if available
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if not torch.cuda.is_available():
-    print('No GPU detected. Using CPU instead.')
-print('Using device:', device)
-#----------------------------------------------------------------------
+import albumentations as A
 
 class ISICDataset(Dataset):
     
@@ -42,8 +32,9 @@ class ISICDataset(Dataset):
         mask = np.array(Image.open(mask_path).convert('L'), dtype=np.float32)
         mask[mask == 255.0] = 1.0 # convert all 255 values to 1.0 to make it a binary mask
         
-        # if self.transform is not None:    # IMPLEMENT TRANSFORMS HERE
-        #     image = self.transform(image)
-        #     mask = self.transform(mask)
+        if self.transform is not None:    # IMPLEMENT TRANSFORMS HERE
+            transformed = self.transform(image=image, mask=mask)
+            image = transformed['image']
+            mask = transformed['mask']
         
         return image, mask
