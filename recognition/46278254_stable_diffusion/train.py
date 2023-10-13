@@ -15,6 +15,9 @@ from model_diffusion import LatentDiffusionModel
 DEVICE = torch.device("cuda")
 print("DEVICE:", DEVICE)
 
+# Fixed the random seed for reproducibiilty
+torch.manual_seed(0)
+
 # Select loaded model
 mode = 'VAE'
 load_epoch = 31
