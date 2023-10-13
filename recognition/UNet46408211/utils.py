@@ -5,18 +5,22 @@ import torch
 import matplotlib.pyplot as plt
 from dataset import ISICDataset
 from torch.utils.data import DataLoader
+import torchvision
 import os
 import time
+from tqdm import tqdm
 
 def save_checkpoint(state, filename='checkpoint.pth.tar'):
     print('>>> Saving checkpoint')
-    torch.save(state, filename)
+    os.makedirs('checkpoints', exist_ok=True)
+    torch.save(state, 'checkpoints/'+filename)
     print('>>> Checkpoint saved')
 
-def load_checkpoint(checkpoint, model, optimizer):
+def load_checkpoint(checkpoint, model, optimizer=None):
     print('>>> Loading checkpoint')
     model.load_state_dict(checkpoint['state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer'])
+    if optimizer is not None:
+        optimizer.load_state_dict(checkpoint['optimizer'])
     print('>>> Checkpoint loaded')
 
 def create_dataloader(img_dir, mask_dir, transform, 
@@ -54,6 +58,67 @@ def calc_dice_score(model, dataloader, device='cuda'):
     model.train()
     return dice_score / len(dataloader)
 
+def save_predictions_as_imgs(loader, model, num, folder='saved_images/', device='cuda', verbose=True):
+    """
+    Saves the predictions from the model as images in the folder
+    """
+    preds_path = f'{folder}preds/'
+    masks_path = f'{folder}masks/'
+    orig_path = f'{folder}orig/'
+    os.makedirs(preds_path, exist_ok=True)
+    os.makedirs(masks_path, exist_ok=True)
+    os.makedirs(orig_path, exist_ok=True)
+    
+    model.eval()
+    print('>>> Generating and saving predictions') if verbose else None
+    with torch.no_grad():
+        for idx, (x, y) in enumerate(loader):
+            x = x.to(device)
+            y = y.to(device) # add 1 channel to mask
+            preds = torch.sigmoid(model(x))
+            preds = (preds > 0.5).float()
+            torchvision.utils.save_image(preds, f'{preds_path}pred_{idx+1}.png')
+            torchvision.utils.save_image(y.unsqueeze(1), f'{masks_path}mask_{idx+1}.png')
+            torchvision.utils.save_image(x, f'{orig_path}orig_{idx+1}.png')
+            if idx == num-1:
+                break
+    model.train()
+
+def plot_prediction(ind=0, folder='saved_images'):
+    """
+    Assumes the folder contains the following subfolders:
+    preds, masks, orig.
+    Plots the original image at ind, the mask, and the prediction side by side with labels.
+    """
+    preds_path = f'{folder}/preds/'
+    masks_path = f'{folder}/masks/'
+    orig_path = f'{folder}/orig/'
+    
+    preds = os.listdir(preds_path)
+    masks = os.listdir(masks_path)
+    origs = os.listdir(orig_path)
+    
+    if ind >= len(preds):
+        print('Index out of range')
+        return
+    
+    # plot only one image from each folder
+    pred = Image.open(preds_path + preds[ind])
+    mask = Image.open(masks_path + masks[ind])
+    orig = Image.open(orig_path + origs[ind])
+    
+    fig, axs = plt.subplots(1, 3, figsize=(20, 10))
+    axs[0].imshow(orig)
+    axs[0].set_title('Original Image')
+    axs[0].axis('off')
+    axs[1].imshow(mask)
+    axs[1].set_title('Mask')
+    axs[1].axis('off')
+    axs[2].imshow(pred)
+    axs[2].set_title('Prediction')
+    axs[2].axis('off')
+    plt.show()    
+
 def plot_samples_mask_overlay(dataset, n=12):
     """
     Plots n samples from the dataset
@@ -73,7 +138,7 @@ def print_progress(start_time, epoch, num_epochs):
     """
     elapsed_time = time.time() - start_time
     average_time_per_epoch = elapsed_time / (epoch + 1)
-    remaining_time = average_time_per_epoch * (NUM_EPOCHS - epoch - 1)
+    remaining_time = average_time_per_epoch * (num_epochs - epoch - 1)
     # convert to days, hours, minutes, seconds
     days = remaining_time // (24 * 3600)
     remaining_time = remaining_time % (24 * 3600)

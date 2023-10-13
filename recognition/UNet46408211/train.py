@@ -5,6 +5,7 @@ from albumentations.pytorch import ToTensorV2
 import torchvision.transforms as transforms
 import numpy as np
 from torch.utils.data import DataLoader
+import matplotlib.pyplot as plt
 from tqdm import tqdm
 from modules import UNet
 from dataset import ISICDataset
@@ -24,8 +25,8 @@ LEARNING_RATE = 1e-4
 BATCH_SIZE = 16
 NUM_EPOCHS = 1
 NUM_WORKERS = 2
-IMAGE_HEIGHT = 512  # 512
-IMAGE_WIDTH = 512  # 512
+IMAGE_HEIGHT = 256
+IMAGE_WIDTH = 512
 PIN_MEMORY = True
 LOAD_MODEL = False
 TRAIN_IMG_DIR = 'data/ISIC_2017/Training/ISIC-2017_Training_Data'
@@ -33,7 +34,7 @@ TRAIN_MASK_DIR = 'data/ISIC_2017/Training/ISIC-2017_Training_Part1_GroundTruth'
 TEST_IMG_DIR = 'data/ISIC_2017/Testing/ISIC-2017_Test_v2_Data'
 TEST_MASK_DIR = 'data/ISIC_2017/Testing/ISIC-2017_Test_v2_Part1_GroundTruth'
 
-def train_epoch(loader, model, optimizer, loss_fn, scaler):
+def train_epoch(loader, model, optimizer, loss_fn, scaler, losses):
     loop = tqdm(loader)
     for batch_idx, (data, targets) in enumerate(loop):
         data = data.to(device=device)
@@ -47,6 +48,7 @@ def train_epoch(loader, model, optimizer, loss_fn, scaler):
         scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
+        losses.append(loss.item())
         # update tqdm loop
         loop.set_postfix(loss=loss.item())
         
@@ -97,6 +99,9 @@ def main():
     loss_fn = nn.BCEWithLogitsLoss() # Binary Cross Entropy Loss with Logits
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE) # Adam optimizer
     
+    if LOAD_MODEL:
+        load_checkpoint(torch.load('checkpoints/my_checkpoint.pth.tar'), model, optimizer)
+    
     scaler = torch.cuda.amp.GradScaler()
     
     losses = [] # for plotting
@@ -108,7 +113,7 @@ def main():
     start_time = time.time()
     for epoch in range(NUM_EPOCHS):
         # Train the model for one epoch
-        train_epoch(train_loader, model, optimizer, loss_fn, scaler)
+        train_epoch(train_loader, model, optimizer, loss_fn, scaler, losses)
         
         # Save a checkpoint after each epoch
         # checkpoint = {
@@ -117,6 +122,7 @@ def main():
         # }
         # save_checkpoint(checkpoint)
         
+        print('>>> Calculating Epoch Dice Score')
         dice_score = calc_dice_score(model, test_loader, device=device)
         dice_scores.append(dice_score)
         print(f'Dice score: {dice_score}')
@@ -126,6 +132,21 @@ def main():
         
         # Print some feedback after each epoch
         print_progress(start_time, epoch, NUM_EPOCHS)
+        
+    # Save a checkpoint after training is complete
+    checkpoint = {
+        'state_dict': model.state_dict(),
+        'optimizer': optimizer.state_dict()
+    }
+    save_checkpoint(checkpoint)
+    
+    # Plot the losses
+    plt.figure(figsize=(20, 10))
+    plt.plot(losses, label='Loss')
+    plt.xlabel('Batch #')
+    plt.ylabel('Loss')
+    plt.grid(True)
+    plt.show()
 
 if __name__ == '__main__':
     main()
