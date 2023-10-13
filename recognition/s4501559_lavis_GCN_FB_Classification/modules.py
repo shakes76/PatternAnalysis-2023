@@ -28,7 +28,7 @@ class GCN(nn.Module):
         for i in range(len(self.conv_layers)):
             x = self.conv_layers[i](x, edge_index)
             x = F.relu(x)
-            # x = F.dropout(x, p=0.5)
+            # x = F.dropout(x, p=0.05)
         x = self.linear(x)
         return x
     

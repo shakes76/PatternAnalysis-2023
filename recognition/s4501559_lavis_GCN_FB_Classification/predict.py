@@ -23,7 +23,7 @@ def model_inference(model, graph):
     predicted_class = pred_proba.argmax(axis=1)
     return predicted_class
 
-def tsne_plot(model, graph, savefile='', correct = [], show=False):
+def tsne_plot(model, graph, correct = [], show=False):
     """ Extract graph embeddings from the model and generate tsne plot """
     graph_embeddings = model.embeddings(graph).to('cpu').detach().numpy()
     y = graph.y.to('cpu').detach().numpy()
@@ -42,8 +42,10 @@ def tsne_plot(model, graph, savefile='', correct = [], show=False):
     
     filt = ~correct
     plt.scatter(X_tsne[filt, 0], X_tsne[filt, 1], marker='.', s=40)
+    plt.xlabel("tsne 1")
+    plt.ylabel("tsne 2")
     plt.legend([0, 1, 2, 3, "Incorrect"])
-    plt.savefig("tsne.png")
+    plt.savefig("figures/tsne.png")
 
     if show:
         plt.show()
@@ -55,7 +57,7 @@ if __name__ == "__main__":
     data = Dataset('datasets/facebook.npz', device=device)
     print("> Data successfully loaded")
 
-    print("> Importing model from picle")
+    print("> Importing model from pickle")
     with open("models/gcn_model.pkl", "rb") as file:
         gcn_model = pickle.load(file)
         file.close()
@@ -71,6 +73,11 @@ if __name__ == "__main__":
     print("> Model Results")
     print(f"\tTest Accuracy: {test_accuracy}")
     print(f"\tFull graph Accuracy: {accuracy}")
+
+    for i in data.graph.y.unique():
+        filt = (data.graph.test_mask) & (data.graph.y == i)
+        class_acc = (prediction[filt] == data.graph.y[filt]).sum()/len(data.graph.y[filt])
+        print(f"Class Accuracy for class {i.to('cpu').detach().numpy()}: {class_acc.to('cpu').detach().numpy()}")
 
     print("> Generating TSNE graph")
     tsne_plot(gcn_model, data.graph, savefile='', show=True)
