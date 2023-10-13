@@ -41,9 +41,9 @@ def load_data_from_folder(name):
 
         data.append(image)
 
-        #if i == 100:
-        #    return np.array(data)
-        #i += 1
+        if i == 50:
+            return np.array(data)
+        i += 1
 
     return np.array(data)
 
@@ -77,10 +77,10 @@ print("The shape of the (testing) data is: ", test_data.shape)
 train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=128, shuffle=True)
 test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=128, shuffle=True)
 
-plt.imshow(train_data[0][0])
-plt.title("First Training image (Normalised)")
-plt.gray()
-plt.show()
+#plt.imshow(train_data[0][0])
+#plt.title("First Training image (Normalised)")
+#plt.gray()
+#plt.show()
 
 print("> Data Loading Finished")
 
@@ -91,6 +91,8 @@ class VQVAE(nn.Module):
     def __init__(self, ):
         super(VQVAE, self).__init__()
         
+        self.encoding_indices = None            # Save the encoding indices to be accessed for pixel CNN
+
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(16),
@@ -136,10 +138,10 @@ class VQVAE(nn.Module):
         dist = torch.cdist(quant_input, self.embedding.weight[None, :].repeat((quant_input.size(0), 1, 1)))
         
         # Find index of nearest embedding
-        min_encoding_indices = torch.argmin(dist, dim=-1)
-        
+        encoding_indices = torch.argmin(dist, dim=-1)       # in form B, W*H
+
         # Select the embedding weights
-        quant_out = torch.index_select(self.embedding.weight, 0, min_encoding_indices.view(-1))
+        quant_out = torch.index_select(self.embedding.weight, 0, encoding_indices.view(-1))
         
         quant_input = quant_input.reshape((-1, quant_input.size(-1)))
         
@@ -151,8 +153,11 @@ class VQVAE(nn.Module):
         # Straight through gradient estimator
         quant_out = quant_input + (quant_out - quant_input).detach()        # Detach ~ ignored for back-prop
         quant_out = quant_out.reshape((B, H, W, C)).permute(0, 3, 1, 2)
-        min_encoding_indices = min_encoding_indices.reshape((-1, quant_out.size(-2), quant_out.size(-1)))
-        
+
+        # Reshape encoding indices to 'B, H, W'
+        encoding_indices = encoding_indices.reshape((-1, quant_out.size(-2), quant_out.size(-1)))
+        self.encoding_indices = encoding_indices
+
         # Decoding
         decoder_input = self.post_quant_conv(quant_out)
         output = self.decoder(decoder_input)
@@ -167,6 +172,9 @@ class VQVAE(nn.Module):
         
         return output, total_losses
     
+    def get_indices(self):
+        return self.encoding_indices
+    
     
 # ------------------------------------------------
 # Training
@@ -177,14 +185,15 @@ losses = []     # for visualisation
 
 # Hyperparams
 learning_rate = 1.e-3
-num_epochs = 15
+num_epochs = 2
 
 model = VQVAE().to(device)
 print(model)
 
 optimiser = torch.optim.Adam(model.parameters(), learning_rate)
 
-for epoch_num, epoch in enumerate(tqdm(range(num_epochs))):
+
+for epoch_num, epoch in enumerate(range(num_epochs)):
     model.train()
     for train_batch in tqdm(train_dataloader):
         images = train_batch
@@ -196,10 +205,11 @@ for epoch_num, epoch in enumerate(tqdm(range(num_epochs))):
         total_losses.backward()     # Calculate grad
         optimiser.step()            # Adjust weights
         
+   
     # Evaluate
     model.eval()
     
-    for test_batch in tqdm(test_dataloader):
+    for test_batch in (test_dataloader):
         images = test_batch
 
         images = images.to(device, dtype=torch.float32)         # (Set as float to ensure weights input are the same type)
@@ -216,37 +226,174 @@ for epoch_num, epoch in enumerate(tqdm(range(num_epochs))):
 # -------------------------------------------------
 # Visualise
 
-# C, H, W
-input_img = test_data[0]
-# Reshape to B, C, H, W for the model
-input_img = input_img.reshape(1, 1, input_img.size(-2), input_img.size(-1))
-input_img = input_img.to(device, dtype=torch.float32)
 
-# DEBUGGING Print the input image shape and show it.
-print("Shape of the input img is: ", input_img.shape)
-#plt.imshow(input_img[0][0].cpu().numpy())
-#plt.gray()
-#plt.show()
+def plot_results(num_images):
+
+    input_imgs = test_data[0:num_images]
+    input_imgs = input_imgs.to(device, dtype=torch.float32)
+
+    # DEBUGGING
+    print("Shape of the input img is: ", input_imgs.shape)
+
+    with torch.no_grad():  # Ensure no gradient calculation
+        output_imgs, _ = model(input_imgs)  # Forward pass through the model
+
+    #Debugging
+    print("Shape of the output img is: ", output_imgs.shape)
 
 
-with torch.no_grad():  # Ensure no gradient calculation
-    output, _ = model(input_img)  # Forward pass through the model
+    fig, ax = plt.subplots(num_images, 2)
+    plt.subplots_adjust(left=0.1, right=0.9, bottom=0.1, top=0.9, wspace=0)
 
-print("Shape of the output img is: ", output.shape)
+    ax[0, 0].set_title("Inputs")
+    ax[0, 1].set_title("Reconstructions")
 
-# Display input and output images
-plt.figure(figsize=(10, 5))
-plt.subplot(1, 2, 1)
-plt.title("Input Image")
-plt.imshow(input_img[0][0].cpu().numpy(), cmap='gray')  # Assuming single-channel input
+    for i in range(num_images):
+        for j in range(2):
+            ax[i, j].axis('off')
+        ax[i, 0].imshow(input_imgs[i][0].cpu().numpy(), cmap='gray')
+        ax[i, 1].imshow(output_imgs[i][0].cpu().numpy(), cmap='gray')
+    
+    plt.show()
 
-plt.subplot(1, 2, 2)
-plt.title("Model Output")
-plt.imshow(output[0][0].cpu().numpy(), cmap='gray')  # Assuming single-channel output
-plt.show()
+    plt.plot(losses)
+    plt.title("Losses")
+    plt.xlabel("Num Epochs")
+    plt.ylabel("Loss")
+    plt.show()
 
-plt.plot(losses)
-plt.title("Losses")
-plt.xlabel("Num Epochs")
-plt.ylabel("Loss")
-plt.show()
+plot_results(2)
+
+
+
+
+# ------------- Pixel CNN
+
+
+class MaskedConv2d(nn.Conv2d):
+
+    def __init__(self, num_channels, kernel_size):
+
+        super(MaskedConv2d, self).__init__(num_channels, num_channels, kernel_size=kernel_size, padding=(kernel_size//2))
+
+        #self.register_buffer('mask', torch.zeros_like(self.weight))
+
+        k = self.kernel_size[0]
+
+        self.weight.data[:, :, (k//2+1):, :].zero_()
+        self.weight.data[:, :, k//2, k//2:].zero_()
+
+
+    def forward(self, x):
+
+        k = self.kernel_size[0]
+        # Type 'A' mask
+        self.weight.data[:, :, (k//2+1):, :].zero_()
+        self.weight.data[:, :, k//2, k//2:].zero_()
+
+        out = super(MaskedConv2d, self).forward(x)
+        return out
+    
+
+class PixelCNN(nn.Module):
+    def __init__(self):
+        super(PixelCNN, self).__init__()
+        num_channels = 24
+        self.num_channels = num_channels
+        
+        self.embedding = nn.Embedding(256, 24)
+
+        # Convolutions
+        self.masked_conv = MaskedConv2d(num_channels=num_channels, kernel_size=6)
+
+        self.block1 = nn.Sequential(
+            nn.Conv2d(num_channels, 16, 3, padding=1),
+            nn.BatchNorm2d(16),
+            nn.ReLU()
+        )
+        self.block2 = nn.Sequential(
+            nn.Conv2d(16, 32, 3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU()
+        )
+        self.final = nn.Sequential(nn.Conv2d(32, 1, 4, padding=1), nn.BatchNorm2d(1))
+        
+    def forward(self, x):
+
+        out = self.embedding(x).permute(0, 3, 1, 2)
+        out = self.masked_conv(out)
+        out = self.block1(out)
+        out = self.block2(out)
+        out = self.final(out)
+
+        return out
+    
+# ---------------- Training Pixel CNN -------------------- #
+
+
+
+
+losses = []     # for visualisation
+train_indices = []        # For training pix_cnn
+test_indices = []
+
+with torch.no_grad():
+    for train_batch in (train_dataloader):
+        # Get the indices from the model
+        images = (train_batch).to(device)
+        _, _ = model(images)
+        train_indices.append(model.encoding_indices)
+    for test_batch in (test_dataloader):
+        images = test_batch.to(device)
+        _, _ = model(images)
+        test_indices.append(model.encoding_indices)
+
+train_indices = torch.stack(train_indices).permute(1, 0, 2, 3).squeeze(1)
+test_indices = torch.stack(test_indices).permute(1, 0, 2, 3).squeeze(1)
+
+print("Train indices is shape: ", train_indices.shape)
+
+train_dataloader = torch.utils.data.DataLoader(train_indices, batch_size=128, shuffle=True)
+test_dataloader = torch.utils.data.DataLoader(train_indices, batch_size=128, shuffle=True)
+
+# Hyperparams
+learning_rate = 1e-3
+num_epochs = 1
+
+
+pix_cnn = PixelCNN().to(device)
+print(pix_cnn)
+optimiser = torch.optim.Adam(pix_cnn.parameters(), learning_rate)
+
+
+
+for epoch_num, epoch in enumerate(range(num_epochs)):
+
+    pix_cnn.train()
+    for train_batch in tqdm(train_dataloader):
+        # Get the indices from the model
+        train_indices = train_batch.to(device, dtype=torch.long)
+        # Put indices into cnn
+        print("Shape of input indices is: ", train_indices.shape)
+        output = pix_cnn(train_indices)
+
+        print(train_indices[0])
+        print(output[0])
+
+        print("Shape of output is: ", output.size)
+        loss = F.cross_entropy(output, train_indices)
+
+        optimiser.zero_grad()       # Reset gradients to zero for back-prop (not cumulative)
+        loss.backward()             # Calculate grad
+        optimiser.step()            # Adjust weights
+
+
+    pix_cnn.eval()
+    for test_batch in (test_dataloader):
+        test_indices = test_batch.to(device, dtype=torch.long)
+        with torch.no_grad():
+            output = pix_cnn(test_indices)
+            loss = F.cross_entropy(output, test_indices)
+
+
+    print("Epoch {} of {}. Total Loss: {}".format(epoch_num, num_epochs, loss))
