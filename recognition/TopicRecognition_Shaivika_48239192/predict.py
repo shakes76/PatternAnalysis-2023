@@ -1,10 +1,16 @@
 import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
-from modules import create_classifier
+from modules import create_classifier, Patches  # Import the Patches layer
 from dataset import load_and_preprocess_data
 from sklearn.metrics import confusion_matrix
 import seaborn as sns
+import random
+from sklearn.model_selection import train_test_split
+from tensorflow.keras import layers
+import os
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+from train import model
 
 # Load and preprocess data
 Images, Labels = load_and_preprocess_data()
