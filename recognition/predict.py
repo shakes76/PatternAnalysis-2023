@@ -4,9 +4,10 @@ from torchvision import transforms
 from dataset import ISICDataset
 from modules import ImprovedUNet
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
 
 def predict():
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     transform = transforms.Compose([
         transforms.ToTensor(),
