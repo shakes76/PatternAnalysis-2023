@@ -98,7 +98,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 criterion = torch.nn.CrossEntropyLoss()
 
 # train model over 100 epochs and plot accuracy and loss
-val_acc, train_acc, val_loss_all, train_loss_all, test_acc = train(2)
+val_acc, train_acc, val_loss_all, train_loss_all, test_acc = train(100)
 plot_accuracy(val_acc, train_acc)
 plot_loss(val_loss_all, train_loss_all)
 
