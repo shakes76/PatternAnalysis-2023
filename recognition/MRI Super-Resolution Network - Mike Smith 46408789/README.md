@@ -79,7 +79,7 @@ Following that, the dataset then undergoes normalization. The mean and standard 
 The following are a few examples of inputs and outputs of the generator along with the original images. The original image (column 1), the downsampled (column 2) and the reconstructed images (column 3).
 
 ![Inputs_Outputs_1](./figures/Example_Inputs_Outputs_1.png)
-![Inputs_Outputs_2](./figures/Example_Inputs_Outputs_1.png)
+![Inputs_Outputs_2](./figures/Example_Inputs_Outputs_2.png)
 
 ### Training Results (Epoch vs Loss)
 
@@ -89,7 +89,9 @@ As mentioned in the model descriptions, adverserial loss was used to train this 
 
 Shown above, the generator loss tends to be high during the start of training before it decreases as training progresses. Likewise, the discriminator loss dips initially before recovering to a more stable level as training progresses.
 
-Additionally, due to the chaotic nature of training GAN networks, a variable learning rate scheduller was also used. This will be further discussed in the next section.
+Notice that the loss for the generator and the discriminator evens out and remains fairly consistent after around the 40th epoch. This is expected, and means that the generator and discriminator are both learning at rate that well compliments each other.
+
+However as mentioned, due to the chaotic nature of training GAN networks, a variable learning rate scheduller was also used. This will be further discussed in the next section.
 
 ## Reproducibility
 
@@ -99,7 +101,7 @@ The final model was run in 300 epochs with a batch size of 16 resulting in 1345 
 
 As mentioned adverserial loss was used for the training process. To implement this, a Binary Cross-Entropy (BCE) loss was used for the output of the discriminator. This particular loss function is used as the output of the discrinimator is essentially classifying images into two classes: real and generated.
 
-Finally, the Adam optimiser is used with betas values of 0.5 and 0.999. These values determine the expoential decay rates for the first and second moment estimates which is important in regards the training convergence and gradient descent[^4]. The use of this optimiser along with these values are found to produce the more optimal training results for this model.
+Finally, the Adam optimiser is used with betas values of 0.5 and 0.999. These values determine the expoential decay rates for the first and second moment estimates which is important in regards the training convergence and gradient descent[^4]. The use of this optimiser along with these beta values are found to produce the more optimal training results for this model.
 
 ### Variable Learning Rate Scheduller
 
@@ -117,7 +119,7 @@ The learning rate of the generator and the discriminator for the first 100 epoch
 
 ![Variable_LR](./figures/Variable_LR.png)
 
-### Other Issues / Problems
+### Problems and Potential Improvements
 
 **Training Stability:** As mentioned in the previous section about the variable learning rate scheduller, GAN networks diverge easily when training and are very sensitive to the initial hyperparameters. The variable LR attempts to mitigate this by exponentially reducing the learning rate. This is not optimal because it required are larger number of epochs for the model to train.
 
