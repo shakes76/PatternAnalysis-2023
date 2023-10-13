@@ -28,14 +28,22 @@ train_loader, test_loader = get_dataloaders("C:\\Users\\soonw\\ADNI\\AD_NC")  # 
 model = ESPCN(upscale_factor).to(device)
 
 # Loss and optimizer
-criterion = torch.nn.MSELoss()
+criterion = torch.nn.MSELoss() # MSE Loss used in many image reconstruction tasks. Super-res = make reconstructed image as similar to original
+                               # as possible. It's used to ensure that reconstructed high-res image is pixel-wise similar to the original
 optimizer = optim.Adam(model.parameters(), lr=learning_rate_initial)
+# Literature states that for deep learning tasks including super-resolution, Adam optimiser has been found to converge faster and achieve
+# better performance than traditional SGD. Its adaptive learning rate and momentum terms help in navigating the loss landscape more effectively.
 
 # Learning rate scheduler to adjust learning rate during training
 scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5, min_lr=learning_rate_final)
+# based on literature
 
 # Function to compute PSNR
 def compute_psnr(mse_loss):
+    # Peak Signal-to-Noise Ratio (PSNR) is a widely used metric in image processing, 
+    # especially for tasks like image compression and super-resolution. It measures the quality of the reconstructed image 
+    # compared to the original image. A higher PSNR indicates better quality. It's particularly useful for super-resolution 
+    # because it gives an indication of how well the model has enhanced the image while preserving the original details.
     return 10 * math.log10(1 / mse_loss)
 
 # ... [rest of the code before the training loop]
