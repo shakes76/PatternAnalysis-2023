@@ -2,11 +2,8 @@ import os
 import module
 import torch
 import torch.nn.functional as F
-import torchvision
 import torchvision.transforms as transforms
 import numpy as np
-from torch import nn
-from torch.optim import Adam
 
 ## dataset.py
 
@@ -39,7 +36,7 @@ def get_index_from_list(values, t, x_shape):
 T = 500
 betas = quadratic_beta_schedule(timesteps=T)
 
-# Pre-calculate different terms for closed form
+# Pre-calculate terms for closed form equation (in module.py)
 alphas = 1. - betas
 alphas_cumprod = torch.cumprod(alphas, axis=0)
 alphas_cumprod_prev = F.pad(alphas_cumprod[:-1], (1, 0), value=1.0)
@@ -55,7 +52,7 @@ posterior_variance = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod)
 output_dir = './image_output'
 
 # Number of Epochs for training
-epochs = 500
+epochs = 800
 
 # Loss function
 def get_loss(model, x_0, t, device):
@@ -90,7 +87,7 @@ def sample_timestep(model, x, t):
     posterior_variance_t = get_index_from_list(posterior_variance, t, x.shape)
     
     if t == 0:
-        return model_mean
+        return model_mean # image w/o noise
     else:
         # add noise
         noise = torch.randn_like(x)
@@ -121,6 +118,8 @@ def sample_save_image(model, epoch, output_dir, device):
     # Sample noise
     img_size = IMAGE_SIZE
     img = torch.randn((1, 1, img_size, img_size), device=device)
+    
+    # Hyperparameters for step size and number of images to save per epoch
     num_images = 10
     stepsize = int(T/num_images)
     
