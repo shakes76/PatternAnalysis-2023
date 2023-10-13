@@ -36,7 +36,7 @@ def train_siamese(model, train_loader, criterion, optimizer, loss_list, schedule
         # save loss for graph
         loss_list.append(loss.item())
         
-        # scheduler.step()
+        scheduler.step()
 
 
         if (i+1) % 40 == 0:
@@ -47,7 +47,7 @@ def validate_siamese(model, val_loader, criterion, val_loss_list):
     model.eval()
 
     with torch.no_grad():
-        for val in val_loader:
+        for i, val in enumerate(val_loader):
             img0, img1, label = val
             img0 = img0.to(device)
             img1 = img1.to(device)
@@ -58,7 +58,11 @@ def validate_siamese(model, val_loader, criterion, val_loss_list):
             loss = criterion(output1, output2, label)
             val_loss_list.append(loss.item())
 
-def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_list):
+        if (i+1) % 10 == 0:
+            print (">>>>> Step [{}/{}] Validate Loss: {:.5f}"
+                    .format(i+1, len(val_loader), loss.item()))
+
+def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_list, scheduler):
     sModel.eval() # siamese
     cModel.train() # classifier
 
@@ -77,6 +81,7 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
 
         # save loss for graph
         loss_list.append(loss.item())
+        scheduler.step()
         if (i+1) % 40 == 0:
             print (">>>>> Step [{}/{}] Loss: {:.5f}"
                     .format(i+1, len(train_loader), loss.item()))
@@ -88,7 +93,7 @@ def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list):
     with torch.no_grad():
         correct_predict = 0
         total_test = 0
-        for img, label in val_loader:
+        for i, (img, label) in enumerate(val_loader):
             img = img.to(device)
             label = label.to(device).float()
 
@@ -102,7 +107,11 @@ def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list):
             total_test += label.size(0)
             correct_predict += (predicted == label).sum().item()
 
-            print(f"Validate predict >>>> {100 * correct_predict / total_test}%")
+            if (i+1) % 10 == 0:
+                print (">>>>> Step [{}/{}] Classifier Validate Loss: {:.5f}"
+                        .format(i+1, len(val_loader), loss.item()))
+
+        print(f"Validate predict >>>> {100 * correct_predict / total_test}%")
 
 def test_model(model, cModel, test_loader):
     # evaluate the model
@@ -194,11 +203,12 @@ def execute_sTrain(device, train_loader, val_loader):
     # hyper-parameters
     num_epochs = 10
     learning_rate = 0.0001
+    max_learning = 0.01
 
     criterion = ContrastiveLossFunction()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999)) # Optimize model parameter
 
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=learning_rate, steps_per_epoch=len(train_loader), epochs=num_epochs) # temporary remove scheduler
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=max_learning, steps_per_epoch=len(train_loader), epochs=num_epochs) # temporary remove scheduler
 
     # training
     loss_list = []
@@ -225,10 +235,10 @@ def execute_sTrain(device, train_loader, val_loader):
         loss_list = []
         val_loss_list = []
         save_loss_plot(avg_loss_list, epoch) # save loss plot for siamese train
-        save_loss_plot(val_loss_list, train=False) # save loss plot for siamese validate
+        save_loss_plot(avg_val_loss, train=False) # save loss plot for siamese validate
 
     save_loss_plot(avg_loss_list, epoch) # save loss plot for siamese train
-    save_loss_plot(val_loss_list, train=False) # save loss plot for siamese validate
+    save_loss_plot(avg_val_loss, train=False) # save loss plot for siamese validate
 
     end = time.time() #time generation
 
@@ -242,12 +252,13 @@ def execute_cTrain(device, sModel, train_loader_classifier, val_loader_classifie
     model = BinaryModelClassifier().to(device)
 
     # hyper parameters for classifier
-    num_epochs = 40
+    num_epochs = 50
     learning_rate = 0.001
+    max_learning = 0.01
 
     criterion = nn.BCELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999))
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=learning_rate, steps_per_epoch=len(train_loader), epochs=num_epochs) # temporary remove scheduler
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=max_learning, steps_per_epoch=len(train_loader_classifier), epochs=num_epochs) # temporary remove scheduler
 
     # training
     classifier_loss_list = []
@@ -263,7 +274,7 @@ def execute_cTrain(device, sModel, train_loader_classifier, val_loader_classifie
     # train classifier
     for epoch in range(num_epochs):
         print ("Epoch [{}/{}]".format(epoch + 1, num_epochs))
-        train_classifier(sModel, model, train_loader_classifier, criterion, optimizer, classifier_loss_list)
+        train_classifier(sModel, model, train_loader_classifier, criterion, optimizer, classifier_loss_list, scheduler)
         validate_classifier(sModel, model, val_loader_classifier, criterion, classifier_val_loss_list)
         # save_model(epoch, model, criterion, optimizer, scheduler, 1) # save model for every epoch
 
