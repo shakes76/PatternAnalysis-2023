@@ -54,7 +54,7 @@ def main():
     # build model and optimizer
     loss_fn = nn.CrossEntropyLoss().to(device)
     dice_loss = DiceLoss()
-    optimizer = torch.optim.SGD(unet.parameters(), lr=0.001, momentum=0.9)
+    optimizer = torch.optim.Adam(model.parameters())
 
     # train loop
     print("Training Begin")
