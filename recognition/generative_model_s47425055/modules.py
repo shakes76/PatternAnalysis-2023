@@ -101,7 +101,7 @@ def plot_losses_and_scores(train_losses_epoch, val_losses, ssim_scores):
     plt.legend()
 
     plt.tight_layout()
-    plt.savefig('samples6/loss_ssim_plot.png', bbox_inches='tight')
+    plt.savefig('models6/loss_ssim_plot.png', bbox_inches='tight')
     plt.close()
 
 def save_and_display_images(images, filename, nrow=8):
@@ -163,7 +163,7 @@ def generate_sample_from_best_model(model, test_loader, best_epoch):
     grid_img = torchvision.utils.make_grid(images, nrow=8)
     plt.figure(figsize=(16,8))
     plt.imshow(grid_img.permute(1, 2, 0))
-    plt.savefig(f'samples6/best_model_sample.png', bbox_inches='tight')
+    plt.savefig(f'models6/best_model_sample.png', bbox_inches='tight')
     plt.close()
 
 class VQEmbedding(nn.Module):

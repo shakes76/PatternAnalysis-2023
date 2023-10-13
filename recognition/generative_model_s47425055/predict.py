@@ -20,7 +20,7 @@ def predict(device, latent_dim):
     device = torch.device(device if use_cuda else "cpu")
 
     # Load the best model
-    model_path = 'models2/checkpoint_epoch{}_vqvae.pt'.format(BEST_EPOCH) # using the BEST_EPOCH to load the best model
+    model_path = 'samples6/checkpoint_epoch{}_vqvae.pt'.format(BEST_EPOCH) # using the BEST_EPOCH to load the best model
     model = VectorQuantizedVAE(INPUT_DIM, DIM, K).to(DEVICE)
     model.load_state_dict(torch.load(model_path))
     model.eval()

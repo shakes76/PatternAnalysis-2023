@@ -13,7 +13,8 @@ from dataset import train_loader, val_loader, test_loader
 
 # Constants
 BATCH_SIZE = 32
-N_EPOCHS = 20
+#N_EPOCHS = 401
+N_EPOCHS = 346
 PRINT_INTERVAL = 100
 DATASET_PATH = './OASIS'
 NUM_WORKERS = 1
@@ -26,7 +27,7 @@ DEVICE = torch.device('cuda')
 
 # Global best epoch and model path
 BEST_EPOCH = 0
-MODEL_PATH_TEMPLATE = 'models2/checkpoint_epoch{}_vqvae.pt'
+MODEL_PATH_TEMPLATE = 'samples6/checkpoint_epoch{}_vqvae.pt'
 
 # Constants for determining the importance of SSIM and reconstruction loss
 ALPHA = 0.5  # weight for SSIM, range [0, 1]
@@ -34,7 +35,7 @@ BETA = 1 - ALPHA  # weight for reconstruction loss
 BEST_METRIC = -999  # initial value for the combination metric
 BEST_SSIM = 0  # just for logging purposes
 BEST_RECONS_LOSS = 999  # just for logging purposes
-save_interval = 10
+save_interval = 15
 
 
 #directory creation
@@ -43,8 +44,9 @@ val_losses = []
 ssim_scores = []
 
 # Directories
-Path('models2').mkdir(exist_ok=True)
-Path('samples3').mkdir(exist_ok=True)
+#Path('models2').mkdir(exist_ok=True)
+Path('samples6').mkdir(exist_ok=True)
+Path('models6').mkdir(exist_ok=True)
 
 # Model setup
 model = VectorQuantizedVAE(INPUT_DIM, DIM, K).to(DEVICE)
@@ -189,7 +191,7 @@ if __name__ == '__main__':
             BEST_EPOCH = epoch
             print("Saving model based on improved combined metric!")
             dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
-            torch.save(model.state_dict(), f'models2/checkpoint_epoch{BEST_EPOCH}_vqvae.pt')
+            torch.save(model.state_dict(), f'samples6/checkpoint_epoch{BEST_EPOCH}_vqvae.pt')
             
             with open("best_epoch.txt", "w") as file:
                 file.write(str(BEST_EPOCH))
@@ -200,7 +202,8 @@ if __name__ == '__main__':
         
         else:
             print(f"Not saving model! Last best combined metric: {BEST_METRIC:.4f}, SSIM: {BEST_SSIM:.4f}, Reconstruction Loss: {BEST_RECONS_LOSS:.4f}")
-
+        if epoch == 1:
+            generate_samples(model, test_loader, epoch) # prints first constructed image for comparison
         # Generate samples at the end of each 5th epoch
         if epoch % save_interval == 0:
             generate_samples(model, test_loader, epoch)
