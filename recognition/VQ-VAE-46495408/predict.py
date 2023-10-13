@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 import tensorflow_probability as tfp
+import matplotlib.pyplot as plt
 from tensorflow import keras
 from keras import layers
 from modules import VQVAETrainer, get_pixel_cnn
@@ -33,3 +34,27 @@ for row in range(rows):
         
 print(f"Prior shape: {priors.shape}")
 
+# Perform an embedding lookup
+quantizer = vqvae_trainer.vqvae.get_layer("vector_quantizer")
+pretrained_embeddings = quantizer.embeddings
+priors_ohe = tf.one_hot(priors.astype("int32"), vqvae_trainer.num_embeddings).numpy()
+quantized = tf.matmul(
+    priors_ohe.astype("float32"), pretrained_embeddings, transpose_b=True
+)
+quantized = tf.reshape(quantized, (-1, *((128, 64, 64, 32)[1:])))
+
+# Generate images
+decoder = vqvae_trainer.vqvae.get_layer("decoder")
+generated_samples = decoder.predict(quantized)
+
+for i in range(batch):
+    plt.subplot(batch, 2,  i + 1)
+    plt.imshow(priors[i])
+    plt.title("Code")
+    plt.axis("off")
+
+    plt.subplot(batch, 2, i + 2)
+    plt.imshow(generated_samples[i].squeeze() + 0.5)
+    plt.title("Generated Sample")
+    plt.axis("off")
+plt.show()

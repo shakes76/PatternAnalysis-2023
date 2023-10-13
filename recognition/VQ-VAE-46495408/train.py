@@ -22,7 +22,7 @@ def plot_vqvae_history(history):
     plt.savefig('recognition/VQ-VAE-46495408/results/vqvae_ssim.png')
     plt.close()
 
-train_ds = get_test_dataset()
+train_ds = get_train_dataset()
 train_variance = get_dataset_variance(train_ds)
 
 def train_vqvae():
@@ -43,7 +43,7 @@ def train_vqvae():
     
 def visualize_vqvae_results():
     # Load the trained weights to vq-vae trainer
-    vqvae_trainer = VQVAETrainer(train_variance, latent_dim=32, num_embeddings=128)
+    vqvae_trainer = VQVAETrainer(0.03525, latent_dim=32, num_embeddings=128)
     vqvae_trainer.load_weights('recognition/VQ-VAE-46495408/checkpoint/vqvae_ckpt')
     
     trained_vqvae_model = vqvae_trainer.vqvae
@@ -90,10 +90,22 @@ def visualize_vqvae_results():
     plt.show()
     
 def plot_pixelcnn_history(history):
+    # Plot the loss for PixelCNN model
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('Pixel CNN Accuracy')
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    plt.legend(['Training', 'Validation'], loc='upper right')
+    plt.savefig('recognition/VQ-VAE-46495408/results/pixelcnn_loss.png')
+    plt.close()
+    # Plot the accuracy for PixelCNN model
     plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
     plt.title('Pixel CNN Accuracy')
     plt.xlabel('epoch')
     plt.ylabel('accuracy')
+    plt.legend(['Training', 'Validation'], loc='lower right')
     plt.savefig('recognition/VQ-VAE-46495408/results/pixelcnn_accuracy.png')
     plt.close()
     
