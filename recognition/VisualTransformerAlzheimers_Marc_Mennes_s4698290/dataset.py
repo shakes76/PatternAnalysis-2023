@@ -1,11 +1,12 @@
 import os
 from torchvision.io import read_image
+import torchvision
 import torch
 
 #turns the ADNI raw data into a pytorch dataset to be used with a dataloader
 
 class ADNI(torch.utils.data.Dataset):
-    #1076 unique patients, 20 scans each, so take top 216 patients as the validation set, 108 healthy, 108 alzheimers
+    #1076 unique patients, 20 scans each, so take 216 patients as the validation set, 108 healthy, 108 alzheimers
     def __init__(self, path, transform=None, test=False, validation=False):
         self.path = path #path not ending with a /
         self.transform = transform
@@ -26,13 +27,13 @@ class ADNI(torch.utils.data.Dataset):
 
         if not self.isTest:
             self.validationData = []
-            validationPatients = [""]*216
+            validationPatients = []
             for i, imageset in enumerate([AD, NC]):
                 count = 0
                 for image in imageset:
                     patientNumber = image.split("_")[0]
-                    if patientNumber not in validationPatients and count != 108:
-                        validationPatients[count * (i+1)] = patientNumber
+                    if patientNumber not in validationPatients and count < 108:
+                        validationPatients.append(patientNumber)
                         count += 1
 
                     if patientNumber in validationPatients:
@@ -44,7 +45,6 @@ class ADNI(torch.utils.data.Dataset):
 
             if self.isVal:
                 self.lastAD = 108*20 - 1
-            print(count)
 
 
 
@@ -82,14 +82,15 @@ class ADNI(torch.utils.data.Dataset):
 #calculate norm and std of the dataset
 def find_mean_std(path, transform = None):
     device = torch.device("cuda")
-    dataset = ADNI(path, transform=transform)
+    train = ADNI(path, transform=transform)
+    val = ADNI(path, transform=transform, validation=True)
+    test = ADNI(path, transform=transform, test = True)
 
-    allImages = torch.cat([dataset.__getitem__(i)[0].to(device) for i in range(len(dataset))])
+    allImages = torch.cat([train.__getitem__(i)[0].to(device) for i in range(len(train))] +[test.__getitem__(i)[0].to(device) for i in range(len(test))] +[val.__getitem__(i)[0].to(device) for i in range(len(val))]  )
 
     print(allImages)
     print(allImages.size())
 
     return allImages.mean(dtype=torch.float32), allImages.float().std()
 #cropped outputs for a 0-255 format image (tensor(41.0344, device='cuda:0'), tensor(64.2557, device='cuda:0'))
-
 

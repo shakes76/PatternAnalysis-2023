@@ -5,13 +5,12 @@ from torch.utils.data import DataLoader
 import torch
 import time
 
-CROPSIZE = 210
-RESIZE = 210
-PATHTODATASET = "/home/marc/Documents/PatternAnalysisReport/PatternAnalysis-2023/recognition/VisualTransformerAlzheimers_Marc_Mennes_s4698290/ADNI_AD_NC_2D"
-ENCODERDENSELAYERS = [[512, 1024, 512]]*3
-LR = 0.00001
+CROPSIZE = 240
+PATHTODATASET = "/home/Student/s4698290/report/ADNI"
+ENCODERDENSELAYERS = [[800, 1000, 800]]*3
+LR = 0.000001
 BATCHSIZE = 128
-EPOCHS = 5
+EPOCHS = 40
 
 #use gpu if available
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -20,11 +19,10 @@ print('cuda' if torch.cuda.is_available() else 'cpu')
 
 transform = torchvision.transforms.Compose(
     [torchvision.transforms.CenterCrop(CROPSIZE),
-     torchvision.transforms.Resize(RESIZE, antialias=False),
      torchvision.transforms.Lambda(lambda x: x/255), #use the format of image data between 0 and 1 not 0 and 255
-     torchvision.transforms.Normalize(41.0344/255, 64.2557/255), #normalize the image (values determined from function in dataset.py)
-     torchvision.transforms.Lambda(lambda x: x.unfold(1,RESIZE//10, RESIZE//10).unfold(2,RESIZE//10, RESIZE//10)),#split the image into 9 patches
-     torchvision.transforms.Lambda(lambda x: x[0])#removes the color channel dimension as this is greyscale
+     torchvision.transforms.Normalize(0.1236, 0.2309), #normalize the image (values determined from function in dataset.py)
+     #torchvision.transforms.Lambda(lambda x: x.unfold(1,CROPSIZE//10, CROPSIZE//10).unfold(2,CROPSIZE//10, CROPSIZE//10)),#split the image into 9 patches
+     #torchvision.transforms.Lambda(lambda x: x[0])#removes the color channel dimension as this is greyscale
     ]
 )
 
@@ -35,7 +33,7 @@ trainLoader = DataLoader(trainData, batch_size=BATCHSIZE, shuffle=True)
 testLoader = DataLoader(testData, batch_size=BATCHSIZE, shuffle=True)
 validationLoader = DataLoader(validationData, batch_size=BATCHSIZE, shuffle=True)
 
-transformer = modules.ADNITransformer(100, 21, 9, 0, [512, 1024, 512], ENCODERDENSELAYERS).to(device)
+transformer = modules.ADNIConvTransformer(0, [512, 1024, 512], ENCODERDENSELAYERS).to(device)
 
 loss = torch.nn.BCELoss()
 optimizer = torch.optim.Adam(transformer.parameters(), lr=LR)
@@ -69,6 +67,8 @@ for epoch in range(EPOCHS):
         
     epochAccuracies.append(sum(batchAccuracies)/len(batchAccuracies))
 
+    torch.save(transformer, "transformer_model")
+
     torch.no_grad()
     transformer.eval()
     valAccuracies = []
@@ -90,6 +90,9 @@ print("done.")
 endTime = time.time()
 print("took", (endTime-startTime), "seconds")
 
+
+torch.save(transformer, "transformer_model")
+"""
 torch.no_grad()
 transformer.eval()
 
@@ -104,4 +107,4 @@ for batch in testLoader:
     testAccuracies.append(testAccuracy)
     
 
-print(sum(testAccuracies)/len(testAccuracies))
+print(sum(testAccuracies)/len(testAccuracies))"""

@@ -6,6 +6,7 @@ class Encoder(torch.nn.Module):
 
     def __init__(self, patchSize, attentionHeads, attentionDropout, networkStructure):
         super().__init__()
+
         self.norm1 = torch.nn.LayerNorm(patchSize*patchSize)
         self.norm2 = torch.nn.LayerNorm(patchSize*patchSize)
 
@@ -21,11 +22,13 @@ class Encoder(torch.nn.Module):
                 network.append(torch.nn.Linear(layer, patchSize*patchSize))
         
         self.mlp = torch.nn.Sequential(*network)
+        self.dropout = torch.nn.Dropout(0.2)
 
     def forward(self, imagePatches):
 
         x = self.norm1(imagePatches)
         x, _ = self.attention(x, x, x, need_weights=False)
+        x = self.dropout(x)
         x += imagePatches
 
         y = self.norm2(x)
@@ -91,6 +94,24 @@ class ADNITransformer(torch.nn.Module):
 
         return classPrediction
 
+class ADNIConvTransformer(torch.nn.Module):
+    
+
+    def __init__(self, attentionDropout, classifierHiddenLayers, encoderDenseNetwork):
+        super().__init__()
+        
+        self.downSample = torch.nn.Sequential(torch.nn.Conv2d(1,5,3), torch.nn.BatchNorm2d(32), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2),
+                                              torch.nn.Conv2d(5,5,3, padding=3), torch.nn.BatchNorm2d(32), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2),
+                                              torch.nn.Conv2d(5,1,3, stride=2, padding=2), torch.nn.BatchNorm2d(32), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2))
+
+        self.transformerBlock = ADNITransformer(256, 1, 1, attentionDropout, classifierHiddenLayers, encoderDenseNetwork)
+
+    def forward(self, image):
+        
+        downSampledImage = self.downSample(image)
+        print(downSampledImage.size())
+        downSampledImage = torch.flatten(downSampledImage, start_dim=2)
+        return self.transformerBlock(downSampledImage)
 
 
         
