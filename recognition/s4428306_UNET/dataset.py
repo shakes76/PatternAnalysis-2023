@@ -7,8 +7,6 @@ from PIL import Image
 #      Getting 2596 though, not sure why.
 
 #TODO: Change comments/spec to reference colour channels.
-#      REMOVE tf dataset conversion from "loadDataFrom".
-#      Add code to zip images and masks, and then convert to tf dataset.
 #Taken from code I wrote for prac2.
 def loadDataFrom(directory, channels, size=128):
     """Loads the images from the given directory.
@@ -37,27 +35,25 @@ def loadDataFrom(directory, channels, size=128):
     #NOTE: Should this be a tf dataset like this?
     return tf.data.Dataset.from_tensor_slices((data,))
 
-#NOTE: Going to preprocess images and masks separately, then pass together for training.
-#      Need to use the same seed for augmentation because of this.
-#      Is some other form of normalization needed for masks?
+#NOTE: Is some other form of normalization needed for masks?
 #      e.g. Set all 255s to 1s, and everything else to 0s.
 
 #Taken from code I wrote for prac2.
-def normalize(image):
+def normalize(image, mask):
     #TODO: Write specification.
     image = tf.cast(image, tf.float64) / 255.0 #NOTE: Will channels be an issue here?
-    return image
+    mask = tf.cast(mask, tf.float64) / 255.0
+    return image, mask
 
 #TODO: Write some other preprocessing sub-functions.
 
 #NOTE: Which source should be referenced for this?
-def augment(image):
+def augment(image, mask):
     #TODO: Write specification.
     #      Add actual functionality.
-    return image
+    return image, mask
 
 #NOTE: Function that encapsulates all preprocessing, should wind up being the only thing that's called for data.
-#      Move image directories into this function.
 def preprocessing():
     #TODO: Write specification.
     #These are the directories for the datasets.
@@ -67,10 +63,9 @@ def preprocessing():
     #Load in, normalize and augment.
     image_data = loadDataFrom(training_images_dir, channels=3)
     mask_data = loadDataFrom(training_gt_dir, channels=1)
-    image_data = image_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    mask_data = mask_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    image_data = image_data.map(augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    mask_data = mask_data.map(augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    isic_data = tf.data.Dataset.zip((image_data, mask_data))
+    isic_data = isic_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    isic_data = isic_data.map(augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #NOTE: Is any other preprocessing needed?
-    return image_data, mask_data
+    return isic_data
 
