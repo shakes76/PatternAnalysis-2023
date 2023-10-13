@@ -46,3 +46,27 @@ for epoch in range(num_epochs):
     losses.append(epoch_loss / len(train_loader))
 
 
+        # Evaluation on test data
+    model.eval()
+    with torch.no_grad():
+        avg_psnr = 0
+        for batch_idx, (downsampled, original, _) in enumerate(test_loader):
+            downsampled, original = downsampled.to(device), original.to(device)
+            outputs = model(downsampled)
+            mse = criterion(outputs, original)
+            psnr = 10 * math.log10(1 / mse.item())
+            avg_psnr += psnr
+        avg_psnr = avg_psnr / len(test_loader)
+        print(f"Average PSNR on test data: {avg_psnr:.4f} dB")
+
+# Save the trained model
+#torch.save(model.state_dict(), 'espcn_model.pth')
+
+# Plot training losses
+plt.plot(losses)
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Training Loss')
+plt.show()
+
+
