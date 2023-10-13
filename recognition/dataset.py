@@ -1,7 +1,9 @@
 from torch.utils.data import Dataset
-from torchvision import transforms
 from PIL import Image
 import os
+import torch
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
 class ISICDataset(Dataset):
@@ -34,4 +36,3 @@ class ISICDataset(Dataset):
             mask = self.mask_transform(mask)
 
         return image, mask
-    
