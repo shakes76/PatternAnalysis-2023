@@ -5,13 +5,12 @@ import random
 import numpy as np
 
 TRAIN_PATH = "/home/groups/comp3710/ADNI/AD_NC/train"
-TRAIN_PATH = "./AD_NC/train"
+# TRAIN_PATH = "./AD_NC/train"
 
 TEST_PATH = "/home/groups/comp3710/ADNI/AD_NC/train"
-TEST_PATH = "./AD_NC/train"
+# TEST_PATH = "./AD_NC/train"
 
 class PairedDataset(torch.utils.data.Dataset):
-    
     def __init__(self, trainset):
         # follow this source: https://datahacker.rs/019-siamese-network-in-pytorch-with-application-to-face-similarity/
         self.trainset = trainset
@@ -21,105 +20,78 @@ class PairedDataset(torch.utils.data.Dataset):
 
         check_same_class = random.randint(0,1) 
         
-        if check_same_class:
-            while True:
-                #Look untill the same class image is found
-                img1, label1 = random.choice(self.trainset)
-                if torch.equal(img0, img1):
-                    continue
+        while True:
+            img1, label1 = random.choice(self.trainset)
 
-                if label1 == label0:
+            if not torch.equal(img0, img1):
+                if check_same_class and label0 == label1:
                     break
-        else:
-            while True:
-                #Look untill a different class image is found
-                img1, label1 = random.choice(self.trainset)
-                
-                if torch.equal(img0, img1):
-                    continue
-                
-                if label1 != label0:
+                elif not check_same_class and label0 != label1:
                     break
         
         return img0, img1, torch.from_numpy(np.array([int(label0 != label1)], dtype=np.float32))
-
     
     def __len__(self):
         return len(self.trainset)
 
-def split_dataset(dataset, seed=False):
+class LoadData():
+    def __init__(self, train=True, siamese=True):
+        self.train = train
+        self.siamese = siamese
 
-    if seed:
-        generator = torch.Generator().manual_seed(35)
-    else:
-        generator = torch.Generator()
+        self.image_size = 105
+        self.batch_size = 128
+        self.num_worker = 0
 
-    # follow the principle -> 90% train 10% val
-    train_set, val_set = torch.utils.data.random_split(dataset, [0.9, 0.1], generator=generator)
+        self.train_ratio = 0.8
+        self.val_ratio = 1 - self.train_ratio
 
-    return train_set, val_set
+    def split_dataset(self, dataset, seed=False):
+        if seed:
+            generator = torch.Generator().manual_seed(35)
+        else:
+            generator = torch.Generator()
 
-def load_train_data():
-    path = TRAIN_PATH
+        # follow the principle -> 80% train 20% val
+        train_set, val_set = torch.utils.data.random_split(dataset, [self.train_ratio, self.val_ratio], generator=generator)
 
-    # torch.manual_seed(33) # for reproduce in the future
-    # Data transformation
-    transform_train = transforms.Compose([
-        transforms.Resize(105),
-        transforms.CenterCrop(105),
-        # transforms.RandomHorizontalFlip(),
-        # transforms.RandomVerticalFlip(),
-        # transforms.RandomRotation(15),
-        transforms.ToTensor(),
-        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
+        return train_set, val_set
 
-    load_train_image = torchvision.datasets.ImageFolder(root=path, transform=transform_train)
+    def load_data(self):
+        transform = transforms.Compose([
+            transforms.Resize(self.image_size),
+            transforms.CenterCrop(self.image_size),
+            transforms.ToTensor()
+        ])
+        
+        if self.train:
+            path = TRAIN_PATH
+        else:
+            path = TEST_PATH
 
-    train_image, val_image = split_dataset(load_train_image)
+        image = torchvision.datasets.ImageFolder(root=path, transform=transform)
+        train_image, val_image = self.split_dataset(image)
 
-    trainset = PairedDataset(train_image)
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
+        if self.train:
+            if self.siamese:
+                trainset = PairedDataset(train_image)
+                train_loader = torch.utils.data.DataLoader(trainset, batch_size=self.batch_size, shuffle=True, num_workers=self.num_worker)
 
-    valset = PairedDataset(val_image)
-    val_loader = torch.utils.data.DataLoader(valset, batch_size=128, shuffle=True, num_workers=0)
-
-    return train_loader, val_loader
-
-def load_train_data_classifier():
-    path = TRAIN_PATH
-
-    transform_train = transforms.Compose([
-        transforms.Resize(105),
-        transforms.CenterCrop(105),
-        # transforms.RandomHorizontalFlip(),
-        # transforms.RandomVerticalFlip(),
-        # transforms.RandomRotation(15),
-        transforms.ToTensor(),
-        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
-    ])
-
-    trainset = torchvision.datasets.ImageFolder(root=path, transform=transform_train)
-
-    train_loader = torch.utils.data.DataLoader(trainset, batch_size=128, shuffle=True, num_workers=0)
-
-    return train_loader
-
-def load_test_data():
-    path = TEST_PATH
-
-    # Data transformation
-    transform_test = transforms.Compose([
-        transforms.Resize(105),
-        transforms.CenterCrop(105),
-        transforms.ToTensor(),
-        # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)) # standard scaling for normalize, doesn't know much on the status of the entire dataset
-    ])
-
-    testset = torchvision.datasets.ImageFolder(root=path, transform=transform_test)
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=128, shuffle=True, num_workers=0)
-    return test_loader
+                valset = PairedDataset(val_image)
+                val_loader = torch.utils.data.DataLoader(valset, batch_size=self.batch_size, shuffle=True, num_workers=self.num_worker)
+                return train_loader, val_loader
+            else:
+                train_loader = torch.utils.data.DataLoader(train_image, batch_size=self.batch_size, shuffle=True, num_workers=self.num_worker)
+                val_loader = torch.utils.data.DataLoader(val_image, batch_size=self.batch_size, shuffle=True, num_workers=self.num_worker)
+                return train_loader, val_loader
+        else:
+            test_loader = torch.utils.data.DataLoader(image, batch_size=self.batch_size, shuffle=True, num_workers=self.num_worker)
+            return test_loader
 
 if __name__ == '__main__':
     # test dataset
-    testloader = load_train_data()
+    print("Start test load data")
+    load_train_siamese, load_val_siamese = LoadData(train=True, siamese=True).load_data()
+    load_train_classifier, load_val_classifier = LoadData(train=True, siamese=False).load_data()
+    load_test = LoadData(train=False).load_data()
+    print("Finish test load data")
