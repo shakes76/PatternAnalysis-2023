@@ -2,6 +2,7 @@
 
 The aim of this model is to generate a brain from a noisy image using the Stable Diffusion Model.
 
+
 ## Stable Diffusion
 
 Stable Diffusion is a type of diffusion model that works in a two step process that uses a technique similar to how a generative model would work. The diffusion model operates by gradually adding noise to an input image in a forward process and then retrieves the original image by denoising (backwards process). 
@@ -11,6 +12,7 @@ In the (parametrized) backwards process, the model predicts the noise added in e
 This diffusion model will be using a U-Net for the backwards process.
 
 
+
 ## Dependencies
 
 * PyTorch: `>=2.0.1`
@@ -18,6 +20,8 @@ This diffusion model will be using a U-Net for the backwards process.
 * Pillow (PIL): `>=10.0.0`
 * Torchvision: `>=0.15.2`
 * Matplotlib: `>=3.7.1`
+
+
 
 ## File Structure and How to Use
 
@@ -64,6 +68,7 @@ In the terminal, move to the folder `46429515_OASIS_brain_SD` and then run the b
 This will run the python file to run train.py and then predict.py while checking the exit code of the python files (training the model, then loading the model and generating an image using the model).
 
 
+
 ## Usage Example
 
 ### Stable Diffusion Generating Outcomes - predict.py
@@ -74,6 +79,7 @@ The images generated from the noisy image inputs (images that came from epoch 0 
 A correlation for the model not generating brains as intended would be due to the training process of the model which can be seen in a loss over epochs plot (can be seen in Training section of the documentation). The cause for this loss/epoch graph may be due to the model used for stable diffusion as the model is a simple U-Net model which is not speciailized to learning important details in a short amount of time.
 
 It is possible that the model did not learn the shape of a brain. This can be seen from the blurry output from the training images at the higher epochs despite clearly having the shape of a brain with some details (images can be seen in Training section of documentation).
+
 
 
 ### Saving Generated Images - predict.py
@@ -91,6 +97,7 @@ preprocess = transforms.Compose([
 The saving of the generated images is done similarly for training images which can be found in the code.
 
 
+
 ### Dataset Creation - dataset.py
 
 With a custom dataset class created (OASISDataset), this will enable the images to be transformed as desired, as well as implement the dataset into a dataloader to be used for our task, where our specified root_path is the path to the parent folder of images of the dataset and the batch size is 32 (can be found in utils.py).
@@ -106,12 +113,14 @@ validate_loader = DataLoader(validate_data, batch_size=batch_size)
 ```
 
 
+
 ### Noise Scheduler (Forward Process) - module.py
 
 In this process, we build more gradually noisy images to be inputted into our model. Here, noise-levels/varianes are pre-computed and we sample each timestep image separately (Sums of Gaussians = Gaussian). 
 
 The precomputed values can be seen in the module.py section in utils.py
 The diffusion noising code can be found in the noise scheduler section in module.py
+
 
 
 ### U-Net (Backwards Process) - module.py
@@ -144,6 +153,7 @@ self.time_mlp = nn.Sequential(
 ```
 
 
+
 ### Loss Function - train.py
 
 Diffusion models calculate the distance of the predicted noise and actual noise in the image to determine the loss (denoising score similarity equivalent to variational inference). The loss function is simply used in the training process as follows:
@@ -158,6 +168,7 @@ In this model, the loss function is simply using the L1 loss (Mean Absolute Squa
 \[ \frac{1}{n} \sum | \text{noise} - \text{predicted noise} | \]
 
 The get_loss function can be found in utils.py in the train.py section.
+
 
 ### Sampling - train.py
 
@@ -175,6 +186,7 @@ model_mean = sqrt_recip_alphas_t * (
 ```
 
 The sampling codes can be found in the train.py section of utils.py
+
 
 
 ### Training - train.py
@@ -208,6 +220,7 @@ The images outputted during the training loop appear to provide the shape and de
 These images are a general idea of what the model has generated from denoising images after adding noise to the images. This possibly provides an insight to why the model does not properly generate an image of a brain as expected.
 
 
+
 ## Justification
 
 The Adam optimizer is a popular choice for deep learning modules as it adapts learning rates to each parameters during training, thus selecting a basic learning rate of 0.001 allows for balanced learning between initial progression and fine-tuning together with the optimizer's features.
@@ -217,6 +230,7 @@ The batch size was sized to be 32 as the provided OASIS dataset have been sliced
 The number of discrete steps, T, was set to be 500, as it would provide a finer control over denoising process while not taking too long for the model to be trained compared to 200 where it was faster but of lower quality denoising, and 1000, where it would have a higher quality denoising but slower computational complexitity.
 
 Due to time constraints, training was set to be over the course of 800 epochs.
+
 
 
 ## Future Direction
@@ -233,6 +247,7 @@ There are multiple ways that this stable diffusion model from scratch can be imp
 
 Areas of significance that needs to be improved upon:
 * Obtaining desired images (brains) from results of generating images
+
 
 
 ## References
