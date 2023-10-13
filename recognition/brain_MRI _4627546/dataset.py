@@ -56,9 +56,11 @@ class SuperResolutionDataset(Dataset):
 
         hr_image = Image.open(img_path).convert('L')
         # Convert image to grayscale, although all data in ADNI_dataset are 2D
-        lr_transform = transforms.Compose([transforms.Resize((64, 60), interpolation=Image.BICUBIC)])
+        lr_transform = transforms.Compose([transforms.Resize((60, 64), interpolation=Image.BICUBIC)])
         # Downsample by factor of 4
         lr_image = lr_transform(hr_image)
+
+
 
         if self.transform:
             hr_image = self.transform(hr_image)
