@@ -165,7 +165,7 @@ losses = []     # for visualisation
 
 # Hyperparams
 learning_rate = 1.e-3
-num_epochs = 1
+num_epochs = 7
 
 model = VQVAE().to(device)
 print(model)

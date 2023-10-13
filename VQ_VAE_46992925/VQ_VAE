@@ -22,28 +22,28 @@ print("Torch version ", torch.__version__)
 # ------------------------------------------------
 # Data Loader
 
-path = "C:/Users/61423/COMP3710/data/keras_png_slices_data/"
-#path = "//puffball.labs.eait.uq.edu.au/s4699292/Documents/2023 Sem2/Comp3710/keras_png_slices_data/keras_png_slices_data/"
+#path = "C:/Users/61423/COMP3710/data/keras_png_slices_data/"
+path = "//puffball.labs.eait.uq.edu.au/s4699292/Documents/2023 Sem2/Comp3710/keras_png_slices_data/keras_png_slices_data/"
 
 def load_data_from_folder(name):
     data = []
-    #i = 0
+    i = 0
     
-    for filename in tqdm(os.listdir(path+name)):            # tqdm adds loading bar!
+    for filename in tqdm([f for f in os.listdir(path+name) if f.lower().endswith('.png')]):            # tqdm adds loading bar!
         
         image_path = os.path.join(path+name, filename)
         image = Image.open(image_path).convert('L')         # Convert to grayscale (single channel)
         image = np.array(image)
         
-        # Ensure the image has the shape (C, H, W)
-        image = np.expand_dims(image, axis=0)        
-        #image = image.reshape((1, image.shape[0], image.shape[1]))
-        
+        # Add channel
+        # C, H, W
+        image = np.expand_dims(image, axis=0)
+
         data.append(image)
 
-        #if i == 100:
-        #    return np.array(data)
-        #i += 1
+        if i == 100:
+            return np.array(data)
+        i += 1
 
     return np.array(data)
 
@@ -61,7 +61,10 @@ print("The shape of the (testing) data is: ", test_data.shape)
 mean = np.mean(train_data)
 std = np.std(train_data)
 
-transform = transforms.Compose([transforms.ToTensor(), transforms.Normalize(mean=mean, std=std)])
+transform = transforms.Compose([
+                                transforms.ToTensor(),
+                                transforms.Normalize(mean=0.13242, std=0.18826)
+])
 
 train_data = torch.stack([transform(item) for item in train_data]).permute(0, 2, 3, 1)
 test_data = torch.stack([transform(item) for item in test_data]).permute(0, 2, 3, 1)
@@ -75,7 +78,7 @@ train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=128, shuff
 test_dataloader = torch.utils.data.DataLoader(test_data, batch_size=128, shuffle=True)
 
 plt.imshow(train_data[0][0])
-plt.title("First Training image")
+plt.title("First Training image (Normalised)")
 plt.gray()
 plt.show()
 
@@ -174,7 +177,7 @@ losses = []     # for visualisation
 
 # Hyperparams
 learning_rate = 1.e-3
-num_epochs = 2
+num_epochs = 15
 
 model = VQVAE().to(device)
 print(model)
@@ -207,7 +210,7 @@ for epoch_num, epoch in enumerate(tqdm(range(num_epochs))):
             
     print("Epoch {} of {}. Total Loss: {}".format(epoch_num, num_epochs, total_losses))
     
-    losses.append(total_losses)     # To graph losses
+    losses.append(total_losses.cpu().numpy()[0])     # To graph losses
 
 
 # -------------------------------------------------
@@ -215,7 +218,6 @@ for epoch_num, epoch in enumerate(tqdm(range(num_epochs))):
 
 # C, H, W
 input_img = test_data[0]
-
 # Reshape to B, C, H, W for the model
 input_img = input_img.reshape(1, 1, input_img.size(-2), input_img.size(-1))
 input_img = input_img.to(device, dtype=torch.float32)
