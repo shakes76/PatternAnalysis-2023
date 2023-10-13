@@ -2,6 +2,7 @@ import dataset
 import module
 import utils
 import torch
+import matplotlib.pyplot as plt
 from torch.optim import Adam
 
 # Device setup
@@ -14,9 +15,12 @@ model = model.to(device)
 # Adam Optimizer for training the model
 optimizer = Adam(model.parameters(), lr=0.001)
 
+
+losses_list = [] # Initialize list for losses for plotting
 best_loss = float('inf')  # Initialize with a high value
 best_model_state_dict = None  # Variable to store the state_dict of the best model
 validate_every_n_epochs = 5 # Variable to validate state of model every 5 epochs
+models_counter = 0
 
 for epoch in range(utils.epochs):
     
@@ -29,6 +33,10 @@ for epoch in range(utils.epochs):
         loss = utils.get_loss(model, batch[0], t, device)
         loss.backward()
         optimizer.step() 
+        
+        # Save losses obtained from training the model
+        if step == 0:
+            losses_list.append(loss.item())
         
         if epoch % 10 == 0 and step == 0:
             print(f"Epoch {epoch} | step {step:03d} Loss: {loss.item()}")
@@ -55,7 +63,16 @@ for epoch in range(utils.epochs):
             best_loss = average_validation_loss  # Update the best loss
             best_model_state_dict = model.state_dict()  # Save the state_dict of the best model
 
-            torch.save(best_model_state_dict, 'best_model_{total_validation_samples}.pth')
-        
+            torch.save(best_model_state_dict, 'best_model.pth') 
+            
         # Print validation results
         print(f"Epoch {epoch} | Validation Loss: {average_validation_loss}")
+
+# Plot the losses over number of epochs
+plt.plot(range(1, len(losses_list) + 1), losses_list, label='Training Loss')
+plt.title('Training Loss over Epochs')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.savefig('loss_plot.png')
+plt.close()
