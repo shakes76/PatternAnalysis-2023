@@ -100,17 +100,21 @@ class ADNIConvTransformer(torch.nn.Module):
     def __init__(self, attentionDropout, classifierHiddenLayers, encoderDenseNetwork):
         super().__init__()
         
-        self.downSample = torch.nn.Sequential(torch.nn.Conv2d(1,5,3), torch.nn.BatchNorm2d(32), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2),
-                                              torch.nn.Conv2d(5,5,3, padding=3), torch.nn.BatchNorm2d(32), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2),
-                                              torch.nn.Conv2d(5,1,3, stride=2, padding=2), torch.nn.BatchNorm2d(32), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2))
+        self.downSample = torch.nn.Sequential(torch.nn.Conv2d(1,5,3), torch.nn.BatchNorm2d(5), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2),
+                                              torch.nn.Conv2d(5,5,3, padding=3), torch.nn.BatchNorm2d(5), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2),
+                                              torch.nn.Conv2d(5,1,3, stride=2, padding=2), torch.nn.BatchNorm2d(1), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2))
 
         self.transformerBlock = ADNITransformer(256, 1, 1, attentionDropout, classifierHiddenLayers, encoderDenseNetwork)
 
     def forward(self, image):
         
+        #returns image tensor of dimension [batch, 1(channel), 16, 16]
         downSampledImage = self.downSample(image)
+        downSampledImage = downSampledImage[:,0,:,:]
+        downSampledImage = downSampledImage[:, :, :, None, None]
+        #tenor of dimension [batch, 16,16,1,1], a single 16 by 16 image, each patch is 1 pixel
+        
         print(downSampledImage.size())
-        downSampledImage = torch.flatten(downSampledImage, start_dim=2)
         return self.transformerBlock(downSampledImage)
 
 
