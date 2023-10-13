@@ -26,3 +26,18 @@ sns.heatmap(cm, annot=True, fmt='g')
 plt.xlabel("Predicted")
 plt.ylabel("True")
 plt.show()
+
+# Load and plot the training history
+history = model.history
+plt.figure(figsize=(15, 15))
+plt.subplot(221)
+plt.title('Loss')
+plt.plot(history.history['loss'], label='train')
+plt.plot(history.history['val_loss'], label='test')
+plt.legend()
+plt.subplot(222)
+plt.title('Accuracy')
+plt.plot(history.history['accuracy'], label='train')
+plt.plot(history.history['val_accuracy'], label='test')
+plt.legend()
+plt.show()
