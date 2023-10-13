@@ -46,7 +46,7 @@ class Attention(nn.Module):
         self.linear1 = nn.Linear(in_size, in_size)
         self.act = nn.GELU()
         self.linear2 = nn.Linear(in_size, in_size)
-        #self.drop = nn.Dropout(0.1)
+        self.drop = nn.Dropout(0.1)
 
 
         
@@ -66,7 +66,7 @@ class Attention(nn.Module):
         out = self.linear1(out)
         out = self.act(out)
         out = self.linear2(out)
-
+        out = self.drop(out)
         # second residual connection
         out = out + resid
 

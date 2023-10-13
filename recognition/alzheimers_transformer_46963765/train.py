@@ -34,18 +34,21 @@ def train(epochs, depth):
                 optimizer.step()
                 
                 batch_loss += loss.item()
-                print(batch_loss/(j+1))
+                #print(batch_loss/(j+1))
                 
         batch_losses.append(batch_loss/(j+1))
         print("epoch {} complete".format(epoch + 1))
-        # print("loss is {}".format(batch_loss))
+        print("loss is {}".format(batch_loss))
+        accuracy = test_accuracy(model)
+        print("accuracy is {}".format(accuracy))
+
         
     return model, batch_losses
 
 
 
 if __name__ == "__main__":
-    epochs = 120
+    epochs = 60
     depth = 3
     
     model, losses = train(epochs, depth)
