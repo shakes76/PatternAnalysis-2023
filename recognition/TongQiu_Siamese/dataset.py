@@ -4,6 +4,8 @@ from torchvision.io import read_image
 import random
 import os
 
+from utils import Config
+
 
 class ContrastiveDataset(Dataset):
     def __init__(self, root_dir, transform=None):
@@ -61,11 +63,11 @@ class ContrastiveDataset(Dataset):
                 "volume2": volume2,
                 "label": label}
 
-"""
+""" 
 from torch.utils.data import DataLoader
 if __name__ == '__main__':
     dataloader = DataLoader(
-        dataset=ContrastiveDataset('/Users/tongqiu/Desktop/COMP3710_Report/AD_NC/train'),
+        dataset=ContrastiveDataset(Config.TRAIN_DIR),
         shuffle=True,
         batch_size=3,
         num_workers=1,
