@@ -5,7 +5,11 @@ from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 
-data_directory = '/desktop/Datasets/ADNI'
+data_directory = '/content/drive/MyDrive/Colab Notebooks/ADNI/train'
+label_mapping = {
+    'AD': 0,
+    'CN': 1,
+}
 
 def load_images(dir_path=data_directory, label_mapping=label_mapping):
     Images = []
@@ -27,9 +31,10 @@ def load_images(dir_path=data_directory, label_mapping=label_mapping):
     Images, Labels = shuffle(Images, Labels, random_state=0)
 
     return Images, Labels
+
 def preprocess_data(Images, Labels):
-    Images = Images / 255.0
-    Labels = to_categorical(Labels, num_labels)
+    Images = Images / 255.0  
+    Labels = to_categorical(Labels, 2)  
     return Images, Labels
 
 def load_and_preprocess_data():
