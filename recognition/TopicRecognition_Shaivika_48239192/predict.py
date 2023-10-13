@@ -15,3 +15,7 @@ model = tf.keras.models.load_model('model/trained_model.h5')
 # Make predictions
 y_pred = model.predict(Images)
 y_pred = np.argmax(y_pred, axis=1)
+
+# Generate a confusion matrix
+y_true = np.argmax(Labels, axis=1)
+cm = confusion_matrix(y_true, y_pred)
