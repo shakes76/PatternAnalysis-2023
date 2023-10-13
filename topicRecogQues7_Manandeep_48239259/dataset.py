@@ -30,4 +30,26 @@ class SiameseNetworkDataset(Dataset):
             while True:
                 #keep looping till a different class image is found
 
+                  img1_tuple = random.choice(self.imageFolderDataset.imgs)
+                if img0_tuple[1] !=img1_tuple[1]:
+                    break
+
+        img0 = Image.open(img0_tuple[0])
+        img1 = Image.open(img1_tuple[0])
+        img0 = img0.convert("L")
+        img1 = img1.convert("L")
+
+        if self.should_invert:
+            img0 = PIL.ImageOps.invert(img0)
+            img1 = PIL.ImageOps.invert(img1)
+
+        if self.transform is not None:
+            img0 = self.transform(img0)
+            img1 = self.transform(img1)
+
+        return img0, img1 , torch.from_numpy(np.array([int(img1_tuple[1]!=img0_tuple[1])],dtype=np.float32))
+
+    def __len__(self):
+        return len(self.imageFolderDataset.imgs)
+
 
