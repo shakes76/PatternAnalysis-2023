@@ -119,6 +119,52 @@ elif args.net=="CrossViT":
     dropout = 0.1,
     emb_dropout = 0.1
 )
+elif args.net=="DViT":
+    import torch
+    from torchvision.models import resnet50
+
+    from vit_pytorch.distill import DistillableViT, DistillWrapper
+
+    teacher = resnet50(pretrained = True)
+
+    net = DistillableViT(
+        image_size = size,
+        num_classes = num_classes,
+        patch_size = args.patch,
+        dim = int(args.dimhead),
+        depth = 4,
+        heads = 4,
+        mlp_dim = 1024,
+        dropout = 0.1,
+        emb_dropout = 0.1
+    )
+
+    distiller = DistillWrapper(
+        student = net,
+        teacher = teacher,
+        temperature = 3,           # temperature of distillation
+        alpha = 0.5,               # trade between main loss and distillation loss
+        hard = False               # whether to use soft or hard distillation
+    )
+elif args.net=="CCT":
+    from vit_pytorch.cct import CCT
+    net = CCT(
+        img_size = (256, 256),
+        embedding_dim = 192,
+        n_conv_layers = 2,
+        kernel_size = 7,
+        stride = 2,
+        padding = 3,
+        pooling_kernel_size = 3,
+        pooling_stride = 2,
+        pooling_padding = 1,
+        num_layers = 2,
+        num_heads = 6,
+        mlp_ratio = 3.,
+        num_classes = 2,
+        positional_embedding = 'learnable', # ['sine', 'learnable', 'none']
+    )
+
 # For Multi-GPU
 if 'cuda' in device:
     torch.cuda.empty_cache()

@@ -18,7 +18,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import torch.backends.cudnn as cudnn
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt1
 
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
@@ -112,6 +112,8 @@ def test_valid_measure():
     plt.title("Training Plot")
     plt.legend()
     plt.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Report.png')
+    plt1.plot([i for i in range(1, args.n_epochs+1)], acc)
+    plt1.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Accuracy.png')
     print(acu)
     print('Testing..')
     net.eval()

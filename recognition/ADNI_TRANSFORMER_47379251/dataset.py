@@ -25,10 +25,10 @@ from torch.utils.data import random_split
 parser = argparse.ArgumentParser(description='ADNI Training')
 parser.add_argument('--lr', default=2e-4, type=float, help='learning rate') # resnets.. 1e-3, Vit..1e-4
 parser.add_argument('--opt', default="adam")
-parser.add_argument('--net', default='SViT')
-parser.add_argument('--bs', default='128')
+parser.add_argument('--net', default='CCT')
+parser.add_argument('--bs', default='32')
 parser.add_argument('--size', default="256")
-parser.add_argument('--n_epochs', type=int, default='200')
+parser.add_argument('--n_epochs', type=int, default='100')
 parser.add_argument('--patch', default='128', type=int, help="patch for ViT")
 parser.add_argument('--dimhead', default="512", type=int)
 classes = ('NC', 'AD')
@@ -116,10 +116,10 @@ def normalize_test():
 #print("Normalization Test", mean_test, std_test)
 transform_train = transforms.Compose([
     transforms.Resize((size,size)),
-    transforms.RandomCrop(size),
+    transforms.RandomRotation(10),
     transforms.RandomHorizontalFlip(),
+    transforms.RandomCrop(size),
     #transforms.RandomResizedCrop(size),
-    #transforms.RandomRotation(),
     #transforms.RandomVerticalFlip(),
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))

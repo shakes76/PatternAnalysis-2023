@@ -40,3 +40,12 @@
 144 - without flip
 146 - with flip and crop
 243 - removed RandomResizedCrop
+468 - Horiz Flip, Random Crop
+750 - DViT - 60.6
+754 - CCT - 71.73
+783 - CCT 2 layers - 72.3
+975 - CCT 2 layers + RandomRotation (5) - 74%
+990 - CCT 2 layers + RandomRotation (10) + Flip after rotation
+1019 - CCT 2 layers + RandomRotation (10) + Flip after rotation + Random crop
+
+GIT PUSH
