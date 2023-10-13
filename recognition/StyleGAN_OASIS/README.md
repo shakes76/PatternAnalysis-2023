@@ -24,12 +24,14 @@ The code is grouped as follows:
 - **modules.py** Model specific classes, including the generator and discriminator classes. These are composed from the mapping network, synthesis blocks, noise injection and equalised version of convolution and linear.
 - **dataset.py** Function to import OASIS training data. This can easily be swapped out for a different dataset.
 - **train.py** The functions required to run the training loop that learns the model parameters.
-- **predict.py** The functions required to evaluate a previous training loop and synthesis data from a trained model.
-- **figures** A folder for useful plots of architectures and results.
+- **predict.py** The functions required to evaluate a previous training loop and synthesize data from a trained model.
+- **test_driver_train.py** A small script to initiate the training loop of the StyleGAN
+- **test_driver_predict.py** A small script to run inference from a pretrained .pth model file.
+- **figures** A folder for useful plots of architectures and results, referenced in this README.
 
-The code implimenetation follows the StyleGAN architecture and follows the same naming conventions. The synthesis layers are trained as a Progressive GAN architecture, where new and existing layers are blended through an alpha term to reduce stability issues (ie shock) to the network.
+The code implimenetation follows the StyleGAN architecture and follows the same naming conventions. The synthesis layers are trained as a Progressive GAN architecture, where new and existing layers are blended through an alpha term to reduce stability issues (ie shock) to the network when new layers are added.
 
-The optimisers used for both Generator and Discriminator are Adam and the loss functions are specially defined for StyleGAN:
+The optimisers used for both Generator and Discriminator are Adam and the loss functions are specially defined for StyleGAN. They are described below. Note that intitially I tried BCELoss but encountered issues with mode collapse and divergence. After many many hours of troubleshooting and research I discovered this alternate technique which worked.
 
 The loss functions for the Discriminator consist of:
 - **Gradient Penalty** A regularisation technique to limit large gradients
@@ -38,6 +40,24 @@ The loss functions for the Discriminator consist of:
 
 The loss function for the Generator is:
 - The negative of the Discriminator output on fake images.
+
+Training and inference are controlled from a configuration dictionary which is described below:
+
+- **batch_sizes**: array of batches per depth. This allows small batches as the depth increases.
+- **channels**: array of channels per depth
+- **rgb_ch**: the number of channels in the source images.
+- **fade_epochs**: the number of epochs to train per depth, where the alpha blending will fade across.
+- **image_folder**: training image folder.
+- **generator_model_file**: Name of the model output. Requires a {0} place holder for a model per depth.
+- **losses_file**: The five loss values will be written out per batch.
+- **lr**: General learning rate for Adam, excluding the mapping network.
+- **mapping_lr**: the mapping network learning rate for Adam.
+- **lambda**: the amplification factor for scaling the gradient penalty
+- **beta1**: the Beta1 hyperparameter for Adam. Controls how much weight is given to the exponentially moving average of past gradients.
+- **beta2**: the Beta2 hyperparameter for Adam. Controls how much weight is given to the exponentially moving average of past squared gradients
+- **z_size**: the size of the latent space.
+- **w_size**: the size of the style weights output from the mapping network.
+
 
 Some example inputs for training the StyleGAN from the OASIS brain dataset are:
 ![Examples of real OASIS brain images](figures/real_images_sample.png)
@@ -62,7 +82,7 @@ Torchvision version 0.15.2 was used.
 
 ## Loss Plots
 
-In the loss plots below, positive losses mean poorer performance, and negative losses mean improved performance. As each Progressive GAN layer is added, there is a distinct step in the losses. The six notable steps relate to the layer sizes of 8x8, 16x6, 32x32, 64x64, 128x128, 256x256. The early layers briefly indicate the GAN converging, but as the layer size increases the convergence isn't evident. The GAN likely requires further training epochs for higher layers.
+In the loss plots below, positive losses mean poorer performance, and negative losses mean improved performance. As each Progressive GAN layer is added, there is a distinct step in the losses. The six notable steps relate to the layer sizes of 8x8, 16x6, 32x32, 64x64, 128x128, 256x256. The early layers briefly indicate the GAN converging, but as the layer size increases the convergence isn't evident. The GAN likely requires further training epochs for higher layers. Note that each layer trains for longer due to the reduced batch sizes per layer.
 
 ![Losses of Generator and Discriminator](figures/losses.png)
 
