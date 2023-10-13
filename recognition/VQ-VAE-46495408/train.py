@@ -5,7 +5,7 @@ from modules import VQVAETrainer, get_pixel_cnn
 from dataset import get_train_dataset, get_test_dataset, get_dataset_variance
 from matplotlib import pyplot as plt
 
-def plot_history(history):
+def plot_vqvae_history(history):
     plt.plot(history.history['loss'])
     plt.plot(history.history['reconstruction_loss'])
     plt.plot(history.history['vqvae_loss'])
@@ -39,7 +39,7 @@ def train_vqvae():
     )
     vqvae_history = vqvae_trainer.fit(train_ds, epochs=5, callbacks=[checkpoint])
     # Plot and save the training history
-    plot_history(vqvae_history)
+    plot_vqvae_history(vqvae_history)
     
 def visualize_vqvae_results():
     # Load the trained weights to vq-vae trainer
@@ -66,7 +66,6 @@ def visualize_vqvae_results():
     plt.figure(figsize=(10, 30))
     for i in random.sample(range(0, 127), num_samples):
         ssim = tf.image.ssim(test_batch[i], rec_batch[i], max_val=1.0)
-        
         # Plot the original image
         plt.subplot(num_samples, 3, n)
         plt.imshow(test_batch[i])
@@ -90,6 +89,14 @@ def visualize_vqvae_results():
     plt.savefig('recognition/VQ-VAE-46495408/results/vqvae_test_images.png')
     plt.show()
     
+def plot_pixelcnn_history(history):
+    plt.plot(history.history['accuracy'])
+    plt.title('Pixel CNN Accuracy')
+    plt.xlabel('epoch')
+    plt.ylabel('accuracy')
+    plt.savefig('recognition/VQ-VAE-46495408/results/pixelcnn_accuracy.png')
+    plt.close()
+    
 def train_pixelcnn():
     # Load the trained weights to vq-vae trainer
     vqvae_trainer = VQVAETrainer(train_variance, latent_dim=32, num_embeddings=128)
@@ -112,12 +119,23 @@ def train_pixelcnn():
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
         metrics=["accuracy"],
     )
-    pixel_cnn.fit(
+    
+    # Create a callback that saves the model's weights
+    checkpoint = tf.keras.callbacks.ModelCheckpoint(
+        "recognition/VQ-VAE-46495408/checkpoint/pixelcnn_ckpt",
+        save_best_only=False,
+        save_weights_only=True
+    )
+    
+    pixelcnn_history = pixel_cnn.fit(
         x=codebook_indices,
         y=codebook_indices,
         epochs=5,
         validation_split=0.1,
+        callbacks=[checkpoint]
     )
+    # Plot and save the training history
+    plot_pixelcnn_history(pixelcnn_history)
     
 if __name__=='__main__':
-    visualize_vqvae_results()
+    train_pixelcnn()
