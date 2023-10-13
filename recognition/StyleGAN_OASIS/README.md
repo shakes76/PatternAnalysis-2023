@@ -20,20 +20,38 @@ Adaptive instance normalisation, known as AdaIN, normalises each batch image, th
 
 ## How It Works
 
-_Describe how my particlar implementation works_
+The code is grouped as follows:
+- **modules.py** Model specific classes, including the generator and discriminator classes. These are composed from the mapping network, synthesis blocks, noise injection and equalised version of convolution and linear.
+- **dataset.py** Function to import OASIS training data. This can easily be swapped out for a different dataset.
+- **train.py** The functions required to run the training loop that learns the model parameters.
+- **predict.py** The functions required to evaluate a previous training loop and synthesis data from a trained model.
+- **figures** A folder for useful plots of architectures and results.
 
-_Provide example inputs, outputs and plots of your algorithm_
+The code implimenetation follows the StyleGAN architecture and follows the same naming conventions. The synthesis layers are trained as a Progressive GAN architecture, where new and existing layers are blended through an alpha term to reduce stability issues (ie shock) to the network.
+
+The optimisers used for both Generator and Discriminator are Adam and the loss functions are specially defined for StyleGAN:
+
+The loss functions for the Discriminator consist of:
+- **Gradient Penalty** A regularisation technique to limit large gradients
+- **Wasserstein distance** Measures how much the distribution of the Generator varies from the Discriminator
+- **Gradient Clipping** Minimises the squared magnitudes of the real image discriminator output to help with stability and regularisation
+
+The loss function for the Generator is:
+- The negative of the Discriminator output on fake images.
+
+Some example inputs for training the StyleGAN from the OASIS brain dataset are:
+![Examples of real OASIS brain images](figures/real_images_sample.png)
+
+A synthesed image is created by generating a random input z of shape (batch size, latent size). Some examples of outputs from the Generator are:
+![Examples of real OASIS brain images](figures/fake_images_sample.png)
 
 ## Reproducibility of Results
 
-_Referenced libraries and their versions_
-
-_Results of multiple runs, including run times_
-
+Each Progressive GAN layer was run for 30 epochs. Over the six layers required to upsample to 256x256, the total training epochs were 180. On the Rangpur HPC, this typically takes about 3 hours. The generation of synthetic images is fairly stable. The image results publishing here are quite typically of the output after various training runs.
 
 ## Preprocessing
 
-The OASIS training dataset was used, which has 10,000 RGB images of size 256x256. Each synthesis layer requires training data for a particular size. Therefore, preprocessing included downsampling to the required size for each layer's training as well as the usual normalisation across the RGB channels.
+The OASIS training dataset was used, which has 10,000 RGB images of size 256x256. Each synthesis layer requires training data for a particular size. To acheive this, the preprocessing included downsampling to the required size for each layer's training. Preprocessing also included the usual normalisation across the RGB channels.
 
 
 ## Versioning and Dependencies
@@ -44,7 +62,13 @@ Torchvision version 0.15.2 was used.
 
 ## Loss Plots
 
+In the loss plots below, positive losses mean poorer performance, and negative losses mean improved performance. As each Progressive GAN layer is added, there is a distinct step in the losses. The six notable steps relate to the layer sizes of 8x8, 16x6, 32x32, 64x64, 128x128, 256x256. The early layers briefly indicate the GAN converging, but as the layer size increases the convergence isn't evident. The GAN likely requires further training epochs for higher layers.
 
+![Losses of Generator and Discriminator](figures/losses.png)
+
+The decomposed Discriminator losses are visualised below. This plot shows that the gradient penalty (in blue and partially hidden) and gradient clipping (in green) account for the high Discriminator losses.
+
+![Decomposed Losses of Discriminator](figures/losses_discriminator_decomposition.png)
 
 ## References
 _T. Karras, S. Laine, and T. Aila, “A Style-Based Generator Architecture for Generative Adversarial
