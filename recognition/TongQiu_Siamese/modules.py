@@ -1,0 +1,49 @@
+import torch
+import torch.nn as nn
+
+"""
+Base Line Model
+(treat depth dimension as channels)
+"""
+
+
+class Baseline(nn.Module):
+    def __init__(self):
+        super(Baseline, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(20, 64, 10),  # 64@231x247 # nn.Conv2d(1, 64, 10)
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2),  # 64@115x123
+            nn.Conv2d(64, 128, 7),  # 128@109x117
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2),  # 128@54x58
+            nn.Conv2d(128, 128, 4),  # 128@51x55
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(2),  # 128@25x27
+            nn.Conv2d(128, 256, 4),  # 256@22x24
+            nn.ReLU(inplace=True),
+        )
+        self.liner = nn.Sequential(nn.Linear(135168, 4096), nn.Sigmoid()) # nn.Linear(9216, 4096)
+        self.out = nn.Linear(4096, 1)
+
+    def sub_forward(self, x):
+        x = self.conv(x)
+        x = x.view(x.size()[0], -1)
+        x = self.liner(x)
+        return x
+
+    def forward(self, x1, x2):
+        x1 = self.sub_forward(x1)
+        x2 = self.sub_forward(x2)
+        distance = torch.abs(x1 - x2) # l1 distance
+        out = self.out(distance)
+        return out
+
+"""
+# test if the model works properly
+if __name__ == '__main__':
+    model = Baseline()
+    test_tensor = torch.ones(3, 20, 240, 256)
+    output = model(test_tensor, test_tensor)
+    print(output.shape)
+"""
