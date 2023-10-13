@@ -6,7 +6,7 @@ Stable Diffusion & VQVAE on OASIS
 Implementation of Various generative model of OASIS dataset.
 
 1. VAE-GAN
-2. VQVAE with SSIM 0.78 (Task 8)
+2. VQVAE with SSIM 0.766 (Task 8)
 3. VQGAN (VQVAE + Transformer)
 4. Stable diffusion + VAE / VQVAE (Task 9)
 
@@ -108,7 +108,7 @@ The image below represents the progression of stable diffusion. As time passes, 
 
 The image below is the first brain image from the test dataset, reconstructed by VAE.
 
-![](visualize/VQVAE_vis/epoch_31/recon_441.png)
+![](visualize/VAE_vis/epoch_31/recon_441.png)
 
 #### VAE + Random Generation
 
