@@ -118,4 +118,8 @@ The learning rate of the generator and the discriminator for the first 100 epoch
 
 ### Other Issues / Problems
 
+**Training Stability:** As mentioned in the previous section about the variable learning rate scheduller, GAN networks diverge easily when training and are very sensitive to the initial hyperparameters. The variable LR attempts to mitigate this by exponentially reducing the learning rate. This is not optimal because it required are larger number of epochs for the model to train.
 
+**Training Time:** Another current limitation is the amount of time it takes to train the current model. The model used to generate the output images in the resport ran for 300 epochs which took 258 minutes (4 hours and 18 minutes) on NVIDIA A100s using the ADNI dataset with a batch size of 16. This is because of the learning rate decay as previously mentioned. Improvements in training stability or increasing the batch size may allow for higher learning rates. However, GANs are extremely sensitive to these hyperparameters therefore other parameters may also need to be changed to ensure a convergent training process.
+
+**Pixel-Level Artifacts:** Finally, GAN models tend to produce small pixel-level artifacts that is not present within the original image. For this model, these aretifacts are not very obvious unless one zooms further into the image. These can be a cause for concern since MRI images are crucial for diagnostics and artifacts in the images that may not exist in reality can be very serious. For this, a much improved model would have to be developed in order to further increase the similarity between the real and reconstructed images.

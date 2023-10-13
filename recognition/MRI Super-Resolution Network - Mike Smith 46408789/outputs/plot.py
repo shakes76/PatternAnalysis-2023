@@ -14,7 +14,7 @@ def main():
     epoch_lim = 100
     count = 1
 
-    f = open("out_gan_2.txt")
+    f = open("out_gan.txt")
     lines = f.readlines()
 
     for i, line in enumerate(lines):
