@@ -48,9 +48,16 @@ def normalize(image, mask):
 #TODO: Write some other preprocessing sub-functions.
 
 #NOTE: Which source should be referenced for this?
+#TODO: Reference source.
 def augment(image, mask):
     #TODO: Write specification.
-    #      Add actual functionality.
+    p = tf.random.uniform(())
+    if p < 0.25:
+        image = tf.image.flip_left_right(image)
+        mask = tf.image.flip_left_right(mask)
+    elif p < 0.5:
+        image = tf.image.flip_up_down(image)
+        mask = tf.image.flip_up_down(mask)
     return image, mask
 
 #NOTE: Function that encapsulates all preprocessing, should wind up being the only thing that's called for data.
@@ -60,11 +67,13 @@ def preprocessing():
     test_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Test_Input/"
     training_images_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2/"
     training_gt_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2/"
+    #TODO: Split into test, train and validation data.
     #Load in, normalize and augment.
     image_data = loadDataFrom(training_images_dir, channels=3)
     mask_data = loadDataFrom(training_gt_dir, channels=1)
     isic_data = tf.data.Dataset.zip((image_data, mask_data))
     isic_data = isic_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #NOTE: How to ensure this happens on a batch by batch basis?
     isic_data = isic_data.map(augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #NOTE: Is any other preprocessing needed?
     return isic_data
