@@ -82,7 +82,7 @@ Observing the plot above, the model converges to a low loss.
 Below is the loss and accuracy plot when training best_classifier_model_50_30_3.pth (the best classifier)
 Loss         |  Accuracy
 :-------------------------:|:-------------------------:
-![](![images_for_readme/218391_78_AD.jpeg](images_for_readme/classifier_loss_plot_classifier_model_50_30_3.png))  |  ![](images_for_readme/classifier_accuracy_plot_classifier_model_50_30_3.png)
+![](images_for_readme/classifier_loss_plot_classifier_model_50_30_3.png) |  ![](images_for_readme/classifier_accuracy_plot_classifier_model_50_30_3.png)
 
 Observing the loss plot above, from the first epoch, the training loss has already reached a minimum loss. The validation loss in the first couple of epochs fluctuates and then reaches the minimum loss at 30 epochs.
 
@@ -94,7 +94,7 @@ From both plots above, it can be concluded that the classifier overfits to the t
 ## Testing Results
 The best classifer was only able to reach 72% on the test set.
  
- To do inference on a trained siamese and classifier, run the predict.py file. There is a section called "#----DEFINE MODEL PATHS----" where you can modify the paths of the trained models. The predict.py will do inference using both models of one input image.
+ To do inference on a trained siamese and classifier, run the predict.py file. There is a section called `#----DEFINE MODEL PATHS----  ` where you can modify the paths of the trained models. The predict.py will do inference using both models of one input image.
 
 ## Dependencies and Reproducability
 
