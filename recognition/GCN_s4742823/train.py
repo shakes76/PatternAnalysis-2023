@@ -7,6 +7,7 @@ print("PyTorch Version:", torch.__version__)
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print("Using ", str(device))
 
 test_size = 0.1
 val_size = 0.1
@@ -51,7 +52,9 @@ for epoch in range(num_epochs):
     out = model(data)
     loss = criterion(out[data.val_mask], data.y[data.val_mask])
     _, predicted = torch.max(out[data.val_mask], 1)
-    accuracy = accuracy_score(data.y[data.val_mask], predicted)
+    predicted = predicted.cpu().numpy()
+    y_true = data.y[data.val_mask].cpu().numpy()
+    accuracy = accuracy_score(y_true, predicted)
     if accuracy > best_accuracy:
         best_accuracy = accuracy
         best_model = model.state_dict()
@@ -65,5 +68,7 @@ model.eval()
 with torch.no_grad():
     out = model(data)
     _, predicted = torch.max(out[data.test_mask], 1)  # Get classes with the highest probablities (note that we only use test nodes).
-    accuracy = accuracy_score(data.y[data.test_mask], predicted)
+    predicted = predicted.cpu().numpy()
+    y_true = data.y[data.test_mask].cpu().numpy()
+    accuracy = accuracy_score(y_true, predicted)
 print(f"Test Accuracy: {100 * accuracy:.2f}%")
