@@ -200,7 +200,7 @@ After training lots of algorithm, I want to write some opinions here.
      1. It might be related to the design of the loss function, where each latent tends to approach the closest embedding. I believe there are potential methods to address this problem such as incorporating concepts like minibatch discrimination from GANs.
      2. Alternatively, the limited diversity of the OASIS dataset may contribute to this issue. Notably, many images in the OASIS dataset have black corners, and the similarity between brain images in the dataset can result in latent representations from the encoder that are too similar, hindering the generation of diverse discrete latents.
 
-     ![](./report_imgs/VQVAE_hist.png)
+     ![](report_imgs/VQVAE_hist.png)
 
      > When examining the occurrence of indices in VQVAE, it becomes apparent that many embeddings appear to be useless, even though VQVAE successfully reconstructs high-quality images
 
