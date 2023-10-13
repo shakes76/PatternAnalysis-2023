@@ -3,6 +3,7 @@ from utils import *
 from dataset import *
 import torch
 import time
+import matplotlib.pyplot as plt
 
 # -------
 # Initialise device
@@ -28,10 +29,14 @@ total_step = len(train_loader)
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+loss_values = []
+iterations = []
+
 model.train()
 print("> Training")
 start = time.time()
 
+iteration = 1
 for epoch in range(num_epochs):
     for i, (images, _) in enumerate(train_loader):
 
@@ -46,8 +51,12 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-
+        
+        iteration += 1
         if (i+1) % 10 == 0:
+            loss_values.append(loss.item())
+            iterations.append(iteration)
+            
             print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
                     .format(epoch+1, num_epochs, i+1, total_step, loss.item()), flush=True)
             
@@ -55,5 +64,11 @@ for epoch in range(num_epochs):
 end = time.time()
 elapsed = end - start
 print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total") 
-
+plt.figure()
+plt.plot(iterations, loss_values)
+plt.title("Training Loss per Iteration")
+plt.xlabel("Iteration")
+plt.ylabel("Loss")
+plt.grid(True)
+plt.show()
 torch.save(model, model_path)
