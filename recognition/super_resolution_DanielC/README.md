@@ -33,4 +33,6 @@ Channel size | Loss
 64 | 0.00249
 128 | 0.00236
 
-Furthermore, graphing the losses per iterations,
+Furthermore, graphing the losses per iterations is shown as below.
+![graph of loss per iteration](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/lossgraph.PNG)
+After approximately 175 iterations, the loss no longer decreases consistently rather, it fluctuates around 0.00255 thus we could assume that 175 is the optimal number of iterations. 
