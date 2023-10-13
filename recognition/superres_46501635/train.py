@@ -1,72 +1,48 @@
-
 import torch
-import torch.nn as nn
 import torch.optim as optim
-import matplotlib.pyplot as plt
 from modules import ESPCN
-from dataset import ADNIDataset, get_dataloaders, image_transform
-import math
+from dataset import get_dataloaders
+
+# Check for CUDA availability
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Hyperparameters
-learning_rate = 0.01
-num_epochs = 5
-upscale_factor = 4
-batch_size = 32
+learning_rate_initial = 0.01
+learning_rate_final = 0.0001
+epochs = 20  # You can adjust this based on your needs
+upscale_factor = 4  # Adjust based on your needs
 
-# Initialize the model, loss, and optimizer
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = ESPCN(upscale_factor=upscale_factor).to(device)
-criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+# Load datasets
+train_loader, test_loader = get_dataloaders("C:\\Users\\soonw\\ADNI\\AD_NC")  # Replace 'path_to_root_dir' with your dataset path
 
-# Load the data
-train_loader, test_loader = get_dataloaders("C:\\Users\\soonw\\ADNI\\AD_NC", batch_size=batch_size)
+# Initialize model and move to device
+model = ESPCN(upscale_factor).to(device)
+
+# Loss and optimizer
+criterion = torch.nn.MSELoss()
+optimizer = optim.Adam(model.parameters(), lr=learning_rate_initial)
+
+# Learning rate scheduler to adjust learning rate during training
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=5, factor=0.5, min_lr=learning_rate_final)
 
 # Training loop
-losses = []
-for epoch in range(num_epochs):
+for epoch in range(epochs):
     model.train()
-    epoch_loss = 0
-    for batch_idx, (downsampled, original, _) in enumerate(train_loader):
-        downsampled, original = downsampled.to(device), original.to(device)
+    for batch_idx, (LR, HR, _) in enumerate(train_loader):
+        LR, HR = LR.to(device), HR.to(device)
 
         # Forward pass
-        outputs = model(downsampled)
-        loss = criterion(outputs, original)
-        epoch_loss += loss.item()
+        outputs = model(LR)
+        loss = criterion(outputs, HR)
 
         # Backward pass and optimization
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        if (batch_idx+1) % 10 == 0:
-            print(f"Epoch [{epoch+1}/{num_epochs}], Step [{batch_idx+1}/{len(train_loader)}], Loss: {loss.item():.4f}")
-    
-    losses.append(epoch_loss / len(train_loader))
+    # Adjust learning rate
+    scheduler.step(loss)
 
+    print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}")
 
-        # Evaluation on test data
-    model.eval()
-    with torch.no_grad():
-        avg_psnr = 0
-        for batch_idx, (downsampled, original, _) in enumerate(test_loader):
-            downsampled, original = downsampled.to(device), original.to(device)
-            outputs = model(downsampled)
-            mse = criterion(outputs, original)
-            psnr = 10 * math.log10(1 / mse.item())
-            avg_psnr += psnr
-        avg_psnr = avg_psnr / len(test_loader)
-        print(f"Average PSNR on test data: {avg_psnr:.4f} dB")
-
-# Save the trained model
-#torch.save(model.state_dict(), 'espcn_model.pth')
-
-# Plot training losses
-plt.plot(losses)
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.title('Training Loss')
-plt.show()
-
-
+print("Training finished.")
