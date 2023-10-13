@@ -19,7 +19,7 @@ This diffusion model will be using a U-Net for the backwards process.
 * Torchvision: `>=0.15.2`
 
 
-## File Structure and Installation
+## File Structure and How to Use
 
 1. Clone/Download the repository
 2. Install required dependencies
@@ -49,8 +49,17 @@ The file structure should end up looking like this:
 ├─ module.py
 ├─ predict.py
 ├─ train.py
+├─ test_driver.py
 └  utils.py
 ```
+
+In the terminal, move to the folder `46429515_OASIS_brain_SD` and then run the command 
+
+```
+python test_driver.py
+```
+
+This will run the testscript that will check the dataset shape, and then proceed to run train.py and then predict.py (training the model, then loading the model and generating an image using the model)
 
 
 ## Usage Example
@@ -179,6 +188,7 @@ The model goes through training and saves the processed image every 10 epochs, a
 
 The respective sections of the trainings can be found inside the train.py file.
 
+Alongside the saving of images and model parameters, the losses during training are also been printed out to the system.
 
 ## Justification
 
@@ -198,7 +208,7 @@ There are multiple ways that this stable diffusion model from scratch can be imp
 * Improve accuracy of the model by applying different transformations to the initial images
 * Changing the number of epochs and change learning rates
 * Higher discrete timestep interval for noising/denoising process
-* Dataset adapatable to all sorts of MRI images (assuming the dataset is in the same format)
+* Turn the dataset adapatable to all sorts of MRI images (assuming the dataset is in the same format)
 
 Areas of significance that needs to be improved upon:
 * Obtaining desired images (brains) from results of generating images
