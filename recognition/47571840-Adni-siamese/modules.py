@@ -9,6 +9,7 @@ class SiameseResNet(nn.Module):
     def __init__(self):
         super(SiameseResNet, self).__init__()
 
+        # Use pytorch's resnet 18 as the backbone
         resnet = models.resnet18(pretrained=True)
         resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.embedding = nn.Sequential(*list(resnet.children())[:-1])
@@ -32,6 +33,7 @@ class SiameseResNet(nn.Module):
 
         return dist
 
+# Referenced from: ChatGPT (Version 4) by asking to make a classifier in my given siamese network
 class ClassifierNet(nn.Module):
     def __init__(self, siamese_model):
         super(ClassifierNet, self).__init__()
