@@ -30,7 +30,7 @@ for i, (images, _) in enumerate(train_loader):
     original_3 = images[2][0].cpu().detach().numpy()
 
     low_res_images = resize_tensor(images)
-    low_res_images.to(device)
+    low_res_images = low_res_images.to(device)
 
     downsample_1 = low_res_images[0][0].cpu().detach().numpy()
     downsample_2 = low_res_images[1][0].cpu().detach().numpy()
@@ -38,7 +38,7 @@ for i, (images, _) in enumerate(train_loader):
 
     # Forward pass
     outputs = model(low_res_images)
-    outputs.to(device)
+    outputs = outputs.to(device)
 
     output_1 = outputs[0][0].cpu().detach().numpy() 
     output_2 = outputs[1][0].cpu().detach().numpy()

@@ -6,7 +6,7 @@ import time
 
 # -------
 # Initialise device
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
@@ -36,10 +36,8 @@ for epoch in range(num_epochs):
     for i, (images, _) in enumerate(train_loader):
 
         low_res_images = resize_tensor(images)
-
-        low_res_images.to(device)
-        images.to(device)
-
+        low_res_images = low_res_images.to(device)
+        images = images.to(device)
         # Forward pass
         outputs = model(low_res_images)
         loss = criterion(outputs, images)
