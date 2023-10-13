@@ -33,9 +33,10 @@ savepath = "/home/Student/s4641725/COMP3710/project_results"
 Siamese_train_transforms = transforms.Compose([
     transforms.ToTensor(),
     transforms.CenterCrop(240),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomVerticalFlip(),
-    transforms.RandomRotation(45)
+    # transforms.RandomHorizontalFlip(),
+    # transforms.RandomVerticalFlip(),
+    # transforms.RandomRotation(15)
+    transforms.ElasticTransform(50.,5.)
 ])
 
 classifier_train_transforms = transforms.Compose([
@@ -140,7 +141,7 @@ def load_data(training:bool, Siamese:bool, random_seed=None) -> torch.utils.data
         # loading unitary training data for the MLP
         # each data point is of format [img, label]
         # where label is 1 if the image is of class AD and 0 otherwise
-        loader = torch.utils.data.DataLoader(source, batch_size=batch_size,
+        loader = torch.utils.data.DataLoader(source, batch_size=2*batch_size,
                                             shuffle=True, num_workers=workers)
     
     return loader

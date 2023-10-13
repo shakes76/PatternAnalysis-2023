@@ -61,13 +61,10 @@ class SiameseMLP(nn.Module):
         self.backbone.eval()
         self.mlp = nn.Sequential(
             nn.Linear(4096, 1024),
-            # nn.BatchNorm1d(1024),
             nn.ReLU(),
             nn.Linear(1024, 128),
-            # nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Linear(128, 16),
-            # nn.BatchNorm1d(16),
             nn.ReLU(),
             nn.Linear(16, 1),
             nn.Sigmoid()
@@ -100,7 +97,7 @@ class SimpleMLP(nn.Module):
         )
 
     def forward(self, x):
-        out = self.mlp(out)
+        out = self.mlp(x)
         return out
 
 #

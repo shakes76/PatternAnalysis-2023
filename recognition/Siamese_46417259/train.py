@@ -63,17 +63,17 @@ def initialise_Siamese_training():
     optimiser = optim.Adam(siamese_net.parameters(), lr=1e-3, betas=(0.9, 0.999))
     return siamese_net, criterion, optimiser, device
 
-def initialise_classifier_training(backbone: torch.nn.Module):
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
-    print("Device: ", device)
+# def initialise_classifier_training(backbone: torch.nn.Module):
+#     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
+#     print("Device: ", device)
 
-    classifier = SiameseMLP(backbone)
-    classifier = classifier.to(device)
-    print(classifier)
+#     classifier = SiameseMLP(backbone)
+#     classifier = classifier.to(device)
+#     print(classifier)
 
-    criterion = nn.BCELoss()
-    optimiser = optim.Adam(classifier.mlp.parameters(), lr=1e-3, betas=(0.9, 0.999))
-    return classifier, criterion, optimiser, device
+#     criterion = nn.BCELoss()
+#     optimiser = optim.Adam(classifier.mlp.parameters(), lr=1e-3, betas=(0.9, 0.999))
+#     return classifier, criterion, optimiser, device
 
 def initialise_classifier_training():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
@@ -181,11 +181,13 @@ def eval_siamese_one_epoch(model: SiameseNeuralNet,
     return loss_list, mean_loss, elapsed
 
 def train_classifier_one_epoch(model: nn.Module,
+                                backbone: SiameseTwin,
                                 criterion: nn.Module,
                                 optimiser: optim.Optimizer,
                                 device: torch.device,
                                 train_loader: torch.utils.data.DataLoader):
     model.train()
+    backbone.eval()
     start = time.time()
     num_batches = len(train_loader)
     total_loss = 0.0
@@ -197,7 +199,9 @@ def train_classifier_one_epoch(model: nn.Module,
         label = label.float()
 
         optimiser.zero_grad()
-        out = model(x)
+        with torch.no_grad():
+            out = backbone(x)
+        out = model(out)
         out = out.view(-1)
 
         loss = criterion(out, label)
@@ -221,10 +225,12 @@ def train_classifier_one_epoch(model: nn.Module,
     return loss_list, mean_loss, elapsed
 
 def eval_classifier_one_epoch(model: nn.Module,
+                                backbone: SiameseTwin,
                                 criterion: nn.Module,
                                 device: torch.device,
                                 test_loader: torch.utils.data.DataLoader):
     model.eval()
+    backbone.eval()
     start = time.time()
     num_batches = len(test_loader)
     total_loss = 0.0
@@ -238,7 +244,8 @@ def eval_classifier_one_epoch(model: nn.Module,
             labels = labels.to(device)
             labels = labels.float()
 
-            outputs = model(images)
+            outputs = backbone(images)
+            outputs = model(outputs)
             outputs = outputs.view(-1)
 
             loss = criterion(outputs, labels)
@@ -330,7 +337,8 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     train_loader = load_data(training=True, Siamese=False, random_seed=random_seed)
     test_loader = load_data(training=False, Siamese=False, random_seed=random_seed)
 
-    classifier, criterion, optimiser, device = initialise_classifier_training(backbone)
+    # classifier, criterion, optimiser, device = initialise_classifier_training(backbone)
+    classifier, criterion, optimiser, device = initialise_classifier_training()
 
     if classifier_checkpoint_filename is not None:
         starting_epoch, classifier, optimiser, training_losses, eval_losses = load_from_checkpoint(classifier_checkpoint_filename, classifier, optimiser)
@@ -344,12 +352,12 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     previous_best_loss = float('inf')
     for epoch in range(starting_epoch, total_epochs):
         print(f'Training Epoch {epoch+1}')
-        loss_list, avg_train_loss, elapsed = train_classifier_one_epoch(classifier, criterion, optimiser, device, train_loader)
+        loss_list, avg_train_loss, elapsed = train_classifier_one_epoch(classifier, backbone, criterion, optimiser, device, train_loader)
         training_losses += loss_list
         print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_train_loss:.4f}')
 
         print(f'Validating Epoch {epoch+1}')
-        loss_list, avg_eval_loss, elapsed = eval_classifier_one_epoch(classifier, criterion, device, test_loader)
+        loss_list, avg_eval_loss, elapsed = eval_classifier_one_epoch(classifier, backbone, criterion, device, test_loader)
         eval_losses += loss_list
         print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 
@@ -372,19 +380,19 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
 
 if __name__ == "__main__":
     # normal training workflow
-    # net = Siamese_training(20, 69)
-    # classifier_training(net.backbone, 20, 69)
+    net = Siamese_training(20, 69)
+    classifier_training(net.backbone, 20, 69)
 
     # training Siamese workflow
     # Siamese_training(50, 69, "SiameseNeuralNet_checkpoint.tar")
 
     # train classifier from existing Siamese model workflow
-    checkpoint = "SiameseNeuralNet_checkpoint.tar"
-    siamese_net, criterion, optimiser, device = initialise_Siamese_training()
-    start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
-    print(f"best epoch: {start_epoch - 1}")
-    print(f"training losses: {training_losses}")
-    print(f"eval losses: {eval_losses}")
+    # checkpoint = "SiameseNeuralNet_checkpoint.tar"
+    # siamese_net, criterion, optimiser, device = initialise_Siamese_training()
+    # start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
+    # print(f"best epoch: {start_epoch - 1}")
+    # print(f"training losses: {training_losses}")
+    # print(f"eval losses: {eval_losses}")
 
-    classifier_training(siamese_net.backbone, 10, 69)
+    # classifier_training(siamese_net.backbone, 10, 69)
 
