@@ -13,7 +13,7 @@ from tqdm import tqdm
 import pickle
 from torch.optim.lr_scheduler import ExponentialLR
 
-def train_model(model, optimizer, loss_func, dataloader, lr_schedular = None, epochs=200):
+def train_model(model, optimizer, loss_func, dataloader, lr_schedular = None, epochs=400):
     """
     Given a model, optimizer, dataloader and a loss function, train the model.
     """

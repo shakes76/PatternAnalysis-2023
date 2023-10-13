@@ -23,7 +23,7 @@ def model_inference(model, graph):
     predicted_class = pred_proba.argmax(axis=1)
     return predicted_class
 
-def tsne_plot(model, graph, correct = [], show=False):
+def tsne_plot(model, graph, savefile = '', correct = [], show=False):
     """ Extract graph embeddings from the model and generate tsne plot """
     graph_embeddings = model.embeddings(graph).to('cpu').detach().numpy()
     y = graph.y.to('cpu').detach().numpy()
@@ -45,7 +45,8 @@ def tsne_plot(model, graph, correct = [], show=False):
     plt.xlabel("tsne 1")
     plt.ylabel("tsne 2")
     plt.legend([0, 1, 2, 3, "Incorrect"])
-    plt.savefig("figures/tsne.png")
+    if savefile:    
+        plt.savefig(savefile)
 
     if show:
         plt.show()
@@ -80,4 +81,4 @@ if __name__ == "__main__":
         print(f"Class Accuracy for class {i.to('cpu').detach().numpy()}: {class_acc.to('cpu').detach().numpy()}")
 
     print("> Generating TSNE graph")
-    tsne_plot(gcn_model, data.graph, savefile='', show=True)
+    tsne_plot(gcn_model, data.graph, savefile="figures/tsne.png", show=True)
