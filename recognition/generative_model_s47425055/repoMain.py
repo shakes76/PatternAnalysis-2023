@@ -17,7 +17,7 @@ from skimage.metrics import structural_similarity as ssim
 
 # Constants
 BATCH_SIZE = 32
-N_EPOCHS = 300
+N_EPOCHS = 30
 BEST_EPOCH = 0
 PRINT_INTERVAL = 100
 DATASET_PATH = './OASIS'
@@ -46,8 +46,8 @@ ssim_scores = [] # Will hold SSIM scores for validation set
 
 
 # Directories
-Path('models3').mkdir(exist_ok=True)
-Path('samples2').mkdir(exist_ok=True)
+Path('models5').mkdir(exist_ok=True)
+Path('samples5').mkdir(exist_ok=True)
 
 def to_scalar(arr):
     if type(arr) == list:
@@ -318,7 +318,7 @@ def generate_samples(epoch):
     dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
     save_image(
         images,
-        f'samples2/vqvae_reconstructions_{epoch}.png',
+        f'samples5/vqvae_reconstructions_{epoch}.png',
         nrow=8
     )
 
@@ -326,12 +326,12 @@ def generate_samples(epoch):
     grid_img = torchvision.utils.make_grid(images, nrow=8)
     plt.figure(figsize=(16,8))
     plt.imshow(grid_img.permute(1, 2, 0))
-    plt.savefig(f'samples2/loss_plot_epoch{epoch}.png', bbox_inches='tight')
+    plt.savefig(f'samples5/loss_plot_epoch{epoch}.png', bbox_inches='tight')
     plt.close()
 
 def generate_sample_from_best_model(BEST_EPOCH):
     # Load the best model
-    model.load_state_dict(torch.load(f'samples2/checkpoint_epoch{BEST_EPOCH}_vqvae.pt'))
+    model.load_state_dict(torch.load(f'samples5/checkpoint_epoch{BEST_EPOCH}_vqvae.pt'))
     model.eval()
 
     # Get a sample from the test set
@@ -346,7 +346,7 @@ def generate_sample_from_best_model(BEST_EPOCH):
     grid_img = torchvision.utils.make_grid(images, nrow=8)
     plt.figure(figsize=(16,8))
     plt.imshow(grid_img.permute(1, 2, 0))
-    plt.savefig(f'samples2/best_model_sample.png', bbox_inches='tight')
+    plt.savefig(f'samples5/best_model_sample.png', bbox_inches='tight')
     plt.close()
 
 def plot_losses_and_scores():
@@ -409,8 +409,8 @@ for epoch in range(1, N_EPOCHS):
         print("Saving model based on improved combined metric!")
         dataset_name = DATASET_PATH.split('/')[-1]  # Extracts the name "OASIS" from the path
         # Save model and generate samples every 10 epochs
-        if epoch % save_interval == 0:
-            torch.save(model.state_dict(), f'samples2/checkpoint_epoch{epoch}_vqvae.pt') 
+        
+        torch.save(model.state_dict(), f'samples5/checkpoint_epoch{epoch}_vqvae.pt') 
     else:
         print(f"Not saving model! Last best combined metric: {BEST_METRIC:.4f}, SSIM: {BEST_SSIM:.4f}, Reconstruction Loss: {BEST_RECONS_LOSS:.4f}")
 
