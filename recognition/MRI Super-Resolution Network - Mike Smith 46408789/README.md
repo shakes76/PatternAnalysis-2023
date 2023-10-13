@@ -78,7 +78,8 @@ Following that, the dataset then undergoes normalization. The mean and standard 
 
 The following are a few examples of inputs and outputs of the generator along with the original images. The original image (column 1), the downsampled (column 2) and the reconstructed images (column 3).
 
-![Inputs_Outputs](./figures/Example_Inputs_Outputs.png)
+![Inputs_Outputs_1](./figures/Example_Inputs_Outputs_1.png)
+![Inputs_Outputs_2](./figures/Example_Inputs_Outputs_1.png)
 
 ### Training Results (Epoch vs Loss)
 
@@ -110,7 +111,7 @@ $lr_{discriminator} = 2\times10^{-5}\times 0.96^{epoch}$
 
 These relationships ensure that the generator has a higher learning rate during the start of training to prevent the discriminator from learning too quickly relative to the generator. 
 
-Eventually, the generator learning rate drops below that of the discriminator since the images become increasing difficult to differentiate. Finally, the decaying nature of the learning rate helps ensure stability during training.
+Eventually, the generator learning rate drops below that of the discriminator since the images become increasingly difficult to differentiate. Finally, the decaying nature of the learning rate helps ensure stability during training.
 
 The learning rate of the generator and the discriminator for the first 100 epochs are shown in the following plot.
 

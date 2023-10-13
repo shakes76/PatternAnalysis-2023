@@ -64,7 +64,12 @@ class Dataset(data.Dataset):
         return self._loader
     
     def to_one_hot(self, target):
-        
+        """
+        convert class encoding to one hot
+        - initially implemented for the ViT
+        - not used in the SR-GAN model
+
+        """
         one_hot = [0] * len(self._dataset.class_to_idx)
         one_hot[target] = 1
         return torch.Tensor(one_hot)
@@ -73,6 +78,7 @@ class Dataset(data.Dataset):
 def main():
     """
     main function: used to test the functionality of the dataloader module
+    (not used for training the actual model)
 
     """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

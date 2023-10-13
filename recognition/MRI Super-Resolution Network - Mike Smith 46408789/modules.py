@@ -45,7 +45,10 @@ class Model_Generator(torch.nn.Module):
         self, layer_type, in_channels, out_channels, 
         batch_norm=True, activation_type="relu",
     ):
-        
+        """ 
+        abstract layer method for creating convolutional layers for the generator
+
+        """
         if layer_type == "upsample":
             layer = torch.nn.ConvTranspose2d(
                 in_channels, out_channels, kernel_size=4, stride=2, padding=1,
@@ -64,6 +67,10 @@ class Model_Generator(torch.nn.Module):
         )
 
     def forward(self, x):
+        """
+        define the forward pass through the generator
+
+        """
         return self._model(x)
     
 
@@ -109,7 +116,10 @@ class Model_Discriminator(torch.nn.Module):
         self, layer_type, in_channels, out_channels, 
         batch_norm=True, activation_type="relu",
     ):
-        
+        """
+        abstract layer method for creating convolutional layers for the discriminator
+
+        """
         if layer_type == "downsample":
             layer = torch.nn.Conv2d(
                 in_channels, out_channels, kernel_size=3, stride=2, padding=1,
@@ -128,5 +138,9 @@ class Model_Discriminator(torch.nn.Module):
         )
 
     def forward(self, x):
+        """
+        define the forward pass through the discriminator
+
+        """
         return self._model(x)
     

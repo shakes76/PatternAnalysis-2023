@@ -11,21 +11,23 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"pytorch version: {torch.__version__}, exe device: {device}", flush=True)
 
-    """ training params """
+    """ set the initial learning rates """
     generator_lr = 3e-5
     discriminator_lr = 2e-5
+
+    """ run for 300 epochs on rangpur """
     epochs = 300 if machine == "rangpur" else 3
 
     """ load training dataset """
     train_loader = Dataset(train=True).loader()
 
-    """ models """
+    """ create the models and send to device """
     generator = Model_Generator().to(device)
     discriminator = Model_Discriminator().to(device)
     print(f"generator params: {sum([p.nelement() for p in generator.parameters()])}", flush=True)
     print(f"discriminator params: {sum([p.nelement() for p in discriminator.parameters()])}", flush=True)
 
-    """ loss function """
+    """ loss function: BCE loss for the discriminator """
     loss_function = torch.nn.BCELoss()
 
     """ optimiser and variable learning rate scheduller for generator """
