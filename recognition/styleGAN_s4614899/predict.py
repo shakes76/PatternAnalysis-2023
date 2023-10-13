@@ -1,5 +1,6 @@
 import torch
 import matplotlib.pyplot as plt
+import os
 
 #import train
 import modules
@@ -26,14 +27,18 @@ generated_images = (generated_images + 1) / 2  # Convert from [-1, 1] to [0, 1]
 generated_images = generated_images.cpu().numpy().transpose(0, 2, 3, 1)  # (batch, height, width, channels)
 
 # Plot
-fig, axarr = plt.subplots(1, num_samples, figsize=(15,15))
+_,ax = plt.subplots(3,3,figsize=(8,8))
+plt.suptitle('Generated sample images')
 for idx, img in enumerate(generated_images):
-    axarr[idx].imshow(img)
-    axarr[idx].axis('off')
-#plt.show()
+    for k in range(3):
+        for kk in range(3):
+            ax[k][kk].imshow(img)
 
-save_path = "generated_grid.png"
-plt.savefig(save_path, bbox_inches='tight', pad_inches=0) 
+if not os.path.exists("output_images"):
+        os.makedirs("output_images")
+
+save_path = os.path.join("output_images", "generated_grid.png")
+plt.savefig(save_path)
 
 
 plt.close()
