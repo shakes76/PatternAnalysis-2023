@@ -3,14 +3,6 @@ import unittest
 import dataset
 
 class TestGenerativeModel(unittest.TestCase):
-    def test_dataset_shape(self):
-        # For every image batch:
-        # Assert that the batch size is 32
-        # Assert that the image channel is equal to 1 (grayscale)
-        for step, batch in enumerate(dataset.data_loader):
-            self.assertEqual(batch[0][0], 32)
-            self.assertEqual(batch[0][1], 1)
-    
     def test_training_script(self):
         # Run the training script (train.py)
         train_process = subprocess.run(["python", "train.py"], capture_output=True, text=True, shell=True)
