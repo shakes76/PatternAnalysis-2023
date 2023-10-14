@@ -20,13 +20,16 @@ import torch.nn.functional as F
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     vqvae =  VQVAE(channels = utils.CHANNELS, n_hidden = 128, n_residual = 32, n_embeddings = 512, dim_embedding = 64, beta = utils.BETA)
     vqvae_dataset = Dataset(batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=utils.VQVAE_FRACTION)
+
     if utils.VQVAE_RETRAIN :
         vqvae_trainer = TrainVQVAE(vqvae, vqvae_dataset, utils.VQVAE_LR, utils.VQVAE_WD, utils.VQVAE_EPOCHS, utils.VQVAE_SAVEPATH)
         vqvae_trainer.train()
         vqvae_trainer.plot(save=True)
         vqvae_trainer.save(utils.VQVAE_MODEL_PATH)
+
     else :
         vqvae.load_state_dict(torch.load(utils.VQVAE_MODEL_PATH))
     
@@ -48,9 +51,3 @@ if __name__ == '__main__':
     generator = GenerateImages(vqvae, num_images=utils.NUM_IMAGES, device=device, savepath=utils.OUTPUT_PATH)
     generator.generate()
     generator.visualise()
-
-    # noise = torch.randn(128, 128, 1, 1).to(device)
-
-    # predictor = Predict(noise, utils.NUM_IMAGES, savepath=utils.OUTPUT_PATH, model=gan)
-    # predictor.generate()
-    # predictor.show_generated(save=True)

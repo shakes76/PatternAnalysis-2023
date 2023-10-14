@@ -50,63 +50,51 @@ class GenerateImages() :
 
         self.generated_images = None
         
-    def generate_images(vqvae, num_images, image_size=(1, 64, 32, 32)):
-        vqvae.eval()
-
-        # Sample random indices from embedding space
-        embedding_indices = torch.randint(
-            high=vqvae.quantizer.n_embeddings,  # maximum embedding index
-            size=(num_images, *image_size),     # size of the generated image batch
-            device='cuda' if torch.cuda.is_available() else 'cpu' # device
-        )
-
-        # Convert embedding indices to one-hot encoded tensors
-        embedding_one_hot = torch.nn.functional.one_hot(
-            embedding_indices,
-            num_classes=vqvae.quantizer.n_embeddings
-        ).float()
-
-        # Weight the one-hot tensor by the embedding weight to retrieve z_q
-        z_q = torch.einsum('bchw,ce->bceh', embedding_one_hot, vqvae.quantizer.embedding.weight)
-
-        # Use the decoder to generate images
-        with torch.no_grad():  # ensure no gradients are computed
-            generated_images = vqvae.decoder(z_q)
-
-        return generated_images
-    def generate(self):
-
+    def generate(self, image_size=(64, 32, 32)):
         self.model.eval()
-        random_embeddings = torch.randn(self.n, 64, 32, 32).to(self.device)
-        print(f"Shape of random embeddings: {random_embeddings.shape}")
-
-        with torch.no_grad():  # Ensure no gradients are calculated
+        with torch.no_grad():
+            # Generate random indices to select embeddings.
+            random_indices = torch.randint(high=self.model.quantizer.n_embeddings, size=(self.n, 32, 32)).to(self.device)
+            # Retrieve the corresponding embeddings.
+            random_embeddings = self.model.quantizer.embedding(random_indices).permute(0, 3, 1, 2)
+            # Decode the embeddings into images.
             self.generated_images = self.model.decoder(random_embeddings)
 
+    # def visualise(self):
+    #     """
+    #     Visualize generated images.
 
-    def visualise(self):
-        """
-        Visualize generated images.
+    #     Parameters:
+    #     - images (torch.Tensor): Tensor containing images to display.
+    #     - self.n (int): Number of images to display.
+    #     """
+    #     print(self.generated_images.shape)
+        # rows = 4 
+        # cols = self.n // rows
+        # fig, axs = plt.subplots(rows, cols, figsize=(8, 4))
+        # axs = axs.ravel()
+        # # axs = [axs] if self.n == 1 else axs
 
-        Parameters:
-        - images (torch.Tensor): Tensor containing images to display.
-        - self.n (int): Number of images to display.
-        """
+        # for i, ax in enumerate(self.generated_images):
+        #     axs[i].imshow(self.generated_images[i][0].detach().cpu().numpy() , cmap='gray')
+        #     axs[i].axis('off')
         
-        rows = 4 
+        # plt.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
+        # plt.savefig(self.savepath + f'images_new_{i}.png')
+    def visualise(self):
+        rows = min(4, self.n)
         cols = self.n // rows
         fig, axs = plt.subplots(rows, cols, figsize=(8, 4))
-        axs = axs.ravel()
-        axs = [axs] if self.n == 1 else axs
+        axs = np.array(axs).ravel()
 
-        
-
-        for i, ax in enumerate(self.generated_images):
-            axs[i].imshow(self.generated_images[i][0], cmap='gray')
+        for i, image in enumerate(self.generated_images):
+            # Permuting the image tensor so channels are last, and converting to numpy array
+            axs[i].imshow(np.transpose(image.detach().cpu().numpy(), (1, 2, 0)))
             axs[i].axis('off')
-        
+
         plt.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
         plt.savefig(self.savepath + f'images_new_{i}.png')
+        plt.show()
     
 class SSIM():
     def __init__() :

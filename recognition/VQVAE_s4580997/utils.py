@@ -34,12 +34,14 @@ VQVAE_EMBEDDING_DIM = VQVAE_HIDDEN // 2
 
 VQVAE_LR = 1e-3
 VQVAE_WD = 1e-5
-VQVAE_EPOCHS = 10
+VQVAE_EPOCHS = 100
 BATCH_SIZE = 32
-VQVAE_FRACTION = 0.5
+VQVAE_FRACTION = 1.0
+
 VQVAE_SAVEPATH = os.path.join(os.getcwd(), 'models/vqvae')
 VQVAE_MODEL_PATH = os.path.join(os.getcwd(), 'models/vqvae/vqvae.pth')
 VQVAE_RECONSTRUCT_PATH = os.path.join(os.getcwd(), 'models/predictions/vqvae_reconstruction.png')
+
 
 GAN_LR = 1e-3
 GAN_WD = 1e-5
@@ -50,4 +52,4 @@ GENERATOR_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
 
 # Prediction Parameters
 OUTPUT_PATH = os.path.join(os.getcwd(), 'models/predictions/output_new_')
-NUM_IMAGES = 32
+NUM_IMAGES = 2
