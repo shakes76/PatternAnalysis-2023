@@ -11,10 +11,11 @@ class GetADNITrain(Dataset):
         image_list = sorted(glob.glob(path))
 
         # Shrink to the desired train_split and if in validation or train
+        temp_arr_len = int(len(image_list))
         if train:
-            image_list = image_list[:len(image_list) * train_split]
+            image_list = image_list[:temp_arr_len * train_split]
         else:
-            image_list = image_list[len(image_list) * train_split:]
+            image_list = image_list[temp_arr_len * train_split:]
 
         # Get the array length
         self.arrLen = len(image_list)
