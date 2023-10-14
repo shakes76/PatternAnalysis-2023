@@ -56,11 +56,11 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 # Define some variables to keep track of the loss
 train_loss = []
 val_loss = []
-
+min_val = 10000000000 # Start with the largest one
 for epoch in range(num_epochs):
     total_loss = 0
     for batch in train_loader:
-        
+
         # Load images from dataloader
         images = batch.to(device)
         # Add the channel dimension to grayscale images
@@ -94,6 +94,7 @@ for epoch in range(num_epochs):
     with torch.no_grad():
         model.eval()
         total_loss = 0
+
         for batch in val_loader:
 
             # Load images from dataloader
@@ -117,7 +118,13 @@ for epoch in range(num_epochs):
             # Aggregate the loss
             total_loss += loss.item()
 
-        # Divide the total loss by the number of epochs
-        val_loss.append(total_loss / batch_size)
+    # Divide the total loss by the number of epochs
+    val_loss.append(total_loss / batch_size)
+
+    # Whether or not to save the model
+    if total_loss <= min_val:
+        min_val = total_loss
+        torch.save(model.state_dict(), "pixelCNN.pkl")
+
 
 
