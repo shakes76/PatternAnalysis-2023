@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torchvision.transforms as T
 from torch.utils.data import DataLoader
@@ -125,6 +126,10 @@ for epoch in range(num_epochs):
     if total_loss <= min_val:
         min_val = total_loss
         torch.save(model.state_dict(), "pixelCNN.pkl")
+
+    ### Save the metrics as a .csv file
+    np.savetxt("train_loss.csv", train_loss, delimiter=",")
+    np.savetxt("val_loss.csv", train_loss, delimiter=",")
 
 
 

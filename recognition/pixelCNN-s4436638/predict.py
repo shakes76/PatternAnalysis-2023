@@ -1,9 +1,13 @@
+import numpy as np
 import torch
 import torchvision.transforms as T
 from torch.utils.data import DataLoader
+from torchvision.utils import save_image
 from modules import pixelCNN
 from dataset import GetADNITest
-from scipy.io import savemat, loadmat
+from skimage.metrics import peak_signal_noise_ratio as psnr
+from skimage.metrics import structural_similarity as ssim
+from skimage.metrics import mean_squared_error as mse
 
 # Get device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -38,14 +42,19 @@ print("Num Test: " + str(test_loader.arrLen))
 model = pixelCNN(upscale_factor, channels, feature_size, num_convs)
 # Send the model to the device
 model = model.to(device)
+# Load weights
 model.load_state_dict(torch.load("pixelCNN.pkl"))    
+
+psnr_arr = []
+ssim_arr = []
+mse_arr = []
 
 ### Perform testing
 with torch.no_grad():
     model.eval()
     total_loss = 0
 
-    for image in test_loader:
+    for i, image in enumerate(test_loader):
 
         # Load images from dataloader
         image = image.to(device)
@@ -57,14 +66,23 @@ with torch.no_grad():
         output = model(input)
 
         # Calculate the loss
-        loss = loss_function(image, output)
+        psnr_arr.append(psnr(image.to('cpu'), output.to('cpu'), data_range=1.0))
+        ssim_arr.append(ssim(image.to('cpu'), output.to('cpu'), data_range=1.0))
+        mse_arr.append(mse(image.to('cpu'), output.to('cpu')))
 
-        # Aggregate the loss
-        total_loss += loss.item()
+        # Save the image
+        save_image(output, "test_images/recon/" + str(i) + ".png")
+        save_image(input, "test_images/downscale/" + str(i) + ".png")
+        save_image(image, "test_images/ground_truth/" + str(i) + ".png")
+        
+print("Mean PSNR: " + np.mean(np.array(psnr_arr)))
+print("Mean SSIM: " + np.mean(np.array(ssim_arr)))
+print("Mean MSE: " + np.mean(np.array(mse_arr)))
 
-# Divide the total loss by the number of epochs
-total_loss = total_loss / val_set.arrLen
-val_loss.append(total_loss)
+### Save the metrics as a .csv file
+np.savetxt("psnr_loss.csv", psnr_arr, delimiter=",")
+np.savetxt("ssim_loss.csv", ssim_arr, delimiter=",")
+np.savetxt("mse_loss.csv", mse_arr, delimiter=",")
 
 
 
