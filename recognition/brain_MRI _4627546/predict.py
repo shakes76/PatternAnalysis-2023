@@ -18,7 +18,7 @@ transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))
 ])
-test_dataset = SuperResolutionDataset(root_dir='AD_NC', transform=transform, mode='test')
+test_dataset = SuperResolutionDataset(root_dir='AD_NC', transform=None, mode='test')
 
 # Process a few images from the test set
 num_images_to_show = 3
@@ -29,6 +29,11 @@ titles = ['Low Resolution', 'Predicted High Resolution', 'Original High Resoluti
 
 for ax, title in zip(axes[0], titles):
     ax.set_title(title)
+
+
+def denormalize(tensor):
+    return tensor * 0.5 + 0.5
+
 
 for idx in range(num_images_to_show):
     lr_tensor, hr_tensor = test_dataset[idx]
@@ -41,9 +46,10 @@ for idx in range(num_images_to_show):
         pred_hr_tensor = model(lr_tensor)
 
     # Convert tensors back to images
-    lr_image = transforms.ToPILImage()(lr_tensor.squeeze().cpu() * 0.5 + 0.5)
-    pred_hr_image = transforms.ToPILImage()(pred_hr_tensor.squeeze().cpu().detach() * 0.5 + 0.5)
-    hr_image = transforms.ToPILImage()(hr_tensor.cpu() * 0.5 + 0.5)
+    lr_image = transforms.ToPILImage()(denormalize(lr_tensor.squeeze().cpu()))
+    pred_hr_image = transforms.ToPILImage()(denormalize(pred_hr_tensor.squeeze().cpu().detach()))
+    hr_image = transforms.ToPILImage()(denormalize(hr_tensor.cpu()))
+    print(pred_hr_image)
 
     # Display images
     axes[idx, 0].imshow(np.asarray(lr_image), cmap='gray')
