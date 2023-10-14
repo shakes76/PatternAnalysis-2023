@@ -12,6 +12,8 @@ num_epochs = 5
 learning_rate = 0.001
 batch_size = 30
 
+out_channels = 256
+
 # Downsample-parameters 
 downsample_size = (60,64)
 
