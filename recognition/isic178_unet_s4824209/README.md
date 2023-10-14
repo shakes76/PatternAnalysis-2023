@@ -19,4 +19,6 @@ Program for training the model
 Training parameters based entirely on structure in https://arxiv.org/pdf/1802.10508v1.pdf
 These are still not tested on the dataset, but will for now be temporarily used until a result is gotten 
 
-
+* utils.py
+Diceloss function, gotten from https://www.kaggle.com/code/bigironsphere/loss-function-library-keras-pytorch
+Currently does not seem to work correctly
