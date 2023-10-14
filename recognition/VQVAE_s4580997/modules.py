@@ -259,15 +259,15 @@ class VQVAE(nn.Module):
         )
 
     def forward(self, x):
-        print('VQVAE INPUT: ', x.shape)
+        # print('VQVAE INPUT: ', x.shape)
         x = self.encoder(x)
-        print('VQVAE ENCODER: ', x.shape)
+        # print('VQVAE ENCODER: ', x.shape)
         x = self.conv(x)
-        print('VQVAE CONV: ', x.shape)
+        # print('VQVAE CONV: ', x.shape)
         loss, x_q, perplexity, _, _ = self.quantizer(x)
-        print('VQVAE QUANTIZER: ', x_q.shape)
+        # print('VQVAE QUANTIZER: ', x_q.shape)
         x_hat = self.decoder(x_q)
-        print('VQVAE DECODER: ', x_hat.shape)
+        # print('VQVAE DECODER: ', x_hat.shape)
         return loss, x_hat, perplexity
 
 

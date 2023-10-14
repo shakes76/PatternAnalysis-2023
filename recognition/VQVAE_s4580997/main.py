@@ -18,11 +18,9 @@ import numpy as np
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    vqvae_dataset = Dataset(batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=0.1)
-
-    vqvae = VQVAE()
+    vqvae =  VQVAE(channels = utils.CHANNELS, n_hidden = 128, n_residual = 32, n_embeddings = 512, dim_embedding = 64, beta = utils.BETA)
     if utils.VQVAE_RETRAIN :
-        vqvae_dataset = Dataset(batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=0.1)
+        vqvae_dataset = Dataset(batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=utils.VQVAE_FRACTION)
         vqvae_trainer = TrainVQVAE(vqvae, vqvae_dataset, utils.VQVAE_LR, utils.VQVAE_WD, utils.VQVAE_EPOCHS, utils.VQVAE_SAVEPATH)
         vqvae_trainer.train()
         vqvae_trainer.plot(save=True)
@@ -30,16 +28,16 @@ if __name__ == '__main__':
     else :
         vqvae.load_state_dict(torch.load(utils.VQVAE_MODEL_PATH))
     
-    gan = GAN(features = 128, latent_size = 128)
-    if utils.GAN_RETRAIN :
-        gan_dataset = ModelDataset(vqvae, batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=0.1)
-        gan_trainer = TrainGAN(gan, gan_dataset, utils.GAN_LR, utils.GAN_WD, utils.GAN_EPOCHS, utils.GAN_SAVEPATH)
-        gan_trainer.train()
-        gan_trainer.plot(save=True)
-        gan_trainer.save(utils.DISCRIMINATOR_PATH, utils.GENERATOR_PATH)
-    else :
-        gan.discriminator.load_state_dict(torch.load(utils.DISCRIMINATOR_PATH))
-        gan.generator.load_state_dict(torch.load(utils.GENERATOR_PATH))
+    # gan = GAN(features = 128, latent_size = 128)
+    # if utils.GAN_RETRAIN :
+    #     gan_dataset = ModelDataset(vqvae, batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=0.1)
+    #     gan_trainer = TrainGAN(gan, gan_dataset, utils.GAN_LR, utils.GAN_WD, utils.GAN_EPOCHS, utils.GAN_SAVEPATH)
+    #     gan_trainer.train()
+    #     gan_trainer.plot(save=True)
+    #     gan_trainer.save(utils.DISCRIMINATOR_PATH, utils.GENERATOR_PATH)
+    # else :
+    #     gan.discriminator.load_state_dict(torch.load(utils.DISCRIMINATOR_PATH))
+    #     gan.generator.load_state_dict(torch.load(utils.GENERATOR_PATH))
     
     generator = GenerateImages(vqvae, num_images=utils.NUM_IMAGES, device=device, savepath=utils.OUTPUT_PATH)
     generator.generate()
