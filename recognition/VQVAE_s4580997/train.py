@@ -14,58 +14,20 @@ import matplotlib.pyplot as plt
 from abc import ABC, abstractmethod
 from modules import GAN
 
-class Trainer(ABC) :
-
-    @abstractmethod
-    def __init__(self, model: nn.Module, dataset: Dataset, config) :
-        self.lr = config.lr
-        self.wd = config.wd
-        self.epochs = config.epochs
-
-        self.device = config.device
-        self.model = model.to(self.device)
-        self.dataset = dataset
-        
-        self.losses = []
-
-    @abstractmethod
-    def train(self) -> None :
-        pass
-
-    def plot(self, save = True) -> None :
-        plt.figure(figsize=(10, 5))
-        plt.plot(self.losses, label='Loss')
-        plt.title('Training Epochs against Loss')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
-        plt.legend()
-        plt.grid(True)
-
-        if save :
-            plt.savefig(self.savepath + '_training_loss.png')
-        else :
-            plt.show()
-    
-    def save(self,) -> None :
-        pass
-        
-
 class TrainVQVAE() :
     
-    def __init__(self, model: nn.Module, dataset: Dataset, config) :
+    def __init__(self, model: nn.Module, dataset: Dataset, lr=1e-3, wd=0, epochs=10, device="cuda", savepath='./models/vqvae') :
 
-        self.savepath = config.savepath
-        # Optimisation parameters
-        self.lr = config.lr
-        self.wd = config.wd
-        self.epochs = config.epochs
+        self.savepath = savepath
+        self.lr = lr
+        self.wd = wd
+        self.epochs =epochs
 
-        self.device = config.device
+        self.device = torch.device(device if torch.cuda.is_available() else "cpu")
+
         self.model = model.to(self.device)
         self.dataset = dataset
-        self.optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)
-        self.criterion = nn.BCEWithLogitsLoss().to(self.device)
-        
+        self.optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)        
         self.losses = list()
 
     def train(self) -> None :
@@ -118,13 +80,15 @@ class TrainVQVAE() :
             torch.save(self.model.state_dict(), self.savepath + '/vqvae.pth')
 
 class TrainGAN() :
-    def __init__(self, model: nn.Module, dataset: Dataset, config) :
-        self.savepath = config.savepath
-        self.lr = config.lr
-        self.wd = config.wd
-        self.epochs = config.epochs
+    def __init__(self, model: nn.Module, dataset: Dataset, lr=1e-3, wd=0, epochs=10, device="cuda", savepath='./models/gan') :
+    
+        self.savepath = savepath
+        self.lr = lr
+        self.wd = wd
+        self.epochs = epochs
 
-        self.device = config.device
+        self.device = torch.device(device if torch.cuda.is_available() else "cpu")
+
         self.model = model.to(self.device)
         self.dataset = dataset
 
@@ -134,8 +98,7 @@ class TrainGAN() :
         self.g_optimiser = torch.optim.Adam(self.gan.generator.parameters(), lr=self.lr, weight_decay=self.wd)
         self.G_losses = list()
         self.D_losses = list()
-        self.latent = 128
-    
+        self.latent = 128    
     
     def train(self):
         self.gan.generator.train()

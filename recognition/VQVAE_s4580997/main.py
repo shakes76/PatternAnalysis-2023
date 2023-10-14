@@ -86,33 +86,24 @@ if __name__ == '__main__':
     vqvae_config = VQVAEConfig()
     gan_config = GANConfig()
 
-    # vqvae_dataset = Dataset(batch_size=vqvae_config.batch_size, root_dir = ADNI_ROOT_DIR, fraction=0.1)
+    vqvae_dataset = Dataset(batch_size=vqvae_config.batch_size, root_dir = ADNI_ROOT_DIR, fraction=0.1)
     vqvae = VQVAE()
-    # vqvae_trainer = TrainVQVAE(vqvae, vqvae_dataset, vqvae_config)
-    # vqvae_trainer.train()
-    # vqvae_trainer.plot(save=True)
-    # vqvae_trainer.save(vqvae_config.model_path)
+    vqvae_trainer = TrainVQVAE(vqvae, vqvae_dataset, vqvae_config)
+    vqvae_trainer.train()
+    vqvae_trainer.plot(save=True)
+    vqvae_trainer.save(vqvae_config.model_path)
 
     vqvae.load_state_dict(torch.load("./models/vqvae/vqvae.pth"))
 
-    # generated_images = generate_images(10, vqvae)
-
-# Visualize generated images.
-    # fig, axs = plt.subplots(1, len(generated_images), figsize=(15, 15))
-    # for ax, img in zip(axs, generated_images):
-    #     ax.imshow(img)
-    #     ax.axis("off")
-    # plt.show()
-
     gan_dataset = ModelDataset(vqvae, batch_size=gan_config.batch_size, root_dir = ADNI_ROOT_DIR, fraction=0.1)
     gan = GAN(features = 128, latent_size = 128)
-    gan.discriminator.load_state_dict(torch.load("./models/gan/gan_discriminator.pth"))
-    gan.generator.load_state_dict(torch.load("./models/gan/gan_generator.pth"))
+    # gan.discriminator.load_state_dict(torch.load("./models/gan/gan_discriminator.pth"))
+    # gan.generator.load_state_dict(torch.load("./models/gan/gan_generator.pth"))
 
-    # gan_trainer = TrainGAN(gan, gan_dataset, gan_config)
-    # gan_trainer.train()
-    # gan_trainer.plot(save=True)
-    # gan_trainer.save(gan_config.discriminator_path, gan_config.generator_path)
+    gan_trainer = TrainGAN(gan, gan_dataset, gan_config)
+    gan_trainer.train()
+    gan_trainer.plot(save=True)
+    gan_trainer.save(gan_config.discriminator_path, gan_config.generator_path)
     
     noise = torch.randn(128, 128, 1, 1).to(gan_config.device)
     predictor = Predict(noise, n = 1, savepath='./models/predictions/output', model=gan)

@@ -17,7 +17,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 |--------------------------------------------------------------------------
 """
 
-
 class ResidualLayer(nn.Module):
     def __init__(self, in_channels, n_hidden, n_residual):
         super(ResidualLayer, self).__init__()
@@ -267,15 +266,9 @@ class VQVAE(nn.Module):
 
     def forward(self, x):
         x = self.encoder(x)
-        # print('PASSES ENCODING')
         x = self.conv(x)
-        # print('CONV', x.shape)
         loss, x_q, perplexity, _, _ = self.quantizer(x)
-        # print('PASSES VQ')
         x_hat = self.decoder(x_q)
-        # print('PASSES DECODING')
-
-
         return loss, x_hat, perplexity
 
 
@@ -306,7 +299,7 @@ class Generator(nn.Module):
             nn.ConvTranspose2d(128, 64, 4, 2, 1, bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(True),
-            
+
             nn.ConvTranspose2d(64, 3, 4, 2, 1, bias=False),
             nn.Tanh()
         )

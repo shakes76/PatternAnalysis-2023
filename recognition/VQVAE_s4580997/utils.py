@@ -5,29 +5,20 @@
 #
 ###################################
 
-import torch
+import os
 
-class VQVAEConfig() :
-    def __init__(self) :
-        self.lr = 1e-3
-        self.wd = 1e-5
-        self.epochs = 10
-        self.batch_size = 32
-        self.root_dir = './AD_CN'
-        self.savepath = './models/vqvae'
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.model_path = './models/vqvae/vqvae.pth'
+ADNI_ROOT_DIR = './AD_NC'
 
-class GANConfig() :
-    def __init__(self) :
-        self.lr = 1e-3
-        self.wd = 1e-5
-        self.epochs = 10
-        self.batch_size = 32
-        self.root_dir = './AD_CN'
-        self.savepath = './models/gan'
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.discriminator_path = './models/gan/gan_discriminator.pth'
-        self.generator_path = './models/gan/gan_generator.pth'
+VQVAE_LR = 1e-3
+VQVAE_WD = 1e-5
+VQVAE_EPOCHS = 10
+BATCH_SIZE = 32
+VQVAE_SAVEPATH = os.path.join(os.getcwd(), 'models/vqvae')
+VQVAE_MODEL_PATH = os.path.join(os.getcwd(), 'models/vqvae/vqvae.pth')
 
-        
+GAN_LR = 1e-3
+GAN_WD = 1e-5
+GAN_EPOCHS = 10
+GAN_SAVEPATH = os.path.join(os.getcwd(), 'models/gan')
+DISCRIMINATOR_PATH = os.path.join(os.getcwd(), 'models/gan/gan_discriminator.pth')
+GENERATOR_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
