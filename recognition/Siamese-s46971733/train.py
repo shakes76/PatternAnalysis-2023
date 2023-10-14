@@ -10,25 +10,29 @@ import matplotlib.pyplot as plt
 import cv2
 import os
 from dataset import get_dataset
-from modules import Resnet, Resnet34, classifer
+from modules import Resnet, Resnet34, classifier, Resnet3D, Resnet3D_34
 
 # Toggles.
-train = 1
-test = 1
-plot_loss = 1
+all_train = 0   # If 0 Disables all training.
+train = 1       # Enables/Disables Resnet Training
+train_clas = 1  # Enables/Disables Classifier Training
+test = 1        # Enables/Disables testing.
+plot_loss = 1   # Enables/Disables plotting of loss.
 
 # Path that model is saved to and loaded from.
-PATH = './resnet_net.pth'
-CLAS_PATH = './clas_net.pth'
+PATH = 'resnet_net_val.pth'
+CLAS_PATH = 'clas_net_val.pth'
 
 # Path that training loss is saved to.
-PLOT_PATH = './training_loss.png'
+PLOT_PATH = 'training_loss_val.png'
 
 # Hyperparameters
-num_epochs = 5
-batch_size = 32
-learning_rate = 0.001
-res_learning_rate = 0.0001
+num_epochs = 10
+num_epochs_clas = 10
+batch_size = 10
+batch_size_clas = 10
+learning_rate = 0.0001
+res_learning_rate = 0.001
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
@@ -41,19 +45,27 @@ trainset = get_dataset(train=1, clas=0)
 testset = get_dataset(train=0, clas=0)
 trainset_clas = get_dataset(train=1, clas=1)
 
+validset = get_dataset(valid=1, clas=0)
+validset_clas = get_dataset(valid=1, clas=1)
+
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
-testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
-trainloader_clas = torch.utils.data.DataLoader(trainset_clas, batch_size=batch_size, shuffle=True)
+testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=False)
+validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=False)
+
+trainloader_clas = torch.utils.data.DataLoader(trainset_clas, batch_size=batch_size_clas, shuffle=True)
+validloader_clas = torch.utils.data.DataLoader(validset_clas, batch_size=batch_size_clas, shuffle=False)
 
 # Model.
-resnet = Resnet().to(device)
-clas_net = classifer().to(device)
+#resnet = Resnet().to(device)
+resnet = Resnet3D().to(device)
+#resnet = Resnet3D_34().to(device)
+clas_net = classifier().to(device)
 
 # Optimizer
 
-criterion_net = nn.CrossEntropyLoss()
-criterion = nn.TripletMarginLoss()
+criterion = nn.TripletMarginLoss(margin=1)
 criterion_class = nn.CrossEntropyLoss()
+#criterion_class = nn.BCELoss()
 optimizer = optim.Adam(resnet.parameters(), lr=res_learning_rate, weight_decay=0.0001)
 class_optimizer = optim.Adam(resnet.parameters(), lr=learning_rate)
 
@@ -63,113 +75,174 @@ class_optimizer = optim.Adam(resnet.parameters(), lr=learning_rate)
 
 #
 
-loss_list = []
-class_loss_list = []
+if train == 0:
+    print("Training was disabled. \nLoading net model from path.")
+    resnet.load_state_dict(torch.load(PATH))
+if train_clas == 0:
+    print("Classifier Training was disabled. \nLoading classifier from path.")
+    clas_net.load_state_dict(torch.load(CLAS_PATH))
 
-if train == 1:
-    # Training Model
-    resnet.train()
-    print(f">>> Training \n")
+
+loss_list = []
+valid_loss_list = []
+class_loss_list = []
+valid_class_loss_list = []
+
+if all_train == 1:
     # Start timing.
     st = time.time()
-    for epoch in range(num_epochs):
-        running_loss = 0.0
 
-        # Loop over every batch in data loader.
-        for i, data in enumerate(trainloader, 0):
-            # Extract data and transfer to GPU.
-            anchor = data[0].to(device)
-            positive = data[1].to(device)
-            negative = data[2].to(device)
+    ##################################
+    # Resnet Training - Triplet Loss #
+    ##################################
 
-            # Zero the gradients -- Ensuring gradients not accumulated
-            #                       across multiple training iterations.
-            optimizer.zero_grad()
+    if train == 1:
+        resnet.train()
+        print(f">>> Training \n")
 
-            # Forward Pass
-            anchor_out = resnet(anchor)
-            positive_out = resnet(positive)
-            negative_out = resnet(negative)
+        for epoch in range(num_epochs):
+            running_loss = 0.0
+            val_running_loss = 0.0
 
-            # Calculate Loss with Triplet Loss.
-            loss = criterion(anchor_out, positive_out, negative_out)
+            # Training
+            # Loop over every batch in data loader.
+            for i, data in enumerate(trainloader, 0):
+                # Extract data and transfer to GPU.
+                anchor = data[0].to(device)
+                positive = data[1].to(device)
+                negative = data[2].to(device)
 
-            # Compute gradient with respect to model.
-            loss.backward()
+                # Zero the gradients -- Ensuring gradients not accumulated
+                #                       across multiple training iterations.
+                optimizer.zero_grad()
 
-            # Optimizer step - Update model parameters.
-            optimizer.step()
+                # Forward Pass
+                anchor_out = resnet(anchor)
+                positive_out = resnet(positive)
+                negative_out = resnet(negative)
 
-            # Keep track of running loss.
-            running_loss += loss.item()
+                #print(f"Sizes are {anchor_out.shape}, {positive_out.shape}, {negative_out.shape}")
 
-            # Print Loss Info while training.
-            if (i + 1) % 10 == 0:
-                print(f'[Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {running_loss / 10:.5f}')
-                running_loss = 0.0
+                # Calculate Loss with Triplet Loss.
+                loss = criterion(anchor_out, positive_out, negative_out)
 
-            loss_list.append(loss.item())
+                # Compute gradient with respect to model.
+                loss.backward()
 
-        ###############
+                # Optimizer step - Update model parameters.
+                optimizer.step()
 
-    # Train Classifier.
+                # Keep track of running loss.
+                running_loss += loss.item()
 
-    for param in resnet.parameters():
-        param.requires_grad = False
+                # Print Loss Info while training.
+                if (i + 1) % 1 == 0:
+                    print(f'[T][Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {running_loss:.5f}')
+                    print(f"[T] Anchor Size is: {anchor.size(dim=0)}, Divided: {loss / anchor.size(dim=0)}")
+                    running_loss = 0.0
 
-    print(f"\n>>> Training Classifier \n")
-    # Start timing.
-    class_st = time.time()
-    for epoch in range(num_epochs):
-        running_loss = 0.0
+                loss_list.append(loss.item())
 
-        clas_net.train()
-        resnet.eval()
+            # Validation
+            print(">>Validating")
+            resnet.eval()
 
-        # Loop over every batch in data loader.
-        for i, data in enumerate(trainloader_clas, 0):
-            # Extract data and transfer to GPU.
-            inputs = data[0].to(device)
-            labels = data[1].to(device)
+            # Evaluating - Gradient doesn't change.
+            with torch.no_grad():
+                # Loop over every batch in data loader.
+                for i, data in enumerate(validloader, 0):
+                    # Extract data and transfer to GPU.
+                    anchor = data[0].to(device)
+                    positive = data[1].to(device)
+                    negative = data[2].to(device)
 
-            # Zero the gradients -- Ensuring gradients not accumulated
-            #                       across multiple training iterations.
-            class_optimizer.zero_grad()
+                    # Zero the gradients -- Ensuring gradients not accumulated
+                    #                       across multiple training iterations.
+                    optimizer.zero_grad()
 
-            # Forward Pass
-            res_output = resnet(inputs)
-            output = clas_net(res_output)
+                    # Forward Pass
+                    anchor_out = resnet(anchor)
+                    positive_out = resnet(positive)
+                    negative_out = resnet(negative)
 
-            # Calculate Loss with Cross Entropy.
-            loss = criterion_class(output, labels)
-            # Compute gradient with respect to model.
-            loss.backward()
+                    # Calculate Loss with Triplet Loss.
+                    loss = criterion(anchor_out, positive_out, negative_out)
 
-            # Optimizer step - Update model parameters.
-            class_optimizer.step()
+                    # Keep track of running loss.
+                    val_running_loss += loss.item()
+                    total_loss = val_running_loss/anchor.size(dim=0)
 
-            # Keep track of running loss.
-            running_loss += loss.item()
+                    # Print Loss Info while training.
+                    if (i + 1) % 1 == 0:
+                        print(f'[V][Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {val_running_loss:.5f}')
+                        print(f"[V] Anchor Size is: {anchor.size(dim=0)}, Divided: {loss / anchor.size(dim=0)}")
+                        val_running_loss = 0.0
 
-            # Print Loss Info while training.
-            if (i + 1) % 10 == 0:
-                print(f'[Training Classifier][Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {running_loss / 10:.5f}')
-                running_loss = 0.0
+                    #valid_loss_list.append(loss.item())
+                    valid_loss_list.append(total_loss)
 
-            class_loss_list.append(loss.item())
+
+        # Save trained model for later use.
+        torch.save(resnet.state_dict(), PATH)
+        print(f"\nModel Saved at {PATH}...")
+
+    #######################
+    # Classifier Training #
+    #######################
+
+    if train_clas == 1:
+        # Freeze Resnet trained model.
+        for param in resnet.parameters():
+            param.requires_grad = False
+
+        print(f"\n>>> Training Classifier \n")
+        # Start timing.
+        class_st = time.time()
+        for epoch in range(num_epochs_clas):
+            running_loss = 0.0
+
+            clas_net.train()
+            resnet.eval()
+
+            # Loop over every batch in data loader.
+            for i, data in enumerate(trainloader_clas, 0):
+                # Extract data and transfer to GPU.
+                inputs = data[0].to(device)
+                labels = data[1].to(device)  # For Cross Entropy Loss
+                #labels = torch.stack([data[1]], dim=1).float().to(device)  # For Binary Cross Entropy Loss
+
+                # Zero the gradients -- Ensuring gradients not accumulated
+                #                       across multiple training iterations.
+                class_optimizer.zero_grad()
+
+                # Forward Pass
+                res_output = resnet(inputs)
+                output = clas_net(res_output)
+
+                # Calculate Loss with Cross Entropy.
+                loss = criterion_class(output, labels)
+                # Compute gradient with respect to model.
+                loss.backward()
+
+                # Optimizer step - Update model parameters.
+                class_optimizer.step()
+
+                # Keep track of running loss.
+                running_loss += loss.item()
+
+                # Print Loss Info while training.
+                if (i + 1) % 1 == 0:
+                    print(f'[Training Classifier][Epoch {epoch + 1}/{num_epochs_clas}, {i + 1:5d}] - Loss: {running_loss / 1:.5f}')
+                    running_loss = 0.0
+
+                class_loss_list.append(loss.item())
+
+        # Save trained model for later use.
+        torch.save(clas_net.state_dict(), CLAS_PATH)
 
     print(">>> Training Finished.")
     elapsed = time.time() - st
     print(f"\nTraining took: {elapsed}s to complete, or {elapsed/60} minutes.\n")
-
-    # Save trained model for later use.
-    torch.save(resnet.state_dict(), PATH)
-    torch.save(clas_net.state_dict(), CLAS_PATH)
-
-else:
-    print("Training was disabled. \nLoading model from path.")
-    resnet.load_state_dict(torch.load(PATH))
-    clas_net.load_state_dict(torch.load(CLAS_PATH))
 
 if test == 1:
     print(">>> Testing Start")
@@ -179,28 +252,66 @@ if test == 1:
 
     # Set Model to evaluation mode.
     resnet.eval()
+    clas_net.eval()
 
-    for i, data in enumerate(testloader, 0):
-        inputs, labels = data[0].to(device), data[1]
+    # Gradient not required, improves performance.
+    with torch.no_grad():
+        correct = 0.0
+        total = 0.0
 
-        #print(f"Inputs are: {inputs}")
+        for i, data in enumerate(testloader, 0):
+            inputs, labels = data[0].to(device), data[1].to(device)
 
-        predicted = resnet(inputs)
+            features = resnet(inputs)
 
-        #print(f"Outputs are: {F.softmax(predicted)}")
+            #print(f"Tensors: {features[0]}, {features[1]}")
+
+            output = clas_net(features)
+
+            #print(f"Output is: {output}, {output[0]==output[1]}")
+            #print(f"Softmax is: {torch.softmax(output, dim=1)}")
+
+            predicted = torch.softmax(output, dim=1).argmax(dim=1)
+
+            # For each image in the batch -> as .size is [batch, channel, height, width]
+            for index in range(inputs.size(0)):
+                pred = predicted[index].cpu()
+                true_val = labels[index].cpu()
+
+                #print(f"Predicted is {pred}, True is {true_val}")
+
+                # Calculate dice coefficient and append to list.
+                if pred == true_val:
+                    correct += 1
+
+                total += 1
+
+        accuracy = correct/total
+
+        print(f"Accuracy of the Model is {accuracy*100}%")
+
 
 # Plot the loss over the many iterations of training.
 if plot_loss == 1:
-    plt.figure(figsize=(10, 6))
-    plt.subplot(2, 1, 1)
+    plt.figure(figsize=(10, 12))
+    plt.subplot(3, 1, 1)
     plt.title("Resnet Loss")
     plt.plot(loss_list)
     plt.xlabel("Iterations")
     plt.ylabel("Loss")
-    plt.subplot(2, 1, 2)
+
+    plt.subplot(3, 1, 2)
+    plt.title("Validation Resnet Loss")
+    plt.plot(valid_loss_list)
+    plt.xlabel("Iterations")
+    plt.ylabel("Loss")
+
+    plt.subplot(3, 1, 3)
     plt.title("Classifier Loss")
     plt.plot(class_loss_list)
     plt.xlabel("Iterations")
     plt.ylabel("Loss")
+
+    plt.tight_layout()
     plt.savefig(PLOT_PATH)
     plt.show()
