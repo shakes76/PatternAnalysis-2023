@@ -24,32 +24,29 @@ TESTIMAGEPATH = '..\\ADNI\\AD_NC\\test'
 TRAINIMAGEPATH = '..\\ADNI\\AD_NC\\train'
 
 # Creating Lists of Directories
-train_dirs_full = []
 train_dirs_AD = os.listdir(TRAINIMAGEPATH + '\\AD')
 train_dirs_NC = os.listdir(TRAINIMAGEPATH + '\\NC')
 
-test_dirs_full = []
 test_dirs_AD = os.listdir(TESTIMAGEPATH + '\\AD')
 test_dirs_NC = os.listdir(TESTIMAGEPATH + '\\NC')
 
+# Storage for Full Paths.
+train_dirs_full = []
+test_dirs_full = []
 valid_dirs_full = []
-
-train_dirs_full_brain = []
-test_dirs_full_brain = []
-valid_dirs_full_brain = []
 
 temp_NC_full = []
 temp_AD_full = []
 
-# Appending full image paths.
-# for i in os.listdir(TRAINIMAGEPATH):
-#     if i == 'AD':
-#         for j in train_dirs_AD:
-#             train_dirs_full.append(os.path.join(TRAINIMAGEPATH, 'AD', j))
-#     else:
-#         for j in train_dirs_NC:
-#             train_dirs_full.append(os.path.join(TRAINIMAGEPATH, 'NC', j))
+# For 3D Version.
+train_dirs_full_brain = []
+test_dirs_full_brain = []
+valid_dirs_full_brain = []
 
+temp_NC_full_brain = []
+temp_AD_full_brain = []
+
+# Appending full image paths.
 for i in os.listdir(TRAINIMAGEPATH):
     if i == 'AD':
         for j in train_dirs_AD:
@@ -71,8 +68,6 @@ for i in os.listdir(TRAINIMAGEPATH):
         train_dirs_full.extend(train_dirs_full_NC)
         valid_dirs_full.extend(valid_dirs_full_NC)
 
-        print(f"Train AD is {train_dirs_full}")
-        print(f"Valid AD is {valid_dirs_full}")
 
 for i in os.listdir(TESTIMAGEPATH):
     if i == 'AD':
@@ -81,6 +76,10 @@ for i in os.listdir(TESTIMAGEPATH):
     else:
         for j in test_dirs_NC:
             test_dirs_full.append(os.path.join(TESTIMAGEPATH, 'NC', j))
+
+#############################################################
+# Creating Lists of Full Brains (20 Slices) for 3D Dataset. #
+#############################################################
 
 train_brain_sets_AD = len(train_dirs_AD)/20
 train_brain_sets_NC = len(train_dirs_NC)/20
@@ -95,13 +94,26 @@ for i in os.listdir(TRAINIMAGEPATH):
             temp_full_paths = []
             for j in train_dirs_AD[20*s:20*s + 20]:
                 temp_full_paths.append(os.path.join(TRAINIMAGEPATH, 'AD', j))
-            train_dirs_full_brain.append(temp_full_paths)
+            temp_AD_full_brain.append(temp_full_paths)
+        # Separate train dirs into train and valid.
+        train_len = int(round(0.8 * len(temp_AD_full_brain)))
+        train_dirs_full_brain = temp_AD_full_brain[:train_len]
+        valid_dirs_full_brain = temp_AD_full_brain[train_len:]
     else:
         for s in range(int(train_brain_sets_NC)):
             temp_full_paths = []
             for j in train_dirs_NC[20*s:20*s + 20]:
                 temp_full_paths.append(os.path.join(TRAINIMAGEPATH, 'NC', j))
-            train_dirs_full_brain.append(temp_full_paths)
+            temp_NC_full_brain.append(temp_full_paths)
+        # Separate train dirs into train and valid.
+        train_len = int(round(0.8 * len(temp_NC_full_brain)))
+        train_dirs_full_NC_brain = temp_NC_full_brain[:train_len]
+        valid_dirs_full_NC_brain = temp_NC_full_brain[train_len:]
+
+        # Extend Train and Valid directories with the NC directories.
+        train_dirs_full_brain.extend(train_dirs_full_NC_brain)
+        valid_dirs_full_brain.extend(valid_dirs_full_NC_brain)
+
 
 for i in os.listdir(TESTIMAGEPATH):
     if i == 'AD':
@@ -117,22 +129,7 @@ for i in os.listdir(TESTIMAGEPATH):
                 temp_full_paths.append(os.path.join(TESTIMAGEPATH, 'NC', j))
             test_dirs_full_brain.append(temp_full_paths)
 
-#print(train_dirs_full)
-
-##### Temp Code for Visualising Images.
-# fig, axs = plt.subplots(2)
-# image1 = train_dirs_full[1]
-#
-# data = cv2.imread(image1)
-# print(data.shape)
-# axs[0].imshow(data)
-# data2 = cv2.cvtColor(data, cv2.COLOR_BGR2RGB)
-# axs[1].imshow(data2)
-#
-# plt.show()
-
 image_size = 210
-# Only works if 32? do I need to change resnet?
 
 # Transforms to be applied to data loaders.
 transform = transforms.Compose([transforms.ToPILImage(),
