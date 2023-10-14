@@ -12,31 +12,21 @@ import torch
 from modules import *
 import numpy as np
 import matplotlib.pyplot as plt
+from train import *
 
-
+#Runs the training process for VQVAE and DCGAN, saving respective models
+run_training()
 p = Parameters()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-num_gen_images = 32
-fixed_noise = torch.randn(num_gen_images, p.channel_noise, 1, 1).to(device)
+#Function to save an image of Gan output
+generated_images = gan_codebook(device, p)
 
-#Load Trained Generator
-Generator = torch.load("Generator.pth")
-Generator.eval()
+#Funciton to save visualisation of generated code indice
+code_indice = gan_create_codebook_indice(generated_images)
 
-with torch.no_grad():
-    generated_images = Generator(fixed_noise)
+#Function for decoding the generated outputs and save as final reconstructions
+gan_reconstruct(code_indice)
 
-# Rescale images from [-1, 1] to [0, 1] for displaying/saving
-generated_images = 0.5 * (generated_images + 1)
 
-# Convert tensor to NumPy array
-generated_images = generated_images.cpu()
-generated_images = generated_images.numpy()
-
-#Display Generated images
-for i in range(num_gen_images):
-    plt.imshow(np.transpose(generated_images[i], (1, 2, 0)))
-    plt.axis('off')
-    plt.show()
 
