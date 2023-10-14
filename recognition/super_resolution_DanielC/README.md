@@ -33,6 +33,20 @@ Channel size | Loss
 64 | 0.00249
 128 | 0.00236
 
+In addition different activations functions were tested with 5 epochs,
+Activation Function | Loss 
+--- | --- 
+Exponential Linear Unit | 0.00261
+Sealed Exponential Linear Unit | 0.00264
+Leaky ReLU | 0.00247
+ReLU | 0.00251
+
+As shown above leaky relu was the best activation function thus it was chosen.
+
+Batch size had a significant effect as lowering it increased accuracy and computational resources which was expected. 
+To balance out the two aforementioned factors, a size of 30 is set as default.
+
 Furthermore, graphing the losses per iterations is shown as below.
 ![graph of loss per iteration](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/lossgraph.PNG)
+
 After approximately 175 iterations, the loss no longer decreases consistently rather, it fluctuates around 0.00255 thus we could assume that 175 is the optimal number of iterations. 
