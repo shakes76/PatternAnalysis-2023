@@ -80,10 +80,10 @@ out = model(data.x, data.edge_index) # Predict model
 Testing accuracy
 | Layers       |   Testing accuracy    |
 | :-----------: | :------------------: |
-| 128-100-64-32 | 0 9453716065865598   |
-| 128-64-16     | 0 9461504227859368   |
-| 128-64        | 0 9362483311081442   |
-| 128-16        | 0 9224521584334668   |
+| 128-100-64-32 | 0.9453716065865598   |
+| 128-64-16     | 0.9461504227859368   |
+| 128-64        | 0.9362483311081442   |
+| 128-16        | 0.9224521584334668   |
 
 The table above shows how the model was trained and how the layers was choosen. The highest accuracy
 occurs when 128-64-16 layers are used. Adding an extra layer leads to slightly lower acccuracy, possibly
