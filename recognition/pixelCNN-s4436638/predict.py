@@ -36,7 +36,7 @@ test_set = GetADNITest(images_path)
 test_loader = DataLoader(dataset=test_set, batch_size=batch_size, num_workers=4, shuffle=False)
 
 # Print out some information about the datasets
-print("Num Test: " + str(test_loader.arrLen))
+print("Num Test: " + str(test_set.arrLen))
 
 ### Load the model
 model = pixelCNN(upscale_factor, channels, feature_size, num_convs)
