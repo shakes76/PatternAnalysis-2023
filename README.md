@@ -1,0 +1,1 @@
+# semi supervised multi-class node classification using a GCN model
