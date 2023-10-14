@@ -6,15 +6,15 @@
 
 ### Design Task
 
-The MRI Super-Resolution Network developed for this project is a Super-Resolution Deep Convolutional Generative Adversarial Network (SR-DCGAN). This particular implementation is designed to enhance the resolution of MRI images. It uses brain MRI images from the Alzheimer's Disease Neuroimaging Initiative (ADNI) MRI dataset. The original images with a resolution of 240 x 256 are 4 times downsampled to a resolution of 60 x 64. From these downsampled images, the model attempts to reconstruct the images back to the original higher resolution. The dataset is preprocessed to create these low-resolution versions of the images which simulates the downsampled data.
+The MRI Super-Resolution Network developed for this project is a Super-Resolution Deep Convolutional Generative Adversarial Network (SR-DCGAN). This particular implementation is designed to enhance the resolution of MRI images. It uses brain MRI images from the Alzheimer's Disease Neuroimaging Initiative (ADNI) MRI dataset. The original images, with a resolution of 240 x 256, are 4 times downsampled to a resolution of 60 x 64. The generator model then attempts to reconstruct these downsampled images back to the original higher resolution. The dataset is preprocessed to create these low-resolution versions of the images which simulates the downsampled data.
 
 ### Model Overview
 
-The GAN implementation consists of two neural networks: the generator and the discriminator. The generator network attempts to recreate high-resolution images from low-resolution inputs. The discriminator evaluates these generated images against the real high-resolution images from the dataset, and aims to distinguish between them. Through the process of adversarial training, the generator learns to create images that are increasingly difficult for the discriminator to distinguish from the real high-resolution images. Similarly, the discriminator learns more complex patterns to better differentiate between the real and generated images. Both the generator and the discriminator uses a deep convolutional neural network (CNN) design.
+The GAN implementation consists of two neural networks: the generator and the discriminator. The generator network attempts to recreate high-resolution images from low-resolution inputs. The discriminator evaluates these generated images against the real high-resolution images from the dataset, and aims to distinguish between them. Through the process of adversarial training, the generator learns to create images that are increasingly difficult for the discriminator to distinguish from the real high-resolution images. Similarly, the discriminator learns more complex patterns to better differentiate between the real and generated images. Both the generator and the discriminator use a deep convolutional neural network (CNN) design.
 
 ### Aims and Objectives
 
-The main aim and objective of the network is to accurately reconstruct the super-resolution version of the low-resolution input images. For MRI images especially, this process helps to reconstruct detailed structures that are lost during downsampling. Finally, as mentioned, the training process uses adversarial loss to ensure that the generated images are realistic and closely resemble the real images.
+The main aim and objective of the network is to accurately reconstruct the super-resolution version of the low-resolution input images. Modern MRIs will typically perform a type of sparse sampling to improve speed. This results in an undersampled image. For these MRI images, this process of super-resolution helps to reconstruct detailed structures that are lost due to undersampling. Finally, as mentioned, the training process uses adversarial loss to ensure that the generated images are realistic and closely resemble the real images.
 
 ## Implementation
 
@@ -22,7 +22,7 @@ The main aim and objective of the network is to accurately reconstruct the super
 
 As mentioned, the generator network is a deep-convolutional network. It consists of 8 convolutional layers. 
 
-All layer except the last layer use a rectified linear (ReLU) activation paired with batch normalisation. The ReLU introduces non-linearities into the network, which is especially important in deep networks since these non-linearities help take full advantage of all layers in the network. Additionally, batch normalisation is introduced to help improve the efficiency of the training process. Batch normalisation can help address the internal covariance shift that occurs especially in deep neural networks [^2]. This optimisation process helps speed up training by making the optimisation process faster and more stable.
+All layers except the last layer use a rectified linear (ReLU) activation paired with batch normalisation. The ReLU introduces non-linearities into the network, which is especially important in deep networks since these non-linearities help take full advantage of all layers in the network. Additionally, batch normalisation is introduced to help improve the efficiency of the training process. Batch normalisation can help address the internal covariance shift that occurs especially in deep neural networks [^2]. This optimisation process helps speed up training by making the optimisation process faster and more stable.
 
 For this generator model, layers 3 and 6 are upsampling convolutional layers using the `ConvTranspose` layer with a stride of 2. All other layers are implmented in a similar way using a stride length of 1 instead.
 
@@ -131,8 +131,10 @@ The learning rate of the generator and the discriminator for the first 100 epoch
 
 [^1]: Brownlee, J. (2019) Tips for training stable generative Adversarial Networks, MachineLearningMastery.com. Available at: https://machinelearningmastery.com/how-to-train-stable-generative-adversarial-networks/
 
-[^2]: Saxena, S. (2023) Introduction to batch normalization, Analytics Vidhya. Available at: https://www.analyticsvidhya.com/blog/2021/03/introduction-to-batch-normalization/#:~:text=Batch%20normalization%20is%20essential%20because,process%20more%20stable%20and%20faster.
+[^4]: Brownlee, J. (2021) Gentle introduction to the adam optimization algorithm for deep learning, MachineLearningMastery.com. Available at: https://machinelearningmastery.com/adam-optimization-algorithm-for-deep-learning/
 
 [^3]: Hui, J. (2020) Gan - ways to improve gan performance, Medium. Available at: https://towardsdatascience.com/gan-ways-to-improve-gan-performance-acf37f9f59b
 
-[^4]: Brownlee, J. (2021) Gentle introduction to the adam optimization algorithm for deep learning, MachineLearningMastery.com. Available at: https://machinelearningmastery.com/adam-optimization-algorithm-for-deep-learning/
+[^2]: Saxena, S. (2023) Introduction to batch normalization, Analytics Vidhya. Available at: https://www.analyticsvidhya.com/blog/2021/03/introduction-to-batch-normalization/#:~:text=Batch%20normalization%20is%20essential%20because,process%20more%20stable%20and%20faster.
+
+[^5]: Sherry, F. et al. (2020) Learning the sampling pattern for MRI - arxiv.org, arxiv.org. Available at: https://arxiv.org/pdf/1906.08754
