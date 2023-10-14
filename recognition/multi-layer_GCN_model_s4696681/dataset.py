@@ -3,6 +3,8 @@ import numpy as np
 from scipy.linalg import sqrtm
 import json
 from sklearn.model_selection import train_test_split
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
 
 """Create Adjacency matrix from the musae_facebook_edges.csv file"""
 def create_adjacency_matrix():
@@ -114,10 +116,25 @@ def convert_labels():
 node_labels = convert_labels()
 # print(node_labels[:5])
 
-node_ids = feature_vectors[:, 0]
-train_ids, test_ids = train_test_split(node_ids, test_size=0.2, random_state=42)
-train_features = feature_vectors[np.isin(feature_vectors[:, 0], train_ids)][:, 1:]
-test_features = feature_vectors[np.isin(feature_vectors[:, 0], test_ids)][:, 1:]
 
-train_labels = node_labels[np.isin(node_labels[:, 0], train_ids)][:, 1]
-test_labels = node_labels[np.isin(node_labels[:, 0], test_ids)][:, 1]
+
+""" t-SNE figure created to visualize the initial, high-dimensional node features in a 2D space,
+ giving insights into their structure and relationships prior to any transformation by the GCN."""
+# Extract feature vectors for t-SNE
+X = feature_vectors[:, 1:]  # Exclude node IDs
+
+# Apply t-SNE to reduce dimensions
+tsne = TSNE(n_components=2, random_state=42)
+X_reduced = tsne.fit_transform(X)
+
+# Visualize
+plt.figure(figsize=(10, 8))
+for label in range(4):  # Assuming you have 4 classes
+    indices = np.where(node_labels[:, 1] == label)
+    plt.scatter(X_reduced[indices, 0], X_reduced[indices, 1], label=str(label))
+plt.legend()
+plt.title('t-SNE visualization of original feature vectors')
+plt.show()
+
+
+
