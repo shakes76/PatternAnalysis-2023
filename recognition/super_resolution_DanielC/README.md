@@ -15,12 +15,18 @@ torchvision | 0.16.0
 
 For reproducibility, a virtual environment is recommended with specified versions respective to dependencies for isolation. 
 
-## 3. Example inputs & outputs
+## 3. Data pre-processing
+As low resolution of the images are not provided, we create our own low resolution of images and use the given high 240 x 256 as ground truth. 
+The images are converted to tensors then we use the resize() function of pytorch transoforms to manipulate the image to the desired size. 
+This can be adjusted alongside hyper-parameters in utils.py
+
+
+## 4. Example inputs & outputs
 Given an input of a low resolution MRI image, should return an upscaled version of the image as shown in the figure.
 ![image of example input and output](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/ExampleFigure.PNG)
 
 
-## 4. Training & minimizing loss
+## 5. Training & minimizing loss
 The padding for convolution network was calculated through: input size - kernel size + 2* padding size / 1 (stride is always 1)
 (source https://stats.stackexchange.com/questions/297678/how-to-calculate-optimal-zero-padding-for-convolutional-neural-networks)
 
@@ -49,4 +55,7 @@ To balance out the two aforementioned factors, a size of 30 is set as default.
 Furthermore, graphing the losses per iterations is shown as below.
 ![graph of loss per iteration](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/lossgraph.PNG)
 
-After approximately 175 iterations, the loss no longer decreases consistently rather, it fluctuates around 0.00255 thus we could assume that 175 is the optimal number of iterations. 
+After approximately 220 iterations, the loss no longer decreases consistently rather, it fluctuates around 0.00255 thus we could assume that 175 is the optimal number of iterations. 
+
+## 6. Appendix
+[ADNI dataset for Alzheimer's disease](https://adni.loni.usc.edu/)
