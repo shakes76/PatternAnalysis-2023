@@ -79,15 +79,18 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
-        # Print the loss
-        print_output = "[%02d/%02d] Train Loss: %.5f\n" % (epoch+1, num_epochs, loss.item())
-        print(print_output)
-
         # Aggregate the loss
         total_loss += loss.item()
 
     # Divide the total loss by the number of epochs
-    train_loss.append(total_loss / batch_size)
+    total_loss = total_loss / batch_size
+    train_loss.append(total_loss)
+
+    # Print the loss at the end of epoch
+    print_output = "[%02d/%02d] Train Loss: %.5f\n" % (epoch+1, num_epochs, total_loss)
+    print(print_output)
+
+    
 
     ### Perform validation
     with torch.no_grad():
@@ -108,15 +111,16 @@ for epoch in range(num_epochs):
             # Calculate the loss
             loss = loss_function(images, outputs)
 
-            # Print the loss
-            print_output = "[%02d/%02d] Val Loss: %.5f\n" % (epoch+1, num_epochs, loss.item())
-            print(print_output)
-
             # Aggregate the loss
             total_loss += loss.item()
 
     # Divide the total loss by the number of epochs
-    val_loss.append(total_loss / batch_size)
+    total_loss = total_loss / batch_size
+    val_loss.append(total_loss)
+
+    # Print the loss at the end of epoch
+    print_output = "[%02d/%02d] Val Loss: %.5f\n" % (epoch+1, num_epochs, total_loss)
+    print(print_output)
 
     # Whether or not to save the model
     if total_loss <= min_val:
