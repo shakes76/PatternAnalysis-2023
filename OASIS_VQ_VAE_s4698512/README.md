@@ -27,7 +27,7 @@ Finally, a reparameterisation trick, similar to parametric bootstrap, is used du
 
 The loss function during training can be given as follows. The mean squared error (L2 Norm) was used to map (or snap) each encoded image to the nearest discrete vector within the codebook. These discrete vectors are then passed to the model decoder which produces a reconstructed image.
 
-$$L = \|x|z_{q}(x) - x\|_2^2 + \|z_{q}(x) - z_{e}^{*}(x)\|^2_2 + \beta \|z_{e}(x) - z_{q}^{*}(x)\|_2^2$$
+![Loss Function](Assets/lossfunc.png)
 
 This corresponds to reconstruction loss + VQ loss + $\beta \times$ commitment loss
 
