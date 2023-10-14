@@ -1,8 +1,10 @@
 import os
 import torch
+import torchvision.transforms as T
 from torch.utils.data import DataLoader
 from modules import pixelCNN
 from dataset import GetADNITrain
+from scipy.io import savemat, loadmat
 
 # Get device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -18,6 +20,15 @@ channels = 1
 feature_size = 32
 num_convs = 3
 learning_rate = 1e-3
+image_size = 256
+num_epochs = 100
+
+# Define the transform to downscale the images
+down_sampler = T.Resize(size=[image_size // upscale_factor, image_size // upscale_factor], 
+                    interpolation=T.transforms.InterpolationMode.BICUBIC, antialias=True)
+
+# Define the loss function
+loss_function = torch.nn.MSELoss()
 
 # Define our training and validation datasets
 train_set = GetADNITrain(images_path, train_split=0.9, train=True)
@@ -41,5 +52,72 @@ print("Number of trainable params: " + str(pytorch_total_params))
 
 # Define the optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+# Define some variables to keep track of the loss
+train_loss = []
+val_loss = []
+
+for epoch in range(num_epochs):
+    total_loss = 0
+    for batch in train_loader:
+        
+        # Load images from dataloader
+        images = batch.to(device)
+        # Add the channel dimension to grayscale images
+        images = torch.unsqueeze(images, 1)
+
+        # Downscale
+        inputs = down_sampler(images)
+
+        # Get the model prediction
+        outputs = model(inputs)
+
+        # Calculate the loss
+        loss = loss_function(images, outputs)
+
+        # Backprop
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        # Print the loss
+        print_output = "[%02d/%02d] Train Loss: %.5f\n" % (epoch+1, num_epochs, loss.item())
+        print(print_output)
+
+        # Aggregate the loss
+        total_loss += loss.item()
+
+    # Divide the total loss by the number of epochs
+    train_loss.append(total_loss / batch_size)
+
+    ### Perform validation
+    with torch.no_grad():
+        model.eval()
+        total_loss = 0
+        for batch in val_loader:
+
+            # Load images from dataloader
+            images = batch.to(device)
+            # Add the channel dimension to grayscale images
+            images = torch.unsqueeze(images, 1)
+
+            # Downscale
+            inputs = down_sampler(images)
+
+            # Get the model prediction
+            outputs = model(inputs)
+
+            # Calculate the loss
+            loss = loss_function(images, outputs)
+
+            # Print the loss
+            print_output = "[%02d/%02d] Val Loss: %.5f\n" % (epoch+1, num_epochs, loss.item())
+            print(print_output)
+
+            # Aggregate the loss
+            total_loss += loss.item()
+
+        # Divide the total loss by the number of epochs
+        val_loss.append(total_loss / batch_size)
 
 
