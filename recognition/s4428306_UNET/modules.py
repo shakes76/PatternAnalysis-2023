@@ -32,3 +32,11 @@ def localization_module(x, n_filters):
     x = layers.Conv2D(n_filters, 1, padding="same", activation="relu", kernel_initializer="he_normal")(x)
     return x
 
+#NOTE: From what I can see from the papers this just a 1x1 (or 1x1x1) convolution.
+#      Going to define it like this for readability.
+def segmentation_layer(x, n_filters):
+    #TODO: Write specifictaion.
+    #NOTE: Again, unsure if these should be 2D or 3D.
+    x = layers.Conv2D(n_filters, 1, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    return x
+
