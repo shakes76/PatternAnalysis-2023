@@ -7,7 +7,7 @@ Description: Containing the source code for training, validating, testing and sa
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from modules import SiameseNetwork
+from modules import SiameseNetwork, ContrastiveLoss, CNN, MLP
 from dataset import trainloader, testloader
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -17,65 +17,98 @@ if not torch.cuda.is_available():
 print(device)
 
 # Initialize the Siamese network
-Siamese_A = SiameseNetwork()
-Siamese_B = SiameseNetwork()
+CNN_A = CNN()
+CNN_B = CNN()
 
-Siamese_A.to(device)  # Move the network to GPU if available
-Siamese_B.to(device)  # Move the network to GPU if available
-
+# Move the network to GPU if available
+CNN_A.to(device)
+CNN_B.to(device)  
 
 # Define loss function and optimizer
-criterion = nn.BCELoss()  # Binary Cross-Entropy Loss
+criterion = ContrastiveLoss(margin=2.0)
 
 optimizer = optim.Adam([
-    {'params': Siamese_A.parameters()},
-    {'params': Siamese_B.parameters()}
+    {'params': CNN_A.parameters()},
+    {'params': CNN_B.parameters()}
 ], lr=1e-3)
 
 
+Siamese = SiameseNetwork(CNN_A, CNN_B)
+Siamese.to(device)
 
-loss.backward()
-optimizer.step()
+# Define loss function and optimizer
+criterion = ContrastiveLoss(margin=2.0)
+optimizer = optim.Adam([
+    {'params': CNN_A.parameters()},
+    {'params': CNN_B.parameters()}
+], lr=1e-3)
 
 # Training loop
 num_epochs = 10
 
-
-
 for epoch in range(num_epochs):
-    running_loss = 0.0
-    for batch in iter(trainloader):
-        images, labels = batch
-        
-        images = images.to(device)
-        labels = labels.to(device)
+    print("Epoch：", epoch, " start.")
 
-        # Backwards and optimise
+    Siamese.train()
+    total_loss = 0.0
+
+    for batch_idx, (input1, input2, label) in enumerate(trainloader):
+        input1, input2, label = input1.to(device), input2.to(device), label.to(device)
+        
         optimizer.zero_grad()
-
-        # NEED TO TAKE IN TWO SEPARATE IMAGES
         
+        output1, output2 = Siamese(input1, input2)
+        
+        loss = criterion(output1, output2, label)
+        loss.backward()
+        
+        optimizer.step()
+        
+        total_loss += loss.item()
 
-        # CALCULATE L1 OR PAIRWISE DISTANCE
-
-        # CALCULATE CONTRASTIVE LOSS
-
-
-        outputs = SNN(*inputs)  # Forward pass
-        loss = criterion(outputs, labels.float().to(device))  # Calculate loss
-
-        loss.backward()  # Backpropagation
-        optimizer.step()  # Update weights
-
-        running_loss += loss.item()
-
-    # Print the average loss for this epoch
-    print(f"Epoch [{epoch + 1}/{num_epochs}] Loss: {running_loss / len(trainloader)}")
+    # Print the average loss for the epoch
+    print(f'Epoch [{epoch+1}/{num_epochs}] Loss: {total_loss / (batch_idx + 1):.4f}')
 
 print("Finished Training")
 
+# Save the trained model
+torch.save(Siamese.state_dict(), "./Siamese")
 
-# Save the model's state dictionary
-torch.save(SNN.state_dict(), "./model")
 
-# step 1: train the siamese + save the model
+
+# MLP SHOULD BE TRAINED ON THE FEATURE VECTOR.
+# Instantiate the MLP and move it to the GPU if available
+cnn = CNN()  # Assuming you have a CNN instance
+cnn.to(device)
+
+mlp = MLP()
+mlp.to(device)
+
+# Define binary cross-entropy loss and optimizer for MLP
+criterion = nn.BCELoss()
+optimizer = optim.Adam(mlp.parameters(), lr=1e-3)
+
+# Training loop for MLP
+num_epochs = 10
+
+for epoch in range(num_epochs):
+    mlp.train()
+    total_loss = 0.0
+
+    for batch_idx, (input, label) in enumerate(dataloader):  # Replace 'dataloader' with your data loading logic
+        input, label = input.to(device), label.to(device)
+
+        optimizer.zero_grad()
+
+        output = mlp(input)
+        loss = criterion(output, label.view(-1, 1).float())  # Ensure label is a tensor of shape (batch_size, 1)
+        loss.backward()
+
+        optimizer.step()
+        total_loss += loss.item()
+
+    # Print the average loss for the epoch
+    print(f'Epoch [{epoch+1}/{num_epochs}] Loss: {total_loss / (batch_idx + 1):.4f}')
+
+# Save the trained MLP
+torch.save(mlp.state_dict(), "./Classifier")

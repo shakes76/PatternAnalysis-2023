@@ -9,9 +9,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class SiameseNetwork(nn.Module):
+class CNN(nn.Module):
     def __init__(self):
-        super(SiameseNetwork, self).__init__()
+        super(self).__init__()
 
         # CNN and Pooling layers
         self.cnn = nn.Sequential(
@@ -27,57 +27,52 @@ class SiameseNetwork(nn.Module):
             nn.Flatten() # Outputs a 128 dimensional feature vector
         )
 
-    def forward(self, x):
+    def forward(self, input):
         # Forward pass through the Siamese network
-        x = self.cnn(x)
-        return x
+        return self.cnn(input)
+    
 
+class SiameseNetwork(nn.Module):
+    def __init__(self, cnn1, cnn2):
+        super(SiameseNetwork, self).__init__()
+        self.cnn1 = cnn1
+        self.cnn2 = cnn2
 
-    def other(self,x):
-
-        # Compute L1 Distance between two embeddings
-        distance  = torch.abs(output1 - output2)
-
-        # torch pairwise_distance
-
-        # contrastive loss after distance
-
-        # Classify whether the images belong to the same class or different classes
-        prediction = self.fc(distance)
-        return prediction
+    def forward(self, input1, input2):
+        output1 = self.cnn1(input1)
+        output2 = self.cnn2(input2)
+        return output1, output2
 
 
 
+class ContrastiveLoss(nn.Module):
+  def __init__(self, margin):
+    super(ContrastiveLoss, self).__init__()
+    self.margin = margin
+
+  def forward(self, y1, y2, label):
+    # label = 0 means y1 and y2 are the same
+    # label = 1 means y1 and y2 are different
+    
+    euc_dist = torch.nn.functional.pairwise_distance(y1, y2)
+
+    loss = torch.mean((1-label) * torch.pow(euc_dist, 2) +
+      (label) * torch.pow(torch.clamp(self.margin - euc_dist, min=0.0), 2))
+
+    return loss
+
+
+# Takes in a feature vector, returns either 0 or 1 (AD OR NC)
 class MLP(nn.module):
     def __init__(self):
-        super(MLP, self).__init__() 
+        super(self).__init__()
+        self.fc1 = nn.Linear(128, 64)
+        self.fc2 = nn.Linear(64, 2)
 
-        self.siamese = SiameseNetwork() # need to load the saved weights of the siamese network here
-
-        self.fc = nn.Sequential(
-            nn.Linear(128, 64),
-            nn.ReLU(),
-            nn.Linear(64, 2),
-            nn.Sigmoid()
-        )
-    
     def forward(self, input):
-        output = self.siamese(input)
-        output = self.fc(output)
-        return output
-    
+        output1 = nn.ReLU(self.fc1(input))
+        output2 = nn.Sigmoid(self.fc2(output1))
+        return output2
 
 
-
-
-
-
-
-# write siamese model so that it takes one image and output is feature vector
-# but when training, when iterating through trainloader, pass in each image from a pair separately into the SNN.
-
-
-
-
-
-# MLP SHOULD BE TRAINED ON THE FEATURE VECTOR.
+# Step 3: classification - take in individual images into snn, then write an mlp which takes in a feature vector of 128 and then classifies into one of two classes.

@@ -6,8 +6,10 @@ Description: Creates the data loader for loading and preprocessing the ADNI Brai
 
 import numpy as np
 import itertools
+import torch
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, TensorDataset
+from sklearn.model_selection import train_test_split
 from PIL import Image
 
 
@@ -28,13 +30,14 @@ test_dataset = datasets.ImageFolder(root=test_dataroot, transform=transform)
 # Assuming AD is class 0 and NC is class 1
 train_dataset.class_to_idx = {'AD': 0, 'NC': 1}
 test_dataset.class_to_idx = {'AD': 0, 'NC': 1}
+
+print(train_dataset.samples)
  
 
 def make_paired_datasets(dataset):
     X_pairs, y_pairs = [], []
 
     for t in itertools.product(dataset, dataset):
-        pair_A, pair_B = t
         img_A, label_A = t[0]
         img_B, label_B = t[1]
 
@@ -49,17 +52,24 @@ def make_paired_datasets(dataset):
     return X_pairs, y_pairs
 
 
-X_train, y_train = make_paired_datasets(train_dataset.samples)
-X_test, y_test = make_paired_datasets(test_dataset.samples)
+# Make pairs to train the Siamese Network
+# X_train, y_train = make_paired_datasets(train_dataset.samples)
 
-train_set = TensorDataset(X_train, y_train)    # Wrap X and Y into a single training dataset
-test_set = TensorDataset(X_test, y_test)       # Wrap X and Y into a single test dataset
+# X_train = torch.tensor(X_train)
+# y_train = torch.tensor(y_train)
 
-# Define the data loaders
-trainloader = DataLoader(train_set, batch_size=64, shuffle=True)
-testloader = DataLoader(test_set, batch_size=64, shuffle=False)
+# print(X_train)
+# print(y_train)
+
+# train_set = TensorDataset(X_train, y_train)    # Wrap X and Y into a single training dataset
+# train_dataset, validate_dataset = train_test_split(train_set, train_size=0.8, shuffle=True, random_state=42)
 
 
-# HARDCODED VALIDATION SET FOR MODEL EVALUATION WHILE TRAINING
+# # Define the data loaders
+# trainloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+# testloader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+# valloader = DataLoader(validate_dataset, batch_size=64, shuffle=False)
 
-# TEST SET DOES NOT HAVE TO BE PAIRS!! since the model now only takes in one image.
+# print(trainloader)
+# print(testloader)
+# print(valloader)
