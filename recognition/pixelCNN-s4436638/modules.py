@@ -20,7 +20,12 @@ class getUpscaleBlock(nn.Module):
     def forward(self, x):
         x = self.conv_block(x)
         return self.shuffle_block(x)
-    
+
+#used to upscale the image, conv's with feature size x 4
+#(although not 4 its a variable, we do 2x2)
+#to increase the feature size, and then shuffles to make
+#it go from deep to shallow but bigger
+
 """
 Creates a set of feature extractors
 
@@ -36,11 +41,16 @@ class getConvBlock(nn.Module):
             conv_array.append(nn.Conv2d(feature_size, feature_size, 3, padding='same'))
             # conv_array.append(nn.Dropout2d())
             conv_array.append(nn.ReLU())
-
         self.conv_array = nn.Sequential(*conv_array)
 
     def forward(self, x):
         return self.conv_array(x)
+
+#a conv with 32 -> 32 filters
+#uses relu for performance
+#we use for loop to add conv+relu to a list which has what we want to do
+#to itself a bunch of times (conv->relu->conv etc)
+#sequential makes it do the list items to itself in order
 
 """
 Defines feature extraction and upscaling blocks to achieve a desired
@@ -50,7 +60,7 @@ Inputs:
 upscale_factor          -           Desired upscaling factor
 channels                -           Number of input channels 
 feature_size            -           Desired number of features
-num_convs               -           Number of cascadedd convolutions in conv blocks
+num_convs               -           Number of cascaded convolutions in conv blocks
 """
 class pixelCNN(nn.Module):
     def __init__(self, upscale_factor=4, channels=1, feature_size=32, num_convs=3):
@@ -63,31 +73,38 @@ class pixelCNN(nn.Module):
         num_upsamplers = int(np.log2(upscale_factor))
 
         # Define array for conv blocks
-        conv_blocks = []
-
-        # Define array for upscale blocks
-        upscale_blocks = []
+        conv_and_upscale_blocks = []
 
         # Define the upscalers
         for _ in range(num_upsamplers):
-            conv_blocks.append(getConvBlock(feature_size, num_convs))
-            upscale_blocks.append(getUpscaleBlock(feature_size, 2))
+            conv_and_upscale_blocks.append(getConvBlock(feature_size, num_convs))
+            conv_and_upscale_blocks.append(getUpscaleBlock(feature_size, 2))
+        # Define NN modules
+        self.conv_and_upscale_blocks = nn.Sequential(*conv_and_upscale_blocks)
 
         # Define the final upsampling block to bring back to input channel
         self.conv_last = nn.Conv2d(feature_size, channels, 3, padding='same')
 
-        # Define NN modules
-        self.conv_blocks = nn.ModuleList(conv_blocks)
-        self.upscale_blocks = nn.ModuleList(upscale_blocks)
-
     def forward(self, x):
         # Increase feature size from 1 -> feature_size
         x = self.conv_1(x)
+
         # Perform feature extraction and upscaling x2
-        for i, conv in enumerate(self.conv_blocks):
-            x = conv(x)
-            x = self.upscale_blocks[i](x)
+        x = self.conv_and_upscale_blocks(x)
+
         # Decrease feature size from feature_size -> 1
         return self.conv_last(x)
         
+#uses the upscale/conv blocks we made 
+#creates array for them
+
+#run it (the block creator) through a for loop 2 times 
+# (use log2 to find number of times needed 
+# from upscale factor)
+#one final conv to bring back to original channel size (1)
+#use modulelist so the blocks can be sent to device
+
+#if last was to bring it back to original, then forward
+#is used to run through the blocks
+#forward (1->32) then block (32->32) then last (32->1)
 
