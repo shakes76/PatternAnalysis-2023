@@ -74,27 +74,35 @@ class Model_Visualiser:
         self._loader = loader
     
     #method to visialise the images contianed by class
-    def visualise(self):    
+    def visualise(self):
         displayed_count = 0
+        rows, cols = 2, 5  # Set the number of rows and columns for the grid
+
+        # Create a new figure
+        fig = plt.figure(figsize=(12, 6))
+
         for batch in self._loader:
-            images, labels = batch 
+            images, labels = batch
 
             # Iterate through the images
-            for image in images:
-                # Display the image and its shape
-                plt.imshow(image.permute(1, 2, 0))
-                plt.title(f"Image Shape: {image.shape}")
-                plt.axis('off')
-                plt.show()
-
-                displayed_count += 1
-
-                # Max 10 images to be shown
+            for i, image in enumerate(images):
                 if displayed_count >= 10:
                     break
-            # Max 10 images to be shown
-            if displayed_count >= 10:
-                break
+
+                # Create a subplot
+                ax = plt.subplot(rows, cols, displayed_count + 1)
+                ax.set_title(f"{displayed_count}")
+                ax.axis('off')
+
+                # Display the image
+                plt.imshow(image.permute(1, 2, 0))
+
+                displayed_count += 1
+            break
+
+        # Adjust layout and display the figure
+        plt.tight_layout()
+        plt.show()
             
     def getMeanAndStd(self):
         mean = 0
@@ -114,4 +122,3 @@ class Model_Visualiser:
         std = torch.sqrt(std / samples - mean ** 2)
         
         return mean, std
-
