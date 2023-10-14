@@ -11,9 +11,20 @@ features = [[-0.25411826,-0.27648264,-0.22558108,-0.29932743,-0.2991588,-0.27068
 targets = [2, 3, 2, 3, 2]
 edges = np.array([(0, 1), (1, 0), (1, 2), (2, 1), (2, 4), (4, 2), (3, 4), (4, 3)])
 
+
 features = torch.Tensor(features)
 targets = torch.Tensor(targets).to(torch.int64)
 edges = np.rot90(edges, 1)
 edges = torch.Tensor(edges.copy()).to(torch.int64)
 
 data = Data(x=features, edge_index=edges, edge_attr=None, y=targets)
+
+model = torch.load('GCN.pt')
+model.eval()
+out = model(data.x, data.edge_index)
+pred = out.argmax(dim=1)  # Use the class with highest probability.
+test_correct = pred == targets  # Check against ground-truth labels.
+
+for index, prediction in enumerate(pred):
+    print(f'For index={index}, the model guessed {prediction} and the correct label was {targets[index]}')
+print('Total accuraccy was:', test_correct.sum().item()/5)
