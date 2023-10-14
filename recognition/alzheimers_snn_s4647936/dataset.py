@@ -1,5 +1,6 @@
 import os
 import random
+import torchvision.transforms as transforms
 from PIL import Image
 from torch.utils.data import Dataset
 
@@ -37,6 +38,15 @@ class TripletDataset(Dataset):
         if mode == 'train':
             self.ad_paths = train_ad_paths
             self.nc_paths = train_nc_paths
+
+            # Integrate data augmentation if in training mode
+            self.transform = transforms.Compose([
+                transforms.RandomRotation(10),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomVerticalFlip(),
+                transform
+            ])
+            
         elif mode == 'test':
             self.ad_paths = test_ad_paths
             self.nc_paths = test_nc_paths
@@ -111,8 +121,3 @@ def patient_wise_split(ad_paths, nc_paths, split_ratio=0.8):
     test_nc_paths = [path for path in nc_paths if os.path.basename(path).split('_')[0] in test_nc_ids]
 
     return train_ad_paths, test_ad_paths, train_nc_paths, test_nc_paths
-
-train_dataset = TripletDataset(root_dir="/home/Student/s4647936/PatternAnalysis-2023/recognition/alzheimers_snn_s4647936/AD_NC", mode="train")
-print(f"Training dataset length: {len(train_dataset)}")
-test_dataset = TripletDataset(root_dir="/home/Student/s4647936/PatternAnalysis-2023/recognition/alzheimers_snn_s4647936/AD_NC", mode="test")
-print(f"Testing dataset length: {len(test_dataset)}")
