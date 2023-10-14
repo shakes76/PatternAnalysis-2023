@@ -5,6 +5,7 @@
 import dataset, modules
 import torch
 import torch.optim as optim
+from annoy import AnnoyIndex
 device = torch.device('cuda')
 
 # data path
@@ -22,11 +23,8 @@ epoches = 8
 train_loader, validation_loader, test_loader = dataset.load_data(
     train_folder_path, train_ad_path, train_nc_path, test_ad_path, test_nc_path, batch_size=32)
 
-
-accumulation_steps = 1
-
 # define models
-embbeding = modules.VGG16()
+embbeding = modules.Embedding()
 model = modules.SiameseNet(embbeding)
 model.to(device)
 
@@ -40,42 +38,52 @@ def train(train_loader, epoches):
     for epoch in range(epoches):
         # set model to train mode
         model.train()
+        skip = 0
         total_accuracy = 0
         total_samples = 0
         highest_val_accuracy = 0
 
-        for batch_idx, (anchor, positive, negative) in enumerate(train_loader):
+        for anchor, positive, negative in train_loader:
             # move data to gpu
             anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
 
             # front propagation
-            emb_anchor, emb_positive, emb_negative = model(anchor, positive, negative)            
-            loss = criterion(emb_anchor, emb_positive, emb_negative)
+            emb_anchor, emb_positive, emb_negative = model(anchor, positive, negative)
+
+            # mask = modules.semi_hard_triplet_mining(emb_anchor, emb_positive, emb_negative, int(len(emb_anchor) * 0.5), margin)
+            mask = modules.semi_hard_triplet_mining(emb_anchor, emb_positive, emb_negative, 0, margin)
+            if len(emb_anchor[mask]) == 0:
+                skip += 1
+                del emb_anchor, emb_positive, emb_negative
+                torch.cuda.empty_cache()
+                continue
+        
+            loss = criterion(emb_anchor[mask], emb_positive[mask], emb_negative[mask])
+            # loss = criterion(emb_anchor, emb_positive, emb_negative)
             
             # calculate accuracy
             batch_accuracy = calculate_accuracy(emb_anchor, emb_positive, emb_negative)
             total_accuracy += batch_accuracy * anchor.size(0)
             total_samples += anchor.size(0)
 
-            # back propagation with accumulation
-            loss = loss / accumulation_steps  # Normalize our loss (if averaged)
+            # back propagation
+            optimizer.zero_grad()
             loss.backward()
+            optimizer.step()
 
-            if (batch_idx + 1) % accumulation_steps == 0:
-                optimizer.zero_grad()
-                optimizer.step()
-
-        # calculate accuracy, validation loss, and validation accuracy
+        # calculate accuracy
         avg_accuracy = total_accuracy / total_samples
+
         validate_loss, validate_accuracy = validate(validation_loader)
 
         print(f"Epoch [{epoch+1}/{epoches}], Loss: {loss.item():.4f}, Accuracy: {avg_accuracy:.4f}, validate loss: {validate_loss:.4f}, validate accuracy: {validate_accuracy:.4f}")
-
+        
         # save the model
         if validate_accuracy > highest_val_accuracy:
             torch.save(model.state_dict(),
                        "D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/s4627382_SiameseNetwork/SiameseNet.pth")
             highest_val_accuracy = validate_accuracy
+            print("Model saved")
 
 # validate
 def validate(validation_loader):
@@ -155,12 +163,11 @@ def calculate_accuracy(anchor, positive, negative, threshold=0.5):
     return accuracy
 
 def main():
-    training = 1
+    train_mode = 1
 
-    if training:
+    if train_mode:
         # train the model
         print("Training")
-        optimizer.zero_grad()  
         train(train_loader, epoches)
 
     else:

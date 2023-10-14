@@ -8,7 +8,7 @@ from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
 device = torch.device('cuda')
-batch_size = 32
+batch_size = 16
 
 class CustomDataset(Dataset):
     def __init__(self, ad_dir, nc_dir, transform=None, validate=False, split_ratio=0.8):
@@ -54,15 +54,12 @@ class CustomDataset(Dataset):
             negative_path = os.path.join(self.ad_folder, random.choice(self.ad_names))
 
         # open images
-        anchor = Image.open(anchor_path)
-        positive = Image.open(positive_path)
-        negative = Image.open(negative_path)
-
-        # apply transformation
-        if self.transform:
-            anchor = self.transform(anchor)
-            positive = self.transform(positive)
-            negative = self.transform(negative)
+        with Image.open(anchor_path) as anchor, Image.open(positive_path) as positive, Image.open(negative_path) as negative:
+            # apply transformation
+            if self.transform:
+                anchor = self.transform(anchor)
+                positive = self.transform(positive)
+                negative = self.transform(negative)
         
         return anchor, positive, negative
 
@@ -80,9 +77,9 @@ def compute_mean_std(img_folder):
         transforms.ToTensor()
         ])
 
-    num_px = 0
-    sum_px = 0
-    sum_px_sq = 0
+    num_px = torch.tensor(0, dtype=torch.float64)
+    sum_px = torch.tensor(0, dtype=torch.float64)
+    sum_px_sq = torch.tensor(0, dtype=torch.float64)
 
     for subfolder in subfolders:
         subfolder_path = os.path.join(img_folder, subfolder)
@@ -92,7 +89,8 @@ def compute_mean_std(img_folder):
             # open the image and put them into GPU
             img_path = os.path.join(subfolder_path, img_name)
             img = Image.open(img_path)
-            img_tensor = transform(img).to(device)
+            img_tensor = transform(img)
+            img.close()
 
             num_px += img_tensor.numel()  # get the # of px
             sum_px += torch.sum(img_tensor)
@@ -102,6 +100,7 @@ def compute_mean_std(img_folder):
     mean = sum_px / num_px
     std = torch.sqrt((sum_px_sq / num_px) - (mean ** 2))
 
+    print("mean: ", mean.item(), "std: ", std.item())
     return mean.item(), std.item()
 
 # a function to load all required data
