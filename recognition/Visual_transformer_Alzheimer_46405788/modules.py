@@ -180,3 +180,19 @@ class TripletNet(nn.Module):
         output2 = self.forward_one(positive)
         output3 = self.forward_one(negative)
         return output1, output2, output3
+    
+class TripletNetClassifier(nn.Module):
+    def __init__(self):
+        super(TripletNetClassifier, self).__init__()
+        # Define the convolutional layers and fully connected layers for embeddings
+        self.classifier = nn.Sequential(
+            nn.Linear(128, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256),
+            nn.ReLU(),
+            nn.Linear(256, 2)
+        )
+        
+    def forward(self, x):
+        x = self.classifier(x)
+        return x

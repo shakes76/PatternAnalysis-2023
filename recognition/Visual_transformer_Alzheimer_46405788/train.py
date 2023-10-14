@@ -108,3 +108,92 @@ plt.figure()
 plt.plot(list(loss_epoch_train.keys()), list(loss_epoch_train.values()))
 plt.plot(list(loss_epoch_val.keys()), list(loss_epoch_val.values()))
 plt.savefig('running_loss_triplet_network.png')
+
+print('Classifier')
+tripleNet = model
+
+def extract_features(data):
+    with torch.no_grad():
+        embeddings = tripleNet.forward_one(data)
+        return embeddings
+    
+train_transform = transforms.Compose([
+        transforms.Resize((100, 100)),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.RandomCrop(100, padding=4, padding_mode='reflect'),
+        transforms.Grayscale(),
+    ])
+test_transform = transforms.Compose([
+        transforms.Resize((100, 100)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Grayscale(),
+    ])
+
+batch_size = 32
+# learning_rate = 0.001
+
+train_folder = 'AD_NC/train'
+test_folder = 'AD_NC/test'
+
+train, test = get_datasets('AD_NC', test_transform)
+
+train_loader = DataLoader(train, batch_size=batch_size, shuffle=True)
+test_loader = DataLoader(test, batch_size=batch_size, shuffle=False)
+
+# Load the pre-trained Siamese network
+tripleClassifier = TripletNetClassifier().to(device)
+
+# Loss function 
+criterion = torch.nn.CrossEntropyLoss()
+
+optimizer = torch.optim.Adam(tripleClassifier.parameters(), lr=0.001)
+
+t_loss = {}
+v_loss = {}
+num_epochs = 100
+
+# Train the classifier using labeled data
+print('start Training: ')
+for epoch in range(num_epochs):
+    for phase in ['train', 'val']:
+        if phase == 'train':
+            tripleClassifier.train()
+            dataloader = train_loader
+        else:
+            tripleClassifier.eval()
+            dataloader = test_loader
+        
+        running_loss = 0.0
+        for i, data in enumerate(dataloader):
+
+            percentageDone = int((i/ len(dataloader)) * 100)
+            if percentageDone % int(len(dataloader) / 200) == 0:
+                print(f"\rProgress: {percentageDone}/{100}", end="", flush=True)
+
+            input, label = data
+            input, label = input.to(device), label.to(device)
+            features = extract_features(input)
+            optimizer.zero_grad()
+            outputs = tripleClassifier(features)
+            loss = criterion(outputs, label)
+            loss.backward()
+            optimizer.step()
+            running_loss += loss.item()
+        print(f"\r", end="", flush=True)
+        print(f'{epoch} {phase} Loss: {running_loss / len(dataloader)}')
+        if phase == 'train':
+            t_loss[epoch] = running_loss / len(dataloader)
+        else:
+            v_loss[epoch] = running_loss / len(dataloader)
+
+torch.save(tripleClassifier.state_dict(), 'TripleNetClassifier.pth')
+
+plt.figure()
+plt.plot(list(t_loss.keys()), list(t_loss.values()))
+plt.plot(list(v_loss.keys()), list(v_loss.values()))
+plt.savefig('running_loss_triplet_classifier.png')
+
+print('Finished Training')
