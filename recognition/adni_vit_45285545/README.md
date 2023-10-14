@@ -1,6 +1,6 @@
 # Vision Transformer for Alzheimer's Disease Classification
 
-This project applies the Vision Transformer architecture to the task of classifying MRI brain images as either Cognitive Normal (CN) or representative of Alzheimer's disease (AD). The ViT is trained and tested on patient-level splits of the dataset from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu). A test accuracy close to 70% is achieved.
+This project applies the Vision Transformer architecture to the task of classifying MRI brain images as either Cognitive Normal (CN) or representative of Alzheimer's disease (AD). The ViT is trained and tested on patient-level splits of the dataset from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu). A test accuracy of 71.94% is achieved.
 
 ## Model Architecture
 
@@ -14,7 +14,25 @@ Transformers rely on attention, which calculates the pairwise inner product for 
 
 ## Data and Preprocessing
 
-## Model Results
+The ViT is trained and tested on patient-level splits of the dataset from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu). The train-test split dataset was obtained from the COMP3710 course page on the UQ Blackboard website.
+
+The training split contains 21,520 images; 11,120 images are cognitive normal (NC) and 10,400 are Alzheimer's disease (AD). The test split contains 9000 images; 4540 are NC and 4460 are AD. All subsets contain exactly 20 images per patient and there are no common patients between the sets. The training set is additionally 80/20 patient-level split into training and validation sets. Again, there are no common patients between the sets.
+
+Preprocessing of the data is minimal: all images are centre-cropped to 224x224.
+
+## Model Training and Results
+
+This solution uses the `vit_b_16` model provided by PyTorch, with the `IMAGENET1K_V1` pre-trained weights. The classification head is replaced with a fully-connected layer with 2 outputs rather than 10.
+
+The model is trained for 16 epochs or until validation loss does not improve for three consecutive epochs, at which point early stopping triggers and the model is reverted to the state following the epoch with the lowest validation loss.
+
+The following figure presents example model training and validation metrics.
+
+<!-- TODO: insert figure here -->
+
+The model trained above achieves the following result on the test split of the ADNI dataset.
+
+<!-- TODO: include results -->
 
 ## Reproducing Results
 
@@ -35,12 +53,12 @@ This implementation uses Python 3.10 and package dependencies are listed in `req
 
 1. Navigate to `recognition/adni_vit_45285545`.
 
-2. Execute the following to train the model then save the trained model to the working directory:
+2. Execute the following to train the model. The model is automatically saved to the working directory after training.
 ```bash
 python train.py N_EPOCHS
 ```
 
-3. Execute the following with a saved model file to run inference using the test split of the ADNI dataset:
+3. Execute the following with a saved model file to run inference using the test split of the ADNI dataset.
 ```bash
 python predict.py MDLFILE
 ```
