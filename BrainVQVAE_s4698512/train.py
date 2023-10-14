@@ -164,6 +164,7 @@ def main():
 
             # Finally, convert images into Tensor
             transforms.ToTensor(),
+            # Normalise images to range [-1, 1]
             transforms.Normalize((0.5,), (0.5,))
         ])
 
@@ -192,6 +193,8 @@ def main():
 
             # Finally convert images into Tensor
             transforms.ToTensor(),
+            # Normalise images to range [-1, 1]
+            transforms.Normalize((0.5,), (0.5,))
         ])
 
         # Define data loader object
