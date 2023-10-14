@@ -13,9 +13,9 @@ class GetADNITrain(Dataset):
         # Shrink to the desired train_split and if in validation or train
         temp_arr_len = int(len(image_list))
         if train:
-            image_list = image_list[:temp_arr_len * train_split]
+            image_list = image_list[:int(temp_arr_len * train_split)]
         else:
-            image_list = image_list[temp_arr_len * train_split:]
+            image_list = image_list[int(temp_arr_len * train_split):]
 
         # Get the array length
         self.arrLen = len(image_list)
