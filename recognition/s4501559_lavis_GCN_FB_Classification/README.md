@@ -1,4 +1,4 @@
-![image](https://github.com/jameslavis26/PatternAnalysis-2023/assets/59269629/377cbbc8-3557-49ee-95fb-9300405137ae)# Semi Supervised node classification on Facebook Large Page-Page Network dataset
+# Semi Supervised node classification on Facebook Large Page-Page Network dataset
 ## Description
 The facebook large page-page network dataset is a page-page graph of verified Facebook sites. Each node representa a Facebook page and the edges between nodes represent mutual likes between each page. The node features are descriptions of the page as written by the page owners, and have been embedded into an embedding space. The aim of this project is to classify each page into one of four categories: polititions facebook page, govermental facebook page, a tv show facebook page or a company page. 
 
@@ -58,6 +58,8 @@ For a graph convolutional network, the message passing is done through the follo
 ```
 where $\sigma$ is a non-linear activation function such as the element-wise ReLU function, $W_0^{(l)}$ and $W_1^{(l)}$ are learnable $d_l \times d_{d+1}$ parameter matrices and $c_{i, j} = 1/\sqrt{D_{i,i}D_{j,j}}$ is a normalisation constant, where $D_{i,i}$ is the degree of node $v_i$. The final node representations $h^L$ can then be used for regression or node classification problems in the normal way described above. 
 
+![image](https://github.com/jameslavis26/PatternAnalysis-2023/assets/59269629/377cbbc8-3557-49ee-95fb-9300405137ae)
+The image shows how message passing works in a graph convolutional network, where information is aggregated on the nodes over time (credit: Understanding Graph Convolutional Networks for Node Classification by Inneke Mayachita - Towards Data Science). 
 
 ## Training and validation
 The model is trained using a random sample of 80% of the labels as training data, and a random holdout 20% as validation. Randomness insures that there is no structure intentionally included, or accidently not noticed, in the training data that is not available in the validation data. The graph is loaded with embedded node features, and is split into batched using PyTorch geometric KNeigborLoader, which is a data loader that splits the graph into multiple subgraphs for training. The model consists of two graph convolutions, each with 128 channels, and passes the output into a relu function before the next layer. The final output is passed through a linear layer before being passed to the cross entropy loss function. The exponential learning rate schedular was trialed for a number of experiments, but was found to ultimately hinder performance. 
