@@ -31,8 +31,6 @@ test_dataset = datasets.ImageFolder(root=test_dataroot, transform=transform)
 train_dataset.class_to_idx = {'AD': 0, 'NC': 1}
 test_dataset.class_to_idx = {'AD': 0, 'NC': 1}
 
-print(train_dataset.samples)
- 
 
 def make_paired_datasets(dataset):
     X_pairs, y_pairs = [], []
@@ -53,23 +51,27 @@ def make_paired_datasets(dataset):
 
 
 # Make pairs to train the Siamese Network
-# X_train, y_train = make_paired_datasets(train_dataset.samples)
-
-# X_train = torch.tensor(X_train)
-# y_train = torch.tensor(y_train)
-
-# print(X_train)
-# print(y_train)
-
-# train_set = TensorDataset(X_train, y_train)    # Wrap X and Y into a single training dataset
-# train_dataset, validate_dataset = train_test_split(train_set, train_size=0.8, shuffle=True, random_state=42)
+X_train, y_train = make_paired_datasets(train_dataset)
 
 
-# # Define the data loaders
-# trainloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-# testloader = DataLoader(test_dataset, batch_size=64, shuffle=False)
-# valloader = DataLoader(validate_dataset, batch_size=64, shuffle=False)
+X_train = torch.tensor(X_train)
+y_train = torch.tensor(y_train)
 
-# print(trainloader)
-# print(testloader)
-# print(valloader)
+
+train_set = TensorDataset(X_train, y_train)    # Wrap X and Y into a single training dataset
+train_dataset, validate_dataset = train_test_split(train_set, train_size=0.8, shuffle=True, random_state=42)
+
+# Define the data loaders
+trainloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+testloader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+valloader = DataLoader(validate_dataset, batch_size=64, shuffle=False)
+
+print(trainloader)
+print(testloader)
+print(valloader)
+
+
+# for batch in iter(trainloader):
+#     print(batch[0].shape)
+#     print(batch[1].shape)
+#     break

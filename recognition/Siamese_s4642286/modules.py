@@ -11,7 +11,7 @@ import torch.nn.functional as F
 
 class CNN(nn.Module):
     def __init__(self):
-        super(self).__init__()
+        super(CNN, self).__init__()
 
         # CNN and Pooling layers
         self.cnn = nn.Sequential(
@@ -28,7 +28,6 @@ class CNN(nn.Module):
         )
 
     def forward(self, input):
-        # Forward pass through the Siamese network
         return self.cnn(input)
     
 
@@ -63,7 +62,7 @@ class ContrastiveLoss(nn.Module):
 
 
 # Takes in a feature vector, returns either 0 or 1 (AD OR NC)
-class MLP(nn.module):
+class MLP(nn.Module):
     def __init__(self):
         super(self).__init__()
         self.fc1 = nn.Linear(128, 64)

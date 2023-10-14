@@ -8,7 +8,7 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 from modules import SiameseNetwork, ContrastiveLoss, CNN, MLP
-from dataset import trainloader, testloader
+from dataset import trainloader
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
@@ -76,39 +76,39 @@ torch.save(Siamese.state_dict(), "./Siamese")
 
 
 
-# MLP SHOULD BE TRAINED ON THE FEATURE VECTOR.
-# Instantiate the MLP and move it to the GPU if available
-cnn = CNN()  # Assuming you have a CNN instance
-cnn.to(device)
+# # MLP SHOULD BE TRAINED ON THE FEATURE VECTOR.
+# # Instantiate the MLP and move it to the GPU if available
+# cnn = CNN()  # Assuming you have a CNN instance
+# cnn.to(device)
 
-mlp = MLP()
-mlp.to(device)
+# mlp = MLP()
+# mlp.to(device)
 
-# Define binary cross-entropy loss and optimizer for MLP
-criterion = nn.BCELoss()
-optimizer = optim.Adam(mlp.parameters(), lr=1e-3)
+# # Define binary cross-entropy loss and optimizer for MLP
+# criterion = nn.BCELoss()
+# optimizer = optim.Adam(mlp.parameters(), lr=1e-3)
 
-# Training loop for MLP
-num_epochs = 10
+# # Training loop for MLP
+# num_epochs = 10
 
-for epoch in range(num_epochs):
-    mlp.train()
-    total_loss = 0.0
+# for epoch in range(num_epochs):
+#     mlp.train()
+#     total_loss = 0.0
 
-    for batch_idx, (input, label) in enumerate(dataloader):  # Replace 'dataloader' with your data loading logic
-        input, label = input.to(device), label.to(device)
+#     for batch_idx, (input, label) in enumerate(dataloader):  # Replace 'dataloader' with your data loading logic
+#         input, label = input.to(device), label.to(device)
 
-        optimizer.zero_grad()
+#         optimizer.zero_grad()
 
-        output = mlp(input)
-        loss = criterion(output, label.view(-1, 1).float())  # Ensure label is a tensor of shape (batch_size, 1)
-        loss.backward()
+#         output = mlp(input)
+#         loss = criterion(output, label.view(-1, 1).float())  # Ensure label is a tensor of shape (batch_size, 1)
+#         loss.backward()
 
-        optimizer.step()
-        total_loss += loss.item()
+#         optimizer.step()
+#         total_loss += loss.item()
 
-    # Print the average loss for the epoch
-    print(f'Epoch [{epoch+1}/{num_epochs}] Loss: {total_loss / (batch_idx + 1):.4f}')
+#     # Print the average loss for the epoch
+#     print(f'Epoch [{epoch+1}/{num_epochs}] Loss: {total_loss / (batch_idx + 1):.4f}')
 
-# Save the trained MLP
-torch.save(mlp.state_dict(), "./Classifier")
+# # Save the trained MLP
+# torch.save(mlp.state_dict(), "./Classifier")
