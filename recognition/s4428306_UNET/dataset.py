@@ -51,6 +51,7 @@ def partition(data, train_size, val_size, test_size, seed):
 def normalize(image, mask):
     #TODO: Write specification.
     image = tf.cast(image, tf.float64) / 255.0
+    #NOTE: Should some kind of softmax be used here instead?
     mask = tf.cast(mask, tf.float64) / 255.0
     return image, mask
 
