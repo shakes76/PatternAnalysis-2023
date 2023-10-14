@@ -130,7 +130,7 @@ for epoch in range(num_epochs):
     np.savetxt("train_loss.csv", train_loss, delimiter=",")
     np.savetxt("val_loss.csv", val_loss, delimiter=",")
 
-
+# Plot the training and validation losses
 x = range(num_epochs)
 
 plt.figure(1)
