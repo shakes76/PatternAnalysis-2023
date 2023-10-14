@@ -43,6 +43,7 @@ Visual representation of the graph using TSNE embedding
 * GAN.pt: The pre-trained saved model
 
 ## Example
+To use the pre-trained, just load in the data and enter your data. 
 ```
 import torch
 import numpy as np
@@ -57,10 +58,30 @@ out = model(data.x, data.edge_index) # Predict model
 ```
 
 ## Training
-![0 9461504227859368](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/16239887-fd33-427b-8c3c-8f61dc2c9854)
+### Training loss
+128-100-64-32 layers <br />
 ![0 9453716065865598](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/e932e1c6-f050-4227-a867-d9a05c6c3b5f)
+
+
+128-64-16 layers <br />
+![0 9461504227859368](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/16239887-fd33-427b-8c3c-8f61dc2c9854)
+
+
+128-64 layers <br />
 ![0 9362483311081442](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/f294aa8a-73c0-4b17-b2cc-3ff2018cecc0)
+
+
+128-16 layers <br />
 ![0 9224521584334668](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/aa501314-6793-4046-887e-76953c88f7f2)
+
+Testing accuracy
+| Layers       |   Testing accuracy    |
+| :-----------: | :------------------: |
+| 128-100-64-32 | 0 9453716065865598   |
+| 128-64-16     | 0 9461504227859368   |
+| 128-64        | 0 9362483311081442   |
+| 128-16        | 0 9224521584334668   |
+
 
 [^1]: https://ojs.aaai.org/index.php/AAAI/article/view/17211/17018
 [^2]: https://snap.stanford.edu/data/facebook-large-page-page-network.html
