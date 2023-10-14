@@ -32,7 +32,7 @@ class getConvBlock(nn.Module):
     def __init__(self, feature_size, num_convs):
         super(getConvBlock).__init__()
         conv_array = []
-        for i in range(num_convs):
+        for _ in range(num_convs):
             conv_array.append(nn.Conv2d(feature_size, feature_size, 3, padding='same'))
 
         self.conv_array = nn.Sequential(*conv_array)
@@ -67,7 +67,7 @@ class pixelCNN(nn.Module):
         upscale_blocks = []
 
         # Define the upscalers
-        for i in range(num_upsamplers):
+        for _ in range(num_upsamplers):
             conv_blocks.append(getConvBlock(feature_size, num_convs))
             upscale_blocks.append(getUpscaleBlock(feature_size, 2))
 

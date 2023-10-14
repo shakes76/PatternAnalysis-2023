@@ -22,7 +22,8 @@ class GetADNITrain(Dataset):
         self.image_list = image_list
 
     def __getitem__(self, index):
-        # Load the image in grayscale
+
+        # Load the image in grayscale [0, 255]
         x = read_image(self.image_list[index], ImageReadMode.GRAY)
 
         # Normalize between [0, 1]
