@@ -50,3 +50,4 @@ def save_model():
     torch.save(model, 'GCN.pt')
 
 train()
+save_model()
