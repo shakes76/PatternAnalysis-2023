@@ -4,7 +4,7 @@ import torchvision.transforms as T
 from torch.utils.data import DataLoader
 from modules import pixelCNN
 from dataset import GetADNITrain
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 # Get device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
