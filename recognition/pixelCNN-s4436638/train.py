@@ -83,7 +83,7 @@ for epoch in range(num_epochs):
         total_loss += loss.item()
 
     # Divide the total loss by the number of epochs
-    total_loss = total_loss / batch_size
+    total_loss = total_loss / train_set.arrLen
     train_loss.append(total_loss)
 
     # Print the loss at the end of epoch
@@ -115,7 +115,7 @@ for epoch in range(num_epochs):
             total_loss += loss.item()
 
     # Divide the total loss by the number of epochs
-    total_loss = total_loss / batch_size
+    total_loss = total_loss / val_set.arrLen
     val_loss.append(total_loss)
 
     # Print the loss at the end of epoch
