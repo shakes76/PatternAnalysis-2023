@@ -21,37 +21,26 @@ class SiameseNetwork(nn.Module):
             nn.MaxPool2d(2),
             nn.Conv2d(64, 64, kernel_size=4), nn.ReLU(),
             nn.MaxPool2d(2),
-            nn.BatchNorm2d(64),
-            nn.Conv2d(64, 128, kernel_size=4), nn.ReLU()
+            nn.Conv2d(64, 128, kernel_size=4),
+            nn.BatchNorm2d(128),
+            nn.ReLU(),
+            nn.Flatten() # Outputs a 128 dimensional feature vector
         )
 
-        self.embedding_layer = nn.Sequential(
-            nn.BatchNorm1d(128 * 1 * 1),
-            nn.Flatten(),
-            nn.Linear(128 * 1 * 1, 50),
-            nn.ReLU()
-        )
-
-        # Classify whether the images belong to the same class or different classes
-        self.fc = nn.Sequential(
-            nn.BatchNorm1d(50),
-            nn.Linear(50, 1),
-            nn.Sigmoid()
-        )
-
-    def forward_one(self, x):
-        # Forward pass through one branch of the Siamese network
+    def forward(self, x):
+        # Forward pass through the Siamese network
         x = self.cnn(x)
-        x = self.embedding_layer(x)
         return x
 
-    def forward(self, input1, input2):
-        # Forward pass through both branches of the Siamese network
-        output1 = self.forward_one(input1)
-        output2 = self.forward_one(input2)
+
+    def other(self,x):
 
         # Compute L1 Distance between two embeddings
-        distance = torch.abs(output1 - output2)
+        distance  = torch.abs(output1 - output2)
+
+        # torch pairwise_distance
+
+        # contrastive loss after distance
 
         # Classify whether the images belong to the same class or different classes
         prediction = self.fc(distance)
@@ -59,3 +48,36 @@ class SiameseNetwork(nn.Module):
 
 
 
+class MLP(nn.module):
+    def __init__(self):
+        super(MLP, self).__init__() 
+
+        self.siamese = SiameseNetwork() # need to load the saved weights of the siamese network here
+
+        self.fc = nn.Sequential(
+            nn.Linear(128, 64),
+            nn.ReLU(),
+            nn.Linear(64, 2),
+            nn.Sigmoid()
+        )
+    
+    def forward(self, input):
+        output = self.siamese(input)
+        output = self.fc(output)
+        return output
+    
+
+
+
+
+
+
+
+# write siamese model so that it takes one image and output is feature vector
+# but when training, when iterating through trainloader, pass in each image from a pair separately into the SNN.
+
+
+
+
+
+# MLP SHOULD BE TRAINED ON THE FEATURE VECTOR.

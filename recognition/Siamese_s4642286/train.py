@@ -17,22 +17,49 @@ if not torch.cuda.is_available():
 print(device)
 
 # Initialize the Siamese network
-SNN = SiameseNetwork()
-SNN.to(device)  # Move the network to GPU if available
+Siamese_A = SiameseNetwork()
+Siamese_B = SiameseNetwork()
+
+Siamese_A.to(device)  # Move the network to GPU if available
+Siamese_B.to(device)  # Move the network to GPU if available
+
 
 # Define loss function and optimizer
 criterion = nn.BCELoss()  # Binary Cross-Entropy Loss
-optimizer = optim.Adam(SNN.parameters(), lr=0.001)  # Example optimizer (adjust learning rate)
+
+optimizer = optim.Adam([
+    {'params': Siamese_A.parameters()},
+    {'params': Siamese_B.parameters()}
+], lr=1e-3)
+
+
+
+loss.backward()
+optimizer.step()
 
 # Training loop
 num_epochs = 10
+
+
+
 for epoch in range(num_epochs):
     running_loss = 0.0
-    for i, data in enumerate(trainloader, 0):
-        inputs, labels = data
-        inputs = [img.to(device) for img in inputs]  # Move inputs to GPU
+    for batch in iter(trainloader):
+        images, labels = batch
+        
+        images = images.to(device)
+        labels = labels.to(device)
 
+        # Backwards and optimise
         optimizer.zero_grad()
+
+        # NEED TO TAKE IN TWO SEPARATE IMAGES
+        
+
+        # CALCULATE L1 OR PAIRWISE DISTANCE
+
+        # CALCULATE CONTRASTIVE LOSS
+
 
         outputs = SNN(*inputs)  # Forward pass
         loss = criterion(outputs, labels.float().to(device))  # Calculate loss
@@ -50,3 +77,5 @@ print("Finished Training")
 
 # Save the model's state dictionary
 torch.save(SNN.state_dict(), "./model")
+
+# step 1: train the siamese + save the model

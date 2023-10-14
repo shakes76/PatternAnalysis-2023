@@ -1,9 +1,7 @@
-# Name: Ethan Pinto
-# Student Number: s4642286
+Name: Ethan Pinto
+Student Number: s4642286
 
-# MUST BE PROPERLY FORMATTED USING GITHUB MARKDOWN
-
-# Title: Classification of Alzheimer's disease of the ADNI brain data using a Siamese Network.
+# Classification of Alzheimer's disease of the ADNI brain data using a Siamese Network.
 
 # Description of Algorithm: 
 A Siamese network consists of two identical neural networks, each of which takes in one of two
@@ -12,9 +10,12 @@ loss function, which calculates the similarities between the two images. The mai
 
 for Binary classification, feature vector is fed into a sigmoid function
 
+# Diagram of Siamese Neural Network
 
-# Problem it Solves (Paragraph):
 
+
+# Problem it Solves:
+ajhbs
 
 # How it Works:
 * Include inputs/outputs
@@ -26,15 +27,3 @@ for Binary classification, feature vector is fed into a sigmoid function
 
 # Describe pre-processing, justify training, validation and testing splits of data.
 
-
-
-# Recognition Tasks
-Various recognition tasks solved in deep learning frameworks.
-
-Tasks may include:
-* Image Segmentation
-* Object detection
-* Graph node classification
-* Image super resolution
-* Disease classification
-* Generative modelling with StyleGAN and Stable Diffusion

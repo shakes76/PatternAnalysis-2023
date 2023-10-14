@@ -6,13 +6,15 @@ import torch
 from modules import SiameseNetwork
 
 # Import the trained model
-loaded_siamese_net = SiameseNetwork()
+siamese = SiameseNetwork()
 
-# Load the trained weights into the model
-loaded_siamese_net.load_state_dict(torch.load("./model"))
+
+# step 2: load new version of siamese, then load saved weights in eval mode. This will make up the classifier.
+siamese.load_state_dict(torch.load("./model"))
+siamese.eval()
 
 # Move the model to the desired device (e.g., GPU)
-loaded_siamese_net.to("cuda")
+# loaded_siamese_net.to("cuda")
 
 
 # Create the test dataloader in here and use it to get a batch of images.
@@ -22,3 +24,6 @@ loaded_siamese_net.to("cuda")
 
 
 # Need a minimum accuracy of 0.8 on the test set.
+
+
+# Step 3: classification - take in individual images into snn, then write an mlp which takes in a feature vector of 128 and then classifies into one of two classes.

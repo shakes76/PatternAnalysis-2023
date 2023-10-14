@@ -58,3 +58,8 @@ test_set = TensorDataset(X_test, y_test)       # Wrap X and Y into a single test
 # Define the data loaders
 trainloader = DataLoader(train_set, batch_size=64, shuffle=True)
 testloader = DataLoader(test_set, batch_size=64, shuffle=False)
+
+
+# HARDCODED VALIDATION SET FOR MODEL EVALUATION WHILE TRAINING
+
+# TEST SET DOES NOT HAVE TO BE PAIRS!! since the model now only takes in one image.
