@@ -8,8 +8,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+from utils import DEVICE
 
 """
 |--------------------------------------------------------------------------
@@ -203,7 +202,7 @@ class VectorQuantizer(nn.Module):
         # find closest encodings
         min_embeddingsncoding_indices = torch.argmin(d, dim=1).unsqueeze(1)
         min_embeddingsncodings = torch.zeros(
-            min_embeddingsncoding_indices.shape[0], self.n_embeddings).to(device)
+            min_embeddingsncoding_indices.shape[0], self.n_embeddings).to(DEVICE)
         min_embeddingsncodings.scatter_(1, min_embeddingsncoding_indices, 1)
 
         # get quantized latent vectors
@@ -236,6 +235,7 @@ class VQVAE(nn.Module):
             n_hidden, 
             n_residual
         )
+        self.encoder = self.encoder.to(DEVICE)
         
         self.conv = nn.Conv2d(
             in_channels=n_hidden, 
@@ -244,12 +244,14 @@ class VQVAE(nn.Module):
             stride=1,
             padding=0
         )
+        self.conv = self.conv.to(DEVICE)
 
         self.quantizer = VectorQuantizer(
             n_embeddings, 
             dim_embedding,
             beta
         )
+        self.quantizer = self.quantizer.to(DEVICE)
         
         self.decoder = Decoder(
             dim_embedding,
@@ -257,6 +259,7 @@ class VQVAE(nn.Module):
             n_residual,
             channels
         )
+        self.decoder = self.decoder.to(DEVICE)
 
     def forward(self, x):
         # print('VQVAE INPUT: ', x.shape)

@@ -6,8 +6,10 @@
 ###################################
 
 import os
+import torch
 
 ENV='local'
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Dataset parameters
 if ENV == 'local':
@@ -16,14 +18,18 @@ else :
     ADNI_ROOT_DIR = '/home/groups/comp3710/ADNI'
 
 CHANNELS = 3
-W = 256
-H = 256
+W = 128
+H = 128
 BETA = 0.25
+FRACTION = 1.0
+
 
 
 # Running Parameters
-VQVAE_RETRAIN = False
+VQVAE_RETRAIN = True
 GAN_RETRAIN = False
+VQVAE_TEST = True
+VQVAE_PREDICT = True
 
 
 # VQVAE Model Parameters
@@ -36,7 +42,6 @@ VQVAE_LR = 1e-3
 VQVAE_WD = 1e-5
 VQVAE_EPOCHS = 100
 BATCH_SIZE = 32
-VQVAE_FRACTION = 1.0
 
 VQVAE_SAVEPATH = os.path.join(os.getcwd(), 'models/vqvae')
 VQVAE_MODEL_PATH = os.path.join(os.getcwd(), 'models/vqvae/vqvae.pth')
