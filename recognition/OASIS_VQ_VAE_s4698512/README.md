@@ -147,28 +147,39 @@ _Figure 5: Visualisation of Reconstruction_
 -   predict.py - loads a model save file and generates reconstructed images along with SSIM and loss plots.
 -   train.py - trains the dataset (OASIS or ADNI) and performs model training. Saves each epoch and best epoch into pt save files.
 
-Datasets should be stored in a folder called datasets within the BrainVQVAE_s4698512 folder with the following structure
+Datasets should be stored in a folder called datasets within a folder one level outside of the PatternAnalysis-2023 repository called PatternAnalysisData. Inside a subdirectory called datasets, the OASIS dataset should be stored.
 
 ```
-+-- OASIS
-|   +-- keras_png_slices_seg_test
-|       +-- seg_xxx_slice_yy.nii.png
-|   +-- keras_png_slices_seg_train
++-- PatternAnalysis-2023
+|   +-- recognition
+|       +-- OASIS_VQ_VAE_s4698512
+|           ...
+|   ...
++-- PatternAnalysisData
+|   +-- datasets
+|       +-- OASIS
+|           +-- keras_png_slices_seg_test
+|               +-- seg_xxx_slice_yy.nii.png
+|           +-- keras_png_slices_seg_train
+|               ...
+|           +-- keras_png_slices_seg_validate
+|               ...
+|   +-- ADNI
+|       +-- AD_NC
+|           +-- test
+|               +-- AD
+|                   xxxxxx_yy.jpeg
+|               +-- NC
+|                   ...
+|           +-- train
+|               +-- AD
+|                   ...
+|               +-- NC
+|                   ...
+|   +-- ModelParams
 |       ...
-|   +-- keras_png_slices_seg_validate
-|       ...
-+-- ADNI
-|   +-- AD_NC
-|       +-- test
-|           +-- AD
-|               xxxxxx_yy.jpeg
-|           +-- NC
-|               ...
-|       +-- train
-|           +-- AD
-|               ...
-|           +-- NC
-|               ...
+|   +-- generated
+|       +-- OASIS
 ```
 
 ## Dependencies Required

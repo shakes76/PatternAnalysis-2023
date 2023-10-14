@@ -21,6 +21,8 @@ import matplotlib.pyplot as plt
 from modules import VectorQuantisedVAE
 from dataset import OASIS, ADNI
 
+DATASETS_PATH = os.path.join("..", "PatternAnalysisData", "datasets")
+
 
 def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.optim.Adam, device: torch.device, beta: int):
     """
@@ -150,8 +152,7 @@ def main():
     # Number of neurons in each (inner/hidden) layer of the neural network
     hidden_dim = 128
 
-    dataset_path = os.path.join(
-        "..", "PatternAnalysisData", "datasets", dataset)
+    dataset_path = os.path.join(DATASETS_PATH, dataset)
 
     if dataset == "OASIS":
         # Input image dimensions
@@ -171,8 +172,12 @@ def main():
             transforms.Normalize((0.5,), (0.5,))
         ])
 
+        # Check if "OASIS_processed" folder does not exist
+        oasis_processed_folder = os.path.join(DATASETS_PATH, "OASIS_processed")
+        copy = not os.path.exists(oasis_processed_folder)
+
         # Define data loader object
-        oasis = OASIS(dataset_path, transform=transform, copy=False)
+        oasis = OASIS(dataset_path, transform=transform, copy=copy)
 
         # Obtain data loaders from oasis object
         train_loader = oasis.train_loader
@@ -200,9 +205,13 @@ def main():
             transforms.Normalize((0.5,), (0.5,))
         ])
 
+        # Check if "ADNI_processed" folder does not exist
+        adni_processed_folder = os.path.join(DATASETS_PATH, "ADNI_processed")
+        copy = not os.path.exists(adni_processed_folder)
+
         # Define data loader object
         adni = ADNI(dataset_path, sampleType=sampleType,
-                    transform=transform, copy=False)
+                    transform=transform, copy=copy)
 
         # Obtain data loaders from adni object
         train_loader = adni.train_loader

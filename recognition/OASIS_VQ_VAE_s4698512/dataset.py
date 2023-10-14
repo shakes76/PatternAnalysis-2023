@@ -20,8 +20,8 @@ VALIDATE_BATCH_SIZE = 76
 
 # OASIS Data set
 TYPE = "seg_"       # "seg_" for segmented, or "" for non-segmented
-OASIS_TRANS_DIR = os.path.join(
-    "..", "PatternAnalysisData", "datasets", "OASIS_processed")
+DATASETS_PATH = os.path.join("..", "PatternAnalysisData", "datasets")
+OASIS_TRANS_DIR = os.path.join(DATASETS_PATH, "OASIS_processed")
 
 FOLDS = ["train", "test", "validate"]
 OASIS_FOLD_PATH = {(TYPE, FOLD): f"keras_png_slices_{TYPE}{FOLD}" for TYPE in [
@@ -29,8 +29,7 @@ OASIS_FOLD_PATH = {(TYPE, FOLD): f"keras_png_slices_{TYPE}{FOLD}" for TYPE in [
 
 
 # ADNI Dataset
-ADNI_TRANS_DIR = os.path.join(
-    "..", "PatternAnalysisData", "datasets", "ADNI_processed")
+ADNI_TRANS_DIR = os.path.join(DATASETS_PATH, "ADNI_processed")
 CASES = ["AD", "NC"]    # Alzheimer's or control
 # Adni dataset doesn't contain validation
 ADNI_FOLD_PATH = {
@@ -210,19 +209,29 @@ if __name__ == "__main__":
     dataset = "ADNI"
 
     if dataset == "OASIS":
-        oasis_data_path = os.path.join(".", "datasets", "OASIS")
+        oasis_data_path = os.path.join(DATASETS_PATH, "OASIS")
         # Define a transformation to apply to the images (e.g., resizing)
         transform = transforms.Compose([
             transforms.Resize((256, 256)),  # Adjust the size as needed
             transforms.ToTensor(),
         ])
-        oasis = OASIS(oasis_data_path, transform=transform)
+
+        # Check if "OASIS_processed" folder does not exist
+        oasis_processed_folder = os.path.join(DATASETS_PATH, "OASIS_processed")
+        copy = not os.path.exists(oasis_processed_folder)
+
+        oasis = OASIS(oasis_data_path, transform=transform, copy=copy)
 
     elif dataset == "ADNI":
-        adni_data_path = os.path.join(".", "datasets", "ADNI", "AD_NC")
+        adni_data_path = os.path.join(DATASETS_PATH, "ADNI", "AD_NC")
         # Define a transformation to apply to the images (e.g., resizing)
         transform = transforms.Compose([
             transforms.Resize((240, 256)),  # Adjust the size as needed
             transforms.ToTensor(),
         ])
-        adni = ADNI(adni_data_path, transform=transform, copy=True)
+
+        # Check if "ADNI_processed" folder does not exist
+        adni_processed_folder = os.path.join(DATASETS_PATH, "ADNI_processed")
+        copy = not os.path.exists(adni_processed_folder)
+
+        adni = ADNI(adni_data_path, transform=transform, copy=copy)
