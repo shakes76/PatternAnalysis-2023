@@ -1,35 +1,6 @@
 import torch
 import torch.nn as nn
 
-class ImagePatcher(nn.Module):
-    '''
-    ImagePatcher
-
-    This class defines the functions necessary to split the input image
-    into a defined unmber of patches
-    '''
-
-    def __init__(self, patch_size=16):
-        super().__init__()
-        self.patch_size = patch_size
-
-    def forward(self, data):
-        batch_size, channels, height, width = data.size()
-        if (height % self.patch_size != 0) or (width % self.patch_size != 0):
-            return 0
-
-        num_patches_h = height // self.patch_size
-        num_patches_w = width // self.patch_size
-        num_patches = num_patches_h * num_patches_w
-
-        patches = data.unfold(2, self.patch_size, self.patch_size). \
-            unfold(3, self.patch_size, self.patch_size). \
-            permute(0, 2, 3, 1, 4, 5). \
-            contiguous(). \
-            view(batch_size, num_patches, -1)
-        
-        return patches
-
 class InputEmbedding(nn.Module):
     '''
     InputEmbedding
@@ -43,7 +14,14 @@ class InputEmbedding(nn.Module):
         self.n_channels = args.n_channels
         self.patch_size = args.patch_size
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        self.input_size = self.n_channels * self.patch_size ** 2
+        self.input_size = args.hidden_size
+        self.conv1 = nn.Conv2d(
+            in_channels=3,
+            out_channels=self.input_size,
+            kernel_size=self.patch_size,
+            stride=self.patch_size,
+            padding='valid'
+        )
 
         self.positionalEmbedding = nn.Parameter(torch.randn(self.batch_size, 1, self.latent_size)).to(self.device)
         self.classToken = nn.Parameter(torch.randn(self.batch_size, 1, self.latent_size)).to(self.device)
@@ -52,11 +30,13 @@ class InputEmbedding(nn.Module):
     def forward(self, input):
         input = input.to(self.device)
 
-        # Get the image patcher object
-        imagePatcher = ImagePatcher(patch_size=self.patch_size)
+        # Patch the images using a convolutional layer
+        patches = self.conv1(input)
+        sequenceLen = (input.shape[2] // self.patch_size) * (input.shape[3] // self.patch_size)
+        imagePatches = torch.reshape(patches, [-1, sequenceLen, self.input_size])
 
         # Project the patched images onto a linear plane using a FC linear layer
-        linearProjection = self.linearProjection(imagePatcher(input)).to(self.device)
+        linearProjection = self.linearProjection(imagePatches).to(self.device)
 
         # Define the class token
         self.classToken = nn.Parameter(torch.randn(linearProjection.shape[0], 1, self.latent_size)).to(self.device)
