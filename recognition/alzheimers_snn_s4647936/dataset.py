@@ -1,8 +1,7 @@
 import os
-import torch
-from torch.utils.data import Dataset
-from PIL import Image
 import random
+from PIL import Image
+from torch.utils.data import Dataset
 
 class TripletDataset(Dataset):
     """
@@ -19,7 +18,8 @@ class TripletDataset(Dataset):
     Returns:
         tuple: A triplet of images - (anchor, positive, negative).
     """
-    def __init__(self, root_dir, mode='train', transform=None):
+    
+    def __init__(self, root_dir, mode='train', transform=None, split_ratio=0.8):
         self.root_dir = root_dir
         self.mode = mode
         self.transform = transform
@@ -32,6 +32,15 @@ class TripletDataset(Dataset):
         self.ad_paths = [os.path.join(self.ad_dir, img) for img in os.listdir(self.ad_dir)]
         self.nc_paths = [os.path.join(self.nc_dir, img) for img in os.listdir(self.nc_dir)]
 
+        train_ad_paths, test_ad_paths, train_nc_paths, test_nc_paths = patient_wise_split(self.ad_paths, self.nc_paths, split_ratio)
+
+        if mode == 'train':
+            self.ad_paths = train_ad_paths
+            self.nc_paths = train_nc_paths
+        elif mode == 'test':
+            self.ad_paths = test_ad_paths
+            self.nc_paths = test_nc_paths
+
     def __len__(self):
         return len(self.ad_paths) + len(self.nc_paths)  # combined length
 
@@ -39,23 +48,21 @@ class TripletDataset(Dataset):
         # Decide whether to take AD or NC as anchor based on index
         if idx < len(self.ad_paths):
             anchor_path = self.ad_paths[idx]
-            positive_dir = self.ad_dir
-            negative_dir = self.nc_dir
+            positive_paths = self.ad_paths
+            negative_paths = self.nc_paths
         else:
             anchor_path = self.nc_paths[idx - len(self.ad_paths)]  # offset by length of ad_paths
-            positive_dir = self.nc_dir
-            negative_dir = self.ad_dir
+            positive_paths = self.nc_paths
+            negative_paths = self.ad_paths
 
         # Extract patient ID from the filename
-        patient_id = anchor_path.split('/')[-1].split('_')[0]
+        patient_id = os.path.basename(anchor_path).split('_')[0]
 
         # Choose a positive image from the same patient
-        positive_path = random.choice([path for path in os.listdir(positive_dir) if path != os.path.basename(anchor_path) and patient_id in path])
-        positive_path = os.path.join(positive_dir, positive_path)  # complete path
-
+        positive_path = random.choice([path for path in positive_paths if os.path.basename(path) != os.path.basename(anchor_path) and patient_id in os.path.basename(path)])
+        
         # Choose a negative image from a different patient
-        negative_img = random.choice([img for img in os.listdir(negative_dir) if patient_id not in img])
-        negative_path = os.path.join(negative_dir, negative_img)
+        negative_path = random.choice([path for path in negative_paths if patient_id not in os.path.basename(path)])
 
         anchor_image = Image.open(anchor_path)
         positive_image = Image.open(positive_path)
@@ -67,3 +74,40 @@ class TripletDataset(Dataset):
             negative_image = self.transform(negative_image)
 
         return anchor_image, positive_image, negative_image
+    
+
+def patient_wise_split(ad_paths, nc_paths, split_ratio=0.8):
+    """
+    Split the AD and NC data patient-wise.
+    
+    Args:
+    - ad_paths: List of paths to AD images.
+    - nc_paths: List of paths to NC images.
+    - split_ratio: Proportion of data to use for training.
+    
+    Returns:
+    - train_ad_paths: List of AD training paths.
+    - test_ad_paths: List of AD testing paths.
+    - train_nc_paths: List of NC training paths.
+    - test_nc_paths: List of NC testing paths.
+    """
+
+    # Extract patient IDs
+    ad_patient_ids = list(set(os.path.basename(path).split('_')[0] for path in ad_paths))
+    nc_patient_ids = list(set(os.path.basename(path).split('_')[0] for path in nc_paths))
+
+    # Split patient IDs for training and testing
+    train_ad_ids = random.sample(ad_patient_ids, int(split_ratio * len(ad_patient_ids)))
+    train_nc_ids = random.sample(nc_patient_ids, int(split_ratio * len(nc_patient_ids)))
+
+    test_ad_ids = list(set(ad_patient_ids) - set(train_ad_ids))
+    test_nc_ids = list(set(nc_patient_ids) - set(train_nc_ids))
+
+    # Get paths based on split IDs
+    train_ad_paths = [path for path in ad_paths if os.path.basename(path).split('_')[0] in train_ad_ids]
+    test_ad_paths = [path for path in ad_paths if os.path.basename(path).split('_')[0] in test_ad_ids]
+
+    train_nc_paths = [path for path in nc_paths if os.path.basename(path).split('_')[0] in train_nc_ids]
+    test_nc_paths = [path for path in nc_paths if os.path.basename(path).split('_')[0] in test_nc_ids]
+
+    return train_ad_paths, test_ad_paths, train_nc_paths, test_nc_paths
