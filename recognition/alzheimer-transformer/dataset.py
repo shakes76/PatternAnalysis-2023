@@ -19,21 +19,20 @@ def get_patient_ids(data_path):
 '''
 Returns the train, val, and test dataloaders for the AD_NC dataset, with a train/val split of 80/20
 '''
-def get_alzheimer_dataloader():
+def get_alzheimer_dataloader(batch_size:int=32, img_size:int=224):
     # Paths to training and test datasets
     train_data_path = "./dataset/AD_NC/train"
     test_data_path = "./dataset/AD_NC/test"
 
     # Transformers 
-    # Currently using some standard augmentations for ViTs
     train_transforms = transforms.Compose([
-    transforms.Resize((224, 224)),  # Resize to a consistent size
+    transforms.Resize((img_size, img_size)),  # Resize to a consistent size
     transforms.ToTensor(),  # Convert to tensor
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Normalize
     ])
 
     test_transforms = transforms.Compose([
-    transforms.Resize((224, 224)), 
+    transforms.Resize((img_size, img_size)), 
     transforms.ToTensor(),  
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]) 
     ])
@@ -54,9 +53,9 @@ def get_alzheimer_dataloader():
     val_subset = Subset(train_dataset, val_indices)
 
     # Create data loaders
-    train_loader = DataLoader(train_subset, batch_size=32, shuffle=True, num_workers=4)
-    val_loader = DataLoader(val_subset, batch_size=32, shuffle=False, num_workers=4)
-    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_subset, batch_size=batch_size, shuffle=True, num_workers=4)
+    val_loader = DataLoader(val_subset, batch_size=batch_size, shuffle=False, num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
     
     return train_loader, val_loader, test_loader
 
