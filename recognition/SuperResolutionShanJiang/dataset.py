@@ -68,11 +68,11 @@ from IPython.display import display
 # downsize_data(input_directory,output_directory)
 
 #Set parameters for cropping
-crop_width_size_ = 256
-crop_height_size_ = 249
+crop_width_size = 256
+crop_height_size = 249
 upscale_factor = 4
-input_width_size = crop_width_size_ // upscale_factor
-input_height_size = crop_height_size_ // upscale_factor
+input_width_size = crop_width_size // upscale_factor
+input_height_size = crop_height_size // upscale_factor
 batch_size = 8
 data_dir = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/train/AD'
 
@@ -80,7 +80,7 @@ data_dir = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Ji
 train_ds = image_dataset_from_directory(
     data_dir,
     batch_size=batch_size,
-    image_size=(input_height_size, input_width_size),
+    image_size=(crop_height_size, crop_width_size),
     validation_split=0.2,
     subset="training",
     seed=1337,
@@ -91,10 +91,23 @@ train_ds = image_dataset_from_directory(
 valid_ds = image_dataset_from_directory(
     data_dir,
     batch_size=batch_size,
-    image_size=(input_height_size, input_width_size),
+    image_size=(crop_height_size, crop_width_size),
     validation_split=0.2,
     subset="validation",
     seed=1337,
     label_mode=None,
 )
+
+# resacla training and validation images to take values in the range [0, 1].
+def scaling(input_image):
+    input_image = input_image / 255.0
+    return input_image
+
+train_ds = train_ds.map(scaling)
+valid_ds = valid_ds.map(scaling)
+
+# for batch in train_ds.take(1):
+#     for img in batch:
+#         display(array_to_img(img))
+
 
