@@ -20,27 +20,12 @@ if not torch.cuda.is_available():
     print("Warning no cuda")
 
 ## Data
-transform = transforms.Compose([transforms.ToTensor()])
+transform = transforms.Compose([transforms.Resize((512, 512)),transforms.ToTensor()])
 
 trainset = CustomDataset(root_dir='/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2', transform=transform) 
 trainloader = DataLoader(trainset, batch_size=32, shuffle=True)
 total_step=len(trainloader)
 print(total_step)
 
-class pre_act(nn.Module):
-    def __init__(self):
-        super(pre_act,self).__init__()
-        self.bn1=nn.BatchNorm2d()
-        self.conv1=nn.Conv2d(kernel_size=3,stride=1,padding=1,bias=False)
-        self.bn2=nn.BatchNorm2d()
-        self.conv2=nn.Conv2d(kernel_size=3,stride=1,padding=1,bias=False)
 
-    def forward(self,x):
-        out=self.bn1(x)
-        out=funk.relu(out)
-        out=self.conv1(out)
-        out=nn.Dropout(p=0.3)
-        out=self.bn2(out)
-        out=funk.relu(out)
-        out=self.conv2(out)
-        return out
+    
