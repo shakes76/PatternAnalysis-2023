@@ -20,10 +20,12 @@ OUTPUT_DIR_PATH = "~/report1"
 
 # Global constants
 BATCH_SIZE = 8 
+LEARNING_RATE = 0.00005
 
 def train(model, train_loader, valid_loader, num_epochs=10, device="cuda"):
-    criterion = nn.BCELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    criterion = dice_coefficient
+    optimiser = torch.optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-5)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.985)
 
     model.to(device)
     model.train()
@@ -33,17 +35,18 @@ def train(model, train_loader, valid_loader, num_epochs=10, device="cuda"):
     validation_losses = []
 
     for epoch in range(num_epochs):
+        scheduler.step()
         running_loss = 0.0
 
         for inputs, masks in train_loader:
             inputs, masks = inputs.to(device), masks.to(device)
 
-            optimizer.zero_grad()
+            optimiser.zero_grad()
 
             outputs = model(inputs)
-            loss = criterion(outputs, masks)
+            loss = 1 - criterion(outputs, masks) # we want to maximise dice coefficient, 1 is perfct. 
             loss.backward()
-            optimizer.step()
+            optimiser.step()
 
             running_loss += loss.item()
 
@@ -66,6 +69,13 @@ def train(model, train_loader, valid_loader, num_epochs=10, device="cuda"):
         validation_losses.append(val_loss / len(valid_loader))
 
     return model, training_losses, validation_losses 
+
+def dice_coefficient(y_true, y_pred):
+    y_true_f = y_true.view(-1)
+    y_pred_f = y_pred.view(-1)
+    intersection = torch.sum(y_true_f * y_pred_f)
+    dice = (2. * intersection + 1.) / (torch.sum(y_true_f) + torch.sum(y_pred_f) + 1.)
+    return dice
 
 def plot_losses(train_losses, valid_losses, save_dir):
     plt.figure(figsize=(10,5))

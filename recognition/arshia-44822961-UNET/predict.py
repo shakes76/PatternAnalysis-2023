@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import os 
 
 from dataset import ISICDataset
-from train import load_data, data_transform, BATCH_SIZE
+from train import load_data, data_transform, dice_coefficient, BATCH_SIZE
 
 # model file 
 MODEL_FILE_PATH = "improved_UNET.pth"
@@ -27,14 +27,6 @@ def perform_predictions(model, data_loader, device):
             outputs = model(inputs)
             predictions.append(outputs.cpu())
     return predictions, inputs, targets
-
-def dice_coefficient(predicted, target):
-    smooth = 1.0  # Add a smoothing term to prevent division by zero
-    intersection = (predicted * target).sum()
-    union = predicted.sum() + target.sum()
-    dice = (2. * intersection + smooth) / (union + smooth)
-    return dice.item()
-
 
 # histogram of coefficents 
 def plot_histogram(dice_coeffs, directory):
