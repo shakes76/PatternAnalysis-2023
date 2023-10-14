@@ -8,13 +8,15 @@ class GetADNITrain(Dataset):
     def __init__(self, path, train_split=0.9, train=True):
         
         # Get the list of images and sort them
-        image_list = sorted(glob.glob(path))
+        # glob.glob gives a list of files in a folder
+        # sorted sorts this in alphabetical/numerical order
+        image_list = sorted(glob.glob(path)) # [21520, path_string]
 
         # Shrink to the desired train_split and if in validation or train
-        temp_arr_len = int(len(image_list))
-        if train:
+        temp_arr_len = int(len(image_list)) # 21520
+        if train: # We want to use 90% of train images for train
             image_list = image_list[:int(temp_arr_len * train_split)]
-        else:
+        else: # We want to use 10% of train images for validation
             image_list = image_list[int(temp_arr_len * train_split):]
 
         # Get the array length
@@ -38,11 +40,10 @@ class GetADNITest(Dataset):
     def __init__(self, path):
         
         # Get the list of images and sort them
-        image_list = sorted(glob.glob(path))
+        self.image_list = sorted(glob.glob(path))
 
         # Get the array length
-        self.arrLen = len(image_list)
-        self.image_list = image_list
+        self.arrLen = len(self.image_list)
 
     def __getitem__(self, index):
         # Load the image in grayscale

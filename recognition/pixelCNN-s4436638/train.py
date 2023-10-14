@@ -18,7 +18,6 @@ upscale_factor = 4
 channels = 1
 feature_size = 32
 num_convs = 3
-learning_rate = 0.001
 image_size_x = 256
 image_size_y = 240
 num_epochs = 100
@@ -51,10 +50,10 @@ pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_g
 print("Number of trainable params: " + str(pytorch_total_params))
 
 # Define the optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
 # Define some variables to keep track of the loss
-train_loss = []
+train_loss = [] # Keep track of loss after each epoch
 val_loss = []
 min_val = 10000000000 # Start with the largest one
 for epoch in range(num_epochs):
@@ -81,8 +80,8 @@ for epoch in range(num_epochs):
         # Aggregate the loss
         total_loss += loss.item()
 
-    # Divide the total loss by the number of epochs
-    total_loss = total_loss / train_set.arrLen
+    # Divide the total loss by the number of images
+    total_loss = total_loss / (train_set.arrLen / batch_size)
     train_loss.append(total_loss)
 
     # Print the loss at the end of epoch
@@ -99,22 +98,22 @@ for epoch in range(num_epochs):
         for batch in val_loader:
 
             # Load images from dataloader
-            images = batch.to(device)
+            ground_truth = batch.to(device)
 
             # Downscale
-            inputs = down_sampler(images)
+            low_rez = down_sampler(ground_truth)
 
             # Get the model prediction
-            outputs = model(inputs)
+            prediction = model(low_rez)
 
             # Calculate the loss
-            loss = loss_function(images, outputs)
+            loss = loss_function(ground_truth, prediction)
 
             # Aggregate the loss
             total_loss += loss.item()
 
     # Divide the total loss by the number of epochs
-    total_loss = total_loss / val_set.arrLen
+    total_loss = total_loss / (val_set.arrLen / batch_size)
     val_loss.append(total_loss)
 
     # Print the loss at the end of epoch

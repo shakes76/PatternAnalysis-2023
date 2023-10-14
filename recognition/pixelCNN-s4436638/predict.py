@@ -16,13 +16,12 @@ print(device)
 # Define the path to the dataset
 images_path = "/home/Student/s4436638/Datasets/AD_NC/test/*"
 
-### Define a few training parameters
+### Define a few testing parameters
 batch_size = 1
 upscale_factor = 4
 channels = 1
 feature_size = 32
 num_convs = 3
-learning_rate = 1e-3
 image_size_x = 256
 image_size_y = 240
 
@@ -30,9 +29,9 @@ image_size_y = 240
 down_sampler = T.Resize(size=[image_size_y // upscale_factor, image_size_x // upscale_factor], 
                     interpolation=T.transforms.InterpolationMode.BICUBIC, antialias=True)
 
-# Define our training and validation datasets
+# Define our test dataset
 test_set = GetADNITest(images_path)
-# Define our training and validation dataloaders
+# Define our test dataloader
 test_loader = DataLoader(dataset=test_set, batch_size=batch_size, num_workers=4, shuffle=False)
 
 # Print out some information about the datasets
@@ -52,12 +51,11 @@ mse_arr = []
 ### Perform testing
 with torch.no_grad():
     model.eval()
-    total_loss = 0
 
     for i, image in enumerate(test_loader):
 
         # Load images from dataloader
-        image = image.to(device)
+        image = image.to(device) # [1, 1, h ,w]
 
         # Downscale
         input = down_sampler(image)
@@ -65,7 +63,7 @@ with torch.no_grad():
         # Get the model prediction
         output = model(input)
 
-        # Calculate the loss
+        # Calculate the loss (squeeze gets rid of batch and channel [h, w])
         im_np = np.squeeze(image.cpu().numpy())
         out_np = np.squeeze(output.cpu().numpy())
         psnr_arr.append(psnr(im_np, out_np, data_range=1.0))
