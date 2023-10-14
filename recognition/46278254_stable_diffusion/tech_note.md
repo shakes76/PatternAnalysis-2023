@@ -195,7 +195,7 @@ To elaborate:
 
 * For inference, due to the lengthy proof, we skip the derivation and utilize the formula provided in the paper.
 
-  ![](https://i.imgur.com/S7KH5hZ.png)
+  ![](report_imgs/DDPM2.png)
 
   * where $\sigma_t$ is $\sqrt{\beta_t}$. We'll generate new noise when sampling.
 
