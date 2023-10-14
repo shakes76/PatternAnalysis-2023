@@ -13,11 +13,10 @@ import torch
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 from torchvision import transforms
-from torchvision.utils import save_image
 from tqdm import tqdm
 import os
 from skimage.metrics import structural_similarity as ssim
-
+import matplotlib.pyplot as plt
 
 from modules import VectorQuantisedVAE
 from dataset import OASIS, ADNI
@@ -34,7 +33,7 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
         beta (int): loss weight
     """
 
-    best_ssim = 0
+    ssim_list = []
 
     # Loop over the images in the data loader
     for images, _ in train_loader:
@@ -55,8 +54,7 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
         batch_ssim = ssim(
             images_cpu[0, 0], x_til_cpu[0, 0], data_range=images_cpu[0, 0].max() - images_cpu[0, 0].min())
 
-        if batch_ssim > best_ssim:
-            best_ssim = batch_ssim
+        ssim_list.append(batch_ssim)
 
         # Vector Quantised Objective Function
         # We need to detach the gradient becuse gradients won't work in disctete space for backpropagation
@@ -70,7 +68,7 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
 
         optimiser.step()
 
-    print(f"Batch best SSIM: {best_ssim}")
+    return sum(ssim_list) / len(ssim_list)
 
 
 def test(test_loader: DataLoader, model: VectorQuantisedVAE, device: torch.device):
@@ -240,9 +238,13 @@ def main():
     # Keep track of best loss so far and initialise to arbitrary -1
     best_loss = -1.
 
-    for epoch in tqdm(range(num_epochs), desc="Training Progress"):
+    # Stores mean ssim values from each epoch
+    ssim_values = []
 
-        train(train_loader, model, optimiser, device, beta)
+    for epoch in tqdm(range(num_epochs), desc="Training Progress"):
+        # Train and return structured similarity metric
+        ssim = train(train_loader, model, optimiser, device, beta)
+        ssim_values.append(ssim)
         loss, _ = test(validate_loader, model, device)
         tqdm.write(f"Epoch [{epoch + 1}/{num_epochs}] Loss: {loss:.4f}")
 
@@ -257,6 +259,17 @@ def main():
         # Save the model at each epoch
         with open(f'{save_filename}/model_{epoch + 1}.pt', 'wb') as f:
             torch.save(model.state_dict(), f)
+
+    # Plot ssim and save
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(1, num_epochs + 1), ssim_values, marker='o', linestyle='-')
+    plt.title('SSIM Progress')
+    plt.xlabel('Epoch')
+    plt.ylabel('SSIM Value')
+    plt.grid(True)
+    # Save the plot as an image file
+    plt.savefig(f'{save_filename}/ssim_plot.png')
+    plt.show()
 
 
 if __name__ == "__main__":
