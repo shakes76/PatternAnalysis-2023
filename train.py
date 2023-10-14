@@ -25,17 +25,20 @@ def step_forward():
 def train(epochs=200):
     loss_list = []
     
+    # Train the model
     for epoch in range(1, epochs):
         loss = step_forward()
         loss_list.append(loss.item())
         print(f'Epoch: {epoch:03d}, Loss: {loss:.4f}')
     
+    # Print the loss graph
     plt.plot(loss_list)
     plt.title('Training loss of 128-64-16 layer')
     plt.xlabel('num of epochs')
     plt.ylabel('training loss')
     plt.show()
     
+    # Evaluate the model
     model.eval()
     out = model(data.x, data.edge_index)
     pred = out.argmax(dim=1)  # Use the class with highest probability.
