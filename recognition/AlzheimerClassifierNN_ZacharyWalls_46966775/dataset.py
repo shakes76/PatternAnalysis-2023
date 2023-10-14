@@ -54,7 +54,7 @@ def get_data_loaders():
         ]
     )
 
-    val_transform = transforms.Compose(
+    test_transform = transforms.Compose(
         [
             transforms.Resize(_size),
             transforms.CenterCrop(_size),
@@ -75,23 +75,15 @@ def get_data_loaders():
 
 
     print("Loading testing data...")
-    test_dataset = datasets.ImageFolder(root="data/test", transform=val_transform)
+    test_dataset = datasets.ImageFolder(root="data/test", transform=test_transform)
     print(f"Testing data loaded with {len(test_dataset)} samples.")
 
-    print("Allocating validation and testing data...")
-    num_test = len(test_dataset)
-    num_val = int(0.10 * num_test)  # 10% for validation
-    num_test -= num_val
-    test_subset, val_subset = random_split(test_dataset, [num_test, num_val])
     test_loader = torch.utils.data.DataLoader(
-        test_subset, batch_size=64, shuffle=False, num_workers=6
+        test_dataset, batch_size=128, shuffle=False, num_workers=6
     )
-    val_loader = torch.utils.data.DataLoader(
-        val_subset, batch_size=64, shuffle=True, num_workers=6
-    )
-    print(f"Testing and validation loaders ready.\n")
+    print(f"Testing loader ready.\n")
 
-    return train_loader, val_loader, test_loader
+    return train_loader, test_loader
 
 
 # Please note within the development environment the data was loaded in the following structure
