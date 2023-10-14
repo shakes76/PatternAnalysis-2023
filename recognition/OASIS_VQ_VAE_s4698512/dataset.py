@@ -20,7 +20,8 @@ VALIDATE_BATCH_SIZE = 76
 
 # OASIS Data set
 TYPE = "seg_"       # "seg_" for segmented, or "" for non-segmented
-OASIS_TRANS_DIR = os.path.join(".", "datasets", "OASIS_processed")
+OASIS_TRANS_DIR = os.path.join(
+    "..", "PatternAnalysisData", "datasets", "OASIS_processed")
 
 FOLDS = ["train", "test", "validate"]
 OASIS_FOLD_PATH = {(TYPE, FOLD): f"keras_png_slices_{TYPE}{FOLD}" for TYPE in [
@@ -28,7 +29,8 @@ OASIS_FOLD_PATH = {(TYPE, FOLD): f"keras_png_slices_{TYPE}{FOLD}" for TYPE in [
 
 
 # ADNI Dataset
-ADNI_TRANS_DIR = os.path.join(".", "datasets", "ADNI_processed")
+ADNI_TRANS_DIR = os.path.join(
+    "..", "PatternAnalysisData", "datasets", "ADNI_processed")
 CASES = ["AD", "NC"]    # Alzheimer's or control
 # Adni dataset doesn't contain validation
 ADNI_FOLD_PATH = {

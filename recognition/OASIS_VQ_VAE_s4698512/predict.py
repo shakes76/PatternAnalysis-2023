@@ -44,14 +44,16 @@ def predict(dataset: str, device: torch.device, model_name: str = "best.pt"):
 
     # Create the generated samples directory if it doesn't exist
     # This will also store the loss and ssim plots
-    output_dir = f"./{dataset}_generated"
+    output_dir = os.path.join(
+        "..", "PatternAnalysisData", "generated", dataset)
     os.makedirs(output_dir, exist_ok=True)
 
     # Define model.
     model = VectorQuantisedVAE(input_channels=num_channels,
                                output_channels=num_channels, hidden_channels=hidden_dim, num_embeddings=K)
     # Load the saved model
-    model_path = os.path.join(".", "ModelParams", model_name)
+    model_path = os.path.join(
+        "..", "PatternAnalysisData", "ModelParams", model_name)
     print(model_path)
     model_loaded = torch.load(model_path)
 
@@ -92,7 +94,7 @@ def predict(dataset: str, device: torch.device, model_name: str = "best.pt"):
     # Set the model to evaluation mode
     model.eval()
 
-    data_path = os.path.join(".", "datasets", dataset)
+    data_path = os.path.join("..", "PatternAnalysisData", "datasets", dataset)
 
     # Define a transformation to apply to the images (e.g., resizing)
     transform = transforms.Compose([

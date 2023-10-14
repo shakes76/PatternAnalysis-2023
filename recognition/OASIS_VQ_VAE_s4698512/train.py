@@ -150,7 +150,8 @@ def main():
     # Number of neurons in each (inner/hidden) layer of the neural network
     hidden_dim = 128
 
-    dataset_path = os.path.join(".", "datasets", dataset)
+    dataset_path = os.path.join(
+        "..", "PatternAnalysisData", "datasets", dataset)
 
     if dataset == "OASIS":
         # Input image dimensions
@@ -228,7 +229,7 @@ def main():
     print(f"{len(fixed_images)} images loaded")
 
     # Initialise Directory to save model to
-    save_filename = os.path.join(".", "ModelParams")
+    save_filename = os.path.join("..", "PatternAnalysisData", "ModelParams")
     if not os.path.exists(save_filename):
         os.makedirs(save_filename)
 
