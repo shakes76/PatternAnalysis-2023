@@ -41,7 +41,10 @@ if __name__ == '__main__':
         vqvae_tester.reconstruct(path=utils.VQVAE_RECONSTRUCT_PATH, show=True)
     
     if utils.VQVAE_PREDICT :
+        codebook = vqvae.quantizer.embedding.weight.data
+        print(codebook)
         generator = Predict(vqvae, num_images=utils.NUM_IMAGES, device=device, savepath=utils.OUTPUT_PATH, dataset=vqvae_dataset)
         generator.generate()
+        # generator.generate()
         generator.visualise(show=False)
         generator.ssim()

@@ -27,7 +27,7 @@ FRACTION = 1.0
 # Running Parameters
 VQVAE_RETRAIN = False
 GAN_RETRAIN = False
-VQVAE_TEST = True
+VQVAE_TEST = False
 VQVAE_PREDICT = True
 
 
@@ -57,7 +57,7 @@ DISCRIMINATOR_PATH = os.path.join(os.getcwd(), 'models/gan/gan_discriminator.pth
 GENERATOR_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
 
 # Prediction Parameters
-OUTPUT_PATH = os.path.join(os.getcwd(), 'models/predictions/output_new_')
+OUTPUT_PATH = os.path.join(os.getcwd(), 'models/predictions/generated_')
 NUM_IMAGES = 32
 
 # Misc

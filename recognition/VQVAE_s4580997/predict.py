@@ -20,15 +20,19 @@ class Predict() :
 
         self.generated_images = None
         self.ssim_score = None
-        
-    def generate(self, num = None):
+    
+    def generate(self, num_images=None, img_size=(32, 32)):
+        if num_images is None:
+            num_images = self.n
         self.model.eval()
         with torch.no_grad():
-            # Generate random indices to select embeddings.
-            random_indices = torch.randint(high=self.model.quantizer.n_embeddings, size=(self.n, 32, 32)).to(self.device)
-            # Retrieve the corresponding embeddings.
+            # Randomly select indices from the codebook.
+            random_indices = torch.randint(
+                high=self.model.quantizer.n_embeddings, 
+                size=(num_images, *img_size)
+            ).to(self.device)
+            
             random_embeddings = self.model.quantizer.embedding(random_indices).permute(0, 3, 1, 2)
-            # Decode the embeddings into images.
             self.generated_images = self.model.decoder(random_embeddings)
 
     def visualise(self, show = True, save = True):
@@ -65,6 +69,8 @@ class Predict() :
                 break
             real_img = data[0].numpy()  # Taking the first image in the batch
             real_img = np.transpose(real_img, (1, 2, 0))  # HxWxC
+            print(real_img.shape)
+            print(gen_img.shape)
 
             ssim = structural_similarity(
                 gen_img,

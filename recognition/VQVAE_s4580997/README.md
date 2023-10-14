@@ -8,6 +8,11 @@ The dataset used is the ADNI
 
 ### Modules
 #### VQVAE
+##### Description
+Very efficient at representing a latent space in imaging
+
+#### Loss Function
+The loss function for training the VQVAE
 
 ##### GAN
 
