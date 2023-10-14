@@ -21,6 +21,9 @@ ADNI_ROOT = {
     'linux': Path('/home', 'groups', 'comp3710', 'ADNI', 'AD_NC')
 }[sys.platform]
 
+# Batch size for training, validation and testing data loaders
+BATCH_SIZE = 64
+
 class ADNI(Dataset):
     def __init__(self, root: str, train: bool = True,
                  transform: Optional[Callable] = None,
@@ -105,11 +108,11 @@ def create_train_dataloader(val_pct: float = 0.2) -> DataLoader:
     ])
     train_dataset = ADNI(ADNI_ROOT, train=True, transform=transform)
     if val_pct == 0:
-        return DataLoader(train_dataset, batch_size=64, shuffle=True)
+        return DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     else:
         train_dataset, valid_dataset = train_val_split(train_dataset, val_pct)
-        return (DataLoader(train_dataset, batch_size=64, shuffle=True),
-                DataLoader(valid_dataset, batch_size=64, shuffle=True))
+        return (DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True),
+                DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=True))
 
 def create_test_dataloader() -> DataLoader:
     '''
@@ -119,4 +122,4 @@ def create_test_dataloader() -> DataLoader:
         transforms.ConvertImageDtype(torch.float),
     ])
     test_dataset = ADNI(ADNI_ROOT, train=False, transform=transform)
-    return DataLoader(test_dataset, batch_size=64, shuffle=True)
+    return DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)
