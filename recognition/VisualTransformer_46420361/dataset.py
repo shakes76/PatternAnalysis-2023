@@ -2,23 +2,26 @@ from torchvision.datasets import ImageFolder
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 
-from math import log2
 
-
-def load_dataset(image_size, batch_sizes, path):
+def load_dataset(image_size, batch_size, path):
     # transform
-    transform = transforms.Compose([
+    train_transform = transforms.Compose([
         transforms.Resize((image_size, image_size)),
         transforms.ToTensor(),
-        transforms.RandomHorizontalFlip(p=0.5),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+    ])
+    
+    test_transform = transforms.Compose([
+        transforms.Resize((image_size, image_size)),
+        transforms.ToTensor(),
     ])
 
-    # data
-    batch_size = batch_sizes[int(log2(image_size / 4))]
-    dataset = ImageFolder(path, transform=transform)
-    dataloader = DataLoader(dataset=dataset, batch_size=batch_size, shuffle=True)
+    # data    
+    train_dataset = ImageFolder(path, transform=train_transform)
+    train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True)
+    
+    test_dataset = ImageFolder(path, transform=test_transform)
+    test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True)
 
-    return dataloader, dataset
+    return train_dataloader, test_dataloader
 
 # KEEP PATIENTS DATA TOGETHER TO PREVENT DATA LEAKAGE AND OVERFITTING
