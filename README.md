@@ -12,7 +12,10 @@ Visual example of node classification[^4]
 ## The dataset
 We demonstrate the usage of semi-supervised node classification using the Facebook large page-page network dataset[^2].
 A processed dataset[^3] was used instead to train the model. The dataset consists of 128-dimension feature vector, a
-(n,2) edge list and the node's label.
+(n,2) edge list and the node's label. The dataset was split into training (0.7), validation (0.2) and testing (0.1).
+Training set had the majority of the dataset to ensure the model had sufficcient data to train to reduce potential bias.
+Then validation had 0.2 to capture the overall performance of the model. Testing had the smallest size to capture the
+model's performance on unseen data.
 
 ### Example of data:
 Feature dimension <br />
