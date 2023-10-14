@@ -29,6 +29,9 @@ class GetADNITrain(Dataset):
         x = x / torch.max(x)
 
         return x
+    
+    def __len__(self):
+        return self.arrLen
 
 class GetADNITest(Dataset):
     def __init__(self, path):
@@ -48,3 +51,6 @@ class GetADNITest(Dataset):
         x = x / torch.max(x)
 
         return x
+    
+    def __len__(self):
+        return self.arrLen
