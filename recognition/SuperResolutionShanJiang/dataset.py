@@ -67,7 +67,7 @@ from IPython.display import display
 
 #Set parameters for cropping
 crop_width_size = 256
-crop_height_size = 249
+crop_height_size = 248
 upscale_factor = 4
 input_height_size = crop_height_size // upscale_factor
 input_width_size = crop_width_size // upscale_factor
