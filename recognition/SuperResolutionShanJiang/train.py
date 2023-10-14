@@ -7,6 +7,7 @@ from keras import layers
 from keras.utils import load_img
 import os
 import math
+import matplotlib.pyplot as plt
 
 upscale_factor = 4
 # define test data from test AD 
@@ -18,6 +19,10 @@ test_img_paths = sorted(
         if fname.endswith(".jpeg")
     ]
 )
+train_loss_history = []
+valid_loss_history = []
+train_psnr_history = []
+valid_psnr_history = []
 class ESPCNCallback(keras.callbacks.Callback):
     """
     Custom Keras callback for monitoring and displaying PSNR during training.
@@ -36,6 +41,33 @@ class ESPCNCallback(keras.callbacks.Callback):
         # if epoch % 20 == 0:
         #     prediction = upscale_image(self.model, self.test_img)
             # plot_results(prediction, "epoch-" + str(epoch), "prediction")
+        train_loss_history.append(logs['loss'])
+        valid_loss_history.append(logs['val_loss'])
+        train_psnr_history.append(np.mean(self.psnr))
+        valid_psnr_history.append(np.mean(self.psnr))
+        
+        if epoch % 20 == 0:
+            # Plot loss history after each epoch
+            plt.figure(figsize=(10, 6))
+            plt.plot(train_loss_history, label='Training Loss', color='blue')
+            plt.plot(valid_loss_history, label='Validation Loss', color='red')
+            plt.title('Training and Validation Loss')
+            plt.xlabel('Epoch')
+            plt.ylabel('Loss')
+            plt.legend()
+            plt.grid(True)
+            plt.show()
+
+            # Plot PSNR history after each epoch
+            plt.figure(figsize=(10, 6))
+            plt.plot(train_psnr_history, label='Training PSNR', color='blue')
+            plt.plot(valid_psnr_history, label='Validation PSNR', color='red')
+            plt.title('Training and Validation PSNR')
+            plt.xlabel('Epoch')
+            plt.ylabel('PSNR (dB)')
+            plt.legend()
+            plt.grid(True)
+            plt.show()
     
     # Store PSNR value when each test epoch ends
     def on_test_batch_end(self, batch, logs=None):
