@@ -2,6 +2,8 @@ import numpy as np
 import torch
 from torch_geometric.data import Data
 from torch_geometric.transforms import RandomNodeSplit
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
 
 
 def load_data():
@@ -46,5 +48,34 @@ def print_stats():
     print(f'Has self-loops: {data.has_self_loops()}')
     print(f'Is undirected: {data.is_undirected()}')
 
+def visualise():
+    '''
+    Visualise the data using TSNE embedding
+    
+    '''
+    features = np.load('facebook_large/features.npy')
+    targets = np.load('facebook_large/target.npy')
+    
+    tsne = TSNE(n_components=2, random_state=42)
+    tsne_results = tsne.fit_transform(features)
+    
+    # Plotting stuff
+    # Plot t-SNE embeddings with ground truth labels as colors
+    plt.figure(figsize=(10, 8))
+    
+    # Define a color map for the labels
+    labels = [0, 1, 2, 3]
+    colors = plt.cm.rainbow(np.linspace(0, 1, len(labels)))
+    
+    for i, label in enumerate(labels):
+        # Filter data points for each label
+        mask = (targets == label)
+        plt.scatter(tsne_results[mask, 0], tsne_results[mask, 1], label=f'Label {label}', color=colors[i])
+
+    plt.title('TSNE Embeddings with Ground Truth Labels')
+    plt.legend()
+    plt.show()
+
 # data = test_train()
 # print_stats()
+visualise()
