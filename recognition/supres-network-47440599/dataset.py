@@ -7,31 +7,35 @@ import matplotlib.pyplot as plt
 
 def load_data():
     dataroot = "./data/AD_NC/train"
-
     downscaling = 4
 
     batch_size = 128
 
     workers = 2
 
-    device = torch.device("cpu")
     dataset = dset.ImageFolder(root=dataroot,
                             transform=transforms.Compose([
+                                transforms.Grayscale(1),
                                 transforms.Resize((64,60)),
                                 transforms.ToTensor(),
-                                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                                transforms.RandomHorizontalFlip()
                             ]))
 
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                             shuffle=True, num_workers=workers)
 
+    print("data loaded")
+    return dataloader
 
+
+    
+
+if __name__ == "__main__":
+    dataloader = load_data()
+    device = torch.device("cpu")
     real_batch = next(iter(dataloader))
     plt.figure(figsize=(8,8))
     plt.axis("off")
     plt.title("Training Images")
-    plt.imshow(np.transpose(vutils.make_grid(real_batch[0].to(device)[:64], padding=2, normalize=True).cpu(),(1,2,0)))
+    plt.imshow(np.transpose(vutils.make_grid(real_batch[0].to(device)[:64], padding=2, normalize=True).cpu(),(1,2,0)),cmap = "gray")
     plt.show()
-
-if __name__ == "__main__":
-    load_data()

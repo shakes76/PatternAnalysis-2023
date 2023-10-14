@@ -24,5 +24,3 @@ class SubPixel(nn.Module):
         x = self.upsample(x)
         return x
     
-model = SubPixel()
-print(model)
