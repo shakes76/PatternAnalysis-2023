@@ -15,13 +15,22 @@ The dataset used is the ADNI
 The package dependencies used for the project are:
 | **Dependency** | **Version** |
 |---|---|
-| Python | 3.8.10 |
-| pytorch | 2.0.0 |
-| torchvision | 0.15.2 |
-| numpy | 1.23.5 |
-| matplotlib | 3.1.2 |
+| Python | 3.7.16 |
+| pytorch | 1.13.1 |
+| torchvision | 0.14.1 |
+| numpy | 1.21.5 |
+| matplotlib | 3.5.3 |
+| skimage | 3.5.3 |
 
 ## Usage
+
+## Results
+### Training
+
+### Validation / Testing
+
+### Generation
+Images can be generated
 
 ## References
 [1] A. v. d. Oord, O. Vinyals, and K. Kavukcuoglu, “Neural Discrete Representation Learning,”

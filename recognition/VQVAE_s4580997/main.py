@@ -6,16 +6,13 @@
 ###################################
 
 import torch
-from modules import VQVAE, GAN
+from modules import VQVAE
 import utils
-from dataset import Dataset, ModelDataset
-from train import TrainVQVAE, TrainGAN
+from dataset import Dataset
+from train import TrainVQVAE
 from predict import Predict
 from test import TestVQVAE
-import PIL 
 import matplotlib.pyplot as plt
-import torchvision.transforms as transforms
-import numpy as np
 import torch.nn.functional as F
 
 if __name__ == '__main__':
@@ -29,7 +26,7 @@ if __name__ == '__main__':
                 beta = utils.BETA
     )
 
-    vqvae_dataset = Dataset(batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=utils.DATASET_FRACTION)
+    vqvae_dataset = Dataset(batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=utils.FRACTION)
 
     if utils.VQVAE_RETRAIN :
         vqvae_trainer = TrainVQVAE(vqvae, vqvae_dataset, utils.VQVAE_LR, utils.VQVAE_WD, utils.VQVAE_EPOCHS, utils.VQVAE_SAVEPATH)
@@ -37,7 +34,7 @@ if __name__ == '__main__':
         vqvae_trainer.plot(save=True)
         vqvae_trainer.save(utils.VQVAE_MODEL_PATH)
     else :
-        vqvae.load_state_dict(torch.load(utils.VQVAE_MODEL_PATH))
+        vqvae.load_state_dict(torch.load(utils.VQVAE_RANGPUR_MODEL_PATH, map_location=utils.DEVICE)) # Change back to utils.VQVAE_MODEL_PATH
     
     if utils.VQVAE_TEST :
         vqvae_tester = TestVQVAE(vqvae, vqvae_dataset, savepath=utils.VQVAE_SAVEPATH)

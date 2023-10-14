@@ -66,10 +66,6 @@ class Predict() :
             real_img = data[0].numpy()  # Taking the first image in the batch
             real_img = np.transpose(real_img, (1, 2, 0))  # HxWxC
 
-            print(real_img.shape)
-            print(gen_img.shape)
-            assert real_img.shape == gen_img.shape, "Image shapes do not match!"
-
             ssim = structural_similarity(
                 gen_img,
                 real_img,
