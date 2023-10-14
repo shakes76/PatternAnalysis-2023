@@ -67,26 +67,31 @@ def augment(image, mask):
         mask = tf.image.flip_up_down(mask)
     return image, mask
 
-def preprocessing():
+#NOTE: Unsure what the batch size should be.
+def preprocessing(batch_size=64):
     #TODO: Write specification.
     #These are the directories for the datasets.
     test_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Test_Input/"
     training_images_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2/"
     training_gt_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2/"
-    #Load in, split, normalize and augment.
+    #Load in data.
     #NOTE: test_dir is unused, there don't seem to be segmentation maps in there.
     image_data = loadDataFrom(training_images_dir, channels=3)
     mask_data = loadDataFrom(training_gt_dir, channels=1)
     isic_data = tf.data.Dataset.zip((image_data, mask_data))
+    #Split.
     train_data, val_data, test_data = partition(isic_data, 1796, 400, 400, seed=271828)
+    #Normalize and augment.
     #NOTE: How to ensure augment happens on a batch by batch basis, but normalize doesn't?
     #      Probably want to add layers to front of model that do data augmentation, rather than doing it in
     #      preprocessing. See "tensorflow data augmentation". Would have to be layers that are only used in training.
     train_data = train_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #NOTE: Augmentation is unnecessary here if augment layer is used in model.
     train_data = train_data.map(augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     val_data = val_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     test_data = test_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #Create batches for training data.
+    train_batches = train_data.cache().batch(batch_size).repeat()
     #NOTE: Is any other preprocessing needed?
-    #TODO: Add code that breaks train_data into batches.
-    return train_data, val_data, test_data
+    return train_batches, val_data, test_data
 
