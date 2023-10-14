@@ -144,16 +144,10 @@ class Decoder(nn.Module):
 
     def forward(self, out):
         out = self.conv1(out)
-
         out = self.residualBlock(out)
-
         out = self.transpose1(out)
-        # print('DECODER T1: ', out.shape)
         out = self.transpose2(out)
-        # print('DECODER T2: ', out.shape)
         out = self.transpose3(out)
-        # print('DECODER T3: ', out.shape)
-
         return out
 
 class VectorQuantizer(nn.Module):
@@ -265,10 +259,15 @@ class VQVAE(nn.Module):
         )
 
     def forward(self, x):
+        print('VQVAE INPUT: ', x.shape)
         x = self.encoder(x)
+        print('VQVAE ENCODER: ', x.shape)
         x = self.conv(x)
+        print('VQVAE CONV: ', x.shape)
         loss, x_q, perplexity, _, _ = self.quantizer(x)
+        print('VQVAE QUANTIZER: ', x_q.shape)
         x_hat = self.decoder(x_q)
+        print('VQVAE DECODER: ', x_hat.shape)
         return loss, x_hat, perplexity
 
 
