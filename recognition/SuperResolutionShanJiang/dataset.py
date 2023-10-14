@@ -2,10 +2,8 @@ import tensorflow as tf
 import os
 
 import tensorflow as tf
-
-import os
 import math
-import numpy as np
+
 
 from tensorflow import keras
 from keras import layers
@@ -110,15 +108,7 @@ valid_ds = valid_ds.map(scaling)
 #     for img in batch:
 #         display(array_to_img(img))
 
-# define test data from test AD 
-test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test/AD'
-test_img_paths = sorted(
-    [
-        os.path.join(test_path, fname)
-        for fname in os.listdir(test_path)
-        if fname.endswith(".jpeg")
-    ]
-)
+
 
 
 def process_input(input,input_height_size,input_width_size):

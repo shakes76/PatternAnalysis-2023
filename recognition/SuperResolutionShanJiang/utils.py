@@ -51,3 +51,5 @@ def upscale_image(model, img):
         "RGB"
     )
     return out_img
+
+
