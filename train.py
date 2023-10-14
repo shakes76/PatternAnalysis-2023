@@ -33,7 +33,7 @@ def train(epochs=200):
     
     # Print the loss graph
     plt.plot(loss_list)
-    plt.title('Training loss of 128-64-16 layer')
+    plt.title('Training loss of 128-100-64-32 layer')
     plt.xlabel('num of epochs')
     plt.ylabel('training loss')
     plt.show()
@@ -45,6 +45,9 @@ def train(epochs=200):
     test_correct = pred[data.test_mask] == data.y[data.test_mask]  # Check against ground-truth labels.
     test_acc = int(test_correct.sum()) / int(data.test_mask.sum())  # Derive ratio of correct predictions.
     print('test accuraccy:', test_acc)
+    
+    if test_acc > 0.946: # if accuracy is higher than previous, save model
+        save_model()
 
 def save_model():
     torch.save(model, 'GCN.pt')
