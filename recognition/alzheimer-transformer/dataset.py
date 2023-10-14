@@ -28,9 +28,6 @@ def get_alzheimer_dataloader():
     # Currently using some standard augmentations for ViTs
     train_transforms = transforms.Compose([
     transforms.Resize((224, 224)),  # Resize to a consistent size
-    transforms.RandomHorizontalFlip(),  # Randomly flip horizontally
-    transforms.RandomRotation(degrees=15),  # Random rotation
-    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.2, hue=0.1),  # Color jitter
     transforms.ToTensor(),  # Convert to tensor
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Normalize
     ])
