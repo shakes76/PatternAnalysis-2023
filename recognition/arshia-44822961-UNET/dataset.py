@@ -82,6 +82,3 @@ def compute_mean_std(loader):
     std = (squared_mean - mean**2)**0.5
 
     return mean, std
-
-# Main method - will not be in final dataset. 
-# This is to compute mean and std deviations and also make sure data loading is working.
