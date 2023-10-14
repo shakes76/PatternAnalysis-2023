@@ -172,6 +172,11 @@ class VectorQuantisedVAE(nn.Module):
             nn.BatchNorm2d(hidden_channels),
             nn.ReLU(True),
             nn.Conv2d(hidden_channels, hidden_channels, 4, 2, 1),
+            ##
+            nn.BatchNorm2d(hidden_channels),
+            nn.ReLU(True),
+            nn.Conv2d(hidden_channels, hidden_channels, 4, 2, 1),
+            ##
             ResBlock(hidden_channels),
             ResBlock(hidden_channels),
         )
@@ -185,6 +190,12 @@ class VectorQuantisedVAE(nn.Module):
             # Upconvolution (upscaling)
             nn.ConvTranspose2d(hidden_channels, hidden_channels, 4, 2, 1),
             nn.BatchNorm2d(hidden_channels),
+            ####
+            nn.ReLU(True),
+            # Upconvolution (upscaling)
+            nn.ConvTranspose2d(hidden_channels, hidden_channels, 4, 2, 1),
+            nn.BatchNorm2d(hidden_channels),
+            ###
             nn.ReLU(True),
             nn.ConvTranspose2d(hidden_channels, output_channels, 4, 2, 1),
             nn.Tanh()
