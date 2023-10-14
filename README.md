@@ -1,6 +1,10 @@
 # A demonstration of semi-supervised multi-class node classification using a GCN model
 A semi-supervised node classification is classifying unlabeled nodes in an undireted graph where there is a feature
-vector for each node and a set of labeled nodes[^1]. 
+vector for each node and a set of labeled nodes[^1]. A semi-supervised classification works by training the model
+using the small amount of labeled data, Then the trained model makes predictions based on the labeled data. Then
+the model's prediction on unlabaled data are treaed as pseudo-labels. This results in a larger set of labeled data
+that combines the original labeled data and the newly generated labeled data. The model is retrained using the larger
+set of data to improve its performance. Then this process is repeated many times.
 
 Visual example of node classification[^4]
 ![Visual example of node classification](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/f6822d8c-fe7d-493a-87c2-014e36d07d76)
