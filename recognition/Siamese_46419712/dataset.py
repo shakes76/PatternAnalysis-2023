@@ -10,6 +10,9 @@ TRAIN_PATH = "/home/groups/comp3710/ADNI/AD_NC/train"
 TEST_PATH = "/home/groups/comp3710/ADNI/AD_NC/train"
 # TEST_PATH = "./AD_NC/train"
 
+torch.manual_seed(35)
+random.seed(35)
+
 class PairedDataset(torch.utils.data.Dataset):
     def __init__(self, trainset):
         # follow this source: https://datahacker.rs/019-siamese-network-in-pytorch-with-application-to-face-similarity/
@@ -46,7 +49,7 @@ class LoadData():
         self.train_ratio = 0.8
         self.val_ratio = 1 - self.train_ratio
 
-    def split_dataset(self, dataset, seed=False):
+    def split_dataset(self, dataset, seed=True):
         if seed:
             generator = torch.Generator().manual_seed(35)
         else:

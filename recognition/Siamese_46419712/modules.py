@@ -150,7 +150,7 @@ class ContrastiveLossFunction(nn.Module):
     # custom loss function based on https://www.kaggle.com/code/robinreni/signature-classification-using-siamese-pytorch
     def __init__(self):
         super(ContrastiveLossFunction, self).__init__()
-        self.margin = 0.2
+        self.margin = 0.8
 
     def forward(self, output1, output2, label): 
         output = F.pairwise_distance(output1, output2)

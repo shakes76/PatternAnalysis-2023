@@ -5,6 +5,7 @@ import os
 import torch.nn as nn
 import numpy as np
 
+import random
 from modules import RawSiameseModel, ContrastiveLossFunction, BinaryModelClassifier
 from dataset import LoadData
 
@@ -36,7 +37,7 @@ def train_siamese(model, train_loader, criterion, optimizer, loss_list, schedule
         # save loss for graph
         loss_list.append(loss.item())
         
-        scheduler.step()
+        # scheduler.step()
 
 
         if (i+1) % 40 == 0:
@@ -81,7 +82,7 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
 
         # save loss for graph
         loss_list.append(loss.item())
-        scheduler.step()
+        # scheduler.step()
         if (i+1) % 40 == 0:
             print (">>>>> Step [{}/{}] Loss: {:.5f}"
                     .format(i+1, len(train_loader), loss.item()))
@@ -111,7 +112,7 @@ def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list):
                 print (">>>>> Step [{}/{}] Classifier Validate Loss: {:.5f}"
                         .format(i+1, len(val_loader), loss.item()))
 
-        print(f"Validate predict >>>> {100 * correct_predict / total_test}%")
+        print(f"Validate predict >>>> {correct_predict / total_test}%")
 
 def test_model(model, cModel, test_loader):
     # evaluate the model
@@ -201,7 +202,7 @@ def execute_sTrain(device, train_loader, val_loader):
     model = RawSiameseModel().to(device)
 
     # hyper-parameters
-    num_epochs = 10
+    num_epochs = 20
     learning_rate = 0.0001
     max_learning = 0.01
 
@@ -298,6 +299,9 @@ def execute_cTrain(device, sModel, train_loader_classifier, val_loader_classifie
     return model
 
 if __name__ == '__main__':
+    random.seed(35)
+    torch.manual_seed(35)
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if not torch.cuda.is_available():
         print("Warning CUDA not Found. Using CPU")
