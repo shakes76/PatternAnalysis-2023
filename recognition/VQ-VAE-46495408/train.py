@@ -37,7 +37,7 @@ def train_vqvae():
         save_best_only=False,
         save_weights_only=True
     )
-    vqvae_history = vqvae_trainer.fit(train_ds, epochs=5, callbacks=[checkpoint])
+    vqvae_history = vqvae_trainer.fit(train_ds, epochs=50, callbacks=[checkpoint])
     # Plot and save the training history
     plot_vqvae_history(vqvae_history)
     
@@ -93,12 +93,13 @@ def plot_pixelcnn_history(history):
     # Plot the loss for PixelCNN model
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
-    plt.title('Pixel CNN Accuracy')
+    plt.title('Pixel CNN Loss')
     plt.xlabel('epoch')
     plt.ylabel('loss')
     plt.legend(['Training', 'Validation'], loc='upper right')
     plt.savefig('recognition/VQ-VAE-46495408/results/pixelcnn_loss.png')
     plt.close()
+    
     # Plot the accuracy for PixelCNN model
     plt.plot(history.history['accuracy'])
     plt.plot(history.history['val_accuracy'])
@@ -142,7 +143,7 @@ def train_pixelcnn():
     pixelcnn_history = pixel_cnn.fit(
         x=codebook_indices,
         y=codebook_indices,
-        epochs=5,
+        epochs=50,
         validation_split=0.1,
         callbacks=[checkpoint]
     )
@@ -150,4 +151,4 @@ def train_pixelcnn():
     plot_pixelcnn_history(pixelcnn_history)
     
 if __name__=='__main__':
-    train_pixelcnn()
+    train_vqvae()
