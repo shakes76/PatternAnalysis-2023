@@ -7,6 +7,8 @@ from torchvision import datasets
 from pathlib import Path
 from unet.UNet_model import UNet
 import os
+from torchvision import transforms
+from PIL import Image
 
 # Define your U-Net model
 model = UNet(n_class=1)  # Adjust the number of classes according to your task
@@ -28,7 +30,7 @@ current_directory = os.getcwd()
 relative_img_path = 'recognition/easy/data/image/'
 relative_mask_path = 'recognition/easy/data/mask/'
 
-dir_img = Path('c:/Users/ericy/uq/2023 sem2/COMP3710/report/PatternAnalysis-2023/recognition/easy/data/image/')
+dir_img = Path(os.path.join(current_directory, relative_img_path))
 dir_mask = Path(os.path.join(current_directory, relative_mask_path))
 # print(dir_img.absolute())
 # print(dir_mask.absolute())
@@ -38,12 +40,14 @@ dir_mask = Path(os.path.join(current_directory, relative_mask_path))
 from torchvision.io import read_image
 
 class CustomDataset(torch.utils.data.Dataset):
-    def __init__(self, image_dir, mask_dir, transform=None):
+    def __init__(self, image_dir, mask_dir, transform=None, target_size=(256, 256)):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.transform = transform
         self.images = list(image_dir.glob("*.jpg"))
         self.masks = list(mask_dir.glob("*.png"))
+
+        self.target_size = target_size
 
     def __len__(self):
         return len(self.images)
@@ -53,9 +57,18 @@ class CustomDataset(torch.utils.data.Dataset):
         mask_path = str(self.masks[idx].absolute())
         image = read_image(image_path)
         mask = read_image(mask_path)
+        
+        # Resize images to the target size
+        resize_transform = transforms.Resize(self.target_size)
+        image = resize_transform(image)
+        mask = resize_transform(mask)
+
+        
+
         if self.transform:
             image = self.transform(image)
             mask = self.transform(mask)
+
         return image, mask
 
 dataset = CustomDataset(image_dir=dir_img, mask_dir=dir_mask, transform=transform)
@@ -74,7 +87,7 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
 
         # Forward pass
-        outputs = model(inputs)
+        outputs = model.forward(inputs)
         loss = criterion(outputs, masks)
 
         # Backpropagation and optimization
