@@ -177,15 +177,15 @@ class VectorQuantisedVAE(nn.Module):
             nn.ReLU(True),
             nn.Conv2d(hidden_channels, hidden_channels, 4, 2, 1),
             ##
-            ResBlock(hidden_channels),
-            ResBlock(hidden_channels),
+            # ResBlock(hidden_channels),
+            # ResBlock(hidden_channels),
         )
 
         self.codebook = VQEmbedding(num_embeddings, hidden_channels)
 
         self.decoder = nn.Sequential(
-            ResBlock(hidden_channels),
-            ResBlock(hidden_channels),
+            # ResBlock(hidden_channels),
+            # ResBlock(hidden_channels),
             nn.ReLU(True),
             # Upconvolution (upscaling)
             nn.ConvTranspose2d(hidden_channels, hidden_channels, 4, 2, 1),

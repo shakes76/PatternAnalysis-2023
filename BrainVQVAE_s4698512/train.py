@@ -34,6 +34,7 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
     """
 
     ssim_list = []
+    recon_losses = []
 
     # Loop over the images in the data loader
     for images, _ in train_loader:
@@ -46,6 +47,7 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
 
         # Reconstruction Loss
         recon_loss = F.mse_loss(x_til, images)
+        recon_losses.append(recon_loss)
 
         # Compute SSIM
         images_cpu = images.to('cpu').detach().numpy()
@@ -68,7 +70,7 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
 
         optimiser.step()
 
-    return sum(ssim_list) / len(ssim_list)
+    return sum(ssim_list) / len(ssim_list), sum(recon_losses)/len(recon_losses)
 
 
 def test(test_loader: DataLoader, model: VectorQuantisedVAE, device: torch.device):
@@ -123,10 +125,10 @@ def main():
     # Define Global hyper parameters (for both datasets)
 
     # Learning rate
-    learning_rate = 3e-4
+    learning_rate = 2e-3
 
     # Number of epochs during training
-    num_epochs = 5
+    num_epochs = 40
 
     # Trade off between reconstruction loss and KL Divergence loss
     # Reconstruction loss measures how similar of an output the model can produce from the input
@@ -134,7 +136,7 @@ def main():
     # of the VQ-VAE by forcing the encoder to follow a regularlised normal distribution in order to
     # prevent overfitting. A higher beta value (closer to 1) lowers KL Divergence Loss while a
     # lower beta value (closer to 0) lowers reconstruction loss.
-    beta = 0.8
+    beta = 0.25
 
     # Greyscale data: 1 channel
     num_channels = 1
@@ -238,16 +240,17 @@ def main():
 
     for epoch in tqdm(range(num_epochs), desc="Training Progress"):
         # Train and return structured similarity metric
-        ssim = train(train_loader, model, optimiser, device, beta)
+        ssim, train_loss = train(train_loader, model, optimiser, device, beta)
         ssim_values.append(ssim)
-        loss, _ = test(validate_loader, model, device)
-        tqdm.write(f"Epoch [{epoch + 1}/{num_epochs}] Loss: {loss:.4f}")
+        validation_loss, _ = test(validate_loader, model, device)
+        tqdm.write(
+            f"Epoch [{epoch + 1}/{num_epochs}] Train Loss: {train_loss:.4f} | Validation Loss: {validation_loss:.4f}")
 
         # print(f"Epoch [{epoch + 1}/{num_epochs}] Loss: {loss:.4f}")
 
         # Save the model if it has the lowest validation loss so far
-        if (epoch == 0) or (loss < best_loss):
-            best_loss = loss
+        if (epoch == 0) or (validation_loss < best_loss):
+            best_loss = validation_loss
             with open(f'{save_filename}/best.pt', 'wb') as f:
                 torch.save(model.state_dict(), f)
 
