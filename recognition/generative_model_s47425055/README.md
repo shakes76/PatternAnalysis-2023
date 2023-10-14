@@ -7,7 +7,8 @@ This repository provides an implementation of the Vector Quantized Variational A
 The VQ-VAE is a type of Variational AutoEncoder that incorporates vector quantization for its discrete representation. This allows for a distinct encoding of the input data, leading to more effective generation of images. This VQ-VAE model is trained using the OASIS brain dataset, specifically, the brain slices in PNG format. During training, the model learns to compress and reconstruct the brain images with high fidelity. In addition to metric evaluations, images were also generated during training to visually compare and ensure they were reasonably clear. The quality of the generated images is evaluated using the SSIM index, which measures the structural similarity between the original and reconstructed images.
 
 ## Visualisation:
-### Architecture
+### Architecture of VQ-VAE
+![architecture of generative model](./models6/architecture.png)
 
 ### Training
 ![losses and ssim scores from training loop](./models6/loss_ssim_plot.png)
