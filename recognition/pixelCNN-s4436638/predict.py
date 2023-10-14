@@ -66,9 +66,11 @@ with torch.no_grad():
         output = model(input)
 
         # Calculate the loss
-        psnr_arr.append(psnr(image.to('cpu'), output.to('cpu'), data_range=1.0))
-        ssim_arr.append(ssim(image.to('cpu'), output.to('cpu'), data_range=1.0))
-        mse_arr.append(mse(image.to('cpu'), output.to('cpu')))
+        im_np = image.cpu().numpy()
+        out_np = output.cpu().numpy()
+        psnr_arr.append(psnr(im_np, out_np, data_range=1.0))
+        ssim_arr.append(ssim(im_np, out_np, data_range=1.0))
+        mse_arr.append(mse(im_np, out_np))
 
         # Save the image
         save_image(output, "test_images/recon/" + str(i) + ".png")
