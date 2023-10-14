@@ -3,7 +3,6 @@ from torch.utils.data import Dataset
 from torchvision.io import ImageReadMode
 from torchvision.io import read_image
 import glob
-import numpy as np
 
 class GetADNITrain(Dataset):
     def __init__(self, path, train_split=0.9, train=True):
