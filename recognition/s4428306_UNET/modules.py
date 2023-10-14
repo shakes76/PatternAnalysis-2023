@@ -8,7 +8,7 @@ from tensorflow.keras import layers
 def context_module(x, n_filters):
     #TODO: Write specification.
     #NOTE: Layers in paper are said to be 3D, but this may be because they incorporate channels.
-    #      Also unsure about whether padding should be used.
+    #      Also unsure about whether padding should be used, and what type.
     og_x = x
     x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
     x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
@@ -23,5 +23,12 @@ def upsampling_module(x, n_filters):
     #      should be 3D may require some experimentation.
     x = layers.UpSampling2D(size=(2,2))(x)
     x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    return x
+
+def localization_module(x, n_filters):
+    #TODO: Write specifictaion.
+    #NOTE: Again, unsure if these should be 2D or 3D.
+    x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    x = layers.Conv2D(n_filters, 1, padding="same", activation="relu", kernel_initializer="he_normal")(x)
     return x
 
