@@ -15,19 +15,10 @@ class Siamese(nn.Module):
         super(Siamese, self).__init__()
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
-        self.softmax = nn.Softmax(dim=0)
-        self.linear = nn.Linear(128, 64)
-        self.linear2 = nn.Linear(64, 1)
-        self.conv1 = nn.Conv2d(2, 1, 1)
-        # self.conv2 = nn.Conv2d(32,64,(7,7),bias=False)
-        # self.conv3 = nn.Conv2d(64,128,(4,4),bias=False)
-        # self.conv4 = nn.Conv2d(128,1,(2,2))
-        # self.maxpool = nn.MaxPool2d(4)
-        # self.batchNorm1 = nn.BatchNorm2d(32)
-        # self.batchNorm2 = nn.BatchNorm2d(64)
-        # self.batchNorm3 = nn.BatchNorm2d(128)
+        self.linear = nn.Linear(64, 1)
+        self.batchNorm1 = nn.BatchNorm2d(64)
         self.sequence = nn.Sequential(
-            nn.Conv2d(3, 32, (10, 10),bias=False),
+            nn.Conv2d(1, 32, (10, 10),bias=False),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(4),
@@ -35,20 +26,19 @@ class Siamese(nn.Module):
             nn.Conv2d(32, 64, (7, 7),bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.MaxPool2d(4),
+            nn.MaxPool2d(3),
 
             nn.Conv2d(64, 128, (4, 4),bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(4),
+            nn.MaxPool2d(2),
 
         )
         self.fc = nn.Sequential(
             nn.Linear(512, 256),
             nn.ReLU(),
             nn.Linear(256, 64),
-            nn.ReLU(),
-            nn.Linear(64, 2)
+            nn.Sigmoid(),
         )
 
     def forward_once(self, x):
@@ -60,16 +50,19 @@ class Siamese(nn.Module):
 
     def forward(self, x, y,z=None):
         #BCELoss
-        # x = self.forward_once(x)
-        # y = self.forward_once(y)
-        # output = F.pairwise_distance(x, y, keepdim=True)
-        # output = self.sigmoid(output)
-        # return output
-
-        # contrastive Loss
         x = self.forward_once(x)
         y = self.forward_once(y)
-        return x,y
+        distance = torch.abs(y - x).view(64,64,1,1)
+        output = self.batchNorm1(distance)
+        output = torch.flatten(output, start_dim=1)
+        output = self.linear(output)
+        output = self.sigmoid(output)
+        return output
+
+        # contrastive Loss
+        # x = self.forward_once(x)
+        # y = self.forward_once(y)
+        # return x,y
 
         # #triplet loss
         # x = self.forward_once(x)
