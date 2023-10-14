@@ -76,7 +76,7 @@ imageio==2.22.4
 
 #### Reproduce
 
-1. `mkdir collected_latents model_ckpt`
+1. `mkdir collected_latents model_ckpt log`
 2. For first stage
    1. run `pre_train.py`. You can select the mode among `VAE` and `VQVAE` in this script.
 3. For second stage
