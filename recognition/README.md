@@ -9,7 +9,7 @@ The Perciever Transformer is an iteration of the transformer model released by G
 
 it solves the quadratic bottleneck by projecting the input information into a lower dimention latent array through cross attention layers similar to those in traditional transformers. The array is then processed through multiple self attention layers to extract features. This process also allows the perciever to make less structural assumptions about the input data allowing for many different modes of data as inputs including text, audio, video etc. 
 
-![PercieverTransformer](./plots/perciever_transformer.jpg)
+![PercieverTransformer](../plots/perciever_transformer.jpg)
 
 
 ## Set-Up and Dependencies
