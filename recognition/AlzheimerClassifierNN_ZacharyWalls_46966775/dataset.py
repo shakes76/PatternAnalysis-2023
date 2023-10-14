@@ -69,9 +69,9 @@ def get_data_loaders():
     print(f"Training data loaded with {len(train_dataset)} samples.")
     
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=128, shuffle=True, num_workers=6
+        train_dataset, batch_size=64, shuffle=True, num_workers=6
     )
-    print("Training loader ready.")
+    print("Training loader ready.\n")
 
 
     print("Loading testing data...")
@@ -79,7 +79,7 @@ def get_data_loaders():
     print(f"Testing data loaded with {len(test_dataset)} samples.")
 
     test_loader = torch.utils.data.DataLoader(
-        test_dataset, batch_size=128, shuffle=False, num_workers=6
+        test_dataset, batch_size=64, shuffle=False, num_workers=6
     )
     print(f"Testing loader ready.\n")
 

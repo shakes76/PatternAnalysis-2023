@@ -2,7 +2,7 @@ import torch.nn as nn
 from torch import randn, cat
 
 class PatchEmbedding(nn.Module):
-    def __init__(self, in_channels=3, patch_size=16, emb_size=768):
+    def __init__(self, in_channels=3, patch_size=16, emb_size=1536):
         super().__init__()
         self.patch_size = patch_size
         self.proj = nn.Conv2d(in_channels, emb_size, kernel_size=patch_size, stride=patch_size)
@@ -12,14 +12,17 @@ class PatchEmbedding(nn.Module):
         return x.flatten(2).transpose(1, 2)
 
 class TransformerBlock(nn.Module):
-    def __init__(self, emb_size=768, drop_p=0., num_heads=8, forward_expansion=4):
+    def __init__(self, emb_size=1536, drop_p=0.1, num_heads=8, forward_expansion=4):
         super().__init__()
         self.norm1 = nn.LayerNorm(emb_size)
         self.norm2 = nn.LayerNorm(emb_size)
         
         self.attn = nn.MultiheadAttention(emb_size, num_heads)
+        
         self.fc = nn.Sequential(
             nn.Linear(emb_size, forward_expansion * emb_size),
+            nn.GELU(),
+            nn.Linear(forward_expansion * emb_size, forward_expansion * emb_size),
             nn.GELU(),
             nn.Linear(forward_expansion * emb_size, emb_size)
         )
@@ -38,10 +41,11 @@ class TransformerBlock(nn.Module):
         return x
 
 class ViT(nn.Module):
-    def __init__(self, in_channels=3, patch_size=16, emb_size=768, img_size=240, num_blocks=12, num_heads=8, forward_expansion=4, num_classes=2):
+    def __init__(self, in_channels=3, patch_size=16, emb_size=1536, img_size=240, num_blocks=12, num_heads=8, forward_expansion=4, num_classes=2, drop_p=0.1):
         super().__init__()
         self.patch_emb = PatchEmbedding(in_channels, patch_size, emb_size)
-        
+        self.emb_drop = nn.Dropout(drop_p) 
+
         self.cls_token = nn.Parameter(randn(1, 1, emb_size))
         self.pos_emb = nn.Parameter(randn((img_size // patch_size) ** 2 + 1, emb_size))
         
@@ -51,7 +55,8 @@ class ViT(nn.Module):
         ])
         
         self.norm = nn.LayerNorm(emb_size)
-        self.fc = nn.Linear(emb_size, num_classes)
+        self.fc1 = nn.Linear(emb_size, emb_size)
+        self.fc2 = nn.Linear(emb_size, num_classes)
 
     def forward(self, x):
         B, _, _, _ = x.shape
@@ -65,7 +70,8 @@ class ViT(nn.Module):
         x = self.norm(x)
         
         cls_repr = x[:, 0]
-        out = self.fc(cls_repr)
+        out = self.fc1(cls_repr)
+        out = self.fc2(out)
         
         return out
 
