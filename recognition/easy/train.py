@@ -63,8 +63,6 @@ class CustomDataset(torch.utils.data.Dataset):
         image = resize_transform(image)
         mask = resize_transform(mask)
 
-        
-
         if self.transform:
             image = self.transform(image)
             mask = self.transform(mask)
@@ -81,13 +79,16 @@ for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
     for i, data in enumerate(dataloader, 0):
+        if i %10 == 0:
+            print(i)
         inputs, masks = data
         inputs, masks = inputs.to(device), masks.to(device)
 
         optimizer.zero_grad()
-
+        # print(inputs)
         # Forward pass
-        outputs = model.forward(inputs)
+        masks = masks.float()
+        outputs = model(inputs)
         loss = criterion(outputs, masks)
 
         # Backpropagation and optimization

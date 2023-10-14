@@ -59,6 +59,7 @@ class UNet(nn.Module):
     
     def forward(self, x):
         # Encoder
+        x = x.float()  
         xe11 = relu(self.e11(x))
         xe12 = relu(self.e12(xe11))
         xp1 = self.pool1(xe12)
