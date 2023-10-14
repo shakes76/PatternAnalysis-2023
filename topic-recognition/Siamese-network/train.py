@@ -7,7 +7,7 @@ from dataset import load_siamese_data
 from dataset import load_classify_data
 from tensorflow.keras.models import load_model
 
-
+save_trained_snn = '/Users/jollylogan/TryTry/SNN.h5'
 
 def train_and_plot_SNN(epochs=10):
     # Load Siamese model data
@@ -38,3 +38,46 @@ def train_and_plot_SNN(epochs=10):
     plt.show()
 
     return model, siamese_fit
+
+
+def train_and_plot_classifier(epochs=10):
+    # Load classification model data
+    classify_train, classify_val = load_classify_data(testing=False)
+
+    # Load the trained Siamese model
+    siamese_model = load_model(save_trained_snn, custom_objects={'contrastive_loss': contrastive_loss})
+    
+    # Get the CNN layer from the siamese model
+    subnet = siamese_model.get_layer(name="cnn")
+
+    # Create classification model using the subnet
+    classifier = classification_model(subnet)
+
+    # Train the classification model
+    classifier_fit = classifier.fit(classify_train, epochs=epochs, validation_data=classify_val)
+
+    # Plot the fit data
+    plt.figure()
+    plt.plot(classifier_fit.history['accuracy'], label='accuracy')
+    plt.plot(classifier_fit.history['val_accuracy'], label='val_accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+    plt.ylim([0, 1])
+    plt.legend(loc='lower right')
+
+    plt.figure()
+    plt.plot(classifier_fit.history['loss'], label='loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.ylim([0, 1]) # Adjust as needed
+    plt.legend(loc='lower right')
+
+    plt.show()
+
+    return classifier, classifier_fit
+
+
+def train():
+    siamese_model, siamese_fit = train_and_plot_SNN()
+    classifier_model, classifier_fit = train_and_plot_classifier()    
+train()
