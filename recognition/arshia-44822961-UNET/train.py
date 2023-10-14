@@ -12,8 +12,6 @@ from modules import ImprovedUnet
 # paths to data. 
 TRAIN_DATA_PATH  = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
 TRAIN_MASK_PATH = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
-TEST_DATA_PATH = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Test_Input"
-TEST_MASK_PATH = "~/report1/ISIC2018_Task1_Test_GroundTruth"
 VALID_DATA_PATH = "~/report1/ISIC2018_Validation_Data"
 VALID_MASK_PATH = "~/report1/ISIC2018_Task1_Validation_GroundTruth"
 
@@ -108,7 +106,6 @@ if __name__ == "__main__":
     # load datasets 
     train_loader = load_data(TRAIN_DATA_PATH, TRAIN_MASK_PATH, data_transform, batch_size=BATCH_SIZE)
     valid_loader = load_data(VALID_DATA_PATH, VALID_MASK_PATH, data_transform, batch_size=BATCH_SIZE)
-    test_loader = load_data(TEST_DATA_PATH, TEST_MASK_PATH, data_transform, batch_size=BATCH_SIZE)
 
     # train improvised unet  
     trained_model, training_losses, validation_losses = train(model, train_loader, valid_loader, device=device, num_epochs=10)
