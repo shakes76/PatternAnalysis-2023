@@ -180,13 +180,16 @@ class VectorQuantisedVAE(nn.Module):
             # Downconvolution (downscaling)
             nn.Conv2d(hidden_channels, hidden_channels, 4, 2, 1),
             nn.BatchNorm2d(hidden_channels),
-            nn.ReLU(True),
+            ResBlock(hidden_channels),
+            ResBlock(hidden_channels),
         )
 
         self.codebook = VQEmbedding(num_embeddings, hidden_channels)
 
         self.decoder = nn.Sequential(
             # Upconvolution (upscaling)
+            ResBlock(hidden_channels),
+            ResBlock(hidden_channels),
             nn.ReLU(True),
             nn.ConvTranspose2d(hidden_channels, hidden_channels, 4, 2, 1),
             nn.BatchNorm2d(hidden_channels),
