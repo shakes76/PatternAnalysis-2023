@@ -7,7 +7,7 @@ Model structure from: https://arxiv.org/pdf/1802.10508v1.pdf
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+    
 #Improved uNet module
 class IuNet(nn.Module):
     def __init__(self):
@@ -34,34 +34,34 @@ class IuNet(nn.Module):
         
         #segmentation layers
         self.upsample = nn.Upsample(scale_factor=2)
-        self.seg3conv = Conv(64,3, stride=1, kernel_size=1)
-        self.seg2conv = Conv(32,3, stride=1, kernel_size=1)
-        self.seg1conv = Conv(32,3, stride=1, kernel_size=1)
-        self.softmax = nn.Softmax(dim = 3)
+        self.seg3conv = Conv(64,1, stride=1, kernel_size=1, padding=0)
+        self.seg2conv = Conv(32,1, stride=1, kernel_size=1, padding=0)
+        self.seg1conv = Conv(32,1, stride=1, kernel_size=1, padding=0)
+        self.softmax = nn.Softmax(dim = 1)
 
     def forward(self, x):
         #Layer 1 downward // input:3 output:16
         lay1d = self.conv1(x)
         lay1d = self.context1(lay1d)
-
+        
         #Layer 2 downward // input: 16 output: 32
         lay2d = self.conv2(lay1d)
         lay2d = self.context2(lay2d)
-
+        
         #Layer 3 downward // input:32 output:64
         lay3d = self.conv3(lay2d)
         lay3d = self.context3(lay3d)
-
+        
         #Layer 4 downward // Input: 64, Output: 128
         lay4d = self.conv4(lay3d)
         lay4d = self.context4(lay4d)
-
+        
         #Bottom layer 5 // Input: 128, Output: 128
         lay5 = self.conv5(lay4d)
         lay5 = self.context5(lay5)
         lay5 = self.up1(lay5)
-
-        #Layer 4 upwards // Input 256, Output: 64
+        
+        #Layer 4 upwards // Input 256 (128concat128), Output: 64
         lay4u = torch.concat((lay4d, lay5), dim=1)
         lay4u = self.loc1(lay4u)
         lay4u = self.up2(lay4u)
@@ -85,8 +85,9 @@ class IuNet(nn.Module):
         seg2 = self.seg2conv(seg2)
         seg1 = self.seg1conv(lay1u)
         
-        seg2 = torch.sum(seg2, self.upsample(seg3))
-        seg1 = torch.sum(seg1, self.upsample(seg2))
+        print('seg2:{}, seg3:{}'.format(seg2.shape, seg3.shape))
+        seg2 = torch.add(seg2, self.upsample(seg3))
+        seg1 = torch.add(seg1, self.upsample(seg2))
 
         out = self.softmax(seg1)
 
@@ -132,7 +133,7 @@ class UpSample(nn.Module):
     def __init__(self, in_plane, out_plane):
         super().__init__()
 
-        self.up = nn.Upsample(scale_factor=2)
+        self.up = nn.Upsample(scale_factor=2, mode='bilinear')
         self.conv = Conv(in_plane, out_plane, stride=1, kernel_size=3)
 
     def forward(self, x):
