@@ -39,6 +39,7 @@ class getConvBlock(nn.Module):
         conv_array = []
         for _ in range(num_convs):
             conv_array.append(nn.Conv2d(feature_size, feature_size, 3, padding='same'))
+            # conv_array.append(nn.BatchNorm2d(feature_size))
             # conv_array.append(nn.Dropout2d())
             conv_array.append(nn.ReLU())
         self.conv_array = nn.Sequential(*conv_array)
