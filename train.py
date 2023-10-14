@@ -22,7 +22,7 @@ def step_forward():
     optimizer.step()  # Update parameters based on gradients.
     return loss
 
-def train(epochs=300):
+def train(epochs=200):
     loss_list = []
     
     for epoch in range(1, epochs):
@@ -36,18 +36,14 @@ def train(epochs=300):
     plt.ylabel('training loss')
     plt.show()
     
-def test():
     model.eval()
     out = model(data.x, data.edge_index)
     pred = out.argmax(dim=1)  # Use the class with highest probability.
     test_correct = pred[data.test_mask] == data.y[data.test_mask]  # Check against ground-truth labels.
     test_acc = int(test_correct.sum()) / int(data.test_mask.sum())  # Derive ratio of correct predictions.
-    print('test accuraccy:', test())
-    return test_acc
-
+    print('test accuraccy:', test_acc)
 
 def save_model():
     torch.save(model, 'GCN.pt')
 
 train()
-test()
