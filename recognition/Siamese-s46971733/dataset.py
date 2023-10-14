@@ -292,7 +292,7 @@ class ImageDataset3D(Dataset):
             return anchor_full_data, anchor_label
 
 
-def get_dataset(train, clas):
+def get_dataset(train, clas, valid=0):
     # if train == 1 and clas == 0:
     #     return ImageDataset(train_dirs_full, transform=transform, train=1)
     # elif train == 1 and clas == 1:
@@ -304,6 +304,10 @@ def get_dataset(train, clas):
         return ImageDataset3D(train_dirs_full_brain, transform=transform, clas=0)
     elif train == 1 and clas == 1:
         return ImageDataset3D(train_dirs_full_brain, transform=transform, clas=1)
+    elif valid == 1 and clas == 0:
+        return ImageDataset3D(valid_dirs_full_brain, transform=transform, clas=0)
+    elif valid == 1 and clas == 1:
+        return ImageDataset3D(valid_dirs_full_brain, transform=transform, clas=1)
     else:
         return ImageDataset3D(test_dirs_full_brain, transform=transform, clas=1)
 
