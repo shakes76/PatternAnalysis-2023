@@ -4,6 +4,7 @@ import torchvision.transforms as T
 from torch.utils.data import DataLoader
 from modules import pixelCNN
 from dataset import GetADNITrain
+import matplotlib as plt
 
 # Get device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -130,4 +131,13 @@ for epoch in range(num_epochs):
     np.savetxt("val_loss.csv", val_loss, delimiter=",")
 
 
+x = range(num_epochs)
 
+plt.figure(1)
+plt.plot(x, train_loss, label="Train Loss")
+plt.plot(x, val_loss, label="Validation Loss")
+plt.legend()
+plt.xlabel("Epoch")
+plt.ylabel("MSE")
+plt.title("Training and Validation Loss")
+plt.savefig("training-plot.png")
