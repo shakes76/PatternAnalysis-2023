@@ -10,9 +10,10 @@ from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader, Subset
 import random
 import torch
+from utils import W, H
 
 VQVAE_TRANSFORM = transforms.Compose([
-    transforms.Resize((128, 128)),
+    transforms.Resize((W, H)),
     transforms.ToTensor(),
     # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])    
