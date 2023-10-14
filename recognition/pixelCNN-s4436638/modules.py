@@ -13,7 +13,7 @@ upscale_factor          -           The upscale factor of the image
 """
 class getUpscaleBlock(nn.Module):
     def __init__(self, feature_size, upscale_factor):
-        super(getUpscaleBlock).__init__()
+        super(getUpscaleBlock, self).__init__()
         self.conv_block = nn.Conv2d(feature_size, feature_size * (upscale_factor ** 2), 3, padding='same')
         self.shuffle_block = nn.PixelShuffle(upscale_factor)
 
@@ -30,7 +30,7 @@ num_convs               -           Number of cascaded convolutions
 """
 class getConvBlock(nn.Module):
     def __init__(self, feature_size, num_convs):
-        super(getConvBlock).__init__()
+        super(getConvBlock, self).__init__()
         conv_array = []
         for _ in range(num_convs):
             conv_array.append(nn.Conv2d(feature_size, feature_size, 3, padding='same'))
