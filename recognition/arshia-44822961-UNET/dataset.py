@@ -26,7 +26,8 @@ class ISICDataset(Dataset):
     def __init__(self, img_path, mask_path, transform=None):
         self.img_path = img_path
         self.mask_path = mask_path
-        self.img_filenames = sorted(os.listdir(img_path))
+        # filter out text files from file names
+        self.img_filenames = sorted([f for f in os.listdir(img_path) if f not in ["ATTRIBUTION.txt", "LICENSE.txt"]])
         self.transform = transform
 
     def __len__(self):
@@ -96,16 +97,9 @@ if __name__ == "__main__":
     print("okay now to load in data. ")
     print(os.getcwd())
 
-    file_path = "/home/Student/s4482296/report1/ISIC2018/ISIC2018_Task1-2_Training_Input_x2/ISIC_0000000.jpg" # replace with your file path
-    print(file_path)
-    if os.path.isfile(file_path):
-        print("okay")
-    else:
-        print("File not found.")
 
-
-    train_directory = "/home/Student/s4482296/report1/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
-    train_ground_truth_directory = "/home/Student/s4482296/report1/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
+    train_directory = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
+    train_ground_truth_directory = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
 
     train_dataset = ISICDataset(train_directory,train_ground_truth_directory, transform)
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=False)
