@@ -2,7 +2,10 @@ import pandas as pd
 import os
 import random
 from sklearn.model_selection import train_test_split
-
+import torch
+from torch.utils.data import Dataset, DataLoader
+from torchvision import transforms
+from PIL import Image
 
 def get_image_paths_from_directory(directory_path, valid_extensions=[".jpg", ".jpeg", ".png"]):
     """Returns list of all image paths with valid extensions in the provided directory."""
@@ -16,8 +19,8 @@ def get_image_paths_from_directory(directory_path, valid_extensions=[".jpg", ".j
             all_images.append(image_path)
     return all_images
 
-train_images_paths_NC = '/Users/noammendelson/Documents/REPORT-COMP3710/AD_NC/train/AD'
-train_images_paths_AD = '/Users/noammendelson/Documents/REPORT-COMP3710/AD_NC/train/NC'
+train_images_paths_AD = '/Users/noammendelson/Documents/REPORT-COMP3710/AD_NC/train/AD'
+train_images_paths_NC = '/Users/noammendelson/Documents/REPORT-COMP3710/AD_NC/train/NC'
 
 all_train_images_paths_NC = get_image_paths_from_directory(train_images_paths_NC)
 all_train_images_paths_AD = get_image_paths_from_directory(train_images_paths_AD)
@@ -43,5 +46,66 @@ train_images_NC = [path for path in all_train_images_paths_NC if extract_patient
 val_images_NC = [path for path in all_train_images_paths_NC if extract_patient_id(path) in val_patient_ids_NC]
 
 
+class ADNC_Dataset(Dataset):
+        """
+    A custom Dataset class for loading AD and NC images.
+    
+    Attributes:
+    - image_paths: A list of paths to the image files.
+    - transforms: Optional transformations to apply to the images.
+    """
+        def __init__(self, AD_image_paths, NC_image_paths, transform=None):
+            self.AD_image_paths = AD_image_paths
+            self.NC_image_paths = NC_image_paths
+            
+            # Creating a DataFrame
+            AD_df = pd.DataFrame({
+                'image_path': self.AD_image_paths,
+                'label': [1]*len(self.AD_image_paths)  # 1 for AD
+            })
+            
+            NC_df = pd.DataFrame({
+                'image_path': self.NC_image_paths,
+                'label': [0]*len(self.NC_image_paths)  # 0 for NC
+            })
 
+            self.data = pd.concat([AD_df, NC_df], axis=0).reset_index(drop=True)
+            #test code
+            # pd.set_option('display.max_colwidth', None)
+            # print(self.data.head())
+            self.transform = transform
+            
 
+        def __len__(self):
+            return len(self.data)
+        
+        def __getitem__(self, idx):
+             """Returns an image and its label (either 0 or 1)."""
+             row = self.data.iloc[idx]
+             image_path = row['image_path']
+             label = torch.tensor(row['label'])
+            
+             # Open the image and convert to RGB
+             image = Image.open(image_path).convert("RGB")
+                
+             if self.transform:
+                 image = self.transform(image)
+                
+             return image, label
+        
+dataset = ADNC_Dataset(train_images_AD, train_images_NC)
+
+#test code
+# train_images_paths_AD = '/Users/noammendelson/Documents/REPORT-COMP3710/AD_NC/train/AD'
+# train_images_paths_NC = '/Users/noammendelson/Documents/REPORT-COMP3710/AD_NC/train/NC'
+
+# all_train_images_paths_NC = get_image_paths_from_directory(train_images_paths_NC)
+# all_train_images_paths_AD = get_image_paths_from_directory(train_images_paths_AD)
+
+# dataset = ADNC_Dataset(all_train_images_paths_AD, all_train_images_paths_NC)
+
+# # Test the dataset by printing the length and loading the first sample
+# print(f"Total samples in the dataset: {len(dataset)}")
+# image, label = dataset[0]
+# print(f"Label of the first sample: {label}")
+# print(f"Path of the first sample: {dataset.data['image_path'].iloc[0]}")
