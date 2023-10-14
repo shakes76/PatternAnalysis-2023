@@ -20,11 +20,12 @@ channels = 1
 feature_size = 32
 num_convs = 3
 learning_rate = 1e-3
-image_size = 256
+image_size_x = 256
+image_size_y = 240
 num_epochs = 100
 
 # Define the transform to downscale the images
-down_sampler = T.Resize(size=[image_size // upscale_factor, image_size // upscale_factor], 
+down_sampler = T.Resize(size=[image_size_y // upscale_factor, image_size_x // upscale_factor], 
                     interpolation=T.transforms.InterpolationMode.BICUBIC, antialias=True)
 
 # Define the loss function
@@ -63,10 +64,6 @@ for epoch in range(num_epochs):
 
         # Load images from dataloader
         images = batch.to(device)
-        # Add the channel dimension to grayscale images
-        images = torch.unsqueeze(images, 1)
-
-        print(images.shape)
 
         # Downscale
         inputs = down_sampler(images)
@@ -101,8 +98,6 @@ for epoch in range(num_epochs):
 
             # Load images from dataloader
             images = batch.to(device)
-            # Add the channel dimension to grayscale images
-            images = torch.unsqueeze(images, 1)
 
             # Downscale
             inputs = down_sampler(images)
