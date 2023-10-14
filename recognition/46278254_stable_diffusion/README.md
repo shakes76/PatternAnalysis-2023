@@ -175,6 +175,7 @@ The detail of main concepts, related works and some training issues are in `tech
   * Random Sample Score: $L_{aux} = -\text{Discriminator}(\text{Decoder} (N(0, 1)^{\text{latent shape}}))$
   * Discriminator Total Loss: $\frac{1}{4}(ReLU(1 - \text{Discriminator(x))}  + ReLU(1 + L_{recon} ) + ReLU(1 + L_{aux}))$.
     * Note that the loss of discriminator is Hinge Loss.
+  * Note that the GAN loss is applied after 10,000 iterations, resulting in a loss peak at that point.
 * The fourth plot represents the balance weight between the reconstruction loss and the GAN loss.
   * $w = ||\frac{\partial \,  L_{recon}}{\partial \, \text{Decoder}(\tilde z)} / \frac{\partial \,  L_{discriminator}}{\partial \, \text{Decoder}(\tilde z)}||_2$, and then clamp the value by $(0, 10^4)$ and multiplied by $0.5$.
   * This weight mechanism is applied to both the reconstruction and random sampling processes.
