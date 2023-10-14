@@ -30,7 +30,7 @@ class Train():
 
         for epoch in range(constants.epochs):
             losses = 0.0
-            for x, y in self.trainLoader:
+            for i, (x, y) in enumerate(self.trainLoader):
                 if constants.cuda:
                     x, y = x.cuda(), y.cuda()
                 y1 = self.net(x)
@@ -39,12 +39,13 @@ class Train():
                 self.optimiser.zero_grad()
                 loss.backward()
                 self.optimizer.step()
+                print(f'Image at index {i} is type {y}')
             print(f'Loss at epoch {epoch} is {losses}')
     
     def test(self):
         with torch.no_grad():
             correct, total = 0.0
-            for x, y in self.testLoader:
+            for i, (x, y) in enumerate(self.testLoader):
                 if constants.cuda:
                     x, y = x.cuda(), y.cuda()
                 y1 = self.net(x)

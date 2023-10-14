@@ -32,23 +32,16 @@ class DatasetTrain(Dataset):
         return 10000
     
     def __getitem__(self, index):
-        image1 = None
-        image2 = None
-        r = random.randint(0, 2)
+        image = None
+        r = random.randint(0, 1)
         if r == 0:
-            image1 = random.choice(self.NC)
-            image2 = random.choice(self.NC)
+            image = random.choice(self.NC)
         if r == 1:
-            image1 = random.choice(self.NC)
-            image2 = random.choice(self.AD)
-        if r == 2:
-            image1 = random.choice(self.AD)
-            image2 = random.choice(self.AD)
+            image = random.choice(self.AD)
         
         if self.transforms:
-            image1 = self.transforms(image1)
-            image2 = self.transforms(image2)
-        return image1, image2, torch.tensor(r % 2, dtype=torch.float32)
+            image = self.transforms(image)
+        return image, torch.tensor(r, dtype=torch.float32)
     
 class DatasetTest(Dataset):
     def __init__(self, path, transforms=None, size=1000):
@@ -77,20 +70,17 @@ class DatasetTest(Dataset):
         return self.size
     
     def __getitem__(self, index):
-        image1 = None
-        image2 = None
+        image = None
         r = random.randint(0, 1)
         if r == 0:
-            image1 = random.choice(self.NC)
-            image2 = random.choice(self.NC)
+            image = random.choice(self.NC)
         if r == 1:
-            image1 = random.choice(self.NC)
-            image2 = random.choice(self.AD)
-        if r == 2:
-            image1 = random.choice(self.AD)
-            image2 = random.choice(self.AD)
+            image = random.choice(self.AD)
         
         if self.transforms:
-            image1 = self.transforms(image1)
-            image2 = self.transforms(image2)
-        return image1, image2, torch.tensor(r % 2, dtype=torch.float32)
+            image = self.transforms(image)
+        return image, torch.tensor(r, dtype=torch.float32)
+    
+if __name__=="__main__":
+    dataset = DatasetTrain("PatternAnalysis-2023/recognition/siamese-adni-46424051/images/train")
+    dataset = DatasetTest("PatternAnalysis-2023/recognition/siamese-adni-46424051/images/test")
