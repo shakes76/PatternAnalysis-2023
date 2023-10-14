@@ -85,34 +85,3 @@ def compute_mean_std(loader):
 
 # Main method - will not be in final dataset. 
 # This is to compute mean and std deviations and also make sure data loading is working.
-
-if __name__ == "__main__":
-    print("hello")
-    print(torch.version.cuda)
-
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(device)
-    print("Hello world")    
-
-    print("okay now to load in data. ")
-    print(os.getcwd())
-
-
-    train_directory = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
-    train_ground_truth_directory = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
-
-    train_dataset = ISICDataset(train_directory,train_ground_truth_directory, transform)
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=False)
-
-    mean, std = compute_mean_std(train_loader)
-
-    # three values for RGB values as well.
-    # gosh gpt 4 is really so smart. 
-    print("Mean and standard deviation")
-    print(mean)
-    print(std)
-
-
-# mean and standard deviation. 
-# tensor([0.7084, 0.5821, 0.5360])
-#tensor([0.1561, 0.1644, 0.1795])
