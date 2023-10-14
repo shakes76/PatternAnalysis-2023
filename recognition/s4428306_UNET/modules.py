@@ -25,14 +25,18 @@ def upsampling_module(x, n_filters):
     x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
     return x
 
-def localization_module(x, n_filters):
+#NOTE: Concatenation happens inside this module now, because it always happens before data is passed into it.
+#      Remember that there is one more concatenation before one of the final convolutions.
+def localization_module(x, conv_features, n_filters):
     #TODO: Write specifictaion.
     #NOTE: Again, unsure if these should be 2D or 3D.
+    x = layers.concatenate([x, conv_features])
     x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
     x = layers.Conv2D(n_filters, 1, padding="same", activation="relu", kernel_initializer="he_normal")(x)
     return x
 
 #NOTE: From what I can see from the papers this just a 1x1 (or 1x1x1) convolution.
+#      Should the papers be referenced somewhere?
 #      Going to define it like this for readability.
 def segmentation_layer(x, n_filters):
     #TODO: Write specifictaion.
