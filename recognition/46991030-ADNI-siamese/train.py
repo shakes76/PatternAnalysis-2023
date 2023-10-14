@@ -1,3 +1,4 @@
+import constants
 import dataset
 import modules
 
@@ -5,7 +6,10 @@ import modules
     train_ds,
     validate_ds,
     test_ds,
-) = dataset.load_dataset("/home/groups/comp3710/ADNI/AD_NC")
+    class_train_ds,
+    class_validate_ds,
+    class_test_ds,
+) = dataset.load_dataset(constants.DATASET_PATH)
 
 print("Creating SNN model")
 model = modules.snn()

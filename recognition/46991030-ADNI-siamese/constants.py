@@ -1,1 +1,2 @@
 IMAGE_INPUT_SHAPE = (240, 256, 1)
+DATASET_PATH = "/home/groups/comp3710/ADNI/AD_NC"
