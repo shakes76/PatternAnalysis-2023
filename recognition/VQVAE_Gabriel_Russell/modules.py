@@ -21,6 +21,8 @@ from torch.distributions.normal import Normal
 from torch.distributions import kl_divergence
 import numpy as np
 import matplotlib.pyplot as plt
+from torchvision.utils import save_image
+
 
 """
 Define the hyperparameters used for the model.
@@ -212,11 +214,13 @@ class VectorQuantizer(nn.Module):
     Retrives the embeddings from the generated GAN embedding indices
     """
     def get_quantized_results(self, x):
-        p = Parameters()
         codebook_indices = x.unsqueeze(1)
+        print(codebook_indices.shape)
         encodings = torch.zeros(codebook_indices.shape[0], self._num_embeddings, device = x.device)
         encodings.scatter_(1, codebook_indices, 1)
+        print(encodings.shape)
         quantized_values = torch.matmul(encodings, self._embedding.weight).view(1,64,64,64)
+        print(quantized_values.shape)
         return quantized_values.permute(0,3,1,2).contiguous()
 
     
@@ -376,7 +380,7 @@ def initialize_weights(model):
 Function to visualise and save the generated GAN output
 """
 def gan_codebook(device, p):
-    fixed_noise = torch.randn(1, p.channel_noise, 1, 1).to(device)
+    fixed_noise = torch.randn(32, p.channel_noise, 1, 1).to(device)
 
     #Load Trained Generator
     Generator = torch.load("Models/Generator.pth")
@@ -385,16 +389,16 @@ def gan_codebook(device, p):
     with torch.no_grad():
         generated_images = Generator(fixed_noise)
 
-    # Rescale images from [-1, 1] to [0, 1] for displaying/saving
-    generated_images = 0.5 * (generated_images + 1)
+    #Save a batch of 32 generated images
+    save_image(generated_images.data[:32], f"Output_files/GAN_batch_outputs.png", nrow=8, normalize=True)
 
     # Convert tensor to NumPy array
     generated_output = generated_images[0][0]
     generated_output = generated_output.cpu()
     generated_output = generated_output.numpy()
     plt.imshow(generated_output)
+    plt.savefig("Output_files/GAN_generated_single_Output.png")
 
-    plt.savefig("Output_files/GAN_generated_Output.png")
     return generated_images
 
 """

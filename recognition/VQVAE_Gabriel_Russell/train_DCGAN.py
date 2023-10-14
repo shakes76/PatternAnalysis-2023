@@ -35,12 +35,10 @@ class TrainDCGAN():
         self.params = Parameters()
         self.Discriminator = Discriminator().to(self.device)
         self.Generator = Generator().to(self.device)
-        # self.Discriminator = modules.Discriminator(img_shape).to(self.device)
-        # self.Generator = modules.Generator(img_shape).to(self.device)
         initialize_weights(self.Discriminator)
         initialize_weights(self.Generator)
 
-        self.epochs = 20
+        self.epochs = 50
         self.D_optim = optim.Adam(self.Discriminator.parameters(), lr = self.params.gan_lr, betas = (0.5, 0.999))
         self.G_optim = optim.Adam(self.Generator.parameters(), lr = self.params.gan_lr, betas = (0.5, 0.999))
         self.criterion = nn.BCELoss()
@@ -92,8 +90,8 @@ class TrainDCGAN():
             if epoch % 2 == 0:
                 save_image(fake_img.data[:25], f"gan_images/epoch_{epoch}.png", nrow=5, normalize=True)
         current_dir = os.getcwd()
-        D_model_path = current_dir + "/Discriminator.pth"
-        G_model_path = current_dir + "/Generator.pth"
+        D_model_path = current_dir + "/Models/Discriminator.pth"
+        G_model_path = current_dir + "/Models/Generator.pth"
         torch.save(self.Discriminator, D_model_path)
         torch.save(self.Generator, G_model_path)
 
