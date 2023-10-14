@@ -127,7 +127,7 @@ for epoch in range(num_epochs):
 
     ### Save the metrics as a .csv file
     np.savetxt("train_loss.csv", train_loss, delimiter=",")
-    np.savetxt("val_loss.csv", train_loss, delimiter=",")
+    np.savetxt("val_loss.csv", val_loss, delimiter=",")
 
 
 
