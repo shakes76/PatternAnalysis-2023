@@ -1,4 +1,2 @@
 recognition/easy/data/image/*
 recognition/easy/data/mask/*
-! recognition/easy/data/image/.keep
-! recognition/easy/data/mask/.keep
