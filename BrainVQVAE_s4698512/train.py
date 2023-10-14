@@ -123,10 +123,10 @@ def main():
     # Define Global hyper parameters (for both datasets)
 
     # Learning rate
-    learning_rate = 1.4e-4
+    learning_rate = 3e-4
 
     # Number of epochs during training
-    num_epochs = 30
+    num_epochs = 5
 
     # Trade off between reconstruction loss and KL Divergence loss
     # Reconstruction loss measures how similar of an output the model can produce from the input
@@ -143,7 +143,7 @@ def main():
     # latent space that an input data point can be snapped to (closest point). A higher number of
     # embeddings results in a finer latent space meaning more information can be retained from input
     # samples. However, too high may result in overfitting.
-    K = 512
+    K = 32
 
     # Number of neurons in each (inner/hidden) layer of the neural network
     hidden_dim = 128
@@ -159,20 +159,12 @@ def main():
             # Images already 256x256 but can't hurt to ensure size is correct
             transforms.Resize((image_x, image_y)),
 
-            # Randomly apply horizontal flips
-            transforms.RandomHorizontalFlip(p=0.5),
-
-            # Randomly apply rotations within the range of -15 to 15 degrees
-            transforms.RandomRotation(degrees=(-15, 15)),
-
-            # Randomly adjust brightness and contrast
-            transforms.ColorJitter(brightness=0.2, contrast=0.2),
-
             # Convert images to single channel grayscale
             transforms.Grayscale(num_output_channels=num_channels),
 
             # Finally, convert images into Tensor
             transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
         ])
 
         # Define data loader object
