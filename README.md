@@ -1,10 +1,10 @@
 # A demonstration of semi-supervised multi-class node classification using a GCN model
 A semi-supervised node classification is classifying unlabeled nodes in an undireted graph where there is a feature
-vector for each node and a set of labeled nodes[^1]. A semi-supervised classification works by training the model
+vector for each node and a set of labeled nodes. A semi-supervised classification works by training the model
 using the small amount of labeled data, Then the trained model makes predictions based on the labeled data. Then
 the model's prediction on unlabaled data are treaed as pseudo-labels. This results in a larger set of labeled data
 that combines the original labeled data and the newly generated labeled data. The model is retrained using the larger
-set of data to improve its performance. Then this process is repeated many times.
+set of data to improve its performance. Then this process is repeated many times[^1].
 
 Visual example of node classification[^4]
 ![Visual example of node classification](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/f6822d8c-fe7d-493a-87c2-014e36d07d76)
@@ -28,15 +28,33 @@ Visual representation of the graph using TSNE embedding
 ![TSNE](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/ee4459a1-5c1d-4a7d-a0be-1d289624c6f2)
 
 ## Dependencies used
+* Pytorch: 2.0.0+cpu
 
+* torch_geometric: 2.3.1
+
+* numpy: 1.23.3
+
+* pandas: 1.5.3
+
+* skearn: 1.2.2
+
+* matplotlib: 3.7.1
 
 ## Files explained
-
+* Dataset.py: Containing the data loader for transforming the Facebook dataset into torch_geometric Dataset.
+* modules.py: Contains the GAN model
+* train.py: Contains the source code for training, validating, testing and saving your model. 
+* predict.py: Shows example usage of your trained model.
+* GAN.pt: The pre-trained saved model
 
 ## Example
 
 
 ## Training
+![0 9461504227859368](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/16239887-fd33-427b-8c3c-8f61dc2c9854)
+![0 9453716065865598](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/e932e1c6-f050-4227-a867-d9a05c6c3b5f)
+![0 9362483311081442](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/f294aa8a-73c0-4b17-b2cc-3ff2018cecc0)
+![0 9224521584334668](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/aa501314-6793-4046-887e-76953c88f7f2)
 
 
 [^1]: https://ojs.aaai.org/index.php/AAAI/article/view/17211/17018
