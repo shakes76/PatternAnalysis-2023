@@ -19,11 +19,11 @@ strftime = lambda t: f'{int(t//3600):02}:{int((t%3600)//60):02}:{(t%3600)%60:08.
 
 def save_model(mdl: Any, timestamp: int = None) -> None:
     '''Export the given model.'''
-    torch.save(mdl, f'adni-vit-trained-{timestamp or int(time.time())}')
+    torch.save(mdl, f'adni-vit-trained-{timestamp or int(time.time())}.pt')
 
 def load_model(timestamp: int) -> Any:
     '''Import the model saved with the given timestamp.'''
-    return torch.load(f'adni-vit-trained-{timestamp}')
+    return torch.load(f'adni-vit-trained-{timestamp}.pt')
 
 class EarlyStopping:
     '''Stop training when a monitored metric has stopped improving.'''
@@ -89,30 +89,32 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
         with torch.no_grad():
             total = 0
             correct = 0
+            losses = []
             for images, labels in wrapiter(valid_loader):
                 images = images.to(device)
                 labels = labels.to(device)
                 # Forward pass
                 outputs = mdl(images)
-                loss = criterion(outputs, labels)
+                losses.append(criterion(outputs, labels))
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
         # Training report
         time_elapsed = time.time() - time_start
-        print(f'Epoch [{epoch+1:02}/{epochs:02}]  Val Loss: {loss.item():.5f}  ',
+        loss_average = sum(losses) / len(losses)
+        print(f'Epoch [{epoch+1:02}/{epochs:02}]  Val Loss: {loss_average:.5f}  ',
               f'Val Acc: {correct/total:.5f}  ({strftime(time_elapsed)})')
 
         # Check early stopping condition
-        if earlystop.stop_training(loss.item()):
+        if earlystop.stop_training(loss_average):
             print(f'Stopping early, metric did not improve by more than '
                   f'{earlystop.min_delta} for {earlystop.patience} consecutive '
                   f'epochs')
             break
 
     # Return model from after epoch with lowest loss
-    if earlystop.metric_best == loss.item():
+    if earlystop.metric_best == loss_average:
         return mdl
     else:
         return load_model(earlystop.mdl_timestamp)
