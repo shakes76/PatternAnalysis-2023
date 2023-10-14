@@ -29,6 +29,8 @@ total_step = len(train_loader)
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+# -------
+# Value trackers
 loss_values = []
 iterations = []
 
@@ -64,7 +66,10 @@ for epoch in range(num_epochs):
 end = time.time()
 elapsed = end - start
 print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total") 
+
+# New canvas for graph
 plt.figure()
+
 plt.plot(iterations, loss_values)
 plt.title("Training Loss per Iteration")
 plt.xlabel("Iteration")

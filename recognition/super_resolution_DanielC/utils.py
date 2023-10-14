@@ -8,9 +8,9 @@ NC_test_dir = "F:/COMP3710/data/AD_NC/test/test_NC"
 model_path = "F:/COMP3710/model/model.pt"
 
 # Hyper-parameters
-num_epochs = 10
+num_epochs = 5
 learning_rate = 0.001
-batch_size = 200
+batch_size = 30
 
 # Downsample-parameters 
 downsample_size = (60,64)
