@@ -6,6 +6,7 @@ import time
 
 from typing import Any
 
+import pandas as pd
 import torch
 
 from tqdm import tqdm
@@ -70,10 +71,16 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
 
     # TODO: lr scheduler
 
+    # Training and validation metric tracking
+    train_losses = []; train_acc = []
+    valid_losses = []; valid_acc = []
+
     mdl.train()
     time_start = time.time()
+
     for epoch in range(epochs):
         # Training loop
+        losses = []; total = 0; correct = 0
         for images, labels in wrapiter(train_loader):
             images = images.to(device)
             labels = labels.to(device)
@@ -81,40 +88,54 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
             # Forward pass
             outputs = mdl(images)
             loss = criterion(outputs, labels)
+            # Record training metrics
+            losses.append(loss.item())
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
             # Backward and optimize
             loss.backward()
             optimizer.step()
 
+        train_losses.append(sum(losses) / len(losses))
+        train_acc.append(correct / total)
+
         # Validation loop
+        losses = []; total = 0; correct = 0
         with torch.no_grad():
-            total = 0
-            correct = 0
-            losses = []
             for images, labels in wrapiter(valid_loader):
                 images = images.to(device)
                 labels = labels.to(device)
                 # Forward pass
                 outputs = mdl(images)
-                losses.append(criterion(outputs, labels))
+                # Record validation metrics
+                losses.append(criterion(outputs, labels).item())
                 _, predicted = torch.max(outputs.data, 1)
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
 
+        valid_losses.append(sum(losses) / len(losses))
+        valid_acc.append(correct / total)
+
         # Training report
         time_elapsed = time.time() - time_start
-        loss_average = sum(losses) / len(losses)
-        print(f'Epoch [{epoch+1:02}/{epochs:02}]  Val Loss: {loss_average:.5f}  ',
-              f'Val Acc: {correct/total:.5f}  ({strftime(time_elapsed)})')
+        print(f'Epoch [{epoch+1:02}/{epochs:02}]  Val Loss: {valid_losses[-1]:.5f}  ',
+              f'Val Acc: {valid_acc[-1]:.5f}  ({strftime(time_elapsed)})')
 
         # Check early stopping condition
-        if earlystop.stop_training(loss_average):
+        if earlystop.stop_training(valid_losses[-1]):
             print(f'Stopping early, metric did not improve by more than '
                   f'{earlystop.min_delta} for {earlystop.patience} consecutive '
                   f'epochs')
             break
 
+    # Export training and validation metrics
+    df = pd.DataFrame(zip(*[train_losses, train_acc, valid_losses, valid_acc]),
+        columns=['train_loss', 'train_acc', 'valid_loss', 'valid_acc'])
+    df.to_csv(f'adni-vit-metrics-{earlystop.mdl_timestamp}.csv')
+
     # Return model from after epoch with lowest loss
-    if earlystop.metric_best == loss_average:
+    if earlystop.metric_best == valid_losses[-1]:
         return mdl
     else:
         return load_model(earlystop.mdl_timestamp)
