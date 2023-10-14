@@ -13,6 +13,7 @@ The VQ-VAE is a type of Variational AutoEncoder that incorporates vector quantiz
 ![losses and ssim scores from training loop](./models6/loss_ssim_plot.png)
 
 ### First generation in training
+![generated image based off first training parameters](./samples6/vqvae_reconstructions_1.png)
 
 ### Final generation based off model parameters
 ![generated image based off model parameters](./models6/best_model_sample.png)
@@ -46,10 +47,13 @@ The data is divided into three sets: training (80%), validation (10%), and testi
 ## Code structure:
 **modules.py**
 - Contains helper functions and main VQVAE model classes, including the encoder, decoder, and the vector quantization process.
+
 **dataset.py**
 - Sets up data preprocessing for the OASIS brain dataset and initializes data loaders for training, validation, and testing splits using a batch size of 32 and grayscale normalization.
+
 **train.py**
 - Main training loop for the VQVAE on the OASIS dataset. This script handles the training process, validation, and testing of the VQ-VAE model. Model checkpoints are saved based on improvements in the combined metric of SSIM and reconstruction loss.
+
 **predict.py**
 - This script reads the best epoch from a saved model parameters file, loads the corresponding pre-trained VQVAE model, and uses it to generate and save an image sample from the test data. 
 
