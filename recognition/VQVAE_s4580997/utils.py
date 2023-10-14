@@ -23,7 +23,7 @@ BETA = 0.25
 
 # Running Parameters
 VQVAE_RETRAIN = False
-GAN_RETRAIN = True
+GAN_RETRAIN = False
 
 
 # VQVAE Model Parameters
@@ -39,6 +39,7 @@ BATCH_SIZE = 32
 VQVAE_FRACTION = 0.5
 VQVAE_SAVEPATH = os.path.join(os.getcwd(), 'models/vqvae')
 VQVAE_MODEL_PATH = os.path.join(os.getcwd(), 'models/vqvae/vqvae.pth')
+VQVAE_RECONSTRUCT_PATH = os.path.join(os.getcwd(), 'models/predictions/vqvae_reconstruction.png')
 
 GAN_LR = 1e-3
 GAN_WD = 1e-5

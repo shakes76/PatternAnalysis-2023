@@ -59,6 +59,17 @@ class TrainVQVAE() :
         end = time.time()
         print(f"Total Time for training: {end - start:.2f}s")
 
+    def validate(self) -> None :
+        self.model = self.model.eval()
+        with torch.no_grad() :
+            for i, (data, label) in enumerate(self.dataset.get_val()) :
+                embedding_loss, x_hat, perplexity = self.model(data)
+                recon_loss = torch.mean((x_hat - data)**2) / self.dataset.val_var()
+                loss = recon_loss + embedding_loss
+
+                if i % 10 == 0 :
+                    print(f"Batch: {i+1}/{len(self.dataset.get_val())} Loss: {loss.item():.6f}")
+                
     def plot(self, save = True) -> None :
         plt.figure(figsize=(10, 5))
         plt.plot(self.losses, label='Loss')

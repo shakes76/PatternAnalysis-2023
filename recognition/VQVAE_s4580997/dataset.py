@@ -15,7 +15,6 @@ from utils import W, H
 VQVAE_TRANSFORM = transforms.Compose([
     transforms.Resize((W, H)),
     transforms.ToTensor(),
-    # transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
 ])    
 
 class Loader() :
