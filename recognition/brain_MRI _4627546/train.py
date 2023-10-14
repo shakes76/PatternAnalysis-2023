@@ -10,11 +10,12 @@ from torch.cuda.amp import GradScaler, autocast  # Mixed precision training
 import matplotlib.pyplot as plt
 from dataset import SuperResolutionDataset
 from modules import ESPCN
+from torchvision.transforms import RandomHorizontalFlip, RandomRotation, ColorJitter
 
 # Hyperparameters
 BATCH_SIZE = 32
-EPOCHS = 100
-LR = 0.001
+EPOCHS = 200
+LR = 0.0005
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Create dataset and data loader
@@ -23,7 +24,14 @@ transform = transforms.Compose([
     transforms.Normalize((0.5,), (0.5,))
 ])
 
-dataset = SuperResolutionDataset(root_dir='AD_NC', transform=transform, mode='train')
+# new! data enhancement
+train_transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,)),
+])
+
+
+dataset = SuperResolutionDataset(root_dir='AD_NC', transform=train_transform, mode='train')
 train_size = int(0.8 * len(dataset))
 val_size = len(dataset) - train_size
 train_dataset, val_dataset = random_split(dataset, [train_size, val_size])
@@ -101,11 +109,16 @@ for epoch in range(EPOCHS):
         best_val_loss = val_loss
         torch.save(model.state_dict(), 'best_model.pth')
 
+
 # Plotting the training and validation losses
-plt.plot(train_losses, label='Training Loss')
-plt.plot(val_losses, label='Validation Loss')
+plt.figure(figsize=(10, 5))
+plt.plot(train_losses, label='Training Loss', color='blue')
+plt.plot(val_losses, label='Validation Loss', color='red')
+plt.ylim([0, max(train_losses + val_losses) + 0.05])  # Adjusting the y-axis range
 plt.legend()
 plt.title('Loss vs. Epochs')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
+plt.grid(True)
+plt.tight_layout()
 plt.show()
