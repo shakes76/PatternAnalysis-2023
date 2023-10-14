@@ -50,4 +50,4 @@ GENERATOR_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
 
 # Prediction Parameters
 OUTPUT_PATH = os.path.join(os.getcwd(), 'models/predictions/output_new_')
-NUM_IMAGES = 5
+NUM_IMAGES = 32

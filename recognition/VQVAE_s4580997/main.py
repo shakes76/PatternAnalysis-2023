@@ -17,7 +17,6 @@ import matplotlib.pyplot as plt
 import torchvision.transforms as transforms
 import numpy as np
 import torch.nn.functional as F
-from scipy.signal import savgol_filter
 
 if __name__ == '__main__':
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -31,8 +30,8 @@ if __name__ == '__main__':
     else :
         vqvae.load_state_dict(torch.load(utils.VQVAE_MODEL_PATH))
     
-    vqvae_tester = TestVQVAE(vqvae, vqvae_dataset, savepath=utils.VQVAE_SAVEPATH)
-    vqvae_tester.reconstruct(path=utils.VQVAE_RECONSTRUCT_PATH, show=True)
+    # vqvae_tester = TestVQVAE(vqvae, vqvae_dataset, savepath=utils.VQVAE_SAVEPATH)
+    # vqvae_tester.reconstruct(path=utils.VQVAE_RECONSTRUCT_PATH, show=True)
     
 
     # gan = GAN(features = 128, latent_size = 128)
@@ -46,9 +45,9 @@ if __name__ == '__main__':
     #     gan.discriminator.load_state_dict(torch.load(utils.DISCRIMINATOR_PATH))
     #     gan.generator.load_state_dict(torch.load(utils.GENERATOR_PATH))
     
-    # generator = GenerateImages(vqvae, num_images=utils.NUM_IMAGES, device=device, savepath=utils.OUTPUT_PATH)
-    # generator.generate()
-    # generator.visualise()
+    generator = GenerateImages(vqvae, num_images=utils.NUM_IMAGES, device=device, savepath=utils.OUTPUT_PATH)
+    generator.generate()
+    generator.visualise()
 
     # noise = torch.randn(128, 128, 1, 1).to(device)
 

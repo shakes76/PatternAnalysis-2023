@@ -35,3 +35,4 @@ class TestVQVAE() :
             
         if show:        
             plt.show()
+

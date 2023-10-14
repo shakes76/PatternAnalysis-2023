@@ -50,18 +50,39 @@ class GenerateImages() :
 
         self.generated_images = None
         
+    def generate_images(vqvae, num_images, image_size=(1, 64, 32, 32)):
+        vqvae.eval()
+
+        # Sample random indices from embedding space
+        embedding_indices = torch.randint(
+            high=vqvae.quantizer.n_embeddings,  # maximum embedding index
+            size=(num_images, *image_size),     # size of the generated image batch
+            device='cuda' if torch.cuda.is_available() else 'cpu' # device
+        )
+
+        # Convert embedding indices to one-hot encoded tensors
+        embedding_one_hot = torch.nn.functional.one_hot(
+            embedding_indices,
+            num_classes=vqvae.quantizer.n_embeddings
+        ).float()
+
+        # Weight the one-hot tensor by the embedding weight to retrieve z_q
+        z_q = torch.einsum('bchw,ce->bceh', embedding_one_hot, vqvae.quantizer.embedding.weight)
+
+        # Use the decoder to generate images
+        with torch.no_grad():  # ensure no gradients are computed
+            generated_images = vqvae.decoder(z_q)
+
+        return generated_images
     def generate(self):
 
         self.model.eval()
         random_embeddings = torch.randn(self.n, 64, 32, 32).to(self.device)
         print(f"Shape of random embeddings: {random_embeddings.shape}")
 
-        try:
-            with torch.no_grad():  # Ensure no gradients are calculated
-                self.generated_images = self.model.decoder(random_embeddings)
-        except RuntimeError as e:
-            print(f"Runtime error encountered: {str(e)}")
-            raise e
+        with torch.no_grad():  # Ensure no gradients are calculated
+            self.generated_images = self.model.decoder(random_embeddings)
+
 
     def visualise(self):
         """
@@ -72,26 +93,20 @@ class GenerateImages() :
         - self.n (int): Number of images to display.
         """
         
-        # Move images to CPU and convert them to numpy
-        images_np = self.generated_images.cpu().detach().numpy()
-        
-        # Choose the first 'self.n' to display
-        images_to_display = images_np[:self.n]
-
-        # Assume image shape [self.n, num_channels, height, width]
-        _, num_channels, height, width = images_to_display.shape
-        
-        fig, axs = plt.subplots(1, self.n, figsize=(8, 8))
+        rows = 4 
+        cols = self.n // rows
+        fig, axs = plt.subplots(rows, cols, figsize=(8, 4))
+        axs = axs.ravel()
         axs = [axs] if self.n == 1 else axs
 
-        for i, ax in enumerate(axs):
-            if num_channels == 1:
-                ax.imshow(images_to_display[i].reshape(height, width), cmap='gray')
-            else:
-                ax.imshow(np.transpose(images_to_display[i], (1, 2, 0)))
-            ax.axis('off')  # Disable axis
-            plt.savefig(self.savepath + f'images_{i}.png')
+        
 
+        for i, ax in enumerate(self.generated_images):
+            axs[i].imshow(self.generated_images[i][0], cmap='gray')
+            axs[i].axis('off')
+        
+        plt.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
+        plt.savefig(self.savepath + f'images_new_{i}.png')
     
 class SSIM():
     def __init__() :
