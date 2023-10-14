@@ -36,7 +36,7 @@ def contrastive_loss(y, y_pred):
     return tf.math.reduce_mean((1 - y) * square_pred + (y) * margin)
 
 
-def siamese_network(height: int, width: int):
+def siamese_network(height, width):
 
     # Reference: https://keras.io/examples/vision/siamese_contrastive/ 
 
@@ -62,7 +62,7 @@ def siamese_network(height: int, width: int):
 
     # Calculate the euclidean distance between feature1 and feature2
     distance = euclidean_distance(feature1, feature2)
-    
+
     normal_layer = kl.BatchNormalization()(distance)
     output_layer = kl.Dense(1, activation='sigmoid')(normal_layer)
     model = tf.keras.Model(inputs=[image1, image2], outputs=output_layer)
@@ -71,4 +71,32 @@ def siamese_network(height: int, width: int):
     model.compile(loss=contrastive_loss, metrics=['accuracy'], optimizer=opt)
     return model
 
+
+def cnn (height, width):
+    cnn = k.Sequential(layers=[
+            kl.Conv2D(32, (3, 3), activation='relu', input_shape=(height, width, 1)),
+            kl.MaxPooling2D((2, 2)),
+            kl.Conv2D(64, (3, 3), activation='relu'),
+            kl.MaxPooling2D((2, 2)),
+            kl.Conv2D(128, (3, 3), activation='relu'),
+            kl.Flatten(),
+            kl.Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
+            kl.Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
+            ], name='cnn'
+    )
+
+
+def classification_model (cnn) :
+
+    image = kl.Input((128,128,1))
+
+    feature = cnn(image)
+    feature = kl.BatchNormalization()(feature)
+
+    out = kl.Dense(units = 1, activation= 'sigmoid')(feature)
+    classifier = tf.keras.Model([image], out)
+    opt = tf.keras.optimizers.legacy.Adam(learning_rate=0.0001) 
+
+    classifier.compile(loss='binary_crossentropy', metrics=['accuracy'], optimizer=opt)
+    return classifier
 
