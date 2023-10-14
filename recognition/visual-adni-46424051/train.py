@@ -12,12 +12,13 @@ import matplotlib.pyplot as plt
 
 class Train():
     def __init__(self):
-        self.net = Model()
+        self.net = Model(shape=(1, 105, 105), patches=7, hidden_dim=8, blocks=2, heads=2, out_dim=10)
         self.transforms = transforms.Compose([
+            transforms.Resize((105,105)),
             transforms.ToTensor()
         ])
         self.criterion = CrossEntropyLoss()
-        self.trainSet = DataSetTrain(constants.train_path, transforms=self.transforms)
+        self.trainSet = DatasetTrain(constants.train_path, transforms=self.transforms)
         self.testSet = DatasetTest(constants.test_path, transforms=self.transforms, size=constants.test_size)
         self.trainLoader = DataLoader(self.trainSet, batch_size=constants.batch_size, shuffle=True)
         self.testLoader = DataLoader(self.testSet, batch_size=constants.batch_size, shuffle=False)
