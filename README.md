@@ -26,11 +26,58 @@ Secondly, the vector-quantised part of the VQ-VAE discretises the latent space i
 
 Finally, a reparameterisation trick, similar to parametric bootstrap, is used during model training to overcome the now discrete latent space being non-differentiable. Instead of sampling from the codebook directly, the codebook is modelled as a normal distribution meaning that the latent space can be differentiable during training for the purpose of backpropagation and gradient descent. The discrete codes, however, are still used to represent the data which provides the advantages outlined above.
 
+The loss function during training can be given as follows. The mean squared error (L2 Norm) was used to map (or snap) each encoded image to the nearest discrete vector within the codebook. These discrete vectors are then passed to the model decoder which produces a reconstructed image.
+
+$$L = \|x|z_q(x) - x\|_2^2 + \|z_q(x) - z_e^*(x)\|^2_2 + \beta \|z_e(x) - z_q^*(x)\|_2^2$$
+
+This corresponds to reconstruction loss + VQ loss + $\beta \times$ commitment loss
+
+where
+
+-   $x$ = input
+-   $z_e(x)$ = encoded image
+-   $z_q(x)$ = decoded image (from the input image)
+-   $z_e^*(x)$ = encoded image with gradients detached
+-   $z_q(x)$ = decoded image (from the input image) with gradients detached
+-   $\beta$ = hyperparameter for commitment vs reconstruction loss
+
+The reconstruction loss is the difference between the input image and the decoded output image produced by the model. The VQ loss is a metric of the information loss when the input embeddings are mapped to discrete codes within the codebook. Finally, the $\beta$ value adjusts how committed the encoder is to a single codebook embeddding versus providing a better reconstruction of the input.
+
+## Implementation of the VQ-VAE
+
+L = \text{recon_loss} + \text{vq_loss} + \beta \times \text{commit_loss}
+
+        x_til, z_e_x, z_q_x = model(images)
+
+        # Reconstruction Loss
+        recon_loss = F.mse_loss(x_til, images)
+
+        # Vector Quantised Objective Function
+        # We need to detach the gradient becuse gradients won't work in disctete space for backpropagation
+        vq_loss = F.mse_loss(z_q_x, z_e_x.detach())
+
+        # Commitment objective
+        commit_loss = F.mse_loss(z_e_x, z_q_x.detach())
+
+
+
+        fin_loss = \|x|z_q(x) - x\|_2^2 + \|z_q(x) - z_e^*(x)\|^2_2 + beta * \|z_e(x) - z_q^*(x)\|_2^2
+        fin_loss.backward()
+
+        optimiser.step()
+
 ---
 
-## It should also list any dependencies required, including versions and address reproduciblility of results, if applicable.
-
 ## provide example inputs, outputs and plots of your algorithm
+
+## Dependencies Required
+
+-   Pytorch
+-   Matplotlib
+-   tqdm
+-   torchvision
+-   torchvision.utils
+-   shutil
 
 ## Preprocessing
 

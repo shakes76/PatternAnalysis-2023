@@ -302,7 +302,7 @@ class VectorQuantisation(Function):
 
             # Compute the distances to the codebook
             distances = torch.addmm(codebook_sqr + inputs_sqr,
-                                    inputs_flatten, codebook.t(), alpha=-2.0, beta=1.0)
+                                    inputs_flatten, codebook.t(), alpha=-2.0, beta=0.3)
 
             _, indices_flatten = torch.min(distances, dim=1)
 

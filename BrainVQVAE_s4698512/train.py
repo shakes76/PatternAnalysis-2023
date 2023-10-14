@@ -16,6 +16,8 @@ from torchvision import transforms
 from torchvision.utils import save_image
 from tqdm import tqdm
 import os
+from skimage.metrics import structural_similarity as ssim
+
 
 from modules import VectorQuantisedVAE
 from dataset import OASIS, ADNI
@@ -32,6 +34,8 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
         beta (int): loss weight
     """
 
+    best_ssim = 0
+
     # Loop over the images in the data loader
     for images, _ in train_loader:
         # Move the images in the batch to the GPU
@@ -44,6 +48,16 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
         # Reconstruction Loss
         recon_loss = F.mse_loss(x_til, images)
 
+        # Compute SSIM
+        images_cpu = images.to('cpu').detach().numpy()
+        x_til_cpu = x_til.to('cpu').detach().numpy()
+
+        batch_ssim = ssim(
+            images_cpu[0, 0], x_til_cpu[0, 0], data_range=images_cpu[0, 0].max() - images_cpu[0, 0].min())
+
+        if batch_ssim > best_ssim:
+            best_ssim = batch_ssim
+
         # Vector Quantised Objective Function
         # We need to detach the gradient becuse gradients won't work in disctete space for backpropagation
         vq_loss = F.mse_loss(z_q_x, z_e_x.detach())
@@ -55,6 +69,8 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
         fin_loss.backward()
 
         optimiser.step()
+
+    print(f"Batch best SSIM: {best_ssim}")
 
 
 def test(test_loader: DataLoader, model: VectorQuantisedVAE, device: torch.device):
@@ -112,7 +128,7 @@ def main():
     learning_rate = 1.4e-4
 
     # Number of epochs during training
-    num_epochs = 120
+    num_epochs = 30
 
     # Trade off between reconstruction loss and KL Divergence loss
     # Reconstruction loss measures how similar of an output the model can produce from the input
@@ -120,7 +136,7 @@ def main():
     # of the VQ-VAE by forcing the encoder to follow a regularlised normal distribution in order to
     # prevent overfitting. A higher beta value (closer to 1) lowers KL Divergence Loss while a
     # lower beta value (closer to 0) lowers reconstruction loss.
-    beta = 1.5
+    beta = 0.8
 
     # Greyscale data: 1 channel
     num_channels = 1
