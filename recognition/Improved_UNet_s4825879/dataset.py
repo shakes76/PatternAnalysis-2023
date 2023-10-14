@@ -4,10 +4,14 @@ import os
 
 # custom dataset
 class ISICDataset(Dataset):
-    def __init__(self, img_dir, transform):
+    def __init__(self, img_dir, truth_dir, transform):
         super(ISICDataset, self).__init__()
         self.img_dir = img_dir
         self.image_files = os.listdir(img_dir)
+
+        self.truth_dir = truth_dir
+        self.truth_files = os.listdir(truth_dir)
+
         self.transform = transform
 
     # function returns the length of the dataset
@@ -18,6 +22,11 @@ class ISICDataset(Dataset):
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.image_files[idx])
         image = Image.open(img_path)
+        truth_path = os.path.join(self.truth_dir, self.truth_files[idx])
+        truth = Image.open(truth_path)
+
         if self.transform:
             image = self.transform(image)
-        return image
+            truth = self.transform(truth)
+
+        return image, truth
