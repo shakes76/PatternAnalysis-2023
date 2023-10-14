@@ -17,6 +17,7 @@ upscale_factor = 4
 channels = 1
 feature_size = 32
 num_convs = 3
+learning_rate = 1e-3
 
 # Define our training and validation datasets
 train_set = GetADNITrain(images_path, train_split=0.9, train=True)
@@ -31,3 +32,14 @@ print("Num Val: " + str(val_set.arrLen))
 
 ### Load the model
 model = pixelCNN(upscale_factor, channels, feature_size, num_convs)
+# Send the model to the device
+model = model.to(device)
+
+# Print the number of parameters in the model
+pytorch_total_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print("Number of trainable params: " + str(pytorch_total_params))
+
+# Define the optimizer
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+
+
