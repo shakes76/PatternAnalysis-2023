@@ -131,7 +131,7 @@ class UpScaleModule(nn.Module):
 
 
 class ImprovedUnet(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self):
         # write this entire thing and then go get help. 
         super(ImprovedUnet, self).__init__()
 
