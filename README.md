@@ -45,30 +45,57 @@ The reconstruction loss is the difference between the input image and the decode
 
 ## Implementation of the VQ-VAE
 
-L = \text{recon_loss} + \text{vq_loss} + \beta \times \text{commit_loss}
+### Model Architecture
 
-        x_til, z_e_x, z_q_x = model(images)
+**Encoder**
 
-        # Reconstruction Loss
-        recon_loss = F.mse_loss(x_til, images)
+    Input Image (Channels: input_channels)
+    ↓
+    Conv2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 128, 128)
+    ↓
+    BatchNorm2D -> (76, 128, 128, 128)
+    ↓
+    ReLU -> (76, 128, 128, 128)
+    ↓
+    Conv2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 64, 64)
+    ↓
+    BatchNorm2D -> (76, 128, 64, 64)
+    ↓
+    ReLU -> (76, 128, 64, 64)
+    ↓
+    ResBlock (128) -> (76, 128, 64, 64)
+    ↓
+    ResBlock (128) -> (76, 128, 64, 64)
 
-        # Vector Quantised Objective Function
-        # We need to detach the gradient becuse gradients won't work in disctete space for backpropagation
-        vq_loss = F.mse_loss(z_q_x, z_e_x.detach())
+**Codebook**
 
-        # Commitment objective
-        commit_loss = F.mse_loss(z_e_x, z_q_x.detach())
+**Decoder**
 
+    ResBlock (128) -> (76, 128, 64, 64)
+    ↓
+    ResBlock (128) -> (76, 128, 64, 64)
+    ↓
+    ReLU -> (76, 128, 64, 64)
+    ↓
+    ConvTranspose2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 128, 128)
+    ↓
+    BatchNorm2D -> (76, 128, 128, 128)
+    ↓
+    ReLU -> (76, 128, 128, 128)
+    ↓
+    ConvTranspose2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 256, 256)
+    ↓
+    BatchNorm2D -> (76, 128, 256, 256)
+    ↓
+    Tanh
+    ↓
+    Output Image (Channels: output_channels)
 
+## Model Results
 
-        fin_loss = \|x|z_q(x) - x\|_2^2 + \|z_q(x) - z_e^*(x)\|^2_2 + beta * \|z_e(x) - z_q^*(x)\|_2^2
-        fin_loss.backward()
+provide example inputs, outputs and plots of your algorithm
 
-        optimiser.step()
-
----
-
-## provide example inputs, outputs and plots of your algorithm
+## Usage
 
 ## Dependencies Required
 
