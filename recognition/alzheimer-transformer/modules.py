@@ -116,17 +116,17 @@ class ViT(nn.Module):
         #  TRANSFORMER ENCODER STACK
         #-----------------------------#
         # this is to resemble the transformer enoder in figure 1 of the paper
-        self.transformer_encoder_layer = nn.TransformerEncoderLayer(
-            d_model=hidden_D,
-            nhead=n_heads,
-            dim_feedforward=mlp_size,
-            dropout=dropout,
-            activation='gelu', # as per the paper
-            batch_first=True, # since the batch dimension is first in patch_embedding
-            norm_first=True) # according to the tranformer encoder diagram in figure 1 of the paper
 
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer=self.transformer_encoder_layer,
-                                                num_layers=n_layers)
+        self.transformer_encoder = nn.TransformerEncoder(
+            encoder_layer=nn.TransformerEncoderLayer(
+                d_model=hidden_D,
+                nhead=n_heads,
+                dim_feedforward=mlp_size,
+                dropout=dropout,
+                activation='gelu', # as per the paper
+                batch_first=True, # since the batch dimension is first in patch_embedding
+                norm_first=True), # according to the tranformer encoder diagram in figure 1 of the paper,
+            num_layers=n_layers)
         
         #----------#
         # MLP HEAD #
