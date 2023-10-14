@@ -96,7 +96,15 @@ The reconstruction loss is the difference between the input image and the decode
 
 ## Model Results
 
-provide example inputs, outputs and plots of your algorithm
+### Structured Similarity (SSIM)
+
+### Reconstruction Loss
+
+The model was trained for 40 epochs. From the plot of reconstruction loss (both training and validation), it is clear that a low final loss was obtained of just \_**_ and _** for training and validation respectively.
+
+### Reconstructed Images
+
+Here are some samples constructed with the VQ-VAE model.
 
 ## Usage
 

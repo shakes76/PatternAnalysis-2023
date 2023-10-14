@@ -67,8 +67,8 @@ def predict(dataset: str, num_samples: int, device: torch.device, model_name: st
     plt.grid(True)
     plt.show()
 
-    # # Convert training list of tensors to list of ints
-    # train_losses_list = [loss.item() for loss in train_losses]
+    # Convert training list of tensors to list of ints
+    # train_losses = [loss.item() for loss in train_losses]
 
     # Plot both training and validation losses in the same plot
     plt.figure(figsize=(10, 5))
@@ -150,7 +150,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Set the model to use the best one trained
-    model = "best_model.pt"
+    model = "model_checkpoint_40.pt"
 
     predict(dataset, num_samples, device, model)
 

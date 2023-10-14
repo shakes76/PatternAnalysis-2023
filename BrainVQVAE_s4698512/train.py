@@ -109,17 +109,7 @@ def generate_samples(images, model, device):
         images = images.to(device)
 
         # Invoke forward pass on model
-        x_tilde, z_e_x, _ = model(images)
-
-        #  Plot z_e_x using matplot lib
-        fig, ax = plt.subplots(1, 3)
-        ax[0].imshow(images.cpu().numpy().squeeze(), cmap='gray')
-        ax[0].set_title('Original')
-        ax[1].imshow(z_e_x.cpu().numpy().squeeze(), cmap='jet')
-        ax[1].set_title('Codebook')
-        ax[2].imshow(x_tilde.cpu().numpy().squeeze(), cmap='gray')
-        ax[2].set_title('Reconstructed')
-        plt.show()
+        x_tilde, _, _ = model(images)
 
     return x_tilde
 
@@ -243,7 +233,7 @@ def main():
         os.makedirs(save_filename)
 
     # Keep track of best loss so far and initialise to arbitrary -1
-    best_loss = -1.
+    best_loss = 999.
 
     # Initialise empty arrays to store metrics
     ssim_values = []
@@ -262,7 +252,7 @@ def main():
 
         # Output to console
         tqdm.write(
-            f"Epoch [{epoch + 1}/{num_epochs}] Train Loss: {train_loss:.4f} | Validation Loss: {validation_loss:.4f}")
+            f"Epoch [{epoch + 1}/{num_epochs}] Train Loss: {train_loss:.4f} | Validation Loss: {validation_loss:.4f} | SSIM Value: {ssim:.4f}")
 
         # Save the model and metrics in a checkpoint
         checkpoint = {
