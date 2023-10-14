@@ -40,10 +40,7 @@ def predict(dataset: str, num_samples: int, device: torch.device, model_name: st
 
     # Size/dimensions within latent space
     hidden_dim = 128     # Number of neurons in each layer
-    K = 512      # Size of the codebook
-
-    # Peturbance
-    noise_scale = 0.001
+    K = 32      # Size of the codebook
 
     # Define model.
     model = VectorQuantisedVAE(input_channels=num_channels,
@@ -65,6 +62,7 @@ def predict(dataset: str, num_samples: int, device: torch.device, model_name: st
         transforms.Resize((image_x, image_y)),  # Adjust the size as needed
         transforms.Grayscale(num_output_channels=num_channels),
         transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,))
     ])
 
     if dataset == "OASIS":
@@ -78,15 +76,6 @@ def predict(dataset: str, num_samples: int, device: torch.device, model_name: st
 
     # Get a batch of data for generating samples
     sample_images, _ = next(iter(sample_loader))
-
-    def generate_peturbed_samples(images, model, device, noise_scale=0.1):
-        with torch.no_grad():
-            images = images.to(device)
-
-            # Invoke forward pass on model
-            x_tilde, _, _ = model.forward_peturb(images, noise_scale)
-
-        return x_tilde
 
     # Generate samples
     with torch.no_grad():
@@ -128,7 +117,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Set the model to use the best one trained
-    model = "model_60.pt"
+    model = "best.pt"
 
     predict(dataset, num_samples, device, model)
 
