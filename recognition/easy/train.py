@@ -45,7 +45,7 @@ class CustomDataset(torch.utils.data.Dataset):
         self.mask_dir = mask_dir
         self.transform = transform
         self.images = list(image_dir.glob("*.jpg"))
-        self.masks = list(mask_dir.glob("*.png"))
+        self.masks = list(mask_dir.glob("*.png")) if mask_dir else []  # Handle cases with no masks
 
         self.target_size = target_size
 
@@ -54,27 +54,32 @@ class CustomDataset(torch.utils.data.Dataset):
 
     def __getitem__(self, idx):
         image_path = str(self.images[idx].absolute())
-        mask_path = str(self.masks[idx].absolute())
+
+       
         image = read_image(image_path)
-        mask = read_image(mask_path)
+        if self.mask_dir:
+            
+            mask_path = str(self.masks[idx].absolute())
+            mask = read_image(mask_path)
         
         # Resize images to the target size
-        resize_transform = transforms.Resize(self.target_size)
-        image = resize_transform(image)
-        mask = resize_transform(mask)
+            resize_transform = transforms.Resize(self.target_size)
+            image = resize_transform(image)
+            mask = resize_transform(mask)
 
-        if self.transform:
-            image = self.transform(image)
-            mask = self.transform(mask)
+            if self.transform:
+                image = self.transform(image)
+                mask = self.transform(mask)
 
-        return image, mask
+            return image, mask
+        return image , []
 
 dataset = CustomDataset(image_dir=dir_img, mask_dir=dir_mask, transform=transform)
 print(dataset.__len__())
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 # Training loop
-num_epochs = 0  # Adjust as needed
+num_epochs = 1  # Adjust as needed
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
@@ -112,12 +117,15 @@ output_dir = Path(current_directory)
 output_dir.mkdir(parents=True, exist_ok=True)
 
 # Prepare the test dataset and data loader (similar to training)
-test_dataset = CustomDataset(image_dir=test_image_dir, mask_dir=output_dir, transform=transform)
-test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+
+test_dataset = CustomDataset(image_dir=test_image_dir, mask_dir=None, transform=transform)
+print(test_dataset.__len__())
+test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=True)
 
 # Perform inference and save the results
 with torch.no_grad():
     for i, data in enumerate(test_dataloader):
+        print(i)
         inputs, _ = data  # Assuming you only have test images, no masks
 
         # Move inputs to the device (GPU/CPU) if needed
