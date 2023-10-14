@@ -58,7 +58,8 @@ For a graph convolutional network, the message passing is done through the follo
 ```
 where $\sigma$ is a non-linear activation function such as the element-wise ReLU function, $W_0^{(l)}$ and $W_1^{(l)}$ are learnable $d_l \times d_{d+1}$ parameter matrices and $c_{i, j} = 1/\sqrt{D_{i,i}D_{j,j}}$ is a normalisation constant, where $D_{i,i}$ is the degree of node $v_i$. The final node representations $h^L$ can then be used for regression or node classification problems in the normal way described above. 
 
-![image](https://github.com/jameslavis26/PatternAnalysis-2023/assets/59269629/377cbbc8-3557-49ee-95fb-9300405137ae)
+![](https://github.com/jameslavis26/PatternAnalysis-2023/assets/59269629/377cbbc8-3557-49ee-95fb-9300405137ae)
+
 The image shows how message passing works in a graph convolutional network, where information is aggregated on the nodes over time (credit: Understanding Graph Convolutional Networks for Node Classification by Inneke Mayachita - Towards Data Science). 
 
 ## Training and validation
