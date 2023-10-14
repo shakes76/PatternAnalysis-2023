@@ -66,6 +66,8 @@ for epoch in range(num_epochs):
         # Add the channel dimension to grayscale images
         images = torch.unsqueeze(images, 1)
 
+        print(images.shape)
+
         # Downscale
         inputs = down_sampler(images)
 
