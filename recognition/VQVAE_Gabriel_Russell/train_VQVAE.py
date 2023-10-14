@@ -18,8 +18,6 @@ import torch.nn.functional as F
 import numpy as np
 import os
 
-
-
 class TrainVQVAE():
     def __init__(self):
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -29,6 +27,7 @@ class TrainVQVAE():
         data = dataset.OASISDataloader()
         self.train_loader = data.get_train()
         self.val_loader = data.get_validate()
+        self.test_loader = data.get_test()
         self.optimizer = optim.Adam(self.model.parameters(), self.params.learn_rate)
         self.epochs = 2
         self.reconstruction_err = []
@@ -36,7 +35,7 @@ class TrainVQVAE():
     
     def train(self):
         for epoch in range(self.epochs):
-            print(f"Training on Epoch: {epoch + 1}")
+            print(f"VQVAE Training on Epoch: {epoch + 1}")
             for i in enumerate(self.train_loader):
                 batch_num, img = i
                 img = img.to(self.device)
@@ -51,11 +50,11 @@ class TrainVQVAE():
                 self.optimizer.step()
 
                 self.reconstruction_err.append(reconstruction_err.item())
-                if batch_num % 20 == 0:
-                    print('Reconstruciton error for training: %.3f' % np.mean(self.reconstruction_err[:]))
-                    print()
+                # if batch_num % 20 == 0:
+                #     print('VQVAE Reconstruciton error for training: %.3f' % np.mean(self.reconstruction_err[:]))
+                #     print()
             print(f"EPOCH: {epoch + 1}\n")
-            print('Reconstruction Loss: %.3f' % np.mean(self.reconstruction_err[:]))
+            print('Reconstruction Loss: %.3f' % np.mean(self.reconstruction_err[-302:]))
         
         #Filters and Plots Reconstruction Loss values
         train_res_recon_error_smooth = savgol_filter(self.reconstruction_err, 604, 7)
@@ -65,15 +64,15 @@ class TrainVQVAE():
         ax.set_yscale('log')
         ax.set_title('Reconstruction Loss after training')
         ax.set_xlabel('iteration')
-        plt.savefig("reconstruction_err_train.png")
+        plt.savefig("Output_files/reconstruction_err_train.png")
 
         #Saves entire Model after training
         current_dir = os.getcwd()
-        model_path = current_dir + "/VQVAE.pth"
+        model_path = current_dir + "/Models/VQVAE.pth"
         torch.save(self.model, model_path)
 
     def validate(self):
-        model = torch.load("VQVAE.pth")
+        model = torch.load("Models/VQVAE.pth")
         self.model.eval()
         with torch.no_grad():
             for i in enumerate(self.val_loader):
@@ -84,9 +83,9 @@ class TrainVQVAE():
                 reconstruction_err = F.mse_loss(recon, img)/ self.params.data_var
 
                 self.validation_err.append(reconstruction_err.item())
-                if batch_num % 20 == 0:
-                    print('Reconstruction Error for validation set: %.3f' % np.mean(self.validation_err[:]))
-                    print()
+                # if batch_num % 20 == 0:
+                #     print('Reconstruction Error for validation set: %.3f' % np.mean(self.validation_err[:]))
+                #     print()
             #Filters and Plots Reconstruction Loss values
         train_res_recon_error_smooth = savgol_filter( self.validation_err, 35, 7)
         f = plt.figure(figsize=(16,8))
@@ -95,7 +94,29 @@ class TrainVQVAE():
         ax.set_yscale('log')
         ax.set_title('Reconstruction Loss after Validating')
         ax.set_xlabel('iteration')
-        plt.savefig("reconstruction_err_validate.png")
+        plt.savefig("Output_files/reconstruction_err_validate.png")
+
+    def test_reconstructions(self):
+        test_input = next(iter(self.test_loader))
+        test_input = test_input.to(self.device)
+        encoded = self.model.encoder(test_input)
+        conv = self.model.conv_layer(encoded)
+        _,quantized_results,_,embeddings = self.model.quantizer(conv)
+        reconstructions = self.model.decoder(quantized_results)
+        #print(f"reconstrcuted image batch shape is {reconstructions.shape}")
+
+        batch = reconstructions.shape[0]
+        num_rows = 4  # Number of rows in the grid
+        num_cols = batch // num_rows  # Number of columns in the grid
+        for i in range(reconstructions.shape[0]):
+            plt.subplot(num_rows, num_cols, i + 1)
+            image = reconstructions[i][0].detach().cpu()
+            plt.imshow(image, cmap='gray')  # Assuming grayscale images
+            plt.axis('off')
+
+        plt.tight_layout(pad = 0, w_pad = 0, h_pad = 0)
+        plt.savefig("Output_files/VQVAE_reconstructed_images.png")
+
 
 
 

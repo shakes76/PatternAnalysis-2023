@@ -18,28 +18,32 @@ import torch
 import matplotlib.pyplot as plt
 
 #Load Parameters
-params = Parameters()
+def run_training():
+    params = Parameters()
+    # # #Intialise VQVAE training
+    # VQVAE_init = TrainVQVAE()
 
-# #Intialise VQVAE training
-# VQVAE_init = TrainVQVAE()
+    # # #Train VQVAE model, save model and save plot of reconstruction losses
+    # VQVAE_init.train()
 
-# # #Train VQVAE model, save it to current dir and save plot of reconstruction losses
-# VQVAE_init.train()
-# VQVAE_init.validate()
+    # # #Validate the performance of the trained model, save validation loss
+    # VQVAE_init.validate()
 
-# #Load VQVAE model to be used
-VQVAE_model = torch.load("VQVAE.pth")
+    # # #Compute some sample reconstructions
+    # VQVAE_init.test_reconstructions()
 
-# #Load VQVAE encodings into DCGAN
-Gan_dataset = DCGAN_Dataset(VQVAE_model)
-Gan_loader = DataLoader(Gan_dataset, batch_size = params.Gan_batch_size)
-# a = next(iter(Gan_loader))
-# print(a.shape)
-# print(len(Gan_loader))
+    # #Load VQVAE model to be used
+    VQVAE_model = torch.load("Models/VQVAE.pth")
 
-# #Initialise DCGAN training
-DCGAN_init = TrainDCGAN(Gan_loader)
-# #Train DCGAN model, save it to current dir
-DCGAN_init.train()
+    # #Load VQVAE encodings into DCGAN
+    Gan_dataset = DCGAN_Dataset(VQVAE_model)
 
+    #Create Data Loader for Gan model
+    Gan_loader = DataLoader(Gan_dataset, batch_size = params.Gan_batch_size)
 
+    # #Initialise DCGAN training
+    DCGAN_init = TrainDCGAN(Gan_loader)
+    # #Train DCGAN model, save it to current dir
+    DCGAN_init.train()
+
+run_training()

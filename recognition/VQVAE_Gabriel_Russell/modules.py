@@ -19,7 +19,8 @@ import torchvision.transforms as transforms
 from torchvision.utils import make_grid
 from torch.distributions.normal import Normal
 from torch.distributions import kl_divergence
-
+import numpy as np
+import matplotlib.pyplot as plt
 
 """
 Define the hyperparameters used for the model.
@@ -36,10 +37,11 @@ class Parameters():
         self.data_var = 0.0338 #calculated separately for training data
         self.grey_channel = 1 #Number of channels of image (all grey images)
 
-        self.gan_lr = 2e-4 #Learning rate for DCGAN
+        self.gan_lr = 1e-3 #Learning rate for DCGAN
         self.features = 128
         self.channel_noise = 100
-        self.Gan_batch_size = 256
+        self.Gan_batch_size = 32
+        self.latent_dim = 100
 
 #Referenced From
 #https://colab.research.google.com/github/zalandoresearch/pytorch-vq-vae/blob/master/vq-vae.ipynb#scrollTo=kgrlIKYlrEXl
@@ -206,6 +208,17 @@ class VectorQuantizer(nn.Module):
         # convert quantized from BHWC -> BCHW
         return loss, quantized.permute(0, 3, 1, 2).contiguous(), perplexity, codebook_indices
 
+    """
+    Retrives the embeddings from the generated GAN embedding indices
+    """
+    def get_quantized_results(self, x):
+        p = Parameters()
+        codebook_indices = x.unsqueeze(1)
+        encodings = torch.zeros(codebook_indices.shape[0], self._num_embeddings, device = x.device)
+        encodings.scatter_(1, codebook_indices, 1)
+        quantized_values = torch.matmul(encodings, self._embedding.weight).view(1,64,64,64)
+        return quantized_values.permute(0,3,1,2).contiguous()
+
     
 """
 Class that build model using other classes such as Encoder, 
@@ -245,42 +258,44 @@ class VQVAEModel(nn.Module):
 
         return loss, x_recon, perplexity
 
+"""
+"""
+# Building a DCGAN to generate images from trained images outputted by VQVAE
+"""
+Referenced From
+https://github.com/aladdinpersson/Machine-Learning-Collection/blob/master/ML/Pytorch/GANs/2.%20DCGAN/model.py
+"""
+# Discriminator Class of DCGAN
 
-"""
-Building a DCGAN to generate images from trained images outputted by VQVAE
-"""
-#Referenced From
-#https://github.com/aladdinpersson/Machine-Learning-Collection/blob/master/ML/Pytorch/GANs/2.%20DCGAN/model.py
-"""
-Discriminator Class of DCGAN
-"""
 class Discriminator(nn.Module):
-    def __init__(self, features):
+    def __init__(self):
         super(Discriminator, self).__init__()
         #64 x 64 input image
+        p = Parameters()
+        features = p.features
         self.input = nn.Sequential(
-            nn.Conv2d(3, features, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(3, features, kernel_size=4, stride=2, padding=1, bias = False),
             nn.LeakyReLU(0.2),
-            nn.BatchNorm2d(features)
+            #nn.BatchNorm2d(features)
         )
 
         #Conv Block 1
         self.block_1 = nn.Sequential(
-            nn.Conv2d(features, features*2, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(features, features*2, kernel_size=4, stride=2, padding=1, bias = False),
             nn.BatchNorm2d(features*2),
             nn.LeakyReLU(0.2)
         )
 
         #Conv Block 2
         self.block_2 = nn.Sequential(
-            nn.Conv2d(features*2, features*4, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(features*2, features*4, kernel_size=4, stride=2, padding=1, bias = False),
             nn.BatchNorm2d(features*4),
             nn.LeakyReLU(0.2)
         )
 
         #Conv Block 3
         self.block_3 = nn.Sequential(
-            nn.Conv2d(features*4, features*8, kernel_size=4, stride=2, padding=1),
+            nn.Conv2d(features*4, features*8, kernel_size=4, stride=2, padding=1, bias = False),
             nn.BatchNorm2d(features*8),
             nn.LeakyReLU(0.2)
         )
@@ -304,39 +319,42 @@ class Discriminator(nn.Module):
 Generator Class of DCGAN
 """
 class Generator(nn.Module):
-    def __init__(self, channel_noise, features):
-        super(Generator, self).__init__()    
+    def __init__(self):
+        super(Generator, self).__init__() 
+        p = Parameters()  
+        channel_noise = p.channel_noise
+        features = p.features 
         #Input block for noise 
         self.input = nn.Sequential(
-            nn.ConvTranspose2d(channel_noise, features*16, kernel_size=4, stride=2, padding=0),
-            nn.BatchNorm2d(features*16),
+            nn.ConvTranspose2d(channel_noise, features*8, kernel_size=4, stride=1, padding=0, bias = False),
+            nn.BatchNorm2d(features*8),
             nn.ReLU()
         )
 
         #Conv transpose block 1
         self.block_1 = nn.Sequential(
-            nn.ConvTranspose2d(features*16, features*8, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(features*8),
+            nn.ConvTranspose2d(features*8, features*4, kernel_size=4, stride=2, padding=1, bias = False),
+            nn.BatchNorm2d(features*4),
             nn.ReLU()
         )
 
         #Conv transpose block 2
         self.block_2 = nn.Sequential(
-            nn.ConvTranspose2d(features*8, features*4, kernel_size=4, stride=2, padding=1),
-             nn.BatchNorm2d(features*4),
+            nn.ConvTranspose2d(features*4, features*2, kernel_size=4, stride=2, padding=1, bias = False),
+             nn.BatchNorm2d(features*2),
             nn.ReLU()
         )
 
         #Conv transpose block 3
         self.block_3 = nn.Sequential(
-            nn.ConvTranspose2d(features*4, features*2, kernel_size=4, stride=2, padding=1),
-             nn.BatchNorm2d(features*2),
+            nn.ConvTranspose2d(features*2, features, kernel_size=4, stride=2, padding=1, bias = False),
+             nn.BatchNorm2d(features),
             nn.ReLU()
         )
 
         #Conv transpose block 4
         self.block_4 = nn.Sequential(
-            nn.ConvTranspose2d(features*2, 3, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(features, 3, kernel_size=4, stride=2, padding=1, bias = False),
             nn.Tanh()
         )
 
@@ -348,9 +366,80 @@ class Generator(nn.Module):
         output = self.block_4(conv_transpose)
         return output
 
-
 def initialize_weights(model):
     # Initializes weights according to the DCGAN paper
     for m in model.modules():
         if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)):
             nn.init.normal_(m.weight.data, 0.0, 0.02)
+
+"""
+Function to visualise and save the generated GAN output
+"""
+def gan_codebook(device, p):
+    fixed_noise = torch.randn(1, p.channel_noise, 1, 1).to(device)
+
+    #Load Trained Generator
+    Generator = torch.load("Models/Generator.pth")
+    Generator.eval()
+
+    with torch.no_grad():
+        generated_images = Generator(fixed_noise)
+
+    # Rescale images from [-1, 1] to [0, 1] for displaying/saving
+    generated_images = 0.5 * (generated_images + 1)
+
+    # Convert tensor to NumPy array
+    generated_output = generated_images[0][0]
+    generated_output = generated_output.cpu()
+    generated_output = generated_output.numpy()
+    plt.imshow(generated_output)
+
+    plt.savefig("Output_files/GAN_generated_Output.png")
+    return generated_images
+
+"""
+Takes in the generated images from GAN and visualises the codebook indice of image
+"""
+def gan_create_codebook_indice(generated_images):
+    code_indice = generated_images[0][0]
+    code_indice = torch.flatten(code_indice)
+    unique_vals = [134, 418] 
+    in_min = torch.min(code_indice)
+    in_max = torch.max(code_indice)
+
+    num_intervals = len(unique_vals) 
+    interval_size = (in_max - in_min)/num_intervals
+
+    for i in range(0, num_intervals):
+        MIN = in_min + i*interval_size
+        code_indice[torch.logical_and(MIN<= code_indice, code_indice<=(MIN+interval_size))] = unique_vals[i]
+        
+
+    # Visualise generated codebook indice
+    visualised = code_indice
+    visualised = visualised.view(64,64)
+    visualised = visualised.to('cpu')
+    visualised = visualised.detach().numpy()
+    plt.imshow(visualised)
+    plt.savefig("Output_files/GAN_generated_codebook_indice.png")
+
+    return code_indice
+
+"""
+This function takes in a codebook indice, gets the 
+quantised results from it, decodes it and produces 
+the final image reconstruction.
+"""
+def gan_reconstruct(code_indice):
+    model = torch.load("Models/VQVAE.pth")
+    code_indice = code_indice.long()
+    reconstruction = model.quantizer.get_quantized_results(code_indice)
+    reconstruction = model.decoder(reconstruction)
+
+    # Visualise
+    reconstruction = reconstruction[0][0]
+    reconstruction = reconstruction.to('cpu')
+    reconstruction = reconstruction.detach().numpy()
+    plt.imshow(reconstruction)
+    plt.savefig("Output_files/GAN_reconstructed_image.png")
+
