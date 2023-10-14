@@ -1,33 +1,54 @@
+from keras.models import Model
+import tensorflow as tf
 import tensorflow.keras as k
 import keras.layers as kl
-import keras.backend as kb
+
+# def subnetwork(height, width):
+#     """ The identical subnetwork in the SNN
+
+#     Returns:
+#         tf.keras.Model: the subnetwork Model
+#     """
+#     subnet = k.Sequential(layers=[
+#             kl.Flatten(input_shape=(height, width, 1)),
+#             kl.Dense(1024, activation='relu',kernel_regularizer='l2'),
+#             kl.Dense(1024, activation='relu',kernel_regularizer='l2'),
+#             kl.Dense(1024, activation='relu',kernel_regularizer='l2'),
+#             kl.Dense(1024, activation='relu',kernel_regularizer='l2'),
+#             kl.Dense(1024, activation='relu',kernel_regularizer='l2'),
+#             kl.Dense(1024, activation='relu',kernel_regularizer='l2'),
+#         ], name='subnet'
+#     )
+
+#     return subnet
+
 import tensorflow as tf
-from keras.models import Model
+from tensorflow.keras import layers, models
 
-def subnetwork(height, width):
-    """ The modified subnetwork using CNN
-
-    Args:
-        height (int): Height of the input image
-        width (int): Width of the input image
-
-    Returns:
-        tf.keras.Model: The modified subnetwork Model
+def makeCNN(height, width):
     """
-    input = kl.Input(shape=(height, width, 1))
-    conv1 = kl.Conv2D(32, (3, 3), activation='relu', padding='same')(input)
-    pool1 = kl.MaxPooling2D((2, 2))(conv1)
-    conv2 = kl.Conv2D(64, (3, 3), activation='relu', padding='same')(pool1)
-    pool2 = kl.MaxPooling2D((2, 2))(conv2)
-    conv3 = kl.Conv2D(128, (3, 3), activation='relu', padding='same')(pool2)
-    pool3 = kl.MaxPooling2D((2, 2))(conv3)
-    flat = kl.Flatten()(pool3)
-    dense1 = kl.Dense(512, activation='relu', kernel_regularizer='l2')(flat)
-    dense2 = kl.Dense(512, activation='relu', kernel_regularizer='l2')(dense1)
+    Creates a CNN used in the Siamese network
+    """
+    input = layers.Input(shape=(height, width, 1))
+    conv = layers.Conv2D(32, 10, activation='relu', name='c0', padding='same')(input)
+    pool = layers.MaxPooling2D(2)(conv)
+    norm = layers.BatchNormalization()(pool)
 
-    subnet = k.Model(inputs=input, outputs=dense2, name='subnet')
+    conv = layers.Conv2D(64, 8, activation='relu', name='c1', padding='same')(norm)
+    pool = layers.MaxPooling2D(2)(conv)
+    norm = layers.BatchNormalization()(pool)
 
-    return subnet
+    conv = layers.Conv2D(128, 4, activation='relu', name='c2', padding='same')(norm)
+    pool = layers.MaxPooling2D(2)(conv)
+    norm = layers.BatchNormalization()(pool)
+
+    conv = layers.Conv2D(256, 4, activation='relu', name='c3', padding='same')(norm)
+    norm = layers.BatchNormalization()(conv)
+
+    flat = layers.Flatten(name='flat')(norm)
+    out = layers.Dense(256, activation='sigmoid', name='out')(flat)
+
+    return models.Model(inputs=input, outputs=out, name='embeddingCNN')
 
 
 def distance_layer(im1_feature, im2_feature):
@@ -40,15 +61,16 @@ def distance_layer(im1_feature, im2_feature):
     Returns:
         tensor: Tensor containing differences
     """
-    tensor = kb.sum(kb.square(im1_feature - im2_feature), axis=1, keepdims=True)
-    return kb.sqrt(kb.maximum(tensor, kb.epsilon())) 
+
+    sum_square = tf.math.reduce_sum(tf.math.square(im1_feature - im2_feature), axis=1, keepdims=True)
+    return tf.math.sqrt(tf.math.maximum(sum_square, tf.keras.backend.epsilon()))
 
 
 def classification_model(subnet):
-    """ Build the classification Model with a CNN-based subnetwork
+    """ Build the classification Model
 
     Args:
-        subnet (layer): the modified subnetwork with convolutional layers
+        subnet (layer): the sequential layer trained in the SNN
 
     Returns:
         model: compiled model
@@ -56,16 +78,15 @@ def classification_model(subnet):
     image = kl.Input((128, 128, 1))
     tensor = subnet(image)
     tensor = kl.BatchNormalization()(tensor)
-    out = kl.Dense(units=1, activation='sigmoid')(tensor)
+    out = kl.Dense(units = 1, activation='sigmoid')(tensor)
 
     classifier = Model([image], out)
 
     opt = tf.optimizers.Adam(learning_rate=0.0001)
 
-    classifier.compile(loss='binary_crossentropy', metrics=['accuracy'], optimizer=opt)
+    classifier.compile(loss='binary_crossentropy', metrics=['accuracy'],optimizer=opt)
 
     return classifier
-
 
 def contrastive_loss(y, y_pred):
     """
@@ -74,7 +95,6 @@ def contrastive_loss(y, y_pred):
     square = tf.math.square(y_pred)
     margin = tf.math.square(tf.math.maximum(1 - (y_pred), 0))
     return tf.math.reduce_mean((1 - y) * square + (y) * margin)
-
 
 def siamese(height: int, width: int):
     """ The SNN. Passes image pairs through the subnetwork,
@@ -88,7 +108,7 @@ def siamese(height: int, width: int):
         Model: compiled model
     """
 
-    subnet = subnetwork(height, width)
+    subnet = makeCNN(height, width)
 
 
     image1 = kl.Input((height, width, 1))
