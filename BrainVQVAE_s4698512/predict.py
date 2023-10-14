@@ -135,3 +135,17 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# Yet to implement structured similarlity metric
+
+# from skimage.metrics import structural_similarity as ssim
+# from skimage import io
+
+# original_image = io.imread('original_image.png')
+# reconstructed_image = io.imread('reconstructed_image.png')
+
+# # Calculate SSIM
+# ssim_score = ssim(original_image, reconstructed_image)
+
+# print(f"SSIM Score: {ssim_score}")
