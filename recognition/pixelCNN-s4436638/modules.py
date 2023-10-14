@@ -81,13 +81,13 @@ class pixelCNN(nn.Module):
         self.upscale_blocks = nn.ModuleList(upscale_blocks)
 
     def forward(self, x):
-        # Increase feature size
+        # Increase feature size from 1 -> feature_size
         x = self.conv_1(x)
-        # Perform feature extraction and upscaling
+        # Perform feature extraction and upscaling x2
         for i, conv in enumerate(self.conv_blocks):
             x = conv(x)
             x = self.upscale_blocks[i](x)
-        # Decrease feature size
+        # Decrease feature size from feature_size -> 1
         return self.conv_last(x)
         
 

@@ -66,8 +66,8 @@ with torch.no_grad():
         output = model(input)
 
         # Calculate the loss
-        im_np = image.cpu().numpy()
-        out_np = output.cpu().numpy()
+        im_np = np.squeeze(image.cpu().numpy())
+        out_np = np.squeeze(output.cpu().numpy())
         psnr_arr.append(psnr(im_np, out_np, data_range=1.0))
         ssim_arr.append(ssim(im_np, out_np, data_range=1.0))
         mse_arr.append(mse(im_np, out_np))

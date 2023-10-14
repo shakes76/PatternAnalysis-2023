@@ -4,7 +4,6 @@ import torchvision.transforms as T
 from torch.utils.data import DataLoader
 from modules import pixelCNN
 from dataset import GetADNITrain
-from scipy.io import savemat, loadmat
 
 # Get device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -19,7 +18,7 @@ upscale_factor = 4
 channels = 1
 feature_size = 32
 num_convs = 3
-learning_rate = 1e-3
+learning_rate = 0.001
 image_size_x = 256
 image_size_y = 240
 num_epochs = 100
@@ -63,16 +62,16 @@ for epoch in range(num_epochs):
     for batch in train_loader:
 
         # Load images from dataloader
-        images = batch.to(device)
+        ground_truth = batch.to(device)
 
         # Downscale
-        inputs = down_sampler(images)
+        low_rez = down_sampler(ground_truth)
 
         # Get the model prediction
-        outputs = model(inputs)
+        prediction = model(low_rez)
 
         # Calculate the loss
-        loss = loss_function(images, outputs)
+        loss = loss_function(ground_truth, prediction)
 
         # Backprop
         optimizer.zero_grad()
