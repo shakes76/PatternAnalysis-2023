@@ -32,10 +32,6 @@ class LabelSmoothingCrossEntropy(torch.nn.Module):
         return loss
 
 # using Label Smoothing Loss
-criterion = LabelSmoothingCrossEntropy(eps=0.1)
-
-
-
 criterion = LabelSmoothingCrossEntropy(eps=0.1).to(device)
 
 # Ensure your data is on the correct device
