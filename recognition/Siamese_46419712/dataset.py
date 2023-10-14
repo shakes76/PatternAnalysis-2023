@@ -10,9 +10,6 @@ TRAIN_PATH = "/home/groups/comp3710/ADNI/AD_NC/train"
 TEST_PATH = "/home/groups/comp3710/ADNI/AD_NC/train"
 # TEST_PATH = "./AD_NC/train"
 
-torch.manual_seed(35)
-random.seed(35)
-
 class PairedDataset(torch.utils.data.Dataset):
     def __init__(self, trainset):
         # follow this source: https://datahacker.rs/019-siamese-network-in-pytorch-with-application-to-face-similarity/
@@ -39,6 +36,8 @@ class PairedDataset(torch.utils.data.Dataset):
 
 class LoadData():
     def __init__(self, train=True, siamese=True):
+        torch.manual_seed(40)
+        random.seed(40)
         self.train = train
         self.siamese = siamese
 
@@ -51,7 +50,7 @@ class LoadData():
 
     def split_dataset(self, dataset, seed=True):
         if seed:
-            generator = torch.Generator().manual_seed(35)
+            generator = torch.Generator().manual_seed(40)
         else:
             generator = torch.Generator()
 

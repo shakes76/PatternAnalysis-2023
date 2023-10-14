@@ -228,7 +228,7 @@ def execute_sTrain(device, train_loader, val_loader):
         train_siamese(model, train_loader, criterion, optimizer, loss_list, scheduler)
         validate_siamese(model, val_loader, criterion, val_loss_list)
 
-        # save_model(epoch, model, criterion, optimizer, scheduler) # save model for every epoch
+        save_model(epoch, model, criterion, optimizer, scheduler) # save model for every epoch
 
         avg_loss_list.append(np.mean(loss_list))
         avg_val_loss.append(np.mean(val_loss_list))
@@ -277,7 +277,7 @@ def execute_cTrain(device, sModel, train_loader_classifier, val_loader_classifie
         print ("Epoch [{}/{}]".format(epoch + 1, num_epochs))
         train_classifier(sModel, model, train_loader_classifier, criterion, optimizer, classifier_loss_list, scheduler)
         validate_classifier(sModel, model, val_loader_classifier, criterion, classifier_val_loss_list)
-        # save_model(epoch, model, criterion, optimizer, scheduler, 1) # save model for every epoch
+        save_model(epoch, model, criterion, optimizer, scheduler, 1) # save model for every epoch
 
         avg_classifier_loss_list.append(np.mean(classifier_loss_list))
         avg_classifier_val_loss.append(np.mean(classifier_val_loss_list))
@@ -299,8 +299,8 @@ def execute_cTrain(device, sModel, train_loader_classifier, val_loader_classifie
     return model
 
 if __name__ == '__main__':
-    random.seed(35)
-    torch.manual_seed(35)
+    random.seed(40)
+    torch.manual_seed(40)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if not torch.cuda.is_available():
