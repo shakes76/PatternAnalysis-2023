@@ -29,3 +29,22 @@ class GetADNITrain(Dataset):
         x = x / torch.max(x)
 
         return x
+
+class GetADNITest(Dataset):
+    def __init__(self, path):
+        
+        # Get the list of images and sort them
+        image_list = sorted(glob.glob(path))
+
+        # Get the array length
+        self.arrLen = len(image_list)
+        self.image_list = image_list
+
+    def __getitem__(self, index):
+        # Load the image in grayscale
+        x = read_image(self.image_list[index], ImageReadMode.GRAY)
+
+        # Normalize between [0, 1]
+        x = x / torch.max(x)
+
+        return x
