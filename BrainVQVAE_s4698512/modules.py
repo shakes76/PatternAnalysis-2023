@@ -171,31 +171,32 @@ class VectorQuantisedVAE(nn.Module):
             nn.Conv2d(input_channels, hidden_channels, 4, 2, 1),
             nn.BatchNorm2d(hidden_channels),
             nn.ReLU(True),
-            nn.Conv2d(hidden_channels, hidden_channels, 4, 2, 1),
             ##
+            # Downconvolution (downscaling)
+            nn.Conv2d(hidden_channels, hidden_channels, 4, 2, 1),
             nn.BatchNorm2d(hidden_channels),
             nn.ReLU(True),
-            nn.Conv2d(hidden_channels, hidden_channels, 4, 2, 1),
             ##
-            # ResBlock(hidden_channels),
-            # ResBlock(hidden_channels),
+            # Downconvolution (downscaling)
+            nn.Conv2d(hidden_channels, hidden_channels, 4, 2, 1),
+            nn.BatchNorm2d(hidden_channels),
+            nn.ReLU(True),
         )
 
         self.codebook = VQEmbedding(num_embeddings, hidden_channels)
 
         self.decoder = nn.Sequential(
-            # ResBlock(hidden_channels),
-            # ResBlock(hidden_channels),
-            nn.ReLU(True),
             # Upconvolution (upscaling)
+            nn.ReLU(True),
             nn.ConvTranspose2d(hidden_channels, hidden_channels, 4, 2, 1),
             nn.BatchNorm2d(hidden_channels),
-            ####
-            nn.ReLU(True),
+            ##
             # Upconvolution (upscaling)
+            nn.ReLU(True),
             nn.ConvTranspose2d(hidden_channels, hidden_channels, 4, 2, 1),
             nn.BatchNorm2d(hidden_channels),
-            ###
+            ##
+            # Upconvolution (upscaling)
             nn.ReLU(True),
             nn.ConvTranspose2d(hidden_channels, output_channels, 4, 2, 1),
             nn.Tanh()

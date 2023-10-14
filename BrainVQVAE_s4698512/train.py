@@ -47,7 +47,7 @@ def train(train_loader: DataLoader, model: VectorQuantisedVAE, optimiser: torch.
 
         # Reconstruction Loss
         recon_loss = F.mse_loss(x_til, images)
-        recon_losses.append(recon_loss)
+        recon_losses.append(recon_loss.item())
 
         # Compute SSIM
         images_cpu = images.to('cpu').detach().numpy()
@@ -109,7 +109,17 @@ def generate_samples(images, model, device):
         images = images.to(device)
 
         # Invoke forward pass on model
-        x_tilde, _, _ = model(images)
+        x_tilde, z_e_x, _ = model(images)
+
+        #  Plot z_e_x using matplot lib
+        fig, ax = plt.subplots(1, 3)
+        ax[0].imshow(images.cpu().numpy().squeeze(), cmap='gray')
+        ax[0].set_title('Original')
+        ax[1].imshow(z_e_x.cpu().numpy().squeeze(), cmap='jet')
+        ax[1].set_title('Codebook')
+        ax[2].imshow(x_tilde.cpu().numpy().squeeze(), cmap='gray')
+        ax[2].set_title('Reconstructed')
+        plt.show()
 
     return x_tilde
 
@@ -235,39 +245,65 @@ def main():
     # Keep track of best loss so far and initialise to arbitrary -1
     best_loss = -1.
 
-    # Stores mean ssim values from each epoch
+    # Initialise empty arrays to store metrics
     ssim_values = []
+    train_losses = []
+    validation_losses = []
 
     for epoch in tqdm(range(num_epochs), desc="Training Progress"):
-        # Train and return structured similarity metric
+        # Train and return structured similarity metric and train loss
         ssim, train_loss = train(train_loader, model, optimiser, device, beta)
         ssim_values.append(ssim)
+        train_losses.append(train_loss)
+
+        # Validation
         validation_loss, _ = test(validate_loader, model, device)
+        validation_losses.append(validation_loss)
+
+        # Output to console
         tqdm.write(
             f"Epoch [{epoch + 1}/{num_epochs}] Train Loss: {train_loss:.4f} | Validation Loss: {validation_loss:.4f}")
 
-        # print(f"Epoch [{epoch + 1}/{num_epochs}] Loss: {loss:.4f}")
+        # Save the model and metrics in a checkpoint
+        checkpoint = {
+            'model_state_dict': model.state_dict(),
+            'ssim_values': ssim_values,
+            'train_losses': train_losses,
+            'validation_losses': validation_losses
+        }
+
+        with open(f'{save_filename}/model_checkpoint_{epoch + 1}.pt', 'wb') as f:
+            torch.save(checkpoint, f)
 
         # Save the model if it has the lowest validation loss so far
         if (epoch == 0) or (validation_loss < best_loss):
             best_loss = validation_loss
-            with open(f'{save_filename}/best.pt', 'wb') as f:
-                torch.save(model.state_dict(), f)
+            with open(f'{save_filename}/best_model.pt', 'wb') as f:
+                torch.save(checkpoint, f)
 
-        # Save the model at each epoch
-        with open(f'{save_filename}/model_{epoch + 1}.pt', 'wb') as f:
-            torch.save(model.state_dict(), f)
+    # # Plot ssim and save
+    # plt.figure(figsize=(10, 5))
+    # plt.plot(range(1, num_epochs + 1), ssim_values, marker='o', linestyle='-')
+    # plt.title('SSIM Progress')
+    # plt.xlabel('Epoch')
+    # plt.ylabel('SSIM Value')
+    # plt.grid(True)
+    # # Save the plot as an image file
+    # plt.savefig(f'{save_filename}/ssim_plot.png')
+    # plt.show()
 
-    # Plot ssim and save
-    plt.figure(figsize=(10, 5))
-    plt.plot(range(1, num_epochs + 1), ssim_values, marker='o', linestyle='-')
-    plt.title('SSIM Progress')
-    plt.xlabel('Epoch')
-    plt.ylabel('SSIM Value')
-    plt.grid(True)
-    # Save the plot as an image file
-    plt.savefig(f'{save_filename}/ssim_plot.png')
-    plt.show()
+    # # Plot train and validation losses and save
+    # plt.figure(figsize=(10, 5))
+    # plt.plot(range(1, num_epochs + 1), train_losses, marker='o', linestyle='-')
+    # plt.plot(range(1, num_epochs + 1), validation_losses,
+    #          marker='o', linestyle='-')
+    # plt.title('Loss Progress')
+    # plt.xlabel('Epoch')
+    # plt.ylabel('Loss Value')
+    # plt.grid(True)
+    # plt.legend(['Train Loss', 'Validation Loss'])
+    # # Save the plot as an image file
+    # plt.savefig(f'{save_filename}/loss_plot.png')
 
 
 if __name__ == "__main__":

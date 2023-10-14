@@ -49,47 +49,50 @@ The reconstruction loss is the difference between the input image and the decode
 
 **Encoder**
 
-    Input Image (Channels: input_channels)
+    Input Image (Channels: 1 (greyscale))
     ↓
     Conv2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 128, 128)
-    ↓
-    BatchNorm2D -> (76, 128, 128, 128)
-    ↓
-    ReLU -> (76, 128, 128, 128)
+    BatchNorm2D
+    ReLU
     ↓
     Conv2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 64, 64)
+    BatchNorm2D
+    ReLU
     ↓
-    BatchNorm2D -> (76, 128, 64, 64)
-    ↓
-    ReLU -> (76, 128, 64, 64)
-    ↓
-    ResBlock (128) -> (76, 128, 64, 64)
-    ↓
-    ResBlock (128) -> (76, 128, 64, 64)
+    Conv2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 32, 32)
+    BatchNorm2D
+    ReLU
 
 **Codebook**
 
+    K = 32
+    num_embeddings = 128
+
 **Decoder**
 
-    ResBlock (128) -> (76, 128, 64, 64)
-    ↓
-    ResBlock (128) -> (76, 128, 64, 64)
-    ↓
-    ReLU -> (76, 128, 64, 64)
-    ↓
-    ConvTranspose2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 128, 128)
-    ↓
-    BatchNorm2D -> (76, 128, 128, 128)
+    ReLU
+    ConvTranspose2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 64, 64)
+    BatchNorm2D
     ↓
     ReLU -> (76, 128, 128, 128)
+    ConvTranspose2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 128, 128)
+    BatchNorm2D
     ↓
+    ReLU -> (76, 128, 128, 128)
     ConvTranspose2D (Channels: 128, Kernel: 4x4, Stride: 2, Padding: 1) -> (76, 128, 256, 256)
-    ↓
-    BatchNorm2D -> (76, 128, 256, 256)
+    BatchNorm2D
     ↓
     Tanh
     ↓
-    Output Image (Channels: output_channels)
+    Output Image (Channels: 1 (greyscale))
+
+### Hyperparameters
+
+-   The number of embeddings in the codebook was chosen at $32$ and the dimension of the latent space to be $128$.
+-   Tests were conducted with number of embeddings ranging all the way up to $512$, however, it was found that $32$ embeddings kept validation loss low while not reducing reconstruction loss too much. It also reduced memory usage on the GPU as this was limited during training.
+
+-   The Adam optimiser was used with a learning rate of $2e-3$. For $40$ epochs, this learning rate was found to yield a nice loss curve
+-   The $\beta$ value (commitment loss) was kept at $0.25$, though values up to $1.5$ were tested. A lower reconstruction loss was found to give higher quality output images and increased the value of the final mean SSIM (near the end of training)
 
 ## Model Results
 

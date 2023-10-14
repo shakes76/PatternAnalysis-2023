@@ -48,8 +48,41 @@ def predict(dataset: str, num_samples: int, device: torch.device, model_name: st
     # Load the saved model
     model_path = os.path.join(".", "ModelParams", model_name)
     print(model_path)
-    model.load_state_dict(torch.load(model_path)
-                          )  # Update the path accordingly
+    model_loaded = torch.load(model_path)
+
+    model.load_state_dict(model_loaded['model_state_dict'])
+
+    # Load SSIM, Train and Validation Losses
+    ssim_values = model_loaded['ssim_values']
+    train_losses = model_loaded['train_losses']
+    validation_losses = model_loaded['validation_losses']
+
+    # Plot SSIM values over epochs
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(1, len(ssim_values) + 1),
+             ssim_values, marker='o', linestyle='-')
+    plt.title('SSIM Progress')
+    plt.xlabel('Epoch')
+    plt.ylabel('SSIM Value')
+    plt.grid(True)
+    plt.show()
+
+    # # Convert training list of tensors to list of ints
+    # train_losses_list = [loss.item() for loss in train_losses]
+
+    # Plot both training and validation losses in the same plot
+    plt.figure(figsize=(10, 5))
+    plt.plot(range(1, len(train_losses) + 1), train_losses,
+             label='Train Loss', marker='o', linestyle='-')
+    plt.plot(range(1, len(validation_losses) + 1), validation_losses,
+             label='Validation Loss', marker='o', linestyle='-')
+    plt.title('Loss Progress')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.grid(True)
+    plt.legend()
+    plt.show()
+
     # Move model to CUDA GPU
     model = model.to(device)
     # Set the model to evaluation mode
@@ -117,7 +150,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Set the model to use the best one trained
-    model = "best.pt"
+    model = "best_model.pt"
 
     predict(dataset, num_samples, device, model)
 
