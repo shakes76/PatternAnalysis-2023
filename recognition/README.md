@@ -43,4 +43,5 @@ Due to the nature of the perciever it is permuation invarient and cannot directl
 <a id="1">[1]</a>
 Jaegle, A., Gimeno, F., Brock, A., Vinyals, O., Zisserman, A., & Carreira, J. (2021, July). Perceiver: General perception with iterative attention. In International conference on machine learning (pp. 4651-4664). PMLR.
 <a id="2">[2]</a>
+</br>
 Curt Tigges. (Aug 20, 2022). "The Annotated Perceiver." Medium. [Link](https://medium.com/@curttigges/the-annotated-perceiver-74752113eefb)
