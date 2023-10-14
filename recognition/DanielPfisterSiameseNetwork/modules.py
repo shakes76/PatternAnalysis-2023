@@ -17,7 +17,7 @@ def siamese_network(height,width,dimension):
         layers.BatchNormalization(),
         layers.MaxPooling2D(),
         layers.Flatten(),
-        layers.Dense(256, activation='relu'),
+        layers.Dense(256, activation='sigmoid'),
 ])
 
     #save the features from the left and right network in two variables
@@ -28,9 +28,9 @@ def siamese_network(height,width,dimension):
     euclidean_distance = tf.keras.layers.Lambda(lambda features: tf.keras.backend.abs(features[0] - features[1]))([feature_vector_left_output, feature_vector_right_output])
 
     #fully connected layers
-    dense = layers.Dense(64, activation='relu')(euclidean_distance)
-    output = layers.Dense(1, activation='sigmoid')(dense)
-
+    #dense = layers.Dense(64, activation='relu')(euclidean_distance)
+    #output = layers.Dense(1, activation='sigmoid')(dense)
+    output = layers.Dense(1, activation='sigmoid')(euclidean_distance)
     #create whole neural network model
     model = tf.keras.Model(inputs=[left_input, right_input], outputs=output)
 

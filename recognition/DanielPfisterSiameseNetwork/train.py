@@ -4,10 +4,12 @@ import numpy as np
 import os
 import tensorflow as tf
 from dataset import image_list
+from dataset import split_data
 from dataset import load_images
 import random
 from sklearn.model_selection import train_test_split
 from modules import siamese_network 
+
 
 #%%
 #define varibles
@@ -23,10 +25,17 @@ path_test_images_NC = "C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/As
 
 #%%
 #load all image names of the different train and test folders
-list_train_AD, number_train_AD = image_list(path_train_images_AD)
-list_train_NC, number_train_NC = image_list(path_train_images_NC)
+list_train_AD, number_AD = image_list(path_train_images_AD)
+list_train_NC, number_NC = image_list(path_train_images_NC)
+
 list_test_AD, number_test_AD = image_list(path_test_images_AD)
 list_test_NC, number_test_NC = image_list(path_test_images_NC)
+
+
+# %%
+split_ratio_training = 0.8
+train_data_AD, valid_data_AD, number_train_AD, number_valid_AD = split_data(list_train_AD, split_ratio_training)
+train_data_NC, valid_data_NC, number_train_NC, number_valid_NC = split_data(list_train_NC, split_ratio_training)
 # %%
 
 #load all the images from the folder
