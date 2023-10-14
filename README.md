@@ -29,15 +29,10 @@ Visual representation of the graph using TSNE embedding
 
 ## Dependencies used
 * Pytorch: 2.0.0+cpu
-
 * torch_geometric: 2.3.1
-
 * numpy: 1.23.3
-
 * pandas: 1.5.3
-
 * skearn: 1.2.2
-
 * matplotlib: 3.7.1
 
 ## Files explained
@@ -48,14 +43,24 @@ Visual representation of the graph using TSNE embedding
 * GAN.pt: The pre-trained saved model
 
 ## Example
+```
+import torch
+import numpy as np
+from torch_geometric.data import Data
 
+...
+
+data = Data(x=x, edge_index=edge_index, edge_attr=None, y=y) # Create geometric_torch dataset
+model = torch.load('GCN.pt') # Load in the data
+model.eval() # use evaluation mode
+out = model(data.x, data.edge_index) # Predict model
+```
 
 ## Training
 ![0 9461504227859368](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/16239887-fd33-427b-8c3c-8f61dc2c9854)
 ![0 9453716065865598](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/e932e1c6-f050-4227-a867-d9a05c6c3b5f)
 ![0 9362483311081442](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/f294aa8a-73c0-4b17-b2cc-3ff2018cecc0)
 ![0 9224521584334668](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/aa501314-6793-4046-887e-76953c88f7f2)
-
 
 [^1]: https://ojs.aaai.org/index.php/AAAI/article/view/17211/17018
 [^2]: https://snap.stanford.edu/data/facebook-large-page-page-network.html
