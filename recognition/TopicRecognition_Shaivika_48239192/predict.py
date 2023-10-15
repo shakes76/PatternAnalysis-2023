@@ -20,7 +20,6 @@ patch_size = 6
 # image = load_img('path_to_image.jpg', target_size=(image_size, image_size))
 # image = img_to_array(image)
 # resized_image = tf.convert_to_tensor([image])
-# Load and preprocess data
 
 Images, Labels = load_and_preprocess_data()
 
@@ -36,6 +35,10 @@ mapping_to_label = {v: k for k, v in label_mapping.items()}
 # Load and preprocess data
 Images, Labels = load_and_preprocess_data()
 
+# Make predictions
+y_pred = model.predict(Images)
+y_pred = np.argmax(y_pred, axis=1)
+
 # Generate a confusion matrix
 y_true = np.argmax(Labels, axis=1)
 cm = confusion_matrix(y_true, y_pred)
@@ -48,12 +51,6 @@ plt.ylabel("True")
 plt.show()
 
 
-# Plot a heatmap of the confusion matrix
-plt.figure(figsize=(10, 7))
-sns.heatmap(cm, annot=True, fmt='g')
-plt.xlabel("Predicted")
-plt.ylabel("True")
-plt.show()
 with open('test_accuracy.txt', 'r') as file:
     accuracy = float(file.read())
 
