@@ -21,6 +21,9 @@ This project is an implementation of a Vision Transformer (ViT) for image classi
 The Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset is a valuable and widely used collection of medical imaging and clinical data aimed at advancing our understanding of Alzheimer's disease. Comprising a comprehensive range of neuroimaging modalities, including MRI and PET scans, as well as clinical and cognitive assessments, the ADNI dataset has played a pivotal role in enhancing research related to neurodegenerative diseases. This dataset not only facilitates the identification of biomarkers associated with Alzheimer's disease but also promotes the development of innovative diagnostic and prognostic tools. Researchers employ the ADNI dataset for various tasks, such as disease prediction, progression tracking, and the evaluation of treatment interventions, ultimately contributing to advancements in Alzheimer's disease research and patient care.
 
 ## Project Structure
+
+### Files
+
 The project is organized into several files and folders:
 
 - `modules.py`: Contains the implementation of the ViT model components, including patches, patch encoding, and the main classifier.
