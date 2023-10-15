@@ -28,8 +28,14 @@ The VQ-VAE is a type of Variational AutoEncoder that incorporates vector quantiz
 - skimage
 
 
-## Reproducibility: -- fix this!!!!!
-To ensure reproducible results, the model's random seeds for Pytorch and other libraries are set. However, some variability might arise due to GPU-specific operations or non-deterministic operations in the libraries used. It's recommended to run the algorithm on the same hardware and software configuration for consistent outcomes.
+## Reproducibility:
+To replicate the results presented in this repository, follow these steps:
+1.	Ensure you have all the dependencies necessary.
+2.	Execute **train.py**. This script handles the training process, including validation and testing, and saves model checkpoints based on improvements in the combined metric of SSIM and reconstruction loss.
+3.	After training, run **predict.py** to generate and save a batch of brain slice images using the best saved model parameters determined during training. 
+
+By following these steps, you will be able to reproduce the results described above, including the achieved SSIM score and the quality of generated images. It must be noted that reproducibility may still be influenced by hardware configurations and GPU-specific operations, so running the code on the same hardware and software setup is recommended for consistent outcomes.
+
 
 ## Example Inputs and Outputs:
 ### Input: 
