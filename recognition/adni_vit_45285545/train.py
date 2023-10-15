@@ -54,7 +54,7 @@ class EarlyStopping:
         else:
             self.counter += 1
 
-        return self.counter > self.patience
+        return self.counter >= self.patience
 
 ### TRAINING ###################################################################
 
@@ -67,9 +67,8 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
     train_loader, valid_loader = create_train_dataloader(val_pct=0.2)
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.RAdam(mdl.parameters(), lr=1e-4)
-    earlystop = EarlyStopping(mdl, min_delta=1.0, patience=3)
-
-    # TODO: lr scheduler
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
+    earlystop = EarlyStopping(mdl, min_delta=0.05, patience=5)
 
     # Training and validation metric tracking
     train_losses = []; train_acc = []
@@ -116,6 +115,8 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
 
         valid_losses.append(sum(losses) / len(losses))
         valid_acc.append(correct / total)
+
+        scheduler.step(valid_losses[-1])
 
         # Training report
         time_elapsed = time.time() - time_start
