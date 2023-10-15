@@ -50,8 +50,9 @@ else:
   # Apparently better to choose a pre-trained model that is lower resolution than the
 	# fine-tune database's images, i.e. for this choose a 224 model.
 	# Probably vit_base_patch32_224.augreg_in21k_ft_in1k
+	# trying vit_small_patch16_224.augreg_in21k_ft_in1k for less parameters
 	# 256 x 240
-	model = timm.create_model("vit_base_patch32_224.augreg_in21k_ft_in1k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
+	model = timm.create_model("vit_small_patch16_224.augreg_in21k_ft_in1k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
 model = model.to(device)
 
 # Initialise logging to display tracking information in TensorBoard
