@@ -57,13 +57,13 @@ class ContrastiveDataset(Dataset):
             slices2 = [self.transform(s) for s in slices2]
         volume2 = torch.stack(slices2, dim=0).squeeze()
 
-        label = torch.tensor([0 if same_class else 1], dtype=torch.float32)
+        label = torch.tensor([1 if same_class else 0], dtype=torch.float32)
 
         return {"volume1": volume1,
                 "volume2": volume2,
                 "label": label}
 
-""" 
+"""
 from torch.utils.data import DataLoader
 if __name__ == '__main__':
     dataloader = DataLoader(
@@ -77,7 +77,7 @@ if __name__ == '__main__':
         print("Batch:")
         print("volume1 shape:", batch["volume1"].shape)
         print("volume2 shape:", batch["volume2"].shape)
-        print("label:", batch["label"])
+        print("label:", batch["label"].shape)
         print()
         break
 """
