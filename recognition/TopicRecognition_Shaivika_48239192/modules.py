@@ -1,6 +1,8 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from sklearn.model_selection import train_test_split
+from dataset import load_and_preprocess_data
 
 def mlp(x, hidden_units, dropout_rate):
     for units in hidden_units:
@@ -24,6 +26,7 @@ transformer_layers = 8
 mlp_head_units = [2048, 1024]
 image_size = 128
 num_classes = 2
+
 
 Images, Labels = load_and_preprocess_data()
 
@@ -67,7 +70,7 @@ class PatchEncoder(layers.Layer):
         positions = tf.range(start=0, limit=self.num_patches, delta=1)
         encoded = self.projection(patch) + self.position_embedding(positions)
         return encoded
-    
+
 data_augmentation = keras.Sequential(
     [
         layers.Normalization(),
