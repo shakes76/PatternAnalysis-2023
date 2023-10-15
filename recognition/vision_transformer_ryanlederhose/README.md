@@ -13,9 +13,9 @@ This sequence of embedded vectors is then processed through a transformer encode
 ## ADNI Dataset
 It was mentioned there were two classes in the ADNI dataset, Alzheimer's disease and Normal Cognitive. Below there are examples for both classes (AD top, NC bottom)
 
-![alt text](images/AD_Example)
+![alt text](images/AD_Example.jpeg)
 
-![alt text](images/NC_Example)
+![alt text](images/NC_Example.jpeg)
 
 
 ## Pre-processing
