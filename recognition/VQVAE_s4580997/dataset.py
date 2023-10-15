@@ -112,6 +112,7 @@ class ModelLoader() :
     transform = transforms.Compose([
         transforms.ToTensor()
     ])
+
     def __init__(self, model, batch_size = 32, path = './AD_NC/train', fraction=1.0, transform = VQVAE_TRANSFORM) :
         self.model = model
         self.batch_size = batch_size
@@ -135,7 +136,6 @@ class ModelLoader() :
     
     def get(self) -> DataLoader :
         if self.unloaded() :
-            print('Retrieving dataset.')
             self.load()
         return self.loader
 
@@ -171,25 +171,22 @@ class ModelLoader() :
     
     def __getitem__(self, index):
         img, _ = self.dataset[index]
-        img = self.transform(img).unsqueeze(dim = 0)
+        img = self.transform(img)
         img = img.to(self.device)
-
         encoded = self.model.encoder(img)
         conv = self.model.conv_layer(encoded)
-        _, _, _, encoding_indices = self.model.quantizer(conv)
+        _, _, _, encoding, encoding_indices = self.model.quantizer(conv)
         encoding_indices = encoding_indices.float().to(self.device)
         encoding_indices = encoding_indices.view(64, 64)
         encoding_indices = torch.stack([encoding_indices, encoding_indices, encoding_indices], dim = 0)
         return encoding_indices
 
-    
 class ModelDataset() :
     def __init__(self, model, batch_size = 32, root_dir = './AD_NC', fraction=1.0) :
         self.model = model
         self.train = ModelLoader(self.model, batch_size, f"{root_dir}/train", fraction)
         self.test = ModelLoader(self.model, batch_size, f"{root_dir}/test", fraction)
         
-    
     def load_train(self) -> None:
         self.train.load()
     

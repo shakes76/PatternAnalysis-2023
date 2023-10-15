@@ -118,7 +118,8 @@ class TrainGAN(Trainer) :
 
         self.d_optim = torch.optim.Adam(self.model.discriminator.parameters(), lr = self.lr)
         self.g_optim = torch.optim.Adam(self.model.generator.parameters(), lr = self.lr)
-        self.criterion = nn.BCELoss()
+        # self.criterion = nn.BCEWithLogitsLoss().to(DEVICE)        
+        self.criterion = nn.BCELoss().to(DEVICE)
         self.d_losses = list()
         self.g_losses = list()
         self.latent = 128
@@ -127,45 +128,43 @@ class TrainGAN(Trainer) :
         if self.dataset.train_unloaded() :
             self.dataset.load_train()
         
-        self.model.train()
+        self.model.discriminator.train()
+        self.model.generator.train()
+
         start = time.time()
         for epoch in range(self.epochs) :
-            g_epoch_loss = list()
-            d_epoch_loss = list()
             for i, (data, label) in enumerate(self.dataset.get_train()) :
                 data = data.to(DEVICE)
-                self.d_optim.zero_grad()
-                self.g_optim.zero_grad()
+                self.model.discriminator.zero_grad()
 
                 noise = torch.randn(data.shape[0], self.latent, 1, 1).to(DEVICE)
                 fake = self.model.generator(noise)
                 
-                real_pred = self.model.discriminator(data).reshape(-1)
-                fake_pred = self.model.discriminator(fake).reshape(-1)
+                real_pred = self.model.discriminator(data)
+                fake_pred = self.model.discriminator(fake)
 
                 real_loss = self.criterion(real_pred, torch.ones_like(real_pred))
                 fake_loss = self.criterion(fake_pred, torch.zeros_like(fake_pred))
 
-                d_loss = (real_loss + fake_loss) / 2
+                d_loss = real_loss + fake_loss
                 d_loss.backward()
-
                 self.d_optim.step()
+
+                self.model.generator.zero_grad()
+                # Recreate the fake data after updating the discriminator
+                noise = torch.randn(data.shape[0], self.latent, 1, 1).to(DEVICE)
+                fake = self.model.generator(noise)
 
                 output = self.model.discriminator(fake).reshape(-1)
                 g_loss = self.criterion(output, torch.ones_like(output))
                 g_loss.backward()
-
                 self.g_optim.step()
 
-                g_epoch_loss.append(g_loss.item())
-                d_epoch_loss.append(d_loss.item())
-
-                if (i % 10 == 0):
-                    print(f"Epoch: {epoch+1}/{self.epochs} Batch: {i+1}/{len(self.dataset.get_train())} Loss D: {D_loss.item():.6f}, Loss G: {G_loss.item():.6f}")
+                if (i % PRINT_AT == 0):
+                    print(f"Epoch: {epoch+1}/{self.epochs} Batch: {i+1}/{len(self.dataset.get_train())} Loss D: {d_loss.item():.6f}, Loss G: {g_loss.item():.6f}")
             
-            self.g_losses.append(sum(g_epoch_loss) / len(g_epoch_loss))
-            self.d_losses.append(sum(d_epoch_loss) / len(d_epoch_loss))  
-        print(self.D_losses)
+                self.g_losses.append(d_loss.item())
+                self.d_losses.append(g_loss.item())  
         end = time.time()
         print(f"Total Time for training: {end - start:.2f}s")
 
@@ -176,8 +175,8 @@ class TrainGAN(Trainer) :
         plt.figure(figsize=(10, 5))
         plt.plot(self.d_losses, label='Discriminator Loss')
         plt.plot(self.g_losses, label='Generator Loss')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
+        plt.xlabel('Iteration (Batch * Epoch)')
+        plt.ylabel('BCE Loss')
         plt.legend()
         plt.grid(True)
         plt.title('GAN Training Loss')
@@ -188,8 +187,8 @@ class TrainGAN(Trainer) :
     
     def save(self, discriminator_path = None, generator_path = None) -> None :
         if discriminator_path and generator_path :
-            torch.save(self.model.discriminator.state_dict(), discriminator_path)
             torch.save(self.model.generator.state_dict(), generator_path)
+            torch.save(self.model.discriminator.state_dict(), discriminator_path)
         else :
-            torch.save(self.model.discriminator.state_dict(), self.savepath + '/generator.pth')
             torch.save(self.model.generator.state_dict(), self.savepath + '/discriminator.pth')
+            torch.save(self.model.discriminator.state_dict(), self.savepath + '/generator.pth')

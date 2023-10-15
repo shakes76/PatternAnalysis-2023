@@ -22,13 +22,13 @@ CHANNELS = 3
 W = 128
 H = 128
 BETA = 0.25
-FRACTION = 1.0
+FRACTION = 0.1
 
 # Running Parameters
 VQVAE_RETRAIN = False
-GAN_RETRAIN = False
+GAN_RETRAIN = True
 VQVAE_TEST = False
-VQVAE_PREDICT = True
+VQVAE_PREDICT = False
 
 
 # VQVAE Model Parameters
@@ -48,13 +48,13 @@ VQVAE_MODEL_PATH = os.path.join(os.getcwd(), 'models/vqvae/vqvae.pth')
 VQVAE_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/vqvae.pth')
 VQVAE_RECONSTRUCT_PATH = os.path.join(os.getcwd(), 'models/predictions/vqvae_reconstruction.png')
 
-
+# GAN Model Parameters
 GAN_LR = 1e-3
 GAN_WD = 1e-5
-GAN_EPOCHS = 10
+GAN_EPOCHS = 1
 GAN_SAVEPATH = os.path.join(os.getcwd(), 'models/gan')
-DISCRIMINATOR_PATH = os.path.join(os.getcwd(), 'models/gan/gan_discriminator.pth')
-GENERATOR_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
+DISCRIMINATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_discriminator.pth')
+GENERATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
 
 # Prediction Parameters
 OUTPUT_PATH = os.path.join(os.getcwd(), 'models/predictions/generated_')
