@@ -1,6 +1,15 @@
+"""
+dataset.py
+
+Author: Ethan Jones
+Student ID: 44829531
+COMP3710 OASIS brain StyleGAN project
+Semester 2, 2023
+"""
+
 import os
-import torch
-from torchvision import datasets, transforms
+import tensorflow
+from tensorflow import keras
 
 local_dataset_path = "C:\\Users\\ethan\\Desktop\\COMP3710\\keras_png_slices_train"
 # dataset_path = "/home/groups/comp3710/OASIS/keras_png_slices_train"
@@ -14,14 +23,10 @@ def load_data(dataset_path):
     param: dataset_path: The path to the dataset
     return: The dataset of images
     """
-    file_path = os.path.join(os.getcwd(), dataset_path)
+    directory_name = os.path.dirname(__file__)
+    file_path = os.path.join(directory_name, dataset_path)
 
-    # Convert to grayscale and convert to tensor and normalise to [0, 1]
-    transform = transforms.Compose([
-        transforms.Grayscale(),
-        transforms.ToTensor(),
-    ])
-
-    # Load the dataset
-    image_data = datasets.ImageFolder(root=file_path, transform=transform)
+    # Scale image data from original to [0, 1]
+    image_data = keras.preprocessing.image_dataset_from_directory(file_path, label_mode=None, color_mode="grayscale")
+    image_data = image_data.map(lambda x: x / 255)
     return image_data
