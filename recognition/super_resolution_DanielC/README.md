@@ -31,13 +31,14 @@ The padding for convolution network was calculated through: input size - kernel 
 (source https://stats.stackexchange.com/questions/297678/how-to-calculate-optimal-zero-padding-for-convolutional-neural-networks)
 
 Changing the input and output channel size of conv2d layers in the model can help to decerase the loss.
-However, after a certain point the difference is negligible as shown.
+However, it should be can drastically increase cuda core usage, thus it should be changed from utils if not using a gpu.
 
 Channel size | Loss 
 --- | --- 
 32 | 0.00253
 64 | 0.00249
 128 | 0.00236
+256 | 0.00223
 
 In addition different activations functions were tested with 5 epochs,
 Activation Function | Loss 
