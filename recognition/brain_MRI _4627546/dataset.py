@@ -36,12 +36,12 @@ class SuperResolutionDataset(Dataset):
         # default: convert images to tensors
         self.mode = mode
         self.AD_paths = sorted(os.listdir(os.path.join(root_dir, mode, 'AD')))
-        # self.NC_paths = sorted(os.listdir(os.path.join(root_dir, mode, 'NC')))
+        self.NC_paths = sorted(os.listdir(os.path.join(root_dir, mode, 'NC')))
 
         self.NC_paths = None
     def __len__(self):
-        # return len(self.AD_paths) + len(self.NC_paths)
-        return len(self.AD_paths)
+        return len(self.AD_paths) + len(self.NC_paths)
+        # return len(self.AD_paths)
 
     def __getitem__(self, idx):
         """
@@ -61,8 +61,6 @@ class SuperResolutionDataset(Dataset):
         lr_transform = transforms.Compose([transforms.Resize((60, 64), interpolation=Image.BICUBIC)])
         # Downsample by factor of 4
         lr_image = lr_transform(hr_image)
-
-
 
         if self.transform:
             hr_image = self.transform(hr_image)

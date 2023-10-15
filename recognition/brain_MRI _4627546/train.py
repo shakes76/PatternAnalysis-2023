@@ -1,4 +1,3 @@
-import os
 import time
 
 import torch
@@ -10,7 +9,6 @@ from torch.cuda.amp import GradScaler, autocast  # Mixed precision training
 import matplotlib.pyplot as plt
 from dataset import SuperResolutionDataset
 from modules import ESPCN
-from torchvision.transforms import RandomHorizontalFlip, RandomRotation, ColorJitter
 
 # Hyperparameters
 BATCH_SIZE = 32
@@ -18,18 +16,11 @@ EPOCHS = 200
 LR = 0.0005
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Create dataset and data loader
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.Normalize((0.5,), (0.5,))
-])
-
 # new! data enhancement
 train_transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,)),
 ])
-
 
 dataset = SuperResolutionDataset(root_dir='AD_NC', transform=train_transform, mode='train')
 train_size = int(0.8 * len(dataset))
@@ -98,17 +89,15 @@ for epoch in range(EPOCHS):
 
     train_losses.append(train_loss)
     val_losses.append(val_loss)
-    print(f"Epoch {epoch+1}/{EPOCHS} - Train loss: {train_loss:.4f}, Validation loss: {val_loss:.4f},"
+    print(f"Epoch {epoch + 1}/{EPOCHS} - Train loss: {train_loss:.4f}, Validation loss: {val_loss:.4f},"
           f" Time: {epoch_time:.2f} seconds")
 
-    # Update learning rate
     scheduler.step()
 
     # Save the best model
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         torch.save(model.state_dict(), 'best_model.pth')
-
 
 # Plotting the training and validation losses
 plt.figure(figsize=(10, 5))
