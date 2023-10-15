@@ -31,6 +31,8 @@ class RawSiameseModel(nn.Module):
             nn.ReLU(),
             nn.Flatten(),
             nn.Linear(256 * 6 * 6, 4096),
+            nn.ReLU(),
+            nn.Linear(4096, 2048)
         )
 
     def forward(self, x):
@@ -47,11 +49,10 @@ class BinaryModelClassifier(nn.Module):
         # Reference: https://machinelearningmastery.com/building-a-binary-classification-model-in-pytorch/
         super(BinaryModelClassifier, self).__init__()
 
-        # dummy linear layer
         self.binary_layer = nn.Sequential(
-            nn.Linear(4096, 1024),
+            nn.Linear(2048, 512),
             nn.ReLU(),
-            nn.Linear(1024, 128),
+            nn.Linear(512, 128),
             nn.ReLU(),
             nn.Linear(128, 1),
             nn.Sigmoid()

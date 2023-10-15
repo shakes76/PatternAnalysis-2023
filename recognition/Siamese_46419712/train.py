@@ -202,7 +202,7 @@ def execute_sTrain(device, train_loader, val_loader):
     model = RawSiameseModel().to(device)
 
     # hyper-parameters
-    num_epochs = 20
+    num_epochs = 15
     learning_rate = 0.0001
     max_learning = 0.01
 
@@ -254,7 +254,7 @@ def execute_cTrain(device, sModel, train_loader_classifier, val_loader_classifie
 
     # hyper parameters for classifier
     num_epochs = 50
-    learning_rate = 0.001
+    learning_rate = 0.0001
     max_learning = 0.01
 
     criterion = nn.BCELoss()

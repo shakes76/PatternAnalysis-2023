@@ -60,16 +60,20 @@ class LoadData():
         return train_set, val_set
 
     def load_data(self):
-        transform = transforms.Compose([
+        if self.train:
+            path = TRAIN_PATH
+            transform = transforms.Compose([
             transforms.Resize(self.image_size),
             transforms.CenterCrop(self.image_size),
             transforms.ToTensor()
         ])
-        
-        if self.train:
-            path = TRAIN_PATH
         else:
             path = TEST_PATH
+            transform = transforms.Compose([
+            transforms.Resize(self.image_size),
+            transforms.CenterCrop(self.image_size),
+            transforms.ToTensor()
+        ])
 
         image = torchvision.datasets.ImageFolder(root=path, transform=transform)
         train_image, val_image = self.split_dataset(image)
