@@ -21,24 +21,29 @@ Dependencies:
  - PyTorch 2.0.1
  - Matplotlib 3.7.1
 
-## Implementation
+## Implementation and Reproducability
 This model forllows the architecture proposed in the paper. It consists of 3 perciever blocks each consisting of a singular head cross attention module and 4 self attention modules with 8 heads each. A batch size of 32 was used with BCELoss criteron as this is a binary classification problem. The adam optimiser was used instead of the LAMB optimiser proposed in the model.
 
-HyperParameters:
-    LATENT_DIM = 32
-    LATENT_EMB = 64
-    latent_layers = 4
-    latent_heads = 8
-    classifier_out = 16
-    batch_size = 32
-    epochs = 60
-    depth=3
-    learning_rate = 0.005
 
-To train your model run the file train.py with your desired hyperparameters 
+HyperParameters:
+ -  LATENT_DIM = 32
+ -  LATENT_EMB = 128
+ -  latent_layers = 4
+ -  latent_heads = 8
+ -  classifier_out = 16
+ -  batch_size = 32
+ -  epochs = 60
+ -  depth=3
+ -  learning_rate = 0.005
+
+To train your model run the file train.py with your desired hyperparameters or instantiate a new model with
+ -  ADNI_Transformer(depth, LATENT_DIM, LATENT_EMB, latent_layers, latent_heads, classifier_out, batch_size)
+
 
 ### Data Processing
-The ADNI dataset has already been split into adequate test and train folders by the teaching team. The datasets have both AD (has alzheimers) and ND (no alzheimers). I used pytorch to load the data into a dataloeader with a batch size of 32. Transformations were applied to the data including cropping images from 240x256 to 240x240 as well as converting to black and white. The data was also normalised with the caluclated values being a mean of 0.1232 and std 0.2308.
+The ADNI dataset has already been split into adequate test and train folders by the teaching team. The datasets have both AD (has alzheimers) and ND (no alzheimers) labels. I used pytorch to load the data into a dataloeader with a batch size of 32. Transformations were applied to the data including cropping images from 240x256 to 240x240 as well as converting to black and white. The data was also normalised to a mean of 0 and an STD of 1.
+
+The data split is 80% train and 20% test. Validation sets were not used in training this model as the dataset is already small for a transformer and data leakage is a prominent issue as singular people have multiple MRI scans in the dataset. As the data was already supplied preprocessed by the teaching team there was no way to identify which brain belonged to which person and avoid the data leakage. The test set was used to find the accuracy after each epoch. Doing this in no way interferes with the training process or any hyperparameters of the model.
 
 Example Brains:
 Note, matplotlib automatically adds contrast colour when displaying image as the image dimention is only 1
@@ -54,7 +59,11 @@ Due to the nature of the perciever it is permuation invarient and cannot directl
 The classification layer reduces the 32x32x64 latent tensor to a 32x1 tensor for the binary output expected by BCELoss. It does this by passing through a fully connected layer followed by a mean on dimention 0 before another fully connected layer. The outputs are then passed through sigmoid before being returned. 
 
 ## Results
+After 40 epochs the model achieved an accruacy of 57% on the testing set whcih is slightly better than random guessing. I attemoted many different hyperparameters to attempt to get the accuracy up. Doing more than 40 epochs made the model show signs of overfitting as the accuracy would go down and the loss would plateau. Learning rates greater than 0.0005 were shown to cause overshoot and an inability to converge. The model was shown to converge slowly over time but accuracy...
 
+![Loss Plot for 40 Epochs](../plots/loss_plot_60_32x64.png) ![Loss Plot for 60 Epochs](../plots/loss_plot_60_32x64.png)
+
+I suspect this is in due part to the small size of the dataset, the training set had slightly less than 10000 images which is considered quite small when training transformer models whcih require very large amounts of data, this is coulda also explain the overfitting after 40 epochs. Another reason could be the use of learned positional encodings over fourier encodings which might have made it difficult for the model to converge effectively. The performance is likely also in due part to the 32x128 latent array which I used. I had to use this size due to memory contraints on both my laptop and the p100 gpus on rangpur which I primarlity used to train the models with. Transformers are large complex models that benefit from scale which I was not able to provide. In the future I might try to incorporate data augmentation techniques to atrificially increase the size of the training set for potentially improve the model. 
 
 ## References
 <a id="1">[1]</a>

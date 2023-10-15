@@ -1,9 +1,5 @@
 import torch.nn as nn
-import torch.nn.functional as F
-import dataset as ds
 import torch
-import torchvision.models as models
-from torchvision.models import ResNet34_Weights
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -12,22 +8,21 @@ class ImageEncoder(nn.Module):
     def __init__(self, embed_dim):
         super(ImageEncoder, self).__init__()
         
-        # positional encoding vector 31
+        # positional encoding vector to be appended to image
         self.position_encodings = torch.randn(embed_dim-1)
-        self._convolution = nn.Conv1d(in_channels=1, out_channels=embed_dim, kernel_size=1)
-
         
     def forward(self, images):
-        # take the positional encoding vector and expand to the size of the images matrix 32x31x240x240
+        # image is 32x1x240x240
+        # take the positional encoding vector 31 and expand to the size of the images matrix 32x63x240x240
         enc = self.position_encodings.unsqueeze(0).expand((images.shape[0],) + self.position_encodings.shape).unsqueeze(-1).unsqueeze(-1).expand(-1, -1, 240, 240)
         enc = enc.type_as(images) 
-       
-        # add to the images matrix to make the positional encodings
+        
+        # add to the images matrix to make the positional encoding, image becomes 32x128x240x240
         images = torch.cat([images, enc], dim=1)
-        # flatten the last two dimentions of image to 1d 
+        # flatten the last two dimentions of image to 1d, image becomes 32x128x57600
         images = images.flatten(2)
         
-        # remake permuation of image for attention block
+        # remake permuation of image for attention block, image becomes 57600x32x128 ready for attention layer
         images = images.permute(2, 0, 1)
         return images
 
@@ -37,8 +32,9 @@ class Attention(nn.Module):
     def __init__(self, heads, in_size) -> None:
         super(Attention, self).__init__()
         
-        # Cross attention layer as described in paper
-        self.lnorm1 = nn.LayerNorm(in_size, device=device)
+        # Simple attention layer for cross and self attention as described in paper
+        # Normalise and pass through attention
+        self.lnorm1 = nn.LayerNorm(in_size)
         self.attn = nn.MultiheadAttention(embed_dim=in_size, num_heads=heads)
 
         # Dense block as described in the paper. 
@@ -46,21 +42,19 @@ class Attention(nn.Module):
         self.linear1 = nn.Linear(in_size, in_size)
         self.act = nn.GELU()
         self.linear2 = nn.Linear(in_size, in_size)
+        # Optional dropout to prevent overfitting
         self.drop = nn.Dropout(0.1)
 
-
-        
+      
     def forward(self, latent, image):
-        # in1 is 128 by 64
-        #in2 is 32 by 512
-                
+
+        # latent is 32x32x128
+        # image is 57600x32x128 in case of self attention image is also latent
         out = self.lnorm1(image)
-        #print(latent.shape); print(image.shape)
         out, _ = self.attn(query=latent, key=image, value=image)
         
         #first residual connection.
         resid = out + latent
-
         # dense block
         out = self.lnorm2(resid)
         out = self.linear1(out)
@@ -73,21 +67,19 @@ class Attention(nn.Module):
         return out
     
            
-    
 class MultiAttention(nn.Module):
-    def __init__(self, heads, in_size, layers) -> None:
+    def __init__(self, heads, in_size, layers):
         super(MultiAttention, self).__init__()
 
         # multi head self attention layer as described in paper
+        # multiple layers of multiattention heads
         self.transformer = nn.ModuleList([
         Attention(
             heads=heads,
             in_size=in_size) 
         for layer in range(layers)]) 
-        self.transformer.to(device=device)
         
     def forward(self, latent):
-        
         # self attention so pass latent in twice
         for head in self.transformer:
             latent = head(latent, latent)
@@ -96,7 +88,7 @@ class MultiAttention(nn.Module):
         
 class Perceiver_Block(nn.Module):
     
-    def __init__(self, in_size, heads, layers) -> None:
+    def __init__(self, in_size, heads, layers):
         super(Perceiver_Block, self).__init__()
         
         # Perceiver block consists of a single head cross attention
@@ -105,6 +97,7 @@ class Perceiver_Block(nn.Module):
         self.latent_transformer = MultiAttention(heads,in_size,layers)
         
     def forward(self, latent, image):
+        # Pass through self and cross attention
         out = self.cross_attention(latent, image)
         out = self.latent_transformer(out)
         return out        
@@ -112,63 +105,64 @@ class Perceiver_Block(nn.Module):
     
 class Classifier(nn.Module):
     
-    def __init__(self, out_dimention, batch_size, latent_size) -> None:
+    def __init__(self, out_dimention):
         super(Classifier, self).__init__()
         
+        # Lazy layers don't care about input size. Downsize first and return binary value
         self.fc1 = nn.LazyLinear(out_dimention)
         self.fc2 = nn.LazyLinear(1)
         
-        
     def forward(self, latent):
-        #32x32x64 latent  
         
+        #32x32x128 latent  
         out = self.fc1(latent)
+        #32x32x16 latent
         out = out.mean(dim=0)
+        #32x16 latent
         out = self.fc2(out)
         
-        return torch.sigmoid(out)
-
+        # 32x1 latent, sigmoid and squeeze to return 31
+        return torch.sigmoid(out).squeeze()
 
 
 class ADNI_Transformer(nn.Module):
     
-    def __init__(self, depth):
+    def __init__(self, depth, LATENT_DIM, LATENT_EMB, latent_layers, latent_heads, classifier_out, batch_size):
         super(ADNI_Transformer, self).__init__()    
-        LATENT_DIM = 32
-        LATENT_EMB = 64
-        latent_layers = 4
-        latent_heads = 8
-        classifier_out = 16
-        batch_size = 32
         
-        # pretrained to default values       
-        # take out the classification layer   
+        # Hyper Parameters being used
+        #LATENT_DIM = 32
+        #LATENT_EMB = 128
+        #latent_layers = 4
+        #latent_heads = 8
+        #classifier_out = 16
+        #batch_size = 32
         
-        #network = models.resnet34(weights=ResNet34_Weights.DEFAULT) 
-        #self._resnet = torch.nn.Sequential(*list(network.children())[:-1])
+        # Define image encoder with latent dimetnion 
         self._embeddings = ImageEncoder(LATENT_EMB)
         
         #initialise the latent array and how many stacks we want
         self.latent = torch.empty(batch_size,LATENT_DIM, LATENT_EMB, device=device)
-        self._depth = depth
         
         # Stack perceiver blocks to make final model
         self._perceiver = nn.ModuleList([Perceiver_Block(LATENT_EMB, latent_heads, latent_layers) for per in range(depth)])
-        self._perceiver.to(device=device)
-        self._classifier = Classifier(classifier_out, batch_size, LATENT_DIM)
+        self._classifier = Classifier(classifier_out)
         
 
     def forward(self, images):
-        # shape 32x3x240x240
-        images = self._embeddings(images)
-        latent = self.latent
-        # latent size 512x512
         
-        # use perceiver transformer (may need to reshape first)
+        # shape of images 32x1x240x240
+        images = self._embeddings(images)
+        # images becomes 32x32x240x240
+        
+        # latent size 32x32x64
+        latent = self.latent
+        
+        # use perceiver transformer
         for pb in self._perceiver:
             latent = pb(latent, images)
         
-        # classify the output
+        # classify the output and return
         output = self._classifier(latent)
         return output
     
