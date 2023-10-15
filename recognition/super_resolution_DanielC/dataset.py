@@ -7,8 +7,7 @@ from utils import *
 def generate_train_loader():
     transform = transforms.Compose([
                             transforms.Grayscale(1),
-                            transforms.ToTensor(),
-                            transforms.RandomHorizontalFlip()
+                            transforms.ToTensor()
                         ])
 
     AD_dataset = ImageFolder(root=AD_train_dir, transform=transform)
