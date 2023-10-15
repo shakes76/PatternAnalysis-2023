@@ -172,7 +172,7 @@ if 'cuda' in device:
 
 # Loss is CE
 criterion = nn.CrossEntropyLoss()
-## criterion =nn.BCELoss()
+#criterion =nn.BCELoss()
 
 if args.opt == "adam":
     optimizer = optim.Adam(net.parameters(), lr=args.lr)
@@ -184,8 +184,10 @@ elif args.opt == "adamw":
     optimizer = optim.AdamW(net.parameters(), lr=args.lr, weight_decay=1e-4)      
     
 # use cosine scheduling
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.n_epochs)
-sched_lr = "CosineAnnealingLR"
+# scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, args.n_epochs)
+scheduler=torch.optim.lr_scheduler.OneCycleLR(optimizer,max_lr=args.lr,steps_per_epoch=len(trainloader), epochs=args.n_epochs)
+# scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
+sched_lr = "ReduceLROnPlateau"
 
 ##### Training
 scaler = torch.cuda.amp.GradScaler()
@@ -276,6 +278,9 @@ def train_valid(epoch):
         _, predicted = outputs.max(1)
         total += targets.size(0)
         correct += predicted.eq(targets).sum().item()
+        scheduler.step() ################## ONECYCLE ###############################################
+        ############################################################################################
+        ############################################################################################
         if epoch%1==0: 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                 % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))    

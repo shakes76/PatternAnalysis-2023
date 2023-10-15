@@ -36,16 +36,25 @@
 - Epoch - 35 (64.2), 50 (65), 60 (65.3), 120 (66), 200 (66.7), 300 (65)
 - Dropout
 # Jobs:
-140 - img size 128
-144 - without flip
-146 - with flip and crop
-243 - removed RandomResizedCrop
-468 - Horiz Flip, Random Crop
-750 - DViT - 60.6
-754 - CCT - 71.73
-783 - CCT 2 layers - 72.3
+750 - DViT - 60.6%
+754 - CCT - 71.73%
+783 - CCT 2 layers - 72.3%
 975 - CCT 2 layers + RandomRotation (5) - 74%
-990 - CCT 2 layers + RandomRotation (10) + Flip after rotation
-1019 - CCT 2 layers + RandomRotation (10) + Flip after rotation + Random crop
+1112 - RandomAugment - 76.377%
+1152 - RA + 150 E - 76%
+1199 - RA + 150 E + n_ops = 3 - 76.5%
+1220 - TrivialAugmentWide, E - 80 - 75.244%
+1231 - TrivialAugmentWide, E - 200 - 76%
+253 - RA + 100 E + n_ops = 4 - 77.155% (STANDARD)
+1307 - RA + 100 E + n_ops = 3 + LR: 1e-4 - 75.64%
+1364 - Data Leakage (only test) - 75.5%
+1438 - RA + 100 E + n_ops = 5 - 76%
+1439 - RA + 100 E + n_ops = 4 + magnitude = 11 - 76.53%
+1478 - RA + 100 E + n_ops = 4 + Heads = 8  - 76.244%
+1590 - RA + 55 E + n_ops = 4 + Heads = 8 - 75%
+1604, 1607 - 10E + LR Scheduler - 69.5%
+1642 - OnceCycle (outside) - 72.6%
+1654 - OnceCycle (inside) - 
+1728 - ReduceLROnPlateau - 
 
 GIT PUSH

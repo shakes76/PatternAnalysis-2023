@@ -91,6 +91,7 @@ def test_measure():
     print("Test Loss:", val_loss,"Test Accuracy:", acc) 
 
 def test_valid_measure():
+    to_print = 0
     list_loss = []
     list_acc = []
     list_test=[]
@@ -98,11 +99,14 @@ def test_valid_measure():
     print('Training..')
     start = time.time()
     for epoch in range(start_epoch, args.n_epochs):
+        to_print +=1
         trainloss,testloss, acc = train_valid(epoch) 
         list_loss.append(trainloss)   
         list_test.append(testloss)   
         acu.append(acc)  
-        scheduler.step(epoch-1) # step cosine scheduling
+        # if acc >=81: break
+        #scheduler.step(testloss) # REDUCELRON PLATEAU
+        #scheduler.step(epoch-1) # step cosine scheduling
     end = time.time()
     elapsed = end - start
     print("Training took " + str(elapsed) + " secs or " + str(elapsed / 60) + " mins in total")    
@@ -112,8 +116,8 @@ def test_valid_measure():
     plt.title("Training Plot")
     plt.legend()
     plt.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Report.png')
-    plt1.plot([i for i in range(1, args.n_epochs+1)], acc)
-    plt1.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Accuracy.png')
+    # plt1.plot([i for i in range(1, args.n_epochs+1)], acc)
+    # plt1.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Accuracy.png')
     print(acu)
     print('Testing..')
     net.eval()
