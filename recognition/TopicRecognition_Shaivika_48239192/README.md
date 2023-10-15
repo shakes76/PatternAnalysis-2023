@@ -70,6 +70,10 @@ The ViT model consists of the following main components:
 - Training Data: The ADNI dataset with labeled images.
 - Evaluation Metric: Accuracy, F1-score, or other relevant metrics.
 
+### Results
+
+The application of the Vision Transformer (ViT) model for Alzheimer's disease image classification has yielded promising results. The trained ViT model demonstrates its effectiveness in accurately distinguishing between Alzheimer's disease (AD) and normal control (CN) subjects based on medical images.
+
 ## Usage
 - To train the model, run `train.py` and provide the necessary arguments.
 - To make predictions on a single image, run `predict.py` and provide the path to the image file.
