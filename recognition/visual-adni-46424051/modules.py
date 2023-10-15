@@ -37,7 +37,7 @@ class Model(Module):
         print("3: ", patches)
         tokens = self.linear(patches)
         print("4: ", tokens)
-        tokens = self.token.expand(1, -1)
+        tokens = self.token.expand(1, 1, -1)
         print("5: ", tokens)
 
         out = tokens + self.pos.repeat(1, 1)
