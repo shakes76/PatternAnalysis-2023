@@ -1,16 +1,43 @@
+#import modules
+import argparse
 import os
-from PIL import Image
-from torch.utils.data import Dataset
+import random
 import numpy as np
+
+import dataset
+import modules
+import train
+import predict
+
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.nn.parallel
+import torch.optim as optim
 import torch.utils.data
-
-from glob import glob
-from torchvision.transforms import Resize
+import torchvision
+import torchvision.datasets as dset
 import torchvision.transforms as transforms
+from torch.utils.data import Dataset
+import pandas as pd
+import matplotlib.pyplot as plt
+import torchvision.transforms.functional as TF
 
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split
+from glob import glob
 
+from PIL import Image
 
+# Device
+CUDA_DEVICE_NUM = 0
+DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+print('Device:', DEVICE)
+print(torch.cuda.is_available())
+
+# Hyperparameters
+LEARNING_RATE = 0.0001
+ROOTLOC = "\ISIC"
 TRAINDATA = "ISIC\ISIC-2017_Training_Data\ISIC-2017_Training_Data"
 TESTDATA = "ISIC\ISIC-2017_Test_v2_Data\ISIC-2017_Test_v2_Data"
 VALIDDATA = "ISIC\ISIC-2017_Validation_Data\ISIC-2017_Validation_Data"
@@ -22,36 +49,9 @@ NUM_EPOCHS = 5
 BATCH_SIZE = 4
 WORKERS = 4
 
-class CustomDataset(Dataset):
-    def __init__(self, image_dir, mask_dir, transform=None):
-        self.image_dir = image_dir
-        self.mask_dir = mask_dir
-        self.transform = transform
-        
-        self.image_files = sorted(glob(os.path.join(self.image_dir, "*.jpg")))
-        self.mask_files = sorted(glob(os.path.join(self.mask_dir, "*.png")))
-        self.resize = Resize((224, 224))
-
-    def __len__(self):
-        return len(self.mask_files)
-
-    def __getitem__(self, index):
-        img_path = self.image_files[index]
-        mask_path = self.mask_files[index]
-
-        image = self.resize(Image.open(img_path))
-        mask = self.resize(Image.open(mask_path))
-        image = image.convert("RGB")
-        mask = mask.convert("L")
-
-        if self.transform is not None:
-            image = self.transform(image)
-            mask = self.transform(mask)
-        sample = {'image': image, 'mask': mask}
-        return sample
 
 
-train_dataset = CustomDataset(image_dir = TRAINDATA,
+train_dataset = dataset.CustomDataset(image_dir = TRAINDATA,
                                 mask_dir=TRAINTRUTH,
                                 transform=transforms.Compose([
                                 transforms.RandomRotation(30),
@@ -62,7 +62,7 @@ train_dataset = CustomDataset(image_dir = TRAINDATA,
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=BATCH_SIZE,
                                          shuffle=True)
 
-valid_dataset = CustomDataset(image_dir = VALIDDATA,
+valid_dataset = dataset.CustomDataset(image_dir = VALIDDATA,
                                 mask_dir=VALIDTRUTH,
                                 transform=transforms.Compose([
                                 transforms.RandomRotation(30),
@@ -73,7 +73,7 @@ valid_dataset = CustomDataset(image_dir = VALIDDATA,
 valid_dataloader = torch.utils.data.DataLoader(valid_dataset, batch_size=BATCH_SIZE,
                                          shuffle=True)
 
-test_dataset = CustomDataset(image_dir = TESTDATA,
+test_dataset = dataset.CustomDataset(image_dir = TESTDATA,
                                 mask_dir=TESTTRUTH,
                                 transform=transforms.Compose([
                                 transforms.RandomRotation(30),
@@ -85,11 +85,43 @@ test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=BATCH_SIZ
                                          shuffle=True)
 
 
-#print(train_dataset.__getitem__(1)[0].shape)
-#print(train_dataset.__getitem__(1)[1].shape)
+
 print(enumerate(train_dataloader))
 print(len(train_dataloader))
 print(len(test_dataloader))
 print(len(train_dataset))
 print(len(test_dataset))
-#print(train_dataset.__getitem__(1))
+
+model = train.UNet(3,1,[64,128,256,512]) 
+model = model.to(DEVICE)
+criterion = nn.BCEWithLogitsLoss()
+optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, 
+                            momentum = 0.9, weight_decay = 5e-4)
+
+total_steps = len(train_dataloader)
+#scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,max_lr = LEARNING_RATE, 
+#                                steps_per_epoch = total_steps, epochs = NUM_EPOCHS)
+model.train()
+
+for epoch in range(NUM_EPOCHS):
+    print("EPOCH:",epoch)
+    for i, batch in enumerate(train_dataloader):
+        images = batch['image']
+        masks = batch['mask']
+        #print(images.shape)
+        images = images.to(DEVICE)
+        masks = masks.to(DEVICE)
+        #print(images.shape)
+        outputs = model(images)
+        #print(1,outputs)
+        #print(2,masks)
+        loss = criterion(outputs, masks)
+        #print(i)
+        # Backward and optimize
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        if (i+1) % 100 == 0:
+            print (f'Epoch [{epoch+1}/{NUM_EPOCHS}], Step [{i+1}/{total_steps}], Loss: {loss.item():.5f}')
+        #scheduler.step()
+            modules.save_predictions_as_imgs(train_dataloader,model)
