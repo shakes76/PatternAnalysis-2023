@@ -1,12 +1,13 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from Siamese.dataset import get_test_dataset
+from dataset import get_test_dataset
 from modules import SiameseNetwork
 
 
 def test(model, device, test_loader):
-    # Load the model
+
+    print("Starting testing.")
     model.eval()
     test_loss = 0
     correct = 0
@@ -27,19 +28,23 @@ def test(model, device, test_loader):
         test_loss, correct, len(test_loader.dataset),
         100. * correct / len(test_loader.dataset)))
 
+    print("Finished testing.")
+
 
 if __name__ == '__main__':
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    batch_size = 32
+    batch_size = 256
 
     model = SiameseNetwork()
-    model_path = "siamese_network.pt"
+    model_path = "../results/siamese_network_10epochs(2).pt"
     model.load_state_dict(torch.load(model_path))
     model = model.to(device)
 
+    print("Loading data...")
     train_data = get_test_dataset('E:/comp3710/AD_NC')
     train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size)
+    print("Data loaded.")
 
     test(model, device, train_dataloader)
 
