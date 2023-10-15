@@ -19,10 +19,10 @@ def get_patient_ids(data_path):
 '''
 Returns the train, val, and test dataloaders for the AD_NC dataset, with a train/val split of 80/20
 '''
-def get_alzheimer_dataloader(batch_size:int=32, img_size:int=224):
+def get_alzheimer_dataloader(batch_size:int=32, img_size:int=224, path:str="./dataset/AD_NC"):
     # Paths to training and test datasets
-    train_data_path = "./dataset/AD_NC/train"
-    test_data_path = "./dataset/AD_NC/test"
+    train_data_path = path+"/train"
+    test_data_path = path+"/test"
 
     # Transformers 
     train_transforms = transforms.Compose([

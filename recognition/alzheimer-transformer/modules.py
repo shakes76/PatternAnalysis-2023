@@ -164,9 +164,3 @@ class ViT(nn.Module):
         x = self.mlp_head(x[:, 0])
 
         return x
-
-test_img = torch.randn(1, 3, 224, 224)
-
-vit = ViT()
-
-print(summary(model = vit, input_size = test_img.shape))
