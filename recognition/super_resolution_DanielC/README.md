@@ -1,7 +1,9 @@
 # Pytorch implmenetation of a brain MRI super-resolution network using ADNI dataset
 ## 1. General Overview of Super-resolution Network
-The Super-resolution network is designed to take in a 2d low resolution brain MRI image as input and return a higher resolution of the image.
-The core component of this network is the efficient sub-pixel layer, which is defined within pytorch as ``PixelShuffle``. This layer upscales the image by reducing the number of channels of features, in our case, it upscales by a factor of 4.
+The Super-resolution network is designed present a plausible high-resolution network through the usage of a low resolution input, thus effectively upsampling the given input. Within this specific task, the designed models takes in a 2d low resolution brain MRI image as input and returns a higher resolution of the image. The network is trained on the ADNI brain MRI image dataset, found [here](ADNI dataset for Alzheimer's disease](https://adni.loni.usc.edu/) and aims to increase the resolution by a factor of 4 (from 60x64 to 240 x 256).
+
+### Core functionality
+The core component of this network is the efficient sub-pixel layer, which is defined within pytorch as ``PixelShuffle``. This layer upscales the image by reducing the number of channels of features, in our case, it upscales by a factor of 4. The network learns the mapping between the low-resolution and their high-resolution version through the various convolution layers by using the mean squared error loss function represented in pytorch as ``torch.nn.MSELoss``. The Adam optimizer is used as per the guide which adjusts learning rate to adapt throughout training. 
 
 ## 2. Required Dependencies
 Dependency | Version |
