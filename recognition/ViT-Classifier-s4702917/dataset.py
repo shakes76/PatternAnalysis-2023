@@ -48,6 +48,9 @@ testset = ImageFolder("./data/ADNI//test", transform=test_transform)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchSize,
                                           shuffle=True, num_workers=0)
 
+validloader = torch.utils.data.DataLoader(trainset, batch_size=batchSize,
+                                          shuffle=True, num_workers=0)
+
 
 testloader = torch.utils.data.DataLoader(testset, batch_size=batchSize,
                                          shuffle=False, num_workers=0)

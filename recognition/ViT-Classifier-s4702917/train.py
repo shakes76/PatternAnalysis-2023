@@ -125,7 +125,7 @@ for epoch in range(numEpochs):
 	
 	validation_total = 0
 	validation_correct = 0
-	for i, (images, labels) in enumerate(ds.validset):
+	for i, (images, labels) in enumerate(ds.validloader):
 		outputs = model(images)
 		_, predicted = torch.max(outputs.data, 1)
 	
