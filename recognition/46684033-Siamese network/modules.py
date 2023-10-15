@@ -18,27 +18,30 @@ class Siamese(nn.Module):
         self.linear = nn.Linear(64, 1)
         self.batchNorm1 = nn.BatchNorm2d(64)
         self.sequence = nn.Sequential(
-            nn.Conv2d(1, 32, (10, 10),bias=False),
+            nn.Conv2d(1, 32, (5, 5),bias=False),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(4),
 
-            nn.Conv2d(32, 64, (7, 7),bias=False),
+            nn.Conv2d(32, 64, (3, 3),bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(3),
 
-            nn.Conv2d(64, 128, (4, 4),bias=False),
+            nn.Conv2d(64, 128, (3, 3),bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.MaxPool2d(2),
 
         )
         self.fc = nn.Sequential(
+            nn.Linear(1152, 512),
+            nn.ReLU(),
             nn.Linear(512, 256),
             nn.ReLU(),
-            nn.Linear(256, 64),
-            nn.Sigmoid(),
+            nn.Linear(256, 128),
+            nn.ReLU(),
+            nn.Linear(128, 2)
         )
 
     def forward_once(self, x):
@@ -50,19 +53,19 @@ class Siamese(nn.Module):
 
     def forward(self, x, y,z=None):
         #BCELoss
-        x = self.forward_once(x)
-        y = self.forward_once(y)
-        distance = torch.abs(y - x).view(64,64,1,1)
-        output = self.batchNorm1(distance)
-        output = torch.flatten(output, start_dim=1)
-        output = self.linear(output)
-        output = self.sigmoid(output)
-        return output
-
-        # contrastive Loss
         # x = self.forward_once(x)
         # y = self.forward_once(y)
-        # return x,y
+        # distance = torch.abs(y - x).view(64,64,1,1)
+        # output = self.batchNorm1(distance)
+        # output = torch.flatten(output, start_dim=1)
+        # output = self.linear(output)
+        # output = self.sigmoid(output)
+        # return output
+
+        # contrastive Loss
+        x = self.forward_once(x)
+        y = self.forward_once(y)
+        return x,y
 
         # #triplet loss
         # x = self.forward_once(x)
