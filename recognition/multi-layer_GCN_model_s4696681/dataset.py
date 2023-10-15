@@ -5,6 +5,8 @@ import json
 from sklearn.model_selection import train_test_split
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
+from sklearn.model_selection import train_test_split
+
 
 """Create Adjacency matrix from the musae_facebook_edges.csv file"""
 def create_adjacency_matrix():
@@ -118,7 +120,7 @@ node_labels = convert_labels()
 
 
 
-""" t-SNE figure created to visualize the initial, high-dimensional node features in a 2D space,
+""" t-SNE plot created to visualize the initial, high-dimensional node features in a 2D space,
  giving insights into their structure and relationships prior to any transformation by the GCN."""
 # Extract feature vectors for t-SNE
 X = feature_vectors[:, 1:]  # Exclude node IDs
@@ -137,4 +139,17 @@ plt.title('t-SNE visualization of original feature vectors')
 plt.show()
 
 
+"""Takes the preprocessed data and creates tensors for them so they can be used in the GCN model"""
+def create_tensors():
+    node_ids = feature_vectors[:, 0]
+    train_ids, test_ids = train_test_split(node_ids, test_size=0.2, random_state=42)
 
+    train_mask = np.isin(node_ids, train_ids)
+    test_mask = np.isin(node_ids, test_ids)
+
+    all_features_tensor = torch.FloatTensor(feature_vectors[:, 1:]).to(device)
+    train_labels_tensor = torch.LongTensor(node_labels[train_mask, 1]).to(device)
+    test_labels_tensor = torch.LongTensor(node_labels[test_mask, 1]).to(device)
+    train_tensor = torch.BoolTensor(train_mask).to(device)
+    test_tensor = torch.BoolTensor(test_mask).to(device)
+    return all_features_tensor, train_labels_tensor, test_labels_tensor, train_tensor, test_tensor
