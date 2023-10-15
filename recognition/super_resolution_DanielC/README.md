@@ -16,7 +16,7 @@ torchvision | 0.16.0
 For reproducibility, a virtual environment is recommended with specified versions respective to dependencies for isolation. 
 
 Since ``Image Folder`` can only be used in a directory with a single image folder, ensure all folders are placed as follows:
-data
+- data
   - train
     - train_AD
       - AD
