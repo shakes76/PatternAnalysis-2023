@@ -1,9 +1,10 @@
 import torch
-from dataset import *
-from modules import *
 import torch.optim as optim
 import torch.nn
 import torchvision.transforms as transforms
+from dataset import *
+from modules import *
+
  
 
 if __name__ == "__main__":

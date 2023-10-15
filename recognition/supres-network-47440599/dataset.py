@@ -18,7 +18,7 @@ def load_data(path:str):
                             transform=transforms.Compose([
                                 transforms.Grayscale(1),
                                 transforms.ToTensor(),
-                                #transforms.RandomHorizontalFlip()
+                                transforms.RandomHorizontalFlip()
                             ]))
 
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,

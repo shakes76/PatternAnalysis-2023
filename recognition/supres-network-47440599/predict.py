@@ -1,28 +1,40 @@
 import torch
 import torchvision
 import torchvision.utils as vutils
+import torchvision.transforms as transforms
 from modules import SubPixel
 from dataset import *
 
 
-device = torch.device("cpu")
+if __name__ == "__main__":
 
-# Define model parameters
+    device = torch.device("cpu")
 
+    dataroot = "./data/AD_NC/test"
 
-# Instantiate the model
-model = SubPixel()  # Use the correct parameters
+    test_loader = load_data("./data/AD_NC/test")
 
-# Load the pre-trained model's state dict
-model.load_state_dict(torch.load("subpixel_model.pth", map_location=device))
-print(model)
+    # Instantiate the model
+    model = SubPixel() 
 
+    # Load the pre-trained model's state dict
+    model.load_state_dict(torch.load("subpixel_model.pth", map_location=device))
 
-# Generate random noise for input
+    model.eval()
+    transform = transforms.Compose([transforms.Resize((60,64))])
 
-# Generate fake images with the model
+    with torch.no_grad():
+        for input,label in test_loader:
 
+            down_scaled_image = transform(input)
+            input = input.to(device)
+            down_scaled_image = down_scaled_image.to(device)
 
-# Visualize the generated fake images
+            output = model(down_scaled_image).detach().cpu()
+            break
 
-with torch.no
+    image = vutils.make_grid(output, padding=2, normalize = True)
+    transform = torchvision.transforms.ToPILImage()
+    img = transform(image)
+    img.show()
+        
