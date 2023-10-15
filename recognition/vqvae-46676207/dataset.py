@@ -1,5 +1,40 @@
+import os
+from enum import Enum
+from platform import node
+
+from PIL import Image
+import matplotlib.pyplot as plt
+import numpy as np
+from torch.utils.data import DataLoader, Dataset
+from torch.utils.data.sampler import SubsetRandomSampler
+from torchvision import transforms
+from torchvision.utils import make_grid
+
 from utils import *
 
+# IO Paths
+match node():                                                    # root of data dir
+    case 'Its-a-Macbook.modem':
+        DATA_PATH = '/Users/samson/Documents/UQ/COMP3710/data/keras_png_slices_data/'
+    case 'Its_a_PC':
+        DATA_PATH = 'D:/Documents/UQ/COMP3710/data/keras_png_slices_data/'
+    case _:
+        if 'vgpu' in node():
+            DATA_PATH = '/home/Student/s4667620/mac_mount/data/keras_png_slices_data/'
+        else:
+            raise ValueError(f'Unknown hostname: {node()}. Please add your DATA_PATH in utils.py.')
+TRAIN_INPUT_PATH = DATA_PATH + 'keras_png_slices_train/'         # train input
+VALID_INPUT_PATH = DATA_PATH + 'keras_png_slices_validate/'      # valid input
+TEST_INPUT_PATH = DATA_PATH + 'keras_png_slices_test/'           # test input
+VALID_TARGET_PATH = DATA_PATH + 'keras_png_slices_seg_validate/' # train target
+TRAIN_TARGET_PATH = DATA_PATH + 'keras_png_slices_seg_train/'    # valid target
+TEST_TARGET_PATH = DATA_PATH + 'keras_png_slices_seg_test/'      # test target
+TRAIN_TXT = './oasis_train.txt'     # info of img for train
+VALID_TXT = './oasis_valid.txt'     # info of img for valid
+TEST_TXT = './oasis_test.txt'       # info of img for test
+
+# Hyperparameters
+BATCH_SIZE = 256    # Depends on your machine
 
 class DataType(Enum):
     """
@@ -10,40 +45,22 @@ class DataType(Enum):
     TEST = 3    # Testing set
 
 class OASIS_MRI(Dataset):
-    def __init__(self, root, type=DataType.TRAIN, transform = None, target_transform=None) -> None:
+    def __init__(self, input_folder, transform = None, target_transform=None) -> None:
         super(OASIS_MRI, self).__init__()
         
-        self.type = type  # training set / valid set / test set
+        self.input_folder = input_folder  # folder of training set / valid set / test set
         self.transform = transform
         self.target_transform = target_transform
 
-        if self.type == DataType.TRAIN:     # get training data
-            file_annotation = root + TRAIN_TXT
-            self.input_folder = TRAIN_INPUT_PATH
-            # self.target_folder = TRAIN_TARGET_PATH
-        elif self.type == DataType.VALID:   # get validating data
-            file_annotation = root + VALID_TXT
-            self.input_folder = VALID_INPUT_PATH
-            # self.target_folder = VALID_TARGET_PATH
-        elif self.type == DataType.TEST:    # get testing data
-            file_annotation = root + TEST_TXT
-            self.input_folder = TEST_INPUT_PATH
-            # self.target_folder = TEST_TARGET_PATH
-
-        f = open(file_annotation, 'r') # open file in read only
-        data_dict = f.readlines() # get all lines from file
-        f.close() # close file
+        data_list = self.get_data_list()
 
         self.inputs = []
-        # self.target_filenames = []
         self.labels = []
-        for line in data_dict:
+        for line in data_list:
             img_names = line.split() # slipt by ' ', [0]: input, [1]: target
             input = Image.open(self.input_folder + img_names[0])    # read input img
-            # m, s = np.mean(input, axis=(0, 1)), np.std(input, axis=(0, 1))
             preprocess = transforms.Compose([
                 transforms.ToTensor(),
-                # transforms.Normalize(mean=m, std=s),
             ])
             input = preprocess(input) # to tensore
             self.inputs.append(input)
@@ -58,8 +75,29 @@ class OASIS_MRI(Dataset):
     def __len__(self):
         return len(self.inputs)
 
-def load_data(data_dir='./data',
-                batch_size=256, # good for 4070ti
+    def get_data_list(self, include_label=True):
+        """
+        Generate a list for each dataset
+        """
+
+        file_list = []
+        count=0
+
+        for file in os.listdir(self.input_folder):    # iterate through all files
+            filename=os.path.splitext(file)[0]      # filename (without .png)
+            filetype = os.path.splitext(file)[1]    # .png
+            if include_label:
+                idx = os.path.splitext(file)[0][15:len(os.path.splitext(file)[0])-4]    # take index of the image as label
+                new_pair = os.path.join(filename + filetype + ' ' + idx)
+            else:
+                new_pair = os.path.join(filename + filetype)
+            file_list.append(new_pair)
+            count+=1
+
+        file_list.sort(key=lambda item:len(str(item)), reverse=False) # sorting
+        return file_list
+
+def load_data(batch_size=BATCH_SIZE,
                 random_seed=42,
                 valid_size=0.1,
                 shuffle=True,
@@ -67,20 +105,15 @@ def load_data(data_dir='./data',
     """
     Return a Dataloader of OASIS_MRI
     """
-    normalize = transforms.Normalize(
-        mean=[0.5],
-        std=[0.2],
-    )
 
     # define transforms
     transform = transforms.Compose([
             transforms.ToTensor(),
-            # normalize,    # not working for OASIS_MRI
     ])
 
     if test:    # get the testing data
         test_dataset = OASIS_MRI(
-          root=DATA_PATH, type=DataType.TEST,
+          TEST_INPUT_PATH,
           transform=transform,
         )
 
@@ -91,17 +124,17 @@ def load_data(data_dir='./data',
         return data_loader
     
     else:       # get the training data & validating data
-        train_dataset = OASIS_MRI(  # get training set
-            root=DATA_PATH, type=DataType.TRAIN,
+        train_dataset = OASIS_MRI(      # get training set
+            TRAIN_INPUT_PATH,
             transform=transform,
         )
 
-        valid_dataset = OASIS_MRI(  # get validating set
-            root=DATA_PATH, type=DataType.VALID,
+        valid_dataset = OASIS_MRI(      # get validating set
+            VALID_INPUT_PATH,
             transform=transform,
         )
 
-        s_train = len(train_dataset)  # size of training set
+        s_train = len(train_dataset)    # size of training set
         indices = list(range(s_train))
         split = int(np.floor(valid_size * s_train))
 
@@ -124,20 +157,20 @@ def load_data(data_dir='./data',
 
         return (train_loader, valid_loader)
 
-def show_img(datatype=DataType.TRAIN):
+def show_img(data_dir=DATA_PATH, datatype=DataType.TRAIN):
     """
-    show images in the house-made OASIS_MRI dataset
+    Show images in the OASIS_MRI dataset
     """
-    dataset = OASIS_MRI(DATA_PATH,type=datatype,transform=transforms.ToTensor())    # get the dataset
-    dataloader = DataLoader(dataset=dataset, batch_size=64, shuffle=True)           # get the dataloader
+    dataloader = load_data(batch_size=64, test=True) # get the dataloader
 
-    for step ,(b_x,b_y) in enumerate(dataloader): # b_x: input, b_y: target
-        if step < 3:    # show 3 batches of images
-            imgs = torchvision.utils.make_grid(b_x)
+    for i, (b_x, _) in enumerate(dataloader): # b_x: input, b_y: target
+        if i < 3:    # show 3 batches of images
+            imgs = make_grid(b_x)
             imgs = np.transpose(imgs,(1,2,0))
             plt.imshow(imgs)
             plt.show()
+        else:
+            break
 
 if __name__ == "__main__":
     show_img()
-
