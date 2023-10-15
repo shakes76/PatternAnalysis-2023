@@ -1,10 +1,8 @@
-import torch
 from torch.utils.data import DataLoader, Dataset
 import os
 from pathlib import Path
 import sys
 from PIL import Image
-import torchvision
 import torchvision.transforms as transforms
 import random
 import math
@@ -16,9 +14,17 @@ ADNI_PATH = Path('/home', 'groups', 'comp3710', 'ADNI', 'AD_NC')
 if sys.platform == 'win32':
     ADNI_PATH = Path('D:', 'ADNI', 'AD_NC')
 
+# Centre crop all images to 224x224
+TRANSFORM = transforms.Compose([
+    transforms.CenterCrop(224),
+])
+
+"""
+Custom Dataset class for the ADNI dataset.
+"""
 class ADNIDataset(Dataset):
     def __init__(self, root_path, train=True, transform=None):
-        self.path = Path(root_path, "train" if train else 'test')
+        self.path = Path(root_path, 'train' if train else 'test')
         self.transform = transform
         self.ad_files = os.listdir(Path(self.path, 'AD'))
         self.nc_files = os.listdir(Path(self.path, 'NC'))
@@ -32,15 +38,16 @@ class ADNIDataset(Dataset):
         if idx < len(self.ad_files):
             img_filename = self.ad_files[idx]
             image = Image.open(Path(self.path, 'AD', img_filename))
-            label = "AD"
+            label = 1
         # Index in NC range
         else:
             img_filename = self.nc_files[idx-len(self.ad_files)]
             image = Image.open(Path(self.path, 'NC', img_filename))
-            label = "NC"
+            label = 0
         # Apply transform if present
         if self.transform:
             image = self.transform(image)
+
         return image, label
     
 """
@@ -56,22 +63,28 @@ def split_train_val(dataset: ADNIDataset, val_proportion: float):
     num_nc_patients = len(nc_patient_ids)
 
     # Generate a random sample of patient ID's for the validation set
-    ad_pids_val = random.sample(ad_patient_ids, math.floor(num_ad_patients*val_proportion))
-    nc_pids_val = random.sample(nc_patient_ids, math.floor(num_nc_patients*val_proportion))
+    ad_pids_val = random.sample(list(ad_patient_ids), math.floor(num_ad_patients*val_proportion))
+    nc_pids_val = random.sample(list(nc_patient_ids), math.floor(num_nc_patients*val_proportion))
 
     # Make the validation dataset a deep copy of the training dataset
     val_dataset = copy.deepcopy(dataset)
 
     # Update each dataset's files by patient level split above 
     dataset.ad_files = [file for file in dataset.ad_files if file.split('_')[0] not in ad_pids_val]
-    val_dataset.ad_files = [file for file in dataset.ad_files if file.split('_')[0] in ad_pids_val]
-    dataset.nc_files = [file for file in dataset.ad_files if file.split('_')[0] not in nc_pids_val]
-    val_dataset.nc_files = [file for file in dataset.ad_files if file.split('_')[0] in nc_pids_val]
+    val_dataset.ad_files = [file for file in val_dataset.ad_files if file.split('_')[0] in ad_pids_val]
+    dataset.nc_files = [file for file in dataset.nc_files if file.split('_')[0] not in nc_pids_val]
+    val_dataset.nc_files = [file for file in val_dataset.nc_files if file.split('_')[0] in nc_pids_val]
 
     return dataset, val_dataset
 
-
-
-
-        
-
+"""
+Returns data loader for either the training (plus validation) set, or the test set.
+"""
+def get_dataloader(batch_size, train: bool, val_proportion: float = 0.2):
+    train_dataset = ADNIDataset(root_path=ADNI_PATH, train=True, transform=TRANSFORM)
+    train_dataset, val_dataset = split_train_val(dataset=train_dataset, val_proportion=val_proportion)
+    loader = (DataLoader(train_dataset, batch_size=batch_size, shuffle=True), DataLoader(val_dataset, batch_size=batch_size, shuffle=True))
+    if train == False:
+        dataset = ADNIDataset(root_path=ADNI_PATH, train=False, transform=TRANSFORM)
+        loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    return loader
