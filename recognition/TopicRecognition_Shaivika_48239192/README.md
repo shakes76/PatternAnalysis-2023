@@ -89,8 +89,14 @@ These results are indicative of the ViT model's potential as a valuable tool in 
 For comprehensive insights into the results and to explore further possibilities for enhancing the model's performance, refer to the project's code and documentation.
 
 ## Usage
-- To train the model, run `train.py` and provide the necessary arguments.
-- To make predictions on a single image, run `predict.py` and provide the path to the image file.
+To make predictions using the trained Vision Transformer (ViT) model, you can utilize the provided `predict.py` script. This script allows you to assess the model's performance on both individual images and the entire test dataset.
+
+**Individual Image Prediction**:
+
+1. Load the trained ViT model, which has been fine-tuned for Alzheimer's disease classification.
+2. Preprocess the image you wish to classify by resizing it to the specified `image_size` and normalizing pixel values.
+3. Pass the preprocessed image through the model to obtain predictions.
+4. For binary classification (e.g., AD vs. CN), you can set a threshold (e.g., 0.5) to determine the class based on the probability output.
 
 ## Requirements
 - Python 3.7+
