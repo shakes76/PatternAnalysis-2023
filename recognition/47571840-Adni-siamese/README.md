@@ -23,7 +23,7 @@ class ContrastiveLoss(torch.nn.Module):
 
 Below is a graph that explains the data flow through the networks
 
-TBA GRAPH
+![](images_for_readme/Architecture_final.png)
 
 Pairs of images are fed into the Siamese networks to generate their embeddings. The euclidean distance between the pair of embeddings are then calculated and passed into the contrastive loss during training. A classifier is added on top of a Siamese network to classify Alzhemier's Disease.
 
