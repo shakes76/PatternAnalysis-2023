@@ -1,8 +1,8 @@
 from modules import siamese
 from modules import classification_model
 from modules import contrastive_loss
-from dataset import load_siamese_data
-from dataset import load_classify_data
+from dataset1 import load_siamese_data
+from dataset1 import load_classify_data
 from tensorflow.keras.models import load_model
 import matplotlib.pyplot as plt
 
