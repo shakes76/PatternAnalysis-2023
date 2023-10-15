@@ -4,6 +4,7 @@ import torch.optim as optim
 from modules import ESPCN
 from dataset import get_train_and_validation_loaders, get_test_loader
 import time
+import matplotlib.pyplot as plt
 
 MODEL_PATH = "recognition\\46972990 - MRI super-resolution network\\model.pth"
 
@@ -22,6 +23,10 @@ model.to(device)
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 num_epochs = 10
+
+# Store losses for visualisation
+train_losses = []
+val_losses = []
 
 print("Started training...")
 for epoch in range(num_epochs):
@@ -58,6 +63,8 @@ for epoch in range(num_epochs):
     # Time taken for epoch
     end_time = time.time()
     epoch_duration = end_time - start_time
+    train_losses.append(train_loss)
+    val_losses.append(val_loss)
     print(f"Completed in {epoch_duration:.2f} seconds.")
 
 print("Finished training.")
@@ -81,3 +88,13 @@ print(f"Test Loss: {test_loss:.4f}")
 
 # Save the final model
 torch.save(model.state_dict(), MODEL_PATH)
+
+# Plot the training and validation losses
+plt.figure(figsize=(10, 5))
+plt.plot(train_losses, label="Training Loss")
+plt.plot(val_losses, label="Validation Loss")
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.title("Training & Validation Losses Over Epochs")
+plt.legend()
+plt.show()

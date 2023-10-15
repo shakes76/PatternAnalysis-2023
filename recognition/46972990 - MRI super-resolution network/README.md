@@ -85,4 +85,12 @@ Finished training.
 Test Loss: 0.0077
 ```
 
-After just 10 epochs, the results produce a reasonably clear image.
+After just 10 epochs, the results produce a reasonably clear image. Here is a plot of the training and validation loss over the 10 epochs:
+![Plot of the training and validation loss.](images/Training_loss.png?raw=true "Training amd validation loss over epochs.")
+
+Further hyperparameter tuning and optimisations may improve results. However, the current image perceptual quality was quite satisfactory. Further improvements could be made by using the [Enhanced Super-Resolution Generative Adversarial Network (ESRGAN)](https://doi.org/10.48550/arXiv.1809.00219) which could leverage the capabilities of generative adversarial networks to interpolate details in the image during the up-scale process.
+
+## References
+[ADNI brain dataset](https://adni.loni.usc.edu/)
+[ESPCN (Efficient Sub-Pixel CNN)](https://keras.io/examples/vision/super_resolution_sub_pixel/)
+[Enhanced Super-Resolution Generative Adversarial Network (ESRGAN)](https://doi.org/10.48550/arXiv.1809.00219)
