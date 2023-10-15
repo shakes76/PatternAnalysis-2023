@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 
 def crop_images():
     """
-    crops the dataset images to only be of the brain (no waste)
+    crops the dataset images to only be of the brain
     """
     return
 
@@ -15,7 +15,7 @@ def filter_datasets():
     Returns:
         _type_: _description_
     """
-    return train_dataset, test_dataset
+    return
 
 def load_dataset(image_size, batch_size, path):
     # transform
