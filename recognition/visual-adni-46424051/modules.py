@@ -5,41 +5,48 @@ from torch.nn import Module, Linear, Parameter, ModuleList, Softmax, LayerNorm, 
 from utils import patch, position
 
 class Model(Module):
-    def __init__(self, shape=(1, 105, 105), patches=7, hidden_dim=8, blocks=2, heads=2, out_dim=10):
+    def __init__(self, shape=(1, 28, 28), patches=7, hidden_dim=8, blocks=2, heads=2, out_dim=2):
         super(Model, self).__init__()
         self.shape = shape
         self.patches = patches
         self.hidden_dim = hidden_dim
         self.blocks = blocks
         self.out_dim = out_dim
+        self.heads = heads
 
-        self.input_dim = int(shape[0] * self.patches ** 2)
+        self.input_dim = int(shape[0] * (shape[1] // self.patches) ** 2)
         self.linear = Linear(self.input_dim, self.hidden_dim)
 
         self.token = Parameter(torch.rand(1, self.hidden_dim))
 
-        self.pos = Parameter(torch.tensor(position(self.patches ** 2 + 1, self.hidden_dim)))
+        self.pos = Parameter(position(self.patches ** 2 + 1, self.hidden_dim).clone().detach())
         self.pos.requires_grad = False
 
         self.block = ModuleList([Block(self.hidden_dim, self.heads) for _ in range(self.blocks)])
 
         self.mlp = Sequential(
-            Linear(self.hidden_dim, self.out_dim),
+            Linear(self.patches ** 2 + 1, self.out_dim),
             Softmax(dim=-1)
         )
     
     def forward(self, img):
+        # print("1: ", img)
+        img = img.squeeze(0)
+        # print("2: ", img)
         patches = patch(img, self.patches)
-        
+        # print("3: ", patches)
         tokens = self.linear(patches)
-        tokens = torch.stack([torch.vstack((self.token, tokens[i])) for i in range(len(tokens))])
-        
-        out = tokens + self.pos
+        # print("4: ", tokens)
+        tokens = self.token.expand(1, -1)
+        # print("5: ", tokens)
 
+        out = tokens + self.pos.repeat(1, 1)
+        # print("6: ", out)
         for block in self.block:
             out = block(out)
-
-        return self.mlp(out[:,0])
+        # print("7: ", out)
+        # print("8: ", self.mlp(out[:, 0]))
+        return self.mlp(out[:, 0])
     
 class MSA(Module):
     def __init__(self, dim, heads=2):

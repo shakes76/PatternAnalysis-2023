@@ -1,5 +1,6 @@
 ##################################   utils.py   ##################################
 import torch
+import numpy as np
 
 def patch(img, patches):
     c, h, w = img.shape
@@ -15,5 +16,5 @@ def position(length, dim):
     res = torch.ones(length, dim)
     for i in range(length):
         for j in range(dim):
-            res[i][j] = torch.sin(i / (10000 ** (j / dim))) if j % 2 == 0 else torch.cos(i / (10000 ** ((j - 1) / dim)))
+            res[i][j] = np.sin(i / (10000 ** (j / dim))) if j % 2 == 0 else np.cos(i / (10000 ** ((j - 1) / dim)))
     return res

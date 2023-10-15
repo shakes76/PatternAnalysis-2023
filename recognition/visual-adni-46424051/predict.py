@@ -3,5 +3,5 @@
 from train import Train
 
 train = Train()
-Train.train()
-Train.test()
+train.train()
+# train.test()
