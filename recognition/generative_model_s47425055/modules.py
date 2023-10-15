@@ -3,34 +3,51 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 import numpy as np
 import torchvision
 from torchvision.utils import save_image
 from itertools import cycle
 import matplotlib.pyplot as plt
 from skimage.metrics import structural_similarity as ssim
-
-
 import time
 from pathlib import Path
-
-
-
 from torchvision import datasets, transforms
-
 from torch.distributions.normal import Normal
 from torch.distributions import kl_divergence
 
-
 DEVICE = torch.device('cuda')
 
+
+"""
+to_scalar(arr)
+-------------
+This function  converts a PyTorch tensor or a list of tensors into scalars. 
+If arr is a list, it iterates through the list and extracts the scalar 
+values of each tensor element using the .item() method. If arr is not a 
+list, it directly extracts the scalar value.
+
+Input: array (tensor)
+Output: scalar or list of scalars
+
+"""
 def to_scalar(arr):
     if type(arr) == list:
         return [x.item() for x in arr]
     else:
         return arr.item()
 
+"""
+weights_init(m)
+--------------
+This function is used for initializing the weights of convolutional layers 
+in a neural network module m. It checks if the module m is a convolutional 
+layer (by searching for the string 'Conv' in its class name) and then 
+initializes the weights using Xavier uniform initialization 
+(nn.init.xavier_uniform_) and sets biases to zero.
+
+Input: m (PyTorch module)
+Output: None
+"""
 def weights_init(m):
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
@@ -40,40 +57,59 @@ def weights_init(m):
         except AttributeError:
             print("Skipping initialization of ", classname)
 
+"""
+compute_ssim(x, x_tilde)
+-----------------------
+ This function calculates the Structural Similarity Index (SSIM) between 
+ two batches of images represented by PyTorch tensors x and x_tilde. 
+ It first converts these tensors to NumPy arrays, computes SSIM values 
+ for individual images in the batch, and then returns the mean SSIM 
+ score for the entire batch. SSIM measures the structural similarity 
+ between two images, with higher values indicating greater similarity.
 
-# function to compute SSIM
+ Input: x (PyTorch Tensor), x_tilde (PyTorch Tensor)
+ Output: Mean SSIM score (float)
+"""
 def compute_ssim(x, x_tilde):
     # Ensure that the tensors are detached and moved to the CPU
     x_np = x.cpu().detach().numpy()
-    x_tilde_np = x_tilde.cpu().detach().numpy()
-    
+    x_tilde_np = x_tilde.cpu().detach().numpy()   
     # Get batch size
     batch_size = x_np.shape[0]
-    
     # Initialize a list to store SSIM values for each image in the batch
     ssim_values = []
-
     # Calculate SSIM for each image in the batch
     for i in range(batch_size):
         ssim_val = ssim(x_np[i, 0], x_tilde_np[i, 0], data_range=1)  # Assuming the images are (batch, channel, height, width), and channel=1 for grayscale
-        ssim_values.append(ssim_val)
-    
+        ssim_values.append(ssim_val)   
     # Calculate mean SSIM for the batch
     mean_ssim = np.mean(ssim_values)
     return mean_ssim
 
+"""
+plot_losses_and_scores(train_losses_epoch, val_losses, ssim_scores)
+--------------------------------------------------------------------
+This function creates a plot that displays the training and validation 
+losses for both reconstruction and VQ aspects of a VQ-VAE model, as well 
+as the SSIM scores over different epochs. It helps visualize the training 
+progress of the model.
 
-
-
+Input: 
+ - train_losses_epoch (list of tuples): Training reconstruction and 
+    VQ losses for each epoch.
+ - val_losses (list of tuples): Validation reconstruction and VQ losses 
+    for each epoch.
+ - ssim_scores (list of floats): SSIM scores for each epoch.
+ Output: None
+"""
 def plot_losses_and_scores(train_losses_epoch, val_losses, ssim_scores):
     # Extract training losses for reconstruction and VQ
     train_recons_losses, train_vq_losses = zip(*train_losses_epoch)
     
     # Extract validation losses
     val_recons_losses, val_vq_losses = zip(*val_losses)
-    
     epochs = range(len(train_recons_losses))
-
+    
     # Plotting
     plt.figure(figsize=(12, 5))
 
@@ -104,18 +140,21 @@ def plot_losses_and_scores(train_losses_epoch, val_losses, ssim_scores):
     plt.savefig('models6/loss_ssim_plot.png', bbox_inches='tight')
     plt.close()
 
-def save_and_display_images(images, filename, nrow=8):
-    """Saves and displays a grid of images."""
-    # Save the image
-    torchvision.utils.save_image(images, filename, nrow=nrow)
+"""
+generate_samples(model, test_loader, epoch)
+-------------------------------------------
+This function generates and saves reconstructed image samples using the 
+VQ-VAE model for a specific training epoch. It extracts a batch of input 
+images from the test loader, passes them through the model for 
+reconstruction, and saves the original and reconstructed images as a grid 
+in an image file.
 
-    # Display the image
-    grid_img = torchvision.utils.make_grid(images, nrow=nrow)
-    plt.figure(figsize=(16,8))
-    plt.imshow(grid_img.permute(1, 2, 0))
-    plt.savefig(f'{filename}_plot.png', bbox_inches='tight')
-    plt.close()
-
+Inputs:
+- model (PyTorch Model): The VQ-VAE model.
+- test_loader (PyTorch DataLoader): DataLoader for the test dataset.
+- epoch (int): Current training epoch.
+Output: None
+"""
 def generate_samples(model, test_loader, epoch):
     """Generates and saves reconstructed samples for a given epoch."""
     model.eval()  # Set model to evaluation mode
@@ -128,25 +167,32 @@ def generate_samples(model, test_loader, epoch):
     images = (torch.cat([x, x_tilde], 0).cpu().data + 1) / 2
 
     # Save and display the reconstructed images
-    
-    #filename = f'samples3/vqvae_reconstructions_{epoch}'
-    #save_and_display_images(images, filename, nrow=8)
     grid_img = torchvision.utils.make_grid(images, nrow=8)
     plt.figure(figsize=(16,8))
     plt.imshow(grid_img.permute(1, 2, 0))
     plt.savefig(f'samples6/vqvae_reconstructions_{epoch}.png', bbox_inches='tight')
     plt.close()
 
+"""
+generate_sample_from_best_model(model, test_loader, best_epoch)
+---------------------------------------------------------------
+This function generates and saves a single image sample using the 
+best-trained VQ-VAE model. It loads the best model's weights, extracts a 
+batch of input images from the test loader, passes them through the model 
+for reconstruction, computes the SSIM score between the original and 
+reconstructed images, and saves the original and reconstructed images with 
+the SSIM score as part of the title.
 
-
-    
-
+Input:
+- model (PyTorch Model): The best-trained VQ-VAE model from a specific epoch
+- test_loader (PyTorch DataLoader): DataLoader for the test dataset.
+- best_epoch (int): The epoch where the best model was achieved.
+Output: None
+"""
 def generate_sample_from_best_model(model, test_loader, best_epoch):
     """Generates and saves a sample using the best model from a given epoch."""
     model.eval()
     # Load the best model's weights
-    #model.load_state_dict(torch.load(f'samples3/checkpoint_epoch{best_epoch}_vqvae.pt'))
-    
     test_loader_iter = cycle(test_loader) # Initialize cycling iterator here
     # Get a sample from the test set
     x, _ = next(test_loader_iter)  # Get a batch of samples using the cycling iterator
@@ -156,13 +202,17 @@ def generate_sample_from_best_model(model, test_loader, best_epoch):
     x_tilde, _, _ = model(x)
     images = (torch.cat([x, x_tilde], 0).cpu().data + 1) / 2
 
+    # Compute SSIM
+    ssim_val = compute_ssim(x, x_tilde)
+
     # Save the reconstructed image
-    #filename = 'models2/best_model_sample'
-    #save_and_display_images(x_tilde.cpu().data, filename)
-    #save_image(x_tilde.cpu().data, filename)
     grid_img = torchvision.utils.make_grid(images, nrow=8)
     plt.figure(figsize=(16,8))
     plt.imshow(grid_img.permute(1, 2, 0))
+
+    # Add SSIM score to the title
+    plt.title(f"SSIM: {ssim_val:.4f}")
+
     plt.savefig(f'models6/best_model_sample.png', bbox_inches='tight')
     plt.close()
 
@@ -190,7 +240,6 @@ class VQEmbedding(nn.Module):
         latents = dists.min(-1)[1]
         return latents
 
-
 class ResBlock(nn.Module):
     def __init__(self, dim):
         super().__init__()
@@ -205,7 +254,6 @@ class ResBlock(nn.Module):
 
     def forward(self, x):
         return x + self.block(x)
-
 
 class VectorQuantizedVAE(nn.Module):
     def __init__(self, input_dim, dim, K=512):
