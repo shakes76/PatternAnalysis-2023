@@ -74,6 +74,20 @@ The ViT model consists of the following main components:
 
 The application of the Vision Transformer (ViT) model for Alzheimer's disease image classification has yielded promising results. The trained ViT model demonstrates its effectiveness in accurately distinguishing between Alzheimer's disease (AD) and normal control (CN) subjects based on medical images.
 
+Key results and highlights:
+
+1. **High Accuracy**: The ViT model achieves a high accuracy rate on the ADNI dataset, surpassing the minimum accuracy threshold of 0.8 (80%) as specified in the project requirements.
+
+2. **Confusion Matrix**: The evaluation of the model's performance includes a confusion matrix that provides insights into true positives, true negatives, false positives, and false negatives. This matrix aids in assessing the model's classification effectiveness.
+
+3. **Individual Image Predictions**: The `predict.py` script allows for the classification of individual images. This feature is useful for making predictions on new, unseen images to identify potential cases of Alzheimer's disease.
+
+4. **Visual Representation**: The script not only provides numerical results but also offers a visual representation of model predictions. A set of random test images, along with their actual and predicted labels, allows for a qualitative assessment of the model's performance.
+
+These results are indicative of the ViT model's potential as a valuable tool in the early diagnosis and classification of Alzheimer's disease. The model's high accuracy and the ability to make individual predictions underscore its significance in the medical imaging field.
+
+For comprehensive insights into the results and to explore further possibilities for enhancing the model's performance, refer to the project's code and documentation.
+
 ## Usage
 - To train the model, run `train.py` and provide the necessary arguments.
 - To make predictions on a single image, run `predict.py` and provide the path to the image file.
