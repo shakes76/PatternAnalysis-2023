@@ -29,9 +29,29 @@ def train(model, dataloader, device, optimizer, epoch):
                        100. * batch_idx / len(dataloader), loss.item()))
 
 
-def validate(model, dataloader, criterion):
-    # TODO: Implement validation logic for one epoch
-    pass
+def validate(model, dataloader, device):
+    print("Starting Validation.")
+    model.eval()
+    test_loss = 0
+    correct = 0
+
+    criterion = nn.BCELoss()
+
+    with torch.no_grad():
+        for (images_1, images_2, targets) in dataloader:
+            images_1, images_2, targets = images_1.to(device), images_2.to(device), targets.to(device)
+            outputs = model(images_1, images_2).squeeze()
+            test_loss += criterion(outputs, targets).sum().item()  # sum up batch loss
+            pred = torch.where(outputs > 0.5, 1, 0)  # get the index of the max log-probability
+            correct += pred.eq(targets.view_as(pred)).sum().item()
+
+    test_loss /= len(dataloader.dataset)
+
+    print('\nVal set: Average loss: {:.4f}, Validation Accuracy: {}/{} ({:.0f}%)\n'.format(
+        test_loss, correct, len(dataloader.dataset),
+        100. * correct / len(dataloader.dataset)))
+
+    print("Finished Validation.")
 
 
 if __name__ == '__main__':
