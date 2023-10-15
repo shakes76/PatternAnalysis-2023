@@ -126,6 +126,9 @@ for epoch in range(numEpochs):
 	validation_total = 0
 	validation_correct = 0
 	for i, (images, labels) in enumerate(ds.validloader):
+		images = images.to(device)
+		labels = labels.to(device)
+  
 		outputs = model(images)
 		_, predicted = torch.max(outputs.data, 1)
 	
@@ -151,6 +154,16 @@ for epoch in range(numEpochs):
 
 	if time.time() - start > maxTrainTime:
 		logger.info("Exiting early to prevent from running overtime.")
+		break
+	
+	should_stop = False
+	with open("should_stop.txt", "r") as file:
+		if file.readline() == "STOP":
+			logger.info("Exiting early on user request.")
+			should_stop = True
+	if should_stop:
+		with open("should_stop.txt", "w") as file:
+			file.write("")
 		break
 	
 	# reduce the learning rate each epoch.
