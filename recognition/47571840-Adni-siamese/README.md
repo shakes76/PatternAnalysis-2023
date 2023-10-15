@@ -60,17 +60,18 @@ The hyperparameters that are tuned for both models are: number of epochs and lea
 
 The training experiments for both the Siamese network and the classifier are detailed below in a table. The 'Test Result' column indicates the accuracy achieved by the trained classifier on the test set.
 
-| Siamese Model Name | Epoch | Learning Rate | Margin | Loss Training | Loss Validation | Classifier Name                 | Epoch | Learning Rate | Loss/Accuracy Training for the last epoch | Loss/Accuracy Validation for the last epoch | Test Result | Notes                                                                                             |
-| ------------------ | ----- | ------------- | ------ | ------------- | --------------- | ------------------------------- | ----- | ------------- | ----------------------------------------- | ------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------- |
-| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_30.pth      | 30    | 0.01          | 0.693/0.518                               | 0.694/ 0.506                                | 0.504       |                                                                                                   |
-| siamese_40.pth     | 40    | 0.01          | 1      | 0.253         | 0.254           | classifier_model_40_30.pth      | 30    | 0.01          | 0.693/0.519                               | 0.693/ 0.508                                | 0.504       |                                                                                                   |
-| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_25.pth      | 25    | 0.1           | 52.201/0.478                              | 49.630/0.504                                | 0.496       |                                                                                                   |
-| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_50.pth      | 50    | 0.01          | 48.356/0.516                              | 48.171/0.518                                | 0.504       |                                                                                                   |
-| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_20.pth      | 20    | 0.01          | 0.031/0.994                               | 48.681/0.513                                | 0.504       | Changed the classifier architecture, make it more complex                                         |
-| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_20_2.pth    | 20    | 0.01          | 0.035/0.994                               | 0.262/0.948                                 | 0.648       | Increase dropout, add weight decay of classifier                                                  |
-| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_30_2.pth    | 30    | 0.01          | 0.036/0.992                               | 49.190/0.509                                | 0.504       |                                                                                                   |
-| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | best_classifier_model_50_30_3   | 30    | 0.01          | 0.026/0.995                               | 0.017/0.996                                 | 0.721       | Saved the best model during the whole training loop and tested on it, add learning rate scheduler |
-| siamese_40_2.pth   | 40    | 0.1           | 1      | 0.003         | 0.042           | best_classifier_model_40_20.pth | 20    | 0.01          | 0.041/0.994                               | 0.019/0.995                                 | 0.68        |
+| Siamese Model Name | Epoch | Learning Rate | Margin | Loss Training | Loss Validation | Classifier Name                   | Epoch | Learning Rate | Loss/Accuracy Training for the last epoch | Loss/Accuracy Validation for the last epoch | Test Result | Notes                                                                                         |
+| ------------------ | ----- | ------------- | ------ | ------------- | --------------- | --------------------------------- | ----- | ------------- | ----------------------------------------- | ------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------- |
+| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_30.pth        | 30    | 0.01          | 0.693/0.518                               | 0.694/ 0.506                                | 0.504       |                                                                                               |
+| siamese_40.pth     | 40    | 0.01          | 1      | 0.253         | 0.254           | classifier_model_40_30.pth        | 30    | 0.01          | 0.693/0.519                               | 0.693/ 0.508                                | 0.504       |                                                                                               |
+| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_25.pth        | 25    | 0.1           | 52.201/0.478                              | 49.630/0.504                                | 0.496       |                                                                                               |
+| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_50.pth        | 50    | 0.01          | 48.356/0.516                              | 48.171/0.518                                | 0.504       |                                                                                               |
+| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_20.pth        | 20    | 0.01          | 0.031/0.994                               | 48.681/0.513                                | 0.504       | make classifier's architecture more complex                                                   |
+| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_20_2.pth      | 20    | 0.01          | 0.035/0.994                               | 0.262/0.948                                 | 0.648       | increase dropout for classifier, add weight decay for optimiser                               |
+| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | classifier_model_50_30_2.pth      | 30    | 0.01          | 0.036/0.992                               | 49.190/0.509                                | 0.504       |                                                                                               |
+| siamese_50.pth     | 50    | 0.1           | 1      | 0.008         | 0.03            | best_classifier_model_50_30_3     | 30    | 0.01          | 0.026/0.995                               | 0.017/0.996                                 | 0.721       | Saved the best model of the whole training loop and tested on it, add learning rate scheduler |
+| siamese_40_2.pth   | 40    | 0.1           | 1      | 0.003         | 0.042           | best_classifier_model_40_20.pth   | 20    | 0.01          | 0.041/0.994                               | 0.019/0.995                                 | 0.68        |                                                                                               |
+| siamese_40_3.pth   | 40    | 0.1           | 1      | 0.003         | 0.021           | best_classifier_model_40_20_2.pth | 20    | 0.01          | 0.014/0.997                               | 0.006/0.998                                 | 0.71        | make the classifier simpler                                                                   |
 
 
 At first, two siamese networks were trained, each having different hyperparameters. The best out of the two is the "siamese.50.pth" that has the lower training and validation loss. Multiple classifiers are then trained on top of "siamese.50.pth" with different hyperparameters.
@@ -92,12 +93,27 @@ Observing the accuracy plot above, from the first epoch, the training accuracy i
 
 From both plots above, it can be concluded that the classifier overfits to the training data. One way to remedy overfitting is to make the architecture a simpler since the current architecture can already learn well during the first few epochs. 
 
-
 ## Testing Results
-The best classifer was only able to reach 72% on the test set.
+The best classifer was only able to reach 72% on the test set. More experiements and more time would be able to 
  
- To do inference on a trained siamese and classifier, run the predict.py file. There is a section called `#----DEFINE MODEL PATHS----  ` where you can modify the paths of the trained models. The predict.py will do inference using both models of one input image.
+ To do inference on a trained siamese and classifier, run the `predict.py` file. There is a section called `#----DEFINE MODEL PATHS----  ` where you can modify the paths of the trained models. The `predict.py` will do inference using both models of one input image.
 
-## Dependencies and Reproducability
+## Dependencies and Reproducibility
+Below are the librarys needed to run the files in this repository:
+- python 3.11.4
+- torch 2.0.1
+- torchvision 0.15.2
+- numpy 1.25.2
+- matplotlib 3.7.2 
+
+To run the code files, make sure you have the ADNI dataset downloaded and modify the data paths in the `train.py` and `predict.py` if needed. To train your own siamese and classifier, run the `train.py`. This code file will train the siamese network, train tj classifer, and evaluate the classifier. `train.py` will also save the siamese and classifer models into your local repository, including some training plots. Make sure to modify the saved models paths if needed. 
+
+Concerning reproducibility, you won't get the exact same results because of the randomness on how to make pairs of images and splitting the data.
+
+This code was implemented and executed on rangpur with vgpu. It would be preferable if you execute this code on a device or server that provides a GPU for accelarated training.
 
 ## References
+-  https://github.com/pytorch/examples/blob/main/siamese_network/main.py
+- https://pyimagesearch.com/2021/01/18/contrastive-loss-for-siamese-networks-with-keras-and-tensorflow/ 
+-  https://keras.io/examples/vision/siamese_contrastive/  
+- https://en.wikipedia.org/wiki/Siamese_neural_network 
