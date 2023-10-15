@@ -4,4 +4,4 @@ from train import Train
 
 train = Train()
 train.train()
-# train.test()
+train.test()
