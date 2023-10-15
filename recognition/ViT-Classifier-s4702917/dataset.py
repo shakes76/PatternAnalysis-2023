@@ -6,7 +6,7 @@ import torchvision.transforms.functional as F
 from torchvision.datasets import ImageFolder
 
 # Parameters
-batchSize = 48
+batchSize = 32
 
 # transforms
 class SquarePad:
