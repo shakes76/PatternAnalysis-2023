@@ -6,50 +6,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils.checkpoint as checkpoint
 
-# from timm.models.layers import drop_path, to_2tuple, trunc_normal_
-# Function to convert image to its patch embeddings
-def get_patch_embedding(imgs, num_patches=16):
-    B, C, H, W = imgs.shape
-    patch_size = H // num_patches
-    imgs = imgs.unfold(2, patch_size, patch_size).unfold(3, patch_size, patch_size)
-    imgs = imgs.reshape(B, C, -1, patch_size, patch_size)
-    imgs = imgs.permute(0, 2, 1, 3, 4)
-    return imgs
-        
-    
-
-def get_abs_pos(abs_pos, h, w, ori_h, ori_w, has_cls_token=True):
-    """
-    Calculate absolute positional embeddings. If needed, resize embeddings and remove cls_token
-        dimension for the original embeddings.
-    Args:
-        abs_pos (Tensor): absolute positional embeddings with (1, num_position, C).
-        has_cls_token (bool): If true, has 1 embedding in abs_pos for cls token.
-        hw (Tuple): size of input image tokens.
-
-    Returns:
-        Absolute positional embeddings after processing with shape (1, H, W, C)
-    """
-    cls_token = None
-    B, L, C = abs_pos.shape
-    if has_cls_token:
-        cls_token = abs_pos[:, 0:1]
-        abs_pos = abs_pos[:, 1:]
-
-    if ori_h != h or ori_w != w:
-        new_abs_pos = F.interpolate(
-            abs_pos.reshape(1, ori_h, ori_w, -1).permute(0, 3, 1, 2),
-            size=(h, w),
-            mode="bicubic",
-            align_corners=False,
-        ).permute(0, 2, 3, 1).reshape(B, -1, C)
-
-    else:
-        new_abs_pos = abs_pos
-    
-    if cls_token is not None:
-        new_abs_pos = torch.cat([cls_token, new_abs_pos], dim=1)
-    return new_abs_pos
+from timm.models.layers import drop_path, to_2tuple, trunc_normal_
+# # Function to convert image to its patch embeddings
+# def get_patch_embedding(imgs, num_patches=16):
+#     B, C, H, W = imgs.shape
+#     patch_size = H // num_patches
+#     imgs = imgs.unfold(2, patch_size, patch_size).unfold(3, patch_size, patch_size)
+#     imgs = imgs.reshape(B, C, -1, patch_size, patch_size)
+#     imgs = imgs.permute(0, 2, 1, 3, 4)
+#     return imgs
 
 class Mlp(nn.Module):
     def __init__(self, in_features, hidden_features=None, out_features=None, drop=0.):
@@ -151,7 +116,7 @@ class PatchEmbed(nn.Module):
         Hp, Wp = x.shape[2], x.shape[3]
 
         x = x.flatten(2).transpose(1, 2)
-        return x, (Hp, Wp)
+        return x
     
     
 class ViT():
