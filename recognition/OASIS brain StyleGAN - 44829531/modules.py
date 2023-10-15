@@ -14,6 +14,8 @@ from keras import layers
 EPSILON = 0.00001
 LATENT_DIMENSIONS = 512
 ALPHA = 0.2
+FILTERS = 8
+SIZE = 256
 
 
 def apply_noise(n_filters, image_size):
@@ -77,3 +79,59 @@ def WNetwork(lat_dim=LATENT_DIMENSIONS):
     return tf.keras.Model(z, v)
 
 
+class Discriminator:
+
+    def __init__(self):
+        """
+        Initialise the Discriminator network with the initial image size and number of filters
+        """
+        self.init_size = SIZE
+        self.init_filters = FILTERS
+
+    def discriminator_block(self, n_filters, image_size):
+        """
+        Constructs a single block of the Discriminator network
+
+        param n_filters: Number of filters for the convolutional layers
+        param image_size: Size of the input image for this block
+        return: A Keras model representing the discriminator block
+        """
+        if image_size == self.init_size:
+            input_tensor = layers.Input(shape=(image_size, image_size, 1))
+        else:
+            input_tensor = layers.Input(shape=(image_size, image_size, n_filters // 2))
+
+        x = input_tensor
+        x = layers.Conv2D(n_filters, kernel_size=3, padding="same")(x)
+        x = layers.Conv2D(n_filters, kernel_size=3, padding="same")(x)
+        x = layers.AveragePooling2D((2, 2))(x)
+        x = layers.LeakyReLU(ALPHA)(x)
+        return tf.keras.Model(input_tensor, x)
+
+    def discriminator(self):
+        """
+        Constructs the full Discriminator network
+
+        The network dynamically adjusts its depth based on the initial image size
+        and ends with a dense layer with a sigmoid activation to output a probability
+
+        return: Keras model representing the full discriminator network
+        """
+        current_size = self.init_size
+        n_filters = self.init_filters
+        input_tensor = layers.Input(shape=[current_size, current_size, 1])
+        x = input_tensor
+
+        while current_size > 4:
+            x = self.discriminator_block(n_filters, current_size)(x)
+            current_size = current_size // 2
+            n_filters = 2 * n_filters
+
+        x = layers.Conv2D(n_filters, kernel_size=3, padding="same")(x)
+        x = layers.Conv2D(n_filters, kernel_size=3, padding="same")(x)
+        x = layers.LeakyReLU(ALPHA)(x)
+
+        x = layers.Flatten()(x)
+        x = layers.Dense(1, activation="sigmoid")(x)
+
+        return tf.keras.Model(input_tensor, x)
