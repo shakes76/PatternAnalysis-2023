@@ -63,7 +63,11 @@ def main():
     optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9, weight_decay=WEIGHT_DECAY)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=LEARNING_RATE, steps_per_epoch=len(train_dataloader), epochs=NUM_EPOCHS)
     
-    # Logging Variables
+    # Logging
+    epoch_train_acc = []
+    epoch_valid_acc = []
+    epoch_avg_train_loss = []
+    epoch_avg_valid_loss = []
     
     ####################
     #   Train Model:   #
@@ -74,6 +78,7 @@ def main():
     for epoch in range(NUM_EPOCHS):
         model.train()
         total_correct = 0
+        total_loss = 0.0
         for i, (images, labels) in enumerate(train_dataloader):
             optimizer.zero_grad()
             
@@ -98,12 +103,14 @@ def main():
             pred = torch.Tensor.argmin(sim, dim = 1)
 
             correct = (pred == 0).sum().item()
-            total_correct += correct
                 
             # Backward and optimize
             loss.backward()
             optimizer.step()     
             scheduler.step()
+            
+            total_correct += correct
+            total_loss += loss.item()
             
             # Print batch accuracy and loss
             if (i % 100) == 0:
@@ -112,6 +119,9 @@ def main():
                     i+1, total_step,
                     loss.item(),
                     correct/len(labels) * 100))
+                
+        epoch_train_acc.append(total_correct/len(train_dataloader.dataset))
+        epoch_avg_train_loss.append(total_loss/len(train_dataloader))
             
         #################  
         #   Validate:   #
@@ -135,7 +145,7 @@ def main():
         
         model.eval()
         # Get random sample from train:
-        total_valid_loss = 0.0
+        total_loss = 0.0
         total_correct = 0
         for i, (images, labels) in enumerate(valid_dataloader):
             images = images.to(device)
@@ -146,7 +156,7 @@ def main():
             hard_pairs = miner(embeddings, labels)
             loss = criterion(embeddings, labels, hard_pairs) 
             
-            total_valid_loss += loss.item()
+            total_loss += loss.item()
             
             ####
             
@@ -164,15 +174,23 @@ def main():
             correct = (labels[:, None] == pred).sum().item()
             total_correct += correct
             
-        print("Total Valid loss: {:.5f}, accuracy: {:.2f}%".format(total_valid_loss, total_correct/len(valid_dataloader.dataset) * 100))
+        print("Valid loss: {:.5f}, valid accuracy: {:.2f}%".format(total_loss/len(valid_dataloader), total_correct/len(valid_dataloader.dataset) * 100))
+        
+        epoch_valid_acc.append(total_correct/len(valid_dataloader.dataset))
+        epoch_avg_valid_loss.append(total_loss/len(valid_dataloader))
         
     torch.save(model.state_dict(), "./" + MODEL_NAME + ".pt")
     
-def visualize(epoch_train_acc, epoch_valid_acc, epoch_train_loss, epoch_valid_loss):
+    end = time.time()
+    elapsed = end - start
+    print("Training took ", str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
+    print("END")
+    
+def visualize(epoch_train_acc, epoch_valid_acc, epoch_avg_train_loss, epoch_avg_valid_loss):
     plt.plot(range(len(epoch_train_acc)), epoch_train_acc, label = "Training Accuracy")
     plt.plot(range(len(epoch_valid_acc)), epoch_valid_acc, label = "Validation Accuracy")
-    plt.plot(range(len(epoch_train_loss)), epoch_train_loss, label = "Training Loss")
-    plt.plot(range(len(epoch_valid_loss)), epoch_valid_loss, label = "Validation Loss")
+    plt.plot(range(len(epoch_avg_train_loss)), epoch_avg_train_loss, label = "Training Loss")
+    plt.plot(range(len(epoch_avg_valid_loss)), epoch_avg_valid_loss, label = "Validation Loss")
     plt.grid(True)
     plt.ylabel("Accuracy/Loss")
     plt.xlabel("Epoch #")
