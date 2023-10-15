@@ -12,7 +12,7 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-from modules import SiameseTwin, SiameseNeuralNet, SiameseMLP, SimpleMLP
+from modules import SiameseTwin, SiameseNeuralNet, SiameseMLP, SimpleMLP, LinearTwin
 from dataset import PairedDataset, load_data
 
 TRAIN_PATH = '/home/groups/comp3710/ADNI/AD_NC/train/'
@@ -181,7 +181,7 @@ def eval_siamese_one_epoch(model: SiameseNeuralNet,
     return loss_list, mean_loss, elapsed
 
 def train_classifier_one_epoch(model: nn.Module,
-                                backbone: SiameseTwin,
+                                backbone: nn.Module,
                                 criterion: nn.Module,
                                 optimiser: optim.Optimizer,
                                 device: torch.device,
@@ -225,7 +225,7 @@ def train_classifier_one_epoch(model: nn.Module,
     return loss_list, mean_loss, elapsed
 
 def eval_classifier_one_epoch(model: nn.Module,
-                                backbone: SiameseTwin,
+                                backbone: nn.Module,
                                 criterion: nn.Module,
                                 device: torch.device,
                                 test_loader: torch.utils.data.DataLoader):
@@ -318,7 +318,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
 
         # scheduler.step()
         if np.average(eval_losses) < previous_best_loss:
-            save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
+            # save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
             previous_best_loss = np.average(eval_losses)
             print(f"loss improved in epoch {epoch + 1}")
 
@@ -337,7 +337,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
 
     return siamese_net
 
-def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=None, checkpoint=None):
+def classifier_training(backbone: nn.Module, total_epochs:int, random_seed=None, checkpoint=None):
     classifier_checkpoint_filename = checkpoint
 
     train_loader = load_data(training=True, Siamese=False, random_seed=random_seed)
@@ -371,7 +371,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
 
         # scheduler.step()
         if np.average(eval_losses) < previous_best_loss:
-            save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
+            # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
             previous_best_loss = np.average(eval_losses)
             print(f"loss improved in epoch {epoch + 1}")
 

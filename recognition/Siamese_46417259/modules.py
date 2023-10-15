@@ -32,12 +32,37 @@ class SiameseTwin(nn.Module):
         out = self.fc(out)
         # out = F.sigmoid(self.fc(out))
         return out
+
+class LinearTwin(nn.Module):
     
+    def __init__(self) -> None:
+        super(LinearTwin, self).__init__()
+
+        self.subnet = nn.Sequential(
+            nn.Linear(3*240*240, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+            nn.Linear(1024, 1024),
+            nn.ReLU(),
+        )
+    
+    def forward(self, x):
+        out = torch.flatten(x, 1)
+        return self.subnet(out)
+
 class SiameseNeuralNet(nn.Module):
     def __init__(self) -> None:
         super(SiameseNeuralNet, self).__init__()
 
-        self.backbone = SiameseTwin()
+        # self.backbone = SiameseTwin()
+        self.backbone = LinearTwin()
         # self.fc = nn.Linear(4096, 1)
 
     def forward(self, x1, x2):
@@ -83,9 +108,9 @@ class SimpleMLP(nn.Module):
         super(SimpleMLP, self).__init__()
         
         self.mlp = nn.Sequential(
-            nn.Linear(4096, 1024),
+            # nn.Linear(4096, 1024),
             # nn.BatchNorm1d(1024),
-            nn.ReLU(),
+            # nn.ReLU(),
             nn.Linear(1024, 128),
             # nn.BatchNorm1d(128),
             nn.ReLU(),
@@ -104,7 +129,8 @@ class SimpleMLP(nn.Module):
 # testing scripts
 #
 def test_one_twin():
-    test = SiameseTwin()
+    # test = SiameseTwin()
+    test = LinearTwin()
     print(test)
 
     input = torch.rand(2, 3, 240, 240)
@@ -115,11 +141,12 @@ def test_one_twin():
 def test_entire_net():
     net = SiameseNeuralNet()
     print(net)
-    input1 = torch.rand(2, 3, 240, 256)
-    input2 = torch.rand(2, 3, 240, 256)
-    x = net(input1, input2)
+    input1 = torch.rand(2, 3, 240, 240)
+    input2 = torch.rand(2, 3, 240, 240)
+    x, y = net(input1, input2)
     print(x.shape)
-    print(x)
+    print(y.shape)
+    # print(x)
 
 def test_mlp():
     backbone = SiameseTwin()
@@ -158,8 +185,8 @@ def test_mlp():
 
 
 if __name__ == "__main__":
-    test_one_twin()
-    # test_entire_net()
+    # test_one_twin()
+    test_entire_net()
     # test_mlp()
 
 
