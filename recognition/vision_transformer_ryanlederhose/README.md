@@ -26,11 +26,13 @@ When loading images into Python using PyTorch's ImageFolder class, the images un
  * Image resizing to 192px x 192px 
  * Normalisation with mean 0.5, and standard deviation 0.5
  * Image crop about the centre
+
 The images were resized and cropped about the centre for a size of 192px x 192px because the original size of the image did not faciliate a patch size of 16px x 16px, so it was appropriate to resize the images. Furthermore, the images were normalised as this is a standard pre-processing technique. The values for the mean and standard deviation of normalisation were altered; however, it did not appear to have any significant impact on the results. A batch of brain scans after pre-processing are shown below:
 
 ![alt text](images/brains-after-processing.png)
 
 ## Training
+
 
 ## Final Model Description
 
