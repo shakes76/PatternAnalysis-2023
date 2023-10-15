@@ -98,6 +98,16 @@ To make predictions using the trained Vision Transformer (ViT) model, you can ut
 3. Pass the preprocessed image through the model to obtain predictions.
 4. For binary classification (e.g., AD vs. CN), you can set a threshold (e.g., 0.5) to determine the class based on the probability output.
 
+**Test Dataset Evaluation**:
+
+1. The script loads the test dataset and makes predictions on all the test images.
+2. It generates a confusion matrix to assess the model's classification performance.
+3. The confusion matrix provides insights into the true positives, true negatives, false positives, and false negatives.
+
+Additionally, the script showcases a set of random test images along with their actual and predicted labels, giving you a visual representation of the model's classification results.
+
+You can further customize and extend the `predict.py` script to suit your specific needs for image classification and evaluation. Be sure to adjust any file paths or parameters as necessary to work with your dataset.
+
 ## Requirements
 - Python 3.7+
 - TensorFlow
