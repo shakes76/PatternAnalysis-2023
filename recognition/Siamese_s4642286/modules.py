@@ -15,7 +15,7 @@ class CNN(nn.Module):
 
         # CNN and Pooling layers
         self.cnn = nn.Sequential(
-            nn.Conv2d(1, 32, kernel_size=10), nn.ReLU(),
+            nn.Conv2d(3, 32, kernel_size=10), nn.ReLU(),
             nn.MaxPool2d(2),
             nn.Conv2d(32, 64, kernel_size=7), nn.ReLU(),
             nn.MaxPool2d(2),
@@ -38,6 +38,7 @@ class SiameseNetwork(nn.Module):
         self.cnn2 = cnn2
 
     def forward(self, input1, input2):
+        # combined_input = torch.cat((input1, input2), dim=1)
         output1 = self.cnn1(input1)
         output2 = self.cnn2(input2)
         return output1, output2

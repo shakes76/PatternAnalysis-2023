@@ -13,6 +13,9 @@ from sklearn.model_selection import train_test_split
 from PIL import Image
 
 
+batch_size = 2
+
+
 # dataroot = "/home/groups/comp3710"
 train_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/train"
 test_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/test"
@@ -57,21 +60,16 @@ X_train, y_train = make_paired_datasets(train_dataset)
 X_train = torch.tensor(X_train)
 y_train = torch.tensor(y_train)
 
-
 train_set = TensorDataset(X_train, y_train)    # Wrap X and Y into a single training dataset
 train_dataset, validate_dataset = train_test_split(train_set, train_size=0.8, shuffle=True, random_state=42)
 
+
 # Define the data loaders
-trainloader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-testloader = DataLoader(test_dataset, batch_size=64, shuffle=False)
-valloader = DataLoader(validate_dataset, batch_size=64, shuffle=False)
+trainloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+testloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+valloader = DataLoader(validate_dataset, batch_size=batch_size, shuffle=False)
+
 
 print(trainloader)
 print(testloader)
 print(valloader)
-
-
-# for batch in iter(trainloader):
-#     print(batch[0].shape)
-#     print(batch[1].shape)
-#     break

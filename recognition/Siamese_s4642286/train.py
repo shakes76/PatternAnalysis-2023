@@ -24,15 +24,6 @@ CNN_B = CNN()
 CNN_A.to(device)
 CNN_B.to(device)  
 
-# Define loss function and optimizer
-criterion = ContrastiveLoss(margin=2.0)
-
-optimizer = optim.Adam([
-    {'params': CNN_A.parameters()},
-    {'params': CNN_B.parameters()}
-], lr=1e-3)
-
-
 Siamese = SiameseNetwork(CNN_A, CNN_B)
 Siamese.to(device)
 
@@ -47,19 +38,19 @@ optimizer = optim.Adam([
 num_epochs = 10
 
 for epoch in range(num_epochs):
-    print("Epoch：", epoch, " start.")
-
     Siamese.train()
     total_loss = 0.0
 
-    for batch_idx, (input1, input2, label) in enumerate(trainloader):
-        input1, input2, label = input1.to(device), input2.to(device), label.to(device)
-        
+    for batch_idx, batch in enumerate(trainloader):
+        inputs, labels = batch
+
+        inputs, labels = inputs.to(device), labels.to(device)
+
         optimizer.zero_grad()
         
-        output1, output2 = Siamese(input1, input2)
+        output1, output2 = Siamese(inputs[:, 0], inputs[:, 1])
         
-        loss = criterion(output1, output2, label)
+        loss = criterion(output1, output2, labels)
         loss.backward()
         
         optimizer.step()
