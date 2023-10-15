@@ -52,7 +52,7 @@ else:
 	# Probably vit_base_patch32_224.augreg_in21k_ft_in1k
 	# trying vit_small_patch16_224.augreg_in21k_ft_in1k for less parameters
 	# 256 x 240
-	model = timm.create_model("vit_base_patch32_224.augreg_in21k_ft_in1k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
+	model = timm.create_model("vit_large_patch32_224.orig_in21k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
 model = model.to(device)
 
 # Initialise logging to display tracking information in TensorBoard
