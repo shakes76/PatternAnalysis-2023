@@ -36,8 +36,8 @@ class PairedDataset(torch.utils.data.Dataset):
 
 class LoadData():
     def __init__(self, train=True, siamese=True):
-        torch.manual_seed(40)
-        random.seed(40)
+        torch.manual_seed(42)
+        random.seed(42)
         self.train = train
         self.siamese = siamese
 
@@ -45,12 +45,12 @@ class LoadData():
         self.batch_size = 128
         self.num_worker = 0
 
-        self.train_ratio = 0.8
+        self.train_ratio = 0.9
         self.val_ratio = 1 - self.train_ratio
 
     def split_dataset(self, dataset, seed=True):
         if seed:
-            generator = torch.Generator().manual_seed(40)
+            generator = torch.Generator().manual_seed(42)
         else:
             generator = torch.Generator()
 

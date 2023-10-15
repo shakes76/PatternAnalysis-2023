@@ -202,12 +202,12 @@ def execute_sTrain(device, train_loader, val_loader):
     model = RawSiameseModel().to(device)
 
     # hyper-parameters
-    num_epochs = 15
+    num_epochs = 10
     learning_rate = 0.0001
     max_learning = 0.01
 
     criterion = ContrastiveLossFunction()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999)) # Optimize model parameter
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate) # Optimize model parameter
 
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=max_learning, steps_per_epoch=len(train_loader), epochs=num_epochs) # temporary remove scheduler
 
@@ -253,12 +253,12 @@ def execute_cTrain(device, sModel, train_loader_classifier, val_loader_classifie
     model = BinaryModelClassifier().to(device)
 
     # hyper parameters for classifier
-    num_epochs = 50
-    learning_rate = 0.0001
+    num_epochs = 40
+    learning_rate = 0.001
     max_learning = 0.01
 
     criterion = nn.BCELoss()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999))
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=max_learning, steps_per_epoch=len(train_loader_classifier), epochs=num_epochs) # temporary remove scheduler
 
     # training
@@ -299,8 +299,8 @@ def execute_cTrain(device, sModel, train_loader_classifier, val_loader_classifie
     return model
 
 if __name__ == '__main__':
-    random.seed(40)
-    torch.manual_seed(40)
+    random.seed(42)
+    torch.manual_seed(42)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if not torch.cuda.is_available():
