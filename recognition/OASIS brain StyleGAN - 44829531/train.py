@@ -14,15 +14,30 @@ from dataset import load_data
 from modules import Generator, Discriminator
 
 LEARNING_RATE = 0.0001
+EPOCHS = 80
+BATCH_SIZE = 32
 
 
 class StyleGAN(keras.Model):
-    def __init__(self):
+    """
+    Implementation of the Style Generative Adversarial Network model using Keras
+    """
+    def __init__(self, epochs, batch_size):
+        """
+        Constructor for the StyleGAN class
+        """
         super(StyleGAN, self).__init__()
         self.generator = Generator()
         self.discriminator = Discriminator()
+        self.epochs = epochs
+        self.batch_size = batch_size
 
     def setup(self):
+        """
+        Setup the StyleGAN model
+
+        Sets up the optimisers, loss function and metrics
+        """
         super(StyleGAN, self).setup()
 
         # initialise the optimisers
@@ -40,4 +55,7 @@ class StyleGAN(keras.Model):
 
     @property
     def metrics(self):
+        """
+        Return the metrics of the StyleGAN model
+        """
         return [self.generator_loss_metric, self.discriminator_loss_metric]
