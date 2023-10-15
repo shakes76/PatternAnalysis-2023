@@ -53,6 +53,16 @@ The ViT model consists of the following main components:
 
 6. **Classification Head**: The output of the encoder stack is passed to a classification head. The classification head can vary depending on the task. For Alzheimer's disease classification, a dense feedforward layer followed by a sigmoid activation function is commonly used to predict the probability of the input image belonging to a particular class (AD or CN).
 
+#### Hyperparameters
+
+- `image_size`: The size of the input image (e.g., 128x128).
+- `patch_size`: The size of patches extracted from the image (e.g., 16x16).
+- `num_heads`: The number of self-attention heads in the transformer encoder.
+- `transformer_units`: The number of units in the feedforward layers within the transformer encoder.
+- `num_layers`: The number of transformer encoder layers.
+- `dropout_rate`: Dropout rate applied to the model for regularization.
+- `learning_rate`: The learning rate for training the model.
+
 ## Usage
 - To train the model, run `train.py` and provide the necessary arguments.
 - To make predictions on a single image, run `predict.py` and provide the path to the image file.
