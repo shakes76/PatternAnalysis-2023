@@ -34,7 +34,7 @@ The images were resized and cropped about the centre for a size of 192px x 192px
 ## Model Implementation
 The designed model follows the following architecture:
 
-![alt text](images/accuracy2.png)
+![alt text](images/report-flowchart.drawio.png)
 
 The architecture above describes the general flow of a vision transformer; however, to segment the images into patches, a convolutional layer is used. It is believed this convolutional layer improves performance. As such, the hyperparameters of the model are:
 
