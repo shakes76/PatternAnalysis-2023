@@ -4,12 +4,15 @@ import cv2
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
+from keras.utils import to_categorical
 
 data_directory = '/content/drive/MyDrive/Colab Notebooks/ADNI/train'
+
 label_mapping = {
     'AD': 0,
     'CN': 1,
 }
+
 
 def load_images(dir_path=data_directory, label_mapping=label_mapping):
     Images = []
