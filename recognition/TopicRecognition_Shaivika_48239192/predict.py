@@ -93,7 +93,3 @@ for i, (image, actual_label, predicted_labels) in enumerate(zip(sample_images, s
     plt.title(f"Actual: {actual_label_display}\nPredicted: {', '.join(predicted_label_names)}")
     plt.axis("off")
 plt.show()
-
-
-
-
