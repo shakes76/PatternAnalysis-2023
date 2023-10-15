@@ -30,6 +30,7 @@ class ESPCNCallback(keras.callbacks.Callback):
     def __init__(self):
         super().__init__()
         self.test_img = get_lowres_image(load_img(test_img_paths[0]), upscale_factor)
+        print(self.test_img.size)
 
     # Initialise a array to store epoch PSNR value when each epoch begins
     def on_epoch_begin(self, epoch, logs=None):
@@ -96,7 +97,7 @@ loss_fn = keras.losses.MeanSquaredError()
 optimizer = keras.optimizers.Adam(learning_rate=0.001)
 
 #Train the model
-epochs = 100
+epochs = 2600
 
 model.compile(
     optimizer=optimizer, loss=loss_fn,
