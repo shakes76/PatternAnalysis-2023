@@ -37,7 +37,7 @@ class IuNet(nn.Module):
         self.seg3conv = Conv(64,1, stride=1, kernel_size=1, padding=0)
         self.seg2conv = Conv(32,1, stride=1, kernel_size=1, padding=0)
         self.seg1conv = Conv(32,1, stride=1, kernel_size=1, padding=0)
-        self.softmax = nn.Softmax(dim = 1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         #Layer 1 downward // input:3 output:16
@@ -85,42 +85,41 @@ class IuNet(nn.Module):
         seg2 = self.seg2conv(seg2)
         seg1 = self.seg1conv(lay1u)
         
-        print('seg2:{}, seg3:{}'.format(seg2.shape, seg3.shape))
+
         seg2 = torch.add(seg2, self.upsample(seg3))
         seg1 = torch.add(seg1, self.upsample(seg2))
 
-        out = self.softmax(seg1)
-
+        out = self.sigmoid(seg1)
         return out
 
 
 
 #Context module
 class ResBlock(nn.Module):
-    def __init__(self, plane):
+    def __init__(self, in_chnls):
         super(ResBlock, self).__init__()
-        self.bn1 = nn.InstanceNorm2d(plane)
-        self.conv1 = nn.Conv2d(plane, plane, kernel_size=3, padding=(1,1))
-        self.drop = nn.Dropout(p=0.3)
-
-        self.bn2 = nn.InstanceNorm2d(plane)
-        self.conv2 = nn.Conv2d(plane, plane, kernel_size=3, padding=(1,1))
-          
+        self.context = nn.Sequential(
+            nn.BatchNorm2d(in_chnls),
+            nn.LeakyReLU(negative_slope=10**-2),
+            nn.Conv2d(in_chnls, in_chnls, kernel_size=3, padding=(1,1)),
+            nn.Dropout(p=0.3),
+            nn.BatchNorm2d(in_chnls),
+            nn.LeakyReLU(negative_slope=10**-2),
+            nn.Conv2d(in_chnls, in_chnls, kernel_size=3, padding=(1,1))
+        )
 
     def forward(self, x):
-        out = self.conv1(F.leaky_relu(self.bn1(x), negative_slope=10**-2))
-        out = self.drop(out)
-        out = self.conv2(F.leaky_relu(self.bn2(out), negative_slope=10**-2))
+        out = self.context(x)
         return torch.add(out, x)  #Returns element-sum of input and output of context module
 
 
 #Convolution  
 class Conv(nn.Module):
     def __init__(self, in_plane, out_plane, stride, kernel_size, padding = (1,1)):
-        super().__init__()
+        super(Conv, self).__init__()
         self.conv = nn.Sequential(
                 nn.Conv2d(in_plane, out_plane, stride=stride, kernel_size=kernel_size, padding=padding),
-                nn.InstanceNorm2d(out_plane),
+                nn.BatchNorm2d(out_plane),
                 nn.LeakyReLU(negative_slope=10**-2)
         )
 
@@ -131,7 +130,7 @@ class Conv(nn.Module):
 #Upsampling Module
 class UpSample(nn.Module):
     def __init__(self, in_plane, out_plane):
-        super().__init__()
+        super(UpSample, self).__init__()
 
         self.up = nn.Upsample(scale_factor=2, mode='bilinear')
         self.conv = Conv(in_plane, out_plane, stride=1, kernel_size=3)
@@ -145,7 +144,7 @@ class UpSample(nn.Module):
 #Localization Module
 class localization(nn.Module):
     def __init__(self, in_plane, out_plane):
-        super().__init__()
+        super(localization, self).__init__()
         self.conv1 = Conv(in_plane, in_plane, stride=1, kernel_size=3)
         self.conv2 = Conv(in_plane, out_plane, stride=1, kernel_size=1, padding=0)
 
