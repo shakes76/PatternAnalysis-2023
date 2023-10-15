@@ -1,12 +1,8 @@
 import torchvision.transforms as transforms
 
 # IO-paths
-# AD_train_dir = "F:/COMP3710/data/AD_NC/train/train_AD"
-# NC_train_dir = "F:/COMP3710/data/AD_NC/train/train_NC"
-# AD_test_dir = "F:/COMP3710/data/AD_NC/test/test_AD"
-# NC_test_dir = "F:/COMP3710/data/AD_NC/test/test_NC"
-train_dir =  "F:/COMP3710/data/AD_NC/train"
-test_dir =  "F:/COMP3710/data/AD_NC/test"
+train_dir =  "F:/COMP3710/data/AD_NC/train" #replace with train directory
+test_dir =  "F:/COMP3710/data/AD_NC/test" #replace with test directory
 model_path = "F:/COMP3710/model/model.pt"
 
 
