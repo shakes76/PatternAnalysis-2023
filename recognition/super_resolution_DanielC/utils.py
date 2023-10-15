@@ -1,5 +1,5 @@
 import torchvision.transforms as transforms
-import torch.nn as nn
+
 # IO-paths
 AD_train_dir = "F:/COMP3710/data/AD_NC/train/train_AD"
 NC_train_dir = "F:/COMP3710/data/AD_NC/train/train_NC"
