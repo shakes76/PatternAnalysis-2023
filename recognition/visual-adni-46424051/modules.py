@@ -37,10 +37,12 @@ class Model(Module):
         print("3: ", patches)
         tokens = self.linear(patches)
         print("4: ", tokens)
+        print(tokens.shape)
         tokens = self.token.expand(1, -1)
         print("5: ", tokens)
 
         out = tokens + self.pos.repeat(1, 1)
+        print(out.shape)
         print("6: ", out)
         for block in self.block:
             out = block(out)
