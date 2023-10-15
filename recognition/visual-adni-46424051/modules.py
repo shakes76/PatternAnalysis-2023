@@ -30,23 +30,23 @@ class Model(Module):
         )
     
     def forward(self, img):
-        print("1: ", img)
+        # print("1: ", img)
         img = img.squeeze(0)
-        print("2: ", img)
+        # print("2: ", img)
         patches = patch(img, self.patches)
-        print("3: ", patches)
+        # print("3: ", patches)
         tokens = self.linear(patches)
-        print("4: ", tokens)
-        print(tokens.shape)
+        # print("4: ", tokens)
+        # print(tokens.shape)
         tokens = torch.cat((self.token.expand(1, -1), tokens), dim=0)
-        print("5: ", tokens)
+        # print("5: ", tokens)
         out = tokens + self.pos.repeat(1, 1)
-        print(out.shape)
-        print("6: ", out)
+        # print(out.shape)
+        # print("6: ", out)
         for block in self.block:
             out = block(out)
-        print("7: ", out)
-        print("8: ", self.mlp(out[:, 0]))
+        # print("7: ", out)
+        # print("8: ", self.mlp(out[:, 0]))
         return self.mlp(out[:, 0])
     
 class MSA(Module):

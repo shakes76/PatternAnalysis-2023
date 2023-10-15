@@ -31,7 +31,7 @@ class Train():
         for epoch in range(constants.epochs):
             losses = 0.0
             for i, (x, y) in enumerate(self.trainLoader):
-                print("image: ", x)
+                # print("image: ", x)
                 if constants.cuda:
                     x, y = x.cuda(), y.cuda()
                 y1 = self.net(x)
