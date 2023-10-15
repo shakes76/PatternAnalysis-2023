@@ -18,7 +18,7 @@ fh.setLevel(logging.DEBUG) # or any level you want
 logger.addHandler(fh)
 
 # Initialise device
-logger.debug("PyTorch Version:", torch.__version__)
+logger.debug(f"PyTorch Version: {torch.__version__}")
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -52,7 +52,7 @@ else:
 	# Probably vit_base_patch32_224.augreg_in21k_ft_in1k
 	# trying vit_small_patch16_224.augreg_in21k_ft_in1k for less parameters
 	# 256 x 240
-	model = timm.create_model("vit_small_patch16_224.augreg_in21k_ft_in1k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
+	model = timm.create_model("vit_base_patch32_224.augreg_in21k_ft_in1k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
 model = model.to(device)
 
 # Initialise logging to display tracking information in TensorBoard
@@ -62,7 +62,7 @@ writer = SummaryWriter('runs/classifier_experiment_0')
 addedGraph = False
 
 # model info
-logger.debug("Model No. of Parameters:", sum([param.nelement() for param in model.parameters()]))
+logger.debug(f"Model No. of Parameters: {sum([param.nelement() for param in model.parameters()])}")
 logger.debug(model)
 
 criterion = nn.CrossEntropyLoss()
