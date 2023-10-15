@@ -37,6 +37,22 @@ The project is organized into several files and folders:
 
 The Vision Transformer (ViT) is a powerful deep learning architecture for image classification tasks. It leverages the self-attention mechanism to capture global and local relationships within an image. This design provides an overview of the model architecture and key components for Alzheimer's disease image classification.
 
+#### Model Architecture
+
+The ViT model consists of the following main components:
+
+1. **Input Layer**: The input to the model is an image with dimensions (image_size, image_size, 3), where 3 represents the RGB channels.
+
+2. **Data Augmentation**: To enhance model generalization, data augmentation techniques, such as random flips, rotations, and zoom, are applied to the input images during training. These augmentations help the model learn from variations in the data.
+
+3. **Patch Extraction**: The input image is divided into non-overlapping patches of size (patch_size x patch_size), effectively dividing the image into a grid of patches. These patches are then linearly embedded into flattened vectors.
+
+4. **Positional Encoding**: A positional encoding is added to the patch embeddings to provide spatial information to the model. It enables the model to understand the relative positions of patches in the image.
+
+5. **Transformer Encoder**: The core of the ViT model is a stack of transformer encoder layers. Each encoder layer consists of multi-head self-attention and feedforward sub-layers. These sub-layers enable the model to capture global and local relationships within the image. Multiple encoder layers are stacked to learn hierarchical features.
+
+6. **Classification Head**: The output of the encoder stack is passed to a classification head. The classification head can vary depending on the task. For Alzheimer's disease classification, a dense feedforward layer followed by a sigmoid activation function is commonly used to predict the probability of the input image belonging to a particular class (AD or CN).
+
 ## Usage
 - To train the model, run `train.py` and provide the necessary arguments.
 - To make predictions on a single image, run `predict.py` and provide the path to the image file.
