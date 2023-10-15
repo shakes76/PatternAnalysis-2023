@@ -1,6 +1,5 @@
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
-from torch.utils.data import ConcatDataset
 from torch.utils.data import DataLoader
 from utils import *
 
@@ -10,10 +9,8 @@ def generate_train_loader():
                             transforms.ToTensor()
                         ])
 
-    AD_dataset = ImageFolder(root=AD_train_dir, transform=transform)
-    NC_dataset = ImageFolder(root=NC_train_dir, transform=transform)
-
-    return DataLoader(ConcatDataset([AD_dataset, NC_dataset]), batch_size=batch_size, shuffle=True)
+    train_dataset = ImageFolder(root=train_dir, transform=transform)
+    return DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 
 def generate_test_loader():
     transform = transforms.Compose([
@@ -21,7 +18,5 @@ def generate_test_loader():
                             transforms.RandomHorizontalFlip()
                         ])
     
-    AD_dataset = ImageFolder(root=AD_test_dir, transform=transform)
-    NC_dataset = ImageFolder(root=NC_test_dir, transform=transform)
-
-    return DataLoader(ConcatDataset([AD_dataset, NC_dataset]), batch_size=batch_size, shuffle=True)
+    test_dataset = ImageFolder(root=test_dir, transform=transform)
+    return DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
