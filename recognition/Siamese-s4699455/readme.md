@@ -1,13 +1,13 @@
 # Siamese Network Introduction
-    The algorithm of this project is to solve the problem of similarity between AD and NC CT scan images.
-    The Siamese network contains two identical feature extraction networks (VGG16),
-    Calculate the L1 distance between the two eigenvalues, and finally use the full connection and sigmod function 
-    to fit the similarity of the two pictures.
+    The purpose of this report is to employ the Siamese network deep learning model with the ANDI dataset for the classification of normal and Alzheimer's disease (AD) cases. The Siamese network was chosen over other classification models like traditional neural networks and random forests due to its unique capability to measure similarity and dissimilarity between data points. This enables it to effectively differentiate between normal brain scans and those affected by Alzheimer's disease, making it an ideal choice for this particular task.
     
-    In the training part, the data set preparation needs to be in the form of a pair, including {AD, AD}, {NC, NC}, 
-    {AD, NC}, and the corresponding labels are 1, 1, and 0 respectively.
-    For the reasoning part, the input needs to be in the form of pairs of two pictures, and the output is 
-    the similarity of the two pictures.
+    Classifying brain scans using a Siamese network holds significant importance in the field of medical diagnostics and neurology. It offers several notable advantages, including improved accuracy in identifying Alzheimer's disease at an early stage, leading to better treatment outcomes and enhanced patient care. By learning the subtle differences between normal and AD-affected brain scans, Siamese networks play a crucial role in assisting medical professionals in their diagnosis and decision-making processes.
+    
+    Moreover, the use of Siamese networks in brain scan classification contributes to reducing the societal and economic burdens associated with AD. Early detection can lead to more effective interventions, potentially slowing down the progression of the disease and reducing healthcare costs. Additionally, it allows for the development of more precise and personalized treatment plans, improving the quality of life for affected individuals and their families.
+    
+    Siamese network-based brain scan classification also has implications in the field of neuroscience research. It aids in the study of the disease's progression, providing valuable insights for researchers and helping to identify potential biomarkers for Alzheimer's disease. Furthermore, it facilitates the development of advanced diagnostic tools and predictive algorithms, which can be instrumental in large-scale epidemiological studies and drug development efforts.
+    
+    In conclusion, the utilization of Siamese networks for the classification of brain scans, particularly for Alzheimer's disease detection, has the potential to revolutionize the field of neurology and medical diagnostics. It empowers healthcare professionals with a powerful tool to enhance their diagnostic accuracy and provides hope for more effective treatments and interventions. Furthermore, it contributes to the global effort to combat Alzheimer's disease by aiding research and enabling early interventions, ultimately improving the lives of those affected by this devastating condition.
 
 # Data preprocessing part:
 ## Data clipping
