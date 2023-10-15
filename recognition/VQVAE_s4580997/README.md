@@ -14,7 +14,9 @@ Very efficient at representing a latent space in imaging
 #### Loss Function
 The loss function for training the VQVAE
 
-##### GAN
+#### Prior
+A prior model was used to provide more controlled generation to predict the next code from a given sequence. This was required as randomly sampling from the embedded space resulted in poor images, as the sequences of codes were not meaningful. 
+
 
 ## Dependencies
 The package dependencies used for the project are:
