@@ -22,6 +22,9 @@ from torch.distributions import kl_divergence
 import numpy as np
 import matplotlib.pyplot as plt
 from torchvision.utils import save_image
+from skimage.metrics import structural_similarity as ssim
+import os
+from PIL import Image
 
 
 """
@@ -212,15 +215,18 @@ class VectorQuantizer(nn.Module):
 
     """
     Retrives the embeddings from the generated GAN embedding indices
+    x input shape should be 4096
     """
     def get_quantized_results(self, x):
+
         codebook_indices = x.unsqueeze(1)
-        print(codebook_indices.shape)
+        # print(codebook_indices.shape)
         encodings = torch.zeros(codebook_indices.shape[0], self._num_embeddings, device = x.device)
         encodings.scatter_(1, codebook_indices, 1)
-        print(encodings.shape)
+        # print(encodings.shape)
+        #Get single image in same quantized shape
         quantized_values = torch.matmul(encodings, self._embedding.weight).view(1,64,64,64)
-        print(quantized_values.shape)
+        # print(quantized_values.shape)
         return quantized_values.permute(0,3,1,2).contiguous()
 
     
@@ -252,13 +258,10 @@ class VQVAEModel(nn.Module):
         
         #Change channel dimensions
         x = self.conv_layer(x)
-        #print(f"After conv shape is {x}")
         #Quantize
         loss, quantized, perplexity, _ = self.quantizer(x)
-        #print(f"Quantized shape is {quantized}")
         #Decode
         x_recon = self.decoder(quantized)
-       # print(f"decoded shape is {x_recon}")
 
         return loss, x_recon, perplexity
 
@@ -379,8 +382,8 @@ def initialize_weights(model):
 """
 Function to visualise and save the generated GAN output
 """
-def gan_codebook(device, p):
-    fixed_noise = torch.randn(32, p.channel_noise, 1, 1).to(device)
+def gan_generated_images(device, p):
+    fixed_noise = torch.randn(1, p.channel_noise, 1, 1).to(device)
 
     #Load Trained Generator
     Generator = torch.load("Models/Generator.pth")
@@ -389,13 +392,11 @@ def gan_codebook(device, p):
     with torch.no_grad():
         generated_images = Generator(fixed_noise)
 
-    #Save a batch of 32 generated images
-    save_image(generated_images.data[:32], f"Output_files/GAN_batch_outputs.png", nrow=8, normalize=True)
-
     # Convert tensor to NumPy array
-    generated_output = generated_images[0][0]
+    generated_output = generated_images[0][0] #Get single image for plotting 64 x 64
     generated_output = generated_output.cpu()
     generated_output = generated_output.numpy()
+    plt.title('DCGAN Generated output')
     plt.imshow(generated_output)
     plt.savefig("Output_files/GAN_generated_single_Output.png")
 
@@ -407,10 +408,9 @@ Takes in the generated images from GAN and visualises the codebook indice of ima
 def gan_create_codebook_indice(generated_images):
     code_indice = generated_images[0][0]
     code_indice = torch.flatten(code_indice)
-    unique_vals = [134, 418] 
+    unique_vals = [4,  21,  37,  49, 179, 207, 213, 220, 258, 391, 497]
     in_min = torch.min(code_indice)
     in_max = torch.max(code_indice)
-
     num_intervals = len(unique_vals) 
     interval_size = (in_max - in_min)/num_intervals
 
@@ -418,13 +418,13 @@ def gan_create_codebook_indice(generated_images):
         MIN = in_min + i*interval_size
         code_indice[torch.logical_and(MIN<= code_indice, code_indice<=(MIN+interval_size))] = unique_vals[i]
         
-
     # Visualise generated codebook indice
     visualised = code_indice
     visualised = visualised.view(64,64)
     visualised = visualised.to('cpu')
     visualised = visualised.detach().numpy()
     plt.imshow(visualised)
+    plt.title("DCGAN generated codebook indices")
     plt.savefig("Output_files/GAN_generated_codebook_indice.png")
 
     return code_indice
@@ -437,13 +437,47 @@ the final image reconstruction.
 def gan_reconstruct(code_indice):
     model = torch.load("Models/VQVAE.pth")
     code_indice = code_indice.long()
-    reconstruction = model.quantizer.get_quantized_results(code_indice)
-    reconstruction = model.decoder(reconstruction)
+    quantized = model.quantizer.get_quantized_results(code_indice)
+    decoded = model.decoder(quantized)
 
-    # Visualise
-    reconstruction = reconstruction[0][0]
-    reconstruction = reconstruction.to('cpu')
-    reconstruction = reconstruction.detach().numpy()
-    plt.imshow(reconstruction)
-    plt.savefig("Output_files/GAN_reconstructed_image.png")
+    # # Visualise
+    decoded_plot = decoded[0][0]
+    decoded_plot = decoded_plot.to('cpu')
+    decoded_plot = decoded_plot.detach().numpy()
+    plt.title("Final Reconstructed image")
+    plt.imshow(decoded_plot)
+    plt.savefig("Output_files/final_reconstructed_image.png")
+
+    return decoded_plot
+
+"""
+Function for calculating the structural similarity index measure 
+between a generated reconstruction and test images.
+"""
+def SSIM(decoded):
+    current_dir = os.getcwd()
+    OASIS_test_path = current_dir + '\keras_png_slices_test\\'
+    train_images = os.listdir(OASIS_test_path)
+    ssim_max = 0
+    ssim_list = []
+    for image_name in train_images:
+        path = OASIS_test_path + image_name
+        image = Image.open(path)
+
+        transform = transforms.Compose([
+            transforms.Resize((256,256)),
+            transforms.ToTensor()
+            ])
+        image = transform(image)
+
+        gen_image = decoded
+        test_im = image[0].cpu().detach().numpy()
+        similarity = ssim(gen_image, test_im, data_range = test_im.max() - test_im.min())
+        ssim_list.append(similarity)
+        if similarity > ssim_max:
+            ssim_max = similarity
+        
+    average_ssim = sum(ssim_list)/len(ssim_list)
+    print(f"Average SSIM of test dataset is {average_ssim}")
+    print(f"Max SSIM of test dataset is {ssim_max}")
 
