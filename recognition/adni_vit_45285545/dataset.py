@@ -98,15 +98,18 @@ def train_val_split(dataset: ADNI, val_pct: float) -> Tuple[Dataset, Dataset]:
 
     return dataset, valid_dataset
 
+def get_transforms() -> transforms.Compose:
+    '''Returns a set of transforms to be applied to input images.'''
+    return transforms.Compose([
+        transforms.CenterCrop(224),
+        transforms.ConvertImageDtype(torch.float),
+    ])
+
 def create_train_dataloader(val_pct: float = 0.2) -> DataLoader:
     '''
     Returns a DataLoader on pre-processed training data from the ADNI dataset.
     '''
-    transform = transforms.Compose([
-        transforms.CenterCrop(224),
-        transforms.ConvertImageDtype(torch.float),
-    ])
-    train_dataset = ADNI(ADNI_ROOT, train=True, transform=transform)
+    train_dataset = ADNI(ADNI_ROOT, train=True, transform=get_transforms())
     if val_pct == 0:
         return DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     else:
@@ -121,5 +124,5 @@ def create_test_dataloader() -> DataLoader:
         transforms.CenterCrop(224),
         transforms.ConvertImageDtype(torch.float),
     ])
-    test_dataset = ADNI(ADNI_ROOT, train=False, transform=transform)
+    test_dataset = ADNI(ADNI_ROOT, train=False, transform=get_transforms())
     return DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)

@@ -40,10 +40,11 @@ The model trained above achieves the following result on the test split of the A
 
 This implementation uses Python 3.10 and PyTorch 2.1.0+cu118. PyTorch (specifically `torch` and `torchvision`) can be installed for the machine of choice following: https://pytorch.org/get-started/locally/
 
-Other Python package dependencies include: `pandas`, `seaborn` and `tqdm`. These can be installed all at once using:
+Other Python package dependencies include: `pandas`, `tqdm`, `gradio` and `seaborn`. These can be installed all at once using:
 ```
-pip install pandas seaborn tqdm
+pip install pandas tqdm gradio seaborn
 ```
+Of these packages, `seaborn` is only required for generating plots of training metrics from generated CSV files. If this is not a forseen use case, installing `seaborn` may be omitted and can always be installed later if found necessary.
 
 A virtual environment ([`venv`](https://docs.python.org/3/library/venv.html)) is recommended for the installation, but is not mandatory.
 
@@ -60,6 +61,8 @@ python train.py N_EPOCHS [--pg]
 ```
 python predict.py MDLFILE [--test] [--gui]
 ```
+
+_NOTE: while the GUI accepts any image, using samples from the ADNI test set are useful because then the correct labels are known._
 
 ## References
 
