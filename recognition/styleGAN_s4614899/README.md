@@ -15,13 +15,16 @@ A styleGAN model is constructed and used for the given task, which is a state-or
 
 - Stochastic Variation as Noise input:
 
+## Input images
+![Sample images from OASIS dataset: ](./output_images/sample_grid.png)
+
 ## Pre-processing
-Rather than importing dataset, the dataset.py file specifically handles the OASIS brain dataset, which is stored on rangpur as three seperate datafiles for training, testing and validation purposes, respectively, by reading all the images from it 
+Rather than importing dataset, the dataset.py file specifically handles the OASIS brain dataset, which is stored on rangpur as three seperate datafiles for training, testing and validation purposes, respectively, by reading all the images from it
 
-
-## Input data
+## Model training
 
 ## Generated images
+![Generated images by style generater: ](./output_images/generated_grid.png)
 
 ## Dependencies
 
