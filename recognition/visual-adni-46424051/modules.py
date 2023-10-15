@@ -38,7 +38,7 @@ class Model(Module):
         tokens = self.linear(patches)
         print("4: ", tokens)
         print(tokens.shape)
-        tokens = self.token.expand(1, -1)
+        tokens = torch.cat((self.token.expand(1, -1), tokens), dim=0)
         print("5: ", tokens)
         out = tokens + self.pos.repeat(1, 1)
         print(out.shape)
