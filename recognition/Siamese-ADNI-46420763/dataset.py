@@ -1,18 +1,30 @@
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, Dataset, random_split
+from torch.utils.data import DataLoader, Dataset, Subset, random_split
 import torch
 import random
 
-def dataset_transforms():
+def train_dataset_transforms():
     """    
     Transforms to be applied to the training dataset
 
     Returns:
         (transforms): A compostite of the transforms to be applied
     """    
-    return transforms.Compose([transforms.Grayscale(), transforms.Resize((128, 120)), transforms.ToTensor()])
+    return transforms.Compose([transforms.Grayscale(), 
+                               transforms.RandomRotation(30), 
+                               transforms.RandomCrop((256, 240), padding = 16, padding_mode='reflect'),
+                               transforms.ToTensor()])
 
-def get_dataloader(dir, batch_size, split):
+def test_dataset_transforms():
+    """    
+    Transforms to be applied to the training dataset
+
+    Returns:
+        (transforms): A compostite of the transforms to be applied
+    """    
+    return transforms.Compose([transforms.Grayscale(), transforms.ToTensor()])
+
+def get_dataloader(dir, batch_size, train_split):
     """    
     Returns all train, validation and test dataloaders. 
     Dataset split has a set seed so that test dataloader is reproducable for for predict.py
@@ -26,13 +38,9 @@ def get_dataloader(dir, batch_size, split):
         valid_dataloader (DataLoader): dataloader for the validation dataset
         test_dataloader  (DataLoader): dataloader for the test dataset
     """    
-    dataset = datasets.ImageFolder(root = dir, transform=dataset_transforms())
-    train_dataset, valid_dataset, test_dataset = random_split(dataset, split, generator=torch.Generator().manual_seed(46420763))
-    
-    # Load into SiameseADNIDataset to create pairs
-    train_dataset = SiameseADNIDataset(train_dataset)
-    valid_dataset = SiameseADNIDataset(valid_dataset)
-    test_dataset = SiameseADNIDataset(test_dataset)
+    train_dataset = datasets.ImageFolder(root = dir + '/train', transform=train_dataset_transforms())
+    train_dataset, valid_dataset = patient_split(train_dataset, train_split)
+    test_dataset = datasets.ImageFolder(root = dir + '/test', transform=test_dataset_transforms())
     
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     valid_dataloader = DataLoader(valid_dataset, batch_size=batch_size, shuffle=False)
@@ -40,34 +48,16 @@ def get_dataloader(dir, batch_size, split):
 
     return train_dataloader, valid_dataloader, test_dataloader
 
-class SiameseADNIDataset(Dataset):
-    """
-    ADNI Dataset
-    Creates pairs for the Siamese Network.
-    """
-    def __init__(self, dataset):
-        self.dataset = dataset
-        
-    def __getitem__(self, index):
-        """
-        Assign a pair for datapoint with given index
-
-        Args:
-            index (int): index of item in dataset 
-
-        Returns:
-            x1 (tensor): datapoint given by index
-            x2 (tensor): randomly assiged pair for x1
-            label (float): label of pair
-        """
-        x1, x1_class = self.dataset[index]
-        
-        # Get random datapoint from the dataset to form pair
-        x2, x2_class = self.dataset[random.randint(0, len(self.dataset) - 1)]
-        
-        # Label pair
-        label = torch.tensor(0.0) if x1_class == x2_class else torch.tensor(1.0)
-        return x1, x2, label
+def patient_split(dataset, train_split):
+    dataset_length = len(dataset)//20 # 20 samples per patient
+    dataset_indices = list(range(dataset_length))
+    random.shuffle(dataset_indices)
     
-    def __len__(self):
-        return len(self.dataset)
+    train_len = int(dataset_length * train_split)
+    
+    train_indices = dataset_indices[:train_len]
+    valid_indices = dataset_indices[train_len:]
+    
+    train_dataset = Subset(dataset, [index * 20 + j for index in train_indices for j in range(20)])
+    valid_dataset = Subset(dataset, [index * 20 + j for index in valid_indices for j in range(20)])
+    return train_dataset, valid_dataset
