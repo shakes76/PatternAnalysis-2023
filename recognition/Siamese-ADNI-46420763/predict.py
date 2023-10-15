@@ -1,4 +1,4 @@
-from modules import SiameseNetwork
+from modules import ResNetEmbedder
 from dataset import * 
 
 import torch
@@ -6,66 +6,71 @@ import torch.nn as nn
 import time
 import numpy as np
 import matplotlib.pyplot as plt
+import torch.nn.functional as F
 
 # Device Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
-BATCH_SIZE = 4
+BATCH_SIZE = 1
 MODEL_LAYERS = [1, 64, 128, 128, 256]
 KERNEL_SIZES = [10, 7, 4, 4]
 DATASET_DIR = "./recognition/Siamese-ADNI-46420763/data/AD_NC"
 
-MODEL_DIR = "./recognition/Siamese-ADNI-46420763/models/ADNI-SiameseNetwork.pt"
+MODEL_DIR = "./recognition/Siamese-ADNI-46420763/models/ADNI-SiameseNetwork-resnet-SGD-euclid-trans-randrot-73_51.pt"
 
 def main():
     ######################    
     #   Retrieve Data:   #
     ######################
-    train_dataloader, _, test_dataloader = get_dataloader(DATASET_DIR, BATCH_SIZE, [0.6, 0.2, 0.2]) 
+    train_dataloader, _, test_dataloader = get_dataloader(DATASET_DIR, BATCH_SIZE, 0.7, transform=False) 
     
     #########################   
     #   Initialize Model:   #
     #########################
-    model = SiameseNetwork(layers=MODEL_LAYERS, kernel_sizes=KERNEL_SIZES)
+    model = ResNetEmbedder()
     model = model.to(device)  
     model.load_state_dict(torch.load(MODEL_DIR, map_location=device))
 
     #####################   
     #   Get Queries :   #
     #####################
-    test_indices = test_dataloader.dataset.dataset.indices
-    train_indices = train_dataloader.dataset.dataset.indices
-
     # Pick random AD and NC query image to test for similarity
     random.seed(1337) # To maintain the same query across all random test samples
     q_class = -1
     while q_class != 0:
-        AD_query, q_class = train_dataloader.dataset.dataset.dataset[random.choice(train_indices)]
-    
+        AD_query, q_class = train_dataloader.dataset[random.randint(0, len(train_dataloader.dataset) - 1)]
     q_class = -1
     while q_class != 1:
-        NC_query, q_class = train_dataloader.dataset.dataset.dataset[random.choice(train_indices)]
+        NC_query, q_class = train_dataloader.dataset[random.randint(0, len(train_dataloader.dataset) - 1)]
     
     AD_query = AD_query.to(device)
     NC_query = NC_query.to(device)
     AD_query = AD_query[:, None, :, :]
     NC_query = NC_query[:, None, :, :]
     
+    print(AD_query.shape)
+    
     ###################  
     #   Prediction:   #
     ###################
     random.seed() # Get random seed
     model.eval()
-    # Get random sample from train:
-    image, label = train_dataloader.dataset.dataset.dataset[random.choice(test_indices)]
+    # Get random sample from test:
+    image, label = test_dataloader.dataset[random.randint(0, len(test_dataloader.dataset) - 1)]
     image = image[None, :, :, :]
     image = image.to(device)
     
+    print(image.shape)
+    
+    embedding = model(image)
+    AD_query_embedding = model(AD_query)
+    NC_query_embedding = model(NC_query)
+    
     # Predict similarity for AD and NC
-    AD_sim = model(image, AD_query)
-    NC_sim = model(image, NC_query)
+    AD_sim = F.pairwise_distance(AD_query_embedding, embedding, keepdim = True)
+    NC_sim = F.pairwise_distance(NC_query_embedding, embedding, keepdim = True)
     
     # Find class with most similarity
     sim = torch.stack([AD_sim, NC_sim], dim = 1)
