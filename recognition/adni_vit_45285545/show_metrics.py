@@ -25,6 +25,8 @@ def main(args):
     axs[1].set_title('Accuracy')
     axs[0].set_xlabel('Epoch')
     axs[1].set_xlabel('Epoch')
+    axs[0].set_ylabel('')
+    axs[1].set_ylabel('')
 
     fname = args.csvfile.split('.csv')[0] + '.png'
     fig.savefig(fname, bbox_inches='tight', dpi=300)
