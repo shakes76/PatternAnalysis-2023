@@ -134,12 +134,8 @@ class Encoder(nn.Module):
 
     def forward(self, out):
         out = self.conv1(out)
-        # print('ENCODER CONV1: ', out.shape)
-
         out = self.relu(out)
         out = self.conv2(out)
-        # print('ENCODER CONV2: ', out.shape)
-
         out = self.residualBlock(out)
 
         return out
@@ -169,8 +165,8 @@ class Decoder(nn.Module):
         self.conv1 = nn.Conv2d(
             in_channels=in_channels,
             out_channels=n_hidden,
-            kernel_size=4,
-            stride=2,
+            kernel_size=3,
+            stride=1,
             padding=1,
         )
 
@@ -191,26 +187,26 @@ class Decoder(nn.Module):
         
         self.transpose2 = nn.ConvTranspose2d(
             in_channels=n_hidden // 2,
-            out_channels=n_hidden // 4,
+            out_channels=out_channels,
             kernel_size=4,
             stride=2,
             padding=1,
         )    
 
-        self.transpose3 = nn.ConvTranspose2d(
-            in_channels=n_hidden // 4,
-            out_channels=out_channels,
-            kernel_size=4,
-            stride=2,
-            padding=1,
-        )            
+        # self.transpose3 = nn.ConvTranspose2d(
+        #     in_channels=n_hidden // 4,
+        #     out_channels=out_channels,
+        #     kernel_size=4,
+        #     stride=2,
+        #     padding=1,
+        # )            
 
     def forward(self, out):
         out = self.conv1(out)
         out = self.residualBlock(out)
         out = self.transpose1(out)
         out = self.transpose2(out)
-        out = self.transpose3(out)
+        # out = self.transpose3(out)
         return out
 
 class VectorQuantizer(nn.Module):
@@ -335,7 +331,6 @@ class VQVAE(nn.Module):
             out_channels=dim_embedding,
             kernel_size=1, 
             stride=1,
-            padding=0
         )
         self.conv = self.conv.to(DEVICE)
 

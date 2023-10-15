@@ -36,17 +36,10 @@ class Trainer(ABC) :
         pass
 
 
-class TrainVQVAE() :
+class TrainVQVAE(Trainer) :
     
     def __init__(self, model: nn.Module, dataset: Dataset, lr=1e-3, wd=0, epochs=10, savepath='./models/vqvae') :
-
-        self.savepath = savepath
-        self.lr = lr
-        self.wd = wd
-        self.epochs =epochs
-
-        self.model = model.to(DEVICE)
-        self.dataset = dataset
+        super().__init__(model, dataset, lr, wd, epochs, savepath)
         self.optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)        
         self.losses = list()
 
@@ -57,7 +50,6 @@ class TrainVQVAE() :
         self.model.train()
         start = time.time()
         for epoch in range(self.epochs) :
-            epoch_loss = list()
             for i, (data, label) in enumerate(self.dataset.get_train()) :
                 data = data.to(DEVICE)
                 self.optimiser.zero_grad()
@@ -69,14 +61,10 @@ class TrainVQVAE() :
                 loss.backward()
                 self.optimiser.step()
 
-                epoch_loss.append(loss.item())
+                self.losses.append(loss.item())
 
                 if i % PRINT_AT == 0 :
                     print(f"Epoch: {epoch+1}/{self.epochs} Batch: {i+1}/{len(self.dataset.get_train())} Loss: {loss.item():.6f}")
-
-            average_epoch_loss = sum(epoch_loss) / len(epoch_loss)
-            self.losses.append(average_epoch_loss)
-        print(self.losses)
         end = time.time()
         print(f"Total Time for training: {end - start:.2f}s")
 
@@ -96,7 +84,7 @@ class TrainVQVAE() :
         plt.figure(figsize=(10, 5))
         plt.plot(self.losses, label='Loss')
         plt.title('Training Epochs against Loss for VQVAE')
-        plt.xlabel('Epochs')
+        plt.xlabel('Iteration (Epoch * Batch Size)')
         plt.ylabel('Reconstruction Loss')
         plt.legend()
         plt.grid(True)

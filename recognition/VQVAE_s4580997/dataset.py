@@ -109,9 +109,7 @@ class Dataset():
 
 
 class ModelLoader() :
-    transform = transforms.Compose([
-        transforms.ToTensor()
-    ])
+    transform = VQVAE_TRANSFORM
 
     def __init__(self, model, batch_size = 32, path = './AD_NC/train', fraction=1.0, transform = VQVAE_TRANSFORM) :
         self.model = model
