@@ -21,9 +21,7 @@ The Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset is a valuable and
 
 ## Project Structure
 ### Files
-
 The project is organized into several files and folders:
-
 - `modules.py`: Contains the implementation of the ViT model components, including patches, patch encoding, and the main classifier.
 - `dataset.py`: Contains data loading and preprocessing functions to prepare the image dataset for training.
 - `train.py`: Trains the ViT model on the provided dataset and saves the trained model.
@@ -107,5 +105,3 @@ You can further customize and extend the `predict.py` script to suit your specif
 - Numpy
 - OpenCV
 - Matplotlib
-
-
