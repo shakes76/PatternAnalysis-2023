@@ -57,7 +57,7 @@ class UNETImproved(nn.Module):
         self.decode4 = LocalizationModule(64 + 32, 32)
 
         # # Output
-        self.final_conv = nn.Conv2d(16, n_classes, kernel_size=1)
+        self.final_conv = nn.Conv2d(16, 1, kernel_size=1)
 
     def forward(self, x):
 
