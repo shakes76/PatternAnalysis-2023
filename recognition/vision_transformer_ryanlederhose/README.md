@@ -32,7 +32,11 @@ The images were resized and cropped about the centre for a size of 192px x 192px
 ![alt text](images/brains-after-processing.png)
 
 ## Model Implementation
+The designed model follows the following architecture:
 
+![alt text](images/accuracy2.png)
+
+The architecture above describes the general flow of a vision transformer; however, to segment the images into patches, a convolutional layer is used. It is believed this convolutional layer improves performance. As such, the hyperparameters of the model are:
 
 * Patch size --> length and width of image patches in pixels
 * Number of encoders --> number of encoder layers in the transformer encoder section
@@ -45,6 +49,7 @@ The images were resized and cropped about the centre for a size of 192px x 192px
 * Optimiser
 * Loss Criterion
 * Learning rate scheduler
+* Weight decay 
 
 ## Training
 The hyperparameters of an initial training run were:
@@ -65,7 +70,10 @@ The plot below shows the cross entropy loss of the training at each epoch:
 
 From this, it was clear that the model was overfitting to the training data. To try and rectify this, more dropout layers were implemented, and the dropout rate was increased to 0.2. Also, the learning rate was decreased to 1e-4, and the number of encoders was increased to 10. The model responded as below:
 
+![alt text](images/losses2.png)
 
+![alt text](images/accuracy2.png)
 
+The model is still overfitting but the changes have decreased the losses in the validation dataset. To try and introduce more regularisation, weight decay was introduced at 1e-4. Additionally, the number of neurons in the feed-forward layers of the transformer encoder was increased. 
 
 ## Test Dataset Accuracy
