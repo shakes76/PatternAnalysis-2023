@@ -4,6 +4,7 @@ import timm
 from torch.utils.tensorboard import SummaryWriter
 import time
 import os
+import gc
 
 import logging
 import plotting
@@ -81,8 +82,8 @@ validation_accuracies = []
 
 for epoch in range(numEpochs):	
 	for i, (images, labels) in enumerate(ds.trainloader): # load a batch
-		images = images.to(device)
-		labels = labels.to(device)
+		images: torch.Tensor = images.to(device)
+		labels: torch.Tensor = labels.to(device)
 	
 		# Add a graph representation of the network to our TensorBoard
 		if not addedGraph:
@@ -118,6 +119,10 @@ for epoch in range(numEpochs):
 
 			running_loss = 0.0
 
+		del images, labels
+		gc.collect()
+		torch.cuda.empty_cache()
+
 		# if more than maxTrainTime seconds have passed since training started, exit out
 		# of all loops to prevent the training progress from being lost.
 		if time.time() - start > maxTrainTime:
@@ -134,6 +139,10 @@ for epoch in range(numEpochs):
 	
 		validation_total += labels.size(0)
 		validation_correct += (predicted == labels).sum().item()
+
+		del images, labels
+		gc.collect()
+		torch.cuda.empty_cache()
 	
 	if validation_total > 0:
 		# Update validation accuracy list, do cutoff based on it, and add that info to the writer

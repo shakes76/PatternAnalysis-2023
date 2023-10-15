@@ -8,7 +8,7 @@
 #SBATCH --mail-user=s4702917@student.uq.edu.au
 #SBATCH -o output/vit_out.txt
 #SBATCH -e output/vit_err.txt
-#SBATCH --partition=vgpu
+#SBATCH --partition=vgpu20
 #SBATCH --gres=gpu:1
 
 conda activate conda-env
