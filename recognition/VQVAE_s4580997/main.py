@@ -56,10 +56,7 @@ if __name__ == '__main__':
     
     # Run predict
     if utils.VQVAE_PREDICT :
-        codebook = vqvae.quantizer.embedding.weight.data
-        print(codebook)
-        generator = Predict(vqvae, num_images=utils.NUM_IMAGES, device=utils.DEVICE, savepath=utils.OUTPUT_PATH, dataset=vqvae_dataset)
-        generator.generate()
-        # generator.generate()
-        generator.visualise(show=False)
+        generator = Predict(vqvae, gan, vqvae_dataset, device=utils.DEVICE, savepath=utils.OUTPUT_PATH, img_size=(utils.VQVAE_RESIDUAL, utils.VQVAE_RESIDUAL))
+        generator.generate_gan()
+        generator.generate_vqvae()
         generator.ssim()

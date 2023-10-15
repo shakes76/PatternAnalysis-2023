@@ -8,7 +8,7 @@
 import os
 import torch
 
-ENV='local'
+ENV='rangpur'
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Dataset location
@@ -51,7 +51,7 @@ VQVAE_RECONSTRUCT_PATH = os.path.join(os.getcwd(), 'models/predictions/vqvae_rec
 # GAN Model Parameters
 GAN_LR = 1e-3
 GAN_WD = 1e-5
-GAN_EPOCHS = 1
+GAN_EPOCHS = 100
 GAN_SAVEPATH = os.path.join(os.getcwd(), 'models/gan')
 DISCRIMINATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_discriminator.pth')
 GENERATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
