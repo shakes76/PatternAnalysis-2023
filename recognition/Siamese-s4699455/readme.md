@@ -1,4 +1,7 @@
 # Siamese Network Introduction
+
+The purpose of this report is to employ the Siamese network deep learning model with the ANDI dataset for the classification of normal and Alzheimer's disease (AD) cases. The Siamese network was chosen over other classification models like traditional neural networks and random forests due to its unique capability to measure similarity and dissimilarity between data points. This enables it to effectively differentiate between normal brain scans and those affected by Alzheimer's disease, making it an ideal choice for this particular task.
+
     The purpose of this report is to employ the Siamese network deep learning model with the ANDI dataset for 
     the classification of normal and Alzheimer's disease (AD) cases. The Siamese network was chosen over other 
     classification models like traditional neural networks and random forests due to its unique capability to measure 
