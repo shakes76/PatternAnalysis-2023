@@ -1,4 +1,4 @@
-import random
+# import random
 import time
 import torch
 import torch.nn as nn
@@ -287,6 +287,9 @@ def test_loss():
     print(new_loss)
 
 def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
+    if random_seed is not None:
+        torch.use_deterministic_algorithms(True)
+
     Siamese_checkpoint_filename = checkpoint
 
     train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
@@ -318,10 +321,11 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
 
         # scheduler.step()
         if np.average(eval_losses) < previous_best_loss:
-            save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
+            # save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
             previous_best_loss = np.average(eval_losses)
             print(f"loss improved in epoch {epoch + 1}")
 
+    # save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
     end = time.time()
     elapsed = end - start
     print("Siamese Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
@@ -333,11 +337,14 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     plt.xlabel("Epochs / 10")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig(RESULTS_PATH + f"Siamese_train_and_eval_loss_after_{total_epochs}_epochs.png")
+    plt.savefig(RESULTS_PATH + f"DSiamese_train_and_eval_loss_after_{total_epochs}_epochs.png")
 
     return siamese_net
 
 def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=None, checkpoint=None):
+    if random_seed is not None:
+        torch.use_deterministic_algorithms(True)
+
     classifier_checkpoint_filename = checkpoint
 
     train_loader = load_data(training=True, Siamese=False, random_seed=random_seed)
@@ -371,10 +378,11 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
 
         # scheduler.step()
         if np.average(eval_losses) < previous_best_loss:
-            save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
+            # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
             previous_best_loss = np.average(eval_losses)
             print(f"loss improved in epoch {epoch + 1}")
 
+    # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
     end = time.time()
     elapsed = end - start
     print("Classifier Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
@@ -386,12 +394,12 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     plt.xlabel("Epochs / 10")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig(RESULTS_PATH + f"Classifier_train_and_eval_loss_after_{total_epochs}_epochs.png")
+    plt.savefig(RESULTS_PATH + f"DClassifier_train_and_eval_loss_after_{total_epochs}_epochs.png")
 
 if __name__ == "__main__":
     # normal training workflow
-    net = Siamese_training(15, 35)
-    classifier_training(net.backbone, 15, 35)
+    net = Siamese_training(10, 69)
+    classifier_training(net.backbone, 20, 69)
 
     # train classifier from existing Siamese model workflow
     # checkpoint = "SiameseNeuralNet_checkpoint.tar"
