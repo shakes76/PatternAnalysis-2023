@@ -1,4 +1,5 @@
 import torch
+from torch.nn import Linear
 from modules import *
 from dataset import *
 
@@ -10,6 +11,12 @@ def run_training(lr, num_epochs):
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion=torch.nn.CrossEntropyLoss()
 
+    # data for embedding plot
+    embeddings = []
+    losses = []
+    accuracies = []
+    outputs = []
+
     for epoch in range(num_epochs):
         optimizer.zero_grad() # clear gradients
         h, z = model(data.X, data.edges) # forward pass
@@ -17,6 +24,11 @@ def run_training(lr, num_epochs):
         # keep only training elements
         y_train = data.y[data.train_split]
         z = z[data.train_split]
+
+        # store data for embedding plot
+        if epoch == num_epochs - 1:
+            model.embeddings = h
+            model.outputs = z.argmax(dim=1)
         
         loss = criterion(z, y_train) # calculate loss
         acc = model.accuracy(y_train, z.argmax(dim=1)) # calculate accuracy
