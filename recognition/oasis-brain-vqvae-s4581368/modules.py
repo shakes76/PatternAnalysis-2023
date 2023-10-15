@@ -40,6 +40,7 @@ class ResidualBlock(nn.Module):
     def forward(self, x):
         return x + self._res_block(x)
 
+
 class Encoder(nn.Module):
     """
     Encoder structure for VAE.
@@ -51,14 +52,14 @@ class Encoder(nn.Module):
         self.layers = nn.Sequential(
             nn.Conv2d(
                 in_channels=in_channels,
-                out_channels=hidden_layers,
+                out_channels=hidden_layers // 2,
                 kernel_size=4,
                 stride=2,
                 padding=1
             ),
             nn.ReLU(True),
             nn.Conv2d(
-                in_channels=hidden_layers,
+                in_channels=hidden_layers // 2,
                 out_channels=hidden_layers,
                 kernel_size=4,
                 stride=2,
@@ -85,7 +86,47 @@ class Decoder(nn.Module):
     """
     Decoder structure for VAE
     """
-    pass
+    def __init__(self, in_channels, hidden_layers, residual_hidden_layers):
+        super(Decoder, self).__init__()
+        self.layers = nn.Sequential(
+            nn.ConvTranspose2d(
+                in_channels=in_channels,
+                out_channels=hidden_layers,
+                kernel_size=4,
+                stride=2,
+                padding=1
+            ),
+            ResidualBlock(
+                in_channels=hidden_layers,
+                out_channels=hidden_layers,
+                residual_hidden_layers=residual_hidden_layers
+            ),
+            ResidualBlock(
+                in_channels=hidden_layers,
+                out_channels=hidden_layers,
+                residual_hidden_layers=residual_hidden_layers
+            ),
+            nn.ConvTranspose2d(
+                in_channels=in_channels // 2,
+                out_channels=hidden_layers,
+                kernel_size=4,
+                stride=2,
+                padding=1
+            ),
+            nn.ReLU(True),
+            nn.Conv2d(
+                in_channels=hidden_layers // 2,
+                out_channels=3, # For RGB image
+                kernel_size=4, 
+                stride=2,
+                padding=1
+            ),
+        )
+
+    def forward(self, x):
+        return self.layers(x)
+
+
 
 class VectorQuantizer(nn.Module):
     """
@@ -142,11 +183,44 @@ class VectorQuantizer(nn.Module):
         
         return loss, x_quantized, perplexity, encodings
 
+class VQVAE(nn.Module):
+    def __init__(self, hidden_layers, hidden_residual_layers, num_embeddings,
+                 embedding_dimension, beta):
+        super(VQVAE, self).__init__()
 
+        self.encoder = Encoder(
+            in_channels=3,
+            hidden_layers=hidden_layers,
+            residual_hidden_layers=hidden_residual_layers
+        )
+        
+        # Connect encoder output to codebook
+        self.conv1 = nn.Conv2d(
+            in_channels=hidden_layers,
+            out_channels=embedding_dimension,
+            kernel_size=1,
+            stride=1,
+            padding=0
+        )
 
-        
-        
-        
+        self.vector_quantizer = VectorQuantizer(
+            embeddings=num_embeddings,
+            embedding_dimensions=embedding_dimension,
+            beta=beta
+        )
+
+        self.decoder = Decoder(
+            in_channels=embedding_dimension,
+            hidden_layers=hidden_layers,
+            residual_hidden_layers=hidden_residual_layers
+        )
+    
+    def forward(self, x):
+        x = self.encoder(x)
+        x = self.conv1(x)
+        embedding_loss, x_quantized, _ = self.vector_quantizer(x)
+        return embedding_loss, self.decoder(x_quantized)
+
 
 
 
