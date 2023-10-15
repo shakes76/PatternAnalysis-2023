@@ -20,13 +20,14 @@ class ISICDataset(Dataset):
 
     # get specific item from dataset
     def __getitem__(self, idx):
-        img_path = os.path.join(self.img_dir, self.image_files[idx])
-        image = Image.open(img_path)
-        truth_path = os.path.join(self.truth_dir, self.truth_files[idx])
-        truth = Image.open(truth_path)
+        if self.image_files[idx] != "LICENCE.txt":
+            img_path = os.path.join(self.img_dir, self.image_files[idx])
+            image = Image.open(img_path)
+            truth_path = os.path.join(self.truth_dir, self.truth_files[idx])
+            truth = Image.open(truth_path)
 
-        if self.transform:
-            image = self.transform(image)
-            truth = self.transform(truth)
+            if self.transform:
+                image = self.transform(image)
+                truth = self.transform(truth)
 
-        return image, truth
+            return image, truth
