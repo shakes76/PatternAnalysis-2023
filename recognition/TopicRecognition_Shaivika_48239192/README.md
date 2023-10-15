@@ -31,6 +31,12 @@ The project is organized into several files and folders:
 - `train.py`: Trains the ViT model on the provided dataset and saves the trained model.
 - `predict.py`: Uses the trained model to make predictions on single images and visualize the results.
 
+## Vision Transformer (ViT) Model Design
+
+### Introduction
+
+The Vision Transformer (ViT) is a powerful deep learning architecture for image classification tasks. It leverages the self-attention mechanism to capture global and local relationships within an image. This design provides an overview of the model architecture and key components for Alzheimer's disease image classification.
+
 ## Usage
 - To train the model, run `train.py` and provide the necessary arguments.
 - To make predictions on a single image, run `predict.py` and provide the path to the image file.
