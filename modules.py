@@ -43,3 +43,20 @@ class UNet(nn.Module):
         dec1 = self.decoder(bottle)
 
         return dec1
+
+class DiceLoss(nn.Module):
+    def __init__(self, smooth=1.0):
+        super(DiceLoss, self).__init__()
+        self.smooth = smooth
+
+    def forward(self, predicted, target):
+        intersection = (predicted * target).sum()
+        union = predicted.sum() + target.sum()
+        dice = (2.0 * intersection + self.smooth) / (union + self.smooth)
+        return 1 - dice  # We often minimize the loss, so return 1 - dice
+
+def dice_coefficient(predicted, target, smooth=1.0):
+    intersection = (predicted * target).sum()
+    union = predicted.sum() + target.sum()
+    dice = (2.0 * intersection + smooth) / (union + smooth)
+    return dice
