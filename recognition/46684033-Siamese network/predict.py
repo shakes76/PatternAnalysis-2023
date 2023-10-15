@@ -16,6 +16,7 @@ transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
     transforms.Resize((128, 128)),
     transforms.ToTensor(),
+    transforms.Normalize(0.5, 0.5),
 
 
 ])
@@ -30,8 +31,8 @@ correct = 0
 total = 0
 best_epoch = 0
 best_acc = 0
-for i in range(1,60):
-    model = torch.load(f"C:/Users/wongm/Desktop/COMP3710/project/siamese_triplet_epoch_{i}.pth")
+for epoch in range(1,60):
+    model = torch.load(f"C:/Users/wongm/Desktop/COMP3710/project/siamese_triplet_epoch_{epoch}.pth")
     model.eval()
 
     # contrastive loss
@@ -70,9 +71,9 @@ for i in range(1,60):
 
             # Create a mask to exclude the min and max values
             mask = torch.ones(pos.size()).to(device)
-            for j in range(64):
-                mask[j, min_indices[i]] = 0
-                mask[j, max_indices[i]] = 0
+            for j in range(len(min_indices)):
+                mask[j, min_indices[j]] = 0
+                mask[j, max_indices[j]] = 0
             filtered_tensor = pos * mask
 
             mean_pos_distances = filtered_tensor.sum(dim=1) / 3
@@ -95,9 +96,9 @@ for i in range(1,60):
 
             # Create a mask to exclude the min and max values
             mask = torch.ones(pos.size()).to(device)
-            for j in range(64):
-                mask[j, min_indices[i]] = 0
-                mask[j, max_indices[i]] = 0
+            for j in range(len(max_indices)):
+                mask[j, min_indices[j]] = 0
+                mask[j, max_indices[j]] = 0
             filtered_tensor = neg * mask
 
             mean_neg_distances = filtered_tensor.sum(dim=1) / 3
@@ -107,12 +108,12 @@ for i in range(1,60):
             correct += (pred == 1).sum().item()
             total += test_labels.size(0)
             acc= 100*correct/total
-            print(f"progress [{i}/{len(test_loader)}]")
+            #print(f"progress [{i}/{len(test_loader)}]")
             #print(f"test accuracy {acc}%")
-
+    print(f"progress [{epoch}/60]")
     if acc > best_acc:
         best_acc = acc
-        best_epoch = i
+        best_epoch = epoch
 print(f"best accuracy is {best_acc}% and the epoch is {best_epoch}")
     # for triplet loss
     # with torch.no_grad():
