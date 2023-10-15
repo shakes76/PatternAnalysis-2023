@@ -13,8 +13,9 @@ if not torch.cuda.is_available():
 # hyperparameters
 N_EPOCHS = 5
 LR = 0.005
-batch_size = 128
-image_size = 64
+batch_size = 64
+image_size = 256
+crop_size = 192
 path = '/home/callum/AD_NC/'
 
 # Training loop
