@@ -35,10 +35,10 @@ class Train():
                 if constants.cuda:
                     x, y = x.cuda(), y.cuda()
                 y1 = self.net(x)
-                # loss = self.criterion(y1, y)
-                # losses += loss.detach().cpu().item() / len(self.trainLoader)
+                loss = self.criterion(y1, y)
+                losses += loss.detach().cpu().item() / len(self.trainLoader)
                 self.optimiser.zero_grad()
-                # loss.backward()
+                loss.backward()
                 self.optimiser.step()
                 print(f'Image at index {i} is type {y} and guess is type {y1}')
             print(f'Loss at epoch {epoch} is {losses}')
