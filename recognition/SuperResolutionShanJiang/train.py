@@ -10,15 +10,7 @@ import math
 import matplotlib.pyplot as plt
 
 upscale_factor = 4
-# define test data from test AD 
-test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test/AD'
-test_img_paths = sorted(
-    [
-        os.path.join(test_path, fname)
-        for fname in os.listdir(test_path)
-        if fname.endswith(".jpeg")
-    ]
-)
+
 train_loss_history = []
 valid_loss_history = []
 train_psnr_history = []
@@ -78,7 +70,8 @@ class ESPCNCallback(keras.callbacks.Callback):
 early_stopping_callback = keras.callbacks.EarlyStopping(monitor="loss", patience=10)
 
 # Define path to save model parameters
-checkpoint_filepath = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint"
+# checkpoint_filepath = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint"
+checkpoint_filepath = "H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
 
 # Save model parameters at checkpoint during training
 model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
@@ -96,7 +89,7 @@ callbacks = [ESPCNCallback(), early_stopping_callback, model_checkpoint_callback
 loss_fn = keras.losses.MeanSquaredError()
 optimizer = keras.optimizers.Adam(learning_rate=0.001)
 
-#Train the model
+#Train and validate the model
 epochs = 2600
 
 model.compile(
@@ -109,6 +102,40 @@ model.fit(
 
 # The model weights (that are considered the best) are loaded into the model.
 model.load_weights(checkpoint_filepath)
+
+#Test the model
+# define test data from test AD 
+# test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test/AD'
+test_path = 'H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/AD_NC/test/AD'
+test_img_paths = sorted(
+    [
+        os.path.join(test_path, fname)
+        for fname in os.listdir(test_path)
+        if fname.endswith(".jpeg")
+    ]
+)
+total_bicubic_psnr = 0.0
+total_test_psnr = 0.0
+
+for index, test_img_path in enumerate(test_img_paths[0:len(test_img_paths)]):
+    img = load_img(test_img_path)
+    lowres_input = get_lowres_image(img, upscale_factor)
+    w = lowres_input.size[0] * upscale_factor
+    h = lowres_input.size[1] * upscale_factor
+    highres_img = img.resize((w, h))
+    prediction = upscale_image(model, lowres_input)
+    lowres_img = lowres_input.resize((w, h))
+    lowres_img_arr = img_to_array(lowres_img)
+    highres_img_arr = img_to_array(highres_img)
+    predict_img_arr = img_to_array(prediction)
+    bicubic_psnr = tf.image.psnr(lowres_img_arr, highres_img_arr, max_val=255)
+    test_psnr = tf.image.psnr(predict_img_arr, highres_img_arr, max_val=255)
+
+    total_bicubic_psnr += bicubic_psnr
+    total_test_psnr += test_psnr
+
+print("Avg. PSNR of lowres images is %.4f" % (total_bicubic_psnr / 10))
+print("Avg. PSNR of reconstructions is %.4f" % (total_test_psnr / 10))
 
         
 

@@ -72,7 +72,9 @@ upscale_factor = 4
 input_height_size = crop_height_size // upscale_factor
 input_width_size = crop_width_size // upscale_factor
 batch_size = 8
-data_dir = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/train/AD'
+# data_dir = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/train/AD'
+data_dir = 'H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/AD_NC/train/AD'
+
 
 #Create traning dataset
 train_ds = image_dataset_from_directory(
