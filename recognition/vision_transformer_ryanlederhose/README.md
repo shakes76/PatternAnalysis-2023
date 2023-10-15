@@ -31,9 +31,41 @@ The images were resized and cropped about the centre for a size of 192px x 192px
 
 ![alt text](images/brains-after-processing.png)
 
+## Model Implementation
+
+
+* Patch size --> length and width of image patches in pixels
+* Number of encoders --> number of encoder layers in the transformer encoder section
+* Number of attention heads --> number of heads on the multi-head attention block
+* Hidden size --> number of output channels from the convolutional layers
+* Dropout regularisation
+* Number of epochs
+* Learning rate
+* Batch size
+* Optimiser
+* Loss Criterion
+* Learning rate scheduler
+
 ## Training
+The hyperparameters of an initial training run were:
+ * Patch size = 16
+ * Number of encoders = 3
+ * Number of attention heads = 4
+ * Dropout regularisation = 0.1
+ * Number of epochs = 60
+ * Learning rate = 1e-3
+ * Batch size = 32
+ * Hidden size = 64
+ * Optimiser = Adam
+ * Loss Criterion = Cross entropy loss
+ * Learning rate scheduler = ReduceLROnPlateau
+The plot below shows the cross entropy loss of the training at each epoch:
+
+![alt text](images/losses1.png)
+
+From this, it was clear that the model was overfitting to the training data. To try and rectify this, more dropout layers were implemented, and the dropout rate was increased to 0.2. Also, the learning rate was decreased to 1e-4, and the number of encoders was increased to 10. The model responded as below:
 
 
-## Final Model Description
+
 
 ## Test Dataset Accuracy
