@@ -11,7 +11,8 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import layers
 
-# Global Variables, making any potential needed changes in the future easier for user
+# Global Variables, making any potential needed changes in the future
+# easier for user
 EPSILON = 0.00001
 LATENT_DIMENSIONS = 512
 ALPHA = 0.2
@@ -68,7 +69,8 @@ def AdaIN(n_filters, image_size, epsilon=EPSILON):
 
 def WNetwork(lat_dim=LATENT_DIMENSIONS):
     """
-    Maps the latent noise vector z to the style code vector v using a series of fully connected layers.
+    Maps the latent noise vector z to the style code vector v using a
+    series of fully connected layers.
 
     param lat_dim: The number of dimensions in the latent space
     return: The Mapping Network transforming z to v
@@ -83,8 +85,12 @@ def WNetwork(lat_dim=LATENT_DIMENSIONS):
 
 class Generator:
     """
-    The generator network for the StyleGAN model
+    The generator network for the StyleGAN model.
+
+    The generator is trained to fool discriminator by generating fake
+    distribution which is close to the true distribution
     """
+
     def __init__(self):
         self.init_size = 4
         self.init_filters = 512
@@ -100,7 +106,7 @@ class Generator:
 
         # Define the input tensors
         input_tensor = layers.Input(shape=(image_size, image_size, n_filters))
-        noise = layers.Input(shape=(2*image_size, 2*image_size, 1))
+        noise = layers.Input(shape=(2 * image_size, 2 * image_size, 1))
         v = layers.Input(shape=512)
         x = input_tensor
 
@@ -159,12 +165,14 @@ class Generator:
         # Apply the generator blocks until desired image size is reached
         while current_size < 256:
             i += 1
-            x = self.generator_block(n_filters, current_size)([x, mapping(z_inputs[i]), noise_inputs[i]])
+            x = self.generator_block(n_filters, current_size) \
+                ([x, mapping(z_inputs[i]), noise_inputs[i]])
             current_size = 2 * current_size
             n_filters = n_filters // 2
 
         # Apply the final convolutional layer
-        x = layers.Conv2D(1, KERNEL_SIZE, padding="same", activation="sigmoid")(x)
+        x = layers.Conv2D(1, KERNEL_SIZE, padding="same",
+                          activation="sigmoid")(x)
         return tf.keras.Model([input, z_inputs, noise_inputs], x)
 
 
@@ -172,7 +180,8 @@ class Discriminator:
 
     def __init__(self):
         """
-        Initialise the Discriminator network with the initial image size and number of filters
+        Initialise the Discriminator network with the initial image size and
+        number of filters
         """
         self.init_size = SIZE
         self.init_filters = FILTERS
@@ -188,7 +197,8 @@ class Discriminator:
         if image_size == self.init_size:
             input_tensor = layers.Input(shape=(image_size, image_size, 1))
         else:
-            input_tensor = layers.Input(shape=(image_size, image_size, n_filters // 2))
+            input_tensor = layers.Input(shape=(image_size, image_size,
+                                               n_filters // 2))
 
         x = input_tensor
         x = layers.Conv2D(n_filters, KERNEL_SIZE, padding="same")(x)
@@ -201,8 +211,9 @@ class Discriminator:
         """
         Constructs the full Discriminator network
 
-        The network dynamically adjusts its depth based on the initial image size
-        and ends with a dense layer with a sigmoid activation to output a probability
+        The network dynamically adjusts its depth based on the
+        initial image size and ends with a dense layer with a sigmoid
+        activation to output a probability
 
         return: Keras model representing the full discriminator network
         """
@@ -222,7 +233,8 @@ class Discriminator:
         x = layers.Conv2D(n_filters, KERNEL_SIZE, padding="same")(x)
         x = layers.LeakyReLU(ALPHA)(x)
 
-        # Flatten the tensor and pass through a dense layer with sigmoid activation
+        # Flatten the tensor and pass through a dense layer with
+        # sigmoid activation
         x = layers.Flatten()(x)
         x = layers.Dense(1, activation="sigmoid")(x)
 
