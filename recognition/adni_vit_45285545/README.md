@@ -38,20 +38,27 @@ The model trained above achieves the following result on the test split of the A
 
 ### Dependencies
 
-This implementation uses Python 3.10 and package dependencies are listed in `requirements.txt`.
+This implementation uses Python 3.10 and PyTorch 2.1.0+cu118. PyTorch (specifically `torch` and `torchvision`) can be installed for the machine of choice following: https://pytorch.org/get-started/locally/
+
+Other Python package dependencies include: `pandas`, `seaborn` and `tqdm`. These can be installed all at once using:
+```
+pip install pandas seaborn tqdm
+```
+
+A virtual environment ([`venv`](https://docs.python.org/3/library/venv.html)) is recommended for the installation, but is not mandatory.
 
 ### Setup and Run
 
 1. Navigate to `recognition/adni_vit_45285545`.
 
-2. Execute the following to train the model. The model is automatically saved to the working directory after training.
-```bash
-python train.py N_EPOCHS
+2. Run the following to train the model and print a test result. The `--pg` option will show training progress bars. The model is automatically saved to file after training.
+```
+python train.py N_EPOCHS [--pg]
 ```
 
-3. Execute the following with a saved model file to run inference using the test split of the ADNI dataset.
-```bash
-python predict.py MDLFILE
+3. Run the following with a saved model file to run inference. The `--test` option will run the model on the test split of the ADNI dataset and print a test result. The `--gui` option will start a web-based GUI to interactively use the model.
+```
+python predict.py MDLFILE [--test] [--gui]
 ```
 
 ## References
