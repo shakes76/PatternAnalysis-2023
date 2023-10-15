@@ -1,7 +1,7 @@
 # Pytorch implmenetation of a brain MRI super-resolution network using ADNI dataset
 ## 1. General Overview of Super-resolution Network
 The Super-resolution network is designed to take in a 2d low resolution brain MRI image as input and return a higher resolution of the image.
-The core component of this network is the efficient sub-pixel layer, which is defined within pytorch as PixelShuffle. This layer upscales the image by reducing the number of channels of features, in our case, it upscales by a factor of 4.
+The core component of this network is the efficient sub-pixel layer, which is defined within pytorch as ``PixelShuffle``. This layer upscales the image by reducing the number of channels of features, in our case, it upscales by a factor of 4.
 
 ## 2. Required Dependencies
 Dependency | Version |
@@ -14,6 +14,31 @@ torchaudio | 2.1.0
 torchvision | 0.16.0
 
 For reproducibility, a virtual environment is recommended with specified versions respective to dependencies for isolation. 
+
+Since ``Image Folder`` can only be used in a directory with a single image folder, ensure all folders are placed as follows:
+- data
+  - train
+    - train_AD
+      - AD
+        - 001.jpeg
+        - 002.jpeg
+        - ...
+    - train_NC
+      - NC
+        - 001.jpeg
+        - 002.jpeg
+        - ...
+  - test
+    - test_AD
+      - AD
+        - 001.jpeg
+        - 002.jpeg
+        - ...
+    - test_NC
+      - NC
+        - 001.jpeg
+        - 002.jpeg
+        - ...
 
 ## 3. Data pre-processing
 As low resolution of the images are not provided, we create our own low resolution of images and use the given high 240 x 256 as ground truth. 
@@ -40,7 +65,7 @@ Channel size | Loss
 128 | 0.00236
 256 | 0.00223
 
-In addition different activations functions were tested with 5 epochs,
+In addition different activations functions were tested,
 Activation Function | Loss 
 --- | --- 
 Exponential Linear Unit | 0.00261
@@ -56,7 +81,9 @@ To balance out the two aforementioned factors, a size of 30 is set as default.
 Furthermore, graphing the losses per iterations is shown as below.
 ![graph of loss per iteration](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/lossgraph.PNG)
 
-After approximately 220 iterations, the loss no longer decreases consistently rather, it fluctuates around 0.00255 thus we could assume that 175 is the optimal number of iterations. 
+After approximately 300 iterations, the network does not seem to improve drastically, therefore if a lower training time is desired, the ``num_epochs`` can be reduced from the default of 100.
+A value of 100 was chosen for ``num_epochs`` as per the article's recommendation [here](https://keras.io/examples/vision/super_resolution_sub_pixel/)
 
 ## 6. Appendix
-[ADNI dataset for Alzheimer's disease](https://adni.loni.usc.edu/)
+1. Where to download the dataset: [ADNI dataset for Alzheimer's disease](https://adni.loni.usc.edu/)
+2. Guide / Article: [here](https://keras.io/examples/vision/super_resolution_sub_pixel/)
