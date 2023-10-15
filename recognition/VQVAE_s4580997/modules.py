@@ -281,34 +281,20 @@ class VQVAE(nn.Module):
 """
 
 class Generator(nn.Module):
-    def __init__(self, latent_size):
+    def __init__(self, latent_size = 128, channels = 3):
         super(Generator, self).__init__()
         self.main = nn.Sequential(
-
-            nn.ConvTranspose2d(latent_size, 512, 4, 1, 0, bias=False),
-            nn.BatchNorm2d(512),
-            nn.ReLU(True),
-
-            nn.ConvTranspose2d(512, 256, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.ReLU(True),
-
-
-            nn.ConvTranspose2d(256, 128, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.ReLU(True),
-
-            nn.ConvTranspose2d(128, 64, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(64),
-            nn.ReLU(True),
-
-            nn.ConvTranspose2d(64, 3, 4, 2, 1, bias=False),
+            self.layer(latent_size, latent_size * 4, 4, 1, 0),
+            self.layer(latent_size * 4, latent_size * 2, 4, 2, 1),
+            self.layer(latent_size * 2, latent_size, 4, 2, 1),
+            self.layer(latent_size, latent_size // 2, 4, 2, 1),
+            nn.ConvTranspose2d(latent_size // 2, channels, 4, 2, 1, bias=False),
             nn.Tanh()
         )
     
-    def layer(self, in_channels, out_channels, stride=1, kernel=4, bias=False) :
+    def layer(self, in_channels, out_channels, kernel=4, stride=1, padding=0, bias=False) :
         return nn.Sequential(
-            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel, stride=stride, bias=bias),
+            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=kernel, stride=stride, padding=padding, bias=bias),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(True)
         )
@@ -317,33 +303,38 @@ class Generator(nn.Module):
         return self.main(input)
 
 class Discriminator(nn.Module):
-    def __init__(self):
+    def __init__(self, channels = 3, img_size = 64):
         super(Discriminator, self).__init__()
         self.main = nn.Sequential(
-            nn.Conv2d(3, 64, 4, 2, 1, bias=False),
+            nn.Conv2d(channels, img_size, 4, 2, 1, bias=False),
             nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(64, 128, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(128),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(128, 256, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(256),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(256, 512, 4, 2, 1, bias=False),
-            nn.BatchNorm2d(512),
-            nn.LeakyReLU(0.2, inplace=True),
-            nn.Conv2d(512, 1, 4, 1, 0, bias=False),
+            self.layer(img_size, img_size * 2, 4, 2, 1),
+            self.layer(img_size * 2, img_size * 4, 4, 2, 1),
+            self.layer(img_size * 4, img_size * 8, 4, 2, 1),            
+            nn.Conv2d(img_size * 8, 1, 4, 1, 0, bias=False),
             nn.Flatten(),
             nn.Sigmoid()
+        )
+    
+    def layer(self, in_channels, out_channels, kernel=4, stride=1, padding=0, bias=False) :
+        return nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=kernel, stride=stride, padding=padding, bias=bias),
+            nn.BatchNorm2d(out_channels),
+            nn.LeakyReLU(0.2, inplace=True)
         )
 
     def forward(self, input):
         return self.main(input).view(-1, 1).squeeze(1)
 
 class GAN(nn.Module):
-    def __init__(self, features = 128, latent_size = 128):
+    def __init__(self, channels = 3, latent_dim = 128, img_size = 64):
         super(GAN, self).__init__()
-        self.generator = Generator(latent_size)
-        self.discriminator = Discriminator()
+        self.latent_dim = latent_dim
+        self.channels = channels
+        self.img_size = img_size
+
+        self.generator = Generator(self.latent_dim)
+        self.discriminator = Discriminator(self.channels, self.img_size)
 
     def forward(self, x):
         return self.generator(x)

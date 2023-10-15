@@ -8,7 +8,7 @@
 import os
 import torch
 
-ENV='rangpur'
+ENV='local'
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Dataset location
@@ -30,7 +30,6 @@ GAN_RETRAIN = True
 VQVAE_TEST = False
 VQVAE_PREDICT = False
 
-
 # VQVAE Model Parameters
 VQVAE_HIDDEN = 128
 VQVAE_RESIDUAL = VQVAE_HIDDEN // 4
@@ -43,12 +42,17 @@ VQVAE_WD = 1e-5
 VQVAE_EPOCHS = 100
 BATCH_SIZE = 32
 
+# VQVAE Paths
 VQVAE_SAVEPATH = os.path.join(os.getcwd(), 'models/vqvae')
 VQVAE_MODEL_PATH = os.path.join(os.getcwd(), 'models/vqvae/vqvae.pth')
 VQVAE_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/vqvae.pth')
 VQVAE_RECONSTRUCT_PATH = os.path.join(os.getcwd(), 'models/predictions/vqvae_reconstruction.png')
 
 # GAN Model Parameters
+GAN_LATENT_DIM = 128
+GAN_IMG_SIZE = 64
+
+# GAN Hyperparameters
 GAN_LR = 1e-3
 GAN_WD = 1e-5
 GAN_EPOCHS = 100

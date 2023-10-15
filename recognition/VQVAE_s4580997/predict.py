@@ -25,16 +25,11 @@ class Predict() :
         self.img_size=img_size
     
     def generate_gan(self, num_images = 1) :
-        self.vqvae.eval()
+        self.gan.generator.eval()
+        noise = torch.randn(num_images, self.gan.latent_dim, 1, 1).to(self.device)
         with torch.no_grad():
-            random_indices = torch.randint(
-                high=self.vqvae.quantizer.n_embeddings, 
-                size=(num_images, *self.img_size)
-            ).to(self.device)
-            
-            random_embeddings = self.vqvae.quantizer.embedding(random_indices).permute(0, 3, 1, 2)
-            self.generated_images = self.vqvae.decoder(random_embeddings)
-        
+            self.generated_images = self.gan.generator(noise)
+                    
         self.visualise(num_images=num_images, show = False, save = True, savename="gan_generated")
 
     def generate_vqvae(self, num_images=1):
@@ -86,8 +81,8 @@ class Predict() :
             
             if i >= self.n:
                 break
-            real_img = data[0].numpy()  # Taking the first image in the batch
-            real_img = np.transpose(real_img, (1, 2, 0))  # HxWxC
+            real_img = data[0].numpy() 
+            real_img = np.transpose(real_img, (1, 2, 0))
 
             ssim = structural_similarity(
                 gen_img,

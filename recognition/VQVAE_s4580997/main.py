@@ -17,14 +17,14 @@ import torch.nn.functional as F
 
 if __name__ == '__main__':
     # Models
-    vqvae =  VQVAE(channels = utils.CHANNELS, 
+    vqvae = VQVAE(channels = utils.CHANNELS, 
                 n_hidden = utils.VQVAE_HIDDEN, 
                 n_residual = utils.VQVAE_RESIDUAL , 
                 n_embeddings = 512, 
                 dim_embedding = 64, 
                 beta = utils.BETA
     )
-    gan = GAN()
+    gan = GAN(utils.CHANNELS, utils.GAN_LATENT_DIM, utils.GAN_IMG_SIZE)
 
     # Core dataset
     vqvae_dataset = Dataset(batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=utils.FRACTION)
@@ -56,7 +56,9 @@ if __name__ == '__main__':
     
     # Run predict
     if utils.VQVAE_PREDICT :
-        generator = Predict(vqvae, gan, vqvae_dataset, device=utils.DEVICE, savepath=utils.OUTPUT_PATH, img_size=(utils.VQVAE_RESIDUAL, utils.VQVAE_RESIDUAL))
-        generator.generate_gan()
-        generator.generate_vqvae()
-        generator.ssim()
+        generator = Predict(vqvae, gan, vqvae_dataset, device=utils.DEVICE, savepath=utils.OUTPUT_PATH, 
+                            img_size=(utils.VQVAE_RESIDUAL, utils.VQVAE_RESIDUAL))
+        generator.generate_gan(1)
+        generator.generate_vqvae(1)
+        generator.ssim('gan')
+        generator.ssim('vqvae')
