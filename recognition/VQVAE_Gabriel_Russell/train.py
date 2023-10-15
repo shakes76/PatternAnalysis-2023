@@ -46,4 +46,4 @@ def run_training():
     # # #Train DCGAN model, save it to current dir
     DCGAN_init.train()
 
-run_training()
+# run_training()
