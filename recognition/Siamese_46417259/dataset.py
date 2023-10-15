@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import random
 
 # global variables
-batch_size = 64
+batch_size = 32
 workers = 0
 
 # TODO: deterministic pairing for validation set
@@ -32,16 +32,18 @@ savepath = "/home/Student/s4641725/COMP3710/project_results"
 # transforms
 Siamese_train_transforms = transforms.Compose([
     transforms.ToTensor(),
-    transforms.CenterCrop(240),
+    # transforms.CenterCrop(240),
+    transforms.RandomCrop(240, 20, padding_mode='constant'),
     # transforms.RandomHorizontalFlip(),
     # transforms.RandomVerticalFlip(),
     # transforms.RandomRotation(15)
-    transforms.ElasticTransform(50.,5.)
+    # transforms.ElasticTransform(50.,5.)
 ])
 
 classifier_train_transforms = transforms.Compose([
     transforms.ToTensor(),
-    transforms.CenterCrop(240),
+    # transforms.CenterCrop(240),
+    transforms.RandomCrop(240, 20, padding_mode='constant'),
 ])
 
 test_transforms = transforms.Compose([
@@ -87,14 +89,14 @@ class PairedDataset(torch.utils.data.Dataset):
             filepath1 = self.image_folder.imgs[index][0]
             filepath2 = self.image_folder.imgs[choice][0]
 
-            start, end = filepath1.rfind('/') + 1, filepath1.rfind('_')
-            patient_id1 = filepath1[start:end]
-            start, end = filepath2.rfind('/') + 1, filepath2.rfind('_')
-            patient_id2 = filepath2[start:end]
+            # start, end = filepath1.rfind('/') + 1, filepath1.rfind('_')
+            # patient_id1 = filepath1[start:end]
+            # start, end = filepath2.rfind('/') + 1, filepath2.rfind('_')
+            # patient_id2 = filepath2[start:end]
 
             # only pair up different patients
-            if patient_id1 == patient_id2:
-                continue
+            # if patient_id1 == patient_id2:
+            #     continue
 
             img2, label2 = self.image_folder[choice]
             if similarity == 1:

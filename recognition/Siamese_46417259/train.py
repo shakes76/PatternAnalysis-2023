@@ -9,7 +9,7 @@ import torch.nn.functional as F
 # import torchvision.datasets as dset
 # import torchvision.transforms.v2 as transforms
 # import torchvision.utils as vutils
-# import numpy as np
+import numpy as np
 import matplotlib.pyplot as plt
 
 from modules import SiameseTwin, SiameseNeuralNet, SiameseMLP, SimpleMLP
@@ -59,8 +59,8 @@ def initialise_Siamese_training():
     siamese_net = siamese_net.to(device)
     print(siamese_net)
 
-    criterion = ContrastiveLoss()
-    optimiser = optim.Adam(siamese_net.parameters(), lr=1e-3, betas=(0.9, 0.999))
+    criterion = ContrastiveLoss(margin=1.0)
+    optimiser = optim.Adam(siamese_net.parameters(), lr=0.0001, betas=(0.5, 0.999))
     return siamese_net, criterion, optimiser, device
 
 # def initialise_classifier_training(backbone: torch.nn.Module):
@@ -84,7 +84,7 @@ def initialise_classifier_training():
     print(classifier)
 
     criterion = nn.BCELoss()
-    optimiser = optim.Adam(classifier.parameters(), lr=1e-3, betas=(0.9, 0.999))
+    optimiser = optim.Adam(classifier.parameters(), lr=0.001, betas=(0.5, 0.999))
     return classifier, criterion, optimiser, device
 
 def load_from_checkpoint(filename:str, model:nn.Module, optimizer:optim.Optimizer):
@@ -253,17 +253,19 @@ def eval_classifier_one_epoch(model: nn.Module,
 
             # predicted = torch.round(outputs)
             predicted = (outputs > 0.5).float()
-            print(">>>>> Predicted")
-            print(predicted)
 
-            print(">>>>> Actual")
-            print(labels)
             # _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
             if (i+1) % (num_batches // 10) == 0:
                 loss_list.append(loss.item())
+
+        print(">>>>> Predicted sample batch")
+        print(predicted)
+
+        print(">>>>> Actual sample batch")
+        print(labels)
 
         print('Test Accuracy: {} %'.format(100 * correct / total))
         mean_loss = total_loss / num_batches
@@ -291,6 +293,8 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     test_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
     siamese_net, criterion, optimiser, device = initialise_Siamese_training()
 
+    # scheduler = optim.lr_scheduler.ExponentialLR(optimiser, 0.99)
+
     if Siamese_checkpoint_filename is not None:
         starting_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(Siamese_checkpoint_filename, siamese_net, optimiser)
     else:
@@ -312,9 +316,11 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
         eval_losses += loss_list
         print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 
-        if avg_eval_loss < previous_best_loss:
+        # scheduler.step()
+        if np.average(eval_losses) < previous_best_loss:
             save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
-            previous_best_loss = avg_eval_loss
+            previous_best_loss = np.average(eval_losses)
+            print(f"loss improved in epoch {epoch + 1}")
 
     end = time.time()
     elapsed = end - start
@@ -340,6 +346,8 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     # classifier, criterion, optimiser, device = initialise_classifier_training(backbone)
     classifier, criterion, optimiser, device = initialise_classifier_training()
 
+    # scheduler = optim.lr_scheduler.ExponentialLR(optimiser, 0.99)
+
     if classifier_checkpoint_filename is not None:
         starting_epoch, classifier, optimiser, training_losses, eval_losses = load_from_checkpoint(classifier_checkpoint_filename, classifier, optimiser)
     else:
@@ -361,9 +369,11 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
         eval_losses += loss_list
         print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 
-        if avg_eval_loss < previous_best_loss:
+        # scheduler.step()
+        if np.average(eval_losses) < previous_best_loss:
             save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
-            previous_best_loss = avg_eval_loss
+            previous_best_loss = np.average(eval_losses)
+            print(f"loss improved in epoch {epoch + 1}")
 
     end = time.time()
     elapsed = end - start
@@ -380,11 +390,8 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
 
 if __name__ == "__main__":
     # normal training workflow
-    net = Siamese_training(20, 69)
-    classifier_training(net.backbone, 20, 69)
-
-    # training Siamese workflow
-    # Siamese_training(50, 69, "SiameseNeuralNet_checkpoint.tar")
+    net = Siamese_training(15, 35)
+    classifier_training(net.backbone, 15, 35)
 
     # train classifier from existing Siamese model workflow
     # checkpoint = "SiameseNeuralNet_checkpoint.tar"
@@ -394,5 +401,20 @@ if __name__ == "__main__":
     # print(f"training losses: {training_losses}")
     # print(f"eval losses: {eval_losses}")
 
-    # classifier_training(siamese_net.backbone, 10, 69)
+    # classifier_training(siamese_net.backbone, 30, 420)
+
+    # print("/n /n /n")
+
+    # # training Siamese workflow
+    # Siamese_training(20, 35)
+
+    # # train classifier from existing Siamese model workflow
+    # checkpoint = "SiameseNeuralNet_checkpoint.tar"
+    # siamese_net, criterion, optimiser, device = initialise_Siamese_training()
+    # start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
+    # print(f"best epoch: {start_epoch - 1}")
+    # print(f"training losses: {training_losses}")
+    # print(f"eval losses: {eval_losses}")
+
+    # classifier_training(siamese_net.backbone, 20, 35)
 
