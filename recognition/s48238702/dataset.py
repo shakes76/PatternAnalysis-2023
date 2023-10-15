@@ -38,6 +38,37 @@ def load_siamese_data(batch_size=32):
     cn_paths = [os.path.join(CN_PATH, path) for path in os.listdir(CN_PATH)]
 
 
+def load_classify_data(testing: bool, batch_size=32):
+    
+    if (not testing):
+        ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
+        cn_paths = [os.path.join(CN_PATH, path) for path in os.listdir(CN_PATH)]
+    else:
+        ad_paths = [os.path.join(AD_TEST_PATH, path) for path in os.listdir(AD_TEST_PATH)]
+        cn_paths = [os.path.join(CN_TEST_PATH, path) for path in os.listdir(CN_TEST_PATH)]
+
+    paths = ad_paths + cn_paths
+
+    labels = [0 if path.endswith('AD') else 1 for path in paths]
+
+    dataset = []
+    for i in range(len(paths)):
+        image = Image.open(paths[i])
+        image_tensor = ImageToTensor(image)
+
+        label = labels[i]
+
+        dataset.append((image_tensor, label))
+
+    train_size = int(0.8 * len(dataset))
+    val_size = len(dataset) - train_size
+    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
+
+    return train_loader, val_loader
+
 def ImageToTensor(image):
     image = image.convert('L')
     image = image.resize((128, 128))
