@@ -216,16 +216,17 @@ def generate_sample_from_best_model(model, test_loader, best_epoch):
     plt.savefig(f'models6/best_model_sample.png', bbox_inches='tight')
     plt.close()
 
+# Define a class for the VQ embedding module
 class VQEmbedding(nn.Module):
     def __init__(self, K, D):
         super().__init__()
+        # Create an embedding layer with K embeddings and dimension D
         self.embedding = nn.Embedding(K, D)
+        # Initialize the embedding weights with uniform random values
         self.embedding.weight.data.uniform_(-1./K, 1./K)
 
     def forward(self, z_e_x):
-        # z_e_x - (B, D, H, W)
-        # emb   - (K, D)
-
+        # Reshape the input tensor and the embedding weights
         emb = self.embedding.weight
         z_e_x_reshaped = z_e_x.permute(0, 2, 3, 1).contiguous().view(-1, z_e_x.shape[1])  # (B*H*W, D)
         emb_reshaped = emb  # since emb is already (K, D)
@@ -233,13 +234,14 @@ class VQEmbedding(nn.Module):
         # Calculate distances between reshaped tensors
         z_e_x_norm = (z_e_x_reshaped**2).sum(1, keepdim=True)  # (B*H*W, 1)
         emb_norm = (emb_reshaped**2).sum(1, keepdim=True).t()  # (1, K)
-
         dists = z_e_x_norm + emb_norm - 2 * torch.mm(z_e_x_reshaped, emb_reshaped.t())  # (B*H*W, K)
 
+        # Reshape dists back to (B, H, W, K) and find the indices of the minimum values along the last dimension
         dists = dists.view(z_e_x.shape[0], z_e_x.shape[2], z_e_x.shape[3], -1)  # reshape back to (B, H, W, K)
         latents = dists.min(-1)[1]
         return latents
 
+# Define a class for the residual block
 class ResBlock(nn.Module):
     def __init__(self, dim):
         super().__init__()
@@ -253,12 +255,15 @@ class ResBlock(nn.Module):
         )
 
     def forward(self, x):
+        # Apply a series of convolutional and normalization layers, then add the input tensor
         return x + self.block(x)
 
+# Define a class for the Vector Quantized Variational Autoencoder (VQ-VAE)
 class VectorQuantizedVAE(nn.Module):
     def __init__(self, input_dim, dim, K=512):
         super().__init__()
         self.encoder = nn.Sequential(
+            # Define the encoder network
             nn.Conv2d(input_dim, dim, 4, 2, 1),
             nn.BatchNorm2d(dim),
             nn.ReLU(True),
@@ -267,8 +272,10 @@ class VectorQuantizedVAE(nn.Module):
             ResBlock(dim),
         )
 
+        # Create the codebook as an instance of the VQEmbedding class
         self.codebook = VQEmbedding(K, dim)
 
+        # Define the decoder network
         self.decoder = nn.Sequential(
             ResBlock(dim),
             ResBlock(dim),
@@ -280,19 +287,25 @@ class VectorQuantizedVAE(nn.Module):
             nn.Tanh()
         )
 
+        # Initialize network weights using the weights_init function
         self.apply(weights_init)
 
     def encode(self, x):
+        # Forward pass through the encoder network
         z_e_x = self.encoder(x)
+        # Encode the latents using the codebook
         latents = self.codebook(z_e_x)
         return latents, z_e_x
 
     def decode(self, latents):
+        # Get the embeddings from the codebook and reshape them
         z_q_x = self.codebook.embedding(latents).permute(0, 3, 1, 2)  # (B, D, H, W)
+        # Forward pass through the decoder network
         x_tilde = self.decoder(z_q_x)
         return x_tilde, z_q_x
 
     def forward(self, x):
+        # Encode the input data and decode the latents to get the reconstruction
         latents, z_e_x = self.encode(x)
         x_tilde, z_q_x = self.decode(latents)
         return x_tilde, z_e_x, z_q_x
