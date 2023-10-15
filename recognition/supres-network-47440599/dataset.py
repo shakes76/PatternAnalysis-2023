@@ -5,20 +5,20 @@ import torchvision.utils as vutils
 import numpy as np
 import matplotlib.pyplot as plt
 
-def load_data():
-    dataroot = "./data/AD_NC/train"
-    downscaling = 4
+def load_data(path:str):
+    
 
     batch_size = 128
 
     workers = 2
 
-    dataset = dset.ImageFolder(root=dataroot,
+
+
+    dataset = dset.ImageFolder(root=path,
                             transform=transforms.Compose([
                                 transforms.Grayscale(1),
-                                transforms.Resize((64,60)),
                                 transforms.ToTensor(),
-                                transforms.RandomHorizontalFlip()
+                                #transforms.RandomHorizontalFlip()
                             ]))
 
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
@@ -31,8 +31,10 @@ def load_data():
     
 
 if __name__ == "__main__":
-    dataloader = load_data()
+    dataroot = "./data/AD_NC/train"
+    dataloader = load_data(dataroot)
     device = torch.device("cpu")
+    #Plotting
     real_batch = next(iter(dataloader))
     plt.figure(figsize=(8,8))
     plt.axis("off")
