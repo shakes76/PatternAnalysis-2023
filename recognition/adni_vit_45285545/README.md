@@ -22,7 +22,7 @@ Preprocessing of the data is minimal: all images are centre-cropped to 224x224.
 
 ## Model Training and Results
 
-This solution uses the `vit_b_16` model provided by PyTorch, with the `IMAGENET1K_V1` pre-trained weights. The classification head is replaced with a fully-connected layer with 2 outputs rather than 10.
+This solution uses the [`vit_b_16`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) model provided by PyTorch. It leverages transfer learning using the [`IMAGENET1K_V1`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) pre-trained weights, also from PyTorch. The classification head is replaced with a fully-connected layer with 2 outputs rather than 10.
 
 The model is trained for 16 epochs or until validation loss does not improve for three consecutive epochs, at which point early stopping triggers and the model is reverted to the state following the epoch with the lowest validation loss.
 
@@ -35,15 +35,6 @@ The model trained above achieves the following result on the test split of the A
 <!-- TODO: include results -->
 
 ## Reproducing Results
-
-### Hardware
-
-These results were generated on a platform with:
-
-- An NVIDIA A100 GPU with 10GB of memory
-- An AMD EPYC 7542 CPU with 32 cores
-
-The script `goslurm_COMP3710Project_RangpurTrain` was used to batch the training task.
 
 ### Dependencies
 
