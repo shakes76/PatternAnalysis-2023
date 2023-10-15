@@ -1,3 +1,10 @@
+"""
+Filename: modules.py
+Author: Benjamin Guy
+Date: 15/10/2023
+Description: This file contains the neural network model class used for the image up-scaling recognition task.
+"""
+
 import torch.nn as nn
     
 class ESPCN(nn.Module):

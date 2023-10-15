@@ -1,3 +1,10 @@
+"""
+Filename: dataset.py
+Author: Benjamin Guy
+Date: 15/10/2023
+Description: This file loads the data from the ADNI dataset and preprocesses it into data loaders.
+"""
+
 import os
 import torch
 from torchvision import transforms, datasets

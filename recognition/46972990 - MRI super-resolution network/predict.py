@@ -1,3 +1,12 @@
+"""
+Filename: predict.py
+Author: Benjamin Guy
+Date: 15/10/2023
+Description: This file contains code that takes random images from the test dataset and compares
+    the down-scaled image, up-scaled image, and original image with each other to visually
+    perceive the perceptual quality of the up-scaled image.
+"""
+
 import torch
 import matplotlib.pyplot as plt
 from modules import ESPCN

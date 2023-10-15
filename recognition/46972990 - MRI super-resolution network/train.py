@@ -1,3 +1,10 @@
+"""
+Filename: train.py
+Author: Benjamin Guy
+Date: 15/10/2023
+Description: This file contains code required to train the ESPCN model on the ADNI dataset.
+"""
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
