@@ -26,9 +26,10 @@ FRACTION = 1.0
 
 # Running Parameters
 VQVAE_RETRAIN = False
-GAN_RETRAIN = True
+GAN_RETRAIN = False
+PIXELCNN_RETRAIN = False
 VQVAE_TEST = False
-VQVAE_PREDICT = False
+VQVAE_PREDICT = True
 
 # VQVAE Model Parameters
 VQVAE_HIDDEN = 128
@@ -55,12 +56,18 @@ GAN_IMG_SIZE = 64
 # GAN Hyperparameters
 GAN_LR = 1e-3
 GAN_WD = 1e-5
-GAN_EPOCHS = 10
+GAN_EPOCHS = 100
 GAN_SAVEPATH = os.path.join(os.getcwd(), 'models/gan')
 DISCRIMINATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_discriminator.pth')
 DISCRIMINATOR_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/gan_discriminator.pth')
 GENERATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
 GENERATOR_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/gan_generator.pth')
+
+# PixelCNN
+PIXEL_MODEL_PATH=os.path.join(os.getcwd(), 'models/pixelcnn.pth')
+PIXEL_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/pixelcnn.pth')
+PIXEL_SAVEPATH=os.path.join(os.getcwd(), 'models/pixelcnn')
+
 
 
 # Prediction Parameters
