@@ -66,9 +66,9 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
 
     train_loader, valid_loader = create_train_dataloader(val_pct=0.2)
     criterion = torch.nn.CrossEntropyLoss()
-    optimizer = torch.optim.RAdam(mdl.parameters(), lr=1e-4)
+    optimizer = torch.optim.RAdam(mdl.parameters(), lr=2e-5)
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2)
-    earlystop = EarlyStopping(mdl, min_delta=0.05, patience=5)
+    earlystop = EarlyStopping(mdl, min_delta=0.01, patience=5)
 
     # Training and validation metric tracking
     train_losses = []; train_acc = []

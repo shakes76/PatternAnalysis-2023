@@ -1,6 +1,6 @@
 # Vision Transformer for Alzheimer's Disease Classification
 
-This project applies the Vision Transformer architecture to the task of classifying MRI brain images as either Cognitive Normal (CN) or representative of Alzheimer's disease (AD). The ViT is trained and tested on patient-level splits of the dataset from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu). A test accuracy of 75.07% is achieved.
+This project applies the Vision Transformer architecture to the task of classifying MRI brain images as either Cognitive Normal (CN) or representative of Alzheimer's disease (AD). The ViT is trained and tested on patient-level splits of the dataset from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu). A test accuracy of 75.56% is achieved.
 
 ## Model Architecture
 
@@ -28,13 +28,13 @@ The model is trained for 16 epochs or until validation loss does not improve for
 
 The following figure presents example model training and validation metrics.
 
-![Sample training metrics](static/adni-vit-metrics-1697342942.png)
+![Sample training metrics](static/adni-vit-metrics-1697362188.png)
 
 The model trained above achieves the following result on the test split of the ADNI dataset.
 
 ```
-100%|███████████████████████████| 141/141 [01:55<00:00,  1.22it/s]
-Test accuracy: 75.07% (00:01:55.83806)
+100%|███████████████████████████| 141/141 [01:53<00:00,  1.24it/s]
+Test accuracy: 75.56% (00:01:53.86790)
 ```
 
 ## Reproducing Results
