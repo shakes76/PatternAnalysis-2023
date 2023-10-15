@@ -19,8 +19,8 @@ else :
 
 # Image.Dataset parameters
 CHANNELS = 3
-W = 128
-H = 128
+W = 256
+H = 256
 BETA = 0.25
 FRACTION = 1.0
 

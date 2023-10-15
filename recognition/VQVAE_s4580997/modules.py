@@ -17,7 +17,23 @@ from utils import DEVICE
 """
 
 class ResidualLayer(nn.Module):
+    """
+    Layer for the residual block.
+    """
     def __init__(self, in_channels, n_hidden, n_residual):
+        """
+        Initialize the residual layer.
+
+        Parameters
+        ----------
+        param1 : in_channels
+            Number of input channels.
+        param2 : n_hidden
+            Number of hidden layers.
+        param3: n_residual
+            Number of residual hidden layers.
+        """
+        
         super(ResidualLayer, self).__init__()
 
         self.residual = nn.Sequential(
@@ -41,7 +57,25 @@ class ResidualLayer(nn.Module):
         return out + self.residual(out)
 
 class ResidualBlock(nn.Module) :
+    """
+    Residual stack to pass the output deeper into the network.
+    """
     def __init__(self, dim_in, dim_hidden, dim_residual, n_residuals = 2):
+        """
+        Initialize the residual layer.
+
+        Parameters
+        ----------
+        param1 : dim_in
+            Input dimension
+        param2 : dim_hidden
+            Dimension of hidden layers.
+        param3: dim_residual
+            Dimension of residual hidden layers.
+        param4: n_residuals
+            Number of residual layers.
+        """
+                
         super(ResidualBlock, self).__init__()
         self.n_residuals = n_residuals
         self.seq = nn.ModuleList(
@@ -53,9 +87,24 @@ class ResidualBlock(nn.Module) :
         x = F.relu(x)
         return x
 
-
 class Encoder(nn.Module):
+    """
+    Encoder accepts an image of size (B, C, H, W) and returns a tensor of size (B, n_hidden, H/2^2, W/2^2).
+    It consists of 2 convolutional layers with stride 2, kernel 4x4, succeeded 1 residual block.
+    """
     def __init__(self, in_channels, n_hidden, n_residual):
+        """
+        Initialize the encoder.
+
+        Parameters
+        ----------
+        param1 : in_channels
+            Number of input channels (image channels).
+        param2 : n_hidden
+            Number of hidden layers for the VQVAE.
+        param3: n_residual
+            Number of residual hidden layers for the VQVAE.
+        """
         super(Encoder, self).__init__()
 
         self.conv1 = nn.Conv2d(
@@ -97,9 +146,24 @@ class Encoder(nn.Module):
     
 class Decoder(nn.Module):
     """
-    Decoder
+    Decoder accepts an encoded image of size (B, n_hidden, H/2^2, W/2^2) and returns a tensor of size (B, C, H, W).
+    It consists of a convolutional layer on the input, then a residual block, succeeded by three layers of transposed convolution with stride 2, kernel 4x4.
     """
     def __init__(self, in_channels, n_hidden, n_residual, out_channels = 3):
+        """
+        Initialize the decoder.
+
+        Parameters
+        ----------
+        param1 : in_channels
+            Number of input channels.
+        param2 : n_hidden
+            Number of hidden layers for the VQVAE.
+        param3: n_residual
+            Number of residual hidden layers for the VQVAE.
+        param: out_channels
+            Number of channels for the output (should be equal to number of image channels)
+        """
         super(Decoder, self).__init__()
 
         self.conv1 = nn.Conv2d(
@@ -151,15 +215,22 @@ class Decoder(nn.Module):
 
 class VectorQuantizer(nn.Module):
     """
-    Discretization bottleneck part of the VQ-VAE.
-
-    Inputs:
-    - n_embeddings : number of embeddings
-    - dim_embeddings : dimension of embedding
-    - beta : commitment cost used in loss term, beta * ||z_e(x)-sg[e]||^2
+    The Vector Quantizer quantizes the encoded input tensor z to a discrete latent representation z_q.
     """
 
     def __init__(self, n_embeddings, dim_embeddings, beta):
+        """
+        Initialize the encoder.
+
+        Parameters
+        ----------
+        param1 : n_embeddings
+            Number of embeddings in the codebook.
+        param2 : dim_embedding
+            Dimension of each embedding.
+        param3: beta
+            Commitment cost term for the loss of the vector quantizer.
+        """
         super(VectorQuantizer, self).__init__()
         self.n_embeddings = n_embeddings
         self.dim_embeddings = dim_embeddings
@@ -186,7 +257,8 @@ class VectorQuantizer(nn.Module):
 
             1. get encoder input (B,C,H,W)
             2. flatten input to (B*H*W,C)
-
+        
+        Sourced from: 
         """
         # reshape z -> (batch, height, width, channel) and flatten
         z = z.permute(0, 2, 3, 1).contiguous()
@@ -228,7 +300,28 @@ class VectorQuantizer(nn.Module):
         return loss, z_q, perplexity, min_embeddingsncodings, min_embeddingsncoding_indices
 
 class VQVAE(nn.Module):
+    """
+    VQ-VAE class, which accepts an image as input then trains the encoder, VQ and decoder accordingly.
+    """
     def __init__(self, channels = 3,  n_hidden = 128, n_residual = 32, n_embeddings = 512, dim_embedding = 64, beta = 0.25):
+        """
+        Initialize the encoder.
+
+        Parameters
+        ----------
+        param1 : channels, 3
+            Number of input channels (image channels).
+        param2 : n_hidden, 128
+            Number of hidden layers for the VQVAE.
+        param3: n_residual, 32
+            Number of residual hidden layers for the VQVAE.
+        param4: n_embeddings, 512
+            Number of embeddings in the codebook.
+        param5: dim_embedding, 64
+            Dimension of each embedding.
+        param6: beta, 0.25
+            Commitment cost term for the loss of the vector quantizer.
+        """
         super(VQVAE, self).__init__()
 
         self.encoder = Encoder(channels, 
@@ -262,15 +355,10 @@ class VQVAE(nn.Module):
         self.decoder = self.decoder.to(DEVICE)
 
     def forward(self, x):
-        # print('VQVAE INPUT: ', x.shape)
         x = self.encoder(x)
-        # print('VQVAE ENCODER: ', x.shape)
         x = self.conv(x)
-        # print('VQVAE CONV: ', x.shape)
         loss, x_q, perplexity, _, _ = self.quantizer(x)
-        print('VQVAE DECODER IN: ', x_q.shape)
         x_hat = self.decoder(x_q)
-        # print('VQVAE DECODER: ', x_hat.shape)
         return loss, x_hat, perplexity
 
 
@@ -281,7 +369,20 @@ class VQVAE(nn.Module):
 """
 
 class Generator(nn.Module):
+    """
+    Generator accepts a latent vector of size (B, latent_size, 1, 1) and returns an image of size (B, channels, H, W).
+    """
     def __init__(self, latent_size = 128, channels = 3):
+        """
+        Initialize the generator.
+
+        Parameters
+        ----------
+        param1 : latent_size
+            Latent size of the input vector.
+        param2 : channels
+            Number of channels for the image.
+        """
         super(Generator, self).__init__()
         self.main = nn.Sequential(
             self.layer(latent_size, latent_size * 4, 4, 1, 0),
@@ -303,7 +404,20 @@ class Generator(nn.Module):
         return self.main(input)
 
 class Discriminator(nn.Module):
+    """
+    Discriminator accepts an image of size (B, channels, H, W) and returns a probability of the image being real.
+    """
     def __init__(self, channels = 3, img_size = 64):
+        """
+        Initialize the discriminator.
+
+        Parameters
+        ----------
+        param1 : channels
+            Number of input channels (image channels).
+        param2 : img_size, 64
+            Size of the image
+        """
         super(Discriminator, self).__init__()
         self.main = nn.Sequential(
             nn.Conv2d(channels, img_size, 4, 2, 1, bias=False),

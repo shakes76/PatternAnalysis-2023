@@ -6,12 +6,14 @@ The selected problem is to develop a generative model on the ADNI brain dataset 
 
 ### Dataset: ADNI
 The models are trained on the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. This consists of MRI of the brain for selected patients, with the resulting data labelled as Cognitive Normal (NC) and those with Alzheimer's Disease (AD). The dataset is already separated into a train and test split as follows:
+
 - 21520 images in the training split
     - 10400 images of Alzheimer's Disease (AD)
     - 11120 images of Cognitive Normal (NC)
 - 9000 images in the test split
     - 4460 images of Alzheimer's Disease (AD)
     - 4540 images of Cognitive Normal (NC)
+
 Images were scaled to 128 by 128 for interaction with the models used. No augmentation was used as the dataset is of a suitable size.
 
 ### Modules
