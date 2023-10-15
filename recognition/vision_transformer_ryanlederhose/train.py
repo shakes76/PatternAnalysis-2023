@@ -58,6 +58,8 @@ def train_model(args, train_loader, epoch, device, model, criterion, optimizer):
     '''
 
     total_loss = 0.0
+    num_correct = 0
+    num_samples = 0
     tk = tqdm(train_loader, desc="EPOCH" + "[TRAIN]" 
                 + str(epoch + 1) + "/" + str(args.epochs))
     
@@ -68,6 +70,9 @@ def train_model(args, train_loader, epoch, device, model, criterion, optimizer):
 
         # Forward propogation
         scores = model(data)
+        _, predictions = scores.max(1)
+        num_correct += (predictions == targets).sum()
+        num_samples += predictions.size(0)
         loss = criterion(scores, targets)
 
         # Back propogation
@@ -80,7 +85,8 @@ def train_model(args, train_loader, epoch, device, model, criterion, optimizer):
         total_loss += loss.item()
         tk.set_postfix({"Loss": "%6f" % float(total_loss / (batch_idx + 1))})
     
-    return total_loss
+    accuracy = num_correct / num_samples
+    return ((total_loss / len(train_loader)), accuracy)
 
 def validate_model(args, val_loader, model, epoch, device, criterion):
     '''
@@ -106,21 +112,27 @@ def validate_model(args, val_loader, model, epoch, device, criterion):
             total_loss += loss.item()
             tk.set_postfix({"Loss": "%6f" % float(total_loss / (t + 1))})
 
-    print(f"Accuracy on validation set: {num_correct / num_samples *100:.2f}")
+    accuracy = num_correct / num_samples
+    print(f"Accuracy on validation set: {accuracy *100:.2f}")
     model.train()
-    return total_loss / len(val_loader)
+    return ((total_loss / len(val_loader)), accuracy)
 
 def plot_losses(train_losses, val_losses):
     plt.plot(train_losses)
-    plt.title('Training Losses')
+    plt.plot(val_losses)
+    plt.title('Training and Validation Set Losses')
     plt.xlabel('Epochs')
     plt.ylabel('Cross Entropy Loss')
+    plt.legend(["Training", "Validation"])
     plt.show()
 
-    plt.plot(val_losses)
-    plt.title('Validation Losses')
+def plot_accuracy(train_accuracy, val_accuracy):
+    plt.plot(train_accuracy)
+    plt.plot(val_accuracy)
+    plt.title('Training and Validation Set Accuracy')
     plt.xlabel('Epochs')
-    plt.ylabel('Cross Entropy Loss')
+    plt.ylabel('Accuracy')
+    plt.legend(["Training", "Validation"])
     plt.show()
 
 
@@ -136,9 +148,13 @@ def main():
     test_loader = dl.get_test_loader()
     valid_loader = dl.get_valid_loader()
     trainLoss = 0.0
+    trainAccuracy = 0.0
     trainLossList = []
+    trainAccuracyList = []
     validLoss = 0.0
+    validAccuracy = 0.0
     validLossList = []
+    validAccuracyList = []
 
     model = ViT(args).to(device)
 
@@ -149,15 +165,19 @@ def main():
     model.train()
 
     for epoch in range(args.epochs):
-        trainLoss = train_model(args, train_loader, epoch, device, model, criterion, optimizer)
-        validLoss = validate_model(args, valid_loader, model, epoch, device, criterion)
+        trainLoss, trainAccuracy = train_model(args, train_loader, epoch, device, model, criterion, optimizer)
+        validLoss, validAccuracy = validate_model(args, valid_loader, model, epoch, device, criterion)
         scheduler.step(trainLoss)
+
         trainLossList.append(trainLoss)
         validLossList.append(validLoss)
+        trainAccuracyList.append(trainAccuracy)
+        validAccuracyList.append(validAccuracy)
     
     print(f"Accuracy on test set: {check_accuracy(test_loader, model, device)*100:.2f}")
     
     plot_losses(trainLossList, validLossList)
+    plot_accuracy(trainAccuracyList, validAccuracyList)
 
 if __name__ == "__main__":
     main()
