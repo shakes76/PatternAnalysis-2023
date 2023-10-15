@@ -14,7 +14,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from train import *
 #Runs the training process for VQVAE and DCGAN, saving respective models
-# run_training()
+run_training()
 p = Parameters()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

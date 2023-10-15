@@ -45,5 +45,3 @@ def run_training():
     DCGAN_init = TrainDCGAN(Gan_loader)
     # # #Train DCGAN model, save it to current dir
     DCGAN_init.train()
-
-# run_training()

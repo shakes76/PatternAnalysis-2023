@@ -30,7 +30,6 @@ of the trained VQVAE model.
 #https://github.com/aladdinpersson/Machine-Learning-Collection/blob/master/ML/Pytorch/GANs/2.%20DCGAN/train.py
 class TrainDCGAN():
     def __init__(self, train_loader):
-        # img_shape = (3,64,64)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.params = Parameters()
         self.Discriminator = Discriminator().to(self.device)
@@ -87,6 +86,7 @@ class TrainDCGAN():
                 f"Epoch [{epoch}/{self.epochs}] Batch {num}/{len(self.train_loader)} \
                   Loss D: {D_loss:.4f}, loss G: {G_loss:.4f}"
             )
+            #Save images to look at progress
             if epoch % 2 == 0:
                 save_image(fake_img.data[:25], f"gan_images/epoch_{epoch}.png", nrow=5, normalize=True)
         current_dir = os.getcwd()
@@ -100,7 +100,7 @@ class TrainDCGAN():
         ax.plot(discriminator_loss, label = "Discriminator")
         ax.plot(generator_loss, label = "Generator")
         ax.set_ylabel('Loss')
-        ax.set_title('Reconstruction Loss after training')
+        ax.set_title('DCGAN losses during training')
         ax.set_xlabel('Iterations')
         ax.legend()
         plt.savefig("Output_files/Discriminator and Generator Losses.png")
