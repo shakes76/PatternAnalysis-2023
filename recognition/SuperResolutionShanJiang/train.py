@@ -70,8 +70,8 @@ class ESPCNCallback(keras.callbacks.Callback):
 early_stopping_callback = keras.callbacks.EarlyStopping(monitor="loss", patience=10)
 
 # Define path to save model parameters
-# checkpoint_filepath = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint"
-checkpoint_filepath = "H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
+checkpoint_filepath = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
+# checkpoint_filepath = "H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
 
 # Save model parameters at checkpoint during training
 model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
@@ -90,7 +90,7 @@ loss_fn = keras.losses.MeanSquaredError()
 optimizer = keras.optimizers.Adam(learning_rate=0.001)
 
 #Train and validate the model
-epochs = 2600
+epochs = 200
 
 model.compile(
     optimizer=optimizer, loss=loss_fn,
@@ -105,8 +105,8 @@ model.load_weights(checkpoint_filepath)
 
 #Test the model
 # define test data from test AD 
-# test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test/AD'
-test_path = 'H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/AD_NC/test/AD'
+test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test/AD'
+# test_path = 'H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/AD_NC/test/AD'
 test_img_paths = sorted(
     [
         os.path.join(test_path, fname)
