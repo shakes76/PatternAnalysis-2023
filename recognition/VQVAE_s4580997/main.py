@@ -46,8 +46,11 @@ if __name__ == '__main__':
         gan_trainer.plot(save=True)
         gan_trainer.save(utils.DISCRIMINATOR_MODEL_PATH, utils.GENERATOR_MODEL_PATH)
     else :
-        gan.discriminator.load_state_dict(torch.load(utils.DISCRIMINATOR_MODEL_PATH, map_location=utils.DEVICE))
-        gan.generator.load_state_dict(torch.load(utils.GENERATOR_MODEL_PATH, map_location=utils.DEVICE))
+        # gan.discriminator.load_state_dict(torch.load(utils.DISCRIMINATOR_MODEL_PATH, map_location=utils.DEVICE))
+        # gan.generator.load_state_dict(torch.load(utils.GENERATOR_MODEL_PATH, map_location=utils.DEVICE))
+        gan.discriminator.load_state_dict(torch.load(utils.DISCRIMINATOR_RANGPUR_MODEL_PATH, map_location=utils.DEVICE))
+        gan.generator.load_state_dict(torch.load(utils.GENERATOR_RANGPUR_MODEL_PATH, map_location=utils.DEVICE))
+
 
     # Run test
     if utils.VQVAE_TEST :
@@ -56,9 +59,10 @@ if __name__ == '__main__':
     
     # Run predict
     if utils.VQVAE_PREDICT :
-        generator = Predict(vqvae, gan, vqvae_dataset, device=utils.DEVICE, savepath=utils.OUTPUT_PATH, 
+        predict = Predict(vqvae, gan, vqvae_dataset, device=utils.DEVICE, savepath=utils.OUTPUT_PATH, 
                             img_size=(utils.VQVAE_RESIDUAL, utils.VQVAE_RESIDUAL))
-        generator.generate_gan(1)
-        generator.generate_vqvae(1)
-        generator.ssim('gan')
-        generator.ssim('vqvae')
+        # predict.generate_gan(32)
+        # predict.generate_vqvae(32)
+        # predict.ssim('gan')
+        # predict.ssim('vqvae')
+        predict.gan_generated_images(gan.generator, 128, utils.DEVICE)

@@ -47,7 +47,7 @@ class Predict() :
 
     def visualise(self, num_images = 4, show = True, save = True, savename="out"):
         rows = min(4, num_images)
-        cols = self.n // rows
+        cols = num_images // rows
         fig, axs = plt.subplots(rows, cols, figsize=(8, 4))
         axs = np.array(axs).ravel()
 
@@ -61,7 +61,7 @@ class Predict() :
         if show:
             plt.show()
     
-    def ssim(self, model='vqvae'):
+    def ssim(self, model='vqvae', num_images=32):
         
         if not self.dataset:
             print('Dataset has not been set')
@@ -79,7 +79,7 @@ class Predict() :
 
         for i, (data, _) in enumerate(self.dataset.get_test()):
             
-            if i >= self.n:
+            if i >= num_images:
                 break
             real_img = data[0].numpy() 
             real_img = np.transpose(real_img, (1, 2, 0))

@@ -22,7 +22,7 @@ CHANNELS = 3
 W = 128
 H = 128
 BETA = 0.25
-FRACTION = 0.1
+FRACTION = 1.0
 
 # Running Parameters
 VQVAE_RETRAIN = False
@@ -55,10 +55,13 @@ GAN_IMG_SIZE = 64
 # GAN Hyperparameters
 GAN_LR = 1e-3
 GAN_WD = 1e-5
-GAN_EPOCHS = 100
+GAN_EPOCHS = 10
 GAN_SAVEPATH = os.path.join(os.getcwd(), 'models/gan')
 DISCRIMINATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_discriminator.pth')
+DISCRIMINATOR_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/gan_discriminator.pth')
 GENERATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
+GENERATOR_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/gan_generator.pth')
+
 
 # Prediction Parameters
 OUTPUT_PATH = os.path.join(os.getcwd(), 'models/predictions/generated_')

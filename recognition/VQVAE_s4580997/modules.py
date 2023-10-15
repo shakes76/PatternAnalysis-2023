@@ -336,5 +336,13 @@ class GAN(nn.Module):
         self.generator = Generator(self.latent_dim)
         self.discriminator = Discriminator(self.channels, self.img_size)
 
+        for m in self.generator.modules():
+            if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)):
+                nn.init.normal_(m.weight.data, 0.0, 0.02)
+        
+        for m in self.discriminator.modules():
+            if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)):
+                nn.init.normal_(m.weight.data, 0.0, 0.02)
+
     def forward(self, x):
         return self.generator(x)
