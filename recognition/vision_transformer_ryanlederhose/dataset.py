@@ -1,6 +1,8 @@
 from torch.utils.data import DataLoader as TorchDataLoader
 from torchvision.datasets import ImageFolder
 import torchvision.transforms as T
+import matplotlib.pyplot as plt
+from torchvision.utils import make_grid
 
 class DataLoader(object):
     def __init__(self, batch_size=64) -> None:
@@ -54,3 +56,21 @@ class DataLoader(object):
     
     def get_valid_loader(self):
         return self.validloader
+    
+    def show_images(self, images, nmax=64):
+        fig, ax = plt.subplots(figsize=(8,8))
+        ax.set_xticks([]); ax.set_yticks([])
+        ax.imshow(make_grid(self.denorm(images.detach()[:nmax]), nrow=8).permute(1, 2, 0))
+    
+    def show_batch(self, dl, nmax=64):
+        for images, _ in dl:
+            self.show_images(images, nmax)
+            break
+
+    def denorm(self, img_tensors):
+        return img_tensors * self.normalisation[1][0] + self.normalisation[0][0]
+
+if __name__ == '__main__':
+    dl = DataLoader()
+    dl.show_batch(dl.get_training_loader())
+    plt.show()

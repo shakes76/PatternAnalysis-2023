@@ -20,12 +20,17 @@ It was mentioned there were two classes in the ADNI dataset, Alzheimer's disease
 
 
 ## Pre-processing
+The ADNI dataset provided was given in training and test folders. So, one of the first pre-processing steps used was to seperate the train folder into a training and validation set. It was decided a 80/20 train/validation split would be applied to the data. This is a common split ratio so it was a clear choice to use. On top of this, a patient-level split is also applied. As there are multiple scans of the same patient in the dataset, it was important to ensure that a patient scans only lies in the training or validation set. This is because the model would learn the patients number and hence, if the same patient existed in both datasets, the validation loss (and accuracy) would become a meaningless performance metric. 
 
-Here talk about pre-processing like image cropping, normalisation, training/test/validation splits
+When loading images into Python using PyTorch's ImageFolder class, the images undergo several transformations. These being:
+ * Image resizing to 192px x 192px 
+ * Normalisation with mean 0.5, and standard deviation 0.5
+ * Image crop about the centre
+The images were resized and cropped about the centre for a size of 192px x 192px because the original size of the image did not faciliate a patch size of 16px x 16px, so it was appropriate to resize the images. Furthermore, the images were normalised as this is a standard pre-processing technique. The values for the mean and standard deviation of normalisation were altered; however, it did not appear to have any significant impact on the results. A batch of brain scans after pre-processing are shown below:
 
+![alt text](images/brains-after-processing.png)
 
 ## Training
-Here talk about training show plots, different hyperparameter results and that
 
 ## Final Model Description
 
