@@ -14,7 +14,7 @@ The GAN implementation consists of two neural networks: the generator and the di
 
 ### Aims and Objectives
 
-The main aim and objective of the network is to accurately reconstruct the super-resolution version of the low-resolution input images. Modern MRIs will typically perform a type of sparse sampling to improve speed. This results in an undersampled image. For these MRI images, this process of super-resolution helps to reconstruct detailed structures that are lost due to undersampling. Finally, as mentioned, the training process uses adversarial loss to ensure that the generated images are realistic and closely resemble the real images.
+The main aim and objective of the network is to accurately reconstruct the super-resolution version of the low-resolution input images. Modern MRIs will typically perform a type of sparse sampling to improve speed. This results in an undersampled image. For these MRI images, this process of super-resolution helps to reconstruct detailed structures that are lost due to undersampling [^5]. Finally, as mentioned, the training process uses adversarial loss to ensure that the generated images are realistic and closely resemble the real images.
 
 ## Implementation
 
