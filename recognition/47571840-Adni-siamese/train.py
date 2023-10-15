@@ -87,7 +87,7 @@ print("Training complete Siamese")
 
 # Save Model 
 print("Saved siamese after training")
-siamese_path = 'siamese_40_2.pth'
+siamese_path = 'siamese_40_3.pth'
 torch.save(model_siamese.state_dict(), siamese_path)
 
 # Plot losses
@@ -103,7 +103,7 @@ plt.grid(True)
 plt.tight_layout()
 
 # Save the plot as an image
-plt.savefig("siamese_loss_curve_siamese_40_2.png")
+plt.savefig("siamese_loss_curves_siamese_40_3.png")
 
 
 
@@ -144,7 +144,7 @@ val_accuracies = []
 
 # Initialize a variable to track the best validation accuracy
 best_val_accuracy = 0.0
-best_model_path = "best_classifier_model_40_20.pth"
+best_model_path = "best_classifier_model_40_20_2.pth"
 
 for epoch in range(num_epochs):
     classifier.train()
@@ -208,7 +208,7 @@ for epoch in range(num_epochs):
 print("Training complete")
 
 # Save the trained classifier model after all training epoch
-classifier_save_path = "classifier_model_40_20.pth"
+classifier_save_path = "classifier_model_40_20_2.pth"
 torch.save(classifier.state_dict(), classifier_save_path)
 print(f"Saved classifier model to {classifier_save_path}")
 
@@ -223,7 +223,7 @@ plt.ylabel("Loss")
 plt.legend()
 
 # Save the loss plot as an image
-loss_plot_save_path = "classifier_loss_plot_classifier_model_40_20.png"
+loss_plot_save_path = "classifier_loss_plot_classifier_model_40_20_2.png"
 plt.savefig(loss_plot_save_path)
 print(f"Saved loss plot to {loss_plot_save_path}")
 
@@ -243,7 +243,7 @@ plt.ylabel("Accuracy")
 plt.legend()
 
 # Save the accuracy plot as an image
-accuracy_plot_save_path = "classifier_accuracy_plot_classifier_model_40_20.png"
+accuracy_plot_save_path = "classifier_accuracy_plot_classifier_model_40_20_2.png"
 plt.savefig(accuracy_plot_save_path)
 print(f"Saved accuracy plot to {accuracy_plot_save_path}")
 

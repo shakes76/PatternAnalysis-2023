@@ -13,13 +13,10 @@ class SiameseResNet(nn.Module):
         resnet = models.resnet18(pretrained=True)
         resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.embedding = nn.Sequential(*list(resnet.children())[:-1])
-        
-
 
     def forward_one(self, x):
         # Forward pass for one input
         x = self.embedding(x)
-        # Flatten the tensor
         x = x.view(x.size()[0], -1)
         return x
 
@@ -33,6 +30,7 @@ class SiameseResNet(nn.Module):
 
         return dist
 
+
 # Referenced from: ChatGPT (Version 4) by asking to make a classifier in my given siamese network
 class ClassifierNet(nn.Module):
     def __init__(self, siamese_model):
@@ -44,19 +42,19 @@ class ClassifierNet(nn.Module):
 
         # Classifier head with increased complexity
         self.classifier = nn.Sequential(
-            nn.Linear(512, 512),  # Increase the number of units
+            nn.Linear(512, 512),  
             nn.ReLU(),
-            nn.BatchNorm1d(512),  # Added batch normalization
+            nn.BatchNorm1d(512), 
             nn.Dropout(0.7),
             
             nn.Linear(512, 256),
             nn.ReLU(),
-            nn.BatchNorm1d(256),  # Added batch normalization
+            nn.BatchNorm1d(256),  
             nn.Dropout(0.7),
 
-            nn.Linear(256, 128),  # Additional hidden layer
+            nn.Linear(256, 128),  
             nn.ReLU(),
-            nn.BatchNorm1d(128),  # Added batch normalization
+            nn.BatchNorm1d(128),  
             nn.Dropout(0.7),
 
             nn.Linear(128, 1),
@@ -67,7 +65,6 @@ class ClassifierNet(nn.Module):
         embedding = self.siamese_model.forward_one(x)
         prob = self.classifier(embedding)
         return prob
-
 
 
 # Referenced from: https://pyimagesearch.com/2021/01/18/contrastive-loss-for-siamese-networks-with-keras-and-tensorflow/

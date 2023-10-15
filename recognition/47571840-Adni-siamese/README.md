@@ -79,10 +79,10 @@ The classifer that has the highest accuracy is "best_classifier_model_50_30_3.pt
 
 Below is the loss plot when training siamese.50.pth (the best siamese)
 ![](images_for_readme/siamese_loss_curve_siamese_50.png) 
-Observing the plot above, the model converges to a low loss.
+Observing the plot above, the siamese model converges to a low loss.
 
 Below is the loss and accuracy plot when training best_classifier_model_50_30_3.pth (the best classifier)
-Loss         |  Accuracy
+Loss of classifier         |  Accuracy of classifier
 :-------------------------:|:-------------------------:
 ![](images_for_readme/classifier_loss_plot_classifier_model_50_30_3.png) |  ![](images_for_readme/classifier_accuracy_plot_classifier_model_50_30_3.png)
 
