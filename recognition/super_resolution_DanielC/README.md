@@ -16,17 +16,29 @@ torchvision | 0.16.0
 For reproducibility, a virtual environment is recommended with specified versions respective to dependencies for isolation. 
 
 Since ``Image Folder`` can only be used in a directory with a single image folder, ensure all folders are placed as follows:
-- data
+data
   - train
-      -train_AD
-        -AD
-      -train_NC
-        -NC
+    - train_AD
+      - AD
+        - 001.jpeg
+        - 002.jpeg
+        - ...
+    - train_NC
+      - NC
+        - 001.jpeg
+        - 002.jpeg
+        - ...
   - test
-      -test_AD
-        -AD
-      -test_NC
-        -NC
+    - test_AD
+      - AD
+        - 001.jpeg
+        - 002.jpeg
+        - ...
+    - test_NC
+      - NC
+        - 001.jpeg
+        - 002.jpeg
+        - ...
 
 ## 3. Data pre-processing
 As low resolution of the images are not provided, we create our own low resolution of images and use the given high 240 x 256 as ground truth. 
