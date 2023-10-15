@@ -101,7 +101,8 @@ def train_val_split(dataset: ADNI, val_pct: float) -> Tuple[Dataset, Dataset]:
 def get_transforms() -> transforms.Compose:
     '''Returns a set of transforms to be applied to input images.'''
     return transforms.Compose([
-        transforms.CenterCrop(224),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(224, padding=4, padding_mode='reflect'),
         transforms.ConvertImageDtype(torch.float),
     ])
 
