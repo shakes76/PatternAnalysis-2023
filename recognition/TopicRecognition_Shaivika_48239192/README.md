@@ -63,6 +63,13 @@ The ViT model consists of the following main components:
 - `dropout_rate`: Dropout rate applied to the model for regularization.
 - `learning_rate`: The learning rate for training the model.
 
+#### Training
+
+- Loss Function: Categorical Cross-Entropy (for multi-class classification) or Binary Cross-Entropy (for binary classification, such as AD vs. CN).
+- Optimizer: Adam or another suitable optimizer.
+- Training Data: The ADNI dataset with labeled images.
+- Evaluation Metric: Accuracy, F1-score, or other relevant metrics.
+
 ## Usage
 - To train the model, run `train.py` and provide the necessary arguments.
 - To make predictions on a single image, run `predict.py` and provide the path to the image file.
