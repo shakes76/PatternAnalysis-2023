@@ -4,14 +4,14 @@ import torchvision.transforms as transforms
 import torch
 from torch import nn
 from torch.optim import Adam
-from torch.nn import CrossEntropyLoss
+from torch.nn import BCELoss, CrossEntropyLoss
 from tqdm import tqdm, trange
 
 
 path = '/home/groups/comp3710/ADNI/AD_NC/'
-# path = '/home/callum/AD_NC/'
+path = '/home/callum/AD_NC/'
 image_size = 256
-batch_size = 64
+batch_size = 32
 image_crop = 192
 
 train_transform = transforms.Compose([
@@ -19,6 +19,7 @@ train_transform = transforms.Compose([
     transforms.Resize((image_size, image_size)),
     transforms.Grayscale(),
     transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485], std=[0.229]) # ImageNet constants
 ])
     
 test_transform = transforms.Compose([
@@ -26,6 +27,7 @@ test_transform = transforms.Compose([
     transforms.Resize((image_size, image_size)),
     transforms.Grayscale(),
     transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485], std=[0.229]) # ImageNet constants
 ])
 
 train_dataset = ImageFolder(path + 'train', transform=train_transform)
@@ -140,7 +142,7 @@ class ViT(nn.Module):
                attn_dropout = 0.0,
                mlp_size = 3072,
                num_heads = 16,
-               num_classes = 2):
+               num_classes = 1000):
     super().__init__()
 
     self.patch_embedding_layer = PatchEmbeddingLayer(in_channels = in_channels,
@@ -171,13 +173,14 @@ model = ViT(
     embedding_dims=embedding_dims,
     num_heads=num_heads
     ).to(device)
-N_EPOCHS = 5
-LR = 0.005
+epochs = 5
+learning_rate = 0.001
+weight_decay = 0.0001
 
 # Training loop
-optimizer = Adam(model.parameters(), lr=LR)
+optimizer = Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 criterion = CrossEntropyLoss()
-for epoch in trange(N_EPOCHS, desc="Training"):
+for epoch in trange(epochs, desc="Training"):
     train_loss = 0.0
     batch_count = 0
     for batch in tqdm(train_dataloader, desc=f"Epoch {epoch + 1} in training", leave=False):
@@ -192,7 +195,7 @@ for epoch in trange(N_EPOCHS, desc="Training"):
         loss.backward()
         optimizer.step()
 
-    print(f"Epoch {epoch + 1}/{N_EPOCHS} loss: {train_loss:.2f}")
+    print(f"Epoch {epoch + 1}/{epochs} loss: {train_loss:.2f}")
 
 # Test loop
 with torch.no_grad():
