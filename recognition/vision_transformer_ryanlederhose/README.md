@@ -1,7 +1,8 @@
 # Classifying Alzheimer's Disease Using a Visual Transformer
-The aim of this project is to classify Alzheimer's disease of the ADNI brain dataset using a visual transformer (ViT). The ADNI brain dataset is composed of two classes - AD meaning Alzheimer's disease, and NC meaning Normal Cognitive. The goal is to perform classification with a minimum accuracy on the test dataset of 0.8.
 
-## Vision Transformer (ViT)
+The aim of this project is to classify Alzheimer's disease of the ADNI brain dataset using a vision transformer (ViT). The ADNI brain dataset is composed of two classes - AD meaning Alzheimer's disease, and NC meaning Normal Cognitive. The goal is to perform classification with a minimum accuracy on the test dataset of 0.8.
+
+## Vision Transformer
 Vision Transformers, often referred to as ViTs, signify a groundbreaking departure from the traditional Convolutional Neural Networks (CNNs) in the realm of computer vision. These models are primarily characterized by their utilization of the Transformer architecture, originally designed for natural language processing but adapted for visual data processing.
 
 ![alt text](images/Vision_Transformer.gif)
@@ -19,7 +20,9 @@ It was mentioned there were two classes in the ADNI dataset, Alzheimer's disease
 
 
 ## Pre-processing
+
 Here talk about pre-processing like image cropping, normalisation, training/test/validation splits
+
 
 ## Training
 Here talk about training show plots, different hyperparameter results and that
