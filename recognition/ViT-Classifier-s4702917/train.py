@@ -78,23 +78,10 @@ start = time.time()
 running_loss = 0.0
 validation_accuracies = []
 
-for epoch in range(numEpochs):
-	validation_total = 0
-	validation_correct = 0
-	
+for epoch in range(numEpochs):	
 	for i, (images, labels) in enumerate(ds.trainloader): # load a batch
 		images = images.to(device)
 		labels = labels.to(device)
-		
-		# Reserve the last 10% of the training set for
-		# validation.
-		if i / totalStep > 0.9:
-			outputs = model(images)
-			_, predicted = torch.max(outputs.data, 1)
-		
-			validation_total += labels.size(0)
-			validation_correct += (predicted == labels).sum().item()
-			continue
 	
 		# Add a graph representation of the network to our TensorBoard
 		if not addedGraph:
@@ -134,6 +121,15 @@ for epoch in range(numEpochs):
 		# of all loops to prevent the training progress from being lost.
 		if time.time() - start > maxTrainTime:
 			break
+	
+	validation_total = 0
+	validation_correct = 0
+	for i, (images, labels) in enumerate(ds.validset):
+		outputs = model(images)
+		_, predicted = torch.max(outputs.data, 1)
+	
+		validation_total += labels.size(0)
+		validation_correct += (predicted == labels).sum().item()
 	
 	if validation_total > 0:
 		# Update validation accuracy list, do cutoff based on it, and add that info to the writer

@@ -40,8 +40,9 @@ test_transform = transforms.Compose(
  )
 
 # datasets
-trainset = ImageFolder("/home/groups/comp3710/ADNI/AD_NC/train", transform=train_transform)
-testset = ImageFolder("/home/groups/comp3710/ADNI/AD_NC/test", transform=test_transform)
+trainset = ImageFolder("./data/ADNI/train", transform=train_transform)
+validset = ImageFolder("./data/ADNI/validation", transform=test_transform)
+testset = ImageFolder("./data/ADNI//test", transform=test_transform)
 
 # dataloaders
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batchSize,
