@@ -9,18 +9,22 @@ The VQ-VAE is a type of Variational AutoEncoder that incorporates vector quantiz
 ## Visualisation:
 ### Architecture of VQ-VAE
 ![architecture of generative model](./models6/architecture.png)
+
 This diagram depicts the architecture of a Vector Quantized Variational Autoencoder (VQ-VAE) for generative modeling. The process begins with an input image fed into an encoder comprised of Convolutional Neural Network (CNN) layers, Batch Normalization (BN), ReLU activation functions, and Residual Blocks. The encoder transforms the image into a latent space representation, Ze(x). This representation is then quantized to the nearest codebook vectors using VQ embedding, producing a quantized latent space, Zq(x). The decoder, mirroring the encoder in structure but using transposed convolutional layers, reconstructs the original image from the quantized latent representation.
 
 ### Training
-![losses and ssim scores from training loop](./models6/loss_ssim_plot.png)
+![losses and ssim scores from training loop](./models6/loss_ssim_plot.png)  
+
 This graph showcases the decline in both reconstruction and VQ loss values throughout the training process. Concurrently, there is a proportional rise in SSIM scores during validation. These trends highlight the effective learning capability of the model when applied to the OASIS brain dataset
 
 ### First generation in training
-![generated image based off first training parameters](./samples6/vqvae_reconstructions_1.png)
+![generated image based off first training parameters](./samples6/vqvae_reconstructions_1.png)  
+
 Initial generated images from the first epoch of training, providing a baseline representation of the OASIS brain dataset using the VQVAE model.
 
 ### Final generation based off model parameters
-![generated image based off model parameters](./models6/best_model_sample.png)
+![generated image based off model parameters](./models6/best_model_sample.png)  
+
 Final set of generated images based on optimized model parameters, showcasing a refined representation of the OASIS brain dataset with improved clarity and a SSIM score of 0.8724.
 
 ## Dependencies:
