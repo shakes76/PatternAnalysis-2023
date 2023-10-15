@@ -22,10 +22,10 @@ OUTPUT_DIR_PATH = "~/report1"
 BATCH_SIZE = 8 
 LEARNING_RATE = 0.00005
 
-def train(model, train_loader, valid_loader, num_epochs=10, device="cuda"):
+def train(model, train_loader, valid_loader, num_epochs=100, device="cuda"):
     criterion = dice_coefficient
     optimiser = torch.optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-5)
-    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.985)
+    scheduler = torch.optim.lr_scheduler.ExponentialLR(optimiser, gamma=0.985)
 
     model.to(device)
     model.train()

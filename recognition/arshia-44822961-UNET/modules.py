@@ -31,7 +31,7 @@ class ContextModule(nn.Module):
         self.relu1 = nn.LeakyReLU(inplace=True)
 
         # First convolutional layer
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=stride, padding=1)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
         
         # Dropout layer in between 
         self.dropout = nn.Dropout2d(p=dropout_p)
@@ -115,7 +115,7 @@ class LocalisationModule(nn.Module):
 # reduces depth of feature maps to 1 
 class SegmentationModule(nn.Module):
     def __init__(self, in_channels, out_channels=1):
-        super(SegmentationLayer, self).__init__()
+        super(SegmentationModule, self).__init__()
         self.segmentation = nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0)
 
     def forward(self, x):

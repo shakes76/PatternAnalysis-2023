@@ -1,5 +1,8 @@
 ---- documentation ---- 
 
+# General Code Clean up 
 
 
-# fix the coefficients etc. 
+# README OUTLINE 
+
+
