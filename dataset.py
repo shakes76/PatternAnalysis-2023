@@ -57,7 +57,7 @@ class ADNC_Dataset(Dataset):
         def __init__(self, AD_image_paths, NC_image_paths, transform=None):
             self.AD_image_paths = AD_image_paths
             self.NC_image_paths = NC_image_paths
-            
+
             # Creating a DataFrame
             AD_df = pd.DataFrame({
                 'image_path': self.AD_image_paths,
@@ -75,7 +75,6 @@ class ADNC_Dataset(Dataset):
             # print(self.data.head())
             self.transform = transform
             
-
         def __len__(self):
             return len(self.data)
         
@@ -93,19 +92,28 @@ class ADNC_Dataset(Dataset):
                 
              return image, label
         
-dataset = ADNC_Dataset(train_images_AD, train_images_NC)
+# Data normalisation and augmentation for training
+data_transforms = {
+    'train': transforms.Compose([
+        transforms.RandomResizedCrop(240),  # Using 240 as the crop size- divisible common patch sizes  (i.e. 16x16)
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+    'val': transforms.Compose([
+        transforms.Resize(256),
+        transforms.CenterCrop(240),  #Center cropping to 240x240
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ]),
+}
 
-#test code
-# train_images_paths_AD = '/Users/noammendelson/Documents/REPORT-COMP3710/AD_NC/train/AD'
-# train_images_paths_NC = '/Users/noammendelson/Documents/REPORT-COMP3710/AD_NC/train/NC'
+# Create training and validation datasets
+train_dataset = ADNC_Dataset(train_images_AD, train_images_NC, transform=data_transforms['train'])
+val_dataset = ADNC_Dataset(val_images_AD, val_images_NC, transform=data_transforms['val'])
 
-# all_train_images_paths_NC = get_image_paths_from_directory(train_images_paths_NC)
-# all_train_images_paths_AD = get_image_paths_from_directory(train_images_paths_AD)
-
-# dataset = ADNC_Dataset(all_train_images_paths_AD, all_train_images_paths_NC)
-
-# # Test the dataset by printing the length and loading the first sample
-# print(f"Total samples in the dataset: {len(dataset)}")
-# image, label = dataset[0]
-# print(f"Label of the first sample: {label}")
-# print(f"Path of the first sample: {dataset.data['image_path'].iloc[0]}")
+# Create training and validation dataloaders
+dataloaders_dict = {
+    'train': DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4),
+    'val': DataLoader(val_dataset, batch_size=32, shuffle=False, num_workers=4)
+}
