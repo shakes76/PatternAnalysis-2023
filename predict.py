@@ -13,4 +13,4 @@ def predict(model, input_image):
     # Implement code to preprocess and make predictions using the model
     pass
 
-# Visualize and print results
+# Visualize and print result
