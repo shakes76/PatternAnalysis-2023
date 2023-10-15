@@ -129,45 +129,32 @@ def main():
         model.eval()
         
         # Get Class Queries
-        q_class = -1
-        while q_class != 0:
-            AD_query, q_class = train_dataloader.dataset[random.randint(0, len(train_dataloader.dataset) - 1)]
-        q_class = -1
-        while q_class != 1:
-            NC_query, q_class = train_dataloader.dataset[random.randint(0, len(train_dataloader.dataset) - 1)]
-        
-        AD_query = AD_query.to(device)
-        NC_query = NC_query.to(device)
-        AD_query = AD_query[:, None, :, :]
-        NC_query = NC_query[:, None, :, :]
+        AD_query, NC_query = get_class_queries(train_dataloader.dataset)
         AD_query_embedding = model(AD_query)
         NC_query_embedding = model(NC_query)
         
         model.eval()
-        # Get random sample from train:
         total_loss = 0.0
         total_correct = 0
         for i, (images, labels) in enumerate(valid_dataloader):
             images = images.to(device)
             labels = labels.to(device)
             
-            # Forward pass
+            # Calculate Loss
             embeddings = model(images)
             hard_pairs = miner(embeddings, labels)
             loss = criterion(embeddings, labels, hard_pairs) 
-            
             total_loss += loss.item()
             
-            ####
-            
+            # Calculate Accuracy
             AD_query_batch = AD_query_embedding.repeat(images.shape[0], 1)
             NC_query_batch = NC_query_embedding.repeat(images.shape[0], 1)
             
-            # Predict similarity for AD and NC
+            ## Predict similarity for AD and NC
             AD_sim = F.pairwise_distance(AD_query_batch, embeddings, keepdim = True)
             NC_sim = F.pairwise_distance(NC_query_batch, embeddings, keepdim = True)
             
-            # Find class with most similarity
+            ## Find class with most similarity
             sim = torch.stack([AD_sim, NC_sim], dim = 1)
             pred = torch.Tensor.argmin(sim, dim = 1)
 
@@ -178,13 +165,55 @@ def main():
         
         epoch_valid_acc.append(total_correct/len(valid_dataloader.dataset))
         epoch_avg_valid_loss.append(total_loss/len(valid_dataloader))
-        
+    
     torch.save(model.state_dict(), "./" + MODEL_NAME + ".pt")
     
     end = time.time()
     elapsed = end - start
     print("Training took ", str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
     print("END")
+    
+    ###################
+    #   Test Model:   #
+    ###################
+    model.eval()
+    # Get Class Queries
+    AD_query, NC_query = get_class_queries(train_dataloader.dataset)
+    AD_query_embedding = model(AD_query)
+    NC_query_embedding = model(NC_query)
+    
+    model.eval()
+    total_loss = 0.0
+    total_correct = 0
+    for i, (images, labels) in enumerate(test_dataloader):
+        images = images.to(device)
+        labels = labels.to(device)
+        
+        # Calculate Loss
+        embeddings = model(images)
+        hard_pairs = miner(embeddings, labels)
+        loss = criterion(embeddings, labels, hard_pairs) 
+        total_loss += loss.item()
+        
+        # Calculate Accuracy
+        AD_query_batch = AD_query_embedding.repeat(images.shape[0], 1)
+        NC_query_batch = NC_query_embedding.repeat(images.shape[0], 1)
+        
+        ## Predict similarity for AD and NC
+        AD_sim = F.pairwise_distance(AD_query_batch, embeddings, keepdim = True)
+        NC_sim = F.pairwise_distance(NC_query_batch, embeddings, keepdim = True)
+        
+        ## Find class with most similarity
+        sim = torch.stack([AD_sim, NC_sim], dim = 1)
+        pred = torch.Tensor.argmin(sim, dim = 1)
+
+        correct = (labels[:, None] == pred).sum().item()
+        total_correct += correct
+        
+    print("Test loss: {:.5f}, Test accuracy: {:.2f}%".format(total_loss/len(test_dataloader), total_correct/len(test_dataloader.dataset) * 100))
+    
+    if VISUALIZE:
+        visualize(epoch_train_acc, epoch_valid_acc, epoch_avg_train_loss, epoch_avg_valid_loss)
     
 def visualize(epoch_train_acc, epoch_valid_acc, epoch_avg_train_loss, epoch_avg_valid_loss):
     plt.plot(range(len(epoch_train_acc)), epoch_train_acc, label = "Training Accuracy")
@@ -197,7 +226,23 @@ def visualize(epoch_train_acc, epoch_valid_acc, epoch_avg_train_loss, epoch_avg_
     plt.title("Training Loss and Accuracy")
     plt.legend()
     plt.show()
+
+def get_class_queries(dataset):
+    # Get Class Queries
+    q_class = -1
+    while q_class != 0:
+        AD_query, q_class = dataset[random.randint(0, len(dataset) - 1)]
+    q_class = -1
+    while q_class != 1:
+        NC_query, q_class = dataset[random.randint(0, len(dataset) - 1)]
     
+    AD_query = AD_query.to(device)
+    NC_query = NC_query.to(device)
+    AD_query = AD_query[:, None, :, :]
+    NC_query = NC_query[:, None, :, :]
+    
+    return AD_query, NC_query
+        
 if __name__ == "__main__":
     main()
     
