@@ -18,7 +18,7 @@ class CustomDataset(torch.utils.data.Dataset):
         img_path = os.path.join(self.image_dir, self.images[idx])
         image = Image.open(img_path).convert('RGB')
         mask_path = os.path.join(self.mask_dir, self.masks[idx])
-        mask = Image.open(mask_path).convert('RGB')
+        mask = Image.open(mask_path).convert('L')
         if self.transform:
             image = self.transform(image)
             mask = self.transform(mask)
