@@ -26,11 +26,22 @@ def distance_layer(im1_feature, im2_feature):
     return torch.sqrt(torch.maximum(tensor, torch.tensor(1e-7)))
 
 def classification_model(subnet):
-    pass
+    
+    image = torch.nn.Parameter(torch.randn(1, 1, 128, 128))  # Adjust input shape for grayscale image
+
+    tensor = subnet(image)
+    tensor = BatchNorm1d(1024)(tensor)
+    out = Linear(1024, 1, activation='sigmoid')(tensor)
+
+    classifier = Sequential(subnet, out)
+
+    return classifier
 
 def contrastive_loss(y, y_pred):
    
-    pass
+    square = torch.square(y_pred)
+    margin = torch.square(torch.maximum(1 - y_pred, torch.zeros_like(y_pred)))
+    return torch.mean((1 - y) * square + y * margin)
 
 def siamese(height: int, width: int):
     
