@@ -1,4 +1,5 @@
 .venv
 *.pyc
 recognition/adni_vit_45285545/ADNI
+recognition/adni_vit_45285545/adni-vit-metrics-*
 recognition/adni_vit_45285545/adni-vit-trained-*
