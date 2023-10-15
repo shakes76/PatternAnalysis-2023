@@ -13,7 +13,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # Model configurations
 model = VisionTransformer().to(device)
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=3e-4, weight_decay=1e-4)  # Introduced weight decay
+optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=2e-4)  # Introduced weight decay
 scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.7)  # Learning rate scheduler
 
 # Training loop
