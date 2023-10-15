@@ -35,9 +35,7 @@ class Baseline(nn.Module):
     def forward(self, x1, x2):
         x1 = self.sub_forward(x1)
         x2 = self.sub_forward(x2)
-        distance = torch.abs(x1 - x2) # l1 distance
-        out = self.out(distance)
-        return out
+        return x1, x2
 
 """
 # test if the model works properly
@@ -45,5 +43,6 @@ if __name__ == '__main__':
     model = Baseline()
     test_tensor = torch.ones(3, 20, 240, 256)
     output = model(test_tensor, test_tensor)
-    print(output.shape)
+    print(output[0].shape)
+    print(output[1].shape)
 """
