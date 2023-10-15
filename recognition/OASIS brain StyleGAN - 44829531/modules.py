@@ -48,13 +48,13 @@ def AdaIN(n_filters, image_size, epsilon=EPSILON):
     return: The AdaIN model
     """
     input = layers.Input((image_size, image_size, n_filters))
-    v = layers.Input(n_filters)
+    w = layers.Input(n_filters)
     x = input
 
     # Calculate scale and bias for AdaIN
-    y_scale = layers.Dense(n_filters)(v)
+    y_scale = layers.Dense(n_filters)(w)
     y_scale = layers.Reshape([1, 1, n_filters])(y_scale)
-    y_bias = layers.Dense(n_filters)(v)
+    y_bias = layers.Dense(n_filters)(w)
     y_bias = layers.Reshape([1, 1, n_filters])(y_bias)
 
     # Calculate mean and standard deviation of x
@@ -64,7 +64,7 @@ def AdaIN(n_filters, image_size, epsilon=EPSILON):
 
     # Apply AdaIN transformation to the tensor
     x = y_scale * ((x - mean) / (stddev + epsilon)) + y_bias
-    return tf.keras.Model([input, v], x)
+    return tf.keras.Model([input, w], x)
 
 
 def WNetwork(lat_dim=LATENT_DIMENSIONS):
@@ -73,14 +73,14 @@ def WNetwork(lat_dim=LATENT_DIMENSIONS):
     series of fully connected layers.
 
     param lat_dim: The number of dimensions in the latent space
-    return: The Mapping Network transforming z to v
+    return: The Mapping Network transforming z to w
     """
     z = layers.Input([lat_dim])
-    v = z
+    w = z
     for _ in range(8):
-        v = layers.Dense(lat_dim)(v)
-        v = layers.LeakyReLU(ALPHA)(v)
-    return tf.keras.Model(z, v)
+        w = layers.Dense(lat_dim)(w)
+        w = layers.LeakyReLU(ALPHA)(w)
+    return tf.keras.Model(z, w)
 
 
 class Generator:
@@ -90,7 +90,6 @@ class Generator:
     The generator is trained to fool discriminator by generating fake
     distribution which is close to the true distribution
     """
-
     def __init__(self):
         self.init_size = 4
         self.init_filters = 512
@@ -107,7 +106,7 @@ class Generator:
         # Define the input tensors
         input_tensor = layers.Input(shape=(image_size, image_size, n_filters))
         noise = layers.Input(shape=(2 * image_size, 2 * image_size, 1))
-        v = layers.Input(shape=512)
+        w = layers.Input(shape=512)
         x = input_tensor
 
         # Halve the number of filters for the next block
@@ -120,10 +119,10 @@ class Generator:
         for _ in range(2):
             x = layers.Conv2D(n_filters, KERNEL_SIZE, padding="same")(x)
             x = apply_noise(n_filters, image_size * 2)([x, noise])
-            x = AdaIN(n_filters, image_size * 2)([x, v])
+            x = AdaIN(n_filters, image_size * 2)([x, w])
             x = layers.LeakyReLU(ALPHA)(x)
 
-        return tf.keras.Model([input_tensor, v, noise], x)
+        return tf.keras.Model([input_tensor, w, noise], x)
 
     def generator(self):
         """
@@ -177,7 +176,10 @@ class Generator:
 
 
 class Discriminator:
-
+    """
+    The Discriminator is trained to distinguish true and fake distribution
+    as well as possible
+    """
     def __init__(self):
         """
         Initialise the Discriminator network with the initial image size and
