@@ -87,7 +87,7 @@ To utilize this project with your ADNI dataset, follow these steps:
     visualised as a side-by-side comparison of the `Downsampled Image` - `ESPCN super-resolved image` - `Original Image`.
 
 ## Training Plots
-![Alt text](image.png)
+![Alt text](plots.png)
 
 ## Output
 ![Alt text](outputimg.png)
