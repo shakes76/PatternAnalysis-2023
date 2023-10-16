@@ -15,6 +15,8 @@ from modules import Generator, Discriminator
 from util import SaveImage, SaveWeight
 import matplotlib.pyplot as plt
 
+BUFFER = 0.25
+
 
 class StyleGAN(keras.Model):
     """
@@ -40,8 +42,10 @@ class StyleGAN(keras.Model):
         super(StyleGAN, self).compile()
 
         # initialise the optimisers
-        self.generator_optimizer = tf.keras.optimizers.Adam(0.00001)
-        self.discriminator_optimizer = tf.keras.optimizers.Adam(0.00002)
+        self.generator_optimizer = tf.keras.optimizers.Adam(
+            learning_rate=0.00001)
+        self.discriminator_optimizer = tf.keras.optimizers.Adam(
+            learning_rate=0.00001)
 
         # initialise the loss function
         self.loss = tf.keras.losses.BinaryCrossentropy()
@@ -100,7 +104,8 @@ class StyleGAN(keras.Model):
             gradients = g_tape.gradient(generator_loss, trainable_variables)
 
             # Apply the gradients to the generator's optimiser.
-            self.generator_optimizer.apply_gradients(zip(gradients, trainable_variables))
+            self.generator_optimizer.apply_gradients(
+                zip(gradients, trainable_variables))
         return generator_loss
 
     def train_discriminator(self, real_images):
@@ -136,20 +141,27 @@ class StyleGAN(keras.Model):
 
     def train(self, dataset_path, result_image_path, image_count,
               result_weight_path, plot_loss):
-              
+
         """
         Train the StyleGAN model using the given dataset
         """
+        # Create a list of callbacks to be used during training
         callbacks = []
 
+        # Add the callback to save the model's weights
         if result_image_path != "":
             callbacks.append(SaveImage(result_image_path, image_count))
         if result_weight_path != "":
             callbacks.append(SaveWeight(result_weight_path))
 
+        # Load the dataset
         images = load_data(dataset_path)
+
+        # Compile the model
         self.compile()
-        epoch_history = self.fit(images, epochs=self.epochs, callbacks=callbacks)
+
+        epoch_history = self.fit(images, epochs=self.epochs,
+                                 callbacks=callbacks)
 
         if plot_loss:
             self.plot(epoch_history, result_image_path)
@@ -185,8 +197,10 @@ class StyleGAN(keras.Model):
         generator_loss = epoch_history.epoch_history["generator_loss"]
 
         # Plot the discriminator loss values against the number of epochs.
-        minimum_value = min(min(discriminator_loss), min(generator_loss))
-        maximum_value = max(max(discriminator_loss), max(generator_loss))
+        minimum_value = min(min(discriminator_loss), min(generator_loss)) - \
+                        BUFFER
+        maximum_value = max(max(discriminator_loss), max(generator_loss)) + \
+                        BUFFER
 
         # Plot the generator loss values against the number of epochs.
         plt.plot(discriminator_loss, label="Discriminator Loss")
@@ -201,7 +215,7 @@ class StyleGAN(keras.Model):
         plt.ylim([minimum_value, maximum_value])
 
         # If filepath is not None, save the plot to the filepath
-        if filepath is not None:
+        if filepath != "":
             directory_name = os.path.dirname(filepath)
             filepath = os.path.join(directory_name, filepath)
             plt.savefig("{}\loss_plot.png".format(filepath))

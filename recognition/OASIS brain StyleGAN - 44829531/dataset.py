@@ -11,10 +11,8 @@ import os
 import tensorflow
 from tensorflow import keras
 
-local_dataset_path = "C:\\Users\\ethan\\Desktop\\COMP3710" \
-                     "\\keras_png_slices_train "
-# dataset_path = "/home/groups/comp3710/OASIS/keras_png_slices_train"
-dataset_path = local_dataset_path
+# The path to the dataset
+dataset_path = "/home/groups/comp3710/OASIS/keras_png_slices_train"
 
 
 def load_data(dataset_path):
@@ -32,3 +30,4 @@ def load_data(dataset_path):
         (file_path, label_mode=None, color_mode="grayscale")
     image_data = image_data.map(lambda x: x / 255)
     return image_data
+

@@ -34,7 +34,8 @@ def apply_noise(n_filters, image_size):
     x = input
 
     # Add noise to the input
-    x = x + noise
+    scaled_noise = layers.Dense(n_filters)(noise)
+    x = x + scaled_noise
     return tf.keras.Model([input, noise], x)
 
 
@@ -75,7 +76,7 @@ def WNetwork(lat_dim=LATENT_DIMENSIONS):
     param lat_dim: The number of dimensions in the latent space
     return: The Mapping Network transforming z to w
     """
-    z = layers.Input([lat_dim])
+    z = layers.Input(shape=[lat_dim])
     w = z
     for _ in range(8):
         w = layers.Dense(lat_dim)(w)
@@ -120,7 +121,7 @@ class Generator:
             x = layers.Conv2D(n_filters, KERNEL_SIZE, padding="same")(x)
             x = apply_noise(n_filters, image_size * 2)([x, noise])
             x = AdaIN(n_filters, image_size * 2)([x, w])
-            x = layers.LeakyReLU(ALPHA)(x)
+            x = layers.LeakyReLU(alpha=ALPHA)(x)
 
         return tf.keras.Model([input_tensor, w, noise], x)
 
@@ -154,12 +155,12 @@ class Generator:
         x = layers.Activation("linear")(x)
         x = apply_noise(n_filters, current_size)([x, noise_inputs[i]])
         x = AdaIN(n_filters, current_size)([x, mapping(z_inputs[i])])
-        x = layers.LeakyReLU(ALPHA)(x)
+        x = layers.LeakyReLU(alpha=ALPHA)(x)
 
         x = layers.Conv2D(512, KERNEL_SIZE, padding="same")(x)
         x = apply_noise(n_filters, current_size)([x, noise_inputs[i]])
         x = AdaIN(n_filters, current_size)([x, mapping(z_inputs[i])])
-        x = layers.LeakyReLU(ALPHA)(x)
+        x = layers.LeakyReLU(alpha=ALPHA)(x)
 
         # Apply the generator blocks until desired image size is reached
         while current_size < 256:
@@ -170,7 +171,7 @@ class Generator:
             n_filters = n_filters // 2
 
         # Apply the final convolutional layer
-        x = layers.Conv2D(1, KERNEL_SIZE, padding="same",
+        x = layers.Conv2D(1, kernel_size=KERNEL_SIZE, padding="same",
                           activation="sigmoid")(x)
         return tf.keras.Model([input, z_inputs, noise_inputs], x)
 
@@ -203,10 +204,11 @@ class Discriminator:
                                                n_filters // 2))
 
         x = input_tensor
-        x = layers.Conv2D(n_filters, KERNEL_SIZE, padding="same")(x)
-        x = layers.Conv2D(n_filters, KERNEL_SIZE, padding="same")(x)
+        x = layers.Conv2D(n_filters, kernel_size=KERNEL_SIZE, padding="same")(x)
+        x = layers.Conv2D(n_filters, kernel_size=KERNEL_SIZE, padding="same")(x)
         x = layers.AveragePooling2D((2, 2))(x)
         x = layers.LeakyReLU(ALPHA)(x)
+        
         return tf.keras.Model(input_tensor, x)
 
     def discriminator(self):
@@ -231,8 +233,8 @@ class Discriminator:
             n_filters = 2 * n_filters
 
         # Apply two convolutional layers with leaky ReLU activation
-        x = layers.Conv2D(n_filters, KERNEL_SIZE, padding="same")(x)
-        x = layers.Conv2D(n_filters, KERNEL_SIZE, padding="same")(x)
+        x = layers.Conv2D(n_filters, kernel_size=KERNEL_SIZE, padding="same")(x)
+        x = layers.Conv2D(n_filters, kernel_size=KERNEL_SIZE, padding="same")(x)
         x = layers.LeakyReLU(ALPHA)(x)
 
         # Flatten the tensor and pass through a dense layer with
