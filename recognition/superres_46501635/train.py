@@ -7,11 +7,6 @@ from torchvision.utils import save_image
 import os
 import matplotlib.pyplot as plt
 
-
-output_dir = 'C:\\Users\\soonw\\ADNI\\ESPCN_generated_images'
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
-
 # Check for CUDA availability
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -75,27 +70,6 @@ for epoch in range(epochs):
             outputs = model(LR)
             mse_loss = criterion(outputs, HR).item()
             avg_psnr += compute_psnr(mse_loss)
-
-            # Save images every 5 epochs
-            if epoch % 5 == 0 and batch_idx == 0:  # Taking the first batch as an example
-                # Convert tensors to numpy arrays for visualization
-                downsampled_np = LR.cpu().numpy()[0][0]
-                original_np = HR.cpu().numpy()[0][0]
-                output_np = outputs.cpu().numpy()[0][0]
-
-                # Display images
-                fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-                axes[0].imshow(downsampled_np, cmap='gray')
-                axes[0].set_title('Downsampled Image')
-                axes[1].imshow(output_np, cmap='gray')
-                axes[1].set_title('Upsampled by ESPCN')
-                axes[2].imshow(original_np, cmap='gray')
-                axes[2].set_title('Original Image')
-
-                for ax in axes:
-                    ax.axis('off')
-
-                plt.show()
                 
         avg_psnr /= len(test_loader)
         print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}, Avg PSNR: {avg_psnr:.4f}")
