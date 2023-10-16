@@ -33,7 +33,7 @@ hidden features of [22470, hidden_channels]. The final convolution layer produce
 The model concludes with an Output Layer employing a LogSoftmax function, delivering a Class Probability Distribution with dimensions [22470, 4]. 
 Throughout these layers, the transformation of features is facilitated by the adjacency matrix, ensuring the model captures the graph structure effectively. 
 The process diagram is shown below
-![image issue](https://drive.google.com/file/d/1HRe1GEGCiP4KmZToKMdHrLJClTi7jSLe/view?usp=sharing)
+![image issue](https://github.com/Amberfafa/PatternAnalysis-2023/blob/topic-recognition/recognition/46905774_GCN/results_visualization/GCN_module_dia.png)
 
 ## problem that it solves
 The objective of this project is to categorize each Facebook page into one of four categories.
