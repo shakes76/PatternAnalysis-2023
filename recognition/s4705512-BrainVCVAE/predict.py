@@ -70,3 +70,51 @@ pixel_cnn = get_pixelcnn(
         vqvae_trainer.num_embeddings,
 )
 pixel_cnn.load_weights(models_directory + pixelcnn_weights_filename)
+
+# Encode the given images
+def encode_images(images):
+    encoded_outputs = encoder.predict(images)
+    return encoded_outputs
+
+# Decode the given codes
+def decode_images(codes):
+    decoded_images = decoder.predict(codes)
+    return decoded_images
+
+# Encode and then decode images
+def reconstruct(images):
+    return trained_vqvae_model.predict(images)
+
+# Generate codes to be decoded into novel brains
+def generate_codes(num_codes=4):
+    # Generate new images with the PixelCNN model
+    inputs = layers.Input(shape=pixel_cnn.input_shape[1:])
+    outputs = pixel_cnn(inputs, training=False)
+    categorical_layer = tfp.layers.DistributionLambda(tfp.distributions.Categorical)
+    outputs = categorical_layer(outputs)
+    sampler = tf.keras.Model(inputs, outputs)
+
+    # Create an empty array of priors.
+    priors = np.zeros(shape=(num_codes,) + (pixel_cnn.input_shape)[1:])
+    num_codes, rows, cols = priors.shape
+
+    # Iterate over the priors because generation has to be done sequentially pixel by pixel.
+    for row in range(rows):
+        for col in range(cols):
+            # Feed the whole array and retrieving the pixel value probabilities for the next
+            # pixel.
+            probs = sampler.predict(priors)
+            # Use the probabilities to pick pixel values and append the values to the priors.
+            priors[:, row, col] = probs[:, row, col]
+
+    print(f"Prior shape: {priors.shape}")
+
+    # Perform an embedding lookup.
+    pretrained_embeddings = quantizer.embeddings
+    priors_ohe = tf.one_hot(priors.astype("int32"), vqvae_trainer.num_embeddings).numpy()
+    quantized = tf.matmul(
+        priors_ohe.astype("float32"), pretrained_embeddings, transpose_b=True
+    )
+    quantized = tf.reshape(quantized, (-1, *(encoder.output_shape[1:])))
+
+    return priors, quantized
