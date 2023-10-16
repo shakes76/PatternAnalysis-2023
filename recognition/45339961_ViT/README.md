@@ -1,11 +1,14 @@
-# Classifying Alzheimer's Disease of the ADNI brain data using a Visual Transformer
+# Vision Transformer for ADNI
+This project explored the use of a Vision Transformer for the classification of Alzheimer's
+disease in the ADNI brain dataset.
 
 # Contents
 
-## Data Background
 
-## Vision Transformer Background
-### ViT Architecture Overview
+# Data Background
+
+# Vision Transformer Background
+## ViT Architecture Overview
 | Vision Transformer (ViT) | Transformer Encoder |
 | :---: | :---: |
 | <img src="misc/vit.gif" width="550" height="400"/> | <img src="misc/encoderblock.png" width="175" height="400"/> |
@@ -42,16 +45,16 @@ The Vision Transformer architecture is comprised of a several stages:
     - This is the output layer of the architecture. It converts the learned features of an input to 
     a class output. Since this is a classification problem, this would be called the "classifier head".
 
-### How it works
+## How it works
 
 Here is an example patched image:
 
 <img src="misc\patched_example.png" width="600" height="600"/>
 
-### Problem it solves
+# Problem It Solves
 
 
-## Dependencies & Requirements
+# Dependencies & Requirements
 
 To run all the files within this repository, a conda environment can be created using the provided
 ```environment.yml``` file. After installing conda, one can run the following to instantiate a
@@ -60,9 +63,15 @@ new environment with the required dependencies:
 conda env create -n {environment name} -f environment.yml
 ```
 
-## Results
+# Results
 
-## References
+## Train, Validation and Test split
+
+## Experimentation
+
+## Reproducibility of Results
+
+# References
 https://arxiv.org/pdf/2010.11929.pdf
 
 https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
