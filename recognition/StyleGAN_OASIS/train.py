@@ -141,7 +141,7 @@ Train a styleGAN on the OASIS brain dataset using a predefined configuration
 """
 def train_stylegan_oasis(is_rangpur=True):
     cfg_win = {'batch_sizes':[256,128,128,64,16,8,8], 'channels':[512, 512,256,128,64,32,16,8,4], 'rgb_ch':3
-            , 'fade_epochs': np.array([30, 30, 30, 30, 30, 30, 30, 30])
+            , 'fade_epochs': np.array([2, 2, 2, 2, 2, 2, 2, 2])
             , 'image_folder': r'C:\Temp\keras_png_slices_data\keras_png_slices_data'
             , 'generator_model_file': 'C:\Temp\stylegan_depth_{0}.pth'
             , 'losses_file': 'losses.csv'
@@ -149,8 +149,8 @@ def train_stylegan_oasis(is_rangpur=True):
     
     cfg_rangpur = {'batch_sizes':[256,128,128,64,16,8,8], 'channels':[512, 512,256,128,64,32,16,8,4], 'rgb_ch':3
             , 'fade_epochs': np.array([30, 30, 30, 30, 30, 30, 30, 30])
-            , 'image_folder': 'data/keras_png_slices_data'
-            , 'generator_model_file': 'C:\Temp\stylegan_depth_{0}.pth'
+            , 'image_folder': '/home/groups/comp3710/OASIS'
+            , 'generator_model_file': 'stylegan_depth_{0}.pth'
             , 'losses_file': 'losses.csv'
             , 'lr':0.001, 'mapping_lr':1e-5, 'lambda':10, 'beta1': 0.0, 'beta2': 0.999, 'z_size':256, 'w_size':256, 'img_size': 256}
 

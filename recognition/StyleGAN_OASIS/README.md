@@ -1,11 +1,11 @@
 # StyleGAN for the OASIS Brain data set
 
-Pattern recognition using a PyTorch style generative adverserial network (GAN) that is part of the COMP3710 repository. This particular implementation looks to create a generative model of the OASIS brain dataset using a variant of StyleGAN that has a "reasonably clear image".
+Pattern recognition using a PyTorch style generative adverserial network (GAN) that is part of the COMP3710 repository. This particular implementation looks to create a generative model of the OASIS brain dataset using a variant of StyleGAN that has a "reasonably clear image". A further experiment was performed to observe the behavour of StyleGAN generating supersized images.
 
 ## Motivation of synthesis with StyleGAN
 
 A StyleGAN is used for synthesis. By learning the probability distribution to some underlying data (images in this case), it is possible to synthesis new images following the learnt distribution. There are a number of motivating reasons why a StyleGAN would be used:
-- **Image synthesis** As mentioned, images can be generated from the learnt underlying distribution for artistic and entertainment purposes
+- **Image synthesis** As mentioned, images can be generated from the learnt underlying distribution, for artistic and entertainment purposes
 - **Augmentation** When limited data are available for training, data augmentation techniques expand the available training data through image variations such as rotation, shear, and colour perturbations. StyleGAN permits a richer form of augmentation by generating brand new variations rather than limited transforms of existing data
 - **Content creation** Synthesis can be used to generate new content for media, such as gaming, social media, or even movies (background generation for example)
 - **Annonymity** As a result of the synthesis, new samples produced are different from the training data. This permits datasets to be generated that hide the identity of the training data, such as annonymity through face synthesis
@@ -65,13 +65,16 @@ Some example inputs for training the StyleGAN from the OASIS brain dataset are:
 A synthesed image is created by generating a random input z of shape (batch size, latent size). Some examples of outputs from the Generator are:
 ![Examples of real OASIS brain images](figures/fake_images_sample.png)
 
+Purely out of interest, the StyleGAN was also used to supersize the synthesized layers to 512x512, beyond the original resolution of 256x256.
+![Examples of real OASIS brain images](figures/fake_images_sample_supersized.png)
+
 ## Reproducibility of Results
 
-Each Progressive GAN layer was run for 30 epochs. Over the six layers required to upsample to 256x256, the total training epochs were 180. On the Rangpur HPC, this typically takes about 3 hours. The generation of synthetic images is fairly stable. The image results publishing here are quite typically of the output after various training runs.
+Each Progressive GAN layer was run for 30 epochs. Over the six layers required to upsample from 4x4 to 256x256, and then finishing at 512x512 (supersized), the total training epochs were 210. On the Rangpur HPC, this typically takes about 6 hours. The generation of synthetic images is fairly stable. The image results published here are quite typically of the output after various training runs.
 
 ## Preprocessing
 
-The OASIS training dataset was used, which has 10,000 RGB images of size 256x256. Each synthesis layer requires training data for a particular size. To acheive this, the preprocessing included downsampling to the required size for each layer's training. Preprocessing also included the usual normalisation across the RGB channels.
+The OASIS dataset was used, which has 22,000 RGB images of size 256x256 of both images and segmentations. Each synthesis layer requires training data for a particular size. To acheive this, the preprocessing included downsampling to the required size for each layer's training. Preprocessing also included the usual normalisation across the RGB channels. For the supersized experiment, the input images were scaled to 512x512.
 
 
 ## Versioning and Dependencies
