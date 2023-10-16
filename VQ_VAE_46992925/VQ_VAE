@@ -133,20 +133,19 @@ class Quantiser(nn.Module):
         encoding_indices = torch.argmin(dist, dim=-1)       # in form B, W*H
         return encoding_indices
     
+    def output_from_indices(self, indices, output_shape):
+        quant_out = torch.index_select(self.embedding.weight, 0, indices.view(-1))
+        quant_out = quant_out.reshape(output_shape).permute(0, 3, 1, 2)
+        return quant_out
     
     def forward(self, quant_input):
         
-        B, C, H, W = quant_input.shape
-                
         # Get the encoding indices
         encoding_indices = self.get_encoding_indices(quant_input)
 
-        # Select the embedding weights
-        quant_out = torch.index_select(self.embedding.weight, 0, encoding_indices.view(-1))
-        quant_out = quant_out.reshape((B, H, W, C)).permute(0, 3, 1, 2)
+        quant_out = self.output_from_indices(encoding_indices, quant_input.shape)
 
         print(quant_out.shape, quant_input.shape)
-        
         
         # Compute losses
         commitment_loss = torch.mean((quant_out.detach() - quant_input)**2)             # TODO change to MSE
@@ -209,6 +208,11 @@ class VQVAE(nn.Module):
         
         return output, total_loss, encoding_indices
     
+    @torch.no_grad()
+    def img_from_indices(self, indices):
+        quant_out = self.quantiser.output_from_indices(indices, (26, 1, 32, 32))
+        return self.decoder(quant_out)
+    
 # ------------------------------------------------
 # Training
 
@@ -216,7 +220,7 @@ losses = []     # for visualisation
 
 # Hyperparams
 learning_rate = 1.e-3
-num_epochs = 6
+num_epochs = 3
 
 num_embeddings = 256
 embedding_dim = 32
@@ -307,143 +311,208 @@ plot_results(2)
 
 # ------------- Pixel CNN
 # Define the PixelConvLayer class in PyTorch
-class PixelConvLayer(nn.Module):
-    def __init__(self, mask_type, in_channels, out_channels, kernel_size, stride, padding):
-        super(PixelConvLayer, self).__init__()
-        self.mask_type = mask_type
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
-        self.build_mask()
 
-    def build_mask(self):
-        kernel_shape = self.conv.weight.shape
-        self.mask = torch.zeros(kernel_shape)
-        self.mask[:, :, :kernel_shape[2] // 2, :] = 1.0
-        self.mask[:, :, kernel_shape[2] // 2, :kernel_shape[3] // 2] = 1.0
-        if self.mask_type == "B":
-            self.mask[:, :, kernel_shape[2] // 2, kernel_shape[3] // 2] = 1.0
+class MaskedConvolution(nn.Module):
 
-    def forward(self, inputs):
-        with torch.no_grad():
-            #print("Weights: ", self.conv.weight.data.cpu().numpy().shape, "Mask: ", self.mask.cpu().numpy().shape,
-            #      "inputs: ", inputs.cpu().numpy().shape)
-            self.conv.weight.data *= self.mask
-        out = self.conv(inputs)
-        return out
+    def __init__(self, in_channels, out_channels, mask, dilation=1):
+        
+        super(MaskedConvolution, self).__init__()
+        kernel_size = (mask.shape[0], mask.shape[1])
+        padding = ([dilation*(kernel_size[i] - 1) // 2 for i in range(2)])
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, padding=padding, dilation=dilation)
 
-# Define the ResidualBlock class in PyTorch
-class ResidualBlock(nn.Module):
-    def __init__(self, in_channels, filters):
-        super(ResidualBlock, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, filters, kernel_size=1)
-        self.pixel_conv = PixelConvLayer(mask_type="B", in_channels=filters, out_channels=filters // 2, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(filters // 2, filters, kernel_size=1)
+        # Mask as buffer (must be moved with devices)
+        self.register_buffer('mask', mask[None,None])
 
-    def forward(self, inputs):
-        x = self.conv1(inputs)
-        x = self.pixel_conv(x)
-        x = self.conv2(x)       
-        return inputs + x
+    def forward(self, x):
+        self.conv.weight.data *= self.mask # Set all following weights to 0
+        return self.conv(x)
 
-# Define your PyTorch model
+
+class VerticalConv(MaskedConvolution):
+    # Masks all pixels below
+    def __init__(self, in_channels, out_channels, kernel_size=3, mask_center=False, dilation=1):
+        mask = torch.ones(kernel_size, kernel_size)
+        mask[kernel_size//2+1:,:] = 0
+        # For the first convolution, mask center row
+        if mask_center:
+            mask[kernel_size//2,:] = 0
+
+        super().__init__(in_channels, out_channels, mask, dilation=dilation)
+
+class HorizontalConv(MaskedConvolution):
+
+    def __init__(self, in_channels, out_channels, kernel_size=3, mask_center=False, dilation=1):
+        # Mask out all pixels on the left. (Note that kernel has a size of 1
+        # in height because we only look at the pixel in the same row)
+        mask = torch.ones(1,kernel_size)
+        mask[0,kernel_size//2+1:] = 0
+
+        # For first convolution, mask center pixel
+        if mask_center:
+            mask[0,kernel_size//2] = 0
+
+        super().__init__(in_channels, out_channels, mask, dilation=dilation)
+        
+        
+class GatedMaskedConv(nn.Module):
+
+    def __init__(self, in_channels, dilation=1):
+
+        super(GatedMaskedConv, self).__init__()
+        self.conv_vert = VerticalConv(in_channels, out_channels=2*in_channels, dilation=dilation)
+        self.conv_horiz = HorizontalConv(in_channels, out_channels=2*in_channels, dilation=dilation)
+        self.conv_vert_to_horiz = nn.Conv2d(2*in_channels, 2*in_channels, kernel_size=1, padding=0)
+        self.conv_horiz_1x1 = nn.Conv2d(in_channels, in_channels, kernel_size=1, padding=0)
+
+    def forward(self, v_stack, h_stack):
+        # Vertical stack (left)
+        v_stack_feat = self.conv_vert(v_stack)
+        v_val, v_gate = v_stack_feat.chunk(2, dim=1)
+        v_stack_out = torch.tanh(v_val) * torch.sigmoid(v_gate)
+
+        # Horizontal stack (right)
+        h_stack_feat = self.conv_horiz(h_stack)
+        h_stack_feat = h_stack_feat + self.conv_vert_to_horiz(v_stack_feat)
+        h_val, h_gate = h_stack_feat.chunk(2, dim=1)
+        h_stack_feat = torch.tanh(h_val) * torch.sigmoid(h_gate)
+        h_stack_out = self.conv_horiz_1x1(h_stack_feat)
+        h_stack_out = h_stack_out + h_stack
+
+        return v_stack_out, h_stack_out
+    
 class PixelCNN(nn.Module):
-    def __init__(self, num_residual_blocks, num_pixelcnn_layers):
-        super(PixelCNN, self).__init__()        
-        self.pixel_conv_initial = PixelConvLayer(mask_type="A", in_channels=1, out_channels=128, kernel_size=7, stride=1, padding=3)
-        self.residual_blocks = nn.ModuleList([ResidualBlock(in_channels=128, filters=128) for _ in range(num_residual_blocks)])
-        self.pixel_conv_layers = nn.ModuleList([PixelConvLayer(mask_type="B", in_channels=128, out_channels=128, kernel_size=1, stride=1, padding=0) for _ in range(num_pixelcnn_layers)])
-        self.out_conv = nn.Conv2d(in_channels=128, out_channels=1, kernel_size=1, stride=1, padding=0)
+    
+    def __init__(self, in_channels, hidden_channels):
+        super().__init__()
 
-    def forward(self, inputs):
-        x = self.pixel_conv_initial(inputs)     # The type A mask
-        print("Shape returned from masked convolution is: ", x.detach().cpu().numpy().shape)
+        # Initial convolutions skipping the center pixel
+        self.conv_vstack = VerticalConv(in_channels, hidden_channels, mask_center=True)
+        self.conv_hstack = HorizontalConv(in_channels, hidden_channels, mask_center=True)
+        # Convolution block of PixelCNN. Uses dilation instead of downscaling
+        self.conv_layers = nn.ModuleList([
+            GatedMaskedConv(hidden_channels),
+            GatedMaskedConv(hidden_channels, dilation=2),
+            GatedMaskedConv(hidden_channels),
+            GatedMaskedConv(hidden_channels, dilation=4),
+            GatedMaskedConv(hidden_channels),
+            GatedMaskedConv(hidden_channels, dilation=2),
+            GatedMaskedConv(hidden_channels)
+        ])
+        # Output classification convolution (1x1)
+        # The output channels should be in_channels*number of embeddings to learn continuous space and calc. CrossEntropyLoss
+        self.conv_out = nn.Conv2d(hidden_channels, in_channels*num_embeddings, kernel_size=1, padding=0)
+        
+        
+    def forward(self, x):
+        # Scale input from 0 to 255 to -1 to 1
+        x = (x.float() / 255.0) * 2 - 1
 
-        # Creates structure. Residual blocks have type B mask
-        for block in self.residual_blocks:
-            x = block(x)
-        for layer in self.pixel_conv_layers:
-            x = layer(x)
-        out = self.out_conv(x)
-        print("Final return of cnnmodel is: ", out.detach().cpu().numpy().shape)
+        # Initial convolutions
+        v_stack = self.conv_vstack(x)
+        h_stack = self.conv_hstack(x)
+        # Gated Convolutions
+        for layer in self.conv_layers:
+            v_stack, h_stack = layer(v_stack, h_stack)
+        # 1x1 classification convolution
+        # Apply ELU (exponential activation function) before 1x1 convolution for non-linearity on residual connection
+        out = self.conv_out(F.elu(h_stack))
+
+        # Output dimensions: [Batch, Classes, Channels, Height, Width] (classes = num_embeddings)
+        out = out.reshape(out.shape[0], num_embeddings, out.shape[1]//256, out.shape[2], out.shape[3])
         return out
 
-# PixelCNN model
-batch_size = 128
-height = 256
-width = 256
+    """Indices shape should be in form B C H W
+    Pixels to fill should be marked with -1"""
+    @torch.no_grad()
+    def sample(self, ind_shape, ind=None):
+        # Create tensor of indices (all -1)
+        if ind is None:
+            ind = torch.zeros(ind_shape, dtype=torch.long).to(device) - 1
+        # Generation loop (iterating through pixels across channels)
+        for h in range(ind_shape[2]):                   # Heights
+            for w in range(ind_shape[3]):               # Widths
+                for c in range(ind_shape[1]):           # Channels
+                    # Skip if not to be filled (-1)
+                    if (ind[:,c,h,w] != -1).all().item():
+                        continue
+                    # Only have to input upper half of ind (rest are masked anyway)
+                    pred = self.forward(ind[:,:,:h+1,:])
+                    probs = F.softmax(pred[:,:,c,h,w], dim=-1)
+                    ind[:,c,h,w] = torch.multinomial(probs, num_samples=1).squeeze(dim=-1)
+        return ind
 
-num_residual_blocks = 5  # Define the number of residual blocks
-num_pixelcnn_layers = 5  # Define the number of PixelConvLayers
-
-# Takes codebook indices (of shape B, C, H, W), where C=1, H=W=256
-cnn_model = PixelCNN(num_residual_blocks, num_pixelcnn_layers).to(device)
-print(cnn_model)
-
-loss = None
 
 
-# Data prep for cnn model
+cnn_model = PixelCNN(in_channels=1, hidden_channels=128)
+optimiser = torch.optim.Adam(cnn_model.parameters(), learning_rate)
+
+# For getting codebook indices
 encoder = model.__getattr__("encoder")
 quantiser = model.__getattr__("quantiser")
 decoder = model.__getattr__("decoder")
 
-optimiser = torch.optim.Adam(cnn_model.parameters(), learning_rate)
-
-for epoch_num, epoch in enumerate(range(num_epochs)):
+for epoch in range(num_epochs):
     
-    #Train
     cnn_model.train()
     
-    
-    for train_batch in tqdm(train_dataloader):
+    for train_batch in train_dataloader:
+        
+        # Get the quantised outputs
         with torch.no_grad():
             encoder_output = encoder(train_batch)
-            _, _, encoding_indices = quantiser(encoder_output)
-            encoding_indices = encoding_indices.reshape(encoding_indices.size(0), 1, encoding_indices.size(1), encoding_indices.size(2))
-            encoding_indices = encoding_indices.to(device)
-            encoding_indices = encoding_indices.float()
-
-        output = cnn_model(encoding_indices)
+            _, _, indices = quantiser(encoder_output)
+            indices = indices.reshape(indices.size(0), 1, indices.size(1), indices.size(2)).to(device)
+                        
+        output = cnn_model(indices)
         
-
-        
-        # TODO One hot encode to use CROSS ENTROPY LOSS. ASK TUTOR TMR
-        criterion = nn.MSELoss()       
-        loss = criterion(output, encoding_indices)
+        # Compute loss
+        nll = F.cross_entropy(output, indices, reduction='none')        # Negative log-likelihood
+        bpd = nll.mean(dim=[1,2,3]) * np.log2(np.exp(1))               # Bits per dimension
+        loss = bpd.mean()
 
         optimiser.zero_grad()       # Reset gradients to zero for back-prop (not cumulative)
-        loss.backward()     # Calculate grad
+        loss.backward()             # Calculate grad
         optimiser.step()            # Adjust weights
         
-    # Evaluate
     cnn_model.eval()
     
-    
-    for test_batch in (test_dataloader):
-        
-        
+    for test_batch in test_dataloader:
+        # Get the quantised outputs
         with torch.no_grad():
             encoder_output = encoder(test_batch)
-            _, _, encoding_indices = quantiser(encoder_output)
-            encoding_indices = encoding_indices.reshape(encoding_indices.size(0), 1, encoding_indices.size(1), encoding_indices.size(2))
-            print("Encoding Indices shape is: ", encoding_indices.shape)
-            encoding_indices = encoding_indices.to(device)
-            encoding_indices = encoding_indices.float()
-            # Normalise to between 0 and 1
-                    
-            output = cnn_model(encoding_indices)
-            criterion = nn.MSELoss()
-            loss = criterion(output, encoding_indices)
+            _, _, indices = quantiser(encoder_output)
+            indices = indices.reshape(indices.size(0), 1, indices.size(1), indices.size(2)).to(device)
             
+            
+        output = cnn_model(indices)
+        print("Indices is shape: ", indices.detach().cpu().numpy().shape)
+        print("Output is shape: ", output.detach().cpu().numpy().shape)
 
-
- 
+        
+        # Compute loss
+        nll = F.cross_entropy(output, indices, reduction='none')        # Negative log-likelihood
+        bpd = nll.mean(dim=[1,2,3]) * np.log2(np.exp(1))               # Bits per dimension
+        loss = bpd.mean()
+        
     print("Epoch {} of {}. Total Loss: {}".format(epoch_num, num_epochs, loss))
-
+    
 # Show one image
-fig, ax = plt.subplots(1, 2)
-ax[0].imshow(encoding_indices[0][0].long())
-ax[1].imshow(output[0][0].long())
+print(" > Showing Images")
+print("Real indices shape: ", indices.detach().cpu().numpy().shape)
+gen_indices = cnn_model.sample((1, 1, 16, 16))
+print("Gen indices shape: ", gen_indices.detach().cpu().numpy().shape)
+
+fig, ax = plt.subplots(2, 2)
+ax[0, 0].set_title("Real Indices")
+ax[0, 0].imshow(indices[0][0].long())
+ax[0, 1].set_title("Real Decoded")
+ax[0, 1].imshow(model.img_from_indices(indices)[0][0])
+
+
+
+ax[1, 0].set_title("Generated Indices")
+ax[1, 0].imshow(gen_indices[0][0])
+ax[1, 1].set_title("Generated Image")
+ax[1, 1].imshow(model.img_from_indices(gen_indices)[0][0])
 plt.show()
-
-
-
