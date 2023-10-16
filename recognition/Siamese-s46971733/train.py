@@ -206,7 +206,32 @@ if all_train == 1:
         torch.save(resnet.state_dict(), PATH)
         print(f"\nModel Saved at {PATH}...")
 
+    #######################################
+    # Resnet Data Visualisation with TSNE #
+    #######################################
 
+    if data_visual == 1:
+        for param in resnet.parameters():
+            param.requires_grad = False
+
+        label_map = {0: "NC", 1: "AD"}
+        features_tsne1 = resnet(features_tsne)
+
+        train_tsne = TSNE().fit_transform(features_tsne1.cpu())
+
+        print(train_tsne[: 0])
+
+        plt.figure()
+        sns.scatterplot(
+            x=train_tsne[:, 0],
+            y=train_tsne[:, 1],
+
+            hue=[label_map[i] for i in labels_tsne])
+
+        plt.title("training")
+        plt.legend()
+        plt.savefig(DATA_PATH)
+        plt.show()
 
     #######################
     # Classifier Training #
@@ -235,6 +260,7 @@ if all_train == 1:
                 labels = labels.to(device, dtype=torch.float)
                 #labels = data[1].to(device)  # For Cross Entropy Loss
                 # labels = torch.stack([data[1]], dim=1).float().to(device)  # For Binary Cross Entropy Loss
+                print(labels)
                 # Zero the gradients -- Ensuring gradients not accumulated
                 #                       across multiple training iterations.
                 class_optimizer.zero_grad()
@@ -251,6 +277,8 @@ if all_train == 1:
 
                 # Optimizer step - Update model parameters.
                 class_optimizer.step()
+
+                print(loss)
 
                 # Keep track of running loss.
                 running_loss += loss.item()
