@@ -26,7 +26,7 @@ def train():
     plt.show()
 
 
-def trainSNN(epochs=20):
+def trainSNN(epochs=10):
     """ Train the SNN
 
     Args:
@@ -49,7 +49,7 @@ def trainSNN(epochs=20):
     return siamese_fit
 
 
-def trainClassifier(epochs=10):
+def trainClassifier(epochs=5):
     """ Train the classifier
 
     Args:
