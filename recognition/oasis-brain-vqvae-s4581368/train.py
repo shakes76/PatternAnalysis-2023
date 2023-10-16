@@ -7,7 +7,8 @@ import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
 from modules import VQVAE
-from datasets import OASIS 
+from dataset import OASIS 
+import matplotlib.pyplot as plt
 
 BATCH_SIZE = 256
 
@@ -27,6 +28,7 @@ def train(data_loader, model, optimizer, device):
     train_tilde_loss = []
     steps = 0
     for images, _ in data_loader:
+        print("we are training")        
         images = images.to(device)
         optimizer.zero_grad()
 
@@ -62,25 +64,28 @@ def generate_samples(images, model, device):
 
 def main():
     now = datetime.now()
-    logger = SummaryWriter("./logs/{0}".format(now.strftime("m/%d/%Y-%H_%M_%S")))
-    save_filename = './models/{0}'.format(now.strftime("m/%d/%Y-%H_%M_%S"))
+    logger = SummaryWriter("./logs/{0}".format(now.strftime("%m-%d-%Y-%H_%M_%S")))
+    save_filename = './models/{0}'.format(now.strftime("%m-%d-%Y-%H_%M_%S"))
 
     data_path = "./keras_png_slices_data/"
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     oasis_data = OASIS(data_path)
-    data_loader = oasis_data.data_loaders(data_path)
-
+    data_loader = oasis_data.data_loaders(data_path, data_path, data_path)
     fixed_images, _ = next(iter(data_loader))
-
+    grid = make_grid(fixed_images, nrow=8)
+    plt.imshow(grid.permute(1, 2, 0))
+    plt.show()
     model = VQVAE(HIDDEN_LAYERS, RESIDUAL_HIDDEN_LAYERS, EMBEDDINGS, EMBEDDING_DIMENSION, BETA)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
     reconstructions = generate_samples(fixed_images, model, device)
 
-    grid = make_grid(reconstructions.cpu(), nrow=8, range=(-1, 1), normalize=True)
+    grid = make_grid(reconstructions.cpu(), nrow=8)
+    plt.imshow(grid.permute(1, 2, 0))
+    plt.show()
     logger.add_image('original', grid, 0)
     best_loss = -1
     for epoch in range(EPOCHS):

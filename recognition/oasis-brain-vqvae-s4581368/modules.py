@@ -52,20 +52,26 @@ class Encoder(nn.Module):
         self.layers = nn.Sequential(
             nn.Conv2d(
                 in_channels=in_channels,
-                out_channels=hidden_layers // 2,
+                out_channels=hidden_layers//2,
                 kernel_size=4,
                 stride=2,
                 padding=1
             ),
             nn.ReLU(True),
             nn.Conv2d(
-                in_channels=hidden_layers // 2,
+                in_channels=hidden_layers//2,
                 out_channels=hidden_layers,
                 kernel_size=4,
                 stride=2,
                 padding=1
             ),
-            nn.ReLU(True),
+            nn.Conv2d(
+                in_channels=hidden_layers,
+                out_channels=hidden_layers,
+                kernel_size=3,
+                stride=1,
+                padding=1
+            ),
             ResidualBlock(
                 in_channels=hidden_layers,
                 out_channels=hidden_layers,
@@ -89,11 +95,11 @@ class Decoder(nn.Module):
     def __init__(self, in_channels, hidden_layers, residual_hidden_layers):
         super(Decoder, self).__init__()
         self.layers = nn.Sequential(
-            nn.ConvTranspose2d(
+            nn.Conv2d(
                 in_channels=in_channels,
                 out_channels=hidden_layers,
-                kernel_size=4,
-                stride=2,
+                kernel_size=3,
+                stride=1,
                 padding=1
             ),
             ResidualBlock(
@@ -107,20 +113,20 @@ class Decoder(nn.Module):
                 residual_hidden_layers=residual_hidden_layers
             ),
             nn.ConvTranspose2d(
-                in_channels=in_channels // 2,
-                out_channels=hidden_layers,
+                in_channels=hidden_layers,
+                out_channels=hidden_layers//2,
                 kernel_size=4,
                 stride=2,
                 padding=1
             ),
             nn.ReLU(True),
-            nn.Conv2d(
-                in_channels=hidden_layers // 2,
+            nn.ConvTranspose2d(
+                in_channels=hidden_layers//2,
                 out_channels=3, # For RGB image
                 kernel_size=4, 
                 stride=2,
                 padding=1
-            ),
+            )
         )
 
     def forward(self, x):
@@ -218,8 +224,9 @@ class VQVAE(nn.Module):
     def forward(self, x):
         x = self.encoder(x)
         x = self.conv1(x)
-        embedding_loss, x_quantized, _ = self.vector_quantizer(x)
-        return embedding_loss, self.decoder(x_quantized)
+        embedding_loss, x_quantized, _, _ = self.vector_quantizer(x)
+        x_reconstructed = self.decoder(x_quantized)
+        return embedding_loss, x_reconstructed, x_quantized
 
 
 
