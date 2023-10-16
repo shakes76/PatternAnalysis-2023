@@ -10,11 +10,8 @@ import torch
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
-from PIL import Image
-
 
 batch_size = 2
-
 
 # dataroot = "/home/groups/comp3710"
 train_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/train"
@@ -28,6 +25,9 @@ transform = transforms.Compose([
 
 
 train_dataset = datasets.ImageFolder(root=train_dataroot, transform=transform)
+
+mlp_trainloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+
 test_dataset = datasets.ImageFolder(root=test_dataroot, transform=transform)
 
 # Assuming AD is class 0 and NC is class 1

@@ -74,5 +74,3 @@ class MLP(nn.Module):
         output2 = nn.Sigmoid(self.fc2(output1))
         return output2
 
-
-# Step 3: classification - take in individual images into snn, then write an mlp which takes in a feature vector of 128 and then classifies into one of two classes.

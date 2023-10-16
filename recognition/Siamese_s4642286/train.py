@@ -7,6 +7,7 @@ Description: Containing the source code for training, validating, testing and sa
 import torch
 import torch.optim as optim
 import torch.nn as nn
+import time
 from modules import SiameseNetwork, ContrastiveLoss, CNN, MLP
 from dataset import trainloader
 
@@ -37,8 +38,11 @@ optimizer = optim.Adam([
 # Training loop
 num_epochs = 10
 
+print("Starting Training...")
+start = time.time()
+Siamese.train()
+
 for epoch in range(num_epochs):
-    Siamese.train()
     total_loss = 0.0
 
     for batch_idx, batch in enumerate(trainloader):
@@ -60,46 +64,52 @@ for epoch in range(num_epochs):
     # Print the average loss for the epoch
     print(f'Epoch [{epoch+1}/{num_epochs}] Loss: {total_loss / (batch_idx + 1):.4f}')
 
-print("Finished Training")
+print("Finished Training...")
+end = time.time()
+elapsed = end - start
+print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
 
 # Save the trained model
-torch.save(Siamese.state_dict(), "./Siamese")
+torch.save(Siamese.state_dict(), "./Siamese/siamese_model.pt")
 
 
+# Instantiate the MLP and move it to the GPU if available
+cnn = CNN()  # Assuming you have a CNN instance
+cnn.to(device)
 
-# # MLP SHOULD BE TRAINED ON THE FEATURE VECTOR.
-# # Instantiate the MLP and move it to the GPU if available
-# cnn = CNN()  # Assuming you have a CNN instance
-# cnn.to(device)
+# load in saved parameters
+cnn.load_state_dict(torch.load("./Siamese/siamese_model.pt"))
 
-# mlp = MLP()
-# mlp.to(device)
+mlp = MLP()
+mlp.to(device)
 
-# # Define binary cross-entropy loss and optimizer for MLP
-# criterion = nn.BCELoss()
-# optimizer = optim.Adam(mlp.parameters(), lr=1e-3)
+# Define binary cross-entropy loss and optimizer for MLP
+criterion = nn.BCELoss()
+optimizer = optim.Adam(mlp.parameters(), lr=1e-3)
 
-# # Training loop for MLP
-# num_epochs = 10
+# Training loop for MLP
+num_epochs = 10
 
-# for epoch in range(num_epochs):
-#     mlp.train()
-#     total_loss = 0.0
+for epoch in range(num_epochs):
+    mlp.train()
+    total_loss = 0.0
 
-#     for batch_idx, (input, label) in enumerate(dataloader):  # Replace 'dataloader' with your data loading logic
-#         input, label = input.to(device), label.to(device)
+    for batch_idx, (input, label) in enumerate(trainloader):  # Replace 'dataloader' with your data loading logic
+        input, label = input.to(device), label.to(device)
 
-#         optimizer.zero_grad()
+        optimizer.zero_grad()
 
-#         output = mlp(input)
-#         loss = criterion(output, label.view(-1, 1).float())  # Ensure label is a tensor of shape (batch_size, 1)
-#         loss.backward()
+        input = cnn(input)
 
-#         optimizer.step()
-#         total_loss += loss.item()
+        output = mlp(input)
+        loss = criterion(output, label.view(-1, 1).float())  # Ensure label is a tensor of shape (batch_size, 1)
+        loss.backward()
 
-#     # Print the average loss for the epoch
-#     print(f'Epoch [{epoch+1}/{num_epochs}] Loss: {total_loss / (batch_idx + 1):.4f}')
+        optimizer.step()
+        total_loss += loss.item()
 
-# # Save the trained MLP
-# torch.save(mlp.state_dict(), "./Classifier")
+    # Print the average loss for the epoch
+    print(f'Epoch [{epoch+1}/{num_epochs}] Loss: {total_loss / (batch_idx + 1):.4f}')
+
+# Save the trained MLP
+torch.save(mlp.state_dict(), "./Classifier")

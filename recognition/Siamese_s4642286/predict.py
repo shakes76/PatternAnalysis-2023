@@ -24,8 +24,7 @@ mlp_model.eval()
 mlp_model.to(device)
 
 # Define a function to calculate accuracy
-def calculate_accuracy(model, dataloader):
-    model.eval()
+def calculate_accuracy(dataloader):
     correct = 0
     total = 0
     
@@ -44,10 +43,5 @@ def calculate_accuracy(model, dataloader):
     return correct / total
 
 # Calculate accuracy on the test dataloader
-test_accuracy = calculate_accuracy(mlp_model, testloader)
-print(f'Test Accuracy: {test_accuracy * 100:.2f}%')
-
-
-# Need a minimum accuracy of 0.8 on the test set.
-
-
+test_accuracy = calculate_accuracy(testloader)
+print(f'Test Accuracy: {test_accuracy * 100:.2f}%') # Need a minimum accuracy of 0.8 on the test set.
