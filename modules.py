@@ -4,6 +4,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import math
+
 
 config_params_dict = {
     "general": {
@@ -92,16 +94,88 @@ class MultiHeadSelfAttention(nn.Module):
         x = x.view(*new_x_shape)
         return x.permute(0, 2, 1, 3)  # permute to get shape [batch_size, num_heads, seq_length, head_dim]
     
-    
-    def forward ():
-        pass
+    def forward (self, hidden_states):
+         # Linear operations on input
+        mixed_query_layer = self.query_projection(hidden_states)
+        mixed_key_layer = self.key_projection(hidden_states)
+        mixed_value_layer = self.value_projection(hidden_states)
 
+        # Transpose for multi-head attention and apply attention mechanism.
+        query_layer = self.transpose_for_scores(mixed_query_layer)
+        key_layer = self.transpose_for_scores(mixed_key_layer)
+        value_layer = self.transpose_for_scores(mixed_value_layer)
 
+        # Attention score calculation.
+        attention_scores = torch.matmul(query_layer, key_layer.transpose(-1, -2))
+        attention_scores = attention_scores.mul_(self.scaling)  
+
+        attention_probs = nn.Softmax(dim=-1)(attention_scores)
+
+        # Dropout - help prevent overfitting
+        attention_probs = self.dropout(attention_probs)
+
+        # Context layer - weighted sum of the value layer based on attention probabilities.
+        context_layer = torch.matmul(attention_probs, value_layer)
+        context_layer = context_layer.permute(0, 2, 1, 3).contiguous()
+        new_context_layer_shape = context_layer.size()[:-2] + (self.all_head_size,)
+        context_layer = context_layer.view(*new_context_layer_shape)  # Reshape
+
+        output = self.output_projection(context_layer)  # Projecting back to the original dimension
+        return output
 
 class TransformerBlock(nn.Module):
-    pass
+    """
+    Transformer Block module comprising of multi-head self-attention mechanism and position-wise feed-forward network (FFN)   
+    """
+    def __init__(self, config, index):
+        super(TransformerBlock, self).__init__()
+
+        # Extracting the configuration parameters based on the block's index
+        hidden_size = config.transformer['hidden_size']
+        num_heads = config.transformer['num_heads'][index]
+        dropout_rate = config.transformer['drop_rate'][index]
+        mlp_ratio = config.transformer['mlp_ratios'][index]
+        attention_dropout_rate = config.transformer['attention_drop_rate'][index]
+
+        # Ensure the division is integer 
+        self.attention_head_size = int(hidden_size // num_heads)
+        self.all_head_size = self.num_heads * self.attention_head_size
+
+        #Layer for MultiHeadSelfAttention
+        self.self_attention = MultiHeadSelfAttention(config)
+        self.attention_output_dropout = nn.Dropout(attention_dropout_rate)
+        self.attention_output_layer_norm = nn.LayerNorm(hidden_size, eps=config.initialisation['layer_norm_eps'])
+
+        # Parameters for the feed-forward network (FFN)
+        self.ffn_output_layer_norm = nn.LayerNorm(hidden_size, eps=config.initialisation['layer_norm_eps'])
+        ffn_hidden_size = int(hidden_size * mlp_ratio)  # size of the hidden layer in FFN
+        self.ffn = nn.Sequential(
+            nn.Linear(hidden_size, ffn_hidden_size),
+            nn.GELU(),  # GELU activation function
+            nn.Dropout(dropout_rate),  # Regularization with dropout
+            nn.Linear(ffn_hidden_size, hidden_size),
+            nn.Dropout(dropout_rate),  # Regularization with dropout
+        )
+
+        def forward(self, hidden_states):
+            # Self-attention part
+            attention_output = self.self_attention(hidden_states)
+            attention_output = self.attention_output_dropout(attention_output)
+
+            # Adding the residual connection, followed by normalization
+            attention_output = self.attention_output_layer_norm(attention_output + hidden_states)
+
+            # Feed-forward network (FFN) part
+            ffn_output = self.ffn(attention_output)
+            # Adding the residual connection, followed by normalization
+            ffn_output = self.ffn_output_layer_norm(ffn_output + attention_output)
+
+            return ffn_output
 
 class ConvolutionalEmbedding(nn.Module):
+    """
+    Embed images via convolutional layers in CViT- replaces the typical token embedding in a standard transformer model.
+    """
     pass
 
 class ConvolutionalVisionTransformer(nn.Module):
