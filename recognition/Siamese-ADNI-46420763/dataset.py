@@ -12,7 +12,7 @@ def train_dataset_transforms():
     """    
     return transforms.Compose([transforms.Grayscale(), 
                                transforms.RandomRotation(30), 
-                               transforms.RandomCrop((256, 240), padding = 16, padding_mode='reflect'),
+                               transforms.RandomCrop((240, 256), padding = 8, padding_mode='reflect'),
                                transforms.ToTensor()])
 
 def test_dataset_transforms():
@@ -24,7 +24,7 @@ def test_dataset_transforms():
     """    
     return transforms.Compose([transforms.Grayscale(), transforms.ToTensor()])
 
-def get_dataloader(dir, batch_size, train_split):
+def get_dataloader(dir, batch_size, train_split, transform = True):
     """    
     Returns all train, validation and test dataloaders. 
     Dataset split has a set seed so that test dataloader is reproducable for for predict.py
@@ -38,8 +38,10 @@ def get_dataloader(dir, batch_size, train_split):
         valid_dataloader (DataLoader): dataloader for the validation dataset
         test_dataloader  (DataLoader): dataloader for the test dataset
     """    
-    train_dataset = datasets.ImageFolder(root = dir + '/train', transform=train_dataset_transforms())
+    train_dataset = datasets.ImageFolder(root = dir + '/train')
     train_dataset, valid_dataset = patient_split(train_dataset, train_split)
+    train_dataset.dataset.transform = train_dataset_transforms()
+    valid_dataset.dataset.transform = test_dataset_transforms()
     test_dataset = datasets.ImageFolder(root = dir + '/test', transform=test_dataset_transforms())
     
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
