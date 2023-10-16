@@ -17,7 +17,7 @@ epochs = 20  # You can adjust this based on your needs
 upscale_factor = 4  # Adjust based on your needs
 
 # Load datasets
-train_loader, test_loader = get_dataloaders("C:\\Users\\soonw\\ADNI\\AD_NC")  # Replace 'path_to_root_dir' with your dataset path
+train_loader, test_loader = get_dataloaders("C:\\Users\\soonw\\ADNI\\AD_NC")  # Replace path based on your folder location
 
 # Initialize model and move to device
 model = ESPCN(upscale_factor).to(device)
@@ -41,11 +41,14 @@ def compute_psnr(mse_loss):
     # because it gives an indication of how well the model has enhanced the image while preserving the original details.
     return 10 * math.log10(1 / mse_loss)
 
-# ... [rest of the code before the training loop]
+# Lists to store training and evaluation data
+train_losses = []
+test_avg_psnrs = []
 
 # Training loop
 for epoch in range(epochs):
     model.train()
+    train_loss = 0.0
     for batch_idx, (LR, HR, _) in enumerate(train_loader):
         LR, HR = LR.to(device), HR.to(device)
 
@@ -58,8 +61,14 @@ for epoch in range(epochs):
         loss.backward()
         optimizer.step()
 
+        train_loss += loss.item()
+
+    # Calculate average training loss for the epoch
+    avg_train_loss = train_loss / len(train_loader)
+    train_losses.append(avg_train_loss)
+
     # Adjust learning rate
-    scheduler.step(loss)
+    scheduler.step(avg_train_loss)
 
     # Evaluation on the test set
     model.eval()
@@ -70,9 +79,31 @@ for epoch in range(epochs):
             outputs = model(LR)
             mse_loss = criterion(outputs, HR).item()
             avg_psnr += compute_psnr(mse_loss)
-                
+
         avg_psnr /= len(test_loader)
-        print(f"Epoch [{epoch + 1}/{epochs}], Loss: {loss.item():.4f}, Avg PSNR: {avg_psnr:.4f}")
+        test_avg_psnrs.append(avg_psnr)
+        print(f"Epoch [{epoch + 1}/{epochs}], Loss: {avg_train_loss:.4f}, Avg PSNR: {avg_psnr:.4f}")
+
+# Plot the loss curve
+plt.figure(figsize=(12, 4))
+plt.subplot(1, 2, 1)
+plt.plot(range(epochs), train_losses, label='Training Loss', marker='o')
+plt.title('Training Loss')
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+
+# Plot the PSNR curve
+plt.subplot(1, 2, 2)
+plt.plot(range(epochs), test_avg_psnrs, label='Avg PSNR (Test Set)', marker='o')
+plt.title('Average PSNR on Test Set')
+plt.xlabel('Epoch')
+plt.ylabel('Avg PSNR')
+plt.legend()
+
+# Save the plots
+plt.savefig('training_plots.png')
+plt.show()
 
 print("Training finished.")
 # Save the trained model
