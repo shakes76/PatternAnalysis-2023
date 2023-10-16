@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 from torch.utils.data import Dataset
 from torchvision import datasets
-from torchvision.io import read_image
 from torchvision.transforms import ToTensor
 import matplotlib.pyplot as plt
 from torch.autograd import Function
@@ -258,12 +257,8 @@ def dice_error(input, target):
     eps = 0.000001
     _, result_ = input.max(1)
     result_ = torch.squeeze(result_)
-    if input.is_cuda:
-        result = torch.cuda.FloatTensor(result_.size())
-        target_ = torch.cuda.FloatTensor(target.size())
-    else:
-        result = torch.FloatTensor(result_.size())
-        target_ = torch.FloatTensor(target.size())
+    result = torch.cuda.FloatTensor(result_.size())
+    target_ = torch.cuda.FloatTensor(target.size())
     result.copy_(result_.data)
     target_.copy_(target.data)
     target = target_
@@ -281,35 +276,3 @@ def dice_error(input, target):
     return 2*IoU
 
 
-class ISICDataLoader(Dataset):
-    def __init__(self, img_dir, segment_dir, transform=None, target_transform=None):
-        self.img_dir = img_dir
-        self.segment_dir = segment_dir
-        
-		#Get all the images in each directory
-        self.image_files = [f for f in os.listdir(img_dir) if f.endswith('.jpg')]
-        self.seg_files = [f for f in os.listdir(segment_dir) if f.endswith('_segmentation.png')]
-        self.image_files.sort()
-        self.seg_files.sort()
-
-		#Form pairs between the training input images and their ground truths
-        self.pairs = []
-        for img_file, seg_file in zip(self.image_files, self.seg_files):
-            img_path = os.path.join(img_dir, img_file)
-            seg_path = os.path.join(segment_dir, seg_file)
-            self.pairs.append((img_path, seg_path))
-        
-        self.transform = transform
-        self.target_transform = target_transform
-
-    def __len__(self):
-        return len(self.img_labels)
-
-    def __getitem__(self, idx):
-        if self.transform:
-            image = self.transform(image)
-        if self.target_transform:
-            segmentation = self.target_transform(segmentation)
-        image = read_image(self.pairs[idx][0])
-        segmentation = read_image(self.pairs[idx][1])
-        return image, segmentation
