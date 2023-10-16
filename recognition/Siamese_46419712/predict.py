@@ -59,7 +59,7 @@ if __name__ == "__main__":
     test_loader = LoadData(train=False).load_data()
     print("Finish loading data \n")
 
-    siamese_model = RawSiameseModel()
+    siamese_model = RawSiameseModel().to(device)
     load_save_model = load_model()
 
     if load_save_model is not None:
@@ -69,7 +69,7 @@ if __name__ == "__main__":
         print("error, unable to load, cannot find save file")
 
 
-    classifier_model = BinaryModelClassifier()
+    classifier_model = BinaryModelClassifier().to(device)
     load_classifier_save_model = load_model(1)
 
     if load_classifier_save_model is not None:

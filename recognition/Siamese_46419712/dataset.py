@@ -2,7 +2,6 @@ import torchvision
 import torch
 import torchvision.transforms as transforms
 import random
-import numpy as np
 
 TRAIN_PATH = "/home/groups/comp3710/ADNI/AD_NC/train"
 # TRAIN_PATH = "./AD_NC/train"
@@ -36,7 +35,7 @@ class PairedDataset(torch.utils.data.Dataset):
             trainset list(torch.utils.data.Dataset): The list containing the dataset
     """
     def __init__(self, trainset):
-        random.seed(35)
+        random.seed(50)
         self.trainset = trainset
 
     def __getitem__(self, index):
@@ -65,8 +64,8 @@ class LoadData():
     """
     def __init__(self, train=True, siamese=True):
         # seed for reproduce the run -> seed at init so every other method is impact by the seed
-        torch.manual_seed(35)
-        random.seed(35)
+        torch.manual_seed(60)
+        random.seed(60)
         self.train = train
         self.siamese = siamese
 

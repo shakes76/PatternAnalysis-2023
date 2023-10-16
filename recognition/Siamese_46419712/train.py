@@ -58,9 +58,9 @@ def validate_siamese(model, val_loader, criterion, val_loss_list):
             loss = criterion(output1, output2, label)
             val_loss_list.append(loss.item())
 
-        if (i+1) % 10 == 0:
-            print (">>>>> Step [{}/{}] Validate Loss: {:.5f}"
-                    .format(i+1, len(val_loader), loss.item()))
+            if (i+1) % 10 == 0:
+                print (">>>>> Step [{}/{}] Validate Loss: {:.5f}"
+                        .format(i+1, len(val_loader), loss.item()))
 
 def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_list):
     sModel.eval() # siamese
@@ -149,6 +149,7 @@ def save_loss_plot(loss_list, val_loss_list, epoch=0, siamese=True):
     plt.figure(figsize=(12, 8))
     plt.plot(loss_list, label="train loss")
     plt.plot(val_loss_list, label="validate loss")
+    plt.legend()
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
     
@@ -170,6 +171,7 @@ def save_val_accuracy_plot(accuracy_list, epoch=0):
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy %')
     plt.title(f"Classifier validate accuracy -> Total epoch {epoch + 1}")
+    plt.savefig("Accuracy_plot.png")
 
     plt.close()
 
@@ -243,10 +245,13 @@ def execute_sTrain(train_loader, val_loader):
         if best_model is None:
             best_model = model.state_dict()
             best_val_loss = current_val_loss
+            print(f"Current best validate loss is {best_val_loss} at epoch {epoch + 1}")
             save_model(epoch, best_model, criterion, optimizer.state_dict())
         elif current_val_loss < best_val_loss:
             best_model = model.state_dict()
+            print(f"The previous best validate loss is {best_val_loss}")
             best_val_loss = current_val_loss
+            print(f"Current best validate loss is {best_val_loss} at epoch {epoch + 1}")
             save_model(epoch, best_model, criterion, optimizer.state_dict())
 
         loss_list = []
@@ -306,14 +311,15 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
         if best_model is None:
             best_model = cModel.state_dict()
             best_val_loss = current_classifier_val_loss
+            print(f"Current best validate loss is {best_val_loss} at epoch {epoch + 1}")
             save_model(epoch, best_model, criterion, optimizer.state_dict(), 1)
         elif current_classifier_val_loss < best_val_loss:
             best_model = cModel.state_dict()
+            print(f"The previous best validate loss is {best_val_loss}")
             best_val_loss = current_classifier_val_loss
+            print(f"Current best validate loss is {best_val_loss} at epoch {epoch + 1}")
             save_model(epoch, best_model, criterion, optimizer.state_dict(), 1)
         
-        save_model(epoch, cModel, criterion, optimizer, 1) # save model for every epoch
-
         classifier_loss_list = []
         classifier_val_loss_list = []
 
@@ -329,8 +335,10 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     # return cModel
 
 if __name__ == '__main__':
-    random.seed(42)
-    torch.manual_seed(42)
+    os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+    random.seed(60)
+    torch.manual_seed(60)
+    torch.use_deterministic_algorithms(True)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if not torch.cuda.is_available():
@@ -346,7 +354,7 @@ if __name__ == '__main__':
     #########  TRAINING SIAMASE MODEL ##########
     execute_sTrain(train_loader, val_loader)
 
-    siamese_model = RawSiameseModel()
+    siamese_model = RawSiameseModel().to(device)
     load_save_model = load_model()
 
     if load_save_model is not None:
@@ -358,7 +366,7 @@ if __name__ == '__main__':
     #########  TRAINING BINARY CLASSIFIER MODEL ########## 
     execute_cTrain(siamese_model, train_loader_classifier, val_loader_classifier)
 
-    classifier_model = BinaryModelClassifier()
+    classifier_model = BinaryModelClassifier().to(device)
     load_classifier_save_model = load_model(1)
 
     if load_classifier_save_model is not None:
