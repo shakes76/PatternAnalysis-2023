@@ -205,7 +205,7 @@ def load_model(model_type=0):
     else:
         return None
 
-def execute_sTrain(device, train_loader, val_loader):
+def execute_sTrain(train_loader, val_loader):
     model = RawSiameseModel().to(device)
 
     # hyper-parameters
@@ -262,7 +262,7 @@ def execute_sTrain(device, train_loader, val_loader):
     # don't need to return model because will load from pt
     # return model
 
-def execute_cTrain(device, sModel, train_loader_classifier, val_loader_classifier):
+def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     cModel = BinaryModelClassifier().to(device)
 
     # hyper parameters for classifier
@@ -344,7 +344,7 @@ if __name__ == '__main__':
     print("Finish loading data \n")
 
     #########  TRAINING SIAMASE MODEL ##########
-    execute_sTrain(device, train_loader, val_loader)
+    execute_sTrain(train_loader, val_loader)
 
     siamese_model = RawSiameseModel()
     load_save_model = load_model()
@@ -356,7 +356,7 @@ if __name__ == '__main__':
         print("error, unable to load, cannot find save file")
 
     #########  TRAINING BINARY CLASSIFIER MODEL ########## 
-    execute_cTrain(device, siamese_model, train_loader_classifier, val_loader_classifier)
+    execute_cTrain(siamese_model, train_loader_classifier, val_loader_classifier)
 
     classifier_model = BinaryModelClassifier()
     load_classifier_save_model = load_model(1)
