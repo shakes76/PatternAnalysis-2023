@@ -36,7 +36,7 @@ Both the VQVAE and DCGAN models are implemented as classes within the *modules.p
 ## Training Procedure
 
 ### Training VQVAE
-There are three main files involved for the training of the VQVAE and DCGAN. The *train.py* file calls classes from the *train_VQVAE.py* and *train_DCGAN.py* files for training each individual model. The *train_VQVAE.py* file includes a class with a function for training the VQVAE model, plotting the training reconstruction losses and saving the model to the current working directory. It also includes a function for validation testing after training the model and saving reconstructed images on unseen data. The model is trained on only 2 epochs as it was found to output sufficient reconstructions. The VQVAE model implemented a batch size of 32 and a learning rate of 0.001. The mean reconstruction loss was printed after each epoch and is seen below. 
+There are three main files involved for the training of the VQVAE and DCGAN. The *train.py* file calls classes from the *train_VQVAE.py* and *train_DCGAN.py* files for training each individual model. The *train_VQVAE.py* file includes a class with a function for training the VQVAE model, plotting the training reconstruction losses and saving the model to the current working directory. It also includes a function for validation testing after training the model and saving reconstructed images on unseen data. The model is trained on only 2 epochs as it was found to output sufficient reconstructions. This decision was made as training for 1 epoch produced results that were too basic, and training for three or more epochs resulted in the codebook indice becoming too complex and difficult for generation. The VQVAE model implemented a batch size of 32 and a learning rate of 0.001. The mean reconstruction loss was printed after each epoch and is seen below. 
 
 ![recon_loss](Readme_images/VQVAE_training_EPOCHS.png)
 
@@ -51,7 +51,7 @@ Within the test function of the *train_VQVAE.py* file, the trained model is used
 
 ![reconstructed_images](Readme_images/VQVAE_reconstructed_images.png)
 
-During the testing stage, a separate script was used for visualising the codebook indices and quantized images, to ensure the correct output was being produced. This was vital for ensuring the DCGAN was receiving appropriate input data.
+For testing purposes, the codebok indice result from the trained VQVAE model, as well as the quantized output was visualised and saved. These were important for ensuring the code was outputting the appropriate images, before proceeding to the DCGAN training stage. 
 
 ![VQVAE_comparison](Readme_images/VQVAE_codebook_quantized.png)
 
