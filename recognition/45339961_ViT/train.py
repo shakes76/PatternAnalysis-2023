@@ -13,15 +13,14 @@ def train(model, train_loader, valid_loader, criterion, optimizer, device, n_epo
 
     # Training loop
     for epoch in trange(n_epochs, desc="Training"):
+        # print(f"Epoch {epoch + 1}/{n_epochs}")
         train_loss = 0.0
         correct = 0
         total = 0
-        batch_num = 0
         
         model.train()  # Set the model to training mode
 
         for batch in tqdm(train_loader, desc=f"Epoch {epoch + 1} in training", leave=False):
-            batch_num += 1
             x, y = batch
             x, y = x.to(device), y.to(device)
 
@@ -40,34 +39,37 @@ def train(model, train_loader, valid_loader, criterion, optimizer, device, n_epo
             total += y.size(0)
             correct += predicted.eq(y).sum().item()
 
-            # if (batch_num % 100 == 0):
-            #     print(f"Finished {batch_num} batches out of {len(train_loader)} batches")
         accuracy = 100 * correct / total
-        if (epoch % 10 == 0):
-            print(f"Epoch {epoch + 1}/{n_epochs}")
-            print(f"Train loss: {train_loss / len(train_loader):.2f}")
-            print(f"Train accuracy: {accuracy:.2f}%")
+        # print(f"Train loss: {train_loss / len(train_loader):.2f} - Train accuracy: {accuracy:.2f}%")
         train_accuracies.append(accuracy)
         train_losses.append(train_loss / len(train_loader))
 
-            # Test loop
+        # Validation loop
+        valid_loss = 0.0
+        correct = 0
+        total = 0
+        
+        model.eval()  # Set the model to evaluation mode
+
         with torch.no_grad():
-            correct, total = 0, 0
-            test_loss = 0.0
-            for batch in tqdm(valid_loader, desc="Testing"):
+            for batch in valid_loader:
                 x, y = batch
                 x, y = x.to(device), y.to(device)
-                y_hat = model(x)
-                loss = criterion(y_hat, y)
-                test_loss += loss.detach().cpu().item() / len(valid_loader)
+                
+                with torch.cuda.amp.autocast():
+                    y_hat = model(x)
+                    loss = criterion(y_hat, y)
 
-                correct += torch.sum(torch.argmax(y_hat, dim=1) == y).detach().cpu().item()
-                total += len(x)
+                valid_loss += loss.item()
+                _, predicted = y_hat.max(1)
+                total += y.size(0)
+                correct += predicted.eq(y).sum().item()
+
+            accuracy = 100 * correct / total
+            valid_loss /= len(valid_loader)
             
-            if (epoch % 10 == 0):
-                print(f"Test loss: {test_loss:.2f}")
-                print(f"Test accuracy: {correct / total * 100:.2f}%")
-            valid_accuracies.append(correct / total * 100)
-            valid_losses.append(test_loss)
+            # print(f"Valid loss: {valid_loss:.2f} - Valid accuracy: {accuracy:.2f}%")
+            valid_accuracies.append(accuracy)
+            valid_losses.append(valid_loss)
 
     return train_accuracies, valid_accuracies, train_losses, valid_losses
