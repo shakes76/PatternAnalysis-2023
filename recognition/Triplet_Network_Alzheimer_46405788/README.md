@@ -1,13 +1,21 @@
 # Siamese Network Classifier for Alzheimer's Disease Detection
 ## Description
-This repository contains a Siamese Network-based classifier designed to identify Alzheimer's disease (AD) in brain data from the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. The goal is to achieve an accuracy of approximately 0.8 on the test set by classifying brain images as either normal or AD.
+This repository contains a Siamese Network-based classifier designed to identify Alzheimer's disease (AD) in brain data from the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. The goal is to achieve an accuracy of approximately 0.8 on the test set by classifying brain images as either Cognitive Normal (NC) or Alzheimer’s disease (AD).
 
 ## How It Works
-This repository features a Triplet Siamese Network-based classifier for detecting Alzheimer's disease in brain data from the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. The Triplet Siamese Network operates by taking three input images: an anchor image from a patient (either AD or normal), a positive image (another image from the same class as the anchor), and a negative image (from the opposite class). The network then computes feature embeddings for these three images. The primary objective is to minimize the distance between the anchor and positive images while maximizing the distance between the anchor and negative images. This ensures that the network learns to discriminate between AD and normal brain images effectively. The figure below illustrates the Triplet Siamese Network architecture:
+This repository features a Triplet Siamese Network-based classifier for detecting Alzheimer's disease in brain data from the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. The Triplet Siamese Network operates by taking three input images, an anchor image (which would be either AD or NC), a positive image (another image thats the same class as the anchor), and a negative image (an image that is the opposite class of the anchor). The network then computes feature embeddings for these three images. The primary objective is to minimize the distance between the anchor and positive images while maximizing the distance between the anchor and negative images. This ensures that the network learns to discriminate between AD and NC brain images effectively. The figure below illustrates the Triplet Siamese Network architecture:
 
 ![triplet_archi-1](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/2bc9f547-7923-4b4c-b5ba-4758dae840f9)
-
-
+https://pyimagesearch.com/2023/03/06/triplet-loss-with-keras-and-tensorflow/
+### Triplet Loss
+As stated earlier, the primary objective is to minimize the distance between the anchor and positive images while maximizing the distance between the anchor and negative images. This is done through triplet loss which follows these steps:
+1. Calculate the Squared Euclidean distance between the anchor and the positive
+2. Calculate the Squared Euclidean distance between the anchor and the negative
+3. Calculate the difference between the squared distances
+4. Add the margin to the differnce
+5. Apply a ReLU to ensure the loss is positive.
+![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/ffbb0047-deac-4760-a5a2-6930efd2e717)
+https://towardsdatascience.com/triplet-loss-advanced-intro-49a07b7d8905
 ## Dependencies
 To run this code, you'll need the following dependencies:
 
@@ -48,7 +56,9 @@ The TripleNetClassifier was trained on the ADAM optimiser with a learning rate s
 The inputs to the Siamese Network classifier are pairs of brain images, one from an AD patient and one from a healthy individual. These image pairs are provided in the ADNI dataset.
 
 #### Outputs
-The output of the classifier is a binary classification result, indicating whether the input image pair is classified as normal or AD.
+The output of the classifier is a binary classification result, indicating whether the input image pair is classified as NC or AD (0, 1).
+
+![report](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/e21ab09e-bc18-4bdc-9c4d-a4d3954038bf)
 
 #### Plots
 The following plots can be generated:
@@ -60,7 +70,8 @@ Training Loss and Accuracy: A plot of training loss and accuracy over epochs to 
 ##### TripleClassifier Loss
 ![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/18068dd2-98fd-4ade-b95e-45995860ee10)
 
-## Pre-processing
+## Pre-processing 
+
 #### Train Transform:
 
 - **Resize:** The images are resized to a fixed size of 100x100 pixels using `transforms.Resize((100, 100))`.
@@ -85,9 +96,16 @@ Training Loss and Accuracy: A plot of training loss and accuracy over epochs to 
 
 - **Grayscale:** Finally, the image is converted to grayscale using `transforms.Grayscale()`, just as in the train transform.
 
+## Data Directory Structure
+
+To use the data with the default values, make sure to organize your data as shown below:
+
+![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/39dbd207-7a21-494c-889e-a4acd378a689)
+
+
 
 ## Data Splitting
-The dataset is divided into three sets:
+The dataset is divided into two sets:
 
 Training Set: Used to train the Siamese Network.
 Test Set: Used to evaluate the model's performance and achieve the target accuracy of approximately 0.8.
