@@ -9,6 +9,16 @@ set of data to improve its performance. Then this process is repeated many times
 Visual example of node classification[^4]
 ![Visual example of node classification](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/f6822d8c-fe7d-493a-87c2-014e36d07d76)
 
+To make the predictions, a graph convolutional network (GCN) is used where similar to a convolutional neural network (CNN), 
+GCN learns features by inspecting adjacent nodes. GNNs aggregate the feature vectors, then pass the result to the dense layer
+and apply the activation function, similar to a CNN[^5].
+
+Visual example of a GCN[^6]
+
+![gcn_web](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/106b4c73-55c0-415a-a5b8-7e2075f1f125)
+
+
+
 ## The dataset
 We demonstrate the usage of semi-supervised node classification using the Facebook large page-page network dataset[^2].
 A processed dataset[^3] was used instead to train the model. The dataset consists of 128-dimension feature vector, a
@@ -96,3 +106,5 @@ where the model is unable to capture the relationship between the features and l
 [^2]: https://snap.stanford.edu/data/facebook-large-page-page-network.html
 [^3]: https://graphmining.ai/datasets/ptg/facebook.npz
 [^4]: https://www.researchgate.net/figure/Illustration-of-semi-supervised-node-classification-Blue-and-green-denote-those-nodes_fig1_355873169
+[^5]: https://www.datacamp.com/tutorial/comprehensive-introduction-graph-neural-networks-gnns-tutorial
+[^6]: https://tkipf.github.io/graph-convolutional-networks/
