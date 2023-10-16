@@ -14,7 +14,6 @@ from torch import nn
 from torch.utils.data import DataLoader, Subset
 from modules import SiameseNetwork
 from dataset import get_train_dataset
-from sklearn.model_selection import train_test_split
 
 
 def train(model, dataloader, device, optimizer, epoch):
