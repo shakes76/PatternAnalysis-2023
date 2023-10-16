@@ -56,6 +56,9 @@ else:
 	model = timm.create_model("vit_tiny_patch16_224.augreg_in21k_ft_in1k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
 model = model.to(device)
 
+# TODO: Freeze layers to only train final layer
+# TODO: Look into the symposium model, might be better for this application
+
 # Initialise logging to display tracking information in TensorBoard
 
 # default `log_dir` is "runs" - we'll be more specific here
@@ -188,6 +191,9 @@ for epoch in range(numEpochs):
 end = time.time()
 elapsed = end - start
 logger.info("Training took " + str(elapsed) + " secs")
+
+# TODO: Do testing here so the data can be saved in the same
+# TODO: tensorboard.
 
 os.makedirs(os.path.dirname(savePath), exist_ok=True)
 torch.save(model, savePath)
