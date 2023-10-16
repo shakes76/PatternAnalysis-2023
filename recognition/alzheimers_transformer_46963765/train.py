@@ -1,3 +1,10 @@
+"""
+Author: Rohan Kollambalath
+Student Number: 46963765
+COMP3710 Sem2, 2023.
+Script to train the perceiver transformer model. 
+"""
+
 import dataset as ds
 from modules import *
 import torch.optim as optim
@@ -6,7 +13,15 @@ from predict import test_accuracy, visualize_loss, visualize_accuracies, valid_a
 # check for CUDA device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+
 def train(epochs, learning_rate, batch_size, model):
+    """
+    Method that trains a model with the ADNI dataset for expected batch size. The method gets the train 
+    and validation datasets and uses them to train model for number of epochs. BCELoss and Adam optimiser 
+    are used. After each epoch a validation accuracy is calculated and the batch loss is added to a list.
+    The model returns the loss and accuracies. The function also saves the model preiodically when it 
+    reaches new highs in accuracy.
+    """
     # retrieve dataset
     dataset = ds.ADNI_Dataset(); train_loader, validation_loader = dataset.get_train_and_valid_loader()
     # BCELoss used with the Adam optimiser
@@ -16,6 +31,8 @@ def train(epochs, learning_rate, batch_size, model):
     # lists to store the results of training
     batch_losses = []
     accuracies = []
+    
+    max_accuracy = 0
 
     # main training loop
     for epoch in range(epochs):
@@ -34,7 +51,7 @@ def train(epochs, learning_rate, batch_size, model):
                 loss.backward()
                 optimizer.step()
                 batch_loss += loss.item()
-            
+                        
                 
         # Print results for the epoch        
         batch_losses.append(batch_loss/(j+1))
@@ -45,11 +62,21 @@ def train(epochs, learning_rate, batch_size, model):
         print("validation accuracy is {}".format(accuracy))
         accuracies.append(accuracy) 
         
+        # save the model if validation accuracy is higher that before
+        if accuracy > max_accuracy:
+            torch.save(model.state_dict(), "model/model.pth")
+            max_accuracy = accuracy
+
+
         
     return model, batch_losses, accuracies
 
 
 if __name__ == "__main__":
+    """
+    Main driver that trains the models for the specified hyperparameters. Model is trained and then 
+    saved before calculating the accuracy on the test set and visualising loss and validation accuracies
+    """
     # hyper parameters
     epochs = 10
     depth = 3

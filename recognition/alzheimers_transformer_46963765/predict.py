@@ -1,8 +1,18 @@
+"""
+Author: Rohan Kollambalath
+Student Number: 46963765
+COMP3710 Sem2, 2023.
+Script to test various accuracies fo the perciever model. 
+"""
+
 import dataset as ds
 from modules import *
 import matplotlib.pyplot as plt
 
+
 def visualize_loss(batch_losses):
+    """Iterates through a list of loss and plots against the epoch using matplotlib. Saves the plot
+    as loss_plot.png and displays it"""
     # epochs on the x axis, batch loss on y axis 
     epochs = range(1, len(batch_losses) + 1)
     plt.plot(epochs, batch_losses, marker='o', linestyle='-')
@@ -18,6 +28,10 @@ def visualize_loss(batch_losses):
 
 
 def test_accuracy(model, batch_size):
+    """
+    Tests the test accuracy of a model for a specified batch size. 
+    Iterates through the loader and calculates total correct.
+    """
     # load the test dataset
     dataset = ds.ADNI_Dataset()
     test_laoder = dataset.get_test_loader()
@@ -43,6 +57,10 @@ def test_accuracy(model, batch_size):
 
 
 def valid_accuracy(model, batch_size, valid_loader):
+    """
+    Tests the validation accuracy of a model for a specified batch size. 
+    Iterates through the loader and calculates total correct.
+    """
     correct_predictions = 0
     total_samples = 0    
             
@@ -63,6 +81,8 @@ def valid_accuracy(model, batch_size, valid_loader):
 
 
 def visualize_accuracies(accuracies):
+    """Iterates through a list of accuracy and plots against the epoch using matplotlib. Saves the plot 
+    as accuracy.png"""
     # epochs on the x axis, accuracies on y axis 
     epochs = range(1, len(accuracies) + 1)
     plt.plot(epochs, accuracies, marker='o', linestyle='-')

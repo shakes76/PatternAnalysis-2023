@@ -45,7 +45,7 @@ The ADNI dataset has already been split into adequate test and train folders by 
 
 The data split is 80% train and 20% test. Validation sets were not used in training this model as the dataset is already small for a transformer and data leakage is a prominent issue as singular people have multiple MRI scans in the dataset. As the data was already supplied preprocessed by the teaching team there was no way to identify which brain belonged to which person and avoid the data leakage. The test set was used to find the accuracy after each epoch. Doing this in no way interferes with the training process or any hyperparameters of the model.
 
-Example Brains:
+Example Brains without random augmentations:  
 Note, matplotlib automatically adds contrast colour when displaying image as the image dimention is only 1
 ![SampleBrains](../plots/sample_brains.png)
 
