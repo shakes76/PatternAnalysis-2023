@@ -30,6 +30,7 @@ class PositionalImageEmbedding(nn.Module):
 
     def fourier_features(self, shape, bands):
         dims = len(shape)
+        print("Fourier features parameters are ",shape, bands)
         pos = torch.stack(list(torch.meshgrid(
             *(torch.linspace(-1.0, 1.0, steps=n) for n in list(shape))
         )))
@@ -48,7 +49,27 @@ class PositionalImageEmbedding(nn.Module):
 
         return result
 
+#Chatgpt generated change later
+class GridPositionalImageEmbedding(nn.Module):
+    def __init__(self, input_shape, input_channels, embed_dim):
+        super(GridPositionalImageEmbedding, self).__init__()
+        self.embedding = self.generate_positional_embedding(input_shape, embed_dim)
+        self.conv = nn.Conv2d(input_channels + embed_dim, embed_dim, kernel_size=1)
 
+    def forward(self, x):
+        enc = self.embedding.unsqueeze(0).expand(x.shape[0], -1, -1, -1)
+        enc = enc.type_as(x)
+        x = torch.cat([x, enc], dim=1)
+        x = self.conv(x)
+        return x
+
+    def generate_positional_embedding(self, input_shape, embed_dim):
+        height, width = input_shape
+        num_positions = height * width
+        position = torch.arange(num_positions, dtype=torch.float32).reshape(1, 1, height, width).type_as(torch.ones(1))
+        div_term = torch.exp(torch.arange(0, embed_dim, 2, dtype=torch.float32) * (-math.log(10000.0) / embed_dim)).type_as(torch.ones(1))
+        pos_embedding = torch.cat([torch.sin(position * div_term), torch.cos(position * div_term)], dim=1)
+        return pos_embedding
 
 def createResNet():
     return resnet50(weights=ResNet50_Weights.IMAGENET1K_V2)
@@ -159,7 +180,10 @@ class Perceiver(nn.Module):
     
     def forward(self, kv):
         latent = self.latent.expand(-1, kv.size()[0], -1)
-        kv = self.positionalImageEmbedding(kv)
+        print("kv is", kv.size())
+        #kv = self.positionalImageEmbedding(kv)
+        kv = kv.view(1800, 5, 32)
+        print("kv after positiona embedded is", kv.size())
         for block in self.perceiver_block_array:
             latent = block(latent, kv)
         #Need to do the classifier here
