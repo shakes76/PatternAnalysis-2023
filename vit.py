@@ -30,6 +30,7 @@ num_heads = 12  # Number of self attention blocks
 num_layers = 12  # Number of Transformer encoder layers
 mlp_size = 3072  # Number of hidden units between each linear layer
 dropout_size = 0.1
+num_classes = 2  # Number of different classes to classify (i.e. AD and NC)
 
 # Create the dataset
 dataroot = "AD_NC"
@@ -102,6 +103,24 @@ class TransformerEncoder(nn.Module):
         return self.full_transformer_encoder(input)
 
 # ------------------------------------------------------------------
+# MLP head
+class MLPHead(nn.Module):
+    """Creates an MLP head.
+    Consists of a layer normalisation and a linear layer.
+    """
+    def __init__(self, ngpu):
+        super(MLPHead, self).__init__()
+        self.ngpu = ngpu
+
+        self.main = nn.Sequential(nn.LayerNorm(normalized_shape=embed_dim),
+                                    nn.Linear(in_features=embed_dim,
+                                                out_features=num_classes)
+                                    )
+    
+    def forward(self, input):
+        return self.main(input)
+
+# ------------------------------------------------------------------
 # Multi-head Attnetion
 class MultiheadSelfAttention(nn.Module):
     """Creates a multi-head self attention block.
@@ -140,24 +159,20 @@ class ViT(nn.Module):
         self.patch_embedding = PatchEmbedding(workers)
         self.prepend_embed_token = nn.Parameter(torch.randn(1, 1, embed_dim), requires_grad=True)
         self.position_embed_token = nn.Parameter(torch.randn(1, num_patches + 1, embed_dim), requires_grad=True)
-        self.transformer_encoder = nn.TransformerEncoder(encoder_layer=nn.TransformerEncoderLayer(d_model=embed_dim,
-                                                                                                    nhead=num_heads,
-                                                                                                    dim_feedforward=mlp_size,
-                                                                                                    dropout=dropout_size,
-                                                                                                    activation="gelu",
-                                                                                                    layer_norm_eps=1e-5,
-                                                                                                    batch_first=True,
-                                                                                                    norm_first=True,
-                                                                                                    bias=True),
-                                                        num_layers=num_layers)
-
+        self.embedding_dropout = nn.Dropout(p=dropout_size)  # Apply dropout after positional embedding as well
+        self.transformer_encoder = TransformerEncoder(workers)
+        self.mlp_head = MLPHead(workers)
 
     def forward(self, input):
         prepend_embed_token_expanded = self.prepend_embed_token.expand(batch_size, -1, -1)
 
-        input = self.patch_embedding(input)
-        input = torch.cat((prepend_embed_token_expanded, input), dim=1)
-        input = input + self.position_embed_token
+        input = self.patch_embedding(input)  # Patch embedding
+        input = torch.cat((prepend_embed_token_expanded, input), dim=1)  # Prepend class token
+        input = input + self.position_embed_token  # Add position embedding
+        input = self.embedding_dropout(input)  # Apply dropout
+        input = self.transformer_encoder(input)  # Feed into transformer encoder layers
+        input = self.mlp_head(input[:, 0])  # Get final classificaiton from MLP head
+        return input
 
 
 def imshow(img):
