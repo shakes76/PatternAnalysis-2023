@@ -3,14 +3,16 @@ import torch.nn as nn
 import matplotlib.pyplot as plt
 
 class TestVQVAE() :
-    def __init__(self, model: nn.Module, dataset, savepath='./models/vqvae') :
+    def __init__(self, model: nn.Module, dataset, savepath='./models/vqvae', device='cpu') :
         self.model = model
         self.dataset = dataset
         self.savepath = savepath
+        self.device = device
 
 
     def reconstruct(self, path: None, show = False) :
         x, label = next(iter(self.dataset.get_test()))
+        x = x.to(self.device)
         x = self.model.encoder(x)
         x = self.model.conv(x)
         _, x_hat, _, embeddings, _ = self.model.quantizer(x)

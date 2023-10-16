@@ -28,7 +28,7 @@ FRACTION = 0.1
 VQVAE_RETRAIN = True
 GAN_RETRAIN = True
 PIXELCNN_RETRAIN = False
-VQVAE_TEST = False
+VQVAE_TEST = True
 VQVAE_PREDICT = True
 
 # VQVAE Model Parameters
@@ -40,32 +40,33 @@ VQVAE_EMBEDDING_DIM = VQVAE_HIDDEN // 2
 # VQVAE Hyperparameters
 VQVAE_LR = 1e-3
 VQVAE_WD = 1e-5
-VQVAE_EPOCHS = 100
+VQVAE_EPOCHS = 2
 BATCH_SIZE = 32
 
 # VQVAE Paths
 VQVAE_SAVEPATH = os.path.join(os.getcwd(), 'models/vqvae')
 VQVAE_MODEL_PATH = os.path.join(os.getcwd(), 'models/vqvae/vqvae.pth')
-VQVAE_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/vqvae.pth')
+VQVAE_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/new/vqvae.pth')
 VQVAE_RECONSTRUCT_PATH = os.path.join(os.getcwd(), 'models/predictions/vqvae_reconstruction.png')
 
 # GAN Model Parameters
 GAN_LATENT_DIM = 128
 GAN_IMG_SIZE = 64
+NOISE = 100
 
 # GAN Hyperparameters
 GAN_LR = 1e-3
 GAN_WD = 1e-5
-GAN_EPOCHS = 100
+GAN_EPOCHS = 20
 GAN_SAVEPATH = os.path.join(os.getcwd(), 'models/gan')
 DISCRIMINATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_discriminator.pth')
-DISCRIMINATOR_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/gan_discriminator.pth')
+DISCRIMINATOR_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/new/discriminator.pth')
 GENERATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
-GENERATOR_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/gan_generator.pth')
+GENERATOR_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/new/generator.pth')
 
 # PixelCNN
 PIXEL_MODEL_PATH=os.path.join(os.getcwd(), 'models/pixelcnn.pth')
-PIXEL_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/pixelcnn.pth')
+PIXEL_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/new/pixelcnn.pth')
 PIXEL_SAVEPATH=os.path.join(os.getcwd(), 'models/pixelcnn')
 
 

@@ -24,8 +24,10 @@ if __name__ == '__main__':
                 dim_embedding = 64, 
                 beta = utils.BETA
     )
-    gan = GAN(utils.CHANNELS, utils.GAN_LATENT_DIM, utils.GAN_IMG_SIZE)
-    pixelcnn = PixelCNN(utils.VQVAE_HIDDEN, utils.GAN_LATENT_DIM)
+    vqvae = vqvae.to(utils.DEVICE)
+    gan = GAN(utils.CHANNELS, utils.NOISE, utils.GAN_IMG_SIZE)
+    gan = gan.to(utils.DEVICE)
+    # pixelcnn = PixelCNN(utils.VQVAE_HIDDEN, utils.GAN_LATENT_DIM)
 
     # Core dataset
     adni_dataset = Dataset(batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=utils.FRACTION)
@@ -37,17 +39,17 @@ if __name__ == '__main__':
         vqvae_trainer.plot(save=True)
         vqvae_trainer.save(utils.VQVAE_MODEL_PATH)
     else :
-        vqvae.load_state_dict(torch.load(utils.VQVAE_MODEL_PATH, map_location=utils.DEVICE)) # Change back to utils.VQVAE_MODEL_PATH
-        # vqvae.load_state_dict(torch.load(utils.VQVAE_RANGPUR_MODEL_PATH, map_location=utils.DEVICE)) # Change back to utils.VQVAE_MODEL_PATH
+        # vqvae.load_state_dict(torch.load(utils.VQVAE_MODEL_PATH, map_location=utils.DEVICE)) # Change back to utils.VQVAE_MODEL_PATH
+        vqvae.load_state_dict(torch.load(utils.VQVAE_RANGPUR_MODEL_PATH, map_location=utils.DEVICE)) # Change back to utils.VQVAE_MODEL_PATH
     
-    if utils.PIXELCNN_RETRAIN :
-        pixel_trainer = TrainPixelCNN(vqvae, pixelcnn, adni_dataset, utils.VQVAE_LR, utils.VQVAE_WD, utils.GAN_EPOCHS, utils.PIXEL_SAVEPATH)
-        pixel_trainer.train()
-        pixel_trainer.plot(save = True)
-        pixel_trainer.save(utils.PIXEL_MODEL_PATH)
-    else :
-        # pixelcnn.load_state_dict(torch.load(utils.PIXEL_MODEL_PATH, map_location=utils.DEVICE))
-        pixelcnn.load_state_dict(torch.load(utils.PIXEL_RANGPUR_MODEL_PATH, map_location=utils.DEVICE))
+    # if utils.PIXELCNN_RETRAIN :
+    #     pixel_trainer = TrainPixelCNN(vqvae, pixelcnn, adni_dataset, utils.VQVAE_LR, utils.VQVAE_WD, utils.GAN_EPOCHS, utils.PIXEL_SAVEPATH)
+    #     pixel_trainer.train()
+    #     pixel_trainer.plot(save = True)
+    #     pixel_trainer.save(utils.PIXEL_MODEL_PATH)
+    # else :
+    #     # pixelcnn.load_state_dict(torch.load(utils.PIXEL_MODEL_PATH, map_location=utils.DEVICE))
+    #     pixelcnn.load_state_dict(torch.load(utils.PIXEL_RANGPUR_MODEL_PATH, map_location=utils.DEVICE))
 
     # Train GAN prior
     if utils.GAN_RETRAIN :
@@ -70,13 +72,11 @@ if __name__ == '__main__':
     
     # Run predict
     if utils.VQVAE_PREDICT :
-        predict = Predict(vqvae, gan, adni_dataset, device=utils.DEVICE, savepath=utils.OUTPUT_PATH, 
-                            img_size=(utils.VQVAE_RESIDUAL, utils.VQVAE_RESIDUAL))
-        # predict.generate_gan(32)
-        # predict.generate_vqvae(32)
-        # predict.ssim('gan')
-        # predict.ssim('vqvae')
-        
-        predict.generate_pixelcnn_vqvae(pixelcnn)
+        predict = Predict(vqvae, gan, adni_dataset, utils.DEVICE, savepath=utils.OUTPUT_PATH, img_size=utils.H)
+        predict.generate_gan(1)
+        predict.generate_vqvae(1)
+        predict.ssim('gan')
+        predict.ssim('vqvae')
+        # predict.generate_pixelcnn_vqvae(pixelcnn)
         # predict.pixel(pixelcnn, 32)
         # predict.gan_generated_images(gan.generator, 128, utils.DEVICE)

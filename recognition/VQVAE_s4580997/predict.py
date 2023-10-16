@@ -12,7 +12,7 @@ from skimage.metrics import structural_similarity
 import torch.nn.functional as F
 
 class Predict() :
-    def __init__(self, vqvae, gan, dataset, device='cpu', savepath = './models/predictions/', img_size=(32, 32)) -> None:
+    def __init__(self, vqvae, gan, dataset, device='cpu', savepath = './models/predictions/', img_size=64) -> None:
         self.vqvae = vqvae
         self.gan = gan
         self.dataset = dataset
@@ -23,15 +23,14 @@ class Predict() :
         self.generated_images = None
         self.ssim_score = None
 
-        self.img_size=img_size
+        self.img_size=(img_size, img_size)
     
     def generate_gan(self, num_images = 1) :
         self.gan.generator.eval()
-        noise = torch.randn(num_images, self.gan.latent_dim, 1, 1).to(self.device)
+        noise = torch.randn(1, 100, 1, 1).to(self.device)
         with torch.no_grad():
             self.generated_images = self.gan.generator(noise)
-                    
-        self.visualise(num_images=num_images, show = False, save = True, savename="gan_generated")
+        self.visualise(num_images=1, show = False, save = True, savename="gan_generated")
 
     def generate_vqvae(self, num_images=1):
         self.vqvae.eval()
@@ -138,19 +137,17 @@ class Predict() :
             self.generate_gan()
         else :
             self.generate_vqvae()
-
+        print(model)
         gen_img = self.generated_images[0].detach().cpu().numpy()  
-        gen_img = np.transpose(gen_img, (1, 2, 0)) 
         
         ssim_scores = []
-
         for i, (data, _) in enumerate(self.dataset.get_test()):
             
             if i >= num_images:
                 break
             real_img = data[0].numpy() 
-            real_img = np.transpose(real_img, (1, 2, 0))
-
+            print(gen_img.shape)
+            print(real_img.shape)
             ssim = structural_similarity(
                 gen_img,
                 real_img,

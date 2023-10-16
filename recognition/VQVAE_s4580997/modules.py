@@ -324,7 +324,6 @@ class VQVAE(nn.Module):
             n_hidden, 
             n_residual
         )
-        self.encoder = self.encoder.to(DEVICE)
         
         self.conv = nn.Conv2d(
             in_channels=n_hidden, 
@@ -332,14 +331,12 @@ class VQVAE(nn.Module):
             kernel_size=1, 
             stride=1,
         )
-        self.conv = self.conv.to(DEVICE)
 
         self.quantizer = VectorQuantizer(
             n_embeddings, 
             dim_embedding,
             beta
         )
-        self.quantizer = self.quantizer.to(DEVICE)
         
         self.decoder = Decoder(
             dim_embedding,
@@ -347,7 +344,6 @@ class VQVAE(nn.Module):
             n_residual,
             channels
         )
-        self.decoder = self.decoder.to(DEVICE)
 
     def forward(self, x):
         x = self.encoder(x)
@@ -367,7 +363,7 @@ class Generator(nn.Module):
     """
     Generator accepts a latent vector of size (B, latent_size, 1, 1) and returns an image of size (B, channels, H, W).
     """
-    def __init__(self, latent_size = 128, channels = 3):
+    def __init__(self, latent_size = 128, size=64, channels = 3):
         """
         Initialize the generator.
 
@@ -378,13 +374,16 @@ class Generator(nn.Module):
         param2 : channels
             Number of channels for the image.
         """
+        self.noise = latent_size
+        self.size = size
+
         super(Generator, self).__init__()
         self.main = nn.Sequential(
-            self.layer(latent_size, latent_size * 4, 4, 1, 0),
-            self.layer(latent_size * 4, latent_size * 2, 4, 2, 1),
-            self.layer(latent_size * 2, latent_size, 4, 2, 1),
-            self.layer(latent_size, latent_size // 2, 4, 2, 1),
-            nn.ConvTranspose2d(latent_size // 2, channels, 4, 2, 1, bias=False),
+            self.layer(self.noise, self.size * 8, 4, 1, 0),
+            self.layer(self.size * 8, self.size * 4, 4, 2, 1),
+            self.layer(self.size * 4, self.size * 2, 4, 2, 1),
+            self.layer(self.size * 2, self.size, 4, 2, 1),
+            nn.ConvTranspose2d(self.size, channels, 4, 2, 1, bias=False),
             nn.Tanh()
         )
     
@@ -420,7 +419,7 @@ class Discriminator(nn.Module):
             self.layer(img_size, img_size * 2, 4, 2, 1),
             self.layer(img_size * 2, img_size * 4, 4, 2, 1),
             self.layer(img_size * 4, img_size * 8, 4, 2, 1),            
-            nn.Conv2d(img_size * 8, 1, 4, 1, 0, bias=False),
+            nn.Conv2d(img_size * 8, 1, 4, 2, 0, bias=False),
             nn.Flatten(),
             nn.Sigmoid()
         )
@@ -433,7 +432,7 @@ class Discriminator(nn.Module):
         )
 
     def forward(self, input):
-        return self.main(input).view(-1, 1).squeeze(1)
+        return self.main(input)
 
 class GAN(nn.Module):
     def __init__(self, channels = 3, latent_dim = 128, img_size = 64):
@@ -442,7 +441,7 @@ class GAN(nn.Module):
         self.channels = channels
         self.img_size = img_size
 
-        self.generator = Generator(self.latent_dim)
+        self.generator = Generator(self.latent_dim, self.img_size, self.channels)
         self.discriminator = Discriminator(self.channels, self.img_size)
 
     def forward(self, x):
