@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import numpy as np
 
-
 # For the purpose of this report, we want to downscale the images by a factor of 4, before 
 # upscaling by a factor of 4. This is to simulate the effect of a low resolution image.
 
@@ -32,9 +31,10 @@ directory = os.path.abspath('./data/AD_NC')
 train_path = os.path.join(directory, 'train')
 # test_path = os.path.join(directory, 'test')
 
-
-def main():
-
+def load_data():
+    """
+    Function that loads the data and creates the dataloader. Returns the dataloader.
+    """
     # TRANSFORMS
     transform_train = transforms.Compose([
         transforms.Resize((new_height, new_width)),
@@ -42,7 +42,6 @@ def main():
         transforms.Grayscale(),
         transforms.ToTensor(),
     ])
-
 
     dataloader = torch.utils.data.DataLoader(
         torchvision.datasets.ImageFolder(train_path, transform=transform_train),
@@ -75,7 +74,3 @@ def main():
     print("Training image picture created!")
 
     return dataloader
-
-
-if __name__ == "__main__":
-    main()
