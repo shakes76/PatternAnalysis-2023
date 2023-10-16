@@ -154,11 +154,17 @@ Various other training were carried out (please refer appendix 1)
 #### After pre-processing
 
 **Example 1**
+
+<br>
+
 ![Alt text](ADNI_TRANSFORMER_47379251/assets/image-3.png)
 
 <br>
 
 **Example 2**
+
+<br>
+
 ![Alt text](ADNI_TRANSFORMER_47379251/assets/imageData.png)
 
 
@@ -231,17 +237,19 @@ Format: Job(short form) - Model and Changes - Accuracy (in %)
 ### Appendix 2
 
 Testing took 14.813738584518433 secs or 0.2468956430753072 mins in total
-END
+
+<br>
+
 Test Loss: 17.944203392136842 Test Accuracy: 89.01315789473684
 
 
 ## References
-* 1. https://www.frontiersin.org/articles/10.3389/fnagi.2019.00220/full
-* 2. https://adni.loni.usc.edu/
-* 3. https://arxiv.org/pdf/2010.11929v2.pdf
-* 4. https://arxiv.org/abs/2104.05704
-* 5. https://github.com/lucidrains/vit-pytorch/
-* 6. https://github.com/SHI-Labs/Compact-Transformers
+1. https://www.frontiersin.org/articles/10.3389/fnagi.2019.00220/full
+2. https://adni.loni.usc.edu/
+3. https://arxiv.org/pdf/2010.11929v2.pdf
+4. https://arxiv.org/abs/2104.05704
+5. https://github.com/lucidrains/vit-pytorch/
+6. https://github.com/SHI-Labs/Compact-Transformers
 * Image reference https://arxiv.org/abs/2104.05704
 
 Some parts of the code was inspired by: https://github.com/lucidrains/vit-pytorch/ and Pytorch official website
