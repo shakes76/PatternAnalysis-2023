@@ -121,7 +121,7 @@ def test():
     patch_embedding = PatchEmbedding(workers)
     patch_embedding_output = patch_embedding(random_image_tensor)
     print(f"In shape: {random_image_tensor.shape}")
-    print(f"Out shape: {patch_embedding_output.shape}
+    print(f"Out shape: {patch_embedding_output.shape}")
 
 def main():
     test()
