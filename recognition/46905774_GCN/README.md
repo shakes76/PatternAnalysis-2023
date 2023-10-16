@@ -33,6 +33,7 @@ hidden features of [22470, hidden_channels]. The final convolution layer produce
 The model concludes with an Output Layer employing a LogSoftmax function, delivering a Class Probability Distribution with dimensions [22470, 4]. 
 Throughout these layers, the transformation of features is facilitated by the adjacency matrix, ensuring the model captures the graph structure effectively. 
 The process diagram is shown below
+
 ![image issue](https://github.com/Amberfafa/PatternAnalysis-2023/blob/topic-recognition/recognition/46905774_GCN/results_visualization/GCN_module_dia.png)
 
 ## problem that it solves
@@ -83,31 +84,31 @@ It is recommended that the 46905774_GCN folder be packaged into colab and run th
    named `pre_train.png` and `post_train.png`
    
 ## results and analysis
-![image showing issue](https://drive.google.com/file/d/1ihNBYORsG6NpPnV2cMrQAr-ZMi6_E1Y2/view?usp=sharing)
+![image showing issue](https://github.com/Amberfafa/PatternAnalysis-2023/blob/topic-recognition/recognition/46905774_GCN/results_visualization/best_accuracy.png)!
 
 After 800 epoches training of the model on training set we got 93.33% accuracy on test set
 
-![image showing issue](https://drive.google.com/file/d/1SKnPnVzjU9C49dEamlEHKcQuQIbfsuPG/view?usp=sharing)
+![image showing issue](https://github.com/Amberfafa/PatternAnalysis-2023/blob/topic-recognition/recognition/46905774_GCN/results_visualization/gcn_accuracy.png)
 
 This graph displays the accuracy of a model during its training phase (represented by the orange line) 
 and its validation phase (represented by the blue line) over a series of epochs. As we can see the model 
 quickly improve its accuracy during the initial epochs and then it tends to level off after a certain point. 
 The validation and training accuracies are closely aligned, which means that the model isn't overfitting to the training set.
 
-![image showing issue](https://drive.google.com/file/d/11A90o3SzV4sn5zZod9Vo-eAaiWupecGb/view?usp=sharing)
+![image showing issue](https://github.com/Amberfafa/PatternAnalysis-2023/blob/topic-recognition/recognition/46905774_GCN/results_visualization/gcn_loss.png)
 
 Since the difference in the loss values between the training set and the validation set is too large in the initial period,
 if I show all 800 epochs of the image, we can't clearly see the difference between the two curves, so I only show the loss values of the first 15 epochs.
 From the image we can know that The validation loss starts at a very high value but rapidly decreases and stabilizes. The training loss follows a similar trend, 
 though it levels out at a slightly lower value than the validation loss. And the difference between these two lines prove that the model isn't overfitting.
 
-![image showing issue](https://drive.google.com/file/d/1pbu6xNYTXXypjpeVqd0lfOObt-UFKltc/view?usp=sharing)
+![image showing issue](https://github.com/Amberfafa/PatternAnalysis-2023/blob/topic-recognition/recognition/46905774_GCN/results_visualization/pre_train.png)
 
 I use t-SNE to reduce high-dimensional data to 2 dimensions so that I can visualize it on a 2-dimensional plane.
 We can visualise these embeddings as points on a plot, colored by their true subject labels. 
 This is the ground-truth plot before training. After training the plot is shown below
 
-![image showing issue](https://drive.google.com/file/d/1b9NMf0jt0CmvTY_3uALYPZNCp2i_I3FZ/view?usp=sharing)
+![image showing issue](https://github.com/Amberfafa/PatternAnalysis-2023/blob/topic-recognition/recognition/46905774_GCN/results_visualization/post_train.png)
 
 We can see that the plot shows good clustering, where nodes of a single colour are mostly grouped together. 
 it approves that the model has learned useful information about the nodes based on their class.
