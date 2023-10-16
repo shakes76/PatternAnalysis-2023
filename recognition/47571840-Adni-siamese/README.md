@@ -1,11 +1,11 @@
 # Classifier based on Siamese Network to Classify Alzheimer's Disease on ADNI Dataset
 
-This repository implements a Siamese Network that will be trained to generate embeddings of  images of the ADNI dataset. A classifier (fully connected layers) is added on top of the trained Siamese Network to classify Alzhemier's Disease on the dataset.
+This repository implements a Siamese Network that will be trained to generate embeddings of images of the ADNI dataset. A classifier (fully connected layers) is added at the end of a trained Siamese Network to classify Alzhemier's Disease on the dataset.
 
 ## General Overview of the Siamese Network
-A Siamese Neural Network or twin neural network is an architecture that is made to differentiate between two inputs. It consists of two sub-networks that share the same weights and parameters. Each sub-network accept individual inputs, or in this case images, and produce feature vectors or embeddings. The euclidiean distance between the embeddings of both sub-networks are then calculated to determine the similarity between the inputs. The goal is to update the weights of the sub-networks so that the distance between inputs of the same class is small and the distance between inputs of different classes is large.
+A Siamese Neural Network or twin neural network is an architecture that is made to differentiate between two inputs. It consists of two sub-networks that share the same weights and parameters. Each sub-network accepts a single input, or in this case image, and produce a feature vector or embeddings of the image. The euclidiean distance between the embeddings of both sub-networks are then calculated to determine the similarity between the inputs. The goal is to update the weights of the sub-networks so that the distance between inputs of the same class is small and the distance between inputs of different classes is large.
 
-The loss function that is used in this implementation is the contrastive loss. The loss penalises large distances for similar pairs (pairs in different class) by increasing the loss as the distance grows. For dissimilar pairs (pairs in different classes), it penalises distances that are less than a specified margin, ensuring that images that are different should be at least a margin apart.
+The loss function that is used in this implementation is the contrastive loss. The loss penalises large distances for similar pairs (pairs in the same class) by increasing the loss as the distance grows. For dissimilar pairs (pairs in different classes), it penalises distances that are less than a specified margin, ensuring that images that are different should be at least a margin apart.
 
 ```
 class ContrastiveLoss(torch.nn.Module):
@@ -25,23 +25,22 @@ Below is a graph that explains the data flow through the networks
 
 ![](images_for_readme/Architecture_final.png)
 
-Pairs of images are fed into the Siamese networks to generate their embeddings. The euclidean distance between the pair of embeddings are then calculated and passed into the contrastive loss during training. A classifier is added on top of a Siamese network to classify Alzhemier's Disease.
+Pairs of images are fed into the Siamese network to generate their embeddings. The euclidean distance between the pair of embeddings are then calculated and passed into the contrastive loss during training. A classifier is added on at the end of a trained Siamese network to classify Alzhemier's Disease.
 
 The backbone architecture of the Siamese network is based on PyTorch's ResNet-18 with several modifications. The classifier's architecture consists of fully connected layers, utilising ReLU activation functions, dropout, and batch normalisations. Most importantly, the classifier model incorporates a pre-trained Siamese network, with its weights frozen during training.
 
 
-
 ## ADNI Dataset
-The ADNI dataset consits of brain MRI images with the class labels AD (0) and NC(1). There are 21520 images for the training dataset and 9000 images for testing. Images in the dataset has the dimensions 240x256
+The ADNI dataset consits of brain MRI images with the class labels AD (0) and NC(1). There are 21520 images in the training dataset and 9000 images in the testing dataset. Images in the dataset has the dimensions 240x256
 
 AD            |  NC
 :-------------------------:|:-------------------------:
 ![](images_for_readme/218391_78_AD.jpeg)  |  ![](images_for_readme/808819_88_NC.jpeg)
 
 ## Pre-processing the Dataset
-The training data of the ADNI dataset is split into 80% training  and 20% validation data.
+The training data of the ADNI dataset is split into 80% training and 20% validation data.
 
-To train the siamese network, the training data and validation data needs to be grouped into pairs. Pairs that are in the same class are labelled as 1 and pairs that are in different classes are labelled as 0. The process of grouping the dataset into pairs can be found in dataset.py.
+To train the siamese network, the training data and validation data need to be grouped into pairs. Pairs that are in the same class are labelled as 1 and pairs that are in different classes are labelled as 0. The process of grouping the dataset into pairs can be found in `dataset.py`.
 
 To train the classifier, training and validation data are loaded using the DataLoader library, without organizing them into pairs.
 
@@ -51,10 +50,10 @@ The training data goes through these preprocessing steps:
 3. Convert images to tensors 
 
 ## Training Parameters and Results
-The process of training the siamese networks and the classifier is the following:
-1. Train the Siamese Network on image pairs using contrastive loss
-2. Train classifier that sits on top of the trained siamese network, while freezing the trained siamese network weights
-3. The trained classifer will be then evaluated on the test set.
+The process of training a siamese network and a classifier is the following:
+1. Train a Siamese Network on image pairs using contrastive loss.
+2. Train classifier that is added at the end of the trained siamese network, while freezing the trained siamese network weights.
+3. The trained classifer will then be evaluated on the test set.
 
 The hyperparameters that are tuned for both models are: number of epochs and learning rate. An additional hyperparameter for the siamese network is the margin for the contrastive loss. Both the siamese network and the classifier uses the Adam optimiser during training. During the classifier's training, the BCE loss is used along with a learning rate scheduler.
 
@@ -89,12 +88,12 @@ Loss of classifier         |  Accuracy of classifier
 
 Observing the loss plot above, from the first epoch, the training loss has already reached a minimum loss. The validation loss in the first couple of epochs fluctuates and then reaches the minimum loss at 30 epochs.
 
-Observing the accuracy plot above, from the first epoch, the training accuracy is already above 0.9. The validation accuracy in the first couple of epochs fluctuates and then reaches the high accuracy at 23 epochs.
+Observing the accuracy plot above, from the first epoch, the training accuracy is already above 0.9. The validation accuracy in the first couple of epochs fluctuates and then reaches a high accuracy at 23 epochs.
 
 From both plots above, it can be concluded that the classifier overfits to the training data. One way to remedy overfitting is to make the architecture a simpler since the current architecture can already learn well during the first few epochs. 
 
 ## Testing Results
-The best classifer was only able to reach 72% on the test set. More experiements and more time would be able to 
+The best classifer was only able to reach 72% on the test set. More experiements (changing architectures, more data augmentation, etc.) and more time can hopfully achieve more accuracy.
  
  To do inference on a trained siamese and classifier, run the `predict.py` file. There is a section called `#----DEFINE MODEL PATHS----  ` where you can modify the paths of the trained models. The `predict.py` will do inference using both models of one input image.
 
@@ -106,11 +105,11 @@ Below are the librarys needed to run the files in this repository:
 - numpy 1.25.2
 - matplotlib 3.7.2 
 
-To run the code files, make sure you have the ADNI dataset downloaded and modify the data paths in the `train.py` and `predict.py` if needed. To train your own siamese and classifier, run the `train.py`. This code file will train the siamese network, train tj classifer, and evaluate the classifier. `train.py` will also save the siamese and classifer models into your local repository, including some training plots. Make sure to modify the saved models paths if needed. 
+To run the code files, make sure you have the ADNI dataset downloaded and modify the data paths in the `train.py` and `predict.py` if needed. To train your own siamese and classifier, run the `train.py`. This code file will train the siamese network, train the classifer, and evaluate the classifier. `train.py` will also save the siamese and classifer models into your local repository, including some training plots. Make sure to modify the name paths of the saved models if needed. 
 
 Concerning reproducibility, you won't get the exact same results because of the randomness on how to make pairs of images and splitting the data.
 
-This code was implemented and executed on rangpur with vgpu. It would be preferable if you execute this code on a device or server that provides a GPU for accelarated training.
+This code was implemented and executed on rangpur with vgpu. It would be preferable if you execute this code(s) on a device or server that provides a GPU for accelarated training.
 
 ## References
 -  https://github.com/pytorch/examples/blob/main/siamese_network/main.py
