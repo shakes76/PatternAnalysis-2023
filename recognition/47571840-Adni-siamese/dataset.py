@@ -17,16 +17,14 @@ from torch.utils.data import random_split
 def get_transforms_training():
     return transforms.Compose([
         transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
-        transforms.RandomHorizontalFlip(),
+        transforms.RandomHorizontalFlip(), # Data Augmenttation
         transforms.ToTensor(),
-         # Adjust these values if needed, for 1 channel
     ])
 
 def get_transforms_validation():
     return transforms.Compose([
         transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
         transforms.ToTensor(),
-        # Adjust these values if needed, for 1 channel
     ])
 
 
@@ -34,12 +32,11 @@ def get_transforms_testing():
     return transforms.Compose([
         transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
         transforms.ToTensor(),
-          # Adjust these values if needed, for 1 channel
     ]) 
 
 
 
-#--------- CREATE DATASET CLASS --------------------
+#--------- CREATE SIAMESE DATASET CLASS --------------------
 
 class SiameseDataset(Dataset):
     def __init__(self, image_list, transforms=None):
@@ -52,6 +49,7 @@ class SiameseDataset(Dataset):
         # Create pairs and labels
         self.pairs, self.labels = self.make_pairs()
 
+    # function to group the dataset into pairs
     def make_pairs(self):
         # Referred and modified from: https://keras.io/examples/vision/siamese_contrastive/ 
 
@@ -63,8 +61,9 @@ class SiameseDataset(Dataset):
         seen_pairs = set()
         MAX_ATTEMPTS = 100
         
-        for idx1, (img1, label1) in enumerate(self.image_list):   
-            # Positive pair
+        for idx1, (img1, label1) in enumerate(self.image_list):  
+
+            # Get Positive pair
             idx2 = random.choice(class_indices[label1])
             pair = tuple(sorted([img1, self.image_list[idx2][0]]))
             attempts = 0
@@ -85,11 +84,14 @@ class SiameseDataset(Dataset):
             # Positive pair is labelled 1
             labels.append(1)
 
-            # Negative pair
+            # Get Negative pair
             label2 = random.choice([cls for cls in self.classes if cls != label1])
             idx2 = random.choice(class_indices[label2])
             pair = tuple(sorted([img1, self.image_list[idx2][0]]))
             attempts = 0
+            
+             # if chosen pair already created (in seen_pairs) find another partner until there is 
+            # a pair that is not in seen_pairs
             while pair in seen_pairs and attempts < MAX_ATTEMPTS:
                 idx2 = random.choice(class_indices[label2])
                 pair = tuple(sorted([img1, self.image_list[idx2][0]]))
@@ -110,7 +112,7 @@ class SiameseDataset(Dataset):
     def __getitem__(self, idx):
         img1_path, img2_path = self.pairs[idx]
         
-        # Open images and convert to RGB
+ 
         img1 = Image.open(img1_path)
         img2 = Image.open(img2_path)
 
@@ -123,15 +125,15 @@ class SiameseDataset(Dataset):
 
 
 
-#------------- FUNCTION TO BE CALLED TO RETURN DATALOADER -----------------
+#------------- FUNCTION TO BE CALLED TO RETURN DATALOADER CONSISTING OF SIAMESE DATASET-----------------
 
 
 def create_siamese_dataloader(root_dir, batch_size=32, shuffle=True, split_flag=True):
     data = datasets.ImageFolder(root=root_dir, transform=None)
     print("Total Number of images:", len(data))
 
+    # create training and validation pairs to train the siamese network
     if split_flag:
-
         val_split=0.2
         train_len = int((1.0 - val_split) * len(data))
         val_len = len(data) - train_len
@@ -152,39 +154,13 @@ def create_siamese_dataloader(root_dir, batch_size=32, shuffle=True, split_flag=
 
         return train_loader, val_loader
 
-    # If no splitting is required, just use testing transform. Reserved for testing
     else:
         siamese_dataset = SiameseDataset(data.imgs, transforms=get_transforms_testing())
         data_loader = DataLoader(siamese_dataset, batch_size=batch_size, shuffle=False)
         return data_loader
 
 
-
-
-
-############ CHECKING IF DATALOADER WORKS ######################
-
-# ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
-# train_loader, val_loader = create_siamese_dataloader(ROOT_DIR_TRAIN, batch_size=32, split_flag=True)
-
-# # Get the first batch from the train_loader
-# first_batch = next(iter(train_loader))
-
-# img1_batch, img2_batch, labels_batch, img1_path_batch, img2_path_batch = first_batch
-
-# # Display tensors, labels, and paths of the first two images
-# for i in range(4):
-#     print(f"Image {i + 1} Tensor:\n", img1_batch[i], "\n")
-#     print(f"Image {i + 1} Path:", img1_path_batch[i], "\n")
-#     print(f"Image {i + 1} Pair Tensor:\n", img2_batch[i], "\n")
-#     print(f"Image {i + 1} Pair Path:", img2_path_batch[i], "\n")
-#     print(f"Label {i + 1}:", labels_batch[i].item(), "\n")
-#     print("-----------------------------\n")
-
-
-
-
-
+#------------- FUNCTION TO BE CALLED TO RETURN DATALOADER CONSISTING OF CLASSIFIER DATASET-----------------
 
 def get_classification_dataloader(root_dir, batch_size=32, shuffle=True, split_flag=True):
     data = datasets.ImageFolder(root=root_dir, transform=None)
@@ -192,6 +168,7 @@ def get_classification_dataloader(root_dir, batch_size=32, shuffle=True, split_f
     print(data.classes)           # List of class names
     print(data.class_to_idx)
     
+    # create training and validation dataloaders to train the classifier
     if split_flag:
         val_split = 0.2
         train_len = int((1.0 - val_split) * len(data))
@@ -210,21 +187,13 @@ def get_classification_dataloader(root_dir, batch_size=32, shuffle=True, split_f
         val_loader = DataLoader(val_data, batch_size=batch_size, shuffle=False)
 
         return train_loader, val_loader
-
+    
+    # create testing dataloader to evaluate the classfier
     else:
-        # If no splitting is required, just use testing transform. Reserved for testing
         data.transform = get_transforms_testing()
         train_loader = DataLoader(data, batch_size=batch_size, shuffle=False)
         return train_loader
 
-
-#### CHECK DATA LOADER FOR CLASSIFICATION #####
-# ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
-# train_loader,val_loader = get_classification_dataloader(ROOT_DIR_TRAIN,batch_size=32,split_flag=True)
-
-# train_images, train_labels = next(iter(train_loader))
-# print("Training Images:", train_images)
-# print("Training Labels:", train_labels)
 
 
 

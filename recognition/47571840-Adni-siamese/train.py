@@ -25,7 +25,7 @@ print(device)
 print("---------Training Siamese Network---------")
 
 #-------- LOAD TRAINING DATA --------
-ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
+ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train" # Modify Path if needed
 train_loader, val_loader = create_siamese_dataloader(ROOT_DIR_TRAIN, batch_size=32, split_flag=True)
 
 #---------- HYPERPARAMETERS --------
@@ -48,26 +48,31 @@ train_losses = []
 val_losses = []
 
 for epoch in range(num_epochs):
+    # Set model to train mode
     model_siamese.train()
     running_loss = 0
 
+    # Training 
     for batch_idx, (img1, img2, labels, _, _) in enumerate(train_loader):
         img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
 
         optimizer.zero_grad()
 
         distances = model_siamese(img1, img2)
+
+        # Backpropagate loss
         loss = criterion(distances, labels)
         loss.backward()
         optimizer.step()
 
         running_loss += loss.item()
-        
+
+    # Compute average training loss of epoch  
     avg_train_loss = running_loss / len(train_loader)
-    train_losses.append(avg_train_loss)  # Store the training loss
+    train_losses.append(avg_train_loss) 
 
     # Validation
-    model_siamese.eval()  # Set the model to evaluation mode
+    model_siamese.eval() # set model to test mode
     val_loss = 0.0
     with torch.no_grad():
          for batch_idx, (img1, img2, labels, _, _) in enumerate(val_loader):
@@ -78,14 +83,15 @@ for epoch in range(num_epochs):
             
             val_loss += loss.item()
 
+    # Compute average validation loss
     avg_val_loss = val_loss / len(val_loader)
-    val_losses.append(avg_val_loss)  # Store the validation loss
+    val_losses.append(avg_val_loss)  
 
     print('[Epoch %d] training loss: %.3f, validation loss: %.3f' % (epoch + 1, avg_train_loss, avg_val_loss))
 
 print("Training complete Siamese")
 
-# Save Model 
+# Save Model of the last epoch
 print("Saved siamese after training")
 siamese_path = 'siamese_40_3.pth'
 torch.save(model_siamese.state_dict(), siamese_path)
@@ -113,15 +119,16 @@ plt.savefig("siamese_loss_curves_siamese_40_3.png")
 print("---------Training Classifier Network---------")
 
 #-------- LOAD TRAINING DATA --------
-ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"
+ROOT_DIR_TRAIN = "/home/groups/comp3710/ADNI/AD_NC/train"  # Modify Path if needed
 train_loader, val_loader = get_classification_dataloader(ROOT_DIR_TRAIN, batch_size=32,split_flag=True)
 
 #-------LOAD SIAMESE MODEL----------
 siamese_model = SiameseResNet().to(device)
 siamese_model.load_state_dict(torch.load(siamese_path, map_location=device))
-siamese_model.eval()
+siamese_model.eval() # set to eval mode just incase so weights are not updated
 
 #--------- INITIATE CLASSIFIER MODEL --------------
+# initiate classifier with the trained siamese model
 classifier = ClassifierNet(siamese_model).to(device)
 
 #---------- HYPERPARAMETERS ------------
@@ -147,7 +154,8 @@ best_val_accuracy = 0.0
 best_model_path = "best_classifier_model_40_20_2.pth"
 
 for epoch in range(num_epochs):
-    classifier.train()
+    # Set classifier to train mode
+    classifier.train() 
     running_loss = 0
     correct_train = 0
     total_train = 0
@@ -156,8 +164,10 @@ for epoch in range(num_epochs):
         imgs, labels = imgs.to(device), labels.float().to(device)
         
         optimizer.zero_grad()
+
         outputs = classifier(imgs).squeeze()
         
+        # Backpropagate loss
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -168,13 +178,14 @@ for epoch in range(num_epochs):
         correct_train += (preds == labels).float().sum()
         total_train += labels.size(0)
 
+    # Compute average training loss of epoch and accurracy 
     avg_train_loss = running_loss / len(train_loader)
     train_accuracy = correct_train / total_train
     train_losses.append(avg_train_loss)
     train_accuracies.append(train_accuracy)
 
     # Validation
-    classifier.eval()
+    classifier.eval() # Set classfier to test mode
     val_loss = 0.0
     correct_val = 0
     total_val = 0
@@ -187,15 +198,17 @@ for epoch in range(num_epochs):
             
             val_loss += loss.item()
 
-            preds = outputs.round()  # Round the predictions
-            correct_val += (preds == labels).float().sum()
+            preds = outputs.round()  # Round the predictions to get value 0 or 1
+            correct_val += (preds == labels).float().sum() # compare predictions to the true label to calculate accuracy
             total_val += labels.size(0)
 
+    # Compute average validation loss and accurracy 
     avg_val_loss = val_loss / len(val_loader)
     val_accuracy = correct_val / total_val
     val_losses.append(avg_val_loss)
     val_accuracies.append(val_accuracy)
 
+    # save the classifier with the best validation accuracy
     if val_accuracy > best_val_accuracy:
         best_val_accuracy = val_accuracy
         torch.save(classifier.state_dict(), best_model_path)
@@ -207,7 +220,7 @@ for epoch in range(num_epochs):
 
 print("Training complete")
 
-# Save the trained classifier model after all training epoch
+# Save the trained classifier model after n epoch
 classifier_save_path = "classifier_model_40_20_2.pth"
 torch.save(classifier.state_dict(), classifier_save_path)
 print(f"Saved classifier model to {classifier_save_path}")
@@ -251,10 +264,12 @@ plt.close()
 
 
 #-------------------TESTING------------------------------
+
 # Load test set
-ROOT_DIR_TEST = "/home/groups/comp3710/ADNI/AD_NC/test"
+ROOT_DIR_TEST = "/home/groups/comp3710/ADNI/AD_NC/test"  # Modify Path if needed
 test_loader = get_classification_dataloader(ROOT_DIR_TEST, batch_size=32,split_flag = False)
 
+# Load the Classifier that has the best validation accuracy during training
 classifier = ClassifierNet(siamese_model).to(device)
 classifier.load_state_dict(torch.load(best_model_path, map_location=device))
 classifier.eval()

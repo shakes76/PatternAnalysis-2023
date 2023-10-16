@@ -20,7 +20,7 @@ from modules import SiameseResNet, ContrastiveLoss, ClassifierNet
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 #-----LOAD TEST SET------
-ROOT_DIR_TEST = "/home/groups/comp3710/ADNI/AD_NC/test"
+ROOT_DIR_TEST = "/home/groups/comp3710/ADNI/AD_NC/test"  # Modify Path if needed
 test_loader = get_classification_dataloader(ROOT_DIR_TEST, batch_size=32,split_flag = False)
 
 #----DEFINE MODEL PATHS----
@@ -51,9 +51,8 @@ def predict(input_image):
 
 images, labels = next(iter(test_loader))
 images, labels = images.to(device), labels.to(device)
-print(labels)
 
-# Selecting a sample image tensor to predict
+# Get a sample image tensor to use for prediction
 sample_image_tensor = images[0].unsqueeze(0) 
 
 # Predicting
@@ -71,7 +70,7 @@ print(f"Predicted probability: {predicted_prob:.4f}")
 print(f"Predicted class: {predicted_class}")
 print(f"True label: {true_label}")
 
-# Checking the correctness
+# Checking the accuracy of the prediction
 is_correct = predicted_class == true_label
 print(f"Is the prediction correct? {'Yes' if is_correct else 'No'}")
 

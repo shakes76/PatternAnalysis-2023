@@ -11,7 +11,9 @@ class SiameseResNet(nn.Module):
 
         # Use pytorch's resnet 18 as the backbone
         resnet = models.resnet18(pretrained=True)
+        # Modify the first convolutional layer channel
         resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+         # Remove the last layer of resnet18
         self.embedding = nn.Sequential(*list(resnet.children())[:-1])
 
     def forward_one(self, x):
@@ -32,6 +34,7 @@ class SiameseResNet(nn.Module):
 
 
 # Referenced from: ChatGPT (Version 4) by asking to make a classifier in my given siamese network
+# This is the classifer architecture that gives the highest accuracy 
 class ClassifierNet(nn.Module):
     def __init__(self, siamese_model):
         super(ClassifierNet, self).__init__()
