@@ -46,9 +46,6 @@ if not torch.cuda.is_available():
 # Patch Embedding
 
 
-
-
-
 #class PatchEmbedding(nn.Module):
 
 
@@ -85,12 +82,17 @@ def main():
     image = dataset[0][0]
     imshow(image)
     plt.axis(False)
-    image_out_of_conv = patch_embedding(image.unsqueeze(0))  # Run conv layer through image
-    print(image_out_of_conv.shape)  # Should have dimensions (embed size, sqrt(num_patches), sqrt(num_patches))
+    image_patched = patch_embedding(image.unsqueeze(0))  # Run conv layer through image
+    print(image_patched.shape)  # Should have dimensions (embed size, sqrt(num_patches), sqrt(num_patches))
 
     # Single feature map in tensor form
-    single_feature_map = image_out_of_conv[:, 0, :, :]
+    single_feature_map = image_patched[:, 0, :, :]
     print(single_feature_map, single_feature_map.requires_grad)
+
+    # Dimension 2 sqrt(num_patches) -> height of num_patches, dimension 3 is sqrt(num_patches) -> width of num_patches
+    flatten = nn.Flatten(start_dim=2, end_dim=3)
+    flattened_image_patched = flatten(image_patched)
+    print(f"Flattened: {flattened_image_patched.shape}")  # Should be embed size, num_patches
 
 if __name__ == '__main__':
     main()
