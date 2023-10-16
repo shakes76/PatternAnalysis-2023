@@ -4,18 +4,21 @@
 This project utilises a modified dataset sourced from [ADXI dataset for Alzheimer's disease](https://adni.loni.usc.edu/). The dataset contains two repositories which are AD(disease) and NC(normal) and each repository contains training and test repositories. This project aims to utilise the Vision Transformer to classify healthy brain images and unhealthy images.
 
 ## Description of the Algorithm  
-The vision transformer is the algorithm posed by the thesis *An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale* ([Alexey Dosovitskiy,2020](https://arxiv.org/abs/2010.11929)). This algorithm utilises the concept ***self-attention*** mechanism, which receives an excellent performance in the field of NLP. This algorithm can be demonstrated in the following figure.  
+The vision transformer is the algorithm posed by the thesis *An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale* [(Dosovitskiy et al., 2020)](https://arxiv.org/abs/2010.11929). This algorithm utilises the concept ***self-attention*** mechanism, which receives an excellent performance in the field of NLP. This algorithm can be demonstrated in the following figure.  
  
 ![Alt text](https://drive.google.com/uc?export=view&id=14jUX7ixXWCY0y7ByJCOEvVpPaaeMIlmW)  
+[SOURCE](https://arxiv.org/abs/2010.11929)
   
 ### Algorithm Workflow
 Similar to the token in the NLP, ViT segments the image into several small patches. For example under the original ViT base/16 algorithm, the input image size is 224x224 and the 16 means the algorithm segments the image to 16 patches on each height and width. Hence, the patch size is 224/16=14. To be specific, this transformation is implemented by the convolutional operation with the kernel size of 16, stride of 16 and with the output channel of 768. After the transformation, the image dimension changed from 224x224x3 to 14x14x768. A similar transformation is shown in the following figure.  
 ![Alt text](https://drive.google.com/uc?export=view&id=1zM8QXAyIXppFKzqFq4DKAGMA5FWAF0RJ)  
+[SOURCE](https://arxiv.org/abs/2010.11929)
   
 After segmenting patches, the ViT flatten all the patches because the ViT will utilise the multi-head self-attention in the following Transformer Encoder block and this block requires a 2-D input. In addition, after the flattening operation, the ViT add class token and position embedding for future classification task and records the position information of each patch. Hence the input shape transform as: Flatten (14x14x768->196x768), add class token (196x768->197x768), add position embedding (add operation) (197x768->197x768). A similar transformation is shown in the following figure.   
 ![Alt text](https://drive.google.com/uc?export=view&id=1da1kpkKhMDaAxfQ1Sa7N9Nd4bOvc52Rv)  
+[SOURCE](https://arxiv.org/abs/2010.11929)
   
-The transformer block is the most important part of the ViT and it utilises the Multi-head self-attention mechanism to extract features. First of all, I will explain the mechanism of the self-attention mechanism [Ashish Vaswani,2017](https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf).  
+The transformer block is the most important part of the ViT and it utilises the Multi-head self-attention mechanism to extract features. First of all, I will explain the mechanism of the self-attention mechanism [(Vaswani et al., 2017)](https://proceedings.neurips.cc/paper_files/paper/2017/file/3f5ee243547dee91fbd053c1c4a845aa-Paper.pdf).  
 The attention utilises 3 parameters to calculate:  
   
 q: query(to match others)  
@@ -223,8 +226,8 @@ The figures contain the training and validating loss within 250 epoches. In addi
 * The tsne visulization is shown as:  
 The tsne maps the prediction result into an 2-D space and visualize the specific classification situation.  
 ![Alt text](https://drive.google.com/uc?export=view&id=1tPFtqE7GUUTI_YJbkIsk8vcks87ELviG)
-
-
-
-
+  
+# Reference
+1. Dosovitskiy, A., Beyer, L., Kolesnikov, A., Weissenborn, D., Zhai, X., Unterthiner, T., Dehghani, M., Minderer, M., Heigold, G., Gelly, S., Uszkoreit, J., & Houlsby, N. (2020). An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale. ArXiv:2010.11929 [Cs].
+2. Vaswani, A., Shazeer, N., Parmar, N., Uszkoreit, J., Jones, L., Gomez, A. N., Kaiser, L., & Polosukhin, I. (2017). Attention Is All You Need. ArXiv.org. https://arxiv.org/abs/1706.03762
 
