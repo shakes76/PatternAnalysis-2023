@@ -5,8 +5,266 @@
 ## how it works
 ## figure/visualisation
 
-- It should also list any dependencies required, including versions and address reproduciblility of results,
-if applicable.
-- provide example inputs, outputs and plots of your algorithm
-- Describe any specific pre-processing you have used with references if any. Justify your training, validation
-and testing splits of the data.
+## Introduction:
+
+### About the problem
+
+Alzheimer's disease is a major healthcare challenge affecting millions of individuals. Early detection is crucial due to the absence of effective treatments even in this era of modern medical technology [1]. Computer-aided machine learning, including SVM and deep learning methods like CNN, show promising growth in this field and tries to predict alzheimer's using pattern-recognition. This report tries to identify alzheimer's disease using state-of-the art deep learning architecture Vision Transformers.
+
+### About the dataset
+
+The dataset used for this report is Alzheimer's Disease Neuroimaging Initiative (ADNI) for alzheimer's disease classification [2]. There are 2 classes based on which the classifier trains and classifies, namingly Alzheimer's disease (AD) and Normal Cognitive (NC)
+
+AD: This class represents individuals who have been clinically diagnosed with Alzheimer's disease
+NC: This class includes individuals who are cognitively normal and do not exhibit signs of Alzheimer's disease
+
+The general input for this particular dataset consists of 3D images and the input is modelled in 3D, but for this
+report we consider a 2D setting
+
+## Model Architecture
+
+The model architecture for this report is inspired by two main research papers, namingly "AN IMAGE IS WORTH 16X16 WORDS: TRANSFORMERS FOR IMAGE RECOGNITION AT SCALE" [3] and "Escaping the Big Data Paradigm with Compact Transformers" [4].
+
+The initial model trained and tested was based on vision tranformer with patching, in this architecture the images are broken into patches and then the linear projection of the patches undergoe positional embedding (this is because that transformers unlike CNN's cannot place the patches in a sequential order hence positional embedding is carried out so that the transformer knows the relative positions). After this part, we now move to the classical transformer encoder block to execute attention mechanism and other neural-network tasks such as normalizing. Finally, the output from the last encoder layer is used for classification task this is achieved by adding a MLP head which assigns class probabilities and classifies the images into their classes (in this case either AD or NC) 
+
+![Alt text](ADNI_TRANSFORMER_47379251/assets/image.png)
+
+Turns out the above described model is no exception to the power of transformers to engulf and memorize the whole training data hence overfitting. This was counter attacked by adding a convolution layer to extract features from the image, instead of using a traditional patching approach. In this report considering the computational limitations, 2 convolution layers were added to extract the image features. After extracting the features the input is now passed to a traditional embedder and followed by the classical vision transformer model flow.
+
+![Alt text](ADNI_TRANSFORMER_47379251/assets/image-1.png)
+![Alt text](ADNI_TRANSFORMER_47379251/assets/image-2.png)
+
+## Report structure
+
+### Flow
+The report first calls the predict.py file, which in-turn loads dataset.py, train.py and module.py  
+
+### dataset.py
+
+This file acts as the data-pipeline for the report.
+
+File contains:
+    - Dataset loading
+    - Augmentation
+    - Calculation of mean and standard deviation to normalize the images
+    - Tranforming images:
+        - Resizing the 256x240 image to 256x256
+        - RandomAug with n_ops = 4
+        - Normalizing data
+
+### train.py
+
+This file contains all the necessary modules required for training
+
+File contains:
+    - Model Parameters
+        - CCT Parameters
+        - Loss measure (Criterion)
+        - Optimizer
+        - Learning Rate Scheduler
+    - Tensorboard
+    - Two functions, function which has validation and the other one purely to test without validation.
+
+### module.py
+
+This file contains the model CCT which was explained in the model architecture heading
+
+### utils.py
+
+This file contains all the miscellaneous necessary functions for this report
+
+It includes:
+    - Patient level data split
+    - Graph to visualize normalization
+
+### predict.py
+
+This file acts as the main file, initializing all the above mentioned .py files
+This file contains:
+    - Testing of the model
+    - Saving the model
+    - Plotting losses and accuracy graphs
+
+## Experiments
+
+This report includes various hyper-paramter tunings and model testings, the below tables record the observations by
+first presenting the optimal mode and also displaying other attempts (models with very low accuracy were not recorded)
+
+### Optimal Model:
+
+This model attains a test accuracy of 89%
+
+** Table 1 **
+
+| Model      | Optimizer | Embedding Dim | Number of Layers in CNN | Accuracy
+| :---        |    :----:   | ---: |  ---: |  ---: |
+| CCT      | Adam      | 192   | 2 | 89% |
+
+The optimal model contains:
+    - Intial learning rate of 0.0002 (after various tuning)
+    - The optimizer finalized is adam (after trying other optimers such as SGD, AdamW, Adagrad, RMSprop)
+    - Model CCT was chosen for this dataset (after trying various other models from [5])
+    - Random Augmentation is carried out using RandAugment of pytorch
+    - Normalizing the image was carried out
+    - Patient level split was done
+    - Image was resized to 256x256
+    - Number of convolution layers were 2
+    - The train test and validation splits are 70%, 15% and 15% respectively (These splits were expiremented for better performance and inspired by famous papers).
+    - Batch size for train was 32 (computational limitation), for test and validation is 100
+    - Embedding dimensions - 192
+    - Number of heads - 6
+    - Mixed precision is used
+    - LR schedulers were tried (see appendix 1)
+    - No special dropouts were added in this setting
+
+** Table 2 **
+
+| Model      | Optimizer | Embedding Dim | Number of Layers in CNN | Augmentation | Accuracy
+| :---        |    :----:   | ---: |  ---: | ---: |
+| DViT     | Adam      | -   | - | Horizontal Flip | 61%
+| CCT   | Adam        | 192 | 4    | Horizontal Flip | 71.73%
+| CCT   | Adam        | 192 | 2    | Horizontal Flip | 72.3%
+| CCT   | Adam        | 192 | 2    | Horizontal Flip + Random Rotation | 74%
+| CCT   | Adam        | 192 | 2    | RandAugment | 76.373%
+| CCT   | Adam        | 192 | 2    | RandAugment (n_ops = 3) | 76.5%
+| CCT   | Adam        | 192 | 2    | TrivAug | 75.244%
+
+Table 2 is trained without patient level split
+Various other training were carried out (please refer appendix 1)
+
+## Results
+
+### Input 
+
+#### Before pre-processing
+
+1) AD:
+![Alt text](ADNI_TRANSFORMER_47379251/assets/228875_75.jpeg)
+2) NC:
+![Alt text](ADNI_TRANSFORMER_47379251/assets/808819_88.jpeg)
+
+#### After pre-processing
+
+![Alt text](ADNI_TRANSFORMER_47379251/assets/image-3.png)
+![Alt text](ADNI_TRANSFORMER_47379251/assets/imageData.png)
+
+
+### Plot
+
+#### Train Loss (After Transformation) + Valid Loss (No Transformation)
+
+![Alt text](ADNI_TRANSFORMER_47379251/assets/00%EF%80%BA20%EF%80%BA11_Report.png)
+
+#### Validation Accuracy
+
+![Alt text](ADNI_TRANSFORMER_47379251/assets/00%EF%80%BA20%EF%80%BA12_Accuracy.png)
+
+#### Rangpur Performance (refer appendix 2)
+
+## Package Dependencies
+
+## Appendix
+
+### Appendix 1 
+
+Format: Job(short form) - Model and Changes - Accuracy (in %)
+
+750 - DViT - 60.6%
+754 - CCT - 71.73%
+783 - CCT 2 layers - 72.3%
+975 - CCT 2 layers + RandomRotation (5) - 74%
+1112 - RandomAugment - 76.377%
+1152 - RA + 150 E - 76%
+1199 - RA + 150 E + n_ops = 3 - 76.5%
+1220 - TrivialAugmentWide, E - 80 - 75.244%
+1231 - TrivialAugmentWide, E - 200 - 76%
+253 - RA + 100 E + n_ops = 4 - 77.155%
+1307 - RA + 100 E + n_ops = 3 + LR: 1e-4 - 75.64%
+1364 - Data Leakage (only test) - 75.5%
+1438 - RA + 100 E + n_ops = 5 - 76%
+1439 - RA + 100 E + n_ops = 4 + magnitude = 11 - 76.53%
+1478 - RA + 100 E + n_ops = 4 + Heads = 8  - 76.244%
+1590 - RA + 55 E + n_ops = 4 + Heads = 8 - 75%
+1604, 1607 - 10E + LR Scheduler - 69.5%
+1642 - OnceCycle (outside) - 72.6%
+1778, 1784 - OnceCycle (inside) - max_valid (81% in 47 E)
+1785 - Kernel size (6) - valid (78.6)
+1806 - embedding_dim = 96 - valid (77.3)
+1894 - OnceCycle (inside) stop at 81% + E - 60 - 78.156%
+1925 - OnceCycle (inside) stop at 81.5% (changed if loop) - 77.88%
+1954 - OnceCycle (inside) stop at 81.5% + E - 200 (changed if loop) - 78.28%
+1968 - OnceCycle (inside) stop at 80.5% + E - 100 (changed if loop) - 77.888%
+1996 - OnceCycle (inside) stop at 81.2% + E - 100 (changed if loop) - 77.31%
+2009 - OnceCycle (inside) stop at 81% + E - 100 (changed if loop) - 78.155% (STANDARD)
+2306 - OnceCycle (inside) stop at train<valid + 82% + E - 100 (changed if loop) - 76.77%
+2171 - STANDARD + Normalization - DOWN
+2451, 2452, 2453 - Patient Level Split - 82%
+2478 - No Stopping in predict + Patient level - 83%
+2481 - No Stopping in predict + Patient level + 95% stopping
+2512 - No stopping
+
+### Appendix 2
+
+[>................................................................]  Step: 335ms | Tot: 0ms | Loss: 1.467 | Acc: 60.000% (60/100) 1/46 
+ [=>...............................................................]  Step: 329ms | Tot: 329ms | Loss: 1.286 | Acc: 61.500% (123/200) 2/46 
+ [==>..............................................................]  Step: 333ms | Tot: 662ms | Loss: 0.910 | Acc: 72.333% (217/300) 3/46 
+ [====>............................................................]  Step: 326ms | Tot: 989ms | Loss: 0.837 | Acc: 74.000% (296/400) 4/46 
+ [=====>...........................................................]  Step: 331ms | Tot: 1s320ms | Loss: 1.057 | Acc: 72.200% (361/500) 5/46 
+ [=======>.........................................................]  Step: 326ms | Tot: 1s646ms | Loss: 0.950 | Acc: 74.500% (447/600) 6/46 
+ [========>........................................................]  Step: 326ms | Tot: 1s972ms | Loss: 0.840 | Acc: 76.714% (537/700) 7/46 
+ [=========>.......................................................]  Step: 326ms | Tot: 2s299ms | Loss: 0.790 | Acc: 78.125% (625/800) 8/46 
+ [===========>.....................................................]  Step: 321ms | Tot: 2s621ms | Loss: 0.703 | Acc: 80.556% (725/900) 9/46 
+ [============>....................................................]  Step: 325ms | Tot: 2s947ms | Loss: 0.640 | Acc: 82.200% (822/1000) 10/46 
+ [==============>..................................................]  Step: 326ms | Tot: 3s273ms | Loss: 0.588 | Acc: 83.545% (919/1100) 11/46 
+ [===============>.................................................]  Step: 320ms | Tot: 3s593ms | Loss: 0.551 | Acc: 84.583% (1015/1200) 12/46 
+ [================>................................................]  Step: 324ms | Tot: 3s918ms | Loss: 0.513 | Acc: 85.615% (1113/1300) 13/46 
+ [==================>..............................................]  Step: 320ms | Tot: 4s238ms | Loss: 0.490 | Acc: 86.071% (1205/1400) 14/46 
+ [===================>.............................................]  Step: 317ms | Tot: 4s555ms | Loss: 0.459 | Acc: 87.000% (1305/1500) 15/46 
+ [=====================>...........................................]  Step: 319ms | Tot: 4s875ms | Loss: 0.439 | Acc: 87.500% (1400/1600) 16/46 
+ [======================>..........................................]  Step: 325ms | Tot: 5s200ms | Loss: 0.417 | Acc: 88.000% (1496/1700) 17/46 
+ [========================>........................................]  Step: 327ms | Tot: 5s527ms | Loss: 0.399 | Acc: 88.500% (1593/1800) 18/46 
+ [=========================>.......................................]  Step: 328ms | Tot: 5s855ms | Loss: 0.423 | Acc: 88.105% (1674/1900) 19/46 
+ [==========================>......................................]  Step: 315ms | Tot: 6s171ms | Loss: 0.402 | Acc: 88.700% (1774/2000) 20/46 
+ [============================>....................................]  Step: 326ms | Tot: 6s497ms | Loss: 0.385 | Acc: 89.143% (1872/2100) 21/46 
+ [=============================>...................................]  Step: 333ms | Tot: 6s831ms | Loss: 0.376 | Acc: 89.273% (1964/2200) 22/46 
+ [===============================>.................................]  Step: 315ms | Tot: 7s146ms | Loss: 0.381 | Acc: 89.130% (2050/2300) 23/46 
+ [================================>................................]  Step: 318ms | Tot: 7s465ms | Loss: 0.376 | Acc: 88.708% (2129/2400) 24/46 
+ [=================================>...............................]  Step: 320ms | Tot: 7s786ms | Loss: 0.396 | Acc: 88.400% (2210/2500) 25/46 
+ [===================================>.............................]  Step: 327ms | Tot: 8s114ms | Loss: 0.386 | Acc: 88.615% (2304/2600) 26/46 
+ [====================================>............................]  Step: 327ms | Tot: 8s441ms | Loss: 0.372 | Acc: 89.037% (2404/2700) 27/46 
+ [======================================>..........................]  Step: 330ms | Tot: 8s772ms | Loss: 0.364 | Acc: 89.250% (2499/2800) 28/46 
+ [=======================================>.........................]  Step: 325ms | Tot: 9s97ms | Loss: 0.363 | Acc: 89.241% (2588/2900) 29/46 
+ [========================================>........................]  Step: 319ms | Tot: 9s416ms | Loss: 0.354 | Acc: 89.500% (2685/3000) 30/46 
+ [==========================================>......................]  Step: 322ms | Tot: 9s739ms | Loss: 0.343 | Acc: 89.839% (2785/3100) 31/46 
+ [===========================================>.....................]  Step: 326ms | Tot: 10s65ms | Loss: 0.350 | Acc: 89.688% (2870/3200) 32/46 
+ [=============================================>...................]  Step: 325ms | Tot: 10s391ms | Loss: 0.388 | Acc: 88.545% (2922/3300) 33/46 
+ [==============================================>..................]  Step: 330ms | Tot: 10s721ms | Loss: 0.378 | Acc: 88.853% (3021/3400) 34/46 
+ [================================================>................]  Step: 326ms | Tot: 11s48ms | Loss: 0.369 | Acc: 89.114% (3119/3500) 35/46 
+ [=================================================>...............]  Step: 327ms | Tot: 11s376ms | Loss: 0.400 | Acc: 88.722% (3194/3600) 36/46 
+ [==================================================>..............]  Step: 328ms | Tot: 11s705ms | Loss: 0.415 | Acc: 88.568% (3277/3700) 37/46 
+ [====================================================>............]  Step: 321ms | Tot: 12s26ms | Loss: 0.407 | Acc: 88.763% (3373/3800) 38/46 
+ [=====================================================>...........]  Step: 321ms | Tot: 12s348ms | Loss: 0.426 | Acc: 88.308% (3444/3900) 39/46 
+ [=======================================================>.........]  Step: 320ms | Tot: 12s668ms | Loss: 0.419 | Acc: 88.425% (3537/4000) 40/46 
+ [========================================================>........]  Step: 337ms | Tot: 13s6ms | Loss: 0.421 | Acc: 88.317% (3621/4100) 41/46 
+ [=========================================================>.......]  Step: 325ms | Tot: 13s332ms | Loss: 0.411 | Acc: 88.595% (3721/4200) 42/46 
+ [===========================================================>.....]  Step: 316ms | Tot: 13s648ms | Loss: 0.411 | Acc: 88.535% (3807/4300) 43/46 
+ [============================================================>....]  Step: 316ms | Tot: 13s964ms | Loss: 0.403 | Acc: 88.727% (3904/4400) 44/46 
+ [==============================================================>..]  Step: 321ms | Tot: 14s285ms | Loss: 0.395 | Acc: 88.956% (4003/4500) 45/46 
+ [===============================================================>.]  Step: 194ms | Tot: 14s480ms | Loss: 0.390 | Acc: 89.013% (4059/4560) 46/46 
+No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
+lr: 0.0000000, val loss: 17.94420, acc: 89.01316
+Testing took 14.813738584518433 secs or 0.2468956430753072 mins in total
+END
+Test Loss: 17.944203392136842 Test Accuracy: 89.01315789473684
+
+
+## References
+- https://www.frontiersin.org/articles/10.3389/fnagi.2019.00220/full
+- https://adni.loni.usc.edu/
+- https://arxiv.org/pdf/2010.11929v2.pdf
+- https://arxiv.org/abs/2104.05704
+- https://github.com/lucidrains/vit-pytorch/
+- https://github.com/SHI-Labs/Compact-Transformers
+- Image reference https://arxiv.org/abs/2104.05704
+
+Some parts of the code was inspired by: https://github.com/lucidrains/vit-pytorch/ and Pytorch official website

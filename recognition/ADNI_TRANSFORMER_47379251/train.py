@@ -29,124 +29,7 @@ from torchsummary import summary
 
 # Model factory..
 print('==> Building model..')
-if args.net=="ViT":
-    net = ViT(
-    image_size = size,
-    patch_size = args.patch,
-    num_classes = num_classes,
-    dim = int(args.dimhead),
-    depth = 4,
-    heads = 4,
-    mlp_dim = 1024,
-    dropout = 0.1,
-    emb_dropout = 0.5
-)
-elif args.net=="SViT":
-    from vit_pytorch.vit_for_small_dataset import ViT
-    net = ViT(
-    image_size = size,
-    patch_size = args.patch,
-    num_classes = num_classes,
-    dim = int(args.dimhead),
-    depth = 4,
-    heads = 4,
-    mlp_dim = 1024,
-    dropout = 0.1,
-    emb_dropout = 0.1
-)
-elif args.net == "vit_small":
-        from functools import partial
-        from torch import nn
-        from vit_pytorch.vit_small import VisionTransformer
-        patch_size = args.patch
-        img_size = size
-        net = VisionTransformer(img_size=[img_size],
-            patch_size=patch_size,
-            in_chans=3,
-            num_classes=num_classes,
-            embed_dim=1024,
-            depth=9,
-            num_heads=12,
-            mlp_ratio=args.vit_mlp_ratio,
-            qkv_bias=True,
-            drop_path_rate=args.drop_path_rate,
-            norm_layer=partial(nn.LayerNorm, eps=1e-6))
-elif args.net=="NaViT":
-    from vit_pytorch.na_vit import NaViT
-    net = NaViT(
-        image_size = size,
-        patch_size = args.patch,
-        num_classes = num_classes,
-        dim = 1024,
-        depth = 6,
-        heads = 16,
-        mlp_dim = 2048,
-        dropout = 0.1,
-        emb_dropout = 0.1,
-        token_dropout_prob = 0.1  # token dropout of 10% (keep 90% of tokens)
-)
-elif args.net=="DeepViT":
-    from vit_pytorch.deepvit import DeepViT
-    net = DeepViT(
-        image_size = size,
-        patch_size = args.patch,
-        num_classes = num_classes,
-        dim = 1024,
-        depth = 6,
-        heads = 16,
-        mlp_dim = 2048,
-        dropout = 0.1,
-        emb_dropout = 0.1
-)
-elif args.net=="CrossViT":
-    from vit_pytorch.cross_vit import CrossViT
-    net = CrossViT(
-    image_size = size,
-    num_classes = num_classes,
-    depth = 4,               # number of multi-scale encoding blocks
-    sm_dim = 192,            # high res dimension
-    sm_patch_size = 16,      # high res patch size (should be smaller than lg_patch_size)
-    sm_enc_depth = 2,        # high res depth
-    sm_enc_heads = 8,        # high res heads
-    sm_enc_mlp_dim = 2048,   # high res feedforward dimension
-    lg_dim = 384,            # low res dimension
-    lg_patch_size = 64,      # low res patch size
-    lg_enc_depth = 3,        # low res depth
-    lg_enc_heads = 8,        # low res heads
-    lg_enc_mlp_dim = 2048,   # low res feedforward dimensions
-    cross_attn_depth = 2,    # cross attention rounds
-    cross_attn_heads = 8,    # cross attention heads
-    dropout = 0.1,
-    emb_dropout = 0.1
-)
-elif args.net=="DViT":
-    import torch
-    from torchvision.models import resnet50
-
-    from vit_pytorch.distill import DistillableViT, DistillWrapper
-
-    teacher = resnet50(pretrained = True)
-
-    net = DistillableViT(
-        image_size = size,
-        num_classes = num_classes,
-        patch_size = args.patch,
-        dim = int(args.dimhead),
-        depth = 4,
-        heads = 4,
-        mlp_dim = 1024,
-        dropout = 0.1,
-        emb_dropout = 0.1
-    )
-
-    distiller = DistillWrapper(
-        student = net,
-        teacher = teacher,
-        temperature = 3,           # temperature of distillation
-        alpha = 0.5,               # trade between main loss and distillation loss
-        hard = False               # whether to use soft or hard distillation
-    )
-elif args.net=="CCT":
+if args.net=="CCT":
     from vit_pytorch.cct import CCT
     net = CCT(
         img_size = (256, 256),
@@ -297,7 +180,7 @@ def train_valid(epoch):
         _, predicted_valid = outputs_valid.max(1)
         total_valid += targets_valid.size(0)
         correct_valid += predicted_valid.eq(targets_valid).sum().item()
-        if (100.*correct_valid/total_valid) >= 81: return train_loss, valid_loss, 100.*correct_valid/total_valid
+        # if (100.*correct_valid/total_valid) >= 85: return train_loss, valid_loss, 100.*correct_valid/total_valid
         acc = 100.*correct_valid/total_valid
         if epoch%1==0: 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'

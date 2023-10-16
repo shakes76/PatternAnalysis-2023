@@ -55,19 +55,27 @@ size = imsize
 # Normalize
 def get_mean_std(loader):
     # Compute the mean and standard deviation of all pixels in the dataset
-    num_pixels = 0
-    mean = 0.0
-    std = 0.0
+    #loader = torch.utils.data.DataLoader(loader, batch_size=128, shuffle=False)  # Make sure shuffle is set to False
+    mean = 0.
+    std = 0.
     for images, _ in loader:
-        batch_size, num_channels, height, width = images.shape
-        num_pixels += batch_size * height * width
-        mean += images.mean(axis=(0, 2, 3)).sum()
-        std += images.std(axis=(0, 2, 3)).sum()
+        batch_samples = images.size(0) # batch size (the last batch can have smaller size!)
+        images = images.view(batch_samples, images.size(1), -1)
+        mean += images.mean(2).sum(0)
+        std += images.std(2).sum(0)
 
-    mean /= num_pixels
-    std /= num_pixels
-
-    return mean, std
+    mean /= len(loader.dataset)
+    std /= len(loader.dataset)
+    var = 0.0
+    pixel_count = 0
+    for images, _ in loader:
+        batch_samples = images.size(0)
+        images = images.view(batch_samples, images.size(1), -1)
+        var += ((images - mean.unsqueeze(1))**2).sum([0,2])
+        pixel_count += images.nelement()
+    std1 = torch.sqrt(var / pixel_count)
+    print(mean, std, std1)
+    return mean, std, std1
 # Data
 print('==> Preparing data..') 
 def normalize_train():
@@ -79,8 +87,8 @@ def normalize_train():
     #torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
     #trainset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
     trainloader = torch.utils.data.DataLoader(trainset, batch_size=bs, shuffle=True)   
-    mean, std = get_mean_std(trainloader) 
-    return mean,std
+    mean, std, std1 = get_mean_std(trainloader) 
+    return mean,std, std1
 def normalize_test():
     transform_test = transforms.Compose([
     transforms.Resize((size,size)),
@@ -90,19 +98,19 @@ def normalize_test():
     #torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
     #trainset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
     testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)   
-    mean, std = get_mean_std(testloader) 
-    return mean, std      
+    mean, std, std1 = get_mean_std(testloader) 
+    return mean, std, std1      
 
-#mean, std = normalize_train()
-#mean_test, std_test = normalize_test()
-#print("Normalization", mean, std)
-#print("Normalization Test", mean_test, std_test)
+# mean, std, std1 = normalize_train()
+# mean_test, std_test, std2 = normalize_test()
+# print("Normalization", mean, std, std1)
+# print("Normalization Test", mean_test, std_test, std2)
 transform_train = transforms.Compose([
     transforms.Resize((size,size)),
     RandAugment(num_ops=4),
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))    
-
+    
     # transforms.RandomRotation(10),
     # transforms.RandomHorizontalFlip(),
     # transforms.RandomCrop(size),
@@ -116,31 +124,39 @@ transform_train = transforms.Compose([
 transform_test = transforms.Compose([
     transforms.Resize((size,size)),
     transforms.ToTensor(),
-    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))
-    #transforms.Normalize(mean=mean_test, std=std_test),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    # transforms.Normalize(mean=0.1167, std=0.1297)
+    # transforms.Normalize(mean=mean_test, std=std_test),
+])
+
+transform_valid = transforms.Compose([
+    transforms.Resize((size,size)),
+    transforms.ToTensor(),
+    transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
+    # transforms.Normalize(mean=0.1167, std=0.1297)
+    # transforms.Normalize(mean=mean_test, std=std_test),
 ])
 
 # Prepare dataset
-trainset = torchvision.datasets.ImageFolder(root='/home/groups/comp3710/ADNI/AD_NC/train', transform=transform_train)
+trainset = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Patient_Split/train', transform=transform_train)
 #torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
 #trainset = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/train', transform=transform_train)
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=bs, shuffle=True)
 
 ## Test
-#testset = torchvision.datasets.ImageFolder(root='/home/groups/comp3710/ADNI/AD_NC/test', transform=transform_test)
-#testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
+# testset = torchvision.datasets.ImageFolder(root='/home/groups/comp3710/ADNI/AD_NC/test', transform=transform_test)
+# testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
 
 ## Vaid
-test_valid_set = torchvision.datasets.ImageFolder(root='/home/groups/comp3710/ADNI/AD_NC/test', transform=transform_test)
+testset = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Patient_Split/test', transform=transform_test)
+validset = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Patient_Split/valid', transform=transform_valid)
 #test_valid_set = torchvision.datasets.ImageFolder(root='/home/Student/s4737925/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
 #test_valid_set = torchvision.datasets.ImageFolder(root='Z:/Project/Dataset/ADNI_AD_NC_2D/AD_NC/test', transform=transform_test)
 
-test_size = int(0.5 * len(test_valid_set))
-valid_size = len(test_valid_set) - test_size
+# test_size = int(0.5 * len(test_valid_set))
+# valid_size = len(test_valid_set) - test_size
 
-testset, validset = random_split(test_valid_set, [test_size, valid_size])
+# testset, validset = random_split(test_valid_set, [test_size, valid_size])
 
 testloader = torch.utils.data.DataLoader(testset, batch_size=100, shuffle=False)
 validloader = torch.utils.data.DataLoader(validset, batch_size=100, shuffle=False)
-
-print(len(testset),len(trainset),len(validset))
