@@ -2,9 +2,7 @@ from dataset import get_dataloader
 import torch
 import time
 from torch import nn
-
-from torchvision.models.vision_transformer import vit_b_16
-from torchvision.models import ViT_B_16_Weights
+from modules import ViT
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -21,8 +19,7 @@ train_loader, val_loader = get_dataloader(batch_size=BATCH_SIZE, train=True)
 test_loader = get_dataloader(batch_size=BATCH_SIZE, train=False)
 
 # Initialise model, criterion and optimiser
-model = vit_b_16(weights=ViT_B_16_Weights.IMAGENET1K_V1)
-model.heads.head = nn.Linear(in_features=BATCH_SIZE*12, out_features=2)
+model = ViT()
 model = model.to(device)
 
 criterion = torch.nn.CrossEntropyLoss()
