@@ -54,7 +54,7 @@ Since the input images have a resolution of 256*240 pixels, when downscaled by a
 </p>
 
 ![Sample Model Input](images/sample_input.png)
-[1] The above image displays a sample model input image, before and after downscaling to illustrate the effect of the information loss associated with a 4x downsample.
+The above image displays a sample model input image, before and after downscaling to illustrate the effect of the information loss associated with a 4x downsample.
 
 <p>
 I chose to use the Adam optimiser as it is a very good general use optimiser for machine learning problems, and I also used a learning rate scheduler with a max learning rate of 0.001 to comply with the training regime that was used in the model.
