@@ -119,15 +119,15 @@ The optimal model contains:
 
 **Table 2**
 
-| Model      | Optimizer | Embedding Dim | Number of Layers in CNN | Augmentation | Accuracy
-| :---        |    :----:   | ---: |  ---: | ---: |
-| DViT     | Adam      | -   | - | Horizontal Flip | 61%
-| CCT   | Adam        | 192 | 4    | Horizontal Flip | 71.73%
-| CCT   | Adam        | 192 | 2    | Horizontal Flip | 72.3%
-| CCT   | Adam        | 192 | 2    | Horizontal Flip + Random Rotation | 74%
-| CCT   | Adam        | 192 | 2    | RandAugment | 76.373%
-| CCT   | Adam        | 192 | 2    | RandAugment (n_ops = 3) | 76.5%
-| CCT   | Adam        | 192 | 2    | TrivAug | 75.244%
+| Model      | Optimizer | Embedding Dim | Number of Layers in CNN | Augmentation | Accuracy |
+| :---        |    :----:   | ---: |  ---: | ---: | ---: |
+| DViT     | Adam      | -   | - | Horizontal Flip | 61% |
+| CCT   | Adam        | 192 | 4    | Horizontal Flip | 71.73% |
+| CCT   | Adam        | 192 | 2    | Horizontal Flip | 72.3% |
+| CCT   | Adam        | 192 | 2    | Horizontal Flip + Random Rotation | 74% |
+| CCT   | Adam        | 192 | 2    | RandAugment | 76.373% |
+| CCT   | Adam        | 192 | 2    | RandAugment (n_ops = 3) | 76.5% |
+| CCT   | Adam        | 192 | 2    | TrivAug | 75.244% |
 
 Table 2 is trained without patient level split
 Various other training were carried out (please refer appendix 1)
@@ -138,16 +138,27 @@ Various other training were carried out (please refer appendix 1)
 
 #### Before pre-processing
 
-1. AD:
-![Alt text](ADNI_TRANSFORMER_47379251/assets/228875_75.jpeg)
+1. **AD:**
 <br>
-2. NC:
+
+![Alt text](ADNI_TRANSFORMER_47379251/assets/228875_75.jpeg)
+
+<br>
+
+2. **NC:**
+
+<br>
+
 ![Alt text](ADNI_TRANSFORMER_47379251/assets/808819_88.jpeg)
 
 #### After pre-processing
 
+**Example 1**
 ![Alt text](ADNI_TRANSFORMER_47379251/assets/image-3.png)
+
 <br>
+
+**Example 2**
 ![Alt text](ADNI_TRANSFORMER_47379251/assets/imageData.png)
 
 
@@ -157,13 +168,13 @@ Various other training were carried out (please refer appendix 1)
 
 ![Alt text](ADNI_TRANSFORMER_47379251/assets/00%EF%80%BA20%EF%80%BA11_Report.png)
 
-Here X-axis is number of epochs and Y-axis Loss
+* Here X-axis is the number of epochs and Y-axis is Loss.
 
 #### Validation Accuracy
 
 ![Alt text](ADNI_TRANSFORMER_47379251/assets/00%EF%80%BA20%EF%80%BA12_Accuracy.png)
 
-Here X-axis is number of epochs and Y-axis Accuracy
+* Here X-axis is the number of epochs and Y-axis is Accuracy.
 
 #### Rangpur Performance (refer appendix 2)
 
@@ -219,66 +230,18 @@ Format: Job(short form) - Model and Changes - Accuracy (in %)
 
 ### Appendix 2
 
-[>................................................................]  Step: 335ms | Tot: 0ms | Loss: 1.467 | Acc: 60.000% (60/100) 1/46 
- [=>...............................................................]  Step: 329ms | Tot: 329ms | Loss: 1.286 | Acc: 61.500% (123/200) 2/46 
- [==>..............................................................]  Step: 333ms | Tot: 662ms | Loss: 0.910 | Acc: 72.333% (217/300) 3/46 
- [====>............................................................]  Step: 326ms | Tot: 989ms | Loss: 0.837 | Acc: 74.000% (296/400) 4/46 
- [=====>...........................................................]  Step: 331ms | Tot: 1s320ms | Loss: 1.057 | Acc: 72.200% (361/500) 5/46 
- [=======>.........................................................]  Step: 326ms | Tot: 1s646ms | Loss: 0.950 | Acc: 74.500% (447/600) 6/46 
- [========>........................................................]  Step: 326ms | Tot: 1s972ms | Loss: 0.840 | Acc: 76.714% (537/700) 7/46 
- [=========>.......................................................]  Step: 326ms | Tot: 2s299ms | Loss: 0.790 | Acc: 78.125% (625/800) 8/46 
- [===========>.....................................................]  Step: 321ms | Tot: 2s621ms | Loss: 0.703 | Acc: 80.556% (725/900) 9/46 
- [============>....................................................]  Step: 325ms | Tot: 2s947ms | Loss: 0.640 | Acc: 82.200% (822/1000) 10/46 
- [==============>..................................................]  Step: 326ms | Tot: 3s273ms | Loss: 0.588 | Acc: 83.545% (919/1100) 11/46 
- [===============>.................................................]  Step: 320ms | Tot: 3s593ms | Loss: 0.551 | Acc: 84.583% (1015/1200) 12/46 
- [================>................................................]  Step: 324ms | Tot: 3s918ms | Loss: 0.513 | Acc: 85.615% (1113/1300) 13/46 
- [==================>..............................................]  Step: 320ms | Tot: 4s238ms | Loss: 0.490 | Acc: 86.071% (1205/1400) 14/46 
- [===================>.............................................]  Step: 317ms | Tot: 4s555ms | Loss: 0.459 | Acc: 87.000% (1305/1500) 15/46 
- [=====================>...........................................]  Step: 319ms | Tot: 4s875ms | Loss: 0.439 | Acc: 87.500% (1400/1600) 16/46 
- [======================>..........................................]  Step: 325ms | Tot: 5s200ms | Loss: 0.417 | Acc: 88.000% (1496/1700) 17/46 
- [========================>........................................]  Step: 327ms | Tot: 5s527ms | Loss: 0.399 | Acc: 88.500% (1593/1800) 18/46 
- [=========================>.......................................]  Step: 328ms | Tot: 5s855ms | Loss: 0.423 | Acc: 88.105% (1674/1900) 19/46 
- [==========================>......................................]  Step: 315ms | Tot: 6s171ms | Loss: 0.402 | Acc: 88.700% (1774/2000) 20/46 
- [============================>....................................]  Step: 326ms | Tot: 6s497ms | Loss: 0.385 | Acc: 89.143% (1872/2100) 21/46 
- [=============================>...................................]  Step: 333ms | Tot: 6s831ms | Loss: 0.376 | Acc: 89.273% (1964/2200) 22/46 
- [===============================>.................................]  Step: 315ms | Tot: 7s146ms | Loss: 0.381 | Acc: 89.130% (2050/2300) 23/46 
- [================================>................................]  Step: 318ms | Tot: 7s465ms | Loss: 0.376 | Acc: 88.708% (2129/2400) 24/46 
- [=================================>...............................]  Step: 320ms | Tot: 7s786ms | Loss: 0.396 | Acc: 88.400% (2210/2500) 25/46 
- [===================================>.............................]  Step: 327ms | Tot: 8s114ms | Loss: 0.386 | Acc: 88.615% (2304/2600) 26/46 
- [====================================>............................]  Step: 327ms | Tot: 8s441ms | Loss: 0.372 | Acc: 89.037% (2404/2700) 27/46 
- [======================================>..........................]  Step: 330ms | Tot: 8s772ms | Loss: 0.364 | Acc: 89.250% (2499/2800) 28/46 
- [=======================================>.........................]  Step: 325ms | Tot: 9s97ms | Loss: 0.363 | Acc: 89.241% (2588/2900) 29/46 
- [========================================>........................]  Step: 319ms | Tot: 9s416ms | Loss: 0.354 | Acc: 89.500% (2685/3000) 30/46 
- [==========================================>......................]  Step: 322ms | Tot: 9s739ms | Loss: 0.343 | Acc: 89.839% (2785/3100) 31/46 
- [===========================================>.....................]  Step: 326ms | Tot: 10s65ms | Loss: 0.350 | Acc: 89.688% (2870/3200) 32/46 
- [=============================================>...................]  Step: 325ms | Tot: 10s391ms | Loss: 0.388 | Acc: 88.545% (2922/3300) 33/46 
- [==============================================>..................]  Step: 330ms | Tot: 10s721ms | Loss: 0.378 | Acc: 88.853% (3021/3400) 34/46 
- [================================================>................]  Step: 326ms | Tot: 11s48ms | Loss: 0.369 | Acc: 89.114% (3119/3500) 35/46 
- [=================================================>...............]  Step: 327ms | Tot: 11s376ms | Loss: 0.400 | Acc: 88.722% (3194/3600) 36/46 
- [==================================================>..............]  Step: 328ms | Tot: 11s705ms | Loss: 0.415 | Acc: 88.568% (3277/3700) 37/46 
- [====================================================>............]  Step: 321ms | Tot: 12s26ms | Loss: 0.407 | Acc: 88.763% (3373/3800)38/46 
- [=====================================================>...........]  Step: 321ms | Tot: 12s348ms | Loss: 0.426 | Acc: 88.308% (3444/3900) 39/46 
- [=======================================================>.........]  Step: 320ms | Tot: 12s668ms | Loss: 0.419 | Acc: 88.425% (3537/4000) 40/46 
- [========================================================>........]  Step: 337ms | Tot: 13s6ms | Loss: 0.421 | Acc: 88.317% (3621/4100) 41/46 
- [=========================================================>.......]  Step: 325ms | Tot: 13s332ms | Loss: 0.411 | Acc: 88.595% (3721/4200) 42/46 
- [===========================================================>.....]  Step: 316ms | Tot: 13s648ms | Loss: 0.411 | Acc: 88.535% (3807/4300) 43/46 
- [============================================================>....]  Step: 316ms | Tot: 13s964ms | Loss: 0.403 | Acc: 88.727% (3904/4400) 44/46 
- [==============================================================>..]  Step: 321ms | Tot: 14s285ms | Loss: 0.395 | Acc: 88.956% (4003/4500) 45/46 
- [===============================================================>.]  Step: 194ms | Tot: 14s480ms | Loss: 0.390 | Acc: 89.013% (4059/4560) 46/46 
-No artists with labels found to put in legend.  Note that artists whose label start with an underscore are ignored when legend() is called with no argument.
-lr: 0.0000000, val loss: 17.94420, acc: 89.01316
 Testing took 14.813738584518433 secs or 0.2468956430753072 mins in total
 END
 Test Loss: 17.944203392136842 Test Accuracy: 89.01315789473684
 
 
 ## References
-- https://www.frontiersin.org/articles/10.3389/fnagi.2019.00220/full
-- https://adni.loni.usc.edu/
-- https://arxiv.org/pdf/2010.11929v2.pdf
-- https://arxiv.org/abs/2104.05704
-- https://github.com/lucidrains/vit-pytorch/
-- https://github.com/SHI-Labs/Compact-Transformers
-- Image reference https://arxiv.org/abs/2104.05704
+* 1. https://www.frontiersin.org/articles/10.3389/fnagi.2019.00220/full
+* 2. https://adni.loni.usc.edu/
+* 3. https://arxiv.org/pdf/2010.11929v2.pdf
+* 4. https://arxiv.org/abs/2104.05704
+* 5. https://github.com/lucidrains/vit-pytorch/
+* 6. https://github.com/SHI-Labs/Compact-Transformers
+* Image reference https://arxiv.org/abs/2104.05704
 
 Some parts of the code was inspired by: https://github.com/lucidrains/vit-pytorch/ and Pytorch official website
