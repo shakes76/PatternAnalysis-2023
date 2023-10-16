@@ -48,7 +48,7 @@ def AdaIN(n_filters, image_size, epsilon=EPSILON):
     return: The AdaIN model
     """
     input = layers.Input((image_size, image_size, n_filters))
-    w = layers.Input(n_filters)
+    w = layers.Input(LATENT_DIMENSIONS)
     x = input
 
     # Calculate scale and bias for AdaIN
