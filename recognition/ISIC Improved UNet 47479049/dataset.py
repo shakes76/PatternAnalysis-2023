@@ -1,6 +1,7 @@
 import os
+import torch
 from PIL import Image
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader, random_split
 import numpy as np
 
 class SkinDataset(Dataset):
@@ -19,6 +20,7 @@ class SkinDataset(Dataset):
 
         image = np.array(Image.open(img_path).convert("RGB"))
         mask = np.array(Image.open(mask_path).convert("L"), dtype=np.float32)
+
         mask[mask == 255.0] = 1.0
 
         if self.transform is not None:
@@ -27,3 +29,21 @@ class SkinDataset(Dataset):
             mask = augemntations["mask"]
 
         return image, mask
+
+def get_loaders(train_dir, mask_dir, batch_size, train_trasform, val_transform):
+
+    train_dataset = SkinDataset(
+        image_dir=train_dir,
+        mask_dir=mask_dir,
+        transform=train_trasform
+    )
+    
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True
+    )
+
+    return train_loader
+    
+    
