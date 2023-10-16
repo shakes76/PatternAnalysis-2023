@@ -53,10 +53,26 @@ Here is an example patched image:
 
 ## Dependencies & Requirements
 
+To run all the files within this repository, a conda environment can be created using the provided
+```environment.yml``` file. After installing conda, one can run the following to instantiate a
+new environment with the required dependencies:
+```
+conda env create -n {environment name} -f environment.yml
+```
+
 ## Results
 
 ## References
 https://arxiv.org/pdf/2010.11929.pdf
 
-https://www.akshaymakes.com/blogs/vision-transformer
+https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
 
+https://arxiv.org/pdf/2106.10270.pdf
+
+https://arxiv.org/pdf/2210.07240.pdf
+
+https://www.v7labs.com/blog/vision-transformer-guide#h2
+
+https://www.learnpytorch.io/05_pytorch_going_modular/#4-creating-train_step-and-test_step-functions-and-train-to-combine-them
+
+https://wandb.ai/dtamkus/posts/reports/5-Tips-for-Creating-Lightweight-Vision-Transformers--Vmlldzo0MjQyMzg0

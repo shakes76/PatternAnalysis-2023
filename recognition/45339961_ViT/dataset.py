@@ -4,6 +4,8 @@ import os
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 
+NUM_WORKERS = os.cpu_count()
+
 def create_datasets(root_dir, train_transform, test_transform, datasplit):
     """ Create train, validation and test datasets.
 
@@ -45,7 +47,7 @@ def create_datasets(root_dir, train_transform, test_transform, datasplit):
 
     return train_data, valid_data, test_data
 
-def create_dataloaders(root_dir, train_transform, test_transform, batch_size, datasplit):
+def create_dataloaders(root_dir, train_transform, test_transform, batch_size, datasplit, num_workers=NUM_WORKERS):
     """ Create train, validation and test dataloaders.
 
     Args:
@@ -66,8 +68,19 @@ def create_dataloaders(root_dir, train_transform, test_transform, batch_size, da
                                                         datasplit=datasplit)
 
     # Create dataloaders
-    train_loader = DataLoader(train_data, batch_size=batch_size, shuffle=True, num_workers=4)
-    valid_loader = DataLoader(valid_data, batch_size=batch_size, shuffle=False, num_workers=4)
-    test_loader = DataLoader(test_data, batch_size=batch_size, shuffle=False, num_workers=4)
+    train_loader = DataLoader(train_data,
+                            batch_size=batch_size,
+                            shuffle=True,
+                            num_workers=num_workers)
+    
+    valid_loader = DataLoader(valid_data,
+                            batch_size=batch_size,
+                            shuffle=False,
+                            num_workers=num_workers)
+    
+    test_loader = DataLoader(test_data,
+                            batch_size=batch_size,
+                            shuffle=False,
+                            num_workers=num_workers)
 
     return train_loader, valid_loader, test_loader

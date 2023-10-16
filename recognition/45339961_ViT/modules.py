@@ -1,4 +1,6 @@
 """ Source of the components of model. """
+# Acknowledgement: This code is adapted from the following source:
+# https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
 
 import torch
 from torch import nn
@@ -23,12 +25,12 @@ class PatchEmbedding(nn.Module):
                                 padding=0)
 
         # Create a layer to flatten the patch feature maps into a single dimension
-        self.flatten = nn.Flatten(start_dim=2, # only flatten the feature map dimensions into a single vector
+        self.flattened = nn.Flatten(start_dim=2, # only flatten the feature map dimensions into a single vector
                                 end_dim=3)
 
     def forward(self, x):
         x_patched = self.patcher(x)
-        x_flattened = self.flatten(x_patched)
+        x_flattened = self.flattened(x_patched)
 
         # Make sure the output shape has the right order 
         # adjust so the embedding is on the final dimension [batch_size, P^2•C, N] -> [batch_size, N, P^2•C]
