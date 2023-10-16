@@ -29,7 +29,7 @@ def main(args):
     mdl = torch.load(args.mdlfile).to(device)
 
     if args.test:
-        test_model(mdl, device=device, pg=True)
+        test_model(mdl, device=device, agg=args.agg, pg=True)
 
     if args.gui:
         mdlpredict = lambda image: predict(image, mdl, device)
@@ -40,6 +40,7 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('mdlfile', help='trained model file (.pt)')
+    parser.add_argument('--agg', action='store_true', help='aggregate test results by patient')
     parser.add_argument('--test', action='store_true', help='run inference ADNI test split')
     parser.add_argument('--gui', action='store_true', help='start interactive web GUI')
     args = parser.parse_args()

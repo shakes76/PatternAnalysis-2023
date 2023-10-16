@@ -143,8 +143,38 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
 
 ### EVALUATION #################################################################
 
-def test_model(mdl: Any, device: torch.device, pg: bool = False) -> None:
-    '''Test the given model on the ADNI test dataset.'''
+def test_model_noagg(mdl: Any, device: torch.device, pg: bool = False) -> None:
+    '''
+    Test the given model on the ADNI test dataset, treating each image as
+    independent and not aggregating per patient.
+    '''
+    wrapiter = (lambda iter: tqdm(iter)) if pg else (lambda iter: iter)
+
+    test_loader = create_test_dataloader()
+    mdl.eval()
+    time_start = time.time()
+
+    total = 0; correct = 0
+
+    # Model inference
+    with torch.no_grad():
+        for images, labels, _ in wrapiter(test_loader):
+            images = images.to(device)
+            labels = labels.to(device)
+            # Forward pass
+            outputs = mdl(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    time_elapsed = time.time() - time_start
+    print(f'Test accuracy: {100*correct/total:.2f}% ({strftime(time_elapsed)})')
+
+def test_model_agg(mdl: Any, device: torch.device, pg: bool = False) -> None:
+    '''
+    Test the given model on the ADNI test dataset, aggregating predictions
+    per patient before making a final prediction.
+    '''
     wrapiter = (lambda iter: tqdm(iter)) if pg else (lambda iter: iter)
 
     # Mapping of patient ID to prediction tallies
@@ -185,7 +215,15 @@ def test_model(mdl: Any, device: torch.device, pg: bool = False) -> None:
         correct += int(pred == actual[pid])
 
     time_elapsed = time.time() - time_start
-    print(f'Test accuracy: {100*correct/total:.2f}% ({strftime(time_elapsed)})')
+    print(f'Test accuracy (agg.): {100*correct/total:.2f}% ({strftime(time_elapsed)})')
+
+def test_model(mdl: Any, device: torch.device, agg: bool = False,
+               pg: bool = False) -> None:
+    '''Test the given model on the ADNI test dataset.'''
+    if agg:
+        test_model_agg(mdl, device, pg)
+    else:
+        test_model_noagg(mdl, device, pg)
 
 ### ENTRYPOINT #################################################################
 
