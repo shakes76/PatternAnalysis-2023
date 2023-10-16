@@ -32,11 +32,13 @@ class SiameseNetwork(nn.Module):
         self.fc.apply(self.init_weights)
 
     def init_weights(self, m):
+        # initialize the weights of the linear layers
         if isinstance(m, nn.Linear):
             torch.nn.init.xavier_uniform_(m.weight)
             m.bias.data.fill_(0.01)
 
     def forward_one(self, x):
+        # get the features of one image
         output = self.resnet(x)
         output = output.view(output.size()[0], -1)
         return output

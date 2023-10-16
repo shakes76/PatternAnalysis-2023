@@ -12,17 +12,19 @@ def test(model, device, test_loader):
     test_loss = 0
     correct = 0
 
+    # Using `BCELoss` as the loss function
     criterion = nn.BCELoss()
 
+    # No need to calculate gradients
     with torch.no_grad():
         for (images_1, images_2, targets) in test_loader:
             images_1, images_2, targets = images_1.to(device), images_2.to(device), targets.to(device)
             outputs = model(images_1, images_2).squeeze()
             test_loss += criterion(outputs, targets).sum().item()  # sum up batch loss
             pred = torch.where(outputs > 0.5, 1, 0)  # get the index of the max log-probability
-            correct += pred.eq(targets.view_as(pred)).sum().item()
+            correct += pred.eq(targets.view_as(pred)).sum().item() # Update correct count
 
-    test_loss /= len(test_loader.dataset)
+    test_loss /= len(test_loader.dataset) # Calculate average loss
 
     print('\nTest set: Average loss: {:.4f}, Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(test_loader.dataset),
@@ -37,7 +39,7 @@ if __name__ == '__main__':
     batch_size = 256
 
     model = SiameseNetwork()
-    model_path = "../results/siamese_network_10epochs(2).pt"
+    model_path = "../results/siamese_network_50epochs.pt"
     model.load_state_dict(torch.load(model_path))
     model = model.to(device)
 

@@ -1,11 +1,11 @@
 import os
-
+from torch.utils.tensorboard import SummaryWriter
 import torch
 import torch.optim as optim
 from torch import nn
 from torch.utils.data import DataLoader, Subset
 from modules import SiameseNetwork
-from dataset import get_train_dataset, get_patient_ids, split_patient_ids, get_indices_from_patient_ids
+from dataset import get_train_dataset
 from sklearn.model_selection import train_test_split
 
 
@@ -13,21 +13,35 @@ def train(model, dataloader, device, optimizer, epoch):
 
     model.train()
 
-    #  using `BCELoss` as the loss function
+    # Using `BCELoss` as the loss function
     criterion = nn.BCELoss()
+
+    correct = 0  # Reset correct count for each epoch
+    total_samples = 0  # Keep track of total samples processed
 
     for batch_idx, (images_1, images_2, targets) in enumerate(dataloader):
         images_1, images_2, targets = images_1.to(device), images_2.to(device), targets.to(device)
-        optimizer.zero_grad()
+        optimizer.zero_grad() # Zero out gradients
         outputs = model(images_1, images_2).squeeze()
-        loss = criterion(outputs, targets)
+        loss = criterion(outputs, targets) # Calculate loss
         loss.backward()
         optimizer.step()
 
+        # Calculate accuracy
+        pred = torch.where(outputs > 0.5, torch.tensor(1.0, device=device), torch.tensor(0.0, device=device))
+        correct += pred.eq(targets.view_as(pred)).sum().item()
+        total_samples += len(targets)  # Update total samples
+
         if batch_idx % 10 == 0:
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-                epoch, batch_idx * len(images_1), len(dataloader.dataset),
-                       100. * batch_idx / len(dataloader), loss.item()))
+            accuracy = 100. * correct / total_samples  # Calculate accuracy
+
+            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tAccuracy: {:.2f}%'.format(
+                epoch, total_samples, len(dataloader.dataset),
+                100. * batch_idx / len(dataloader), loss.item(), accuracy))
+
+            # Log to TensorBoard
+            writer.add_scalar('Training Loss', loss.item(), epoch * len(dataloader) + batch_idx)
+            writer.add_scalar('Training Accuracy', accuracy, epoch * len(dataloader) + batch_idx)
 
 
 def validate(model, dataloader, device):
@@ -55,31 +69,16 @@ def validate(model, dataloader, device):
     print("Finished Validation.")
 
 
-def split_dataset_by_patient(dataset):
-    patient_img_indices = {}
-    for i in range(len(dataset)):
-        _, _, img_path = dataset[i]  # 假设第三个返回值是图像路径
-        patient_id = img_path.split('_')[0]
-        if patient_id not in patient_img_indices:
-            patient_img_indices[patient_id] = []
-        patient_img_indices[patient_id].append(i)
-
-    all_patient_ids = list(patient_img_indices.keys())
-    train_patient_ids, val_patient_ids = train_test_split(all_patient_ids, test_size=0.2, random_state=42)
-
-    train_indices = [idx for patient_id in train_patient_ids for idx in patient_img_indices[patient_id]]
-    val_indices = [idx for patient_id in val_patient_ids for idx in patient_img_indices[patient_id]]
-
-    return train_indices, val_indices
-
-
-
 if __name__ == '__main__':
-    epochs = 10
+    # Initialize TensorBoard
+    writer = SummaryWriter('logs/siamese_experiment')
+
+    epochs = 50
     batch_size = 256
     learning_rate = 0.001
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
 
     # Initialize model, criterion, and optimizer
     model = SiameseNetwork().to(device)
@@ -91,27 +90,8 @@ if __name__ == '__main__':
     train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size)
     print("Data loaded.")
 
-    # # 创建完整的数据集
-    # full_dataset = get_train_dataset('E:/comp3710/AD_NC')
-    #
-    # # 获取病人 ID 并进行拆分
-    # patient_ids = get_patient_ids(full_dataset)
-    # train_patient_ids, val_patient_ids = split_patient_ids(patient_ids)
-    #
-    # # 根据病人 ID 获取数据集索引
-    # train_indices = get_indices_from_patient_ids(train_patient_ids, full_dataset)
-    # val_indices = get_indices_from_patient_ids(val_patient_ids, full_dataset)
-    #
-    # # 使用 Subset 创建训练和验证数据集
-    # train_dataset = Subset(full_dataset, train_indices)
-    # val_dataset = Subset(full_dataset, val_indices)
-    #
-    # # 创建 DataLoader
-    # train_loader = DataLoader(train_dataset, batch_size=batch_size)
-    # val_loader = DataLoader(val_dataset, batch_size=batch_size)
-
     save_directory = "E:/PatternAnalysis-2023/results"
-    save_filename = f"siamese_network_{epochs}epochs(3).pt"
+    save_filename = f"siamese_network_{epochs}epochs.pt"
 
     print("Starting training.")
     for epoch in range(1, epochs + 1):
@@ -119,11 +99,13 @@ if __name__ == '__main__':
         # validate(model, val_loader, device)
     print("Finished training.")
 
-    # 创建保存目录，如果它不存在
+    # create directory if it doesn't exist
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
 
-    # 完整的保存路径
+    # save model
     save_path = os.path.join(save_directory, save_filename)
-
     torch.save(model.state_dict(), save_path)
+
+    writer.close()
+
