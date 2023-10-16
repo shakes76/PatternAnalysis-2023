@@ -1,37 +1,45 @@
 import torch
-import torchvision.transforms as transforms
 import torch.nn as nn
 import torch.nn.functional as F
 
 class RawSiameseModel(nn.Module):
+    """
+        Base siamese model -> following the structure from the report
+        Follow https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf -> Siamese Neural Networks for One-shot Image Recognition
+    """
     def __init__(self):
         super(RawSiameseModel, self).__init__()
-        # Follow https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf -> Siamese Neural Networks for One-shot Image Recognition
-        # first convolution layer
+        # first layer
         self.model1 = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=64, kernel_size=10, stride=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2)
         )
 
+        # second layer
         self.model2 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=7, stride=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2)
         )
 
+        # third layer
         self.model3 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=4, stride=1),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2)
         )
 
+        # fourth layer
         self.model4 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=256, kernel_size=4, stride=1),
             nn.ReLU(),
             nn.Flatten(),
             nn.Linear(256 * 6 * 6, 4096)
         )
+
+        # unlike the structure from the report, this return 4096 feature vector instead of the similarity
+        # this is because the feature vector will be use to train the binary classifier
 
     def forward(self, x):
         output = self.model1(x)
@@ -42,9 +50,12 @@ class RawSiameseModel(nn.Module):
         return output
 
 class BinaryModelClassifier(nn.Module):
-
+    """
+        Base CNN binary classifier
+        The idea is put the feature vector through 3 fully connected layers for classifcation
+        # adapt from https://machinelearningmastery.com/building-a-binary-classification-model-in-pytorch/
+    """
     def __init__(self):
-        # Reference: https://machinelearningmastery.com/building-a-binary-classification-model-in-pytorch/
         super(BinaryModelClassifier, self).__init__()
 
         self.binary_layer = nn.Sequential(
@@ -52,11 +63,7 @@ class BinaryModelClassifier(nn.Module):
             nn.ReLU(),
             nn.Linear(1024, 128),
             nn.ReLU(),
-            nn.Linear(128, 64),
-            nn.ReLU(),
-            nn.Linear(64, 16),
-            nn.ReLU(),
-            nn.Linear(16, 1),
+            nn.Linear(128, 1),
             nn.Sigmoid()
         )
 
@@ -65,7 +72,12 @@ class BinaryModelClassifier(nn.Module):
         return output
 
 class ContrastiveLossFunction(nn.Module):
-    # custom loss function based on https://www.kaggle.com/code/robinreni/signature-classification-using-siamese-pytorch
+    """
+        Custom loss function
+        Follow https://www.cs.cmu.edu/~rsalakhu/papers/oneshot1.pdf -> Siamese Neural Networks for One-shot Image Recognition
+        Also based on https://www.kaggle.com/code/robinreni/signature-classification-using-siamese-pytorch
+
+    """
     def __init__(self):
         super(ContrastiveLossFunction, self).__init__()
         self.margin = 0.2
