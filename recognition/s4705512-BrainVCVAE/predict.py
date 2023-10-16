@@ -51,3 +51,10 @@ vqvae_trainer = VQVAETrainer(
         latent_dim=latent_dim,
         num_embeddings=num_embeddings,
 )
+
+
+vqvae_trainer.load_weights(models_directory + vqvae_weights_filename)
+
+encoder = vqvae_trainer.vqvae.get_layer("encoder")
+quantizer = vqvae_trainer.vqvae.get_layer("vector_quantizer")
+decoder = vqvae_trainer.vqvae.get_layer("decoder")
