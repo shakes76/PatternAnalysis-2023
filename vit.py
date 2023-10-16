@@ -12,11 +12,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import random
 
-manualSeed = 999
-print("Random Seed: ", manualSeed)
-torch.manual_seed(manualSeed)
-torch.use_deterministic_algorithms(True)
-
 batch_size = 64
 workers = 2
 
@@ -34,15 +29,27 @@ num_classes = 2  # Number of different classes to classify (i.e. AD and NC)
 num_epochs = 5
 
 # Create the dataset
-dataroot = "AD_NC"
-dataset = dset.ImageFolder(root=dataroot,
+train_dataroot = "AD_NC/train"
+test_dataroot = "AD_NC/test"
+train_dataset = dset.ImageFolder(root=train_dataroot,
                             transform=transforms.Compose([
                             transforms.Resize((image_size, image_size)),
                             transforms.ToTensor(),
                         ]))
 
-dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+test_dataset = dset.ImageFolder(root=test_dataroot,
+                            transform=transforms.Compose([
+                            transforms.Resize((image_size, image_size)),
+                            transforms.ToTensor(),
+                        ]))
+
+train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
                                         shuffle=True, num_workers=workers)
+
+test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,
+                                        shuffle=False, num_workers=workers)
+
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
@@ -94,8 +101,8 @@ class TransformerEncoder(nn.Module):
                                                                     activation="gelu",
                                                                     layer_norm_eps=1e-5,
                                                                     batch_first=True,
-                                                                    norm_first=True,
-                                                                    bias=True)
+                                                                    norm_first=True
+                                                                    )
         
         self.full_transformer_encoder = nn.TransformerEncoder(encoder_layer=self.transformer_encoder_layer,
                                                                 num_layers=num_layers)
@@ -147,7 +154,7 @@ class MultiheadSelfAttention(nn.Module):
         attentio, _ = self.msa(query=input,
                             key=input,
                             value=input,
-                            need_weights=False)]
+                            need_weights=False)
         return attentio
     
 
@@ -183,19 +190,19 @@ def imshow(img):
     plt.show()
 
 def test():
-    dataiter = iter(dataloader)
+    dataiter = iter(train_loader)
     images, labels = next(dataiter)
 
     images = images[:10]
     labels = labels[:10]
 
-    #imshow(torchvision.utils.make_grid(images, nrow=5))
+    imshow(torchvision.utils.make_grid(images, nrow=5))
 
     # Print labels
-    #print(' '.join('%5s' % labels[j].item() for j in range(10)))
+    print(' '.join('%5s' % labels[j].item() for j in range(10)))
 
     # Get initial shape, should be 224 (H) by 224 (W) by 3 (C)
-    sample_datapoint = torch.unsqueeze(dataset[0][0], 0)
+    sample_datapoint = torch.unsqueeze(train_dataset[0][0], 0)
     #print("Initial shape: ", sample_datapoint.shape)
 
     # Test patch embedding for 1 image
@@ -206,7 +213,7 @@ def test():
                                 kernel_size=patch_size,
                                 stride=patch_size,
                                 padding=0)
-    image = dataset[0][0]
+    image = train_dataset[0][0]
     #imshow(image)
     #plt.axis(False)
     image_patched = patch_embedding(image.unsqueeze(0))  # Run conv layer through image
@@ -248,10 +255,12 @@ def test():
     patch_and_position_embedding = prepended_patch_embedding + positional_embed
     print(f"Final: {patch_and_position_embedding}")
     print(f"Final shape: {patch_and_position_embedding.shape}")   
-    
+
 
 def main():
-    visual_transformer = ViT(workers)
+    visual_transformer = ViT(workers).to(device)
+    alzheimers = 0.
+    normal = 1.
     
     # ----------------------------------------
     # Loss Function and Optimiser
@@ -260,17 +269,31 @@ def main():
 
     # ----------------------------------------
     # Training loop
-    losses = []
-    iters = 0
-
+    visual_transformer.train()
+    import time
+    start_time = time.time()
     print("Starting training loop")
     
-    #for epoch in range(num_epochs):
-        #for i, data in enumerate(dataloader, 0):
+    for epoch in range(num_epochs):
+        running_loss = 0.0
+        for index, (inputs, labels) in enumerate(train_loader):
+            inputs, labels = inputs.to(device), labels.to(device)
             
+            optimiser.zero_grad()
+            outputs = visual_transformer(inputs)
+            loss = criterion(outputs, labels)
 
+            loss.backward()
+            optimiser.step()
 
+            running_loss += loss.item()
+            if (index+1) % 2 == 0:
+                running_time = time.time()
+                print("Epoch [{}/{}], Loss: {:.5f}".format(epoch+1, 20, loss.item()))
+                print(f"Timer: {running_time - start_time}")
+                running_loss = 0.0
 
+    print(f"Finished Training")
 
 
 if __name__ == '__main__':
