@@ -7,7 +7,7 @@ of the ADNI brain data set, while having an accuracy of around 0.8 on the test s
 A Siamese neural network is a neural network that uses the
 same weights while working in tandem on two different
 input vectors to compute comparable output vectors[1].
-![img.png](img.png)
+![img.png](images_for_README%2Fimg.png)
 *Example for a siamese network*[2]
 
 Siamese neural network has different applications, one of the prevalent usage is matching the inputs to a vector space.
@@ -46,13 +46,14 @@ ReLU activation function, and pooling layers. Then followed by several fully con
 In `train.py`, the model is trained with the training dataset prepared in `dataset.py`. 
 
 Contrastive loss is used for the training:
-![img_1.png](img_1.png)
+![img_1.png](images_for_README%2Fimg_1.png)
 It takes as input a pair of sample that are either similar or dissimilar, and it brings similar samples closer and
 dissimilar samples far apart.
 
 Adam optimizer is used for the training
 
-![training_loss.png](..%2F..%2F..%2F..%2F..%2F..%2FDownloads%2Ftraining_loss.png)
+![training_loss.png](images_for_README%2Ftraining_loss.png)
+![loss_plot.png](images_for_README%2Floss_plot.png)
 The loss reduces over each epoch, indicating the success and evidence of the training.
 
 ### Prediction
