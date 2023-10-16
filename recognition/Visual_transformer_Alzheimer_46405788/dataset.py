@@ -10,6 +10,10 @@ def get_datasets(data_dir, transform=None):
     test_dataset = ImageFolder(root=data_dir + '/test', transform=transform)
     return train_dataset, test_dataset
     
+def get_data(data_dir, transform=None):
+    data = ImageFolder(root=data_dir, transform=transform)
+    return data
+
 class TripletImageFolder(Dataset):
     def __init__(self, root, transform=None):
         self.root = root
