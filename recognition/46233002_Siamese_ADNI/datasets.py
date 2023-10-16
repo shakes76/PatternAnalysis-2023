@@ -2,8 +2,7 @@ from torch.utils.data import Dataset
 import os
 import cv2
 import numpy as np
-
-
+import torch
 
 class adniDataset(Dataset):
 
@@ -43,3 +42,16 @@ class adniDataset(Dataset):
             image = self.transform(image)
 
         return image, label
+    
+class embeddingsDataset(Dataset):
+   def __init__(self, tensor_path, device):
+       self.tensors = os.listdir(tensor_path)
+       self.dir = tensor_path
+       self.device = device
+
+   def __len__(self):
+       return len(self.tensors)
+   
+   def __getitem__(self, idx):
+       data = torch.load(f"{self.dir}/{self.tensors[idx]}", map_location='cpu')
+       return data["embeddings"], data["labels"]
