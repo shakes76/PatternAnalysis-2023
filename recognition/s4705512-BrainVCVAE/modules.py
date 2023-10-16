@@ -421,7 +421,7 @@ def get_pixelcnn(
     input_size : tuple, optional
         Size of the input, by default (8, 8).
     num_embeddings : int, optional
-        Number of embedding vectors, by default 128.
+        Number of embedding vectors
 
     Returns
     -------
