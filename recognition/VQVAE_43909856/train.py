@@ -5,5 +5,5 @@ will be imported from dataset.py. The losses and metrics will be plotted during
 training.
 """
 
-from topic_43909856.dataset import *
-from topic_43909856.modules import *
+from VQVAE_43909856.dataset import *
+from VQVAE_43909856.modules import *
