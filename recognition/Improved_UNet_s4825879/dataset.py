@@ -4,19 +4,25 @@ import os
 
 # custom dataset
 class ISICDataset(Dataset):
-    def __init__(self, img_dir, truth_dir, transform):
+    def __init__(self, img_dir, transform, truth_dir=''):
         super(ISICDataset, self).__init__()
         self.img_dir = img_dir
-        self.image_files = os.listdir(img_dir)
+        self.image_files = sorted(os.listdir(img_dir))
 
         self.image_files.remove("ATTRIBUTION.txt")
         self.image_files.remove("LICENSE.txt")
 
-        self.truth_dir = truth_dir
-        self.truth_files = os.listdir(truth_dir)
+        self.truth_dir_state = False
+        if truth_dir != '':
+            self.truth_dir_state = True
+            
 
-        self.truth_files.remove("ATTRIBUTION.txt")
-        self.truth_files.remove("LICENSE.txt")
+        if self.truth_dir_state:
+            self.truth_dir = truth_dir
+            self.truth_files = sorted(os.listdir(truth_dir))
+
+            self.truth_files.remove("ATTRIBUTION.txt")
+            self.truth_files.remove("LICENSE.txt")
 
         self.transform = transform
 
@@ -28,11 +34,18 @@ class ISICDataset(Dataset):
     def __getitem__(self, idx):
         img_path = os.path.join(self.img_dir, self.image_files[idx])
         image = Image.open(img_path)
-        truth_path = os.path.join(self.truth_dir, self.truth_files[idx])
-        truth = Image.open(truth_path)
-
         if self.transform:
             image = self.transform(image)
-            truth = self.transform(truth)
 
-        return image, truth
+        returns = [image]
+
+        if self.truth_dir_state:
+            truth_path = os.path.join(self.truth_dir, self.truth_files[idx])
+            truth = Image.open(truth_path)
+            
+            if self.transform:
+                truth = self.transform(truth)
+
+            returns.append(truth)
+    
+        return returns
