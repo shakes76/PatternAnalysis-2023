@@ -265,13 +265,11 @@ class VectorQuantizer(nn.Module):
         e_latent_loss = F.mse_loss(quantized.detach(), inputs)
         q_latent_loss = F.mse_loss(quantized, inputs.detach())
         loss = q_latent_loss + self._commitment_cost * e_latent_loss
-        print(loss.type)
         
         quantized = inputs + (quantized - inputs).detach()
         avg_probs = torch.mean(encodings, dim=0)
         perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
-        print(perplexity.type)
-        print(codebook_indices.type)
+
         # convert quantized from BHWC -> BCHW
         return loss, quantized.permute(0, 3, 1, 2).contiguous(), perplexity, codebook_indices
 
