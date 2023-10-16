@@ -54,3 +54,112 @@ class VectorQuantizer(nn.Module):
         # convert quantized from BHWC -> BCHW
         return loss, quantized.permute(0, 3, 1, 2).contiguous(), encodings, encoding_indices
 
+
+class Residual(nn.Module):
+    def __init__(self, in_channels, num_hiddens, num_residual_hiddens):
+        super(Residual, self).__init__()
+        self._block = nn.Sequential(
+            nn.ReLU(True),
+            nn.Conv2d(in_channels=in_channels,
+                      out_channels=num_residual_hiddens,
+                      kernel_size=3, stride=1, padding=1, bias=False),
+            nn.ReLU(True),
+            nn.Conv2d(in_channels=num_residual_hiddens,
+                      out_channels=num_hiddens,
+                      kernel_size=1, stride=1, bias=False)
+        )
+
+    def forward(self, x):
+        return x + self._block(x)
+
+
+class Encoder(nn.Module):
+    def __init__(self, in_channels, num_hiddens, num_residual_hiddens):
+        super(Encoder, self).__init__()
+
+        self.conv1 = nn.Conv2d(in_channels=in_channels,
+                               out_channels=num_hiddens // 2,
+                               kernel_size=4,
+                               stride=2, padding=1)
+        self.relu1 = nn.ReLU()
+        self.conv2 = nn.Conv2d(in_channels=num_hiddens // 2,
+                               out_channels=num_hiddens,
+                               kernel_size=4,
+                               stride=2, padding=1)
+
+        self.residualblock1 = Residual(in_channels=num_hiddens,
+                                       num_hiddens=num_hiddens,
+                                       num_residual_hiddens=num_residual_hiddens)
+        self.residualblock2 = Residual(in_channels=num_hiddens,
+                                       num_hiddens=num_hiddens,
+                                       num_residual_hiddens=num_residual_hiddens)
+
+    def forward(self, inputs):
+        x = self.conv1(inputs)
+        x = self.relu1(x)
+        x = self.conv2(x)
+        x = self.residualblock1(x)
+        x = self.residualblock2(x)
+        return x
+
+
+class Decoder(nn.Module):
+    def __init__(self, in_channels, num_hiddens, num_residual_hiddens):
+        super(Decoder, self).__init__()
+
+        self.conv1 = nn.Conv2d(in_channels=in_channels,
+                                 out_channels=num_hiddens,
+                                 kernel_size=3,
+                                 stride=1, padding=1)
+
+        self.residualblock1 = Residual(in_channels=num_hiddens,
+                                       num_hiddens=num_hiddens,
+                                       num_residual_hiddens=num_residual_hiddens)
+        self.residualblock2 = Residual(in_channels=num_hiddens,
+                                       num_hiddens=num_hiddens,
+                                       num_residual_hiddens=num_residual_hiddens)
+        self.convT1 = nn.ConvTranspose2d(in_channels=num_hiddens,
+                                         out_channels=num_hiddens // 2,
+                                         kernel_size=4,
+                                         stride=2, padding=1)
+        self.relu1 = nn.ReLU()
+        self.convT2 = nn.ConvTranspose2d(in_channels=num_hiddens // 2,
+                                         out_channels=1,
+                                         kernel_size=4,
+                                         stride=2, padding=1)
+
+    def forward(self, inputs):
+        x = self.conv1(inputs)
+        x = self.residualblock1(x)
+        x = self.residualblock2(x)
+        x = self.convT1(x)
+        x = self.relu1(x)
+        x = self.convT2(x)
+        return x
+
+
+class VQVAE(nn.Module):
+    def __init__(self, num_channels, num_hiddens, num_residual_hiddens,
+                 num_embeddings, embedding_dim, commitment_cost):
+        super(VQVAE, self).__init__()
+        self.encoder = Encoder(num_channels,
+                               num_hiddens,
+                               num_residual_hiddens)
+        self.pre_vq_conv = nn.Conv2d(in_channels=num_hiddens,
+                                     out_channels=embedding_dim,
+                                     kernel_size=1,
+                                     stride=1)
+        self.vqvae = VectorQuantizer(num_embeddings, embedding_dim,
+                                     commitment_cost)
+
+        self.decoder = Decoder(embedding_dim,
+                               num_hiddens,
+                               num_residual_hiddens)
+
+    def forward(self, inputs):
+        x = self.encoder(inputs)
+        x = self.pre_vq_conv(x)
+        loss, quantized, _, _ = self.vqvae(x)
+        x_recon = self.decoder(quantized)
+
+        return loss, x_recon
