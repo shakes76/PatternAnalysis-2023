@@ -2,3 +2,10 @@ data/
 
 out.txt
 err.txt
+
+runs/
+wandb
+
+.DS_Store
+.venv
+.env
