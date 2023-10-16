@@ -127,3 +127,60 @@ pixelcnn_history = pixel_cnn.fit(
 # Save the PixelCNN model
 pixel_cnn.save_weights(models_directory + pixelcnn_weights_filename)
 
+# Plot the training loss of the VQ-VAE
+loss = vqvae_history.history["loss"]
+r_loss = vqvae_history.history["reconstruction_loss"]
+v_loss = vqvae_history.history["vqvae_loss"]
+
+plt.figure(figsize=(8, 12))
+plt.subplot(3, 1, 1)
+plt.plot(r_loss)
+plt.ylabel('Reconstruction Loss')
+plt.title('Reconstruction Loss')
+plt.xlabel('Epoch')
+
+plt.subplot(3, 1, 2)
+plt.plot(v_loss)
+plt.ylabel('VQ-VAE Loss')
+plt.title('VQ-VAE Loss')
+plt.xlabel('Epoch')
+
+plt.subplot(3, 1, 3)
+plt.plot(loss)
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+plt.title('Total Loss')
+
+plt.tight_layout()
+# Save the figure instead of displaying it
+plt.savefig('VQ-VAE_trainingloss.png')
+plt.close()
+
+# Plot the loss and accuracy of the PixelCNN
+training_loss = pixelcnn_history.history["loss"]
+training_accuracy = pixelcnn_history.history["accuracy"]
+val_loss = pixelcnn_history.history["val_loss"]
+val_accuracy = pixelcnn_history.history["val_accuracy"]
+
+plt.figure(figsize=(8, 12))
+plt.subplot(2, 1, 1)
+plt.title("PixelCNN Loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.plot(training_loss)
+plt.plot(val_loss)
+plt.legend(["Training Loss", "Validation Loss"])
+
+plt.subplot(2, 1, 2)
+plt.title("PixelCNN Accuracy")
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy (%)")
+plt.plot(training_accuracy)
+plt.plot(val_accuracy)
+plt.ylim([0,1.0])
+plt.legend(["Training Accuracy", "Validation Accuracy"])
+
+plt.tight_layout()
+
+plt.savefig('pixelcnn_loss_accuracy_plot.png')
+plt.close()
