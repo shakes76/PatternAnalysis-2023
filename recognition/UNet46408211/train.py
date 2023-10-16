@@ -11,28 +11,36 @@ from modules import UNet
 from dataset import ISICDataset
 import time
 from utils import *
+from global_params import *
 
 #----------------------------------------------------------------------
 # set the device to cuda if available
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if not torch.cuda.is_available():
-    print('No GPU detected. Using CPU instead.')
-print('Using device:', device)
+# if not torch.cuda.is_available():
+#     print('No GPU detected. Using CPU instead.')
+# print('Using device:', device)
 #----------------------------------------------------------------------
 
-# Hyperparameters
-LEARNING_RATE = 1e-4
-BATCH_SIZE = 16
-NUM_EPOCHS = 1
-NUM_WORKERS = 2
-IMAGE_HEIGHT = 256
-IMAGE_WIDTH = 512
-PIN_MEMORY = True
+# # Hyperparameters
+# LEARNING_RATE = 1e-4
+# BATCH_SIZE = 4
+# NUM_EPOCHS = 10
+# NUM_WORKERS = 8
+# IMAGE_HEIGHT = 512
+# IMAGE_WIDTH = 512
+# PIN_MEMORY = True
+# LOAD_MODEL = False
+# TRAIN_IMG_DIR = 'data/ISIC_2017/Training/ISIC-2017_Training_Data'
+# TRAIN_MASK_DIR = 'data/ISIC_2017/Training/ISIC-2017_Training_Part1_GroundTruth'
+
+# # TEST_IMG_DIR = 'data/ISIC_2017/Testing/ISIC-2017_Test_v2_Data'
+# # TEST_MASK_DIR = 'data/ISIC_2017/Testing/ISIC-2017_Test_v2_Part1_GroundTruth'
+
+# VAL_IMG_DIR = 'data/ISIC_2017/Validation/ISIC-2017_Validation_Data'
+# VAL_MASK_DIR = 'data/ISIC_2017/Validation/ISIC-2017_Validation_Part1_GroundTruth'
+
 LOAD_MODEL = False
-TRAIN_IMG_DIR = 'data/ISIC_2017/Training/ISIC-2017_Training_Data'
-TRAIN_MASK_DIR = 'data/ISIC_2017/Training/ISIC-2017_Training_Part1_GroundTruth'
-TEST_IMG_DIR = 'data/ISIC_2017/Testing/ISIC-2017_Test_v2_Data'
-TEST_MASK_DIR = 'data/ISIC_2017/Testing/ISIC-2017_Test_v2_Part1_GroundTruth'
+SAVE_EPOCH_DATA = True
 
 def train_epoch(loader, model, optimizer, loss_fn, scaler, losses):
     loop = tqdm(loader)
@@ -76,14 +84,22 @@ def main():
         A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
         ToTensorV2()
     ])
+    validation_transform = A.Compose([
+        A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
+        A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
+        ToTensorV2()
+    ])
     
     
     # create the dataloaders 
     train_set = ISICDataset(TRAIN_IMG_DIR, TRAIN_MASK_DIR, transform=train_transform)
     train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=NUM_WORKERS)
     
-    test_set = ISICDataset(TEST_IMG_DIR, TEST_MASK_DIR, transform=test_transform)
-    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
+    # test_set = ISICDataset(TEST_IMG_DIR, TEST_MASK_DIR, transform=test_transform)
+    # test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
+    
+    validation_set = ISICDataset(VAL_IMG_DIR, VAL_MASK_DIR, transform=validation_transform)
+    val_loader = DataLoader(validation_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
     
     
     
@@ -123,15 +139,25 @@ def main():
         # save_checkpoint(checkpoint)
         
         print('>>> Calculating Epoch Dice Score')
-        dice_score = calc_dice_score(model, test_loader, device=device)
+        dice_score = calc_dice_score(model, val_loader, device=device)
         dice_scores.append(dice_score)
         print(f'Dice score: {dice_score}')
-        
-        # Save some predictions to a folder for visualization
-        # FOLDER NAME SHOULD BE BASED ON THE CURRENT EPOCH
-        
+            
         # Print some feedback after each epoch
         print_progress(start_time, epoch, NUM_EPOCHS)
+        
+        if SAVE_EPOCH_DATA:
+            # Save some predictions to a folder for visualization
+            os.makedirs(f'epoch_data', exist_ok=True)
+            os.makedirs(f'epoch_data/epoch_{epoch}', exist_ok=True)
+            os.makedirs(f'epoch_data/epoch_{epoch}/checkpoints', exist_ok=True)
+            os.makedirs(f'epoch_data/epoch_{epoch}/images', exist_ok=True)
+            save_predictions_as_imgs(val_loader, model, 10, folder=f'epoch_data/epoch_{epoch}/images/', device=device)
+            checkpoint = {
+                'state_dict': model.state_dict(),
+                'optimizer': optimizer.state_dict()
+            }
+            save_checkpoint(checkpoint, filename=f'epoch_data/epoch_{epoch}/checkpoints/checkpoint.pth.tar')
         
     # Save a checkpoint after training is complete
     checkpoint = {
@@ -146,6 +172,16 @@ def main():
     plt.xlabel('Batch #')
     plt.ylabel('Loss')
     plt.grid(True)
+    plt.savefig('save_data/losses.png')
+    plt.show()
+    
+    # plot dice score vs epoch
+    plt.figure(figsize=(20, 10))
+    plt.plot(dice_scores, label='Dice Score')
+    plt.xlabel('Epoch #')
+    plt.ylabel('Dice Score')
+    plt.grid(True)
+    plt.savefig('save_data/dice_scores.png')
     plt.show()
 
 if __name__ == '__main__':

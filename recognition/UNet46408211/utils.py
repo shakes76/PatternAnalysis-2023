@@ -6,14 +6,15 @@ import matplotlib.pyplot as plt
 from dataset import ISICDataset
 from torch.utils.data import DataLoader
 import torchvision
+import random
 import os
 import time
 from tqdm import tqdm
 
-def save_checkpoint(state, filename='checkpoint.pth.tar'):
+def save_checkpoint(state, filename='checkpoints/checkpoint.pth.tar'):
     print('>>> Saving checkpoint')
-    os.makedirs('checkpoints', exist_ok=True)
-    torch.save(state, 'checkpoints/'+filename)
+    # os.makedirs('checkpoints', exist_ok=True)
+    torch.save(state, filename)
     print('>>> Checkpoint saved')
 
 def load_checkpoint(checkpoint, model, optimizer=None):
@@ -43,20 +44,24 @@ def dice_score(preds, targets, smooth=1e-6):
     union = preds.sum() + targets.sum()
     return (intersection + smooth) / (union + smooth)
 
-def calc_dice_score(model, dataloader, device='cuda'):
+def calc_dice_score(model, dataloader, device='cuda', verbose=False):
     
     model.eval()
-    
+    print('>>> Calculating Dice Score')
     with torch.no_grad():
         dice_score = 0
-        for x, y in dataloader:
+        loop = tqdm(dataloader) if verbose else dataloader
+        for _, (x, y) in enumerate(dataloader):
             x = x.to(device)
             y = y.to(device)
             preds = model(x)
-            preds = (preds > 0.5).float()
-            dice_score += (2 * (preds * y).sum()) / ((preds + y).sum() + 1e-8)
+            preds = (preds > 0.5).float() # convert to binary mask
+            dice_score += (2 * (preds * y).sum()) / ((preds + y).sum() + 1e-8) # add 1e-8 to avoid division by 0
     model.train()
-    return dice_score / len(dataloader)
+    dice_score = dice_score / len(dataloader)
+    dice_score = dice_score.item()
+    dice_score = np.round(dice_score, 4)
+    return dice_score
 
 def save_predictions_as_imgs(loader, model, num, folder='saved_images/', device='cuda', verbose=True):
     """
@@ -71,8 +76,10 @@ def save_predictions_as_imgs(loader, model, num, folder='saved_images/', device=
     
     model.eval()
     print('>>> Generating and saving predictions') if verbose else None
+    loop = tqdm(enumerate(loader), total=num, leave=False) if verbose else enumerate(loader)
     with torch.no_grad():
-        for idx, (x, y) in enumerate(loader):
+        # for idx, (x, y) in enumerate(loader):
+        for idx, (x, y) in loop:
             x = x.to(device)
             y = y.to(device) # add 1 channel to mask
             preds = torch.sigmoid(model(x))
@@ -99,8 +106,7 @@ def plot_prediction(ind=0, folder='saved_images'):
     origs = os.listdir(orig_path)
     
     if ind >= len(preds):
-        print('Index out of range')
-        return
+        raise IndexError(f'Index {ind} out of range. There are {len(preds)} predictions.')
     
     # plot only one image from each folder
     pred = Image.open(preds_path + preds[ind])
@@ -117,7 +123,48 @@ def plot_prediction(ind=0, folder='saved_images'):
     axs[2].imshow(pred)
     axs[2].set_title('Prediction')
     axs[2].axis('off')
-    plt.show()    
+    plt.show()
+
+def plot_samples(num, folder='saved_images', include_image=True, shuffle=True, title='Samples'):
+    """
+    Assumes the folder contains the following subfolders:
+    preds, masks, orig.
+    Plots num predictions side by side with the masks and original images if include_image=True.
+    Similar to plot_prediction but for num images.
+    """
+    preds_path = f'{folder}/preds/'
+    masks_path = f'{folder}/masks/'
+    orig_path = f'{folder}/orig/'
+    
+    preds = os.listdir(preds_path)
+    masks = os.listdir(masks_path)
+    origs = os.listdir(orig_path)
+    
+    if num > len(preds):
+        raise ValueError(f'num = {num} out of range. There are {len(preds)} predictions.')
+    
+    if shuffle:
+        indices = random.sample(range(len(preds)), num)
+    else:
+        indices = range(num)
+    
+    fig, axs = plt.subplots(num, 3, figsize=(20, 10*num))
+    for i, ind in enumerate(indices):
+        pred = Image.open(preds_path + preds[ind])
+        mask = Image.open(masks_path + masks[ind])
+        orig = Image.open(orig_path + origs[ind])
+        if include_image:
+            axs[i, 0].imshow(orig)
+            axs[i, 0].set_title('Original Image')
+            axs[i, 0].axis('off')
+        axs[i, 1].imshow(mask)
+        axs[i, 1].set_title('Mask')
+        axs[i, 1].axis('off')
+        axs[i, 2].imshow(pred)
+        axs[i, 2].set_title('Prediction')
+        axs[i, 2].axis('off')
+    fig.suptitle(title)
+    plt.show()
 
 def plot_samples_mask_overlay(dataset, n=12):
     """
@@ -139,6 +186,9 @@ def print_progress(start_time, epoch, num_epochs):
     elapsed_time = time.time() - start_time
     average_time_per_epoch = elapsed_time / (epoch + 1)
     remaining_time = average_time_per_epoch * (num_epochs - epoch - 1)
+    # convert elapsed time to days, hours and minutes
+    elapsed_time = time.strftime("%H:%M:%S", time.gmtime(elapsed_time))
+    
     # convert to days, hours, minutes, seconds
     days = remaining_time // (24 * 3600)
     remaining_time = remaining_time % (24 * 3600)
@@ -146,10 +196,9 @@ def print_progress(start_time, epoch, num_epochs):
     remaining_time %= 3600
     minutes = remaining_time // 60
     remaining_time %= 60
-    seconds = remaining_time
-    print(f'Epoch [{epoch+1}/{num_epochs}] completed. Time elapsed: {elapsed_time:.2f}\
-        seconds. Time remaining: {days:.0f} days, {hours:.0f} hours, \
-            {minutes:.0f} minutes, {seconds:.2f} seconds')
+    print(f"""Epoch [{epoch+1}/{num_epochs}] completed. Time elapsed: {elapsed_time}. 
+          seconds. Time remaining: {days:.0f} days, {hours:.0f} hours, 
+          {minutes:.0f} minutes.""")
 
 
 # # test plot_samples and ISICDataset

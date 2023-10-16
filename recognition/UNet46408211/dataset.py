@@ -10,6 +10,7 @@ import PIL.Image as Image
 import PIL
 from torch.utils.data import Dataset, DataLoader
 import albumentations as A
+from albumentations.pytorch import ToTensorV2
 
 class ISICDataset(Dataset):
     
@@ -38,3 +39,4 @@ class ISICDataset(Dataset):
             mask = transformed['mask']
         
         return image, mask
+
