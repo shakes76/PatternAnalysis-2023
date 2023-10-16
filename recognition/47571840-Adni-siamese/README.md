@@ -1,6 +1,6 @@
 # Classifier based on Siamese Network to Classify Alzheimer's Disease on ADNI Dataset
 
-This repository implements a Siamese Network that will be trained to generate embeddings of images of the ADNI dataset. A classifier (fully connected layers) is added at the end of a trained Siamese Network to classify Alzhemier's Disease on the dataset.
+This repository implements a Siamese Network that will be trained to generate embeddings of images of the ADNI dataset. A classifier (fully connected layers) is added at the end of the trained Siamese Network to classify Alzheimer's  Disease on the dataset.
 
 ## General Overview of the Siamese Network
 A Siamese Neural Network or twin neural network is an architecture that is made to differentiate between two inputs. It consists of two sub-networks that share the same weights and parameters. Each sub-network accepts a single input, or in this case image, and produce a feature vector or embeddings of the image. The euclidiean distance between the embeddings of both sub-networks are then calculated to determine the similarity between the inputs. The goal is to update the weights of the sub-networks so that the distance between inputs of the same class is small and the distance between inputs of different classes is large.
@@ -44,7 +44,7 @@ To train the siamese network, the training data and validation data need to be g
 
 To train the classifier, training and validation data are loaded using the DataLoader library, without organizing them into pairs.
 
-The training data goes through these preprocessing steps: 
+The training data goes through these pre-processing steps: 
 1. Convert images into grayscale
 2. Do data augmentation by RandomHorizontalFlip
 3. Convert images to tensors 

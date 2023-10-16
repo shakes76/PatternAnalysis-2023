@@ -24,6 +24,7 @@ ROOT_DIR_TEST = "/home/groups/comp3710/ADNI/AD_NC/test"  # Modify Path if needed
 test_loader = get_classification_dataloader(ROOT_DIR_TEST, batch_size=32,split_flag = False)
 
 #----DEFINE MODEL PATHS----
+# Modify paths if needed
 siamese_weights = 'siamese_50.pth'
 classifier_weights = "best_classifier_model_50_30_3.pth"
 
