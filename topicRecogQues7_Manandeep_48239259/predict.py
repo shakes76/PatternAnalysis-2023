@@ -55,3 +55,11 @@ siamese_dataset = CustomDataset(folder_dataset_test,
 test_dataloader = DataLoader(siamese_dataset, num_workers=6, batch_size=1, shuffle=True)
 dataiter = iter(test_dataloader)
 x0, _, _ = next(dataiter)
+for i in range(10):
+    _, x1, label2 = next(dataiter)
+    print(label2)
+    concatenated = torch.cat((x0, x1), 0)
+
+    output1, output2 = trained_siamese_net(Variable(x0), Variable(x1))
+    euclidean_distance = F.pairwise_distance(output1, output2)
+    imshow_grid(torchvision.utils.make_grid(concatenated),'Dissimilarity: {:.2f}'.format(euclidean_distance.item()))
