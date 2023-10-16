@@ -3,6 +3,16 @@ from dataset import *
 import torch
 import matplotlib.pyplot as plt
 
+"""
+Creates a prediction of the first 3 images using the saved model.
+If train.py has not been run before, or you do not have a saved model, please
+run train.py first.
+
+Attributes:
+    - device: "cuda" if nvidia gpu is present, else "cpu". Warning will be 
+               printed if gpu is not present.
+    - model:   Saved model from model path in utils.py.
+"""
 # -------
 # Initialise device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -20,12 +30,13 @@ column_labels = ["Original Image", "Downsampled Image", "Model Prediction"]
 
 fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(7, 7))
 
+# Set titles for graph
 for ax, col in zip(axes[0], column_labels):
     ax.set_title(col)
 
 print("> Generating predictions for first 3 images")
 
-#turn off gradient computation
+# Turn off gradient computation
 with torch.no_grad():
     for i, (images, _) in enumerate(train_loader):
 

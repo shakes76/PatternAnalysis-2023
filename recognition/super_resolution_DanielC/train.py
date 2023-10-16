@@ -1,9 +1,26 @@
+"""
+Reference: https://keras.io/examples/vision/super_resolution_sub_pixel/
+"""
+
 from modules import *
 from utils import *
 from dataset import *
 import torch
 import time
 import matplotlib.pyplot as plt
+
+"""
+Train the super-resolution network using the ADNI traning data.
+
+Attributes:
+    - device:       "cuda" if nvidia gpu is present, else "cpu". 
+                    Warning will be printed if gpu is not present.
+    - model:        Super-resolution network as defined in modules.py.
+    - train_loader: DataLoader containing ADNI training data.
+    - test_loader:  DataLoader containing ADNI testing data.
+    - criterion:    Mean Squared Error loss.
+    - Optimizer:    Adam optimizer with learning rate of 0.001.
+"""
 
 # -------
 # Initialise device
@@ -19,7 +36,8 @@ train_loader = generate_train_loader()
 test_loader = generate_test_loader()
 
 # model info
-print("Model No. of Parameters:", sum([param.nelement() for param in model.parameters()]))
+print("Model No. of Parameters:", sum([param.nelement() 
+                                       for param in model.parameters()]))
 print(model)
 
 # -------
@@ -60,12 +78,14 @@ for epoch in range(num_epochs):
             iterations.append(iteration)
             
             print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
-                    .format(epoch+1, num_epochs, i+1, total_step, loss.item()), flush=True)
+                    .format(epoch+1, num_epochs, i+1, 
+                            total_step, loss.item()), flush=True)
             
 
 end = time.time()
 elapsed = end - start
-print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total") 
+print("Training took " + str(elapsed) + " secs or " 
+      + str(elapsed/60) + " mins in total") 
 
 # New canvas for graph
 plt.figure()

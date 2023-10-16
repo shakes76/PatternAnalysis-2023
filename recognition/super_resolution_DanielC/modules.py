@@ -13,11 +13,17 @@ class SuperResolution(nn.Module):
 
         #efficient sub-pixel layer
         self.pixel_shuffle = nn.PixelShuffle(upscale_factor)
+
+        # self.pixel_shuffle1 = nn.PixelShuffle(2)
+        # self.pixel_shuffle2 = nn.PixelShuffle(2)
         
     def forward(self, x):
         x = F.leaky_relu(self.conv1(x))
         x = F.leaky_relu(self.conv2(x))
         x = F.leaky_relu(self.conv3(x))
         x = F.pixel_shuffle(self.conv4(x), upscale_factor=4)
+
+        # x = self.pixel_shuffle1(self.conv4(x))
+        # x = self.pixel_shuffle2(x)
         return x
 
