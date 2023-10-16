@@ -1,15 +1,13 @@
 import numpy as np
-import matplotlib.pyplot as plt
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torchvision
 from torchmetrics.functional.image import structural_similarity_index_measure as ssim
 from dataset import OASISDataLoader
 import modules
 
 VQVAE_PATH = "./vqvae_model.txt"
+TRAIN_OUTPUT_PATH = "./train_output.out"
 save_model = True # Change depending if you want to save model to file
 
 # Torch configuration
@@ -21,7 +19,7 @@ print(device)
 print("Name: ", torch.cuda.get_device_name(0))
 
 # Hyperparameters
-num_epochs = 1  # Change to desired epochs
+num_epochs = 2  # Change to desired epochs
 
 batch_size = 32
 learning_rate = 0.0002
@@ -53,12 +51,16 @@ model = modules.VQVAE(num_channels, num_hiddens, num_residual_hiddens, num_embed
 optimizer = optim.Adam(model.parameters(), lr=learning_rate, amsgrad=False)
 
 # Training loop
+epoch_train_loss = []
+epoch_validation_loss = []
+epoch_ssim = []
 
 train_error = []
 for epoch in range(num_epochs):
     print(f"Epoch: {epoch}")
     model.train()
     train_loss = 0
+
     for i, data in enumerate(train_loader):
         data = data.to(device)
         optimizer.zero_grad()
@@ -74,6 +76,7 @@ for epoch in range(num_epochs):
         train_error.append(recon_error.item())
 
     train_loss = np.mean(train_error[-300:])
+    epoch_train_loss.append(train_loss)
     print('training_loss: %.3f' % train_loss)
 
     # Evaluate on the validation dataset
@@ -95,9 +98,20 @@ for epoch in range(num_epochs):
     average_val_loss = val_loss / len(val_loader)
     average_ssim = np.mean(ssim_val)
     print('validation_loss: %.3f' % average_val_loss)
+    epoch_validation_loss.append(average_val_loss.item())
     print('average_ssim: %.3f' % average_ssim)
+    epoch_ssim.append(average_ssim)
     print()
 
 # Save model
 if save_model:
     torch.save(model, VQVAE_PATH)
+
+# Save training data
+with open(TRAIN_OUTPUT_PATH, 'w') as file:
+    for i in range(num_epochs):
+        file.write(f"Epoch: {i}\n")
+        file.write(f"training_loss: {str(epoch_train_loss[i])}\n")
+        file.write(f"validation_loss: {str(epoch_validation_loss[i])}\n")
+        file.write(f"average_ssim: {str(epoch_ssim[i])}\n")
+        file.write("\n")
