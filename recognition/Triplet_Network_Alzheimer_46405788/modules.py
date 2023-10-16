@@ -166,16 +166,13 @@ class TripletNet(nn.Module):
     """
     def __init__(self):
         super(TripletNet, self).__init__()
-        # Define the convolutional layers and fully connected layers for embeddings
         self.Resnet = ResNet(ResidualBlock, [2,2,2,2], 128)
 
     def forward_one(self, x):
-        # Forward pass through the convolutional layers
         x = self.Resnet(x)
         return x
 
     def forward(self, anchor, positive, negative):
-        # Forward pass for both input1 and input2
         output1 = self.forward_one(anchor)
         output2 = self.forward_one(positive)
         output3 = self.forward_one(negative)
@@ -184,7 +181,6 @@ class TripletNet(nn.Module):
 class TripletNetClassifier(nn.Module):
     def __init__(self):
         super(TripletNetClassifier, self).__init__()
-        # Define the convolutional layers and fully connected layers for embeddings
         self.classifier = nn.Sequential(
             nn.Linear(128, 256),
             nn.ReLU(),

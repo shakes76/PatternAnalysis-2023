@@ -65,7 +65,7 @@ loss_epoch_train = {}
 loss_epoch_val = {}
 print('start Training: ')
 for run, optimiser in enumerate(optimisers):
-    for epoch in range(num_epochs[run]):  # loop over the dataset multiple times
+    for epoch in range(num_epochs[run]):
         for phase in ['train', 'val']:
             if phase == 'train':
                 model.train()
@@ -85,7 +85,7 @@ for run, optimiser in enumerate(optimisers):
                 optimiser.zero_grad()
 
                 # Forward pass
-                output1, output2, output3 = model(anchor, positive, negative)  # Pass two images as inputs
+                output1, output2, output3 = model(anchor, positive, negative)
                 loss = criterion(output1, output2, output3)
                 
                 if phase == 'train':
