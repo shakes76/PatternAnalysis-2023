@@ -8,7 +8,7 @@ from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 
 
-class ADNITrainDataset(Dataset):
+class ADNITrainSiameseDataset(Dataset):
     def __init__(self, data_dir):
         self.data_dir = data_dir
         self.normal_dir = os.path.join(data_dir, '/NC/')
@@ -63,3 +63,41 @@ class ADNITrainDataset(Dataset):
             negative = self.transform(negative)
 
         return anchor, positive, negative
+
+
+class ADNITrainClassifierDataset(Dataset):
+    def __init__(self, data_dir):
+        self.data_dir = data_dir
+        self.normal_dir = os.path.join(data_dir, '/NC/')
+        self.ad_dir = os.path.join(data_dir, '/AD/')
+        self.normal_images_file = [os.path.join(self.data_dir, path) for path in os.listdir(self.normal_dir)]
+        self.ad_images_file = [os.path.join(self.data_dir, path) for path in os.listdir(self.ad_dir)]
+        self.normal_image = torch.tensor([Image.open(img_path) for img_path in self.normal_images_file])
+        self.ad_image = torch.tensor([Image.open(img_path) for img_path in self.ad_images_file])
+
+        self.transform = self.compute_mean_std()
+
+    def compute_mean_std(self):
+        device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        total_images = torch.Tensor(self.ad_image + self.normal_image)
+        total_images.to(device)
+        mean = total_images.mean(2).sum(0)
+        std = total_images.std(2).sum(0)
+        transform = transforms.Compose([
+            transforms.ToTensor(),
+            transforms.Normalize(mean=mean, std=std)
+        ])
+        del total_images
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+        gc.collect()
+        return transform
+
+    def __len__(self):
+        return len(self.normal_image) + len(self.ad_image)
+
+    def __getitem__(self, idx):
+        if idx < len(self.normal_image):
+            return self.normal_image[idx]
+        else:
+            return self.ad_image[idx - len(self.normal_image)]
