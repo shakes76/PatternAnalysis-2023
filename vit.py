@@ -71,6 +71,23 @@ class PatchEmbedding(nn.Module):
         return self.main(input).permute(0, 2, 1)  # Reorder the dimensions
 
 
+class ViT(nn.Module):
+    """Creates a vision transformer model."""
+    def __init__(self, ngpu):
+        super(ViT, self).__init__()
+        self.ngpu = ngpu
+
+        self.patch_embedding = PatchEmbedding(workers)
+        self.prepend_embed_token = nn.Parameter(torch.randn(1, 1, embed_dim), requires_grad=True)
+        self.position_embed_token = nn.Parameter(torch.randn(1, num_patches + 1, embed_dim), requires_grad=True)
+    
+    def forward(self, input):
+        prepend_embed_token_expanded = self.prepend_embed_token.expand(batch_size, -1, -1)
+
+        input = self.patch_embedding(input)
+        input = torch.cat((prepend_embed_token_expanded, input), dim=1)
+        input = input + self.position_embed_token
+
 
 def imshow(img):
     img = img / 2 + 0.5  # Unnormalize (assuming your normalization was (0.5, 0.5, 0.5))
@@ -145,7 +162,7 @@ def test():
     print(f"Final shape: {patch_and_position_embedding.shape}")   
 
 def main():
-    test()
+    test
 
 
 if __name__ == '__main__':
