@@ -1,17 +1,14 @@
-from modules import ResNetEmbedder
+from modules import SiameseNetwork
 from dataset import * 
 
 import torch
-import torch.nn as nn 
 import time
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pytorch_metric_learning import miners, losses, distances
+from pytorch_metric_learning import miners, losses
 from pytorch_metric_learning.distances import CosineSimilarity
-from pytorch_metric_learning.regularizers import LpRegularizer
 from pytorch_metric_learning.reducers import ThresholdReducer
-from pytorch_metric_learning.utils.accuracy_calculator import AccuracyCalculator
 import torch.nn.functional as F
 
 # Device Configuration
@@ -22,22 +19,22 @@ if not torch.cuda.is_available():
 #########################    
 #   Hyper Parameters:   #
 #########################
+LOG = True
+VISUALIZE = False
 
 # Training Parameters
-NUM_EPOCHS = 35 # 200
-LEARNING_RATE = 0.1 # 0.00005
+NUM_EPOCHS = 35 #  35 # 200
+LEARNING_RATE = 0.1
 WEIGHT_DECAY = 1e-5
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 
 # Model Parameters
-MODEL_NAME = "ADNI-SiameseNetwork-resnet"
+MODEL_NAME = "ADNI-SiameseNetwork-sigmoid"
+print(MODEL_NAME)
 DATASET_DIR = "recognition/Siamese-ADNI-46420763/data/AD_NC"
 # DATASET_DIR = "/home/groups/comp3710/ADNI/AD_NC"
 LOAD_MODEL = False
 MODEL_DIR = None
-
-LOG = True
-VISUALIZE = False
 
 def main():
     ######################    
@@ -48,23 +45,21 @@ def main():
     #########################   
     #   Initialize Model:   #
     #########################
-    model = ResNetEmbedder()
+    model = SiameseNetwork()
 
     model = model.to(device)  
     if LOAD_MODEL:
         model.load_state_dict(torch.load(MODEL_DIR, map_location=device))
 
     # Criterion and Optimizer:
-    # distance = CosineSimilarity()
-    distance = distances.LpDistance()
-    criterion = losses.TripletMarginLoss(distance = distance, reducer = ThresholdReducer(high=0.3))
-    # miner = miners.MultiSimilarityMiner()
-    miner = miners.BatchHardMiner()
+    distance = CosineSimilarity()
+    reducer = ThresholdReducer(high=0.3)
+    criterion = losses.TripletMarginLoss(distance = distance, reducer = reducer)
+    miner = miners.MultiSimilarityMiner()
     optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, momentum=0.9, weight_decay=WEIGHT_DECAY)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=LEARNING_RATE, steps_per_epoch=len(train_dataloader), epochs=NUM_EPOCHS)
     
     # Logging
-    epoch_train_acc = []
     epoch_valid_acc = []
     epoch_avg_train_loss = []
     epoch_avg_valid_loss = []
@@ -90,44 +85,26 @@ def main():
             # Finds pairs which are hard to distinguish - the negative sample is sufficiently closs to the anchor
             hard_pairs = miner(embeddings, labels) 
             loss = criterion(embeddings, labels, hard_pairs)
-
-            # Calculate Accuracy:
-            positive_indices = hard_pairs[1]
-            negative_indices = hard_pairs[2]
-            
-            pos_sim = F.pairwise_distance(embeddings, embeddings[positive_indices], keepdim = True)
-            neg_sim = F.pairwise_distance(embeddings, embeddings[negative_indices], keepdim = True)
-            
-            # Find class with most similarity
-            sim = torch.stack([pos_sim, neg_sim], dim = 1)
-            pred = torch.Tensor.argmin(sim, dim = 1)
-
-            correct = (pred == 0).sum().item()
                 
             # Backward and optimize
             loss.backward()
             optimizer.step()     
             scheduler.step()
             
-            total_correct += correct
             total_loss += loss.item()
             
             # Print batch accuracy and loss
             if (i % 100) == 0:
-                print("Epoch [{}/{}], Step [{}/{}]  loss: {:.5f} train acc: {:.2f}".format(
+                print("Epoch [{}/{}], Step [{}/{}]  loss: {:.5f}".format(
                     epoch+1, NUM_EPOCHS, 
                     i+1, total_step,
-                    loss.item(),
-                    correct/len(labels) * 100))
+                    loss.item()))
                 
-        epoch_train_acc.append(total_correct/len(train_dataloader.dataset))
         epoch_avg_train_loss.append(total_loss/len(train_dataloader))
             
         #################  
         #   Validate:   #
         #################
-        model.eval()
-        
         # Get Class Queries
         AD_query, NC_query = get_class_queries(train_dataloader.dataset)
         AD_query_embedding = model(AD_query)
@@ -189,8 +166,9 @@ def main():
         images = images.to(device)
         labels = labels.to(device)
         
-        # Calculate Loss
         embeddings = model(images)
+        
+        # Calculate Loss
         hard_pairs = miner(embeddings, labels)
         loss = criterion(embeddings, labels, hard_pairs) 
         total_loss += loss.item()
@@ -213,18 +191,28 @@ def main():
     print("Test loss: {:.5f}, Test accuracy: {:.2f}%".format(total_loss/len(test_dataloader), total_correct/len(test_dataloader.dataset) * 100))
     
     if VISUALIZE:
-        visualize(epoch_train_acc, epoch_valid_acc, epoch_avg_train_loss, epoch_avg_valid_loss)
+        visualize(epoch_valid_acc, epoch_avg_train_loss, epoch_avg_valid_loss)
+        
+    if LOG:
+        np.savetxt('epoch_train_loss.csv', epoch_avg_train_loss, delimiter=',')
+        np.savetxt('epoch_valid_loss.csv', epoch_avg_valid_loss, delimiter=',')
+        np.savetxt('epoch_valid_acc.csv', epoch_valid_acc, delimiter=',')
     
-def visualize(epoch_train_acc, epoch_valid_acc, epoch_avg_train_loss, epoch_avg_valid_loss):
-    plt.plot(range(len(epoch_train_acc)), epoch_train_acc, label = "Training Accuracy")
-    plt.plot(range(len(epoch_valid_acc)), epoch_valid_acc, label = "Validation Accuracy")
-    plt.plot(range(len(epoch_avg_train_loss)), epoch_avg_train_loss, label = "Training Loss")
-    plt.plot(range(len(epoch_avg_valid_loss)), epoch_avg_valid_loss, label = "Validation Loss")
+def visualize(epoch_valid_acc, epoch_train_loss, epoch_valid_loss):
+    plt.plot(range(len(epoch_train_loss)), epoch_train_loss, label = "Training Loss")
+    plt.plot(range(len(epoch_valid_loss)), epoch_valid_loss, label = "Validation Loss")
     plt.grid(True)
-    plt.ylabel("Accuracy/Loss")
+    plt.ylabel("Loss")
     plt.xlabel("Epoch #")
-    plt.title("Training Loss and Accuracy")
+    plt.title("Training Loss")
     plt.legend()
+    plt.show()
+    
+    plt.plot(range(len(epoch_valid_acc)), epoch_valid_acc, label = "Validation Accuracy")
+    plt.grid(True)
+    plt.ylabel("Accuracy")
+    plt.xlabel("Epoch #")
+    plt.title("Validation Accuracy")
     plt.show()
 
 def get_class_queries(dataset):
