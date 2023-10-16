@@ -31,16 +31,14 @@ def mask_to_bp(img_path):
 
 def main():
     textfile = "ISIC_"
-    i = 0
-    print(f"{textfile}{i:07d}.txt")
 
     for filename in os.listdir(home_data_path):
         if filename.endswith('.png'):
-            name = f"{textfile}{i:07d}.txt"
+            name = str(filename).replace("_segmentation.png","")
+            name = name + ".txt"
             with open("COMP3710/test/" + name, 'w') as f:
-                f.write(str(i) + " ")
+                f.write(str(0) + " ")
                 f.write(mask_to_bp(home_data_path+"/"+filename))
-            i += 1
 
 if __name__ == "__main__":
     main()
