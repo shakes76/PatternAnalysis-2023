@@ -5,18 +5,19 @@ import time
 
 import CONSTANTS
 from dataset import load_test_data
-from modules import SiameseTwin, SimpleMLP
+from modules import SiameseTwin, SimpleMLP, SiameseNeuralNet
 from train import load_from_checkpoint
 
 def load_backbone(filename:str):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     print("Loading classifier to device: ", device)
 
-    backbone = SiameseTwin()
-    backbone = backbone.to(device)
-    optimiser = torch.optim.Adam(backbone.parameters(), lr=0.0001)
+    siamese = SiameseNeuralNet()
+    siamese = siamese.to(device)
+    optimiser = torch.optim.Adam(siamese.parameters(), lr=0.0001)
 
-    start_epoch, backbone, optimiser, training_losses, eval_losses = load_from_checkpoint(filename, backbone, optimiser)
+    start_epoch, siamese, optimiser, training_losses, eval_losses = load_from_checkpoint(filename, siamese, optimiser)
+    backbone = siamese.get_backbone()
 
     print(f"Trained backbone loaded successfully from {CONSTANTS.MODEL_PATH + filename}")
     print(f"Backbone was trained for {start_epoch - 1} epochs")
@@ -115,9 +116,9 @@ def visualise_sample_predictions(classifier, backbone, device, random_seed=None,
 
     for i in range(1, cols * rows + 1):
         figure.add_subplot(rows, cols, i)
-        plt.title(f"Actual label: {labels_map[labels[i].tolist()]}, prediction: {labels_map[predicted[i].tolist()]}")
+        plt.title(f"Actual label: {labels_map[labels[i].cpu().tolist()]}, prediction: {labels_map[predicted[i].cpu().tolist()]}")
         plt.axis("off")
-        plt.imshow(np.transpose(images[i].squeeze(), (1,2,0)), cmap="gray")
+        plt.imshow(np.transpose(images[i].cpu().squeeze(), (1,2,0)), cmap="gray")
     
     if save_name is None:
         print("Showing visualisations for sample predictions")
@@ -129,5 +130,5 @@ def visualise_sample_predictions(classifier, backbone, device, random_seed=None,
 if __name__ == "__main__":
     backbone, device = load_backbone("SiameseNeuralNet_checkpoint.tar")
     classifier, device = load_trained_classifier("SimpleMLP_checkpoint.tar")
-    make_predictions(classifier, backbone, device, random_seed=None)
-    visualise_sample_predictions(classifier, backbone, device, random_seed=None, save_name=None)
+    make_predictions(classifier, backbone, device, random_seed=64)
+    visualise_sample_predictions(classifier, backbone, device, random_seed=64, save_name='Predictions')
