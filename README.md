@@ -6,7 +6,7 @@ We demonstrate the usage of semi-supervised node classification using the Facebo
 A processed dataset[^3] was used instead to train the model. The dataset consists of 128-dimension feature vector, a
 (n,2) edge list and the node's label.
 
-# Example of data:
+### Example of data:
 
 ![Visual example of node classification](https://github.com/ChocomintIce1/COMP3710-Demo3/assets/69633077/f6822d8c-fe7d-493a-87c2-014e36d07d76)
 

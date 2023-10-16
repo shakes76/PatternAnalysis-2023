@@ -28,3 +28,9 @@ test_correct = pred == targets  # Check against ground-truth labels.
 for index, prediction in enumerate(pred):
     print(f'For index={index}, the model guessed {prediction} and the correct label was {targets[index]}')
 print('Total accuraccy was:', test_correct.sum().item()/5)
+
+[-0.25411826,-0.27648264, ... ,-0.3759032,-0.22383557]
+[-0.26257643,-0.27648264,..., -0.34549507,-0.22383557]
+[-0.25985458,-0.26686466, ... ,-0.3759032,-0.22383557]
+[-0.26257643,-0.27648264, ... ,-0.3712565,-0.22383557]
+[-0.23554593,-0.27648264, ... ,2.6702952,-0.22383557]
