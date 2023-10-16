@@ -24,7 +24,7 @@ The Deep Convolutional Generative Adversarial Network (DCGAN) is a type of CNN t
 A DCGAN was chosen over a regular GAN for this task due to it's improved performance for image generation as a result of its deep convolutional architecture. A DCGAN implements convolutional and convolutional-transpose layers in its generator and discriminator networks respectively. <sup>[4]</sup> Furthermore, DCGAN's have also been found to be more stable during training and have higher image quality when compared to regular GAN's.
 
 ## Preparing Datatsets
-All dataset classes are created in the *dataset.py* file. There are two classes implemented for downloading the OASIS dataset from a specified directory, performing the necessary transforms and creates functions to be called when requiring either the train, validation or test dataloaders. This file also includes a class that handles the dataloader required for the DCGAN. This class takes in a trained VQVAE model, and returns the encodings of original OASIS training images. 
+All dataset classes are created in the *dataset.py* file. There are two classes implemented for downloading the preprocessed OASIS dataset from a specified directory, performing the necessary transforms and creates functions to be called when requiring either the train, validation or test dataloaders. This file also includes a class that handles the dataloader required for the DCGAN. This class takes in a trained VQVAE model, and returns the encodings of original OASIS training images. 
 
 The following image shows an example of the original OASIS images that was used as training images for the VQVAE model. 
 
@@ -51,12 +51,16 @@ Within the test function of the *train_VQVAE.py* file, the trained model is used
 
 ![reconstructed_images](Readme_images/VQVAE_reconstructed_images.png)
 
+During the testing stage, a separate script was used for visualising the codebook indices and quantized images, to ensure the correct output was being produced. This was vital for ensuring the DCGAN was receiving appropriate input data.
+
+![VQVAE_comparison](Readme_images/VQVAE_codebook_quantized.png)
+
 ### Training DCGAN
 Following the training of the VQVAE model, the DCGAN was trained on the encoding indices of the trained OASIS images. The *train_DCGAN.py* file implements a class that creates a Generator and Discriminator model, initialises weights and contains a training function for these networks on the provided training data. The dataloader that was used as the input for training the DCGAN can be seen below.
 
 ![GAN_dataloader](Readme_images/GAN_dataloader_examples.png)
 
-The DCGAN utilised a batch size of 32, a learning rate of 0.001 and was trained for 50 epochs. The reconstruction loss during each epoch was printed and the last few can be seen below.
+The DCGAN utilised a batch size of 32, a learning rate of 0.001 and was trained for 20 epochs. The reconstruction loss during each epoch was printed and the last few can be seen below.
 
 ![Gan_training_printed](Readme_images/GAN_training_EPOCHS.png)
 
@@ -75,17 +79,19 @@ This generated image was then passed through a function for visualising the code
 
 ![Gan_codebook](Readme_images/GAN_generated_codebook_indice.png)
 
-The purpose of visualising the DCGAN generated codebook indice can be to visually see similarities with a codebook indice created purely from the trained VQVAE model. A VQVAE formed codebook indice can be seen below for comparison.
-
-![VQVAE_codebook](Readme_images/VQVAE_codebook_indices.png)
 
 The final reconstruction for the DCGAN codebook indice can be seen below. It is clear from this image that there were flaws in either the model architecture, or decoding process as most of the details are lost during reconstructions. 
 
 ![GAN_reconstruction](Readme_images/final_reconstructed_image.png)
 
-These poor results are also supported by the extremely low structural similarity index measure (SSIM). The SSIM between images should indicate the similarity based on various factors and it was aimed to be over 0.6 for this project. However due to errors that may have arisen at different stages of either the model architecture or reconstruction process, the final SSIM when taken for the test dataset only came to 0.05, as seen below.
+### SSIM
+These poor results are also supported by the extremely low structural similarity index measure (SSIM). The SSIM between images should indicate the similarity based on various factors and it was aimed to be over 0.6 for this project. However due to errors that may have arisen at different stages of either the model architecture or reconstruction process, the final SSIM when taken for the test dataset only came to approximately 0.5, as seen below.
 
 ![SSIM](Readme_images/SSIM.png)
+
+The image with the highest structural similarity is plotted with the generated output to visually compare as seen below. 
+
+![SSIM_comparison](Readme_images/SSIM_comparison.png)
 
 ## Future work and improvements
 
