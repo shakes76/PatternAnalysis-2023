@@ -1,12 +1,7 @@
-import numpy as np
-import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torch.optim as optim
-import torchvision
-from torchmetrics.functional.image import structural_similarity_index_measure as ssim
-from dataset import OASISDataLoader
+
 class VectorQuantizer(nn.Module):
     def __init__(self, num_embeddings, embedding_dim, commitment_loss):
         super(VectorQuantizer, self).__init__()
