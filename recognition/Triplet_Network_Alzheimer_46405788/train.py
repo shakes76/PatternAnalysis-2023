@@ -93,7 +93,6 @@ for run, optimiser in enumerate(optimisers):
                     optimiser.step()
 
                 running_loss += loss.item()
-                break
             print(f"\r", end="", flush=True)
             print(f'{epoch} {phase} Loss: {running_loss / len(dataloader)}')
             if phase == 'train':
