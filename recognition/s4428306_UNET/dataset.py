@@ -4,10 +4,11 @@ import numpy as np
 import os
 from PIL import Image
 
-#TODO: Ensure masks have channel dimension when loaded in.      (Probably have to use tensorflow data load for this.)
-#      Prevent adding of useless dimension in mapping.
-#      Clean up debugging notes/code.
+#TODO: Clean up debugging notes/code.
 #      Change modules to use 3D layers where applicable.
+#      Change loss function to dice.
+#      Change masks to 0s and 1s?
+#      Change rates for adam optimizer and activation/ReLU functions.
 
 #NOTE: Expecting 2595 images in the training folders (-1 for license file) (should also be -1 for attribution file).
 #      Getting 2596 though, not sure why.
@@ -61,17 +62,20 @@ def partition(data, train_size, val_size, test_size, seed):
 
 #NOTE: Is some other form of normalization needed for masks?
 #      e.g. Set all 255s to 1s, and everything else to 0s.
+#      Could use tf.clip_by_value for this.
 
 #Taken from code I wrote for prac2.
 def normalize(image, mask):
     #TODO: Write specification.
     #NOTE: Trying not casting, should remove extra dimension.
-    #image = tf.cast(image, tf.float64) / 255.0
+    image = tf.cast(image, tf.float64) / 255.0
     print(type(image))
-    image = image / 255.0
+    #NOTE: Could reintroduce cast now that tuple is dealt with.
+    #image = image / 255.0
     #NOTE: Should some kind of softmax be used here instead?
     #mask = tf.cast(mask, tf.float64) / 255.0
-    mask = mask / 255.0
+    #mask = mask / 255.0
+    mask = tf.clip_by_value(mask, clip_value_min=0, clip_value_max=1)
     #NOTE: Squeeze in here to get rid of useless dim?
     #image = tf.squeeze(image)
     #mask = tf.squeeze(mask)
@@ -124,6 +128,7 @@ def preprocessing(batch_size=64):
     #image_data = image_data.map(tf.squeeze, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #mask_data = mask_data.map(tf.squeeze, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     isic_data = tf.data.Dataset.zip((image_data, mask_data))
+    isic_data = isic_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     print("AFTER ZIP")
     print(isic_data.element_spec)
     #Split.
@@ -132,17 +137,19 @@ def preprocessing(batch_size=64):
     print(train_data.element_spec)
     print(val_data.element_spec)
     print(test_data.element_spec)
-    #Normalize and augment.
     #NOTE: How to ensure augment happens on a batch by batch basis, but normalize doesn't?
     #      Probably want to add layers to front of model that do data augmentation, rather than doing it in
     #      preprocessing. See "tensorflow data augmentation". Would have to be layers that are only used in training.
-    train_data = train_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #train_data = train_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #NOTE: Augmentation is unnecessary here if augment layer is used in model.
     train_data = train_data.map(augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    val_data = val_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    test_data = test_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #val_data = val_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #test_data = test_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #Create batches for training data.
     train_batches = train_data.cache().batch(batch_size).repeat()
+    train_batches = train_batches.prefetch(tf.data.experimental.AUTOTUNE)
+    val_batches = val_data.batch(batch_size)
+    test_batches = test_data.batch(batch_size)
     #NOTE: Mapping is adding a dimension, but why?
     #      Also looks like squeezing bypasses tensorflow dataset shape info, so probs shouldn't be used here.
     #train_batches = train_batches.map(tuple_squeeze, num_parallel_calls=tf.data.experimental.AUTOTUNE)
@@ -150,8 +157,8 @@ def preprocessing(batch_size=64):
     #test_data = test_data.map(tuple_squeeze, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     print("AFTER MAPS")
     print(train_batches.element_spec)
-    print(val_data.element_spec)
-    print(test_data.element_spec)
+    print(val_batches.element_spec)
+    print(test_batches.element_spec)
     #NOTE: Is any other preprocessing needed?
-    return train_batches, val_data, test_data
+    return train_batches, val_batches, test_batches
 
