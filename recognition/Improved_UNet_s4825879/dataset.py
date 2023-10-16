@@ -9,13 +9,13 @@ class ISICDataset(Dataset):
         self.img_dir = img_dir
         self.image_files = os.listdir(img_dir)
 
-        self.image_files.remove("ATTRIBUTE.txt")
+        self.image_files.remove("ATTRIBUTION.txt")
         self.image_files.remove("LICENSE.txt")
 
         self.truth_dir = truth_dir
         self.truth_files = os.listdir(truth_dir)
 
-        self.truth_files.remove("ATTRIBUTE.txt")
+        self.truth_files.remove("ATTRIBUTION.txt")
         self.truth_files.remove("LICENSE.txt")
 
         self.transform = transform
