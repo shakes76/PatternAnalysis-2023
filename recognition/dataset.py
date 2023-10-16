@@ -1,68 +1,64 @@
-import numpy as np
-from PIL import Image
-from torchvision import transforms
-from torch.utils.data import Dataset, DataLoader
+"""
+    File name: modules.py
+    Author: Fanhao Zeng
+    Date created: 11/10/2023
+    Date last modified: 16/10/2023
+    Python Version: 3.10.12
+"""
+
 import os
-import cv2
-import matplotlib.pyplot as plt
+import torch
+from PIL import Image
+from torch.utils.data import Dataset
+from torchvision import transforms
 
-class ISICDataset(Dataset):
-    def __init__(self, path, type, desired_height=256, desired_width=256):
 
-        """
+class ADNIDataset(Dataset):
+    def __init__(self, data_path):
+        super(ADNIDataset, self).__init__()
 
-        :param path: path to the dataset directory
-        :param type: type of dataset, either "Training" or "Validation" or "Testing"
-        :param desired_height: height of the image after resizing
-        :param desired_width: width of the image after resizing
-        """
+        self.transform = transforms.ToTensor()
 
-        self.path = path
-        self.type = type
-        self.image_folder = f"{path}/{type}_Input"
-        self.mask_folder = f"{path}/{type}_GroundTruth"
-        self.transform = transforms.Compose([
-            transforms.Resize((desired_height, desired_width)),
-            transforms.ToTensor()
-        ])
+        # Load AD and NC images
+        self.ad_path = os.path.join(data_path, 'AD')
+        self.nc_path = os.path.join(data_path, 'NC')
 
-        # Check if the dataset is valid
-        try:
-            self.image_filenames = [f for f in os.listdir(self.image_folder) if f.endswith('.jpg')]
-            self.mask_filenames = [f for f in os.listdir(self.mask_folder) if f.endswith('.png')]
-        except FileNotFoundError:
-            raise FileNotFoundError(f"The folder path '{path}' does not exist.")
+        # Load images
+        self.ad_images = [self.transform(Image.open(os.path.join(self.ad_path, img))) for img in
+                          os.listdir(self.ad_path)]
+        self.nc_images = [self.transform(Image.open(os.path.join(self.nc_path, img))) for img in
+                          os.listdir(self.nc_path)]
 
-        # Check if the images and masks are in a one-to-one correspondence
-        image_basenames = set([os.path.splitext(f)[0] for f in self.image_filenames])
-        mask_basenames = set([os.path.splitext(f)[0].replace('_segmentation', '') for f in self.mask_filenames])
-        if image_basenames != mask_basenames:
-            raise ValueError("The images and masks are not in a one-to-one correspondence.")
+        # Stack images into tensors
+        self.ad_images = torch.stack(self.ad_images)
+        self.nc_images = torch.stack(self.nc_images)
 
     def __len__(self):
-        return len(self.image_filenames)
+        # Return the length of the smaller dataset
+        return min(len(self.ad_images), len(self.nc_images))
 
-    def __getitem__(self, idx):
-        image_path = os.path.join(self.image_folder, self.image_filenames[idx])
-        mask_path = os.path.join(self.mask_folder, self.mask_filenames[idx])
+    def __getitem__(self, index):
+        if index % 2 == 0:
+            # Positive example (both images are AD)
+            img1 = self.ad_images[index % len(self.ad_images)] # Get the image at the current index
+            img2 = self.ad_images[(index + 1) % len(self.ad_images)] # Get the next image
+            label = torch.tensor(1, dtype=torch.float) # Set the label to 1
+        else:
+            # Negative example (one image is AD, the other is NC)
+            img1 = self.ad_images[index % len(self.ad_images)] # Get the image of ad at the current index
+            img2 = self.nc_images[index % len(self.nc_images)] # Get the image of nc at the current index
+            label = torch.tensor(0, dtype=torch.float) # Set the label to 0
 
-        image = cv2.imread(image_path)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)  # Convert from BGR to RGB
-        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-
-        image = Image.fromarray(image)
-        mask = Image.fromarray(mask)
-
-        if self.transform:
-            image = self.transform(image)
-            mask = self.transform(mask)
-
-        return image, mask
+        return img1, img2, label
 
 
-# if __name__ == '__main__':
-#     path = "E:/comp3710/ISIC2018"
-#     train_dataset = ISICDataset(path, "Training")
-#     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-#     for images, masks in train_loader:
-#         print(images.shape, masks.shape)
+def get_train_dataset(data_path):
+    # Get the training dataset
+    train_dataset = ADNIDataset(os.path.join(data_path, 'train'))
+    return train_dataset
+
+
+def get_test_dataset(data_path):
+    # Get the test dataset
+    test_dataset = ADNIDataset(os.path.join(data_path, 'test'))
+    return test_dataset
