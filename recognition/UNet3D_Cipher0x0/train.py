@@ -54,7 +54,7 @@ def main():
 
     # build model and optimizer
     loss_fn = nn.CrossEntropyLoss().to(device)
-    optimizer = torch.optim.Adam(model.parameters())
+    optimizer = torch.optim.Adam(unet.parameters())
 
     # train loop
     print("Training Begin")
