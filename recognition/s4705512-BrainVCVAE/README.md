@@ -12,6 +12,7 @@ Achieve a "reasonably clear image" with a Structured Similarity (SSIM) score exc
 Provide a valuable tool for researchers to generate realistic brain images for diverse applications in neuroimaging studies.
 
 # Dataset
+Data were provided by OASIS in [this resouce](https://www.oasis-brains.org/#data)
 The OASIS Brain dataset is used as the foundation for training and evaluating the VQVAE model. This dataset encompasses structural and functional MRI scans, covering a wide range of subjects, including healthy individuals and those with neurological conditions.
 
 # Model Architecture
@@ -25,5 +26,22 @@ Decoder:
 Reconstructs the original brain image from the quantized latent representation, producing realistic and diverse outputs.
 
 # Requirements and Dependency
+matplotlib >= 3.5.2
+numpy >= 1.21.5
+requests >= 2.28.1
+tensorflow >= 2.10.1
+tensorflow-probability >= 0.14.0
+python >= 3.7.13
 
-# Liscence
+
+
+## References
+- https://en.wikipedia.org/wiki/Structural_similarity
+- https://keras.io/examples/generative/vq_vae/
+- https://keras.io/examples/generative/pixelcnn/
+- https://arxiv.org/abs/2101.08052
+
+- OASIS-1: Cross-Sectional: Principal Investigators: D. Marcus, R, Buckner, J, Csernansky J. Morris; P50 AG05681, P01 AG03991, P01 AG026276, R01 AG021910, P20 MH071616, U24 RR021382
+- OASIS-2: Longitudinal: Principal Investigators: D. Marcus, R, Buckner, J. Csernansky, J. Morris; P50 AG05681, P01 AG03991, P01 AG026276, R01 AG021910, P20 MH071616, U24 RR021382
+---
+# other 
