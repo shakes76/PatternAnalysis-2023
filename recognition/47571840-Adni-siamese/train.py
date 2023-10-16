@@ -174,8 +174,8 @@ for epoch in range(num_epochs):
 
         running_loss += loss.item()
 
-        preds = outputs.round()  # Round the predictions
-        correct_train += (preds == labels).float().sum()
+        preds = outputs.round()  # Round the predictions to get the class prediction 0/1
+        correct_train += (preds == labels).float().sum() # compare predictions to the true label to calculate accuracy
         total_train += labels.size(0)
 
     # Compute average training loss of epoch and accurracy 
@@ -198,7 +198,7 @@ for epoch in range(num_epochs):
             
             val_loss += loss.item()
 
-            preds = outputs.round()  # Round the predictions to get value 0 or 1
+            preds = outputs.round()  # Round the predictions to get the class prediction 0/1
             correct_val += (preds == labels).float().sum() # compare predictions to the true label to calculate accuracy
             total_val += labels.size(0)
 

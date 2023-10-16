@@ -95,7 +95,7 @@ From both plots above, it can be concluded that the classifier overfits to the t
 ## Testing Results
 The best classifer was only able to reach 72% on the test set. More experiements (changing architectures, more data augmentation, etc.) and more time can hopfully achieve more accuracy.
  
- To do inference on a trained siamese and classifier, run the `predict.py` file. There is a section called `#----DEFINE MODEL PATHS----  ` where you can modify the paths of the trained models. The `predict.py` will do inference using both models of one input image. A test set path needs to be defined to extract single input image and its corresponding label.
+ To do inference on a trained siamese and classifier, run the `predict.py` file. There is a section called `#----DEFINE MODEL PATHS----  ` where you can modify the paths of the trained models. The `predict.py` will do inference using both models of one input image. A test set path needs to be defined to extract a single input image and its corresponding label.
 
 ## Dependencies and Reproducibility
 Below are the librarys needed to run the files in this repository:

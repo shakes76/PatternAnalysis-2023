@@ -33,8 +33,8 @@ class SiameseResNet(nn.Module):
         return dist
 
 
-# Referenced from: ChatGPT (Version 4) by asking to make a classifier in my given siamese network
-# This is the classifer architecture that gives the highest accuracy 
+# Referenced from: ChatGPT (Version 4) Query: make a classifier with my given siamese network
+# This is the classifer architecture that gives the highest accuracy on the test set
 class ClassifierNet(nn.Module):
     def __init__(self, siamese_model):
         super(ClassifierNet, self).__init__()

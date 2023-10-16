@@ -96,6 +96,8 @@ class SiameseDataset(Dataset):
                 idx2 = random.choice(class_indices[label2])
                 pair = tuple(sorted([img1, self.image_list[idx2][0]]))
                 attempts += 1
+
+            # to prevent infinity loop 
             if attempts == MAX_ATTEMPTS:
                 continue
             
@@ -134,7 +136,7 @@ def create_siamese_dataloader(root_dir, batch_size=32, shuffle=True, split_flag=
 
     # create training and validation pairs to train the siamese network
     if split_flag:
-        val_split=0.2
+        val_split= 0.2 # validation split
         train_len = int((1.0 - val_split) * len(data))
         val_len = len(data) - train_len
 
@@ -170,7 +172,7 @@ def get_classification_dataloader(root_dir, batch_size=32, shuffle=True, split_f
     
     # create training and validation dataloaders to train the classifier
     if split_flag:
-        val_split = 0.2
+        val_split = 0.2 # validation split
         train_len = int((1.0 - val_split) * len(data))
         val_len = len(data) - train_len
 

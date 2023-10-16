@@ -53,13 +53,13 @@ def predict(input_image):
 images, labels = next(iter(test_loader))
 images, labels = images.to(device), labels.to(device)
 
-# Get a sample image tensor to use for prediction
+# Get a single sample image to use for prediction
 sample_image_tensor = images[0].unsqueeze(0) 
 
 # Predicting
 embedding, predicted_prob_tensor = predict(sample_image_tensor)
 
-# Extracting the probability and using round to get the class prediction
+# Extracting the probability and using round to get the class prediction 0/1
 predicted_prob = predicted_prob_tensor.item()
 predicted_class = round(predicted_prob)
 
