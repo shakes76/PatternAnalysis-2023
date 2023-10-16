@@ -52,7 +52,8 @@ class RawSiameseModel(nn.Module):
 class BinaryModelClassifier(nn.Module):
     """
         Base CNN binary classifier
-        The idea is put the feature vector through 3 fully connected layers for classifcation
+        The idea is put the feature vector through 5 fully connected layers for classifcation
+        the out_features of the first four layer is 1/4 of the respective in_feature 
         # adapt from https://machinelearningmastery.com/building-a-binary-classification-model-in-pytorch/
     """
     def __init__(self):
@@ -61,9 +62,13 @@ class BinaryModelClassifier(nn.Module):
         self.binary_layer = nn.Sequential(
             nn.Linear(4096, 1024),
             nn.ReLU(),
-            nn.Linear(1024, 128),
+            nn.Linear(1024, 256),
             nn.ReLU(),
-            nn.Linear(128, 1),
+            nn.Linear(256, 64),
+            nn.ReLU(),
+            nn.Linear(64, 16),
+            nn.ReLU(),
+            nn.Linear(16, 1),
             nn.Sigmoid()
         )
 

@@ -271,7 +271,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     cModel = BinaryModelClassifier().to(device)
 
     # hyper parameters for classifier
-    num_epochs = 40
+    num_epochs = 50
     learning_rate = 0.001
 
     criterion = nn.BCELoss()
