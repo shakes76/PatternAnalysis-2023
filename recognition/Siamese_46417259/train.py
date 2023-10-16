@@ -6,10 +6,7 @@ import torch.nn.parallel
 import torch.optim as optim
 import torch.utils.data
 import torch.nn.functional as F
-# import torchvision.datasets as dset
-# import torchvision.transforms.v2 as transforms
-# import torchvision.utils as vutils
-import numpy as np
+# import numpy as np
 import matplotlib.pyplot as plt
 
 import CONSTANTS
@@ -37,6 +34,16 @@ def contrastive_loss(x1:torch.Tensor, x2:torch.Tensor, label:torch.Tensor, margi
     loss = torch.mean(loss)
     return loss
 
+def test_loss():
+    cont_loss = ContrastiveLoss()
+    input1 = torch.rand(2, 4096)
+    input2 = torch.rand(2, 4096)
+    
+    labels = torch.Tensor([1,0])
+    old_loss = contrastive_loss(input1, input2, labels)
+    new_loss = cont_loss(input1, input2, labels)
+    print(old_loss)
+    print(new_loss)
 
 # def weights_initialisation(model:nn.Module):
 #     classname = model.__class__.__name__
@@ -251,24 +258,15 @@ def eval_classifier_one_epoch(model: nn.Module,
         print(">>>>> Actual sample batch")
         print(labels)
 
-        print('Test Accuracy: {} %'.format(100 * correct / total))
+        accuracy = correct / total
+
+        print('Test Accuracy: {} %'.format(100 * accuracy))
         mean_loss = total_loss / num_batches
     
     end = time.time()
     elapsed = end - start
 
-    return loss_list, mean_loss, elapsed
-
-def test_loss():
-    cont_loss = ContrastiveLoss()
-    input1 = torch.rand(2, 4096)
-    input2 = torch.rand(2, 4096)
-    
-    labels = torch.Tensor([1,0])
-    old_loss = contrastive_loss(input1, input2, labels)
-    new_loss = cont_loss(input1, input2, labels)
-    print(old_loss)
-    print(new_loss)
+    return loss_list, mean_loss, elapsed, accuracy
 
 def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     if random_seed is not None:
@@ -296,18 +294,18 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     for epoch in range(starting_epoch, total_epochs):
         print(f'Training Epoch {epoch+1}')
         loss_list, avg_train_loss, elapsed = train_siamese_one_epoch(siamese_net, criterion, optimiser, device, train_loader)
-        training_losses += loss_list
+        training_losses += [avg_train_loss]
         print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_train_loss:.4f}')
 
         print(f'Validating Epoch {epoch+1}')
         loss_list, avg_eval_loss, elapsed = eval_siamese_one_epoch(siamese_net, criterion, device, validation_loader)
-        eval_losses += loss_list
+        eval_losses += [avg_eval_loss]
         print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 
         # scheduler.step()
-        if np.average(eval_losses) < previous_best_loss:
+        if avg_eval_loss < previous_best_loss:
             # save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
-            previous_best_loss = np.average(eval_losses)
+            previous_best_loss = avg_eval_loss
             print(f"loss improved in epoch {epoch + 1}")
 
     save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
@@ -319,7 +317,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     plt.title("Training and Evaluation Loss During Training")
     plt.plot(training_losses, label="Train")
     plt.plot(eval_losses, label="Eval")
-    plt.xlabel("Epochs / 10")
+    plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.legend()
     plt.savefig(CONSTANTS.RESULTS_PATH + f"DSiamese_train_and_eval_loss_after_{total_epochs}_epochs.png")
@@ -347,26 +345,34 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
         starting_epoch = 0
         training_losses, eval_losses = [], []
 
+    accuracy_list = []
     print('starting training and validation loop for Classifier')
     start = time.time()
 
-    previous_best_loss = float('inf')
+    best_loss = float('inf')
+    best_accuracy = 0.5
     for epoch in range(starting_epoch, total_epochs):
         print(f'Training Epoch {epoch+1}')
         loss_list, avg_train_loss, elapsed = train_classifier_one_epoch(classifier, backbone, criterion, optimiser, device, train_loader)
-        training_losses += loss_list
+        training_losses += [avg_train_loss]
         print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_train_loss:.4f}')
 
         print(f'Validating Epoch {epoch+1}')
-        loss_list, avg_eval_loss, elapsed = eval_classifier_one_epoch(classifier, backbone, criterion, device, validation_loader)
-        eval_losses += loss_list
+        loss_list, avg_eval_loss, elapsed, accuracy = eval_classifier_one_epoch(classifier, backbone, criterion, device, validation_loader)
+        eval_losses += [avg_eval_loss]
+        accuracy_list += [accuracy]
         print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 
         # scheduler.step()
-        if np.average(eval_losses) < previous_best_loss:
+        if avg_eval_loss < best_loss:
             # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
-            previous_best_loss = np.average(eval_losses)
+            best_loss = avg_eval_loss
             print(f"loss improved in epoch {epoch + 1}")
+
+        if accuracy > best_accuracy:
+            # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
+            best_accuracy = accuracy
+            print(f"accuracy improved in epoch {epoch + 1}")
 
     save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
     end = time.time()
@@ -377,10 +383,18 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     plt.title("Training and Evaluation Loss During Training")
     plt.plot(training_losses, label="Train")
     plt.plot(eval_losses, label="Eval")
-    plt.xlabel("Epochs / 10")
+    plt.xlabel("Epochs")
     plt.ylabel("Loss")
     plt.legend()
     plt.savefig(CONSTANTS.RESULTS_PATH + f"DClassifier_train_and_eval_loss_after_{total_epochs}_epochs.png")
+
+    plt.figure(figsize=(10,5))
+    plt.title("Validation Accuracy")
+    plt.plot(accuracy_list, label="Validation Accuracy")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.legend()
+    plt.savefig(CONSTANTS.RESULTS_PATH + f"DClassifier_Accuracy_after_{total_epochs}_epochs.png")
 
 if __name__ == "__main__":
     # normal training workflow

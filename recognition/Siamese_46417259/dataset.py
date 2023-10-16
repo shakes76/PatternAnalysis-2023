@@ -20,7 +20,7 @@ workers = 0
 LOCAL = -1
 GLOBAL = 1
 
-machine = LOCAL
+machine = GLOBAL
 if machine == GLOBAL:
     # get filepaths from CONSTANTS.py
     train_path = CONSTANTS.TRAIN_PATH
@@ -233,7 +233,7 @@ def test_load_data_basic():
 
 def test_visualise_data_MLP():
     # Plot some training images
-    dataloader = load_data(training=True, Siamese=False)
+    dataloader = load_data(training=False, Siamese=False, train_proportion=0.99)
     next_batch = next(iter(dataloader))
     print(next_batch[0][0].shape)
 
@@ -241,8 +241,8 @@ def test_visualise_data_MLP():
     # https://github.com/pytorch/tutorials/blob/main/beginner_source/basics/data_tutorial.py
     # published under the BSD 3-Clause "New" or "Revised" License
     # full text of the license can be found in this project at BSD_new.txt
-    figure = plt.figure(figsize=(12, 12))
-    cols, rows = 4, 4
+    figure = plt.figure(figsize=(12, 9))
+    cols, rows = 5, 3
 
     labels_map = {0: 'AD', 1: 'NC'}
 
@@ -331,8 +331,8 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     print("Device: ", device)
 
-    test_load_data_basic()
-    # test_visualise_data_MLP()
+    # test_load_data_basic()
+    test_visualise_data_MLP()
     # test_visualise_data_Siamese()
     # test_paired_dataset()
 
