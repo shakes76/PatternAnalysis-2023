@@ -30,9 +30,9 @@ class BasicBlock(nn.Module):
 
 
 class ResNet(nn.Module):
-    def __init__(self, block, num_blocks, num_classes=10):
+    def __init__(self, block, in_channels, num_blocks):
         super(ResNet, self).__init__()
-        self.in_channels = 64
+        self.in_channels = in_channels
         self.relu = nn.ReLU(inplace=True)
 
         self.conv1 = nn.Conv2d(3, 64, kernel_size=3, stride=1, padding=1, bias=False)
@@ -41,7 +41,6 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
-        self.linear = nn.Linear(512*block.expansion, num_classes)
 
     def _make_layer(self, block, out_channels, num_blocks, stride):
         layers = []
@@ -59,5 +58,39 @@ class ResNet(nn.Module):
         out = self.layer4(out)
         out = nn.functional.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
-        out = self.linear(out)
         return out
+
+
+class SiameseNetwork(nn.Module):
+    def __init__(self):
+        super(SiameseNetwork, self).__init__()
+        self.resnet = ResNet(BasicBlock, 64, [2, 2, 2, 2])
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, input1, input2):
+        output1 = self.resnet(input1)
+        output2 = self.resnet(input2)
+        distance = (output2 - output1).pow(2).sum(0)
+        out = self.sigmoid(distance)
+        return out
+
+
+class Classifier(nn.Module):
+    def __init__(self, num_classes):
+        super(Classifier, self).__init__()
+        self.resnet = ResNet(BasicBlock, 64, [2, 2, 2, 2])
+        self.fc = nn.Sequential(
+            nn.Linear(512, 256),
+            nn.ReLU(),
+            nn.Linear(256, num_classes)
+        )
+
+    def forward(self, x):
+        out = self.resnet(x)
+        out = self.fc(out)
+        return out
+
+
+
+
+
