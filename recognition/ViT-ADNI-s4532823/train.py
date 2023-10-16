@@ -13,7 +13,7 @@ if not torch.cuda.is_available():
 
 # Hyper parameters
 BATCH_SIZE = 64
-EPOCHS = 10
+EPOCHS = 3
 LR = 1e-5
 
 # Initialise data loaders
@@ -94,8 +94,9 @@ print("Training & validation took " + str(elapsed) + " secs or " + str(elapsed/6
 # Do testing
 test_correct = 0
 test_total = 0
+start = time.time()
 with torch.no_grad():
-    for i, (images, label) in enumerate(test_loader):
+    for i, (images, labels) in enumerate(test_loader):
         images = images.to(device)
         labels = labels.to(device)
 
@@ -105,5 +106,5 @@ with torch.no_grad():
         _, predicted = torch.max(outputs, 1)
         test_total += labels.size(0)
         test_correct += (predicted == labels).sum().item()
-        
-print(f"Test accuracy {test_correct/test_total}")
+
+print(f"Test accuracy {test_correct/test_total}, time elapsed {time.time()-start}")
