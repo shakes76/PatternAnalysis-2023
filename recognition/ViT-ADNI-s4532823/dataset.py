@@ -1,3 +1,4 @@
+import torch
 from torch.utils.data import DataLoader, Dataset
 import os
 from pathlib import Path
@@ -17,6 +18,8 @@ if sys.platform == 'win32':
 # Centre crop all images to 224x224
 TRANSFORM = transforms.Compose([
     transforms.CenterCrop(224),
+    transforms.Grayscale(num_output_channels=3),
+    transforms.ToTensor(),
 ])
 
 """
