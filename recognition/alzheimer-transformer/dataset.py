@@ -27,6 +27,8 @@ def get_alzheimer_dataloader(batch_size:int=32, img_size:int=224, path:str="./da
     # Transformers 
     train_transforms = transforms.Compose([
     transforms.Resize((img_size, img_size)),  # Resize to a consistent size
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(degrees=15),
     transforms.ToTensor(),  # Convert to tensor
     transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),  # Normalize
     ])

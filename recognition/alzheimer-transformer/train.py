@@ -77,7 +77,7 @@ def main():
     
     # Add arguments for hyperparameters
     parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
-    parser.add_argument('--weight_decay', type=float, default=5e-4, help='Weight decay')
+    parser.add_argument('--weight_decay', type=float, default=0.03, help='Weight decay')
     parser.add_argument('--num_epochs', type=int, default=10, help='Number of training epochs')
     parser.add_argument('--model_size', type=str, default='base', help='base, large, huge')
     parser.add_argument('--patch_size', type=int, default=16, help='Number of pixels in a patch')
