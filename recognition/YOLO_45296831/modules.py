@@ -5,7 +5,7 @@ def get_device():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     if not torch.cuda.is_available():
         print("Warning CUDA not Found. Using CPU")
-    return device
+    return 'cpu'
 
 def get_yolo(device, pretrained=True):
     if pretrained:

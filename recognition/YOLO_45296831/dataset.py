@@ -36,7 +36,7 @@ def main():
         if filename.endswith('.png'):
             name = str(filename).replace("_segmentation.png","")
             name = name + ".txt"
-            with open("COMP3710/test/" + name, 'w') as f:
+            with open("COMP3710/test/labels/" + name, 'w') as f:
                 f.write(str(0) + " ")
                 f.write(mask_to_bp(home_data_path+"/"+filename))
 

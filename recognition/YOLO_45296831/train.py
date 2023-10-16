@@ -16,7 +16,7 @@ def main():
 
     # Train
     #TODO set train function params
-    results = model.train(batch=8, device=device, data='dataset.yaml', epochs=80, imgsz=2594)
+    results = model.train(batch=8, device=device, data='C:/Users/clark/OneDrive/Documents/2023/COMP3710/PatternAnalysis-2023/recognition/YOLO_45296831/data.yaml', epochs=5, imgsz=13)
 
     end_time = time.time()
     print(f"End Time: {time.ctime(end_time)}")
