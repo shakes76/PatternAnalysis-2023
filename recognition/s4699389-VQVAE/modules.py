@@ -1,6 +1,9 @@
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.optim as optim
+from dataset import OASISDataLoader
 
 # Torch configuration
 seed = 42
@@ -163,3 +166,56 @@ class VQVAE(nn.Module):
         x_recon = self.decoder(quantized)
 
         return loss, x_recon
+
+
+# Train Model
+batch_size = 32
+num_epochs = 0
+learning_rate = 0.0002
+commitment_cost = 0.25
+num_hiddens = 128
+num_residual_hiddens = 32
+num_channels = 1
+embedding_dim = 64
+num_embeddings = 512
+
+train_loader, test_loader, val_loader = OASISDataLoader(batch_size=batch_size).get_dataloaders()
+
+# Calculate variance
+mean = 0.0
+meansq = 0.0
+count = 0
+
+for index, data in enumerate(train_loader):
+    mean = data.sum()
+    meansq = meansq + (data**2).sum()
+    count += np.prod(data.shape)
+
+total_mean = mean/count
+total_var = (meansq/count) - (total_mean**2)
+data_variance = float(total_var.item()) # 0.68
+
+model = VQVAE(num_channels, num_hiddens, num_residual_hiddens, num_embeddings, embedding_dim, commitment_cost).to(device)
+optimizer = optim.Adam(model.parameters(), lr=learning_rate, amsgrad=False)
+
+train_error = []
+model.train()
+for epoch in range(num_epochs):
+    print(f"Epoch: {epoch}")
+    train_loss = 0
+    for i, data in enumerate(train_loader):
+        data = data.to(device)
+        optimizer.zero_grad()
+
+        vq_loss, data_recon = model(data)
+
+        recon_error = F.mse_loss(data_recon, data) / data_variance
+        loss = recon_error + vq_loss
+        loss.backward()
+
+        optimizer.step()
+
+        train_error.append(recon_error.item())
+
+    train_loss = np.mean(train_error[-300:])
+    print('training_loss: %.3f' % train_loss)
