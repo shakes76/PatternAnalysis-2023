@@ -1,15 +1,14 @@
 import dataset as ds
 from modules import *
 import torch.optim as optim
-from predict import test_accuracy, visualize_loss, visualize_accuracies
+from predict import test_accuracy, visualize_loss, visualize_accuracies, valid_accuracy
 
 # check for CUDA device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train(epochs, learning_rate, batch_size, model):
     # retrieve dataset
-    dataset = ds.ADNI_Dataset(); train_loader = dataset.get_train_loader()
-    
+    dataset = ds.ADNI_Dataset(); train_loader, validation_loader = dataset.get_train_and_valid_loader()
     # BCELoss used with the Adam optimiser
     optimizer = optim.Adam(model.parameters(), learning_rate)
     criterion = nn.BCELoss()
@@ -35,15 +34,17 @@ def train(epochs, learning_rate, batch_size, model):
                 loss.backward()
                 optimizer.step()
                 batch_loss += loss.item()
+            
                 
         # Print results for the epoch        
         batch_losses.append(batch_loss/(j+1))
         print("epoch {} complete".format(epoch + 1))
         print("loss is {}".format(batch_loss/(j+1)))
         # Get accuracy for the epoch
-        accuracy = test_accuracy(model, batch_size)
-        print("accuracy is {}".format(accuracy))
+        accuracy = valid_accuracy(model, batch_size, validation_loader)
+        print("validation accuracy is {}".format(accuracy))
         accuracies.append(accuracy) 
+        
         
     return model, batch_losses, accuracies
 

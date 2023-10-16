@@ -17,12 +17,12 @@ class ImageEncoder(nn.Module):
         enc = self.position_encodings.unsqueeze(0).expand((images.shape[0],) + self.position_encodings.shape).unsqueeze(-1).unsqueeze(-1).expand(-1, -1, 240, 240)
         enc = enc.type_as(images) 
         
-        # add to the images matrix to make the positional encoding, image becomes 32x128x240x240
+        # add to the images matrix to make the positional encoding, image becomes 32x64x240x240
         images = torch.cat([images, enc], dim=1)
-        # flatten the last two dimentions of image to 1d, image becomes 32x128x57600
+        # flatten the last two dimentions of image to 1d, image becomes 32x64x57600
         images = images.flatten(2)
         
-        # remake permuation of image for attention block, image becomes 57600x32x128 ready for attention layer
+        # remake permuation of image for attention block, image becomes 57600x32x64 ready for attention layer
         images = images.permute(2, 0, 1)
         return images
 
@@ -48,8 +48,8 @@ class Attention(nn.Module):
       
     def forward(self, latent, image):
 
-        # latent is 32x32x128
-        # image is 57600x32x128 in case of self attention image is also latent
+        # latent is 32x32x64
+        # image is 57600x32x64 in case of self attention image is also latent
         out = self.lnorm1(image)
         out, _ = self.attn(query=latent, key=image, value=image)
         
@@ -114,7 +114,7 @@ class Classifier(nn.Module):
         
     def forward(self, latent):
         
-        #32x32x128 latent  
+        #32x32x64 latent  
         out = self.fc1(latent)
         #32x32x16 latent
         out = out.mean(dim=0)
@@ -132,7 +132,7 @@ class ADNI_Transformer(nn.Module):
         
         # Hyper Parameters being used
         #LATENT_DIM = 32
-        #LATENT_EMB = 128
+        #LATENT_EMB = 64
         #latent_layers = 4
         #latent_heads = 8
         #classifier_out = 16

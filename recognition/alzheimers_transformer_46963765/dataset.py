@@ -1,9 +1,9 @@
-#import it
 import torch
 from torch.utils.data import DataLoader
 import torchvision
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+import os
 
 
 
@@ -18,7 +18,7 @@ class ADNI_Dataset:
         self._test_root = "./recognition/alzheimers_transformer_46963765/data/test"
     
     # To get the training dataloader
-    def get_train_loader(self, location=None, transform=None):
+    def get_train_and_valid_loader(self, location=None, transform=None):
         
         #can provide seperate locations and transformations if needed, else default
         if location != None:
@@ -30,8 +30,34 @@ class ADNI_Dataset:
             
         # transform and load in dataloader with shuffle
         train_dataset = torchvision.datasets.ImageFolder(root=root_path, transform=transform)
+        
+        train_dataset.samples = sorted(train_dataset.samples, key=lambda x: os.path.basename(x[0]))
+
+        ad_count = 0
+        nc_count = 0
+
+        # Initialize lists to store the selected indices for each class
+        ad_indices = []
+        nc_indices = []
+
+        # Iterate through the sorted dataset and select 250 images for each class
+        for idx, (image_path, class_index) in enumerate(train_dataset.samples):
+            if class_index == 0 and ad_count < 1000:  # Assuming class 0 represents 'AD'
+                ad_indices.append(idx)
+                ad_count += 1
+            elif class_index == 1 and nc_count < 1000:  # Assuming class 1 represents 'NC'
+                nc_indices.append(idx)
+                nc_count += 1
+
+        selected_indices = ad_indices + nc_indices
+        selected_dataset = torch.utils.data.Subset(train_dataset, selected_indices)
+        train_dataset.samples = [train_dataset.samples[i] for i in range(len(train_dataset.samples)) if i not in selected_indices]
+
+
         train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
-        return train_loader
+        validation_loader = DataLoader(selected_dataset, batch_size=self.batch_size, shuffle=True)
+
+        return train_loader, validation_loader 
 
     # To get the testing dataloeader
     def get_test_loader(self, location=None, transform=None):
@@ -55,7 +81,10 @@ class ADNI_Dataset:
         if type == "train":
             transform_method = transforms.Compose([
             transforms.ToTensor(),
-            transforms.CenterCrop(240),
+            transforms.RandomRotation(degrees=15),
+            transforms.RandomHorizontalFlip(),
+            transforms.GaussianBlur(kernel_size=3),  # Apply Gaussian blur with a specified kernel size
+            transforms.RandomCrop(240),
             transforms.Grayscale(num_output_channels=1),
             transforms.Normalize((0.1232,), (0.2308,))
             ])

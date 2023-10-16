@@ -42,6 +42,26 @@ def test_accuracy(model, batch_size):
     return accuracy*100
 
 
+def valid_accuracy(model, batch_size, valid_loader):
+    correct_predictions = 0
+    total_samples = 0    
+            
+    model.eval() 
+    for j, (images, labels) in  enumerate(valid_loader):
+        if images.size(0) == batch_size:
+            # forward pass through model
+            images = images.to(device); labels = labels.to(device)
+            outputs = model(images).squeeze()
+            # calculate total correct 
+            predictions = (outputs >= 0.5).long()
+            correct_predictions += (predictions == labels).sum().item()
+            total_samples += labels.size(0)
+            
+    # calculate final accuracy and return as percent
+    accuracy = correct_predictions / total_samples
+    return accuracy*100    
+
+
 def visualize_accuracies(accuracies):
     # epochs on the x axis, accuracies on y axis 
     epochs = range(1, len(accuracies) + 1)
