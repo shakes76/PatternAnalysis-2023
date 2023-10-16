@@ -1,9 +1,9 @@
-
+# Global parameters for the UNet model defined here for easy access across files.
 
 # Hyperparameters
 LEARNING_RATE = 1e-4
-BATCH_SIZE = 4
-NUM_EPOCHS = 1
+BATCH_SIZE = 8
+NUM_EPOCHS = 200
 NUM_WORKERS = 8
 IMAGE_HEIGHT = 512
 IMAGE_WIDTH = 512

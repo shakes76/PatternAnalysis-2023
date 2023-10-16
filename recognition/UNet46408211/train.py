@@ -11,7 +11,8 @@ from modules import UNet
 from dataset import ISICDataset
 import time
 from utils import *
-from global_params import *
+from global_params import * # Hyperparameters and other global variables
+from dice_loss import DiceLossLogits
 
 #----------------------------------------------------------------------
 # set the device to cuda if available
@@ -21,26 +22,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # print('Using device:', device)
 #----------------------------------------------------------------------
 
-# # Hyperparameters
-# LEARNING_RATE = 1e-4
-# BATCH_SIZE = 4
-# NUM_EPOCHS = 10
-# NUM_WORKERS = 8
-# IMAGE_HEIGHT = 512
-# IMAGE_WIDTH = 512
-# PIN_MEMORY = True
-# LOAD_MODEL = False
-# TRAIN_IMG_DIR = 'data/ISIC_2017/Training/ISIC-2017_Training_Data'
-# TRAIN_MASK_DIR = 'data/ISIC_2017/Training/ISIC-2017_Training_Part1_GroundTruth'
-
-# # TEST_IMG_DIR = 'data/ISIC_2017/Testing/ISIC-2017_Test_v2_Data'
-# # TEST_MASK_DIR = 'data/ISIC_2017/Testing/ISIC-2017_Test_v2_Part1_GroundTruth'
-
-# VAL_IMG_DIR = 'data/ISIC_2017/Validation/ISIC-2017_Validation_Data'
-# VAL_MASK_DIR = 'data/ISIC_2017/Validation/ISIC-2017_Validation_Part1_GroundTruth'
-
 LOAD_MODEL = False
-SAVE_EPOCH_DATA = True
+SAVE_EPOCH_DATA = False#True
 
 def train_epoch(loader, model, optimizer, loss_fn, scaler, losses):
     loop = tqdm(loader)
@@ -112,7 +95,9 @@ def main():
     # 3 channels in for RGB images, 1 channel out for binary mask
     model = UNet(in_channels=3, out_channels=1).to(device)
     # loss_fn = nn.BCELoss() # Binary Cross Entropy Loss
-    loss_fn = nn.BCEWithLogitsLoss() # Binary Cross Entropy Loss with Logits
+    
+    # loss_fn = nn.BCEWithLogitsLoss() # Binary Cross Entropy Loss with Logits
+    loss_fn = DiceLossLogits()
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE) # Adam optimizer
     
     if LOAD_MODEL:
