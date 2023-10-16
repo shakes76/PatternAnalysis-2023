@@ -14,7 +14,7 @@ def create_datasets(root_dir, train_transform, test_transform, datasplit):
     train_dir = root_dir + "/train"
     test_dir = root_dir + "/test"
 
-    train_valid_data = ImageFolder(root=train_dir, transform=test_transform)
+    train_valid_data = ImageFolder(root=train_dir, transform=train_transform)
     test_data = ImageFolder(root=test_dir, transform=test_transform)
 
         # Extract patient IDs
@@ -37,7 +37,7 @@ def create_datasets(root_dir, train_transform, test_transform, datasplit):
 
     return train_data, valid_data, test_data
 
-def create_dataloaders(root_dir, train_transform, test_transform, batch_size, datasplit=0.8):
+def create_dataloaders(root_dir, train_transform, test_transform, batch_size, datasplit):
     train_data, valid_data, test_data = create_datasets(root_dir=root_dir,
                                                         train_transform=train_transform,
                                                         test_transform=test_transform,

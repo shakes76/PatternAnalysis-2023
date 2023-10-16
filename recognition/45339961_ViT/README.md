@@ -5,8 +5,8 @@
 ## Data Background
 
 
-## Vision Transformer
-### Architecture 
+## Vision Transformer Background
+### ViT Architecture Overview
 | Vision Transformer (ViT) | Transformer Encoder |
 | :---: | :---: |
 | <img src="misc/vit.gif" width="550" height="400"/> | <img src="misc/encoderblock.png" width="175" height="400"/> |
@@ -45,7 +45,7 @@ The Vision Transformer architecture is comprised of a several stages:
 
 ### How it works
 
-### What it solves
+### Problem it solves
 
 
 ## Dependencies & Requirements
