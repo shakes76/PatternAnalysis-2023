@@ -14,6 +14,7 @@ import torchvision.datasets as datasets
 # test_suffix = "/test"
 # train_suffix = "/train"
 
+# these parameters are for if the data is in the project root
 dataroot = ".\\ADNI\\AD_NC"
 test_suffix = "\\test"
 train_suffix = "\\train"

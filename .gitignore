@@ -1,5 +1,5 @@
 ADNI/
 ADNI.zip
 __pycache__/
-*.png
 *.pth
+*.db
