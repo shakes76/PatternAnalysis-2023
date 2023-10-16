@@ -75,6 +75,33 @@ class PatchEmbedding(nn.Module):
         return self.main(input).permute(0, 2, 1)  # Reorder the dimensions
 
 # ------------------------------------------------------------------
+# Transformer Encoder
+class TransformerEncoder(nn.Module):
+    """Creates a standard Transformer Encoder.
+    One transformer encoder layer consists of layer normalisation, multi-head self attention layer, 
+    a residual connection, another layer normalisation, an mlp block, and another residual connection.
+    """
+    def __init__(self, ngpu):
+        super(TransformerEncoder, self).__init__()
+        self.ngpu = ngpu
+
+        self.transformer_encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim,
+                                                                    nhead=num_heads,
+                                                                    dim_feedforward=mlp_size,
+                                                                    dropout=dropout_size,
+                                                                    activation="gelu",
+                                                                    layer_norm_eps=1e-5,
+                                                                    batch_first=True,
+                                                                    norm_first=True,
+                                                                    bias=True)
+        
+        self.full_transformer_encoder = nn.TransformerEncoder(encoder_layer=self.transformer_encoder_layer,
+                                                                num_layers=num_layers)
+    
+    def forward(self, input):
+        return self.full_transformer_encoder(input)
+
+# ------------------------------------------------------------------
 # Multi-head Attnetion
 class MultiheadSelfAttention(nn.Module):
     """Creates a multi-head self attention block.
