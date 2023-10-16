@@ -3,12 +3,17 @@ from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
 from utils import *
 
+"""
+Generate data loaders to be used for training and predicting.
+"""
 def generate_train_loader():
     """
-    Generate a Dataloader consisting of the ADNI training data as grayscale tensors.
+    Generate a Dataloader consisting of the ADNI training data as 
+    grayscale tensors.
 
     Returns:
-        A dataloader with ADNI traninig data, both AD and NC. Batch size as specified in utils.py.
+        A dataloader with ADNI traninig data, both AD and NC. 
+        Batch size as specified in utils.py.
 
     """
     transform = transforms.Compose([
@@ -21,10 +26,12 @@ def generate_train_loader():
 
 def generate_test_loader():
     """
-    Generate a Dataloader consisting of the ADNI testing data as grayscale tensors.
+    Generate a Dataloader consisting of the ADNI testing data as grayscale 
+    tensors.
 
     Returns:
-        A dataloader with ADNI testing data, both AD and NC. Batch size as specified in utils.py.
+        A dataloader with ADNI testing data, both AD and NC. Batch size as 
+        specified in utils.py.
 
     """
     transform = transforms.Compose([
