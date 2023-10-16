@@ -13,6 +13,28 @@ import torch.nn.functional as F
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
+class ResidualBlock(nn.Module):
+    def __init__(self, n_channels_in,n_channels_out, n_residual_hidden_layers):
+        super(ResidualBlock, self).__init__()
+        self._residual_block = nn.Sequential(
+            nn.ReLU(),
+            nn.Conv2d(in_channels=n_channels_in, 
+                      out_channels=n_residual_hidden_layers, 
+                      kernel_size=3, 
+                      stride=1, 
+                      padding=1, 
+                      bias=False),
+            nn.ReLU(),
+            nn.Conv2d(in_channels=n_residual_hidden_layers, 
+                      out_channels=n_channels_out, 
+                      kernel_size=1, 
+                      stride=1, 
+                      padding=0, 
+                      bias=False),
+        )
+    def forward(self, x):
+        return x + self._residual_block(x)
+
 class Encoder(nn.Module):
     """
     Encoder module for the VQ-VAE model.
@@ -24,70 +46,36 @@ class Encoder(nn.Module):
 
     def __init__(self, n_inputs, n_hidden_layers,n_residual_hidden_layers):
         super(Encoder, self).__init__()
-        self.n_channels = n_inputs
-        # self.latent_dim = latent_dim
-        self.conv1 = nn.Conv2d(
-            in_channels=n_inputs,
-            out_channels=n_hidden_layers//2,
-            kernel_size=4,
-            stride=2,
-            padding=1,
-        )
-        self.relu = nn.ReLU()
 
-        self.conv2 = nn.Conv2d(
-            in_channels=n_hidden_layers//2, 
-            out_channels=n_hidden_layers, 
-            kernel_size=4, 
-            stride=2, 
-            padding=1
+        self.layers = nn.Sequential(
+            nn.Conv2d(
+                in_channels=n_inputs,
+                out_channels=n_hidden_layers//2,
+                kernel_size=4,
+                stride=2,
+                padding=1,
+            ),
+            nn.ReLU(True),
+            nn.Conv2d(
+                in_channels=n_hidden_layers//2, 
+                out_channels=n_hidden_layers, 
+                kernel_size=4, 
+                stride=2, 
+                padding=1
+            ),
+            ResidualBlock(
+                n_channels_in=n_hidden_layers, 
+                n_channels_out=n_hidden_layers, 
+                n_residual_hidden_layers=n_residual_hidden_layers
+            ),
+            ResidualBlock(n_channels_in=n_hidden_layers, 
+                          n_channels_out=n_hidden_layers, 
+                          n_residual_hidden_layers=n_residual_hidden_layers
+            ),
         )
-
-        self.residual_block_1 = nn.Sequential(
-            nn.ReLU(),
-            nn.Conv2d(in_channels=n_hidden_layers, 
-                      out_channels=n_residual_hidden_layers, 
-                      kernel_size=3, 
-                      stride=1, 
-                      padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=n_residual_hidden_layers, 
-                      out_channels=n_hidden_layers, 
-                      kernel_size=1, 
-                      stride=1, 
-                      padding=0),
-        )
-        self.residual_block_2 = nn.Sequential(
-            nn.ReLU(),
-            nn.Conv2d(in_channels=n_hidden_layers, 
-                      out_channels=n_residual_hidden_layers, 
-                      kernel_size=3, 
-                      stride=1, 
-                      padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=n_residual_hidden_layers, 
-                      out_channels=n_hidden_layers, 
-                      kernel_size=1, 
-                      stride=1, 
-                      padding=0),
-        )
-        # self.conv3 = nn.Conv2d(
-        #     in_channels=n_hidden_layers, 
-        #     out_channels=n_hidden_layers, 
-        #     kernel_size=3, 
-        #     stride=1, 
-        #     padding=0
-        # )
 
     def forward(self, x):
-        out = self.conv1(x)
-        out = self.conv2(out)
-        out = self.residual_block_1(out)
-        out = self.residual_block_2(out)
-        out = self.relu(out)
-
-        # out = self.conv3(out)
-        return out
+        return self.layers(x)
 class Decoder(nn.Module):
     """
     Decoder module for the VQ-VAE model.
@@ -104,93 +92,43 @@ class Decoder(nn.Module):
         super(Decoder, self).__init__()
         # self.no_channels = n_inputs
         # self.latent_dim = latent_dim
-        self.conv1 = nn.Conv2d(
-            in_channels=n_inputs,
-            out_channels=n_hidden_layers,
-            kernel_size=3,
-            stride=1,
-            padding=1,
+        self.layers = nn.Sequential(
+            nn.Conv2d(
+                in_channels=n_inputs,
+                out_channels=n_hidden_layers,
+                kernel_size=3,
+                stride=1,
+                padding=1,
+            ),
+            ResidualBlock(
+                n_channels_in=n_hidden_layers,
+                n_channels_out=n_hidden_layers,
+                n_residual_hidden_layers=n_residual_hidden_layers
+            ),
+            ResidualBlock(
+                n_channels_in=n_hidden_layers,
+                n_channels_out=n_hidden_layers,
+                n_residual_hidden_layers=n_residual_hidden_layers
+            ),
+            nn.ConvTranspose2d(
+                in_channels=n_hidden_layers,
+                out_channels=n_hidden_layers//2,
+                kernel_size=4,
+                stride=2,
+                padding=1,
+            ),
+            nn.ReLU(True),
+            nn.ConvTranspose2d(
+                in_channels=n_hidden_layers//2,
+                out_channels=3, #TODO: set this no. channels as a constant in driver
+                kernel_size=4,
+                stride=2,
+                padding=1,
+            )
         )
-        self.residual_block_1 = nn.Sequential(
-            nn.ReLU(),
-            nn.Conv2d(in_channels=n_hidden_layers, 
-                      out_channels=n_residual_hidden_layers, 
-                      kernel_size=3, 
-                      stride=1, 
-                      padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=n_residual_hidden_layers, 
-                      out_channels=n_hidden_layers, 
-                      kernel_size=1, 
-                      stride=1, 
-                      padding=0),
-        )
-
-        self.residual_block_2 = nn.Sequential(
-            nn.ReLU(),
-            nn.Conv2d(in_channels=n_hidden_layers, 
-                      out_channels=n_residual_hidden_layers, 
-                      kernel_size=3, 
-                      stride=1, 
-                      padding=1),
-            nn.ReLU(),
-            nn.Conv2d(in_channels=n_residual_hidden_layers, 
-                      out_channels=n_hidden_layers, 
-                      kernel_size=1, 
-                      stride=1, 
-                      padding=0),
-        )  
-        self.transpose_conv1 = nn.ConvTranspose2d(
-            in_channels=n_hidden_layers,
-            out_channels=n_hidden_layers//2,
-            kernel_size=4,
-            stride=2,
-            padding=1,
-        )
-        self.transpose_conv2 = nn.ConvTranspose2d(
-            in_channels=n_hidden_layers//2,
-            out_channels=3, #TODO: set this no. channels as a constant in driver
-            kernel_size=4,
-            stride=2,
-            padding=1,
-        )
-
-        # self.relu = nn.ReLU()
 
     def forward(self, x):
-        out = self.conv1(x)
-        out = self.residual_block_1(out)
-        out = self.residual_block_2(out)
-        out = self.transpose_conv1(out)
-        out = self.transpose_conv2(out)
-        return out
-
-class VQVAE(nn.Module):
-    def __init__(self, n_hidden_layers, n_residual_hidden_layers, n_embeddings, embeddings_dim, beta):
-        super(VQVAE, self).__init__()
-        
-        self.encoder = Encoder(n_inputs=3, 
-                               n_hidden_layers=n_hidden_layers, 
-                               n_residual_hidden_layers=n_residual_hidden_layers)
-        self.conv1 = nn.Conv2d(
-            in_channels=n_hidden_layers,
-            out_channels=embeddings_dim,
-            kernel_size=1, 
-            stride=1, 
-            padding=0)
-
-        self.vector_quantizer = VectorQuantizer(n_embeddings=n_embeddings, embeddings_dim=embeddings_dim, beta=beta)
-        self.decoder = Decoder(n_inputs=embeddings_dim, 
-                               n_hidden_layers=n_hidden_layers, 
-                               n_residual_hidden_layers=n_residual_hidden_layers)
-        # self.embedding = nn.Embedding(num_embeddings, latent_dim)
-    
-    def forward(self, x):
-        z = self.encoder(x)
-        z = self.conv1(z)
-        embedding_loss, z_q = self.vector_quantizer(z)
-        reconstructed_x = self.decoder(z_q)
-        return embedding_loss, reconstructed_x
+        return self.layers(x)
 
 class VectorQuantizer(nn.Module):
     """
@@ -269,7 +207,41 @@ class VectorQuantizer(nn.Module):
         z_q = z_q.permute(0, 3, 1, 2).contiguous()
 
         return embedding_loss, z_q
+
+
+class VQVAE(nn.Module):
+    def __init__(self, n_hidden_layers, n_residual_hidden_layers, n_embeddings, embeddings_dim, beta):
+        super(VQVAE, self).__init__()
+        
+        self.encoder = Encoder(n_inputs=3, 
+                               n_hidden_layers=n_hidden_layers, 
+                               n_residual_hidden_layers=n_residual_hidden_layers)
+        self.conv1 = nn.Conv2d(
+            in_channels=n_hidden_layers,
+            out_channels=embeddings_dim,
+            kernel_size=1, 
+            stride=1, 
+            padding=0)
+
+        self.vector_quantizer = VectorQuantizer(
+            n_embeddings=n_embeddings, 
+            embeddings_dim=embeddings_dim, 
+            beta=beta)
+        self.decoder = Decoder(
+            n_inputs=embeddings_dim, 
+            n_hidden_layers=n_hidden_layers, 
+            n_residual_hidden_layers=n_residual_hidden_layers)
+        # self.embedding = nn.Embedding(num_embeddings, latent_dim)
     
+    def forward(self, x):
+        z = self.encoder(x)
+        z = self.conv1(z)
+        embedding_loss, z_q = self.vector_quantizer(z)
+        reconstructed_x = self.decoder(z_q)
+        return embedding_loss, reconstructed_x
+
+
+
 """
 Architecture guidelines for stable Deep Convolutional GANs
     • Replace any pooling layers with strided convolutions (discriminator) and fractional-strided convolutions (generator).
