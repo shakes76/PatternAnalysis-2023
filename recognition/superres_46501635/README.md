@@ -1,26 +1,28 @@
 # ESPCN Super-Resolution Model with ADNI Dataset
 
-This project implements the Efficient Sub-Pixel Convolutional Neural Network (ESPCN) for image super-resolution using the ADNI (Alzheimer's Disease Neuroimaging Initiative) dataset. The ADNI dataset is organized in the following format:
+This project implements the Efficient Sub-Pixel Convolutional Neural Network (ESPCN) for image super-resolution using the ADNI (Alzheimer's Disease Neuroimaging Initiative) dataset. The ADNI dataset is preprocessed and organized in the following format:
 
 ```
 ADNI
 │
 └───AD_NC
     │
-    ├───test
+    ├───test (80% of data)
     │   ├───AD
     │   │   └───*.jpeg (greyscale jpeg images)
     │   │
     │   └───NC
     │       └───*.jpeg (greyscale jpeg images)
     │
-    └───train
+    └───train (20% of data)
         ├───AD
         │   └───*.jpeg (greyscale jpeg images)
         │
         └───NC
             └───*.jpeg (greyscale jpeg images)
 ```
+
+Then the ADNI dataset is transferred to use PyTorch tensors and then normalised to a mean of 0.5 and std dev of 0.5 to ensure that the pixel values are in the range [-1, 1], this is done as it is suitable for deep learning models based on empirical evidence.
 
 ## Overview
 
@@ -49,11 +51,11 @@ This project focuses on enhancing the resolution of medical images from the ADNI
 
 Before using this project, ensure you have the following dependencies installed:
 
-- Python 3.x
-- PyTorch
-- torchvision
-- PIL (Pillow)
-- matplotlib
+- Python 3.10.12
+- PyTorch 2.0.1
+- torchvision 0.15.2
+- PIL (Pillow) 9.4.0
+- matplotlib 3.7.1
 
 ### File Structure
 
@@ -74,6 +76,10 @@ To utilize this project with your ADNI dataset, follow these steps:
 1. **Adjust File Paths:**
     - Update the file paths in `train.py` and `predict.py` to point to your ADNI dataset folder, starting at `\\ADNI\\AD_NC` as well as to point
     to the location of where you wish to save/load the trained model.
+    - Example usage
+    ```bash
+    train_loader, test_loader = get_dataloaders("C:\\Users\\soonw\\ADNI\\AD_NC")
+    ```
 
 2. **Training the Model:**
     ```bash
