@@ -47,3 +47,49 @@ data_variance = np.var(train / 255.0)
 vqvae_trainer = VQVAETrainer(data_variance, latent_dim=16, num_embeddings=128)
 vqvae_trainer.compile(optimizer=keras.optimizers.Adam())
 vqvae_history = vqvae_trainer.fit(train, epochs=30, batch_size=128)
+
+
+
+def save_subplot(original, reconstructed,i):
+    plt.subplot(1, 2, 1)
+    plt.imshow(original.squeeze() + 0.5)
+    plt.title("Original")
+    plt.axis("off")
+
+    plt.subplot(1, 2, 2)
+    plt.imshow(reconstructed.squeeze() + 0.5)
+    plt.title("Reconstructed")
+    plt.axis("off")
+
+    plt.savefig((str(i) + '.png'))
+    plt.close()
+
+
+trained_vqvae_model = vqvae_trainer.vqvae
+idx = np.random.choice(len(test), 10)
+test_images = test[idx]
+reconstructions_test = trained_vqvae_model.predict(test_images)
+
+i=0
+for test_image, reconstructed_image in zip(test_images, reconstructions_test):
+    save_subplot(test_image, reconstructed_image,i)
+    i+=1
+
+# Save the model
+vqvae_trainer.save_weights(models_directory + vqvae_weights_filename)
+
+# load in the model
+# Assuming vqvae_trainer is your VQVAETrainer instance
+
+
+# Load the saved weights
+vqvae_trainer.load_weights(models_directory + vqvae_weights_filename)
+vqvae_trainer.compile(optimizer=keras.optimizers.Adam())
+vqvae_history = vqvae_trainer.fit(train, epochs=30, batch_size=128)
+
+# Set up the PixelCNN to generate images that imitate the code, to generate
+# new brains
+encoder = vqvae_trainer.vqvae.get_layer("encoder")
+quantizer = vqvae_trainer.vqvae.get_layer("vector_quantizer")
+pixelcnn_input_shape = quantizer.output_shape[1:-1]
+print(f"Input shape of the PixelCNN: {pixelcnn_input_shape}")
