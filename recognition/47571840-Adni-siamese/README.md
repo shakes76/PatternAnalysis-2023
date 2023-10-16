@@ -27,7 +27,7 @@ Below is a graph that explains the data flow through the networks
 
 Pairs of images are fed into the Siamese network to generate their embeddings. The euclidean distance between the pair of embeddings are then calculated and passed into the contrastive loss during training. A classifier is added on at the end of a trained Siamese network to classify Alzhemier's Disease.
 
-The backbone architecture of the Siamese network is based on PyTorch's ResNet-18 with several modifications. The classifier's architecture consists of fully connected layers, utilising ReLU activation functions, dropout, and batch normalisations. Most importantly, the classifier model incorporates a pre-trained Siamese network, with its weights frozen during training.
+The backbone architecture of the Siamese network is based on PyTorch's ResNet-18 with several modifications. The modifications include modifing the first convolutional layer and deleting the last layer. The classifier's architecture consists of fully connected layers, utilising ReLU activation functions, dropout, and batch normalisations. Most importantly, the classifier model incorporates a pre-trained Siamese network, with its weights frozen during training.
 
 
 ## ADNI Dataset
@@ -107,7 +107,7 @@ Below are the librarys needed to run the files in this repository:
 
 To run the code files, make sure you have the ADNI dataset downloaded and modify the data paths in the `train.py` and `predict.py` if needed. To train your own siamese and classifier, run the `train.py`. This code file will train the siamese network, train the classifer, and evaluate the classifier. `train.py` will also save the siamese and classifer models into your local repository, including some training plots. Make sure to modify the name paths of the saved models if needed. 
 
-Concerning reproducibility, you won't get the exact same results because of the randomness on how to make pairs of images and splitting the data.
+Concerning reproducibility, you won't get the same results because of the randomness on how to make pairs of images and splitting the data into training and testing. For further improvements, setting a seed to generate the pairs of images and to split the data can increase the chances of reproducibility and get a more stable testing results.
 
 This code was implemented and executed on rangpur with vgpu. It would be preferable if you execute this code(s) on a device or server that provides a GPU for accelarated training.
 
