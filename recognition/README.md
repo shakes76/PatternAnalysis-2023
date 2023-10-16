@@ -1,5 +1,4 @@
 # Generative VQ-VAE model on the OASIS brain dataset
-Various recognition tasks solved in deep learning frameworks.
 
 ## Overview
 The project aims to implement a generative model using VQVAE on the OASIS brain dataset to achieve a result of a 
@@ -19,8 +18,7 @@ or embeddings, each identified by an index and having a specific dimension size.
 3) Decoding: The codebook vectors are used to reconstruct the input data.
 
 
-![img.png](s4699389-VQVAE/images/model images/vqvae.png)
-
+![vqvae.png](s4699389-VQVAE%2Fimages%2Fmodel%20images%2Fvqvae.png)
 
 ### Loss function
 There overall loss function consists of 3 components to train different parts of VQ-VAE. 
@@ -29,8 +27,7 @@ There overall loss function consists of 3 components to train different parts of
 3) **Commitment loss**: ensure that the encoder commits to an embedding and its output does not grow.
 
 The loss function is defined as:
-
-![img.png](s4699389-VQVAE/images/model images/loss function.png)
+![loss function.png](s4699389-VQVAE%2Fimages%2Fmodel%20images%2Floss%20function.png)
 
 Where:
 loss = q_latent_loss + commitment loss * e_latent_loss
