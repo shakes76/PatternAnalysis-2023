@@ -1,18 +1,90 @@
 from torchvision.datasets import ImageFolder
 from torchvision.datasets import ImageFolder
+import torchvision.transforms as transforms
 import torch
 from torch.utils.data import Dataset
+from torch.utils.data import DataLoader
 from torchvision import datasets
 import random
+
+def get_triplet_train_loader(data_dir, batch_size):
+    train_transform = transforms.Compose([
+        transforms.Resize((100, 100)),
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.RandomCrop(100, padding=4, padding_mode='reflect'),
+        transforms.Grayscale(),
+    ])
+    train_dataset = TripletImageFolder(data_dir, transform=train_transform)
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    return train_loader
+
+def get_triplet_test_loader(data_dir, batch_size):
+    test_transform = transforms.Compose([
+        transforms.Resize((100, 100)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Grayscale(),
+    ])
+    test_dataset = TripletImageTestFolder(data_dir, transform=test_transform)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+    return test_loader
+
+def get_triplet_test_loader_predict(data_dir, batch_size):
+    test_transform = transforms.Compose([
+        transforms.Resize((100, 100)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Grayscale(),
+    ])
+    test_dataset = TripletImageTestFolder(data_dir, transform=test_transform)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    return test_loader
 
 def get_datasets(data_dir, transform=None):
     train_dataset = ImageFolder(root=data_dir + '/train', transform=transform)
     test_dataset = ImageFolder(root=data_dir + '/test', transform=transform)
     return train_dataset, test_dataset
+
+def get_classification_dataloader(data_dir, batch_size):
+    transform = transforms.Compose([
+        transforms.Resize((100, 100)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Grayscale(),
+    ])
+    train_dataset = ImageFolder(root=data_dir + '/train', transform=transform)
+    test_dataset = ImageFolder(root=data_dir + '/test', transform=transform)
+
+    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)    
     
-def get_data(data_dir, transform=None):
+    return train_loader, test_loader
+
+def get_classification_accuracy_dataloader(data_dir, batch_size):
+    transform = transforms.Compose([
+        transforms.Resize((100, 100)),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Grayscale(),
+    ])
+    test_dataset = ImageFolder(root=data_dir + '/test', transform=transform)
+
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)  
+    
+    return test_loader
+
+def get_dataLoader(data_dir):
+    transform = transforms.Compose([
+            transforms.Resize((100, 100)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            transforms.Grayscale(),
+        ])
     data = ImageFolder(root=data_dir, transform=transform)
-    return data
+    loader = DataLoader(data, batch_size=len(data))
+    return loader
 
 class TripletImageFolder(Dataset):
     def __init__(self, root, transform=None):

@@ -1,9 +1,6 @@
 from modules import TripletNet, TripletNetClassifier
 import torch
-import numpy as np
-from dataset import TripletImageTestFolder, get_datasets, get_data
-import torchvision.transforms as transforms
-from torch.utils.data import DataLoader
+from dataset import get_classification_accuracy_dataloader, get_triplet_test_loader_predict, get_dataLoader
 
 def predict(tripleClassifier = TripletNetClassifier(), 
                             classifier_load_dir = 'models/tripleClassifier_4.pth', 
@@ -13,15 +10,7 @@ def predict(tripleClassifier = TripletNetClassifier(),
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     # Load in data
-    test_transform = transforms.Compose([
-            transforms.Resize((100, 100)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            transforms.Grayscale(),
-        ])
-    
-    dataset = get_data(X, transform=test_transform)
-    loader = DataLoader(dataset, batch_size=len(dataset))
+    loader = get_dataLoader(X)
 
     # Load the Triplet network
     tripleClassifier.to(device)
@@ -49,36 +38,15 @@ def predict(tripleClassifier = TripletNetClassifier(),
             _, predicted = torch.max(test_outputs, 1)
     return predicted
 
-    
-    
-
 def accuracyTripletModel(model=TripletNet(), 
                          load_dir = 'models/model_S5_5_v3.pth'):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print('device: ', device)
 
-    train_transform = transforms.Compose([
-            transforms.Resize((100, 100)),
-            transforms.RandomHorizontalFlip(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            transforms.RandomCrop(100, padding=4, padding_mode='reflect'),
-            transforms.Grayscale(),
-        ])
-    test_transform = transforms.Compose([
-            transforms.Resize((100, 100)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            transforms.Grayscale(),
-        ])
-
     batch_size = 32
-
     test_folder = 'AD_NC/test'
 
-    test_dataset = TripletImageTestFolder(test_folder, transform=test_transform)
-
-    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+    test_loader = get_triplet_test_loader_predict(test_folder, batch_size)
 
 
     model.to(device)
@@ -114,19 +82,10 @@ def accuracyClassifierModel(tripleClassifier = TripletNetClassifier(),
     print('device: ', device)
 
 
-    test_transform = transforms.Compose([
-            transforms.Resize((100, 100)),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-            transforms.Grayscale(),
-        ])
-
+    data_folder = 'AD_NC'
     batch_size = 32
 
-    _, test = get_datasets('AD_NC', test_transform)
-
-    test_loader = DataLoader(test, batch_size=batch_size, shuffle=True)
-
+    test_loader = get_classification_accuracy_dataloader(data_folder, batch_size)
 
     # Load the Triplet network
     tripleClassifier.to(device)

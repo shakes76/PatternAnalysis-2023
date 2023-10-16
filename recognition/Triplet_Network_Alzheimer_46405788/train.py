@@ -1,7 +1,5 @@
-from dataset import TripletImageFolder, TripletImageTestFolder, get_datasets
+from dataset import get_classification_dataloader, get_triplet_train_loader, get_triplet_test_loader
 from modules import TripletLoss, TripletNet, TripletNetClassifier
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
 import torch
 import matplotlib.pyplot as plt
 
@@ -10,34 +8,14 @@ print('device: ', device)
 
 print('TripletNetwork')
 
-train_transform = transforms.Compose([
-        transforms.Resize((100, 100)),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        transforms.RandomCrop(100, padding=4, padding_mode='reflect'),
-        transforms.Grayscale(),
-    ])
-test_transform = transforms.Compose([
-        transforms.Resize((100, 100)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        transforms.Grayscale(),
-    ])
-
 batch_size = 32
 num_epochs = [35, 100]
-# learning_rate = 0.001
 
 train_folder = 'AD_NC/train'
 test_folder = 'AD_NC/test'
 
-train_dataset = TripletImageFolder(train_folder, transform=train_transform)
-test_dataset = TripletImageTestFolder(test_folder, transform=test_transform)
-
-train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
-
+train_loader = get_triplet_train_loader(train_folder, batch_size)
+test_loader = get_triplet_test_loader(test_folder, batch_size)
 # Initialize the model
 model = TripletNet().to(device)
 
@@ -115,32 +93,12 @@ def extract_features(data):
     with torch.no_grad():
         embeddings = tripleNet.forward_one(data)
         return embeddings
-    
-train_transform = transforms.Compose([
-        transforms.Resize((100, 100)),
-        transforms.RandomHorizontalFlip(),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        transforms.RandomCrop(100, padding=4, padding_mode='reflect'),
-        transforms.Grayscale(),
-    ])
-test_transform = transforms.Compose([
-        transforms.Resize((100, 100)),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-        transforms.Grayscale(),
-    ])
 
 batch_size = 32
-# learning_rate = 0.001
 
-train_folder = 'AD_NC/train'
-test_folder = 'AD_NC/test'
+data_folder = 'AD_NC'
 
-train, test = get_datasets('AD_NC', test_transform)
-
-train_loader = DataLoader(train, batch_size=batch_size, shuffle=True)
-test_loader = DataLoader(test, batch_size=batch_size, shuffle=False)
+train_loader, test_loader = get_classification_dataloader(data_folder, batch_size)
 
 # Load the pre-trained Siamese network
 tripleClassifier = TripletNetClassifier().to(device)
