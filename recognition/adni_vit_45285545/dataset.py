@@ -104,19 +104,16 @@ def train_val_split(dataset: ADNI, val_pct: float) -> Tuple[Dataset, Dataset]:
 
     return dataset, valid_dataset
 
-def get_transforms() -> transforms.Compose:
-    '''Returns a set of transforms to be applied to input images.'''
-    return transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomCrop(224, padding=4, padding_mode='reflect'),
-        transforms.ConvertImageDtype(torch.float),
-    ])
-
 def create_train_dataloader(val_pct: float = 0.2) -> DataLoader:
     '''
     Returns a DataLoader on pre-processed training data from the ADNI dataset.
     '''
-    train_dataset = ADNI(ADNI_ROOT, train=True, transform=get_transforms())
+    transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(224, padding=4, padding_mode='reflect'),
+        transforms.ConvertImageDtype(torch.float),
+    ])
+    train_dataset = ADNI(ADNI_ROOT, train=True, transform=transform)
     if val_pct == 0:
         return DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     else:

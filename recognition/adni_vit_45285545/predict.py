@@ -11,14 +11,13 @@ import torch
 from PIL import Image
 from torchvision import transforms
 
-from dataset import get_transforms
 from train import test_model
 
 
 def predict(image: Image, mdl: Any, device: torch.device) -> int:
     '''Runs the given model on the given image and returns a predicted label.'''
-    image = transforms.ToTensor()(image).unsqueeze(0)
-    image = get_transforms()(image).to(device)
+    image = transforms.ToTensor()(image).unsqueeze(0).to(device)
+    image = transforms.ConvertImageDtype(torch.float)(image)
     output = mdl(image)
     _, predicted = torch.max(output.data, 1)
     label = {0: 'Cognitive normal', 1: 'Alzheimer\'s disease'}[int(predicted[0])]
