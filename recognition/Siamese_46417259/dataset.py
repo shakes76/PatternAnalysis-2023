@@ -325,6 +325,29 @@ def visualise_paired_data(dataset: PairedDataset):
     else: 
         plt.show()
 
+def test_data_leakage():
+    trainloader = load_data(training=True, Siamese=True, random_seed=89, train_proportion=0.8)
+    testloader  = load_data(training=False, Siamese=True, random_seed=64, train_proportion=0.8)
+
+    train_subset = trainloader.dataset.dataset
+    test_subset = testloader.dataset.dataset
+
+    training_images = train_subset.dataset.imgs
+    testing_images = test_subset.dataset.imgs
+
+    training_paths = [training_images[i][0] for i in train_subset.indices]
+    testing_paths = [testing_images[i][0] for i in test_subset.indices]
+
+    training_paths = set(training_paths)
+    testing_paths = set(testing_paths)
+
+    print(len(training_paths))
+    print(len(testing_paths))
+
+    overlap = training_paths.intersection(testing_paths)
+    print(f'number of intersecting files: {len(overlap)}')
+    # print(overlap)
+
 
 if __name__ == "__main__":
     # Decide which device we want to run on
@@ -332,9 +355,10 @@ if __name__ == "__main__":
     print("Device: ", device)
 
     # test_load_data_basic()
-    test_visualise_data_MLP()
+    # test_visualise_data_MLP()
     # test_visualise_data_Siamese()
     # test_paired_dataset()
+    test_data_leakage()
 
 
 #
