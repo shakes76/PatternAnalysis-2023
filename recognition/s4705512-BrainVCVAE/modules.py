@@ -12,6 +12,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 import tensorflow_probability as tfp
 import tensorflow as tf
+image_size = (128, 128)
 
 # Encoding Layer
 class VectorQuantizer(layers.Layer):
