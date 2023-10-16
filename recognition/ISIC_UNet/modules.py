@@ -1,6 +1,8 @@
 import torch
 from torch import nn
+from dataset_test import CustomDataset
 import torch.nn.functional as F
+from torchvision.utils import save_image
 import torch
 import torch.nn as nn
 import torch.nn.functional as funk
@@ -34,7 +36,7 @@ class pre_act(nn.Module):
     
 class local(nn.Module):
     def __init__(self,in_channels,out_channels):
-        super(local,self).__init__()
+        super().__init__()
         self.bn1=nn.BatchNorm2d(in_channels)
         self.conv1=nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1, bias=False)
         self.bn2=nn.BatchNorm2d(in_channels)
@@ -53,31 +55,40 @@ class local(nn.Module):
 class down_samp(nn.Module):
     def __init__(self,in_channels,out_channels,name):
         super().__init__()
+        self.bn1=nn.BatchNorm2d(in_channels)
         self.context_down=nn.Sequential(nn.Conv2d(in_channels,out_channels,kernel_size=3,stride=2,padding=1,bias=False), pre_act(out_channels,out_channels,name))
 
     def forward(self,x):
-        out=self.context_down(x)
+        out=self.bn1(x)
+        out=funk.relu(out)
+        out=self.context_down(out)
         return out
 
 
 class up_scale(nn.Module):
     def __init__(self,in_channels,out_channels):
         super().__init__()
+        self.bn1=nn.BatchNorm2d(in_channels)
         self.up_samp=nn.Conv2d(in_channels,out_channels,kernel_size=3,stride=1,padding=1,bias=False)
         
     
     def forward(self,x):
-        out=F.interpolate(x,scale_factor=2,mode='nearest') 
+        out=F.interpolate(x,scale_factor=2,mode='bilinear')
+        out=self.bn1(out)
+        out=funk.relu(out) 
         out=self.up_samp(out)
         return out
 
 class segmentation(nn.Module):
     def __init__(self,in_channels,out_channels):
         super().__init__()
+        self.bn1=nn.BatchNorm2d(in_channels)
         self.segm=nn.Conv2d(in_channels, out_channels, kernel_size=1, stride=1, padding=0, bias=False) 
     
-    def forward(self,x):
-        out=self.segm(x)
+    def forward(self,x):        
+        out=self.bn1(x)
+        out=funk.relu(out) 
+        out=self.segm(out)
         return out
         
 
@@ -108,7 +119,8 @@ class UNet(nn.Module):
         self.conv4=nn.Conv2d(32,32,stride=1,kernel_size=3,padding=1,bias=False)
         self.segm3=segmentation(32,1)
 
-        self.softmax=nn.Softmax(dim=1)
+        self.softmax=nn.Softmax(dim=3)
+        self.sigmoid=nn.Sigmoid()
     
     def forward(self,x):
         out=self.conv1(x)
@@ -121,7 +133,7 @@ class UNet(nn.Module):
         out=self.down4(out)
         cat1=out
         out=self.down5(out)
-
+        
         out=self.up1(out)
         out=torch.cat((out,cat1),dim=1)
         out=self.local1(out)
@@ -144,10 +156,10 @@ class UNet(nn.Module):
         out=self.conv4(out)
         segm3=self.segm3(out)
         segm3=torch.add(segm2,segm3)
-      
-        softmax=self.softmax(segm3)
-        print(softmax.shape)
-        return softmax
+        
+        #softmax=self.softmax(segm3)
+        sigmoid=self.sigmoid(segm3)
+        return sigmoid
 
 
 
