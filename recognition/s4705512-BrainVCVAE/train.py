@@ -110,3 +110,20 @@ codebook_indices = quantizer.get_code_indices(flat_enc_outputs)
 codebook_indices = codebook_indices.numpy().reshape(encoded_outputs.shape[:-1])
 print(f"Shape of the training data for PixelCNN: {codebook_indices.shape}")
 
+# Train the PixelCNN
+pixel_cnn.compile(
+    optimizer=keras.optimizers.Adam(3e-4),
+    loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+    metrics=["accuracy"],
+)
+pixelcnn_history = pixel_cnn.fit(
+    x=codebook_indices,
+    y=codebook_indices,
+    batch_size=pixelcnn_batch_size,
+    epochs=pixelcnn_epochs,
+    validation_split=pixelcnn_validation_split,
+)
+
+# Save the PixelCNN model
+pixel_cnn.save_weights(models_directory + pixelcnn_weights_filename)
+

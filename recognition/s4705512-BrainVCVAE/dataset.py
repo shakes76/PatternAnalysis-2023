@@ -173,11 +173,11 @@ class Data:
         return test_ds
 
 
-if __name__ == "__main__":
-     ds = Data()
-     train = ds.get_train_dataset()
-     test = ds.get_test_dataset()
+# if __name__ == "__main__":
+#      ds = Data()
+#      train = ds.get_train_dataset()
+#      test = ds.get_test_dataset()
 
 
-     print("train", "size", train.size, "shape", train.shape)
-     print("test", "size", test.size, "shape", test.shape)
+#      print("train", "size", train.size, "shape", train.shape)
+#      print("test", "size", test.size, "shape", test.shape)
