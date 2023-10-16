@@ -1,3 +1,8 @@
+# ESPCN Super-Resolution Model with ADNI Dataset
+
+This project implements the Efficient Sub-Pixel Convolutional Neural Network (ESPCN) for image super-resolution using the ADNI (Alzheimer's Disease Neuroimaging Initiative) dataset. The ADNI dataset is organized in the following format:
+
+```
 ADNI
 │
 └───AD_NC
@@ -15,24 +20,32 @@ ADNI
         │
         └───NC
             └───*.jpeg (multiple jpeg images)
----
-
-# ESPCN Super-Resolution Model
+```
 
 ## Overview
 
-This project implements the Efficient Sub-Pixel Convolutional Neural Network (ESPCN) for image super-resolution. The ESPCN model is designed to perform super-resolution in the low-resolution (LR) space, which reduces computational complexity. The model replaces the handcrafted bicubic filter in the super-resolution pipeline with learned upscaling filters, offering improved performance.
+Existing methods of super-resolution are currently performed in the High-Resolution (HR) space, this would be very computationally expensive which
+would lead to a general decrease in performance and speed of super-resolution, making pre-existing methods of super-resolution very inefficient.
+The Efficient Sub-Pixel Convolutional Neural Network (ESPCN) is a neural network model created to overcome the weakness of current super-resolution
+methods by extracting feature maps in Low-Resolution (LR) space, in essence, images are first downsampled and then feature extraction is performed. 
+In ESPCN, upscaling is handled by final layer of network, meaning each LR image is directly fed into the network and feature extraction occurs through
+nonlinear convolutions in LR space. Due to reduced input res, a smaller filter size can be effectively used to integrate same information while 
+maintaining a given contextual area. The resolution and filter size reduction lowers the computational cost substantially enough to allow super-res of 
+HD videos in real-time.
+For a network with L layers, we learn n(L - 1) upscaling filters for the n(L - 1) feature maps as opposed to one upscaling filter for the input image.
+Not using of an explicit interpolation filter means that the network will implicitly learn the processing necessary for SR. Thus, the network is able
+to learn a better and more complex LR to HR mapping compared to a single fixed filter upscaling at the first layer. This results in additional gains
+in reconstruction accuracy!
+This project focuses on enhancing the resolution of medical images from the ADNI dataset using the ESPCN (Efficient Sub-Pixel Convolutional Neural Network) model.  The key features of this project are as follows:
 
-## Key Features
-
-- **Feature Extraction in LR Space:** ESPCN extracts feature maps in the LR space, allowing for reduced computational complexity.
-- **Sub-Pixel Convolution:** The model uses a sub-pixel convolution layer to upscale the final LR feature maps to high-resolution (HR) output.
-- **Custom Dataset Handling:** The dataset is organized into training and testing sets, with categories for AD and NC images.
-- **Visualization:** The training script provides visual feedback on the model's performance every few epochs.
+- **Feature Extraction in LR Space:** ESPCN efficiently extracts features from low-resolution images, reducing computational complexity.
+- **Sub-Pixel Convolution:** The model employs a sub-pixel convolution layer to upscale LR feature maps to high-resolution output.
 
 ## Getting Started
 
 ### Prerequisites
+
+Before using this project, ensure you have the following dependencies installed:
 
 - Python 3.x
 - PyTorch
@@ -41,6 +54,8 @@ This project implements the Efficient Sub-Pixel Convolutional Neural Network (ES
 - matplotlib
 
 ### File Structure
+
+The project directory should have the following structure:
 
 ```
 .
@@ -52,34 +67,50 @@ This project implements the Efficient Sub-Pixel Convolutional Neural Network (ES
 
 ### Usage
 
-1. **Training the Model:**
+To utilize this project with your ADNI dataset, follow these steps:
+
+1. **Adjust File Paths:**
+    - Update the file paths in `train.py` and `predict.py` to point to your ADNI dataset folder, starting at `\\ADNI\\AD_NC` as well as to point
+    to the location of where you wish to save/load the trained model.
+
+2. **Training the Model:**
     ```bash
     python train.py
     ```
-    This will train the ESPCN model on the provided dataset and save the trained model weights.
+    This command trains the ESPCN model using the ADNI dataset and saves the trained model weights. Inside this source code, I am saving both 
+    the model and the generated images in the ADNI folder.
 
-2. **Predicting with the Model:**
+3. **Predicting with the Model:**
     ```bash
     python predict.py
     ```
-    This will load a trained ESPCN model and make predictions on a sample from the test dataset. The results will be visualized.
+    Run this command to load the trained ESPCN model and perform super-resolution on a downsampled image using PyTorch. The results will be 
+    visualised as a side-by-side comparison of the `Downsampled Image` - `ESPCN super-resolved image` - `Original Image`.
 
 ### Model Details
 
-- **Loss Function:** Mean Squared Error (MSE) loss is used as it ensures that the reconstructed high-resolution image is pixel-wise similar to the original.
-- **Optimizer:** Adam optimizer is employed due to its faster convergence and better performance in deep learning tasks, including super-resolution.
-- **Learning Rate Scheduler:** `ReduceLROnPlateau` is used to adjust the learning rate based on the model's performance.
-- **Performance Metric:** Peak Signal-to-Noise Ratio (PSNR) is used to measure the quality of the reconstructed image compared to the original.
+- **Loss Function:** Mean Squared Error (MSE) loss is employed, ensuring that the reconstructed high-resolution image closely matches the original.
+                     MSE is a common choice for super-resolution tasks as MSE directly measures the pixel-wise error between the super-resolved
+                     image and the ground truth image. It calculates the average squared difference between corresponding pixel values. This pixel-level
+                     comparison aligns with the goal of super-resolution, which is to generate high-quality pixel-accurate images resembling the 
+                     ground truth.
+- **Optimizer:** The Adam optimizer is used due to its faster convergence and effectiveness in deep learning tasks, including super-resolution.
+- **Learning Rate Scheduler:** `ReduceLROnPlateau` is utilized to adapt the learning rate based on the model's performance. Just like in the paper,
+                               `ReduceLROnPlateau` is used to dynamically adjust the learning rate during training. 
+- **Performance Metric:** Peak Signal-to-Noise Ratio (PSNR) measures the quality of the reconstructed image compared to the original. SNR is 
+                          sensitive to pixel-level differences between the original and reconstructed images. This sensitivity is crucial for super-resolution tasks, where the goal is to enhance fine details and textures. PSNR penalizes differences in pixel values, which encourages the model to produce results that closely match the ground truth.
+- **Activation Function:** Tanh is chosen over ReLU as tanh an produce negative values in its output, which is beneficial for capturing both positive
+                           and negative image details during super-resolution. In addition to that, tanh squashes the input values to a range of 
+                           [-1, 1] which is beneficial for super-resolution as it ensures that the output falls within a bounded range. While ReLU 
+                           is unbounded.
 
 ### Notes
 
-- Ensure you adjust file paths in the scripts if you're using a different directory structure.
-- The model is trained on grayscale images. Ensure your dataset consists of grayscale images or modify the model to handle RGB images.
+- Be sure to adjust the file paths in the scripts to match your directory structure and ADNI dataset location.
+- The model is designed for grayscale images. Ensure that your ADNI dataset contains grayscale images or modify the model to handle RGB images.
 
 ## Acknowledgements
 
-This project is based on the principles of the ESPCN model for super-resolution. The implementation is inspired by various research papers and PyTorch tutorials.
+This project is based on the principles of the ESPCN model for super-resolution and is inspired by various research papers and PyTorch tutorials.
 
----
-
-You can save the above content in a `README.md` file at the root of your project directory. Adjustments can be made as per your specific requirements or additional details you'd like to include.
+![Alt text](image.png)
