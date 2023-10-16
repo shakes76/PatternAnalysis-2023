@@ -14,6 +14,7 @@ CROSS_ATTENTION_HEADS = 1
 SELF_ATTENTION_HEADS = 4
 SELF_ATTENTION_DEPTH = 4
 MODEL_DEPTH = 4
+BATCH_SIZE = 5
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("using ", device)
@@ -23,7 +24,7 @@ perceiver.load_state_dict(torch.load(MODEL))
 correct_predictions = 0
 total_predictions = 0
 
-test_dataset = ADNI().testing_data_loader
+test_dataset = ADNI(BATCH_SIZE).testing_data_loader
 with torch.no_grad():
     for index, value in enumerate(test_dataset):
         (images, labels) = value
