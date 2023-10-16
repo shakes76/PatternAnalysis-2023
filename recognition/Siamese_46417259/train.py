@@ -12,12 +12,9 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
+import CONSTANTS
 from modules import SiameseTwin, SiameseNeuralNet, SimpleMLP
-from dataset import PairedDataset, load_data
-
-TRAIN_PATH = '/home/groups/comp3710/ADNI/AD_NC/train/'
-TEST_PATH = '/home/groups/comp3710/ADNI/AD_NC/test/'
-RESULTS_PATH = "/home/Student/s4641725/COMP3710/project_results/"
+from dataset import PairedDataset, load_data, load_test_data
 
 # Loss Functions and Optimizers -----------------------------------
 class ContrastiveLoss(nn.Module):
@@ -75,7 +72,7 @@ def initialise_classifier_training():
     return classifier, criterion, optimiser, device
 
 def load_from_checkpoint(filename:str, model:nn.Module, optimizer:optim.Optimizer):
-    checkpoint = torch.load(RESULTS_PATH + filename)
+    checkpoint = torch.load(CONSTANTS.MODEL_PATH + filename)
     model.load_state_dict(checkpoint['model_state_dict'])
     optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
     starting_epoch = checkpoint['epoch']
@@ -91,7 +88,7 @@ def save_checkpoint(epoch:int, model:nn.Module, optimizer:optim.Optimizer, train
         'optimizer_state_dict': optimizer.state_dict(),
         'loss_train': training_loss,
         'loss_eval': eval_loss
-    }, RESULTS_PATH + f"{model.__class__.__name__}_checkpoint.tar"
+    }, CONSTANTS.RESULTS_PATH + f"{model.__class__.__name__}_checkpoint.tar"
     )
 
 def train_siamese_one_epoch(model: SiameseNeuralNet, 
@@ -281,6 +278,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
 
     train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
     validation_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
+    # validation_loader = load_test_data(Siamese=True, random_seed=random_seed)
     siamese_net, criterion, optimiser, device = initialise_Siamese_training()
 
     # scheduler = optim.lr_scheduler.ExponentialLR(optimiser, 0.99)
@@ -324,7 +322,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     plt.xlabel("Epochs / 10")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig(RESULTS_PATH + f"DSiamese_train_and_eval_loss_after_{total_epochs}_epochs.png")
+    plt.savefig(CONSTANTS.RESULTS_PATH + f"DSiamese_train_and_eval_loss_after_{total_epochs}_epochs.png")
 
     return siamese_net
 
@@ -336,6 +334,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
 
     train_loader = load_data(training=True, Siamese=False, random_seed=random_seed)
     validation_loader = load_data(training=False, Siamese=False, random_seed=random_seed)
+    # validation_loader = load_test_data(Siamese=False, random_seed=random_seed)
 
     # classifier, criterion, optimiser, device = initialise_classifier_training(backbone)
     classifier, criterion, optimiser, device = initialise_classifier_training()
@@ -381,7 +380,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     plt.xlabel("Epochs / 10")
     plt.ylabel("Loss")
     plt.legend()
-    plt.savefig(RESULTS_PATH + f"DClassifier_train_and_eval_loss_after_{total_epochs}_epochs.png")
+    plt.savefig(CONSTANTS.RESULTS_PATH + f"DClassifier_train_and_eval_loss_after_{total_epochs}_epochs.png")
 
 if __name__ == "__main__":
     # normal training workflow
