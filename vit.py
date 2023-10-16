@@ -31,6 +31,7 @@ num_layers = 12  # Number of Transformer encoder layers
 mlp_size = 3072  # Number of hidden units between each linear layer
 dropout_size = 0.1
 num_classes = 2  # Number of different classes to classify (i.e. AD and NC)
+num_epochs = 5
 
 # Create the dataset
 dataroot = "AD_NC"
@@ -247,12 +248,29 @@ def test():
     patch_and_position_embedding = prepended_patch_embedding + positional_embed
     print(f"Final: {patch_and_position_embedding}")
     print(f"Final shape: {patch_and_position_embedding.shape}")   
-
-    # ------------------------------------------------------------------------------------------------
-    # Test Multi-head attnetion
+    
 
 def main():
-    test()
+    visual_transformer = ViT(workers)
+    
+    # ----------------------------------------
+    # Loss Function and Optimiser
+    criterion = nn.CrossEntropyLoss()
+    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=3e-3, weight_decay=0.3)
+
+    # ----------------------------------------
+    # Training loop
+    losses = []
+    iters = 0
+
+    print("Starting training loop")
+    
+    #for epoch in range(num_epochs):
+        #for i, data in enumerate(dataloader, 0):
+            
+
+
+
 
 
 if __name__ == '__main__':
