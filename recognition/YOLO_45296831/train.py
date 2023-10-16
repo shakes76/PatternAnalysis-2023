@@ -16,7 +16,7 @@ def main():
 
     # Train
     #TODO set train function params
-    results = model.train(data='dataset.yaml', epochs=0, imgsz=0)
+    results = model.train(batch=8, device=device, data='dataset.yaml', epochs=80, imgsz=2594)
 
     end_time = time.time()
     print(f"End Time: {time.ctime(end_time)}")
