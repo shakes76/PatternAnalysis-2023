@@ -44,10 +44,28 @@ if not torch.cuda.is_available():
 
 # ------------------------------------------------------------------
 # Patch Embedding
+class PatchEmbedding(nn.Module):
+    '''
+    Takes a 2D input image and splits it into fixed-sized patches and linearly embeds each of them.
+    Changes the dimensions from H x W x C to N x (P^2 * C), where 
+    (H, W, C) is the height, width, number of channels of the image,
+    N is the number of patches, 
+    and P is the dimension of each patch; P^2 represents a flattened patch.
+    '''
+    def __init__(self, ngpu):
+        super(PatchEmbedding, self).__init__()
+        self.ngpu = ngpu
+        self.main = nn.Sequential(
+            nn.Conv2d(in_channels=num_channels,
+                        out_channels=embed_dim,
+                        kernel_size=patch_size,
+                        stride=patch_size,
+                        padding=0),
+            nn.Flatten(start_dim=2, end_dim=3)
+        )
 
-
-#class PatchEmbedding(nn.Module):
-
+    def forward(self, input):
+        return self.main(input).permute(0, 2, 1)
 
 def imshow(img):
     img = img / 2 + 0.5  # Unnormalize (assuming your normalization was (0.5, 0.5, 0.5))
@@ -97,6 +115,13 @@ def test():
     reshaped_flattened_image_patched = flattened_image_patched.permute(0, 2, 1)  # Need to swap embed size and num_patches order
     # This achieves the resizing in the paper: H x W x C -> N x (P^2*C)
     print(f"Reshaped:{reshaped_flattened_image_patched.shape}")
+
+    # Test Patching module on random tensor
+    random_image_tensor = torch.randn(1, 3, 224, 224)
+    patch_embedding = PatchEmbedding(workers)
+    patch_embedding_output = patch_embedding(random_image_tensor)
+    print(f"In shape: {random_image_tensor.shape}")
+    print(f"Out shape: {patch_embedding_output.shape}
 
 def main():
     test()
