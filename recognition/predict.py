@@ -18,7 +18,7 @@ MODEL_DEPTH = 4
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print("using ", device)
 perceiver = Perceiver(MODEL_DEPTH, SELF_ATTENTION_DEPTH, LATENT_DIMENTIONS, EMBEDDED_DIMENTIONS, CROSS_ATTENTION_HEADS, SELF_ATTENTION_HEADS)
-perceiver.set.load_state_dict(torch.load(MODEL))
+perceiver.load_state_dict(torch.load(MODEL))
 
 correct_predictions = 0
 total_predictions = 0
