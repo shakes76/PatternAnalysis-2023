@@ -9,17 +9,17 @@ ADNI
     │
     ├───test
     │   ├───AD
-    │   │   └───*.jpeg (multiple jpeg images)
+    │   │   └───*.jpeg (greyscale jpeg images)
     │   │
     │   └───NC
-    │       └───*.jpeg (multiple jpeg images)
+    │       └───*.jpeg (greyscale jpeg images)
     │
     └───train
         ├───AD
-        │   └───*.jpeg (multiple jpeg images)
+        │   └───*.jpeg (greyscale jpeg images)
         │
         └───NC
-            └───*.jpeg (multiple jpeg images)
+            └───*.jpeg (greyscale jpeg images)
 ```
 
 ## Overview
@@ -36,7 +36,7 @@ For a network with L layers, we learn n(L - 1) upscaling filters for the n(L - 1
 Not using of an explicit interpolation filter means that the network will implicitly learn the processing necessary for SR. Thus, the network is able
 to learn a better and more complex LR to HR mapping compared to a single fixed filter upscaling at the first layer. This results in additional gains
 in reconstruction accuracy!
-This project focuses on enhancing the resolution of medical images from the ADNI dataset using the ESPCN (Efficient Sub-Pixel Convolutional Neural Network) model.  The key features of this project are as follows:
+This project focuses on enhancing the resolution of medical images from the ADNI dataset using the ESPCN (Efficient Sub-Pixel Convolutional Neural Network) model. The key features of this project are as follows:
 
 - **Feature Extraction in LR Space:** ESPCN efficiently extracts features from low-resolution images, reducing computational complexity.
 - **Sub-Pixel Convolution:** The model employs a sub-pixel convolution layer to upscale LR feature maps to high-resolution output.
@@ -77,15 +77,20 @@ To utilize this project with your ADNI dataset, follow these steps:
     ```bash
     python train.py
     ```
-    This command trains the ESPCN model using the ADNI dataset and saves the trained model weights. Inside this source code, I am saving both 
-    the model and the generated images in the ADNI folder.
+    If you are currently in the same directory as the file, this command trains the ESPCN model using the ADNI dataset and saves the trained model weights. Inside this source code, I am saving the model in the ADNI folder.
 
 3. **Predicting with the Model:**
     ```bash
     python predict.py
     ```
-    Run this command to load the trained ESPCN model and perform super-resolution on a downsampled image using PyTorch. The results will be 
+    If you are currently in the same directoy as the file, run this command to load the trained ESPCN model and perform super-resolution on a downsampled image using PyTorch. The results will be 
     visualised as a side-by-side comparison of the `Downsampled Image` - `ESPCN super-resolved image` - `Original Image`.
+
+## Training Plots
+![Alt text](image.png)
+
+## Output
+![Alt text](outputimg.png)
 
 ### Model Details
 
@@ -108,10 +113,11 @@ To utilize this project with your ADNI dataset, follow these steps:
 
 - Be sure to adjust the file paths in the scripts to match your directory structure and ADNI dataset location.
 - The model is designed for grayscale images. Ensure that your ADNI dataset contains grayscale images or modify the model to handle RGB images.
+- The default upscale/downscale factor in this project is 4 as per assignment specifications, do adjust as needed.
+- Downscaling is performed using PyTorch's Resize instead of applying a Gaussian blur to the images as per literature, 
+  this is done based on the assignment specifications.
 
 ## Acknowledgements
 
 This project is based on the principles of the ESPCN model for super-resolution and is inspired by various research papers and PyTorch tutorials.
 
-## Output
-![Alt text](outputimg.png)
