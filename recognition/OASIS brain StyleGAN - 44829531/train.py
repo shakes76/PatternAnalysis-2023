@@ -12,6 +12,7 @@ import tensorflow as tf
 from tensorflow import keras
 from dataset import load_data
 from modules import Generator, Discriminator
+from util import FileSaver
 import matplotlib.pyplot as plt
 
 # File paths
@@ -43,13 +44,13 @@ class StyleGAN(keras.Model):
         self.epochs = epochs
         self.batch_size = batch_size
 
-    def setup(self):
+    def compile(self):
         """
-        Setup the StyleGAN model
+        Compile the StyleGAN model
 
         Sets up the optimisers, loss function and metrics
         """
-        super(StyleGAN, self).setup()
+        super(StyleGAN, self).compile()
 
         # initialise the optimisers
         self.generator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE)
@@ -139,7 +140,6 @@ class StyleGAN(keras.Model):
 
             # Get the trainable variables of the discriminator and calculate
             # the gradients of the discriminator loss with respect to them.
-            trainable_variables = self.discriminator.trainable_variables
             gradients = d_tape.gradient(discriminator_loss, trainable_variables)
 
             # Apply the gradients to the discriminator's optimiser.
@@ -152,28 +152,20 @@ class StyleGAN(keras.Model):
         """
         Train the StyleGAN model using the given dataset
         """
-        # Load the dataset and shuffle
+        callbacks = []
+
+        if result_image_path:
+            training_hooks.append()
+
+        if result_weight_path:
+            training_hooks.append()
+
         dataset = load_data(dataset_path)
-        dataset = dataset.shuffle(SEQUENCE).batch(self.batch_size)
+        self.compile()
+        epoch_history = self.fit(dataset, self.epochs)
 
-        # Perform any setup operations required before training.
-        self.setup()
-
-        # Iterate over the number of epochs.
-        for epoch in range(self.epochs):
-            print("Epoch: ", epoch)
-            # Iterate over the batches of the dataset.
-            for real_images in dataset:
-                losses = self.train_step(real_images)
-                # Print the losses for the generator and discriminator
-                # for the current batch.
-                print("Generator loss: ", losses["generator_loss"])
-                print("Discriminator loss: ", losses["discriminator_loss"])
-
-            # Generate and save images and model weights.
-            self.generate_and_save_images(epoch, result_image_path,
-                                          result_image_count)
-            self.save_weights(result_weight_path)
+        if plot_loss:
+            self.plot(epoch_history, result_image_path)
 
     @tf.function
     def train_step(self, real_images):
