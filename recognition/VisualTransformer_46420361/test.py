@@ -6,7 +6,6 @@ from torch import nn
 from torch.optim import Adam
 from torch.nn import BCELoss, CrossEntropyLoss
 from tqdm import tqdm, trange
-# import cv2
 import numpy as np
 from PIL import Image
 
@@ -195,6 +194,7 @@ weight_decay = 0.0001
 # Training loop
 optimizer = Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
 criterion = CrossEntropyLoss()
+model.train() # training mode
 for epoch in trange(epochs, desc="Training"):
     train_loss = 0.0
     for batch in tqdm(train_dataloader, desc=f"Epoch {epoch + 1} in training", leave=False):
@@ -211,6 +211,7 @@ for epoch in trange(epochs, desc="Training"):
 
     print(f"Epoch {epoch + 1}/{epochs} loss: {train_loss:.2f}")
 
+model.eval() # evaluation mode
 # Test loop
 with torch.no_grad():
     correct, total = 0, 0
