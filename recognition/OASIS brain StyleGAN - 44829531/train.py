@@ -12,21 +12,8 @@ import tensorflow as tf
 from tensorflow import keras
 from dataset import load_data
 from modules import Generator, Discriminator
-from util import FileSaver
+from util import SaveImage, SaveWeight
 import matplotlib.pyplot as plt
-
-# File paths
-dataset_path = "C:\\Users\\ethan\\Desktop\\COMP3710" \
-               "\\keras_png_slices_train "
-result_image_path = "figures"
-result_weight_path = "figures"
-result_image_count = 5
-
-# Hyperparameters
-SEQUENCE = 500
-LEARNING_RATE = 0.0001
-EPOCHS = 80
-BATCH_SIZE = 32
 
 
 class StyleGAN(keras.Model):
@@ -53,8 +40,8 @@ class StyleGAN(keras.Model):
         super(StyleGAN, self).compile()
 
         # initialise the optimisers
-        self.generator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE)
-        self.discriminator_optimizer = tf.keras.optimizers.Adam(LEARNING_RATE)
+        self.generator_optimizer = tf.keras.optimizers.Adam(0.00001)
+        self.discriminator_optimizer = tf.keras.optimizers.Adam(0.00002)
 
         # initialise the loss function
         self.loss = tf.keras.losses.BinaryCrossentropy()
@@ -72,7 +59,7 @@ class StyleGAN(keras.Model):
         """
         return [self.generator_loss_metric, self.discriminator_loss_metric]
 
-    def generator_inputs(self):
+    def get_generator_inputs(self):
         """
         Generate the inputs for the generator model
         """
@@ -92,7 +79,7 @@ class StyleGAN(keras.Model):
         Trains the generator model for one step.
         """
         # Get the inputs for the generator model.
-        inputs = self.generator_inputs()
+        inputs = self.get_generator_inputs()
 
         # Record operations for automatic differentiation.
         with tf.GradientTape() as g_tape:
@@ -113,8 +100,7 @@ class StyleGAN(keras.Model):
             gradients = g_tape.gradient(generator_loss, trainable_variables)
 
             # Apply the gradients to the generator's optimiser.
-            self.generator_optimizer.apply_gradients(zip(gradients,
-                                                         trainable_variables))
+            self.generator_optimizer.apply_gradients(zip(gradients, trainable_variables))
         return generator_loss
 
     def train_discriminator(self, real_images):
@@ -123,7 +109,7 @@ class StyleGAN(keras.Model):
         both real and generated images
         """
         # Generate fake images
-        inputs = self.generator_inputs()
+        inputs = self.get_generator_inputs()
         generated_images = self.generator(inputs)
 
         # Create labels for the fake and real images and combine them.
@@ -140,6 +126,7 @@ class StyleGAN(keras.Model):
 
             # Get the trainable variables of the discriminator and calculate
             # the gradients of the discriminator loss with respect to them.
+            trainable_variables = self.discriminator.trainable_variables
             gradients = d_tape.gradient(discriminator_loss, trainable_variables)
 
             # Apply the gradients to the discriminator's optimiser.
@@ -147,22 +134,22 @@ class StyleGAN(keras.Model):
                                                              trainable_variables))
         return discriminator_loss
 
-    def train(self, dataset_path, result_image_path,
-              result_weight_path, result_image_count):
+    def train(self, dataset_path, result_image_path, image_count,
+              result_weight_path, plot_loss):
+              
         """
         Train the StyleGAN model using the given dataset
         """
         callbacks = []
 
-        if result_image_path:
-            training_hooks.append()
+        if result_image_path != "":
+            callbacks.append(SaveImage(result_image_path, image_count))
+        if result_weight_path != "":
+            callbacks.append(SaveWeight(result_weight_path))
 
-        if result_weight_path:
-            training_hooks.append()
-
-        dataset = load_data(dataset_path)
+        images = load_data(dataset_path)
         self.compile()
-        epoch_history = self.fit(dataset, self.epochs)
+        epoch_history = self.fit(images, epochs=self.epochs, callbacks=callbacks)
 
         if plot_loss:
             self.plot(epoch_history, result_image_path)
