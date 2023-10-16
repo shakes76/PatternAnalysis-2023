@@ -1,14 +1,23 @@
 # Classify Alzheimer’s Disease using ViT
 
 ## Description
-This project aims to classify Alzheimer's disease using Visual Transformers (ViT). By leveraging the power of transformers in analyzing image data, the algorithm effectively identifies features relevant for diagnosing Alzheimer's disease from medical images.
+Alzeimer's disease from MRI scans using Visual Transformers (ViT). It leveraged the algorithms ability to create correlations between different parts of the brain with teh hopes of it being able to identify the key areas which relate to Alzeimer's disease. The project was completed as part of the COMP3710 course at the University of Queensland. The final model was able to achieve 66.94% accuracy on the test set.
 
 ---
+
+## Table of Contents
+- [How it works](#how-it-works)
+- [Dependencies](#dependencies)
+- [Reproducibility](#reproducibility)
+- [Example Inputs, Outputs, and Plots](#example-inputs-outputs-and-plots)
+- [Data Pre-Processing and Splits](#data-pre-processing-and-splits)
+- [Training and Evaluation](#training-and-evaluation)
+
 
 ## How it Works
 
 ### Overview
-The Visual Transformer takes an image as input and divides it into patches, which are then linearly embedded. These patches go through a series of transformer layers to extract features. The final feature vector is used for classification. The model is trained on a dataset of medical images, each labeled as either 'Normal' or 'Alzheimer’s disease'.
+The Visual Transformer is a model which is based on the orinally text-based Transformer architecture. It considers an image input, divides it into patches, and then linearly embeds them. Following this the patches would go through a series of transformer layers so as to extract features. The final feature vector is then used for the classification. In this particular case, the model is trained on a dataset of medical images, each labeled as either 'Normal' or 'Alzheimer’s disease'.
 
 ![Attention Visualization](saved_models/train_visuals/45/attention_visualization_0.png)
 
@@ -16,29 +25,29 @@ The Visual Transformer takes an image as input and divides it into patches, whic
 ### Network Architecture: Visual Transformer (ViT)
 ![ViT Architecture](ViT-architecture.png)
 
-Visual Transformer (ViT) is a neural network architecture that leverages the Transformer model originally designed for natural language processing tasks for image classification. The architecture consists of the following main components:
+As previously stated, the Visual Transformer (ViT) is a neural network architecture which leverages the, originally natural language-based, Transformer model. The architecture consists of the following main components:
 
-1. **Patch Embedding**: The input image is divided into small patches (e.g., 16x16 pixels). Each patch is flattened and transformed into a 1D vector. These vectors are then linearly embedded to form a sequence of embeddings.
+1. **Patch Embedding**: The input image is divided into small patches (e.g., 16x16 pixels). Each of these patches is then flattened and transformed into a 1D vector. This is done so as to linear embedd them so as to form a sequence of embeddings.
   
-2. **Positional Encoding**: Positional encodings are added to the patch embeddings to provide the model with information about the relative positions of the patches.
+2. **Positional Encoding**: Most interesting about the transformer model is its ability to encapsulating information about relative positions of the patches. This is done by adding positional encodings to the patch embeddings.
 
-3. **Transformer Blocks**: These are the core of the ViT model. Each block consists of a multi-head self-attention layer followed by feed-forward neural networks. The transformer blocks are responsible for feature extraction.
+3. **Transformer Blocks**: Core to the ViT model are the Transformer blocks. Each of these blocks consists of a multi-head self-attention layer followed by feed-forward neural networks. These transformer blocks are the components which are responsible for feature extraction.
 
-4. **Classification Head**: The final output from the Transformer blocks is passed through a linear layer for classification.
+4. **Classification Head**: Finally the output from the Transformer blocks is passed through a linear layer for classification.
 
 ---
 
 #### Modules in `modules.py`
 
-1. **PatchEmbed**: This module is responsible for breaking the input image into patches and linearly embedding them. It uses a Conv2D layer for both patch extraction and linear embedding.
+1. **PatchEmbed**: This module is the one responsible for breaking the input image into patches and linearly embedding them. It does this by using a Conv2D layer for both patch extraction and linear embedding.
 
-2. **Attention**: This is the multi-head self-attention module. It takes in the patch embeddings, applies self-attention to weigh the importance of different patches relative to each other, and outputs a new set of embeddings.
+2. **Attention**: This is the multi-head self-attention module. It works by taking in the patch embeddings, applying self-attention to weigh the importance of different patches relative to each other, and outputing a new set of embeddings.
 
-3. **MLP**: This is a simple Multi-Layer Perceptron consisting of fully connected layers, usually followed by activation functions like ReLU and normalization layers. It serves as the feed-forward neural network in the Transformer blocks.
+3. **MLP**: This is a simple Multi-Layer Perceptron (as commonly found within neural networks) which consists of fully connected layers, usually followed by activation functions like ReLU and normalization layers. This is crucial since it serves as the feed-forward neural network in the Transformer blocks.
 
-4. **Block**: This encapsulates one "block" of the transformer consisting of the Attention layer followed by the MLP. Layer normalization is usually applied before and/or after each of these sub-layers.
+4. **Block**: This encapsulates one "block" of the transformer consisting of the Attention layer and the MLP - in that order. It should be noted that layer normalization is also usually applied before and/or after each of these sub-layers.
 
-5. **VisionTransformer**: This is the main model class that combines all of the above modules. It takes an image as input, applies PatchEmbed to create patch embeddings, adds positional encodings, and passes them through multiple Transformer Blocks. Finally, a classification head is applied to the output of the last Transformer block to make predictions.
+5. **VisionTransformer**: This is where is all comes together! It takes an image as input, applies PatchEmbed (see above) so as to create patch embeddings, adds positional encodings, and then passes them through multiple Transformer Blocks. After all that, finally, a classification head is applied to the output of the last Transformer block so as to make predictions.
 
 ---
 
@@ -132,7 +141,7 @@ NC:
 ---
 
 ### Predictions
-The model outputs a probability score between 0 and 1, where a higher score indicates a higher likelihood of Alzheimer's Disease.
+The model outputs a classification closer to 0 or 1 - for 1 (or near 1) indicates a classification Alzheimer's Disease. 
 
 ---
 
@@ -156,7 +165,7 @@ A common occurence during the training was overfitting. This is evident in the g
 ---
 
 ### Attention Visualizations
-The model's attention mechanism can be visualized to understand where the model focuses its "attention" while making a prediction. Below are some examples:
+The model's attention mechanism can be visualized so as to understand where the model focuses its "attention" while making predictions. Below are some examples:
 
 ![Attention Visualization 1](saved_models/train_visuals/45/attention_visualization_0.png)
 ![Attention Visualization 2](saved_models/train_visuals/45/attention_visualization_10.png)
@@ -203,6 +212,21 @@ mean, std = dataset_statistics.calculate_statistics()
 
 ### Data Splits
 The dataset was pre-divided into training and test sets. The training set was further divided into training and validation sets, comprising 80% and 20% of the data, respectively. Special care was taken to ensure that all slices from the same patient are in the same subset (either training or validation).
+Data split is crucial so as to ensure generalisability as well as balance it with the amount of data available. For this case the data was already split into training and test sets. Additional to this though it was further split into training and validation sets, comprising 80% and 20% of the data, respectively. Special care was taken to ensure that all slices from the same patient are in the same subset (either training or validation).
+
+The code snippet below shows how the data was split:
+
+```python
+train_dataset = ADNIDataset(root_dir=root_dir, subset='train', transform=data_transforms)
+
+unique_patient_ids = list(set('_'.join(path.split('/')[-1].split('_')[:-1]) for path, _ in train_dataset.data_paths))
+validation_patient_ids = set(random.sample(unique_patient_ids, int(0.2 * len(unique_patient_ids)))) 
+
+train_data_paths = [(path, label) for path, label in train_dataset.data_paths if '_'.join(path.split('/')[-1].split('_')[:-1]) not in validation_patient_ids]
+val_data_paths = [(path, label) for path, label in train_dataset.data_paths if '_'.join(path.split('/')[-1].split('_')[:-1]) in validation_patient_ids]
+
+# train data set paths were then re-assigned and the validation dataloader was created
+```
 
 ## Training and Evaluation
 ### Evaluation and Final Output
