@@ -13,8 +13,8 @@ from PIL import Image
 root = '/home/groups/comp3710/ADNI/AD_NC/'
 root = '/home/callum/AD_NC/'
 image_size = 256
-batch_size = 32
-image_crop = 192
+batch_size = 64
+image_crop = 210
 
 # class CustomImageFolder(Dataset):
 #     def __init__(self, root, transform=None):
