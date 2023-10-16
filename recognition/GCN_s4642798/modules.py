@@ -1,6 +1,9 @@
 """
 Author: William Barker
 SN: 4642798
+This script defines a Graph Convolutional Network (GCN) along with a custom 
+GCN convolution layer, implementing the propagation rule as described in the 
+Graph Convolutional Networks (GCN) paper (Kipf and Welling, 2017).
 """
 import torch
 import torch.nn.functional as F

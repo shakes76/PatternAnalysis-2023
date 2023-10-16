@@ -1,6 +1,9 @@
 """
 Author: William Barker
 SN: 4642798
+This script executes the training of a Graph Convolutional Network (GCN) model on the 
+provided dataset over a specified number of epochs, while also generating plots for 
+accuracy and loss, and saving the trained model for future predictions.
 """
 import dataset
 import modules

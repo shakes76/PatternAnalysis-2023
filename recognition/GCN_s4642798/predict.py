@@ -1,6 +1,8 @@
 """
 Author: William Barker
 SN: 4642798
+This script utilizes t-distributed Stochastic Neighbor Embedding (t-SNE) to reduce the 
+dimensionality of the Facebook dataset and generate a visual plot.
 """
 import dataset
 import modules

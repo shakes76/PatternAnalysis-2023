@@ -1,6 +1,8 @@
 """
 Author: William Barker
 SN: 4642798
+This script is designed to handle the loading, preprocessing, 
+and splitting of data from the facebook.npz file.
 """
 import numpy as np
 import torch
