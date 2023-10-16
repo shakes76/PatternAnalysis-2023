@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+from torchmetrics.functional.image import structural_similarity_index_measure as ssim
 from dataset import OASISDataLoader
 
 # Torch configuration
@@ -199,9 +200,11 @@ model = VQVAE(num_channels, num_hiddens, num_residual_hiddens, num_embeddings, e
 optimizer = optim.Adam(model.parameters(), lr=learning_rate, amsgrad=False)
 
 train_error = []
-model.train()
+
+
 for epoch in range(num_epochs):
     print(f"Epoch: {epoch}")
+    model.train()
     train_loss = 0
     for i, data in enumerate(train_loader):
         data = data.to(device)
@@ -219,3 +222,24 @@ for epoch in range(num_epochs):
 
     train_loss = np.mean(train_error[-300:])
     print('training_loss: %.3f' % train_loss)
+    # Evaluate on the validation dataset
+    model.eval()
+    val_loss = 0
+    validation_ssim = []
+    with torch.no_grad():
+        for j, val_data in enumerate(val_loader):
+            val_data = val_data.to(device)
+            vq_loss, data_recon = model(val_data)
+
+            real_img = val_data.view(-1, 1, 128, 128).detach()
+            decoded_img = data_recon.view(-1, 1, 128, 128).to(device).detach()
+            ssim_val = ssim(decoded_img, real_img, data_range=1.0).item()
+            validation_ssim.append(ssim_val)
+            recon_error = F.mse_loss(data_recon, val_data) / data_variance
+            val_loss += recon_error + vq_loss
+
+    average_val_loss = val_loss / len(val_loader)
+    average_ssim = np.mean(ssim_val)
+    print('validation_loss: %.3f' % average_val_loss)
+    print('average_ssim: %.3f' % average_ssim)
+    print()
