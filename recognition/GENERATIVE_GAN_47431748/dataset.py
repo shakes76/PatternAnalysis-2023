@@ -6,12 +6,12 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing import image_dataset_from_directory
 import matplotlib.pyplot as plt
 
+# Change as needed
 DATA_PATH = r'C:\Users\jackc\OneDrive\Desktop\UQ\UQ23S2\COMP3710_PROJ\PatternAnalysis-2023\AD_NC'
 IMG_DIM = 256
 BATCH_SIZE = 32
-SHIFT = 0.5
 
-def load_preprocess_image_data(path, img_dim, batch_size, shift):
+def prep_data(path, img_dim, batch_size, shift):
     """
     Load and preprocess the image data
     :param path: Path to unzipped data
