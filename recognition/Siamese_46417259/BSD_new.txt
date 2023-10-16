@@ -1,3 +1,9 @@
+# Notice from the project author
+# The project includes some code adopted subject to the following licence
+# Reference to this licence appears in the following locations:
+#   predict.py -> visualise_sample_predictions
+#   modules.py -> test_visualise_data_MLP
+
 BSD 3-Clause License
 
 Copyright (c) 2017-2022, Pytorch contributors
