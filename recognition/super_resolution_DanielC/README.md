@@ -16,6 +16,11 @@ torchaudio | 2.1.0
 torchvision | 0.16.0
 
 For reproducibility, a virtual environment is recommended with specified versions respective to dependencies for isolation. 
+In utils:
+- set ``train_dir`` as the path to your train directory. (Should cotain AD and NC folders)
+- set ``test_dir`` as the path to your test directory. (Should cotain AD and NC folders)
+- set ``model_path`` as the path you want to save your model to.
+
 
 ## 3. Data pre-processing
 As low resolution of the images are not provided, we create our own low resolution of images and use the given high 240 x 256 as ground truth. 
