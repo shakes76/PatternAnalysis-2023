@@ -35,7 +35,7 @@ class Train():
                 if constants.cuda:
                     x, y = x.cuda(), y.cuda()
                 y1 = self.net(x)
-                loss = self.criterion(y1, y)
+                loss = self.criterion(torch.argmax(y1), y)
                 losses += loss.detach().cpu().item() / len(self.trainLoader)
                 self.optimiser.zero_grad()
                 loss.backward()
