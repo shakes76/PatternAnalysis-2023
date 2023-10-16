@@ -13,16 +13,24 @@ import modules
 import numpy as np
 import torch
 import torchvision
-from dataset import load_dataset, show_images
+from dataset import get_dataloaders, show_images
 from modules import VQVAE, Decoder, Encoder
 from torch import nn
 from torch.nn import functional as F
 from torchvision.utils import make_grid
 
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+if not torch.cuda.is_available():
+	print("Warning CUDA not Found. Using CPU...")
+
 # Setup file paths
 PATH = os.getcwd() + '/'
-DATA_PATH_TRAINING_RANGPUR = '/home/groups/comp3710/OASIS'
-DATA_PATH_TRAINING_LOCAL = PATH + 'test_img/'
+FILE_SAVE_PATH = PATH + 'recognition/s4583766_vqvae/gen_img/'
+BASE_DATA_PATH = '/home/groups/comp3710/OASIS/'
+TRAIN_DATA_PATH = BASE_DATA_PATH + 'keras_png_slices_train/'
+TEST_DATA_PATH = BASE_DATA_PATH + 'keras_png_slices_test/'
+
 BATCH_SIZE = 32
 EPOCHS = 3
 
@@ -37,10 +45,6 @@ N_EMBEDDINGS = 512 # Size of the codebook (number of embeddings)
 BETA = 0.25
 LEARNING_RATE = 1e-3
 
-
-# Set the mode to either 'rangpur' or 'local' for testing purposes
-mode = 'local'
-
 def gen_imgs(images, model, device):
 	with torch.no_grad():
 		images = images.to(device)
@@ -48,26 +52,14 @@ def gen_imgs(images, model, device):
 		return x_hat
 
 def train_vqvae():
-	if mode == 'rangpur':
-		data_path_training = DATA_PATH_TRAINING_RANGPUR
-	elif mode == 'local':
-		data_path_training = DATA_PATH_TRAINING_LOCAL
-
-	# Device configuration
-	device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-	if not torch.cuda.is_available():
-		print("Warning CUDA not Found. Using CPU...")
-
-	# Hyper-parameters
-
-	train_dl, data_variance = load_dataset(data_path_training, BATCH_SIZE)
+	train_dl, test_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, BATCH_SIZE)
 
 	vqvae = VQVAE(n_hidden_layers=N_HIDDEN_LAYERS, n_residual_hidden_layers=N_RESIDUAL_HIDDENS, n_embeddings=N_EMBEDDINGS, embeddings_dim=EMBEDDINGS_DIM, beta=BETA).to(device)
 	vqvae = vqvae.to(device)
 	optimizer = torch.optim.Adam(vqvae.parameters(), lr=LEARNING_RATE)
 	recon_losses = []
 	print(vqvae)
-	og_imgs, _ = next(iter(train_dl))
+	og_imgs = next(iter(train_dl))
 	grid = make_grid(og_imgs, nrow=8)
 	show_images(grid, "before")
 
@@ -79,7 +71,7 @@ def train_vqvae():
 		train_loss = []
 		avg_train_loss = 0
 		train_steps = 0
-		for data, _ in train_dl:
+		for data in train_dl:
 			data = data.to(device)
 			optimizer.zero_grad()
 

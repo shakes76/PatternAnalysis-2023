@@ -10,10 +10,30 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 from torchvision.datasets import ImageFolder
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 from torchvision.utils import save_image
+from PIL import Image
+
+class OasisDataset(Dataset):
+    # https://pytorch.org/docs/stable/data.html#torch.utils.data.Dataset
+    def __init__(self, data_path):
+        self.data_path = data_path
+        self.images = os.listdir(data_path)
+        self.transform = transforms.Compose([
+            transforms.ToTensor()
+        ])
+
+    def __len__(self):
+        return len(self.images)
+
+    def __getitem__(self, x):
+        img_path = self.data_path + self.images[x]
+        image = Image.open(img_path)
+
+        image = self.transform(image)
+        return image
 
 # Display a batch of training images
 def show_batch(dl):
@@ -36,7 +56,7 @@ def show_images(img, epoch):
 
 # show_batch(train_dl)
 
-def load_dataset(data_path_training, batch_size):
+def get_dataloaders(data_path_training, data_path_testing, batch_size):
     """
     Loads the dataset and returns the training data loaders.
     """
@@ -45,12 +65,15 @@ def load_dataset(data_path_training, batch_size):
     transform_train = transforms.Compose([
         transforms.ToTensor()
     ])
-
-    train_ds = ImageFolder(data_path_training, transform=transform_train)
+    train_ds = OasisDataset(data_path_training)
     train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+
+    test_ds = OasisDataset(data_path_testing)
+    test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=True)
+
     # show_batch(train_dl)
     # Calculate the variance of the data
-    data_variance = np.var(train_ds[0][0].numpy())
+    # data_variance = np.var(train_ds[0][0].numpy())
     # print(data_variance)
 
-    return train_dl, data_variance
+    return train_dl, test_dl
