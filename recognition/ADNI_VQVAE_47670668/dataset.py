@@ -1,5 +1,6 @@
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
+from torch.utils.data import DataLoader
 
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
@@ -48,3 +49,5 @@ images, labels = zip(*[train_dataset[i] for i in range(num_images_to_display)])
 # Convert images to a grid and display
 grid = make_grid(list(images), nrow=4)
 imshow(grid)
+
+train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
