@@ -26,6 +26,10 @@ patch_size = 16  # Dimension of a patch
 num_patches = (image_size // patch_size) ** 2  # Number of patches in total
 num_channels = 3  # 3 channels for RGB
 embed_dim = 768  # Hidden size D of ViT-Base model from paper, equal to [(patch_size ** 2) * num_channels]
+num_heads = 12  # Number of self attention blocks
+num_layers = 12  # Number of Transformer encoder layers
+mlp_size = 3072  # Number of hidden units between each linear layer
+dropout_size = 0.1
 
 # Create the dataset
 dataroot = "AD_NC"
@@ -70,6 +74,35 @@ class PatchEmbedding(nn.Module):
     def forward(self, input):
         return self.main(input).permute(0, 2, 1)  # Reorder the dimensions
 
+# ------------------------------------------------------------------
+# Multi-head Attnetion
+class MultiheadSelfAttention(nn.Module):
+    """Creates a multi-head self attention block.
+    For an input sequence z, which contains all the feature maps, computes a weighted sum for all values in z.
+    These attention weights between 2 elements are based on how similar their query representation and key 
+    representation are.
+    This is calculated by softmax((key_m * query_n) / sqrt(dim(key_m)))*V_m
+
+    This block uses a Multi-head self attention structure, which contains multiple different projection layers
+    of self attention.
+    """
+    def __init__(self, ngpu):
+        super(MultiheadSelfAttention, self).__init__()
+        self.ngpu = ngpu
+
+        self.norm = nn.LayerNorm(normalized_shape=embed_dim)
+        self.msa = nn.MultiheadAttention(embed_dim=embed_dim,
+                                        num_heads=num_heads,
+                                        batch_first=True)
+        
+    def forward(self, input):
+        input = self.norm(input)
+        attentio, _ = self.msa(query=input,
+                            key=input,
+                            value=input,
+                            need_weights=False)]
+        return attentio
+    
 
 class ViT(nn.Module):
     """Creates a vision transformer model."""
@@ -80,7 +113,18 @@ class ViT(nn.Module):
         self.patch_embedding = PatchEmbedding(workers)
         self.prepend_embed_token = nn.Parameter(torch.randn(1, 1, embed_dim), requires_grad=True)
         self.position_embed_token = nn.Parameter(torch.randn(1, num_patches + 1, embed_dim), requires_grad=True)
-    
+        self.transformer_encoder = nn.TransformerEncoder(encoder_layer=nn.TransformerEncoderLayer(d_model=embed_dim,
+                                                                                                    nhead=num_heads,
+                                                                                                    dim_feedforward=mlp_size,
+                                                                                                    dropout=dropout_size,
+                                                                                                    activation="gelu",
+                                                                                                    layer_norm_eps=1e-5,
+                                                                                                    batch_first=True,
+                                                                                                    norm_first=True,
+                                                                                                    bias=True),
+                                                        num_layers=num_layers)
+
+
     def forward(self, input):
         prepend_embed_token_expanded = self.prepend_embed_token.expand(batch_size, -1, -1)
 
@@ -105,11 +149,11 @@ def test():
     #imshow(torchvision.utils.make_grid(images, nrow=5))
 
     # Print labels
-    print(' '.join('%5s' % labels[j].item() for j in range(10)))
+    #print(' '.join('%5s' % labels[j].item() for j in range(10)))
 
     # Get initial shape, should be 224 (H) by 224 (W) by 3 (C)
     sample_datapoint = torch.unsqueeze(dataset[0][0], 0)
-    print("Initial shape: ", sample_datapoint.shape)
+    #print("Initial shape: ", sample_datapoint.shape)
 
     # Test patch embedding for 1 image
     # For a 224 by 224 image with 16 patch size, this gives us a 14 by 14 number of patches, 
@@ -123,46 +167,50 @@ def test():
     #imshow(image)
     #plt.axis(False)
     image_patched = patch_embedding(image.unsqueeze(0))  # Run conv layer through image
-    print(image_patched.shape)  # Should have dimensions (embed size, sqrt(num_patches), sqrt(num_patches))
+    #print(image_patched.shape)  # Should have dimensions (embed size, sqrt(num_patches), sqrt(num_patches))
 
     # Single feature map in tensor form
     single_feature_map = image_patched[:, 0, :, :]
-    print(single_feature_map, single_feature_map.requires_grad)
+    #print(single_feature_map, single_feature_map.requires_grad)
 
     # Dimension 2 sqrt(num_patches) -> height of num_patches, dimension 3 is sqrt(num_patches) -> width of num_patches
     flatten = nn.Flatten(start_dim=2, end_dim=3)
     flattened_image_patched = flatten(image_patched)
-    print(f"Flattened: {flattened_image_patched.shape}")  # Should be embed size, num_patches
+    #print(f"Flattened: {flattened_image_patched.shape}")  # Should be embed size, num_patches
 
     reshaped_flattened_image_patched = flattened_image_patched.permute(0, 2, 1)  # Need to swap embed size and num_patches order
     # This achieves the resizing in the paper: H x W x C -> N x (P^2*C)
-    print(f"Reshaped:{reshaped_flattened_image_patched.shape}")
+    #print(f"Reshaped:{reshaped_flattened_image_patched.shape}")
 
-    # Test Patching module on random tensor
+    # ------------------------------------------------------------------------------------------------
+    # Test Embedding a random image tensor
     random_image_tensor = torch.randn(1, 3, 224, 224)
     patch_embedding = PatchEmbedding(workers)
     patch_embedding_output = patch_embedding(random_image_tensor)
     print(f"In shape: {random_image_tensor.shape}")
-    print(f"Out shape: {patch_embedding_output.shape}")
-    print({patch_embedding_output})
+    #print(f"Out shape: {patch_embedding_output.shape}")
+    #print({patch_embedding_output})
 
     # Need to prepend a learnable embedding to the sequence of embeded patches.
     embed_token = nn.Parameter(torch.randn(1, 1, embed_dim), requires_grad=True)
     prepended_patch_embedding = torch.cat((embed_token, patch_embedding_output), dim=1)  
-    print(f"Prepended embedding: {prepended_patch_embedding}")
+    #print(f"Prepended embedding: {prepended_patch_embedding}")
 
     # Need to add position embedding; E_pos, where E_pos has dimensions (N+1) x D
     # Used to retain positional information of the patches.
     positional_embed = nn.Parameter(torch.randn(1, num_patches + 1, embed_dim), requires_grad=True)
-    print(f"Positional embed shape: {positional_embed.shape}, Current patch shape: {prepended_patch_embedding.shape}")
-    print(f"Positional embed tensor: {positional_embed}")
+    #print(f"Positional embed shape: {positional_embed.shape}, Current patch shape: {prepended_patch_embedding.shape}")
+    #print(f"Positional embed tensor: {positional_embed}")
 
     patch_and_position_embedding = prepended_patch_embedding + positional_embed
     print(f"Final: {patch_and_position_embedding}")
     print(f"Final shape: {patch_and_position_embedding.shape}")   
 
+    # ------------------------------------------------------------------------------------------------
+    # Test Multi-head attnetion
+
 def main():
-    test
+    test()
 
 
 if __name__ == '__main__':
