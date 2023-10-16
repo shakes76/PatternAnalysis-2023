@@ -34,8 +34,11 @@ class Train():
                 # print("image: ", x)
                 if constants.cuda:
                     x, y = x.cuda(), y.cuda()
-                y1 = self.net(x)
-                loss = self.criterion(torch.argmax(y1), y)
+                y1 = self.net(x).unsqueeze(0)
+                print("y1: ", y1)
+                print("argmax y1: ", torch.argmax(y1).unsqueeze(0))
+                print("y: ", y)
+                loss = self.criterion(y1, y.long())
                 losses += loss.detach().cpu().item() / len(self.trainLoader)
                 self.optimiser.zero_grad()
                 loss.backward()
