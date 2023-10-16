@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from dataset import get_data_loaders
-from modules import ViT
-from torch.optim.lr_scheduler import ReduceLROnPlateau
+from modules import GruCombinedCvT
+import matplotlib.pyplot as plt
 
 device = torch.device(
     "mps"
@@ -22,17 +22,28 @@ if __name__ == "__main__":
     print(f"\nINITIALIZING MODEL\n{'='*25}\n")
     print("Assigning model instance...")
     num_labels = 2  # Alzheimer's or Normal
-    model = ViT(num_classes=num_labels).to(device)
+    model = GruCombinedCvT().to(device)
     print("Model ready.")
 
     # Define Loss, Optimizer and Scheduler
+    lr = 0.000001
+    wd = 0.01
+    beta1 = 0.5
+    beta2 = 0.999
+
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.0002, weight_decay=0.1, betas=(0.9, 0.999))
-    scheduler = ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=3, verbose=True)
+    optimizer = optim.Adam(
+        model.parameters(), lr=lr, weight_decay=wd, betas=(beta1, beta2)
+    )
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
 
     # Training and Validation Loop
-    num_epochs = 10
+    num_epochs = 50
     best_val_accuracy = 0
+
+    # Used for Graphing after Training
+    val_losses = []
+    val_accuracies = []
 
     print(f"\nTRAINING MODEL\n{'='*25}\n")
     for epoch in range(num_epochs):
@@ -40,7 +51,7 @@ if __name__ == "__main__":
         model.train()
         total_loss, total_correct, total_samples = 0, 0, len(train_loader.dataset)
         for batch_idx, (images, labels) in enumerate(train_loader):
-            images, labels = images.to(device), labels.to(device)
+            images, labels = images.to(device), labels.to(device) 
 
             # Forward Pass
             logits = model(images)
@@ -61,12 +72,6 @@ if __name__ == "__main__":
                 print(
                     f"Epoch {epoch}/{num_epochs}, Batch {batch_idx}/{len(train_loader)}, Training Loss: {loss.item()}, Training Accuracy: {correct / len(images)}"
                 )
-
-        avg_accuracy = total_correct / total_samples
-        avg_total_loss = total_loss / total_samples
-        print(
-            f"Epoch {epoch}/{num_epochs}, Average Training Loss: {avg_total_loss}, Average Training Accuracy: {avg_accuracy}"
-        )
 
         # Validation Loop
         model.eval()
@@ -92,27 +97,49 @@ if __name__ == "__main__":
                 total_loss += loss.item()
                 total_correct += correct
 
+        avg_val_loss = total_loss / total_samples
         val_accuracy = total_correct / total_samples
         print(
-            f"Epoch {epoch}, Total Validation Loss: {total_loss}, Total Validation Accuracy: {val_accuracy}\n"
+            f"Epoch {epoch}, Average Validation Loss: {avg_val_loss}, Total Validation Accuracy: {val_accuracy}\n"
         )
+
+        val_losses.append(avg_val_loss)
+        val_accuracies.append(val_accuracy)
 
         # Print the counters in a table format
         print("Validation Statistics:")
         print("-----------------------")
-        print(f"True Alzheimer's (TP): {TP}")
-        print(f"True Normal (TN): {TN}")
-        print(f"False Alzheimer's (FP): {FP}")
-        print(f"False Normal (FN): {FN}")
+        print(f"|{'True AD (TP)':<25}|{TP:>5}|")
+        print(f"|{'True NC (TN)':<25}|{TN:>5}|")
+        print(f"|{'False AD (FP)':<25}|{FP:>5}|")
+        print(f"|{'False NC (FN)':<25}|{FN:>5}|")
         print("-----------------------\n")
-        
+
         # Step the scheduler
-        scheduler.step(total_loss)
+        scheduler.step()
 
         # Save the model with the highest validation accuracy
         if val_accuracy > best_val_accuracy:
             best_val_accuracy = val_accuracy
             torch.save(model.state_dict(), "trained_model_weights.pth")
             print(f"Best Model Saved at Epoch {epoch}\n")
+
+    # Plotting Validation Loss
+    plt.figure(figsize=(12, 6))
+    plt.plot(val_losses, label="Validation Loss", color="red")
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.title("Validation Loss over Time")
+    plt.legend()
+    plt.show()
+
+    # Plotting Validation Accuracy
+    plt.figure(figsize=(12, 6))
+    plt.plot(val_accuracies, label="Validation Accuracy", color="blue")
+    plt.xlabel("Epochs")
+    plt.ylabel("Accuracy")
+    plt.title("Validation Accuracy over Time")
+    plt.legend()
+    plt.show()
 
     print("Training Completed!")
