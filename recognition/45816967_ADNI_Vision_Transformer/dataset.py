@@ -1,6 +1,6 @@
 import torch
 from torch.utils.data import Dataset
-from torchvision.transforms import Compose, ToTensor, Resize, Normalize, PILToTensor, CenterCrop
+from torchvision.transforms import Compose, ToTensor, PILToTensor, CenterCrop, ToPILImage
 import matplotlib.pyplot as plt
 from PIL import Image
 from glob import glob
@@ -84,7 +84,7 @@ def load_images_from_directories(dirs, datasplit=0., verbose=False):
 	return train_images, val_images
 
 
-def load_adni_images(datasplit = 0.2, verbose=False):
+def load_adni_images(datasplit = 0.2, verbose=False, local=True):
 	"""Load oasis images from data directory provided
 
 	Returns:
@@ -93,17 +93,34 @@ def load_adni_images(datasplit = 0.2, verbose=False):
 	train_dirs = []
 	test_dirs = []
 
-	base_dir = "C:/Users/Jun Khai/Documents/Uni/Year 5 Sem 2/PatternAnalysis-2023/recognition/45816967_ADNI_Vision_Transformer/"
+	if local:
+		base_dir = "C:/Users/Jun Khai/Documents/Uni/Year 5 Sem 2/PatternAnalysis-2023/recognition/45816967_ADNI_Vision_Transformer/"
 
-	train_dirs.append((f'{base_dir}data/ADNI_AD_NC_2D/AD_NC/train/AD/*', 1))
-	train_dirs.append((f'{base_dir}data/ADNI_AD_NC_2D/AD_NC/train/NC/*', 0))
-	test_dirs.append((f'{base_dir}data/ADNI_AD_NC_2D/AD_NC/test/AD/*', 1))
-	test_dirs.append((f'{base_dir}data/ADNI_AD_NC_2D/AD_NC/test/NC/*', 0))
-		
+		train_dirs.append((f'{base_dir}data/ADNI_AD_NC_2D/AD_NC/train/AD/*', 1))
+		train_dirs.append((f'{base_dir}data/ADNI_AD_NC_2D/AD_NC/train/NC/*', 0))
+		test_dirs.append((f'{base_dir}data/ADNI_AD_NC_2D/AD_NC/test/AD/*', 1))
+		test_dirs.append((f'{base_dir}data/ADNI_AD_NC_2D/AD_NC/test/NC/*', 0))
+	
+	else:
+		base_dir = "/home/groups/comp3710/ADNI/AD_NC/"
+
+		train_dirs.append((f'{base_dir}train/AD/*', 1))
+		train_dirs.append((f'{base_dir}train/NC/*', 0))
+		test_dirs.append((f'{base_dir}test/AD/*', 1))
+		test_dirs.append((f'{base_dir}test/NC/*', 0))
+  
+	print(train_dirs)
+	print(test_dirs)
+	
 	return load_images_from_directories(train_dirs, datasplit=datasplit, verbose=verbose), load_images_from_directories(test_dirs, datasplit=0, verbose=verbose)
 
-def generate_adni_datasets(datasplit = 0.2, verbose = False):
-	train_imgs, test_imgs = load_adni_images(datasplit=datasplit, verbose = verbose)
+def generate_adni_datasets(datasplit = 0.2, verbose = False, local=True, test=False):
+	train_imgs, test_imgs = load_adni_images(datasplit=datasplit, verbose = verbose, local=local)
+	
+	if test:
+		tensor2pil = ToPILImage()
+		train_imgs = [[[tensor2pil(torch.randn(1, 192, 192)), 0], [tensor2pil(torch.randn(1, 192, 192)), 1]], [[torch.randn(1, 192, 192), 0], [torch.randn(1, 192, 192), 1]]]
+		test_imgs = [[[tensor2pil(torch.randn(1, 192, 192)), 0], [tensor2pil(torch.randn(1, 192, 192)), 1]], [[torch.randn(1, 192, 192), 0], [torch.randn(1, 192, 192), 1]]]
 	train_set = ADNIDataset(train_imgs[0], transform=standardTransform)
 	val_set = ADNIDataset(train_imgs[1], transform=standardTransform)
 	test_set = ADNIDataset(test_imgs[0], transform=standardTransform)
