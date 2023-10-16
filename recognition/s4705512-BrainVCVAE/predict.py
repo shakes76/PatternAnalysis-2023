@@ -39,13 +39,13 @@ if not os.path.isfile(models_directory + pixelcnn_weights_filename + ".index"):
     print("ERROR: Missing PixelCNN training weights. Please run train.py", file=sys.stderr)
     exit(1)
 
-# Load testing dataset
-ds = Data
-test_ds = ds.get_test_dataset()
+ds = Data()
 
 # Create the model and load the weights
 train_ds = ds.get_train_dataset()
 data_variance = np.var(train_ds)
+test_ds = ds.get_test_dataset()
+
 vqvae_trainer = VQVAETrainer(
         data_variance,
         latent_dim=latent_dim,
@@ -118,3 +118,74 @@ def generate_codes(num_codes=4):
     quantized = tf.reshape(quantized, (-1, *(encoder.output_shape[1:])))
 
     return priors, quantized
+
+def generate(num):
+    if num == None or 0:
+        num_generations = 4
+    else:
+        num_generations = num
+    # Generate novel images.
+    priors, codes = generate_codes(num_generations)
+    generated_samples = decode_images(codes)
+
+    plt.figure(figsize=(8, num_generations * 4))
+    plt.subplot(num_generations, 2, 1)
+    plt.title("Code")
+    plt.subplot(num_generations, 2, 2)
+    plt.title("Generated Sample")
+
+    for i in range(num_generations):
+        plt.subplot(num_generations, 2, i * 2 + 1)
+        plt.imshow(priors[i], cmap='gray')
+        plt.axis("off")
+
+        plt.subplot(num_generations, 2, i * 2 + 2)
+        plt.imshow(generated_samples[i].squeeze() + 0.5, cmap='gray')
+        plt.axis("off")
+    plt.tight_layout()
+    plt.savefig('generated.png')
+    plt.close()
+
+def reconstruct():
+    num_images = 4
+
+    trained_vqvae_model = vqvae_trainer.vqvae
+    idx = np.random.choice(len(test_ds), num_images)
+    images = test_ds[idx]
+    encoded = encode_images(images)
+    decoded = decode_images(encoded)
+
+
+    # Quantize the encoded images
+    flat_enc_outputs = encoded.reshape(-1, encoded.shape[-1])
+    codebook_indices = quantizer.get_code_indices(flat_enc_outputs)
+    codebook_indices = codebook_indices.numpy().reshape(encoded.shape[:-1])
+
+    # Display the original, encoded, and decoded images
+    plt.figure(figsize=(12, num_images * 4))
+    plt.subplot(num_images, 3, 1)
+    plt.title("Original")
+    plt.subplot(num_images, 3, 2)
+    plt.title("Code")
+    plt.subplot(num_images, 3, 3)
+    plt.title("Decoded")
+
+    for i in range(num_images):
+        plt.subplot(num_images, 3, i * 3 + 1)
+        plt.imshow(images[i].squeeze() + 0.5, cmap='gray')
+        plt.axis("off")
+
+        plt.subplot(num_images, 3, i * 3 + 2)
+        plt.imshow(codebook_indices[i] + 0.5, cmap='gray')
+        plt.axis("off")
+
+        plt.subplot(num_images, 3, i * 3 + 3)
+        plt.imshow(decoded[i].squeeze() + 0.5, cmap='gray')
+        plt.axis("off")
+        plt.tight_layout()
+        plt.savefig('original_encoded_and_decoded_images.png')
+    plt.close()
+
+if __name__ == "__main__":
+    generate()
+    reconstruct()
