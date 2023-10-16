@@ -93,3 +93,20 @@ encoder = vqvae_trainer.vqvae.get_layer("encoder")
 quantizer = vqvae_trainer.vqvae.get_layer("vector_quantizer")
 pixelcnn_input_shape = quantizer.output_shape[1:-1]
 print(f"Input shape of the PixelCNN: {pixelcnn_input_shape}")
+
+
+pixel_cnn = get_pixelcnn(
+        num_residual_blocks,
+        num_pixelcnn_layers,
+        pixelcnn_input_shape,
+        vqvae_trainer.num_embeddings,
+)
+
+# Generate the codebook indices. Only do it on half the training set to avoid memory issues
+encoded_outputs = encoder.predict(train[:len(train) // 2], batch_size=128)
+flat_enc_outputs = encoded_outputs.reshape(-1, encoded_outputs.shape[-1])
+codebook_indices = quantizer.get_code_indices(flat_enc_outputs)
+
+codebook_indices = codebook_indices.numpy().reshape(encoded_outputs.shape[:-1])
+print(f"Shape of the training data for PixelCNN: {codebook_indices.shape}")
+
