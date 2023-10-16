@@ -40,8 +40,13 @@ def train(model, train_loader, valid_loader, criterion, optimizer, device, n_epo
             total += y.size(0)
             correct += predicted.eq(y).sum().item()
 
+            # if (batch_num % 100 == 0):
+            #     print(f"Finished {batch_num} batches out of {len(train_loader)} batches")
         accuracy = 100 * correct / total
-        print(f"Epoch {epoch + 1}/{n_epochs} - Loss: {train_loss / len(train_loader):.4f}, Accuracy: {accuracy:.2f}%")
+        if (epoch % 10 == 0):
+            print(f"Epoch {epoch + 1}/{n_epochs}")
+            print(f"Train loss: {train_loss / len(train_loader):.2f}")
+            print(f"Train accuracy: {accuracy:.2f}%")
         train_accuracies.append(accuracy)
         train_losses.append(train_loss / len(train_loader))
 
@@ -58,8 +63,10 @@ def train(model, train_loader, valid_loader, criterion, optimizer, device, n_epo
 
                 correct += torch.sum(torch.argmax(y_hat, dim=1) == y).detach().cpu().item()
                 total += len(x)
-            print(f"Test loss: {test_loss:.2f}")
-            print(f"Test accuracy: {correct / total * 100:.2f}%")
+            
+            if (epoch % 10 == 0):
+                print(f"Test loss: {test_loss:.2f}")
+                print(f"Test accuracy: {correct / total * 100:.2f}%")
             valid_accuracies.append(correct / total * 100)
             valid_losses.append(test_loss)
 
