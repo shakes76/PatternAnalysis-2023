@@ -1,7 +1,13 @@
 import tensorflow as tf
+from tensorflow import keras
 import numpy as np
 import os
 from PIL import Image
+
+#TODO: Ensure masks have channel dimension when loaded in.      (Probably have to use tensorflow data load for this.)
+#      Prevent adding of useless dimension in mapping.
+#      Clean up debugging notes/code.
+#      Change modules to use 3D layers where applicable.
 
 #NOTE: Expecting 2595 images in the training folders (-1 for license file) (should also be -1 for attribution file).
 #      Getting 2596 though, not sure why.
@@ -23,6 +29,8 @@ def loadDataFrom(directory, channels, size=128):
         data = np.zeros((numberOfImages, size, size, channels))
     else:
         data = np.zeros((numberOfImages, size, size))
+    data_shape = (numberOfImages, size, size, channels)
+    #data = np.zeros(data_shape)
     for i, imageName in enumerate(os.listdir(directory)):
         #Make sure not to load in the license file.
         if imageName != "LICENSE.txt" and imageName != "ATTRIBUTION.txt":
@@ -32,13 +40,20 @@ def loadDataFrom(directory, channels, size=128):
                 data[i, :, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
             else:
                 data[i, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
-    return tf.data.Dataset.from_tensor_slices((data,))
+                #data[i, :, :, :] = np.reshape(np.asarray(Image.open(imagePath).resize((size, size))), data_shape)
+    #Need the extra dimension for image manipulation.
+    if channels == 1:
+        data = np.reshape(data, data_shape)
+    #return tf.data.Dataset.from_tensor_slices((data,))
+    return tf.data.Dataset.from_tensor_slices(data)
 
 #The following is modified code from:
 #https://towardsdatascience.com/how-to-split-a-tensorflow-dataset-into-train-validation-and-test-sets-526c8dd29438
 def partition(data, train_size, val_size, test_size, seed):
     #TODO: Write specification.
     data.shuffle(2596, seed)
+    print("AFTER SHUFFLE")
+    print(data.element_spec)
     train_data = data.take(train_size)
     val_data = data.skip(train_size).take(val_size)
     test_data = data.skip(train_size).skip(val_size)
@@ -50,9 +65,16 @@ def partition(data, train_size, val_size, test_size, seed):
 #Taken from code I wrote for prac2.
 def normalize(image, mask):
     #TODO: Write specification.
-    image = tf.cast(image, tf.float64) / 255.0
+    #NOTE: Trying not casting, should remove extra dimension.
+    #image = tf.cast(image, tf.float64) / 255.0
+    print(type(image))
+    image = image / 255.0
     #NOTE: Should some kind of softmax be used here instead?
-    mask = tf.cast(mask, tf.float64) / 255.0
+    #mask = tf.cast(mask, tf.float64) / 255.0
+    mask = mask / 255.0
+    #NOTE: Squeeze in here to get rid of useless dim?
+    #image = tf.squeeze(image)
+    #mask = tf.squeeze(mask)
     return image, mask
 
 #Based on code from:
@@ -66,6 +88,17 @@ def augment(image, mask):
     elif p < 0.5:
         image = tf.image.flip_up_down(image)
         mask = tf.image.flip_up_down(mask)
+    #NOTE: Squeeze in here to get rid of useless dim?
+    #image = tf.squeeze(image)
+    #mask = tf.squeeze(mask)
+    return image, mask
+
+#NOTE: Trying to get rid of these extra dimensions.
+#      Didn't seem to work, get rid of it.
+def tuple_squeeze(image, mask):
+    #TODO: Write specification.
+    image = tf.squeeze(image)
+    mask = tf.squeeze(mask)
     return image, mask
 
 #NOTE: Unsure what the batch size should be.
@@ -77,11 +110,28 @@ def preprocessing(batch_size=64):
     training_gt_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2/"
     #Load in data.
     #NOTE: test_dir is unused, there don't seem to be segmentation maps in there.
+    #NOTE: Trying tensorflow dataset loader.
     image_data = loadDataFrom(training_images_dir, channels=3)
     mask_data = loadDataFrom(training_gt_dir, channels=1)
+    #image_data = tf.keras.utils.image_dataset_from_directory(
+    #    training_images_dir,
+    #    image_size=(128, 128))
+    #mask_data = tf.keras.utils.image_dataset_from_directory(
+    #    training_gt_dir,
+    #    image_size=(128, 128))
+    #NOTE: Getting weird shapes at training time.
+    #      Tried squeezing data, but that didn't work.
+    #image_data = image_data.map(tf.squeeze, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #mask_data = mask_data.map(tf.squeeze, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     isic_data = tf.data.Dataset.zip((image_data, mask_data))
+    print("AFTER ZIP")
+    print(isic_data.element_spec)
     #Split.
     train_data, val_data, test_data = partition(isic_data, 1796, 400, 400, seed=271828)
+    print("AFTER PARTITION")
+    print(train_data.element_spec)
+    print(val_data.element_spec)
+    print(test_data.element_spec)
     #Normalize and augment.
     #NOTE: How to ensure augment happens on a batch by batch basis, but normalize doesn't?
     #      Probably want to add layers to front of model that do data augmentation, rather than doing it in
@@ -93,6 +143,15 @@ def preprocessing(batch_size=64):
     test_data = test_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #Create batches for training data.
     train_batches = train_data.cache().batch(batch_size).repeat()
+    #NOTE: Mapping is adding a dimension, but why?
+    #      Also looks like squeezing bypasses tensorflow dataset shape info, so probs shouldn't be used here.
+    #train_batches = train_batches.map(tuple_squeeze, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #val_data = val_data.map(tuple_squeeze, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #test_data = test_data.map(tuple_squeeze, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    print("AFTER MAPS")
+    print(train_batches.element_spec)
+    print(val_data.element_spec)
+    print(test_data.element_spec)
     #NOTE: Is any other preprocessing needed?
     return train_batches, val_data, test_data
 

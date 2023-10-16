@@ -47,6 +47,7 @@ def segmentation_layer(x, n_filters):
 
 def build_improved_unet_model():
     #TODO: Write specificatoin.
+    #NOTE: The extra dimension in the training data must be something wrong with the batching.
     inputs = layers.Input(shape=(128,128,3))
     #TODO: Name this path. (down?)
     #NOTE: Again, unsure if these should be 2D or 3D.
@@ -81,7 +82,10 @@ def build_improved_unet_model():
     s2 = layers.UpSampling2D(size=(2,2))(s2)
     x = x + s2
     outputs = layers.Softmax(axis=3)(x)
+    #NOTE: Squeezing to make sure dimensions are the same as the masks.
+    #      Looks like this actually shouldn't be done.
+    #outputs = tf.squeeze(outputs)
     #NOTE: A different model will need to be returned once the new class is set up and training is written.
-    return tf.keras.Model(inputs, outputs, name="Improved U-Net")
+    return tf.keras.Model(inputs, outputs)
 
 #TODO: Write new model and training function.
