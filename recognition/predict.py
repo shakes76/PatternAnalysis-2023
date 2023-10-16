@@ -3,7 +3,7 @@ import torch.nn as nn
 from dataset import ADNI
 from modules import Perceiver
 
-MODEL = "./MODEL.TXT"
+MODEL = "./MODEL.txt"
 
 
 #Hyperparameter
