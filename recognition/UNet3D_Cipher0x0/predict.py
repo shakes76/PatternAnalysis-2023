@@ -1,16 +1,23 @@
 from train import *
 
-test_data = NiiImageLoader("test/Case_004_Week0_LFOV.nii.gz",
-                           "test/Case_004_Week0_SEMANTIC_LFOV.nii.gz")
+# load the model
+unet = UNet3D()
+unet.load_state_dict(torch.load("net_paras.pth"))
+unet.eval()
 
-# path in rangpur
-# test_data = NiiImageLoader("/home/groups/comp3710/HipMRI_Study_open/semantic_MRs/Case_004_Week0_LFOV.nii.gz",
-#                            "/home/groups/comp3710/HipMRI_Study_open/semantic_labels_only/Case_004_Week0_SEMANTIC_LFOV.nii.gz")
+# load the data
+dataset = NiiImageLoader("semantic_MRs_anon/*",
+                         "semantic_labels_anon/*")
 
-for X, y in test_data:
+test, _ = torch.utils.data.random_split(dataset, [1, 210])
+
+# predict
+for X, _ in test:
     X = X.unsqueeze(0).float().to(device)
-    y = y.long().to(device)
-    pred = unet(X)
+    pred = unet(X).argmax(1)
 
+# save the output
+ni_img = nib.Nifti1Image(pred, func.affine)
+nib.save(ni_img, 'output.nii.gz')
 
 
