@@ -14,28 +14,30 @@ import matplotlib.pyplot as plt
 
 
 AD_PATH = '/Users/jollylogan/TryTry/AD_NC/train/AD'
-CN_PATH = '/Users/jollylogan/TryTry/AD_NC/train/NC'
+NC_PATH = '/Users/jollylogan/TryTry/AD_NC/train/NC'
 
 AD_TEST_PATH = '/Users/jollylogan/TryTry/AD_NC/test/AD'
-CN_TEST_PATH = '/Users/jollylogan/TryTry/AD_NC/test/NC'
+NC_TEST_PATH = '/Users/jollylogan/TryTry/AD_NC/test/NC'
 
 
 def load_train_data(batch_size=32):
     # Get all the paths to the images in the directories
     ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
-    cn_paths = [os.path.join(CN_PATH, path) for path in os.listdir(CN_PATH)]
+    nc_paths = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
 
     # Create tf.data.Dataset objects
     ad_ds = tf.data.Dataset.from_tensor_slices(ad_paths)
-    cn_ds = tf.data.Dataset.from_tensor_slices(cn_paths)
+    nc_ds = tf.data.Dataset.from_tensor_slices(nc_paths)
 
-    # Create pairs
-    pos_pair1 = tf.data.Dataset.zip((ad_ds, ad_ds)) # Same images (both from AD)
-    pos_pair2 = tf.data.Dataset.zip((cn_ds, cn_ds)) # Same images (both from NC) 
-    neg_pair1 = tf.data.Dataset.zip((ad_ds, cn_ds)) # Different images (one from AD and one from AC)
-    neg_pair2 = tf.data.Dataset.zip((cn_ds, ad_ds)) # Different images (one from NC and one from AD)
+    # Create pairs 
+    pos_pair1 = tf.data.Dataset.zip((ad_ds, ad_ds)) # Positive pair (both from AD) 
+    pos_pair2 = tf.data.Dataset.zip((nc_ds, nc_ds)) # Positive pair (both from NC) 
+    neg_pair1 = tf.data.Dataset.zip((ad_ds, nc_ds)) # Negative pair (one from AD and one from AC) 
+    neg_pair2 = tf.data.Dataset.zip((nc_ds, ad_ds)) # Negative pair (one from NC and one from AD) 
+                                                    # - the same as previous combination 
+                                                    # - the purpose is to make the amount of +ve pairs and -ve pairs balance
 
-    num_pairs = min(len(ad_paths), len(cn_paths))
+    num_pairs = min(len(ad_paths), len(nc_paths))
     # Limit the length of pos_pair2 to num_pairs
     pos_pair2 = pos_pair2.take(num_pairs)
 
@@ -84,7 +86,68 @@ def load_train_data(batch_size=32):
     return train, val
 
 
+def load_classify_data(batch_size=32):
+
+    # Get all the paths to the images in the directories
+    ad_path = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
+    nc_path = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
+    print(len(ad_path))
+
+    num_ad = min(len(ad_path), len(nc_path)) 
+    # Limit the amount of NC images to num_pairs (make it balance)
+    nc_path = nc_path[:num_ad]
+    print(len(nc_path))
+
+    # Combine all images together
+    paths = ad_path + nc_path
+    print(len(paths))
+
+    # Create labels for the images: 0 for AD and 1 for CN
+    labels = np.concatenate([np.ones([len(ad_path)]), np.zeros([len(nc_path)])])
+    labels = np.expand_dims(labels, -1)
+
+    all_images = tf.data.Dataset.from_tensor_slices(paths)
+    all_images = all_images.map(lambda x: tf.image.resize(tf.image.decode_jpeg(tf.io.read_file(x), 1), [128, 128]) / 255)
+    print(len(all_images))
+    labels_ds = tf.data.Dataset.from_tensor_slices(labels)
+
+    # Create a  dataset from all the images with labels
+    dataset = tf.data.Dataset.zip((all_images, labels_ds)).shuffle(len(paths))
+
+    # Determine the number of images to use for training (80%)
+    train_num = int(round(0.8 * len(dataset), 1))
+    # Create the training and validation datasets
+    train = dataset.take(train_num).batch(batch_size)
+    val = dataset.skip(train_num).batch(batch_size)
+
+    return train, val
 
 
+def load_testing_data(batch_size=32):
 
+    # Get all the paths to the images in the directories
+    ad_path = [os.path.join(AD_TEST_PATH, path) for path in os.listdir(AD_TEST_PATH)]
+    nc_path = [os.path.join(NC_TEST_PATH, path) for path in os.listdir(NC_TEST_PATH)]
+    print(len(ad_path))
 
+    num_ad = min(len(ad_path), len(nc_path)) 
+    # Limit the length of pos_pair2 to num_pairs  
+    nc_path = nc_path[:num_ad]
+    print(len(nc_path))
+
+    # Combine all images together
+    paths = ad_path + nc_path
+    print(len(paths))
+
+    # Create labels for the images: 0 for AD and 1 for CN
+    labels = np.concatenate([np.ones([len(ad_path)]), np.zeros([len(nc_path)])])
+    labels = np.expand_dims(labels, -1)
+
+    all_images = tf.data.Dataset.from_tensor_slices(paths)
+    all_images = all_images.map(lambda x: tf.image.resize(tf.image.decode_jpeg(tf.io.read_file(x), 1), [128, 128]) / 255)
+    print(len(all_images))
+    labels_ds = tf.data.Dataset.from_tensor_slices(labels)
+
+    dataset = tf.data.Dataset.zip((all_images, labels_ds)).shuffle(len(paths))
+
+    return dataset.batch(32)
