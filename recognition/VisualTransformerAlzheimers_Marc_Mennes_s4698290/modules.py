@@ -42,6 +42,7 @@ class ADNITransformer(torch.nn.Module):
 
     def __init__(self, nPatches, patchSize, attentionHeads, attentionDropout, classifierHiddenLayers, encoderDenseNetworks, flatten = True):
         super().__init__()
+        self.patchSize = patchSize
         self.linEmbed = torch.nn.Linear(patchSize*patchSize, patchSize*patchSize)
         self.nPatches = nPatches
         self.flatten = flatten
@@ -59,7 +60,7 @@ class ADNITransformer(torch.nn.Module):
         for i, layer in enumerate(classifierHiddenLayers):
             if i != len(classifierHiddenLayers) - 1:
                 classifiernetwork.append(torch.nn.Linear(layer, classifierHiddenLayers[i + 1]))
-                classifiernetwork.append(torch.nn.GELU())
+                #classifiernetwork.append(torch.nn.GELU())
             else:
                 classifiernetwork.append(torch.nn.Linear(layer, 1))
                 classifiernetwork.append(torch.nn.Sigmoid())
@@ -75,17 +76,15 @@ class ADNITransformer(torch.nn.Module):
             #lines the patches up along a single dimension
             imagePatches = torch.flatten(imagePatches, start_dim=1, end_dim=2)
 
-        embeddedImagePatches = torch.zeros_like(imagePatches)
-        #linearly embed each of the image patches
-        for i in range(self.nPatches):
-            #add on positional embeddings
-            embeddedImagePatches[:, i, :] = self.linEmbed(imagePatches[:, i, :]) + i + 1
-
         #expand the class token to all samples in batch
-        batchedClassToken = self.classToken.expand(embeddedImagePatches.size()[0], -1, -1)
+        batchedClassToken = self.classToken.expand(imagePatches.size()[0], -1, -1)
         
         #add the class token to the token sequence
-        embeddingsAndClassTokens = torch.cat((batchedClassToken, embeddedImagePatches), dim=1)
+        embeddingsAndClassTokens = torch.cat((batchedClassToken, imagePatches), dim=1)
+
+        #add on the learnable positional embeddings for each patch including the class token
+        positionalEmbeddings = torch.nn.Parameter(torch.empty(self.nPatches + 1, self.patchSize*self.patchSize).normal_(std=0.02)) 
+        embeddingsAndClassTokens = embeddingsAndClassTokens + positionalEmbeddings
 
         y = self.encoderBlock(embeddingsAndClassTokens)
         
@@ -97,7 +96,6 @@ class ADNITransformer(torch.nn.Module):
 
 class ADNIConvTransformer(torch.nn.Module):
     
-
     def __init__(self, attentionDropout, classifierHiddenLayers, encoderDenseNetwork):
         super().__init__()
 
