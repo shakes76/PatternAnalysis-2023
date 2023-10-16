@@ -5,7 +5,7 @@
 
 <h2>Instructions</h2>
 <p>
-To train the model, run train.py. This will generate a loss plot in losses.png, a sample input image in sample_input.png, and a model.pth file which contains the state dictionary of the trained model.
+To train the model, run train.py. This will generate a loss plot in losses.png, a sample input image in sample_input.png, and a model.pth file which contains the state dictionary of the trained model. Note -- please ensure that you have the ADNI dataset [2] and it is placed within the root directory, or that you have modified the dataroot variable in dataset.py to point to where you have the data stored. 
 </p>
 
 <p>
