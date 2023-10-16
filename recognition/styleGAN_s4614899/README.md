@@ -12,7 +12,8 @@ A styleGAN model is constructed and used for the given task, which is a state-or
 - Adaptive Instance Normalization:
   AdaIN is essentially a normalizaton technique that aligns the mean and variance of the content feature with that of the style feature in the generator of styleGAN model. It helps to modulate and manipulate generated images based on the style factor *w*.
 - Progressive Training:
-  The training of styleGAN starts with low-resolution images (4*4 in this case) and progressively increases the resolution by adding new layers until it reaches the resolution of the original images to be resembled (256*256).
+- Progressive Training:
+  The training of styleGAN starts with low-resolution images (4 \* 4 in this case) and progressively increases the resolution by adding new layers until it reaches the resolution of the original images to be resembled (256 \* 256).
   This approach accelerates and stablizes the training process. 
 - Stochastic Variation as Noise Input:
   Stochastic variation is introduced to different layers of the generator using scale/resolution-specific Gaussian noises, where the scale-specificity is achieved by the learnable scaling factor (represented as the weight variable in the code), allowing for fine details such as hairs and freckles to be generated.
@@ -40,7 +41,7 @@ After training the styleGAN model, here is a sample of generated images output b
 ## Issue
 The problem is that the generated images appear to be extremely similar or even identical to each other. To understand how it happened, let's take a look at the losses of both generator and discriminator during the training process:
 ![Final training losses: ](./output_images/final_training_losses.png)
-Despite at some early points, the loss of discrimnator and the loss of generator are equally antagonistic, the figure suggests that in the final stage of training, i.e. when the generated images are scaled at 256*256, the loss of generator is dominant over / larger than that of discriminater, which means the discriminator is actually "smarter" than the generator, and it is more or less a contradiction to the fact that the generator learns which certain kind of generated images can fool/confuse the discriminator and only generates such images, which results in the highly similar / the same generated images!
+Despite at some early points, the loss of discrimnator and the loss of generator are equally antagonistic, the figure suggests that in the final stage of training, i.e. when the generated images are scaled at 256 \* 256, the loss of generator is dominant over / larger than that of discriminater, which means the discriminator is actually "smarter" than the generator, and it is more or less a contradiction to the fact that the generator learns which certain kind of generated images can fool/confuse the discriminator and only generates such images, which results in the highly similar / the same generated images!
 
 <!-- which explains why the generated images are highly similar: the generator is trained to be overly smart and powerful so that it learns which certain kind of generated images can fool/confuse the discriminator and only generates such images. -->
 
