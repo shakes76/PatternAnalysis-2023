@@ -45,7 +45,7 @@ posterior_variance = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod)
 output_dir = './generated_images'
 
 # Number of Epochs for training
-epochs = 500
+epochs = 1000
 
 # Loss function
 def get_loss(model, x_0, t, device):
@@ -80,7 +80,7 @@ def sample_timestep(model, x, t):
         return model_mean + torch.sqrt(posterior_variance_t) * noise 
 
 # Save output images
-def save_tensor_image(image, epoch, step, output_dir):
+def save_tensor_image(image, epoch, step, output_dir, start_time):
     
     """
     Plots image after applying reverse transformations.
@@ -99,13 +99,13 @@ def save_tensor_image(image, epoch, step, output_dir):
     
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    img_path = f"{output_dir}/generated_epoch_{epoch:03d}_step_{step:03d}.png"
+    img_path = f"{output_dir}/generated_epoch_{epoch:03d}_step_{step:03d}_{start_time}.png"
     img = reverse_transforms(image)
     img.save(img_path)
 
 
 @torch.no_grad()
-def sample_save_image(model, epoch, output_dir, device):
+def sample_save_image(model, epoch, output_dir, device, start_time):
     # Sample noise
     img_size = IMAGE_SIZE
     img = torch.randn((1, 1, img_size, img_size), device=device)
@@ -118,4 +118,4 @@ def sample_save_image(model, epoch, output_dir, device):
         # Maintain natural range of distribution
         img = torch.clamp(img, -1.0, 1.0)
         if i % stepsize == 0:
-            save_tensor_image(img.detach().cpu(), epoch, i, output_dir)
+            save_tensor_image(img.detach().cpu(), epoch, i, output_dir, start_time)
