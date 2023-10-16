@@ -37,8 +37,8 @@ The process diagram is shown below
 ![image issue](https://github.com/Amberfafa/PatternAnalysis-2023/blob/topic-recognition/recognition/46905774_GCN/results_visualization/GCN_module_dia.png)
 
 ## problem that it solves
-The objective of this project is to categorize each Facebook page into one of four categories.
-This GCN model is designed to address the challenge of semi-supervised node classification within the 
+The aim of this project is to categorize each Facebook page into one of four categories.
+This multi_layer GCN model is designed to address the challenge of semi-supervised node classification within the 
 Facebook Large Page-Page Network dataset. The dataset is a representation of Facebook pages as nodes in a graph, 
 with edges indicating their mutual connections. Each node possesses features, and they are classified into various categories. 
 However, labels are available for only a small subset of nodes. 
@@ -46,19 +46,17 @@ GCN uses labeled instances and the inherent structure of the graph to predict th
 
 
 ## How it works
-The GCN operates by first initializing node representations corresponding to their features. It then iteratively updates these 
-representations by aggregating feature information from neighboring nodes via convolutional layers specifically adapted for graphs. 
+The GCN operates by first initializing node representations corresponding to their features. 
+It then iteratively updates these representations by aggregating feature information from neighboring nodes via convolutional layers. 
 In this project, multiple such layers are used, each learning and extracting different levels of features from the node's neighborhood. 
-Post feature aggregation, standard neural network components like ReLU for non-linearity, dropout for regularization, and batch normalization 
-for stabilizing learning are applied. The final layer of the GCN is a softmax classifier that assigns probabilities for each class to the nodes. 
-During training, the model learns to classify nodes by minimizing the cross-entropy loss. To handle the semi-supervised setting, the model smoothes the cross-entropy loss.
-The training leverages labeled nodes (a small portion of the total) and propagates their information across the graph, effectively classifying the unlabeled nodes. 
-Through back propagation and optimization techniques, model parameters can be adjusted to improve prediction accuracy.
+Post feature aggregation, standard neural network components like ReLU , dropout , and batch normalization. 
+The final layer of the GCN is a softmax classifier that assigns probabilities for each class to the nodes. 
+During training, the model learns to classify nodes by minimizing the cross-entropy loss and smoothes the cross-entropy loss. 
+Through back propagation and optimization techniques, model parameters can be adjusted.
 
 ## pre-processing
-Preprocessing involved loading data with PyTorch and adding self-loops for stability, enhancing model learning. 
-The dataset, with 22,470 samples and 128 features, was split into 70% training, 15% validation, and 15% testing sets, a standard ratio that balances training sufficiency 
-and model generalization. To avoid overfitting and improve robustness, techniques like dropout, batch normalization, and label smoothing were used. 
+Preprocessing consisted of loading the data with PyTorch and adding self-loops to improve stability. The dataset has 22,470 samples and is divided into 70% training set, 
+15% validation set and 15% test set, which is a standard division ratio often used for various deep learning dataset divisions.
 
 ## dependencies
 - Python
@@ -90,8 +88,7 @@ After 800 epoches training of the model on training set we got 93.33% accuracy o
 
 ![image showing issue](https://github.com/Amberfafa/PatternAnalysis-2023/blob/topic-recognition/recognition/46905774_GCN/results_visualization/gcn_accuracy.png)
 
-This graph displays the accuracy of a model during its training phase (represented by the orange line) 
-and its validation phase (represented by the blue line) over a series of epochs. As we can see the model 
+This image displays the accuracy of a model on training set and validation set over a series of epochs. As we can see the model 
 quickly improve its accuracy during the initial epochs and then it tends to level off after a certain point. 
 The validation and training accuracies are closely aligned, which means that the model isn't overfitting to the training set.
 
@@ -100,7 +97,7 @@ The validation and training accuracies are closely aligned, which means that the
 Since the difference in the loss values between the training set and the validation set is too large in the initial period,
 if I show all 800 epochs of the image, we can't clearly see the difference between the two curves, so I only show the loss values of the first 15 epochs.
 From the image we can know that The validation loss starts at a very high value but rapidly decreases and stabilizes. The training loss follows a similar trend, 
-though it levels out at a slightly lower value than the validation loss. And the difference between these two lines prove that the model isn't overfitting.
+though it levels out at a slightly lower value than the validation loss. And the difference between these two lines proves that the model isn't overfitting.
 
 ![image showing issue](https://github.com/Amberfafa/PatternAnalysis-2023/blob/topic-recognition/recognition/46905774_GCN/results_visualization/pre_train.png)
 
