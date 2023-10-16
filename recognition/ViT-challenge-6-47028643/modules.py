@@ -1,3 +1,16 @@
+"""
+Module containing all the modules used in the ViT model.
+This includes:
+    PatchEmbed: Split image into patches and then embed them.
+    Attention: Attention mechanism
+    MLP: Multilayer perceptron
+    Block: The Transformer Block!
+    VisionTransformer: Pulls Everything Together - The Vision Transformer
+
+Author: Felix Hall
+Student number: 47028643
+"""
+
 import torch
 import torch.nn as nn
 

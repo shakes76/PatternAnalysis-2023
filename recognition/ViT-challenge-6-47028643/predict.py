@@ -1,3 +1,10 @@
+"""
+This file is used to run the created model/algorithm for predictions or testing model performance.
+
+Author: Felix Hall
+Student number: 47028643
+"""
+
 # 1. Import Libraries
 import torch
 import torch.nn as nn

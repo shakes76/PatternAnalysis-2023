@@ -1,3 +1,10 @@
+"""
+This file is used to load the dataset,
+as well as calculate the mean and standard deviation of the dataset.
+
+Author: Felix Hall 
+Student number: 47028643
+"""
 import torch
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image

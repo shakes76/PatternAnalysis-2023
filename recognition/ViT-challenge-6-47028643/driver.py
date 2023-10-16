@@ -1,3 +1,10 @@
+"""
+This file is used to run the created model/algorithm
+either via first running train.py or predict.py, depending on whether the model exists.
+
+Author: Felix Hall 
+Student number: 47028643
+"""
 import os
 import subprocess
 

@@ -1,3 +1,19 @@
+"""
+This file contains the code for training the ViT model on the ADNI dataset.
+The following steps are performed in the script:
+1. Load the dataset and split it into training, validation and testing sets
+2. Create DataLoader instances for the training, validation and testing sets
+3. Initialize the ViT model and move it to the device (CPU or GPU)
+4. Define the loss function and optimizer
+5. Train the model
+6. Plot the training and validation losses
+7. Test the model on the test set
+8. Visualize the attention maps for the first batch of the test set
+
+Author: Felix Hall
+Student number: 47028643
+"""
+
 import os
 import torch
 import torch.nn as nn
@@ -29,13 +45,13 @@ num_workers = 2
 momentum = 0.9
 depth = 4  
 n_heads = 4
-mlp_ratio = 2.0  # Modified MLP Ratio
+mlp_ratio = 2.0  
 embed_dim = 256 
-max_patience = 20  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
-drop_p = 0.25  # dropout probability
-attn_p = 0.25  # attention dropout probability
+max_patience = 7  # Stop training if the validation loss doesn't improve for 7 epochs - hyperparameter
+drop_p = 0.25  
+attn_p = 0.25  
 
-#update 1st oct 1.55pm - changed patience to 10 from 7
+#
 test_num = 45
 optim_path_dict = {"AdamW": "AdamW/", "Radam": "RAdam/", "SGD": ""}
 optim_add_path = optim_path_dict[optimiser_choice]
@@ -88,6 +104,8 @@ def visualize_attention(data, attention_map, idx):
 
     plt.savefig(f'train_visuals/{test_num}/attention_visualization_{idx}.png')
     plt.close()
+
+
 # TRANSFORMS
 # Adding more augmentations relevant to 3D brain scans such as vertical and horizontal flips
 std = 0.2244 # from file
@@ -106,8 +124,6 @@ standard_transforms = transforms.Compose([
 ])
 
 
-
-
 # DATASET 
 # Initialize the dataset
 # chose to have it in the train and not the dataset file since it allows for more generalisation if the train file is used with a different dataset
@@ -115,7 +131,7 @@ root_dir = '/home/groups/comp3710/ADNI/AD_NC'
 train_dataset = ADNIDataset(root_dir=root_dir, subset='train', transform=data_transforms)
 
 
-# # calculate mean and std - alrady done
+# # calculate mean and std - alrady done but uncomment if you want to redo
 # dataset_statistics = DatasetStatistics(train_dataset)
 # mean, std = dataset_statistics.calculate_statistics()
 # print(f"Mean: {mean}, Std Dev: {std}")
@@ -144,11 +160,9 @@ print ("~~~ DATA PATHS CHECK ~~~")
 print ("train_data_paths: {}, val_data_paths: {}".format(len(train_data_paths), len(val_data_paths)))
 print ("example train_data_paths: {}, example val_data_paths: {}".format(train_data_paths[0], val_data_paths[0]))
 
-# check there are both types of classes in teh val set
+# check there are both types of classes in the val set - uncomment to do check
 # val_set_class_types = list(set([label for _, label in val_data_paths]))
 # print ("classes: {}".format(val_set_class_types))
-
-
 
 
 train_dataset.data_paths = train_data_paths
@@ -194,8 +208,6 @@ if scheduler_active:
         scheduler = CyclicLR(optimizer, base_lr=0.0001, max_lr=learning_rate, step_size_up=200, cycle_momentum=False)
     else:
         scheduler = CyclicLR(optimizer, base_lr=0.0001, max_lr=learning_rate, step_size_up=200)
-
-
 
 
 # TRAINING
