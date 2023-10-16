@@ -41,6 +41,8 @@ This project focuses on enhancing the resolution of medical images from the ADNI
 - **Feature Extraction in LR Space:** ESPCN efficiently extracts features from low-resolution images, reducing computational complexity.
 - **Sub-Pixel Convolution:** The model employs a sub-pixel convolution layer to upscale LR feature maps to high-resolution output.
 
+![Alt text](flow.png)
+
 ## Getting Started
 
 ### Prerequisites
@@ -119,5 +121,5 @@ To utilize this project with your ADNI dataset, follow these steps:
 
 ## Acknowledgements
 
-This project is based on the principles of the ESPCN model for super-resolution and is inspired by various research papers and PyTorch tutorials.
+Real-Time Single Image and Video Super-Resolution Using an Efficient Sub-Pixel Convolutional Neural Network: https://arxiv.org/abs/1609.05158
 
