@@ -2,40 +2,42 @@ import torch
 import torchvision
 import torchvision.utils as vutils
 import torchvision.transforms as transforms
+from  torch.nn.modules.upsampling import Upsample
 from modules import SubPixel
 from dataset import *
-from  torch.nn.modules.upsampling import Upsample
+from utils import *
+
 
 if __name__ == "__main__":
 
     device = torch.device("cpu")
 
-    dataroot = "./data/AD_NC/test"
 
-    test_loader = load_data("./data/AD_NC/test")
+    test_loader = load_data(test_root,test_batchsize)
 
     # Instantiate the model
     model = SubPixel() 
 
     # Load the pre-trained model's state dict
-    model.load_state_dict(torch.load("subpixel_model.pth", map_location=device))
+    model.load_state_dict(torch.load(load_path, map_location=device))
 
     model.eval()
-    transform = transforms.Compose([transforms.Resize((60,64))])
 
+    #obtaining the first batch
     with torch.no_grad():
         for input,label in test_loader:
 
-            down_scaled_image = transform(input)
+            down_scaled_image = down_sample(input)
             input = input.to(device)
             down_scaled_image = down_scaled_image.to(device)
 
             output = model(down_scaled_image).detach().cpu()
             break
+    
+    #Upscaling the down_sampled image with up_scale function so that it can be displayed along side the input and ouput
+    down_scaled_image_up = up_sample(down_scaled_image)
 
-    m = Upsample(scale_factor=4)
-    down_scaled_image_up = m(down_scaled_image)
-
+    #displaying the images
     images = torch.cat((input,down_scaled_image_up,output))
     image = vutils.make_grid(images, padding=2, normalize = True)
     transform = torchvision.transforms.ToPILImage()

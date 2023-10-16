@@ -4,39 +4,39 @@ import torch.nn
 import torchvision.transforms as transforms
 from dataset import *
 from modules import *
-
+from utils import *
  
 
 if __name__ == "__main__":
-    
-    dataroot = "./data/AD_NC/train"
-    train_loader = load_data(dataroot)
+    #loading the data
+    train_loader = load_data(train_root,train_batchsize)
+
+    #Intialising the device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
     
-    
-    
+    #Initialising the model
     model = SubPixel()
 
+    #Initialising the loss function and optimiser
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-    num_epochs = 100
+    #Setting the model to training mode
     model.to(device)
-
-    transform = transforms.Compose([transforms.Resize((60,64))])
-
     model.train()
+
     for epoch in range(num_epochs):
         running_loss = 0.0
         for inputs, labels in train_loader:
-            inputs, labels = inputs.to(device), labels.to(device)
+            #Down sampling the image
+            downsampled_inputs = down_sample(inputs).to(device)
+            inputs = inputs.to(device).to(device)
 
             optimizer.zero_grad()
             
-            downsampled_inputs = transform(inputs)
             # Forward pass
-            outputs = model(downsampled_inputs)
+            outputs = model(downsampled_inputs).to(device)
             loss = criterion(outputs, inputs)
             
             # Backpropagation and optimization
@@ -49,5 +49,5 @@ if __name__ == "__main__":
 
     print("Training complete")
 
-    torch.save(model.state_dict(), "subpixel_model.pth")
+    torch.save(model.state_dict(), saved_path)
 

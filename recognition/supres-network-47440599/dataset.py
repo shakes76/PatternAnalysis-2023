@@ -4,16 +4,11 @@ import torchvision.transforms as transforms
 import torchvision.utils as vutils
 import numpy as np
 import matplotlib.pyplot as plt
+from utils import *
 
-def load_data(path:str):
+def load_data(path:str,batch_size:int):
     
-
-    batch_size = 128
-
-    workers = 2
-
-
-
+    #opening the dataset and transforming it
     dataset = dset.ImageFolder(root=path,
                             transform=transforms.Compose([
                                 transforms.Grayscale(1),
@@ -21,6 +16,7 @@ def load_data(path:str):
                                 transforms.RandomHorizontalFlip()
                             ]))
 
+    #Loading the data
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                             shuffle=True, num_workers=workers)
 
@@ -31,8 +27,8 @@ def load_data(path:str):
     
 
 if __name__ == "__main__":
-    dataroot = "./data/AD_NC/train"
-    dataloader = load_data(dataroot)
+    #loading data 
+    dataloader = load_data(train_root,train_batchsize)
     device = torch.device("cpu")
     #Plotting
     real_batch = next(iter(dataloader))
