@@ -35,16 +35,26 @@ def load_data():
     """
     Function that loads the data and creates the dataloader. Returns the dataloader.
     """
+    print("Loading data...")
+
     # TRANSFORMS
-    transform_train = transforms.Compose([
+    transform_low_res = transforms.Compose([
         transforms.Resize((new_height, new_width)),
         transforms.RandomHorizontalFlip(),
         transforms.Grayscale(),
         transforms.ToTensor(),
     ])
 
+    transform_high_res = transforms.Compose([
+        transforms.Grayscale(),
+        transforms.ToTensor(),
+    ])
+
+    dataset_low_res = torchvision.datasets.ImageFolder(train_path, transform=transform_low_res)
+    dataset_high_res = torchvision.datasets.ImageFolder(train_path, transform=transform_high_res)
+
     dataloader = torch.utils.data.DataLoader(
-        torchvision.datasets.ImageFolder(train_path, transform=transform_train),
+        [(low, high) for low, high in zip(dataset_low_res, dataset_high_res)],
         batch_size=batch_size,
         num_workers=num_workers,
     )
@@ -64,7 +74,7 @@ def load_data():
     plt.imshow(
         np.transpose(
             vutils.make_grid(
-                real_batch[0].to(device)[:16], nrow=4, padding=2, normalize=True 
+            real_batch[0][0].to(device)[:16], nrow=4, padding=2, normalize=True 
             ).cpu(),
             (1, 2, 0),
         )
@@ -72,5 +82,5 @@ def load_data():
     plt.savefig("training_images.png")
 
     print("Training image picture created!")
-
+    print("Data loaded!")
     return dataloader
