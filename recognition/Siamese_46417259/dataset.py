@@ -6,6 +6,7 @@ import torchvision.transforms.v2 as transforms
 import numpy as np
 import matplotlib.pyplot as plt
 import random
+import os.path
 
 import CONSTANTS
 
@@ -19,7 +20,7 @@ workers = 0
 LOCAL = -1
 GLOBAL = 1
 
-machine = GLOBAL
+machine = LOCAL
 if machine == GLOBAL:
     # get filepaths from CONSTANTS.py
     train_path = CONSTANTS.TRAIN_PATH
@@ -56,11 +57,15 @@ test_transforms = transforms.Compose([
 
 
 class PairedDataset(torch.utils.data.Dataset):
-    def __init__(self, image_folder:dset.ImageFolder, show_debug_info:bool, random_seed=None) -> None:
+    def __init__(self, 
+                dataset:torch.utils.data.Dataset, 
+                show_debug_info:bool, 
+                random_seed=None) -> None:
         super().__init__()
-        self.image_folder = image_folder
-        self.image_folder_size = len(self.image_folder)
+        self.dataset = dataset
+        self.dataset_size = len(self.dataset)
         self.debug_mode = show_debug_info
+        self.imagefolder = self.dataset.dataset
 
         # for reproducibility
         if random_seed is not None:
@@ -68,7 +73,7 @@ class PairedDataset(torch.utils.data.Dataset):
             torch.random.manual_seed(random_seed)
 
     def __len__(self) -> int:
-        return self.image_folder_size
+        return self.dataset_size
 
     def __getitem__(self, index: int):
         """
@@ -79,18 +84,18 @@ class PairedDataset(torch.utils.data.Dataset):
             filepath1 and filepath2 are strings representing the last 15 characters
                 of the images' filepaths excluding the .jpeg extension
         """
-        img1, label1 = self.image_folder[index]
+        img1, label1 = self.dataset[index]
         similarity = random.randint(0, 1)
 
         match_found = False
         while not match_found:
-            choice = random.randint(0, self.image_folder_size - 1)
+            choice = random.randint(0, self.dataset_size - 1)
             # make sure we do not pair the same image against itself
             if choice == index:
                 continue
 
-            filepath1 = self.image_folder.imgs[index][0]
-            filepath2 = self.image_folder.imgs[choice][0]
+            filepath1 = self.imagefolder.imgs[self.dataset.indices[index]][0]
+            filepath2 = self.imagefolder.imgs[self.dataset.indices[choice]][0]
 
             # start, end = filepath1.rfind('/') + 1, filepath1.rfind('_')
             # patient_id1 = filepath1[start:end]
@@ -101,7 +106,7 @@ class PairedDataset(torch.utils.data.Dataset):
             # if patient_id1 == patient_id2:
             #     continue
 
-            img2, label2 = self.image_folder[choice]
+            img2, label2 = self.dataset[choice]
             if similarity == 1:
                 match_found = label1 == label2
             else:
@@ -117,15 +122,16 @@ class PairedDataset(torch.utils.data.Dataset):
         return self.debug_mode
 
 
-def load_data(training:bool, Siamese:bool, random_seed=None) -> torch.utils.data.DataLoader:
+def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.8) -> torch.utils.data.DataLoader:
+    
+    path = train_path
     if training:
-        path = train_path
         if Siamese:
             transforms = Siamese_train_transforms
         else:
             transforms = classifier_train_transforms
     else:
-        path = test_path
+        # validation set uses the same transforms as the test set
         transforms = test_transforms
 
     if random_seed is not None:
@@ -133,13 +139,46 @@ def load_data(training:bool, Siamese:bool, random_seed=None) -> torch.utils.data
         torch.random.manual_seed(random_seed)
 
     source = dset.ImageFolder(root=path, transform=transforms)
-    print(f'dataset has classes {source.class_to_idx} and {len(source)} images')
+    patient_ids = set()
+    
+    for i in range(len(source)):
+        filepath = source.imgs[i][0]
+        start, end = filepath.rfind(os.path.sep) + 1, filepath.rfind('_')
+        patient_id = filepath[start:end]
+        patient_ids.add(patient_id)
+    
+    patient_ids = list(patient_ids)
+    split_point = int(train_proportion*len(patient_ids))
+
+    if training:
+        patients = patient_ids[:split_point]
+    else: 
+        patients = patient_ids[split_point:]
+
+    indices_to_be_included = []
+
+    # print("all patients: ", patient_ids)
+    # print("chosen patients: ", patients)
+
+    for i in range(len(source)):
+        filepath = source.imgs[i][0]
+        start, end = filepath.rfind(os.path.sep) + 1, filepath.rfind('_')
+        patient_id = filepath[start:end]
+
+        if patient_id in patients:
+            indices_to_be_included.append(i)
+            # print(filepath)
+    
+    source = torch.utils.data.Subset(source, indices_to_be_included)
+
+    print(f'loading {"training" if training else "validation"} data with a training split of {train_proportion}')
+    print(f'dataset has classes {source.dataset.class_to_idx} and {len(source)} images')
 
     if Siamese:
         # loading paired data for the Siamese neural net
         # each data point is of format [img1, img2, similarity]
         # where similarity is 1 if the two images are of the same class and 0 otherwise
-        dataset = PairedDataset(source, show_debug_info=False, random_seed=random_seed)
+        dataset = PairedDataset(source, False, random_seed=random_seed)
         loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                             shuffle=True, num_workers=workers)
     else:
@@ -151,19 +190,46 @@ def load_data(training:bool, Siamese:bool, random_seed=None) -> torch.utils.data
     
     return loader
 
+def load_test_data(Siamese:bool, random_seed=None) -> torch.utils.data.DataLoader:
+
+    if random_seed is not None:
+        random.seed(random_seed)
+        torch.random.manual_seed(random_seed)
+
+    source = dset.ImageFolder(root=test_path, transform=test_transforms)
+    print('Loading training data')
+    print(f'dataset has classes {source.class_to_idx} and {len(source)} images')
+
+    if Siamese:
+        # loading paired data for the Siamese neural net
+        # each data point is of format [img1, img2, similarity]
+        # where similarity is 1 if the two images are of the same class and 0 otherwise
+        dataset = PairedDataset(source, False, random_seed=random_seed)
+        loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                            shuffle=True, num_workers=workers)
+    else:
+        # loading unitary training data for the MLP
+        # each data point is of format [img, label]
+        # where label is 1 if the image is of class AD and 0 otherwise
+        loader = torch.utils.data.DataLoader(source, batch_size=2*batch_size,
+                                            shuffle=True, num_workers=workers)
+    
+    return loader
 
 #
 # basic tests
 #
 def test_load_data_basic():
-    dataloader = load_data(training=True, Siamese=True)
+    dataloader = load_data(training=True, Siamese=True, train_proportion=0.8)
     dataloader.dataset.debug_mode = True
 
-    onepair = dataloader.dataset.__getitem__(0)
-    print(f'filepath 1 = {onepair[3]}, filepath 2 = {onepair[4]}')
+    # print(dataloader.dataset.image_folder[0])
 
-    next_batch = next(iter(dataloader))
-    print(next_batch[0][0].shape)
+    # onepair = dataloader.dataset.__getitem__(0)
+    # print(f'filepath 1 = {onepair[3]}, filepath 2 = {onepair[4]}')
+
+    # next_batch = next(iter(dataloader))
+    # print(next_batch[0][0].shape)
 
 def test_visualise_data_MLP():
     # Plot some training images

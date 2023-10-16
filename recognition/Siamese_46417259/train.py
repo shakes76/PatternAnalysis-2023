@@ -12,7 +12,7 @@ import torch.nn.functional as F
 import numpy as np
 import matplotlib.pyplot as plt
 
-from modules import SiameseTwin, SiameseNeuralNet, SiameseMLP, SimpleMLP
+from modules import SiameseTwin, SiameseNeuralNet, SimpleMLP
 from dataset import PairedDataset, load_data
 
 TRAIN_PATH = '/home/groups/comp3710/ADNI/AD_NC/train/'
@@ -280,7 +280,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     Siamese_checkpoint_filename = checkpoint
 
     train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
-    test_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
+    validation_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
     siamese_net, criterion, optimiser, device = initialise_Siamese_training()
 
     # scheduler = optim.lr_scheduler.ExponentialLR(optimiser, 0.99)
@@ -302,7 +302,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
         print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_train_loss:.4f}')
 
         print(f'Validating Epoch {epoch+1}')
-        loss_list, avg_eval_loss, elapsed = eval_siamese_one_epoch(siamese_net, criterion, device, test_loader)
+        loss_list, avg_eval_loss, elapsed = eval_siamese_one_epoch(siamese_net, criterion, device, validation_loader)
         eval_losses += loss_list
         print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 
@@ -335,7 +335,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     classifier_checkpoint_filename = checkpoint
 
     train_loader = load_data(training=True, Siamese=False, random_seed=random_seed)
-    test_loader = load_data(training=False, Siamese=False, random_seed=random_seed)
+    validation_loader = load_data(training=False, Siamese=False, random_seed=random_seed)
 
     # classifier, criterion, optimiser, device = initialise_classifier_training(backbone)
     classifier, criterion, optimiser, device = initialise_classifier_training()
@@ -359,7 +359,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
         print(f'Training Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_train_loss:.4f}')
 
         print(f'Validating Epoch {epoch+1}')
-        loss_list, avg_eval_loss, elapsed = eval_classifier_one_epoch(classifier, backbone, criterion, device, test_loader)
+        loss_list, avg_eval_loss, elapsed = eval_classifier_one_epoch(classifier, backbone, criterion, device, validation_loader)
         eval_losses += loss_list
         print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 

@@ -4,7 +4,7 @@ import numpy as np
 import time
 
 import CONSTANTS
-from dataset import load_data
+from dataset import load_test_data
 from modules import SiameseTwin, SimpleMLP
 from train import load_from_checkpoint
 
@@ -41,7 +41,7 @@ def load_trained_classifier(filename:str):
     return classifier, device
 
 def make_predictions(classifier, backbone, device, random_seed=None):
-    # For reproducibility if desired. RNG seeding is handled in load_data()
+    # For reproducibility if desired. RNG seeding is handled in load_test_data()
     if random_seed is not None:
         torch.use_deterministic_algorithms(True)
 
@@ -49,7 +49,7 @@ def make_predictions(classifier, backbone, device, random_seed=None):
     backbone.eval()
 
     # Load test data for inferencing
-    test_loader = load_data(training=False, Siamese=False, random_seed=random_seed)
+    test_loader = load_test_data(Siamese=False, random_seed=random_seed)
     print("Test data loaded successfully")
 
     start = time.time()
@@ -80,7 +80,7 @@ def make_predictions(classifier, backbone, device, random_seed=None):
     print(f"Test Accuracy (rounded): {round(100 * correct / total, 4)} %")
 
 def visualise_sample_predictions(classifier, backbone, device, random_seed=None, save_name=None):
-    # For reproducibility if desired. RNG seeding is handled in load_data()
+    # For reproducibility if desired. RNG seeding is handled in load_test_data()
     if random_seed is not None:
         torch.use_deterministic_algorithms(True)
 
@@ -88,7 +88,7 @@ def visualise_sample_predictions(classifier, backbone, device, random_seed=None,
     backbone.eval()
 
     # Load test data for inferencing
-    test_loader = load_data(training=False, Siamese=False, random_seed=random_seed)
+    test_loader = load_test_data(Siamese=False, random_seed=random_seed)
     print("Test data loaded successfully")
 
     with torch.no_grad(): # disables gradient calculation
