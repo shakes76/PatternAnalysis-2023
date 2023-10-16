@@ -1,7 +1,7 @@
 #!/bin/bash 
 #SBATCH -N 1
 #SBATCH -n 1
-#SBATCH --job-name=RESNET_18_step
+#SBATCH --job-name=torch-gpu
 #SBATCH --cpus-per-task 1
 #SBATCH --mail-type=All
 #SBATCH --mail-user=l.moan@uqconnect.edu.au
@@ -10,6 +10,6 @@
 #SBATCH --partition=test
 #SBATCH --gres=gpu:1
 
-conda activate comp3710-env
+conda activate torch-gpu-exp
 
-python run.py
+python check_torch.py

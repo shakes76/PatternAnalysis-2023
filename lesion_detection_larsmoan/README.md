@@ -20,11 +20,12 @@ Brief description of the project, its objectives, and its significance.
   - [Acknowledgements](#acknowledgements)
 
 ### Todo
-- [ ] Create my own training script that works on top of yolov7/train.py
-- [ ] Make a downsampled version of the dataset.
-- [ ] Manage a way of logging the runs to wandb
-- [ ] Zip and upload dataset to gdrive, and make functions for fetching the dataset from the cluster.
-- [ ] Make training scripts for use on the rangpur cluster.
+- [x] Create my own training script that works on top of yolov7/train.py
+- [x] Make a downsampled version of the dataset.
+- [x] Manage a way of logging the runs to wandb
+- [x] Zip and upload dataset to gdrive, and make functions for fetching the dataset from the cluster.
+- [x] Make training scripts for use on the rangpur cluster.
+- [ ] Manage to train on the downsampled dataset using the cluster. Need gpu version of CUDA for this to work.
 
 
 ### Installation

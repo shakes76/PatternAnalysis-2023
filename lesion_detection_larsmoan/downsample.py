@@ -59,6 +59,6 @@ def copy_txt_files(source_folder, target_folder):
 if __name__ == "__main__":
     source = "/Users/larsmoan/Documents/UQ/COMP3710/PatternAnalysis-2023/lesion_detection_larsmoan/data/ISIC_2017/val"
     target = "/Users/larsmoan/Documents/UQ/COMP3710/PatternAnalysis-2023/lesion_detection_larsmoan/data/ISIC_2017/val_downsampled"
-    n = 6  # Downsample by factor of 2
+    n = 2  # Downsample by factor of 2
     downsample_images(source, target, n)
     copy_txt_files(source_folder=source, target_folder=target)
