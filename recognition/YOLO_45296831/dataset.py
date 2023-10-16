@@ -1,4 +1,5 @@
 import cv2
+import os
 
 
 rangpur_data_path = "/home/Student/s4529683/COMP3710/"
@@ -17,15 +18,29 @@ def mask_to_bp(img_path):
     polygons = []
 
     for obj in contours:
-        coords = []
+        
 
         for point in obj:
-            coords.append(int(point[0][0])/img.shape[0])
-            coords.append(int(point[0][1])/img.shape[1])
+            polygons.append(str(int(point[0][0])/img.shape[0]))
+            polygons.append(str(int(point[0][1])/img.shape[1]))
         
-        polygons.append(coords)
+        
 
-    return polygons
+    return " ".join(polygons)
 
 
+def main():
+    textfile = "ISIC_"
+    i = 0
+    print(f"{textfile}{i:07d}.txt")
 
+    for filename in os.listdir(home_data_path):
+        if filename.endswith('.png'):
+            name = f"{textfile}{i:07d}.txt"
+            with open("COMP3710/test/" + name, 'w') as f:
+                f.write(str(i) + " ")
+                f.write(mask_to_bp(home_data_path+"/"+filename))
+            i += 1
+
+if __name__ == "__main__":
+    main()
