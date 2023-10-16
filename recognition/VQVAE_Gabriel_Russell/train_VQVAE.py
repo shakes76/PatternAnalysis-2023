@@ -8,23 +8,31 @@ This script is for Setting up the code that will be used for training the VQVAE 
 
 """
 
-import modules
-import torch
-import torch.optim as optim
-from scipy.signal import savgol_filter
-import matplotlib.pyplot as plt
-import dataset
-import torch.nn.functional as F
-import numpy as np
-import os
+from modules import *
+from dataset import *
 
+"""
+This Class handles the training part of the VQVAE. 
+It takes in preprocessed MRI scans of a brain,
+and includes functions for training, validation and
+testing reconstructions. 
+"""
 class TrainVQVAE():
     def __init__(self):
+        """
+        Initialises attributes for VQVAE training process
+
+        Args: 
+            None
+
+        Returns:
+            None
+        """
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.params = modules.Parameters()
-        self.model = modules.VQVAEModel()
+        self.params = Parameters()
+        self.model = VQVAEModel()
         self.model = self.model.to(self.device)
-        data = dataset.OASISDataloader()
+        data = OASISDataloader()
         self.train_loader = data.get_train()
         self.val_loader = data.get_validate()
         self.test_loader = data.get_test()
@@ -34,6 +42,17 @@ class TrainVQVAE():
         self.validation_err = []
     
     def train(self):
+        """
+        Training function for VQVAE.
+        Also saves models after training and produces
+        reconstruction error plot.
+
+        Args: 
+            None
+
+        Returns:
+            None
+        """
         for epoch in range(self.epochs):
             print(f"VQVAE Training on Epoch: {epoch + 1}")
             for i in enumerate(self.train_loader):
@@ -46,20 +65,16 @@ class TrainVQVAE():
                 reconstruction_err = F.mse_loss(recon, img)/ self.params.data_var
                 total_loss = reconstruction_err + vec_quantizer_loss
                 total_loss.backward()
-
                 self.optimizer.step()
-
                 self.reconstruction_err.append(reconstruction_err.item())
-                # if batch_num % 20 == 0:
-                #     print('VQVAE Reconstruciton error for training: %.3f' % np.mean(self.reconstruction_err[:]))
-                #     print()
+
             print(f"EPOCH: {epoch + 1}\n")
             print('Reconstruction Loss: %.3f' % np.mean(self.reconstruction_err[-302:]))
         
         #Filters and Plots Reconstruction Loss values
-        train_res_recon_error_smooth = savgol_filter(self.reconstruction_err, 604, 7)
-        f = plt.figure(figsize=(16,8))
-        ax = f.add_subplot(1,2,1)
+        train_res_recon_error_smooth = savgol_filter(self.reconstruction_err, 302*self.epochs, 7)
+        f = plt.figure(figsize=(8,8))
+        ax = f.add_subplot(1,1,1)
         ax.plot(train_res_recon_error_smooth)
         ax.set_yscale('log')
         ax.set_title('Reconstruction Loss after training')
@@ -72,21 +87,29 @@ class TrainVQVAE():
         torch.save(self.model, model_path)
 
     def validate(self):
-        model = torch.load("Models/VQVAE.pth")
-        self.model.eval()
+        """
+        Validation function for VQVAE.
+        Produces a Validation plot after
+        VQVAE model has trained.
+
+        Args: 
+            None
+
+        Returns:
+            None
+        """
+        loaded_model = torch.load("Models/VQVAE.pth")
+        loaded_model.eval()
         with torch.no_grad():
             for i in enumerate(self.val_loader):
-                batch_num, img = i
+                _, img = i
                 img = img.to(self.device)
 
-                vec_quantizer_loss, recon, _ = model(img)
+                _, recon, _ = loaded_model(img)
                 reconstruction_err = F.mse_loss(recon, img)/ self.params.data_var
-
                 self.validation_err.append(reconstruction_err.item())
-                # if batch_num % 20 == 0:
-                #     print('Reconstruction Error for validation set: %.3f' % np.mean(self.validation_err[:]))
-                #     print()
-            #Filters and Plots Reconstruction Loss values
+
+        #Filters and Plots Reconstruction Loss values
         train_res_recon_error_smooth = savgol_filter( self.validation_err, 35, 7)
         f = plt.figure(figsize=(16,8))
         ax = f.add_subplot(1,2,1)
@@ -97,13 +120,24 @@ class TrainVQVAE():
         plt.savefig("Output_files/reconstruction_err_validate.png")
 
     def test_reconstructions(self):
+        """
+        Test function for VQVAE.
+        Passes some test images through the 
+        VQVAE model to see if it is reconstructing 
+        images appropriately.
+
+        Args: 
+            None
+
+        Returns:
+            None
+        """
         test_input = next(iter(self.test_loader))
         test_input = test_input.to(self.device)
         encoded = self.model.encoder(test_input)
         conv = self.model.conv_layer(encoded)
-        _,quantized_results,_,embeddings = self.model.quantizer(conv)
+        _,quantized_results,_,_ = self.model.quantizer(conv)
         reconstructions = self.model.decoder(quantized_results)
-        #print(f"reconstrcuted image batch shape is {reconstructions.shape}")
 
         batch = reconstructions.shape[0]
         num_rows = 4  # Number of rows in the grid

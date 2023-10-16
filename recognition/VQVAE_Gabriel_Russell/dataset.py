@@ -9,15 +9,11 @@ The data is a preprocessed version of the original OASIS Brain dataset provided 
 @ID: s4640776
 
 """
-import os
-import torch
-from torchvision import transforms
 from torchvision.datasets import ImageFolder
-from torch.utils.data import DataLoader
-from PIL import Image
 from torch.utils.data import Dataset
-from modules import Parameters
+from modules import *
 
+#Initialising global path directories
 current_dir = os.getcwd()
 OASIS_train_path = current_dir + '\keras_png_slices_train'
 OASIS_validate_path = current_dir + '\keras_png_slices_validate'
@@ -29,24 +25,46 @@ transformation to all images and returns it ready to be loaded into a dataloader
 """
 class OASISDataset(Dataset):
     #Define the transform as a class attribute
-
-    #Define the data transformations from imported datasets
-    #Resize all images to 256x256 pixels
-    #Convert to tensors and normalise tensor image with mean and standard deviation
     transform = transforms.Compose([
-    transforms.Resize((256,256)),
-    transforms.ToTensor()
-   # transforms.Normalize(mean = [0.5], std = [0.5])
+        transforms.Resize((256,256)),
+        transforms.ToTensor()
     ])
 
     def __init__(self, data_directory):
+        """
+        Initialises attributes for class.
+
+        Args: 
+            data_directory (str): Path for data to be imported
+
+        Returns:
+            None
+        """
         self.data_directory = data_directory
         self.data = os.listdir(data_directory)
 
     def __len__(self):
+        """
+        Gets length of data
+
+        Args: 
+            None
+
+        Returns:
+            Length of data
+        """
         return len(self.data)
 
     def __getitem__(self, idx):
+        """
+        Allows instances of the class to be accessed using square bracket notation
+
+        Args: 
+            idx (num): Indexed number specified
+
+        Returns:
+            img (tensor): Image at specified path after being converted to a tensor
+        """
         img_path = os.path.join(self.data_directory, self.data[idx])
         img = Image.open(img_path)
         img = self.transform(img)
@@ -60,40 +78,108 @@ Included are some getter functions for returning the specified dataloader.
 """
 class OASISDataloader():
     def __init__(self):
+        """
+        Initialises attributes for class.
+
+        Args: 
+            None
+
+        Returns:
+            None
+        """
         p = Parameters()
         self.train = OASISDataset(OASIS_train_path)
         self.validate = OASISDataset(OASIS_validate_path)
         self.test = OASISDataset(OASIS_test_path)
         self.batch_size = p.batch_size
-        self.train_dataloader =  DataLoader(self.train, batch_size = self.batch_size, shuffle = True, drop_last= True)
-
     def get_train(self):
-        self.train_dataloader =  DataLoader(self.train, batch_size = self.batch_size, shuffle = True, drop_last= True)
-        return self.train_dataloader
+        """
+        Retrieves training data
+
+        Args: 
+            None
+
+        Returns:
+            train_dataloader (DataLoader): Training data loader
+        """
+        train_dataloader =  DataLoader(self.train, batch_size = self.batch_size, shuffle = True, drop_last= True)
+        return train_dataloader
     
     def get_validate(self):
+        """
+        Retrieves validation data
+
+        Args: 
+            None
+
+        Returns:
+            validate_dataloader (DataLoader): Validation data loader
+        """
         validate_dataloader =  DataLoader(self.validate, batch_size = self.batch_size, shuffle = False)
         return validate_dataloader
     
     def get_test(self):
+        """
+            Retrieves test data
+
+            Args: 
+                None
+
+            Returns:
+                test_dataloader (DataLoader): Test data loader
+            """
         test_dataloader =  DataLoader(self.test, batch_size = self.batch_size, shuffle = False)
         return test_dataloader
     
 
+"""
+This class creates the training data required for the DCGAN. This is 
+formed from the encoded images produced by a trained VQVAE model.
+"""
 class DCGAN_Dataset(Dataset):
+    #Define the transform as a class attribute
     transform = transforms.Compose([
         transforms.ToTensor()
     ])
+
     def __init__(self, model):
+        """
+        Initialises attributes for class.
+
+        Args: 
+            model (VQVAEModel): Loaded VQVAE model that has been trained
+
+        Returns:
+            None
+        """
         self.model = model
         self.image_path = OASIS_train_path
         self.images = os.listdir(OASIS_train_path)
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def __len__(self):
+        """
+        Gets length of data
+
+        Args: 
+            None
+
+        Returns:
+            Length of data
+        """
         return(len(self.images))
     
     def __getitem__(self, idx):
+        """
+        Returns the encoding indices of images after being passed through 
+        a trained VQVAE's encoder, convolutional layer and quantizer
+
+        Args: 
+            idx (num): Indexed number specified
+
+        Returns:
+            encoding_indices (Tensor): Encoded indices of images
+        """
         img_path = os.path.join(self.image_path, self.images[idx])
         img = Image.open(img_path)
         img = self.transform(img)
@@ -104,7 +190,6 @@ class DCGAN_Dataset(Dataset):
         conv = self.model.conv_layer(VQVAE_encoded)
         _,_,_,encoding_indices = self.model.quantizer(conv)
         encoding_indices = encoding_indices.float().to('cuda')
-        #print(encodings.shape)
         encoding_indices = encoding_indices.view(64,64) #Reshape to 64x64
         encoding_indices = torch.stack((encoding_indices, encoding_indices, encoding_indices),0)
         return encoding_indices

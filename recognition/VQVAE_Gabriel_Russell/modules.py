@@ -13,29 +13,37 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
 import torch.optim as optim
-
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-from torchvision.utils import make_grid
 from torch.distributions.normal import Normal
 from torch.distributions import kl_divergence
+from torchvision.utils import save_image
+from scipy.signal import savgol_filter
 import numpy as np
 import matplotlib.pyplot as plt
-from torchvision.utils import save_image
 from skimage.metrics import structural_similarity as ssim
 import os
 from PIL import Image
-
+import matplotlib.pyplot as plt
 
 """
 Define the hyperparameters used for the model.
 """
 class Parameters():
     def __init__(self):
-        self.batch_size = 32 
+        """
+        Initialises hyperparameters used for models.
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
+        self.batch_size = 32 #Batch size for VQVAE model training
         self.num_hiddens = 128 #Number of hidden layers for convolution
         self.num_residual_hiddens = 32 #Number of residual hidden layers
-        self.embedding_dim = 64 #dimension for each embedding
+        self.embedding_dim = 64 #Dimension for each embedding
         self.num_embeddings = 512 #Number of embeddings in codebook
         self.commitment_cost = 0.25 #Beta term in loss func
         self.learn_rate = 1e-3 #Learning rate for VQVAE
@@ -43,18 +51,29 @@ class Parameters():
         self.grey_channel = 1 #Number of channels of image (all grey images)
 
         self.gan_lr = 1e-3 #Learning rate for DCGAN
-        self.features = 128
-        self.channel_noise = 100
-        self.Gan_batch_size = 32
-        self.latent_dim = 100
+        self.features = 128 #Number of features used for Discriminator and Generator networks 
+        self.channel_noise = 100 #Channel noise amount for generation
+        self.Gan_batch_size = 32 #DCGAN batch size
 
 #Referenced From
 #https://colab.research.google.com/github/zalandoresearch/pytorch-vq-vae/blob/master/vq-vae.ipynb#scrollTo=kgrlIKYlrEXl
 """
 Residual layer containing [ReLU, 3x3 conv, ReLU, 1x1 conv]
+Based on https://arxiv.org/pdf/1711.00937.pdf
 """
 class Residual_layer(nn.Module):
     def __init__(self, in_channels, num_hiddens, num_residual_hiddens):
+        """
+        Initialises sequential block for Residual layer
+
+        Args: 
+            in_channels (num): Number of input channels
+            num_hiddens (num): Number of hidden layers
+            num_residual_hiddens(num): Number of residual hidden layers
+
+        Returns:
+            None
+        """
         super(Residual_layer, self).__init__()
         self._block = nn.Sequential(
             nn.ReLU(),
@@ -77,6 +96,16 @@ Creates a Residual block consisting of 2 residual layers
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, num_hiddens, num_residual_hiddens):
         super(ResidualBlock, self).__init__()
+        """
+        Initialises layers to form residual block
+        Args: 
+            in_channels (num): Number of input channels
+            num_hiddens (num): Number of hidden layers
+            num_residual_hiddens(num): Number of residual hidden layers
+
+        Returns:
+            None
+        """
         self.layer_1 = Residual_layer(in_channels, num_hiddens, num_residual_hiddens)
         self.layer_2 = Residual_layer(in_channels, num_hiddens, num_residual_hiddens)
 
@@ -86,7 +115,6 @@ class ResidualBlock(nn.Module):
         x = F.relu(x)
         return x
     
-    
 """
 Encoder class which consists of 2 strided convolutional layers 
 with stride 2 and kernel size 4x4, followed by a residual block.
@@ -94,7 +122,17 @@ with stride 2 and kernel size 4x4, followed by a residual block.
 class Encoder(nn.Module):
     def __init__(self, in_channels, num_hiddens, num_residual_hiddens):
         super(Encoder, self).__init__()
+        """
+        Initialises layers for Encoding information
 
+        Args: 
+            in_channels (num): Number of input channels
+            num_hiddens (num): Number of hidden layers
+            num_residual_hiddens(num): Number of residual hidden layers
+
+        Returns:
+            None
+        """
         self.conv_1 = nn.Conv2d(in_channels=in_channels,
                                  out_channels=num_hiddens//2,
                                  kernel_size=4,
@@ -112,14 +150,9 @@ class Encoder(nn.Module):
     def forward(self, inputs):
         inputs = self.conv_1(inputs)
         inputs = F.relu(inputs)
-        
         inputs = self.conv_2(inputs)
-        #inputs = F.relu(inputs)
-        
         output = self.residual_block(inputs)
-       # print(f"Encoded shape is {output.shape}")
         return output
-    
 
 """
 Decoder consists of a residual block, followed by 2 transposed convolutions 
@@ -128,8 +161,18 @@ with stride 2 and kernel size 4x4.
 class Decoder(nn.Module):
     def __init__(self, in_channels, num_hiddens, num_residual_hiddens):
         super(Decoder, self).__init__()
-        p = Parameters()
+        """
+        Initialises layers for decoding information
 
+        Args: 
+            in_channels (num): Number of input channels
+            num_hiddens (num): Number of hidden layers
+            num_residual_hiddens(num): Number of residual hidden layers
+
+        Returns:
+            None
+        """
+        p = Parameters()
         self.conv = nn.Conv2d(in_channels = in_channels,
                               out_channels = num_hiddens,
                               kernel_size = 3,
@@ -153,12 +196,8 @@ class Decoder(nn.Module):
     def forward(self, inputs):
         inputs = self.conv(inputs)
         inputs = self.residual_block(inputs)
-        
         inputs = self.transposed_conv_1(inputs)
-       # inputs = F.relu(inputs)
-
         output = self.transposed_conv_2(inputs)
-        ##print(f"decoded shape is {output.shape}")
         return output
     
 """ 
@@ -169,15 +208,36 @@ Reshaped into [B*H*W, C] and all other dimensions are flattened.
 class VectorQuantizer(nn.Module):
     def __init__(self, num_embeddings, embedding_dim, commitment_cost):
         super(VectorQuantizer, self).__init__()
-        
+        """
+        Initialises attributes for Vector Quantizer class
+
+        Args: 
+            num_embeddings (num): Number of embeddings in codebook
+            embedding_dim (num): Dimension for each embedding
+            commitment_cost(num): Beta term in loss function
+
+        Returns:
+            None
+        """
         self._embedding_dim = embedding_dim 
         self._num_embeddings = num_embeddings
-        
         self._embedding = nn.Embedding(self._num_embeddings, self._embedding_dim)
         self._embedding.weight.data.uniform_(-1/self._num_embeddings, 1/self._num_embeddings)
         self._commitment_cost = commitment_cost
 
     def forward(self, inputs):
+        """
+        Function called for forward pass. 
+
+        Args: 
+            inputs (Tensor): Encoded image to be vector quantized
+
+        Returns:
+            loss (Tensor): Calculated loss
+            quantized (Tensor): Quantized data
+            perplexity (Tensor): Evaluate the effectiveness of the vector quantizer
+            codebook_indices (Tensor): codebook indices of the encoding data
+        """
         # convert inputs from BCHW -> BHWC
         inputs = inputs.permute(0, 2, 3, 1).contiguous()
         input_shape = inputs.shape
@@ -205,30 +265,34 @@ class VectorQuantizer(nn.Module):
         e_latent_loss = F.mse_loss(quantized.detach(), inputs)
         q_latent_loss = F.mse_loss(quantized, inputs.detach())
         loss = q_latent_loss + self._commitment_cost * e_latent_loss
+        print(loss.type)
         
         quantized = inputs + (quantized - inputs).detach()
         avg_probs = torch.mean(encodings, dim=0)
         perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
-        
+        print(perplexity.type)
+        print(codebook_indices.type)
         # convert quantized from BHWC -> BCHW
         return loss, quantized.permute(0, 3, 1, 2).contiguous(), perplexity, codebook_indices
 
-    """
-    Retrives the embeddings from the generated GAN embedding indices
-    x input shape should be 4096
-    """
     def get_quantized_results(self, x):
+        """
+        Retrives the embeddings from the generated GAN embedding indices
+        x input shape should be 4096.
 
+        Args:
+            x (Tensor): codebook indices tensor
+        
+        Returns:
+            Quantized (Tensor): Quantized data
+
+        """
         codebook_indices = x.unsqueeze(1)
-        # print(codebook_indices.shape)
         encodings = torch.zeros(codebook_indices.shape[0], self._num_embeddings, device = x.device)
         encodings.scatter_(1, codebook_indices, 1)
-        # print(encodings.shape)
         #Get single image in same quantized shape
         quantized_values = torch.matmul(encodings, self._embedding.weight).view(1,64,64,64)
-        # print(quantized_values.shape)
         return quantized_values.permute(0,3,1,2).contiguous()
-
     
 """
 Class that build model using other classes such as Encoder, 
@@ -238,6 +302,15 @@ are initialised above.
 class VQVAEModel(nn.Module):
     def __init__(self):
         super(VQVAEModel, self).__init__()
+        """
+        Initialises each layer to create the overall VQVAE model
+
+        Args: 
+            None
+
+        Returns:
+            None
+        """
         p = Parameters()
         self.encoder = Encoder(1, p.num_hiddens, 
                                 p.num_residual_hiddens)
@@ -255,7 +328,6 @@ class VQVAEModel(nn.Module):
     def forward(self, x):
         #Encode input
         x = self.encoder(x)
-        
         #Change channel dimensions
         x = self.conv_layer(x)
         #Quantize
@@ -265,17 +337,25 @@ class VQVAEModel(nn.Module):
 
         return loss, x_recon, perplexity
 
-"""
-"""
-# Building a DCGAN to generate images from trained images outputted by VQVAE
-"""
-Referenced From
-https://github.com/aladdinpersson/Machine-Learning-Collection/blob/master/ML/Pytorch/GANs/2.%20DCGAN/model.py
-"""
-# Discriminator Class of DCGAN
 
+# Referenced From
+# https://github.com/aladdinpersson/Machine-Learning-Collection/blob/master/ML/Pytorch/GANs/2.%20DCGAN/model.py
+
+"""
+Discriminator Class as part of making a DCGAN 
+"""
 class Discriminator(nn.Module):
     def __init__(self):
+        """
+        Initialises attributes for Discriminator Network.
+        Creates the building blocks for each layer. 
+
+        Args: 
+            None
+
+        Returns:
+            None
+        """
         super(Discriminator, self).__init__()
         #64 x 64 input image
         p = Parameters()
@@ -309,25 +389,34 @@ class Discriminator(nn.Module):
 
         #Output - reduces to 1 dimension
         self.output = nn.Sequential(
-            nn.Conv2d(features*8, 1, kernel_size=4, stride=2, padding=0),
+            nn.Conv2d(features*8, 1, kernel_size=4, stride=2, padding=0, bias = False),
             nn.Sigmoid()
         )
 
     def forward(self, x):
-        input = self.input(x)
-        conv = self.block_1(input)
+        x = self.input(x)
+        conv = self.block_1(x)
         conv = self.block_2(conv)
         conv = self.block_3(conv)
         output = self.output(conv)
         return output
     
-
 """
 Generator Class of DCGAN
 """
 class Generator(nn.Module):
     def __init__(self):
         super(Generator, self).__init__() 
+        """
+        Initialises attributes for Generator Network.
+        Creates the building blocks for each layer. 
+
+        Args: 
+            None
+
+        Returns:
+            None
+        """
         p = Parameters()  
         channel_noise = p.channel_noise
         features = p.features 
@@ -374,15 +463,33 @@ class Generator(nn.Module):
         return output
 
 def initialize_weights(model):
-    # Initializes weights according to the DCGAN paper
-    for m in model.modules():
-        if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)):
-            nn.init.normal_(m.weight.data, 0.0, 0.02)
+    """
+    Initialises weights for a model. 
+    This will be either a Generator or Discirminator model.
 
-"""
-Function to visualise and save the generated GAN output
-"""
+    Args:
+        model: This will be either a Discirminator/Generator model after creation
+
+    Returns:
+        None
+    """
+    # Initializes weights according to the DCGAN paper
+    for i in model.modules():
+        if isinstance(i, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)):
+            nn.init.normal_(i.weight.data, 0.0, 0.02)
+
 def gan_generated_images(device, p):
+    """
+    Function to visualise and save the generated GAN output.
+
+    Args:
+        device: Reference to variable that instantiates GPU 
+        p (Parameters): Parameters class to access multiple variables
+
+    Returns:
+        generated_images(Tensor): The Generated output as a tensor
+    """
+
     fixed_noise = torch.randn(1, p.channel_noise, 1, 1).to(device)
 
     #Load Trained Generator
@@ -402,12 +509,20 @@ def gan_generated_images(device, p):
 
     return generated_images
 
-"""
-Takes in the generated images from GAN and visualises the codebook indice of image
-"""
 def gan_create_codebook_indice(generated_images):
+    """
+    Takes in the generated images from GAN and visualises the codebook indice of image
+
+    Args:
+        generated_images (Tensor): The Generated DCGAN output as a tensor
+        
+
+    Returns:
+        code_indice(Tensor): The codebook indices for image, size = 4096
+    """
     code_indice = generated_images[0][0]
     code_indice = torch.flatten(code_indice)
+    #Unique values retrieved during testing
     unique_vals = [4,  21,  37,  49, 179, 207, 213, 220, 258, 391, 497]
     in_min = torch.min(code_indice)
     in_max = torch.max(code_indice)
@@ -429,37 +544,50 @@ def gan_create_codebook_indice(generated_images):
 
     return code_indice
 
-"""
-This function takes in a codebook indice, gets the 
-quantised results from it, decodes it and produces 
-the final image reconstruction.
-"""
+
 def gan_reconstruct(code_indice):
+    """
+    This function takes in a codebook indice, gets the 
+    quantised results from it, decodes it and produces 
+    the final image reconstruction.
+
+    Args:
+        code_indice (Tensor): The codebook indices for image, size = 4096
+        
+    Returns:
+        decoded_image(ndarray object): The decoded image, size = [256 x 256]
+    """
     model = torch.load("Models/VQVAE.pth")
     code_indice = code_indice.long()
     quantized = model.quantizer.get_quantized_results(code_indice)
     decoded = model.decoder(quantized)
 
     # # Visualise
-    decoded_plot = decoded[0][0]
-    decoded_plot = decoded_plot.to('cpu')
-    decoded_plot = decoded_plot.detach().numpy()
+    decoded_image = decoded[0][0].to('cpu')
+    decoded_image = decoded_image.detach().numpy()
     plt.title("Final Reconstructed image")
-    plt.imshow(decoded_plot)
+    plt.imshow(decoded_image)
     plt.savefig("Output_files/final_reconstructed_image.png")
 
-    return decoded_plot
+    return decoded_image
 
-"""
-Function for calculating the structural similarity index measure 
-between a generated reconstruction and test images.
-"""
 def SSIM(decoded):
+    """
+    Function for calculating the structural similarity index measure 
+    between a generated reconstruction and test images.
+
+    Args:
+        decoded(ndarray object): The decoded image from DCGAN
+
+    Returns:
+        None
+    """
     current_dir = os.getcwd()
     OASIS_test_path = current_dir + '\keras_png_slices_test\\'
     train_images = os.listdir(OASIS_test_path)
     ssim_max = 0
     ssim_list = []
+    max_similar_image = None
     for image_name in train_images:
         path = OASIS_test_path + image_name
         image = Image.open(path)
@@ -476,8 +604,17 @@ def SSIM(decoded):
         ssim_list.append(similarity)
         if similarity > ssim_max:
             ssim_max = similarity
+            max_similar_image = test_im
         
     average_ssim = sum(ssim_list)/len(ssim_list)
     print(f"Average SSIM of test dataset is {average_ssim}")
     print(f"Max SSIM of test dataset is {ssim_max}")
+ 
+    fig, (im1, im2) = plt.subplots(1,2)
+    fig.suptitle("Generated Image vs Image with highest SSIM")
+    im1.imshow(gen_image)
+    im2.imshow(max_similar_image)
+    fig.savefig("Output_files/Comparison_image_SSIM.png")
+
+
 
