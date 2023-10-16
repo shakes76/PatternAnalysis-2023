@@ -187,7 +187,7 @@ model = ViT(
     embedding_dims=embedding_dims,
     num_heads=num_heads
     ).to(device)
-epochs = 5
+epochs = 10
 learning_rate = 0.001
 weight_decay = 0.0001
 
