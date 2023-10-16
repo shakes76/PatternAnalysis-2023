@@ -4,7 +4,6 @@
 
 ## Data Background
 
-
 ## Vision Transformer Background
 ### ViT Architecture Overview
 | Vision Transformer (ViT) | Transformer Encoder |
@@ -44,6 +43,10 @@ The Vision Transformer architecture is comprised of a several stages:
     a class output. Since this is a classification problem, this would be called the "classifier head".
 
 ### How it works
+
+Here is an example patched image:
+
+<img src="misc\patched_example.png" width="600" height="600"/>
 
 ### Problem it solves
 

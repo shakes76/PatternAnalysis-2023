@@ -3,187 +3,10 @@
 import torch
 from torch import nn
 
-# class PatchEmbeddingLayer(nn.Module):
-#     """ Creates a patch embedding layer """
-#     def __init__(self, 
-#                 in_channels, 
-#                 patch_size, 
-#                 embedding_dim,
-#                 batch_size,
-#                 n_patches
-#             ):
-#         super().__init__()
-
-#         # Attributes
-#         self.patch_size = patch_size
-#         self.embedding_dim = embedding_dim
-#         self.in_channels = in_channels
-
-#         # Convolutional embedding layer
-#         self.conv_layer = nn.Conv2d(in_channels=in_channels, out_channels=embedding_dim, kernel_size=patch_size, stride=patch_size)
-
-#         # Flatten layer
-#         self.flatten_layer = nn.Flatten(start_dim=1, end_dim=2)
-
-#         # Class token
-#         self.class_token_embeddings = nn.Parameter(torch.rand((batch_size, 1, embedding_dim), requires_grad=True))
-
-#         # Positional embeddings
-#         self.position_embeddings = nn.Parameter(torch.rand((1, n_patches + 1, embedding_dim), requires_grad=True))
-
-#     def forward(self, x):
-#         # Extract patches and apply convolution
-#         patches = self.conv_layer(x).permute((0, 2, 3, 1))
-
-#         # Flatten patches
-#         flattened_patches = self.flatten_layer(patches)
-
-#         # Concatenate class token to flattened patches
-#         patch_embeddings = torch.cat((self.class_token_embeddings, flattened_patches), dim=1)
-
-#         # Add positional embeddings
-#         output =  patch_embeddings + self.position_embeddings
-
-#         return output
-
-# class MSABlock(nn.Module):
-#     """ Creates a layer normalised multi-head self attention block """
-#     def __init__(self,
-#                 embedding_dims, # Hidden Size D in the ViT Paper Table 1
-#                 num_heads,  # Heads in the ViT Paper Table 1
-#                 attn_dropout=0 # Default to Zero as there is no dropout for the the MSA Block as per the ViT Paper
-#             ):
-#         super().__init__()
-
-#         # Attributes
-#         self.embedding_dims = embedding_dims
-#         self.num_head = num_heads
-#         self.attn_dropout = attn_dropout
-
-#         # Layer Normalisation Layer
-#         self.layernorm = nn.LayerNorm(normalized_shape = embedding_dims)
-
-#         # Multihead Attention Layer
-#         self.multiheadattention =  nn.MultiheadAttention(num_heads = num_heads,
-#                                                         embed_dim = embedding_dims,
-#                                                         dropout = attn_dropout,
-#                                                         batch_first = True
-#                                                         )
-
-#     def forward(self, x):
-#         # Normalisation
-#         x = self.layernorm(x)
-
-#         # Self Attention
-#         output,_ = self.multiheadattention(query=x,
-#                                             key=x,
-#                                             value=x,
-#                                             need_weights=False)
-#         return output
-
-# class MLPBlock(nn.Module):
-#     """ Creates a layer normalisaed multi-layer perceptron block """
-#     def __init__(self, 
-#                 embedding_dims,     # Hidden Size D in the ViT Paper Table 1
-#                 mlp_size,           # MLP Size in the ViT Paper Table 1
-#                 mlp_dropout         # Dropout in the ViT Paper Table 3
-#             ):
-#         super().__init__()
-
-#         # Attributes
-#         self.embedding_dims = embedding_dims
-#         self.mlp_size = mlp_size
-#         self.dropout = mlp_dropout
-
-#         # Normalisation Layer (LN)
-#         self.layernorm = nn.LayerNorm(normalized_shape = embedding_dims)
-
-#         # Create MLP Layer
-#         self.mlp = nn.Sequential(
-#             nn.Linear(in_features = embedding_dims,
-#                         out_features = mlp_size),
-#             nn.GELU(),
-#             nn.Dropout(p = mlp_dropout),
-#             nn.Linear(in_features = mlp_size,       # Needs to take same in_features as out_features from above layer
-#                     out_features = embedding_dims), # Take back to embedding dimensions
-#             nn.Dropout(p = mlp_dropout)             # Dropout, when used, is applied after every dense layer
-#         )
-
-#     def forward(self, x):
-#         normalised_layer = self.layernorm(x)
-#         return self.mlp(normalised_layer)
-
-# class TransformerEncoderBlock(nn.Module):
-#     """ Creates a transformer encoder block """
-#     def __init__(self, 
-#                 embedding_dims, # Hidden Size D in the ViT Paper Table 1
-#                 mlp_dropout,    # Dropout for dense layers in the ViT Paper Table 3
-#                 attn_dropout,   # Dropout for attention layers in the ViT Paper Table 3
-#                 mlp_size,       # MLP Size in the ViT Paper Table 1
-#                 num_heads,      # Heads in the ViT Paper Table 1
-#             ):
-#         super().__init__()
-
-#         # Create MSA block (Equation 2)
-#         self.msa_block = MSABlock(embedding_dims = embedding_dims,
-#                                                     num_heads = num_heads,
-#                                                     attn_dropout = attn_dropout)
-
-#         # Create MLP block (Equation 3)
-#         self.mlp_block = MLPBlock(embedding_dims = embedding_dims,
-#                                                         mlp_size = mlp_size,
-#                                                         mlp_dropout = mlp_dropout)
-
-#     def forward(self,x):
-#         # Create residual connection for MSA block
-#         x = self.msa_block(x) + x
-
-#         # Create residual connection for MLP block
-#         x = self.mlp_block(x) + x
-
-#         return x
-
-# class ViT(nn.Module):
-#     def __init__(self,
-#                 img_size,
-#                 in_channels,
-#                 patch_size,
-#                 embedding_dims,
-#                 num_transformer_layers,
-#                 mlp_dropout,
-#                 attn_dropout,
-#                 embedding_dropout,
-#                 mlp_size,
-#                 num_heads,
-#                 num_classes,
-#                 batch_size):
-#         super().__init__()
-
-#         self.n_patches = (img_size * img_size) // patch_size**2
-
-#         self.patch_embedding_layer = PatchEmbeddingLayer(in_channels=in_channels, 
-#                                                         patch_size=patch_size, 
-#                                                         embedding_dim=embedding_dims,
-#                                                         batch_size=batch_size,
-#                                                         n_patches=self.n_patches)
-
-#         self.transformer_encoder = nn.Sequential(*[TransformerEncoderBlock(embedding_dims = embedding_dims,
-#                                                 mlp_dropout = mlp_dropout,
-#                                                 attn_dropout = attn_dropout,
-#                                                 mlp_size = mlp_size,
-#                                                 num_heads = num_heads) for _ in range(num_transformer_layers)])
-
-#         self.classifier = nn.Sequential(nn.LayerNorm(normalized_shape = embedding_dims),
-#                                         nn.Linear(in_features = embedding_dims,
-#                                                 out_features = num_classes))
-
-#     def forward(self, x):
-#         return self.classifier(self.transformer_encoder(self.patch_embedding_layer(x))[:, 0])
-
 class PatchEmbedding(nn.Module):
     """ Turns a 2D input image into a 1D sequence learnable embedding vector. """ 
     def __init__(self, 
-                in_channels=3,          # Number of input image channels
+                in_channels=1,          # Number of input image channels (1 for ADNI default)
                 patch_size=16,          # Patch size (assume square patches), default is ViT paper
                 embedding_dim=768):     # Embedding dimension for tokens (number of channels created from each patch
         super().__init__()
@@ -230,9 +53,9 @@ class MSABlock(nn.Module):
 
     def forward(self, x):
         x = self.layer_norm(x)
-        attn_output, _ = self.multihead_attn(query=x, # query embeddings 
-                                            key=x, # key embeddings
-                                            value=x, # value embeddings
+        attn_output, _ = self.multihead_attn(query=x,   # query embeddings 
+                                            key=x,      # key embeddings
+                                            value=x,    # value embeddings
                                             need_weights=False)
         return attn_output
 
@@ -294,7 +117,6 @@ class TransformerEncoderBlock(nn.Module):
 
 class ViT(nn.Module):
     """ Creates a Vision Transformer architecture with ViT-Base hyperparameters by default. """
-    # 2. Initialize the class with hyperparameters from Table 1 and Table 3
     def __init__(self,
                 img_size=224,               # Training resolution from Table 3 in ViT paper
                 in_channels=3,              # Number of channels in input image
