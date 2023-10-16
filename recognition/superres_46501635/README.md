@@ -94,8 +94,13 @@ To utilize this project with your ADNI dataset, follow these steps:
     If you are currently in the same directoy as the file, run this command to load the trained ESPCN model and perform super-resolution on a downsampled image using PyTorch. The results will be 
     visualised as a side-by-side comparison of the `Downsampled Image` - `ESPCN super-resolved image` - `Original Image`.
 
-## Training Plots
+## Training 
 ![Alt text](plots.png)
+
+- During the early epochs of training, the model's weights are initialized randomly, and the learning rate might be relatively high. This can lead to
+  significant weight updates that cause fluctuations in the training loss. As the learning rate scheduler adjusts the learning rate and the model's weights start converging, the loss tends to stabilize.
+- The fluctuations in PSNR are likely a reflection of the fluctuations in the training loss during the early epochs. As the model's weights stabilize 
+  and the training loss converges, PSNR should also become more stable.
 
 ## Output
 ![Alt text](outputimg.png)
