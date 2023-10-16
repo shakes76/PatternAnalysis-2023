@@ -11,7 +11,7 @@ We can download the test, training and validation set 2018 version from the ISIC
 
 Average Dice Similarity Coefficient: 0.7197
 
-### Dependencies
+## Dependencies
 torch 2.1.0  
 matplotlib 3.8.0  
 numpy 1.26.0  
