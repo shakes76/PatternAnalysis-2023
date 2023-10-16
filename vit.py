@@ -85,7 +85,7 @@ def test():
     images = images[:10]
     labels = labels[:10]
 
-    imshow(torchvision.utils.make_grid(images, nrow=5))
+    #imshow(torchvision.utils.make_grid(images, nrow=5))
 
     # Print labels
     print(' '.join('%5s' % labels[j].item() for j in range(10)))
@@ -103,8 +103,8 @@ def test():
                                 stride=patch_size,
                                 padding=0)
     image = dataset[0][0]
-    imshow(image)
-    plt.axis(False)
+    #imshow(image)
+    #plt.axis(False)
     image_patched = patch_embedding(image.unsqueeze(0))  # Run conv layer through image
     print(image_patched.shape)  # Should have dimensions (embed size, sqrt(num_patches), sqrt(num_patches))
 
@@ -134,6 +134,15 @@ def test():
     prepended_patch_embedding = torch.cat((embed_token, patch_embedding_output), dim=1)  
     print(f"Prepended embedding: {prepended_patch_embedding}")
 
+    # Need to add position embedding; E_pos, where E_pos has dimensions (N+1) x D
+    # Used to retain positional information of the patches.
+    positional_embed = nn.Parameter(torch.randn(1, num_patches + 1, embed_dim), requires_grad=True)
+    print(f"Positional embed shape: {positional_embed.shape}, Current patch shape: {prepended_patch_embedding.shape}")
+    print(f"Positional embed tensor: {positional_embed}")
+
+    patch_and_position_embedding = prepended_patch_embedding + positional_embed
+    print(f"Final: {patch_and_position_embedding}")
+    print(f"Final shape: {patch_and_position_embedding.shape}")   
 
 def main():
     test()
