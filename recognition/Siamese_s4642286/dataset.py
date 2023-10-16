@@ -7,9 +7,12 @@ Description: Creates the data loader for loading and preprocessing the ADNI Brai
 import numpy as np
 import itertools
 import torch
+import math
 from torchvision import transforms, datasets
 from torch.utils.data import DataLoader, TensorDataset
 from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+import numpy as np
 
 batch_size = 2
 
@@ -19,14 +22,16 @@ test_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/test"
 
 
 transform = transforms.Compose([
-    transforms.Resize((224, 224)),  # Resize images to a common size
+    transforms.Resize((128, 128)),  # Resize images to a common size
     transforms.ToTensor()  # Convert images to tensors
 ])
 
 
 train_dataset = datasets.ImageFolder(root=train_dataroot, transform=transform)
 
-mlp_trainloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+class_names = train_dataset.classes
+
+mlp_trainloader = DataLoader(train_dataset, batch_size=6, shuffle=True)
 
 test_dataset = datasets.ImageFolder(root=test_dataroot, transform=transform)
 
@@ -69,6 +74,30 @@ trainloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 testloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 valloader = DataLoader(validate_dataset, batch_size=batch_size, shuffle=False)
 
+
+# Display a few images from the dataset in two rows
+def show_images(images, labels, class_names):
+    num_images = len(images)
+    num_columns = int(math.ceil(num_images / 2))
+    fig, axes = plt.subplots(2, num_columns, figsize=(15, 7))
+
+    for i in range(2):
+        for j in range(num_columns):
+            index = i * num_columns + j
+            if index < num_images:
+                image = images[index].permute(1, 2, 0)
+                axes[i, j].imshow(image)
+                axes[i, j].set_title(class_names[labels[index]])
+                axes[i, j].axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+# Load and display the first batch of images with axis titles in two rows
+
+# for images, labels in mlp_trainloader:
+#     show_images(images, labels, class_names)
+#     break
 
 print(trainloader)
 print(testloader)
