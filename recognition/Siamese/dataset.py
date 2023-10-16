@@ -11,11 +11,6 @@ import torch
 import random
 from PIL import Image
 
-train_path = "C:\\Users\\Asus\\Desktop\\AD_NC\\train"
-test_path = "C:\\Users\\Asus\\Desktop\\AD_NC\\test"
-
-transform = transforms.Compose([transforms.ToTensor()])
-
 class Siamese_dataset(Dataset):
     def __init__(self, imageFolder, transform):
         self.imageFolder = imageFolder
@@ -43,11 +38,14 @@ class Siamese_dataset(Dataset):
                 if img0[1] != img1[1]:
                     break
         
-        img0_Image = Image.open(img0)
-        img1_Image = Image.open(img1)
+        img0_Image = Image.open(img0[0])
+        img1_Image = Image.open(img1[0])
 
         img0_Image = img0_Image.convert("L")
         img1_Image = img1_Image.convert("L")
 
         img0_Image = self.transform(img0_Image)
-        img1_Image = self.transform
+        img1_Image = self.transform(img1_Image)
+
+        return img0_Image, img1_Image, same_class
+    
