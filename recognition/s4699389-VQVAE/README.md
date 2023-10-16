@@ -17,8 +17,7 @@ or embeddings, each identified by an index and having a specific dimension size.
 2) Vector Quantization: These codes are mapped to predefined codebook vectors.
 3) Decoding: The codebook vectors are used to reconstruct the input data.
 
-
-![vqvae.png](s4699389-VQVAE%2Fimages%2Fmodel%20images%2Fvqvae.png)
+<p align = "center"><img src = "./images/vqvae.png"></p>
 
 ### Loss function
 There overall loss function consists of 3 components to train different parts of VQ-VAE. 
@@ -27,7 +26,7 @@ There overall loss function consists of 3 components to train different parts of
 3) **Commitment loss**: ensure that the encoder commits to an embedding and its output does not grow.
 
 The loss function is defined as:
-![loss function.png](s4699389-VQVAE%2Fimages%2Fmodel%20images%2Floss%20function.png)
+<p align = "center"><img src = "./images/loss function.png"></p>
 
 Where:
 loss = q_latent_loss + commitment loss * e_latent_loss
@@ -41,15 +40,16 @@ The architecture the VQ-VAE follows the one specified in [1], it can be summaris
 
 The pytorchinfo summary (with batch 32, channel=1, dimension=128x128 is given as:
 
-![Model architecture.PNG](s4699389-VQVAE%2Fimages%2FModel%20architecture.PNG)
+<p align = "center"><img src = "./images/Model architecture.PNG"></p>
 
 ## Hyperparameters
-### Data parameters
+### Preprocessed Dataset
 - The model is trained on a given preprocessed OASIS brain dataset with a training size of 9,664 images, test size of 
-544 images, and a validation set of 1,120 images. 
+544 images, and a validation set of 1,120 images. The entire partition provided is used in training, validating, and 
+testing as using more data best ensures better results.
 - A batch size of 32 was used throughout all sets. 
-- The data was resized to 128x128 from 256x256 as this helped decrease training time over large epochs however it should be 
-acknowledged that this would take a toll on the performance of the model .
+- The data was resized to 128x128 from 256x256 as this improved memory consumption and decrease training time over large 
+epochs however it should be acknowledged that this would take a toll on the accuracy/performance of the model.
 
 ### Model parameters
 - Learning rate = 0.002 using the Adam optimiser
@@ -61,27 +61,26 @@ acknowledged that this would take a toll on the performance of the model .
 
 The model hyperparameters were chosen based on the VQ-VAE paper.
 Note: The hyperparameters can be tuned to achieve a faster result as currently it takes around 100 epochs for
-a satisfiable result
+a satisfiable result. **To reproduce the same results, use 150 epochs**
 
 ## VQ-VAE Results
 ### Training
 The VQ-VAE model was trained for 150 epochs, and a steady decrease in training and validation loss was observed.
 Convergence of the losses can also be inferred meaning that the model can converge. The final reconstruction loss after
-150 epochs are obtained for training and validation as 0.003 and 0.011 respectively.
+150 epochs are obtained for **training and validation as 0.003 and 0.011 respectively**.
 
-![Loss vs Epoch.png](s4699389-VQVAE%2Fimages%2FLoss%20vs%20Epoch.png)
+<p align = "center"><img src = "./images/Loss vs Epoch.png"></p>
 
 
 To confirm convergence, my model was ran over 1000 epochs and this was the training reconstruction loss observed:
 
-![1000epochs.png](s4699389-VQVAE%2Fimages%2F1000epochs.png)
+<p align = "center"><img width="800" height="300" src = "./images/1000epochs.png"></p>
 
 
 In each epoch, the mean SSIM between the validation input and decoded output image was calculated. The mean SSIM can be
-observed to overall increase as the epoch also increases. The final mean SSIM obtained was 0.944.
+observed to overall increase as the epoch also increases. **The final mean SSIM obtained was 0.944.**
 
-![Average SSIM.png](s4699389-VQVAE%2Fimages%2FAverage%20SSIM.png)
-
+<p align = "center"><img src = "./images/Average SSIM.png"></p>
 
 ### Reconstructions
 
@@ -89,9 +88,10 @@ The model is evaluated after training by inputting it test images and calculatin
 observed over the entire testing dataset. The input images, codebook representation, and decoded images used for 
 testing is shown:
 
-![all_image_representations.gif](s4699389-VQVAE%2Fimages%2Ftest_images%2Fall_image_representations.gif)
+<p align = "center"><img src = "./images/test_images/all_image_representations.gif"></p>
 
-The average SSIM obtained over the test dataset is approximately 0.946 as well as a maximum SSIM obtained as 0.950.
+
+The average SSIM obtained over the test dataset is **approximately 0.946 as well as a maximum SSIM obtained as 0.950.**
 
 ## Usage
 ### Dataset configuration
@@ -109,18 +109,21 @@ following this structure
 3) Run predict.py to evaluate the trained model or another instance saved specified at the file path set 
 in parameters.py
 
+Note: To reproduce the results using the OASIS data set ensure that the files are set up properly and the 
+hyperparameters are also set accordingly.
+
 ## Dependencies
-torch >=1.8.1
-torchaudio==2.1.0
-torchmetrics==1.2.0
-torchvision==0.16.0
-Pillow >=5.3.0,!=8.3.*
-numpy > 1.20.0
-matplotlib any
+- torch >=1.8.1
+- torchaudio==2.1.0
+- torchmetrics==1.2.0
+- torchvision==0.16.0
+- Pillow >=5.3.0,!=8.3.*
+- numpy > 1.20.0
+- matplotlib any
 
 The use of cuda and GPU is highly recommended.
 
 ## References
-[1] https://arxiv.org/pdf/1711.00937.pdf
-[2] https://keras.io/examples/generative/vq_vae/
-[3] https://github.com/MishaLaskin/vqvae
+- [1] https://arxiv.org/pdf/1711.00937.pdf
+- [2] https://keras.io/examples/generative/vq_vae/
+- [3] https://github.com/MishaLaskin/vqvae
