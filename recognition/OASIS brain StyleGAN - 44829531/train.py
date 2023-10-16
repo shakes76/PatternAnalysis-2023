@@ -15,8 +15,6 @@ from modules import Generator, Discriminator
 from util import SaveImage, SaveWeight
 import matplotlib.pyplot as plt
 
-BUFFER = 0.25
-
 
 class StyleGAN(keras.Model):
     """
@@ -45,38 +43,100 @@ class StyleGAN(keras.Model):
         self.generator_optimizer = tf.keras.optimizers.Adam(
             learning_rate=0.00001)
         self.discriminator_optimizer = tf.keras.optimizers.Adam(
-            learning_rate=0.00001)
+            learning_rate=0.0000125)
 
         # initialise the loss function
         self.loss = tf.keras.losses.BinaryCrossentropy()
 
         # initialise the metrics
-        self.generator_loss_metric = \
-            tf.keras.metrics.Mean(name="generator_loss")
-        self.discriminator_loss_metric = \
-            tf.keras.metrics.Mean(name="discriminator_loss")
+        self.generator_loss_metric = tf.keras.metrics.Mean(name="generator_loss")
+        self.discriminator_loss_metric = tf.keras.metrics.Mean(name="discriminator_loss")
 
     @property
     def metrics(self):
         """
         Return the metrics of the StyleGAN model
         """
-        return [self.generator_loss_metric, self.discriminator_loss_metric]
+        return [self.discriminator_loss_metric, self.generator_loss_metric]
 
-    def get_generator_inputs(self):
+    def plot(self, epoch_history, filepath):
         """
-        Generate the inputs for the generator model
+        Visualise the loss values of the StyleGAN model by plotting the
+        losses of the discriminator and generator against the number of epochs.
         """
-        # Generate latent space noise tensors.
-        z = [tf.random.normal((self.batch_size, 512)) for i in range(7)]
+        # Extract the discriminator and generator loss values
+        # from the epoch_history object.
+        discriminator_loss = epoch_history.epoch_history["discriminator_loss"]
+        generator_loss = epoch_history.epoch_history["generator_loss"]
 
-        # Generate noise tensors for unique resolutions.
-        noise = [tf.random.normal((self.batch_size, res, res, 1))
-                 for res in [4, 8, 16, 32, 64, 128, 256]]
+        # Plot the discriminator loss values against the number of epochs.
+        minimum_value = min(min(generator_loss, discriminator_loss)) - 0.1
+        maximum_value = max(max(generator_loss, discriminator_loss)) + 0.1
 
-        # Create a constant input tensor.
-        input = tf.ones([self.batch_size, 4, 4, 512])
-        return [input, z, noise]
+        # Plot the generator loss values against the number of epochs.
+        plt.plot(discriminator_loss, label="Discriminator Loss")
+        plt.plot(generator_loss, label="Generator Loss")
+
+        # Set the title and labels of the plot
+        plt.title("StyleGAN Loss")
+        plt.xlabel("Epoch")
+        plt.ylabel("Loss")
+
+        # Set the y-axis limits to the minimum and maximum values
+        plt.ylim([minimum_value, maximum_value])
+
+        # If filepath is not None, save the plot to the filepath
+        if filepath != "":
+            directory_name = os.path.dirname(filepath)
+            filepath = os.path.join(directory_name, filepath)
+            plt.savefig("{}\loss_plot.png".format(filepath))
+
+    def train(self, dataset_path, result_image_path, image_count,
+              result_weight_path, plot_loss):
+
+        """
+        Train the StyleGAN model using the given dataset
+        """
+        # Create a list of callbacks to be used during training
+        callbacks = []
+
+        # Add the callback to save the model's weights
+        if result_image_path != "":
+            callbacks.append(SaveImage(result_image_path, image_count))
+        if result_weight_path != "":
+            callbacks.append(SaveWeight(result_weight_path))
+
+        # Load the dataset
+        images = load_data(dataset_path)
+
+        # Compile the model
+        self.compile()
+
+        epoch_history = self.fit(images, epochs=self.epochs,
+                                 callbacks=callbacks)
+
+        if plot:
+            self.plot(epoch_history, result_image_path)
+
+    @tf.function
+    def train_step(self, real_images):
+        """
+        Executes a single training step for both the generator
+        and discriminator models.
+        """
+        # Train the generator and discriminator models
+        generator_loss = self.train_generator()
+        discriminator_loss = self.train_discriminator(real_images)
+
+        # Update the metrics with the current loss values
+        self.generator_loss_metric.update_state(generator_loss)
+        self.discriminator_loss_metric.update_state(discriminator_loss)
+
+        # Return the updated loss values for the generator and discriminator
+        return {
+            "generator_loss": self.generator_loss_metric.result(),
+            "discriminator_loss": self.discriminator_loss_metric.result()
+        }
 
     def train_generator(self):
         """
@@ -106,6 +166,7 @@ class StyleGAN(keras.Model):
             # Apply the gradients to the generator's optimiser.
             self.generator_optimizer.apply_gradients(
                 zip(gradients, trainable_variables))
+
         return generator_loss
 
     def train_discriminator(self, real_images):
@@ -131,91 +192,25 @@ class StyleGAN(keras.Model):
 
             # Get the trainable variables of the discriminator and calculate
             # the gradients of the discriminator loss with respect to them.
-            trainable_variables = self.discriminator.trainable_variables
-            gradients = d_tape.gradient(discriminator_loss, trainable_variables)
-
-            # Apply the gradients to the discriminator's optimiser.
+            gradients = d_tape.gradient(discriminator_loss, self.discriminator.trainable_variables)
             self.discriminator_optimizer.apply_gradients(zip(gradients,
-                                                             trainable_variables))
+                                                             self.discriminator.trainable_variables))
+
         return discriminator_loss
 
-    def train(self, dataset_path, result_image_path, image_count,
-              result_weight_path, plot_loss):
-
+    def get_generator_inputs(self):
         """
-        Train the StyleGAN model using the given dataset
+        Generate the inputs for the generator model
         """
-        # Create a list of callbacks to be used during training
-        callbacks = []
+        # Generate latent space noise tensors.
+        z = [tf.random.normal((self.batch_size, 512)) for i in range(7)]
 
-        # Add the callback to save the model's weights
-        if result_image_path != "":
-            callbacks.append(SaveImage(result_image_path, image_count))
-        if result_weight_path != "":
-            callbacks.append(SaveWeight(result_weight_path))
+        # Generate noise tensors for unique resolutions.
+        noise = [tf.random.normal((self.batch_size, res, res, 1))
+                 for res in [4, 8, 16, 32, 64, 128, 256]]
 
-        # Load the dataset
-        images = load_data(dataset_path)
+        # Create a constant input tensor.
+        input = tf.ones([self.batch_size, 4, 4, 512])
+        return [input, z, noise]
 
-        # Compile the model
-        self.compile()
 
-        epoch_history = self.fit(images, epochs=self.epochs,
-                                 callbacks=callbacks)
-
-        if plot_loss:
-            self.plot(epoch_history, result_image_path)
-
-    @tf.function
-    def train_step(self, real_images):
-        """
-        Executes a single training step for both the generator
-        and discriminator models.
-        """
-        # Train the generator and discriminator models
-        generator_loss = self.train_generator()
-        discriminator_loss = self.train_discriminator(real_images)
-
-        # Update the metrics with the current loss values
-        self.generator_loss_metric.update_state(generator_loss)
-        self.discriminator_loss_metric.update_state(discriminator_loss)
-
-        # Return the updated loss values for the generator and discriminator
-        return {
-            "generator_loss": self.generator_loss_metric.result(),
-            "discriminator_loss": self.discriminator_loss_metric.result()
-        }
-
-    def plot(self, epoch_history, filepath):
-        """
-        Visualise the loss values of the StyleGAN model by plotting the
-        losses of the discriminator and generator against the number of epochs.
-        """
-        # Extract the discriminator and generator loss values
-        # from the epoch_history object.
-        discriminator_loss = epoch_history.epoch_history["discriminator_loss"]
-        generator_loss = epoch_history.epoch_history["generator_loss"]
-
-        # Plot the discriminator loss values against the number of epochs.
-        minimum_value = min(min(discriminator_loss), min(generator_loss)) - \
-                        BUFFER
-        maximum_value = max(max(discriminator_loss), max(generator_loss)) + \
-                        BUFFER
-
-        # Plot the generator loss values against the number of epochs.
-        plt.plot(discriminator_loss, label="Discriminator Loss")
-        plt.plot(generator_loss, label="Generator Loss")
-
-        # Set the title and labels of the plot
-        plt.title("StyleGAN Loss")
-        plt.xlabel("Epoch")
-        plt.ylabel("Loss")
-
-        # Set the y-axis limits to the minimum and maximum values
-        plt.ylim([minimum_value, maximum_value])
-
-        # If filepath is not None, save the plot to the filepath
-        if filepath != "":
-            directory_name = os.path.dirname(filepath)
-            filepath = os.path.join(directory_name, filepath)
-            plt.savefig("{}\loss_plot.png".format(filepath))

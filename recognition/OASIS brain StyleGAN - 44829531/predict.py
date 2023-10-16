@@ -13,7 +13,7 @@ from tensorflow import keras
 from train import StyleGAN
 
 # Input paths
-INPUT_IMAGES_PATH = "~/home/groups/comp3710/OASIS/keras_png_slices_train"
+INPUT_IMAGES_PATH = "/home/groups/comp3710/OASIS/keras_png_slices_train"
 INPUT_GENERATOR_WEIGHTS_PATH = ""
 INPUT_DISCRIMINATOR_WEIGHTS_PATH = ""
 
@@ -22,11 +22,11 @@ RESULT_IMAGE_PATH = "figures"
 RESULT_WEIGHT_PATH = "weights"
 
 # Output parameters
-IMG_COUNT = 5
+IMG_COUNT = 3
 PLOT_LOSS = True
 
 # Hyperparameters
-EPOCHS = 120
+EPOCHS = 100
 BATCH_SIZE = 32
 
 
