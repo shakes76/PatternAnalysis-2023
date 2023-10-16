@@ -30,7 +30,6 @@ class PositionalImageEmbedding(nn.Module):
 
     def fourier_features(self, shape, bands):
         dims = len(shape)
-        print("Fourier features parameters are ",shape, bands)
         pos = torch.stack(list(torch.meshgrid(
             *(torch.linspace(-1.0, 1.0, steps=n) for n in list(shape))
         )))
@@ -180,10 +179,8 @@ class Perceiver(nn.Module):
     
     def forward(self, kv):
         latent = self.latent.expand(-1, kv.size()[0], -1)
-        print("kv is", kv.size())
         #kv = self.positionalImageEmbedding(kv)
         kv = kv.view(1800, 5, 32)
-        print("kv after positiona embedded is", kv.size())
         for block in self.perceiver_block_array:
             latent = block(latent, kv)
         #Need to do the classifier here
