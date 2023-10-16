@@ -53,10 +53,15 @@ else:
 	# Probably vit_base_patch32_224.augreg_in21k_ft_in1k
 	# trying vit_tiny_patch16_224.augreg_in21k_ft_in1k for less parameters
 	# 256 x 240
-	model = timm.create_model("vit_tiny_patch16_224.augreg_in21k_ft_in1k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
+	model = timm.create_model("vit_base_patch32_224.augreg_in21k_ft_in1k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
 model = model.to(device)
 
-# TODO: Freeze layers to only train final layer
+for param in model.parameters():
+	param.requires_grad = False
+
+for param in model.head.parameters():
+	param.requires_grad = True
+
 # TODO: Look into the symposium model, might be better for this application
 
 # Initialise logging to display tracking information in TensorBoard
@@ -192,10 +197,35 @@ end = time.time()
 elapsed = end - start
 logger.info("Training took " + str(elapsed) + " secs")
 
-# TODO: Do testing here so the data can be saved in the same
-# TODO: tensorboard.
+# Test the model
+logger.info("> Testing")
+start =  time.time()
+model.eval()
+
+
+with torch.no_grad():
+	correct = 0
+	total = 0
+	
+	for images, labels in ds.trainloader:
+		images = images.to(device)
+		labels = labels.to(device)
+  
+		outputs = model(images)
+		_, predicted = torch.max(outputs.data, 1)
+	
+		total += labels.size(0)
+		correct += (predicted == labels).sum().item()
+	logger.info("Test Accuracy: {:.5f} %".format(100 * correct / total))
+	writer.add_scalar("test accuracy", correct / total)
+
+end = time.time()
+elapsed = end - start
+logger.info("Testing took " + str(elapsed) + " secs")
 
 os.makedirs(os.path.dirname(savePath), exist_ok=True)
 torch.save(model, savePath)
 
 writer.close()
+
+logger.info("END")
