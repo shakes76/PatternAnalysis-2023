@@ -55,7 +55,7 @@ def imshow(img):
     plt.imshow(np.transpose(npimg, (1, 2, 0)))
     plt.show()
 
-def main():
+def test():
     dataiter = iter(dataloader)
     images, labels = next(dataiter)
 
@@ -93,6 +93,14 @@ def main():
     flatten = nn.Flatten(start_dim=2, end_dim=3)
     flattened_image_patched = flatten(image_patched)
     print(f"Flattened: {flattened_image_patched.shape}")  # Should be embed size, num_patches
+
+    reshaped_flattened_image_patched = flattened_image_patched.permute(0, 2, 1)  # Need to swap embed size and num_patches order
+    # This achieves the resizing in the paper: H x W x C -> N x (P^2*C)
+    print(f"Reshaped:{reshaped_flattened_image_patched.shape}")
+
+def main():
+    test()
+
 
 if __name__ == '__main__':
     main()
