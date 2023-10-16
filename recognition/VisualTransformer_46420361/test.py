@@ -1,18 +1,34 @@
 from torchvision.datasets import ImageFolder
-from torch.utils.data import DataLoader
-import torchvision.transforms as transforms
+from torch.utils.data import DataLoader, Dataset
+from torchvision import datasets, transforms
 import torch
 from torch import nn
 from torch.optim import Adam
 from torch.nn import BCELoss, CrossEntropyLoss
 from tqdm import tqdm, trange
+# import cv2
+import numpy as np
+from PIL import Image
 
 
-path = '/home/groups/comp3710/ADNI/AD_NC/'
-path = '/home/callum/AD_NC/'
+root = '/home/groups/comp3710/ADNI/AD_NC/'
+root = '/home/callum/AD_NC/'
 image_size = 256
 batch_size = 32
 image_crop = 192
+
+# class CustomImageFolder(Dataset):
+#     def __init__(self, root, transform=None):
+#         self.data = datasets.ImageFolder(root, transform=transform)
+    
+#     def __getitem__(self, index):
+#         image, class_index = self.data[index]
+#         # Convert the class index to binary label (1 for AD, 0 for NC)
+#         binary_label = 1 if class_index == 0 else 0
+#         return image, binary_label
+
+#     def __len__(self):
+#         return len(self.data)
 
 train_transform = transforms.Compose([
     transforms.CenterCrop((image_crop, image_crop)),
@@ -30,12 +46,11 @@ test_transform = transforms.Compose([
     transforms.Normalize(mean=[0.485], std=[0.229]) # ImageNet constants
 ])
 
-train_dataset = ImageFolder(path + 'train', transform=train_transform)
+train_dataset = ImageFolder(root + 'train', transform=train_transform)
 train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
 
-test_dataset = ImageFolder(path + 'test', transform=test_transform)
+test_dataset = ImageFolder(root + 'test', transform=test_transform)
 test_dataloader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
-
 
 patch_size = image_size // 8
 channels = 1
@@ -133,7 +148,7 @@ class TransformerBlock(nn.Module):
 
 
 class ViT(nn.Module):
-  def __init__(self, img_size = 192,
+  def __init__(self, img_size = 256,
                in_channels = 1,
                patch_size = 32,
                embedding_dims = 1024,
@@ -142,7 +157,7 @@ class ViT(nn.Module):
                attn_dropout = 0.0,
                mlp_size = 3072,
                num_heads = 16,
-               num_classes = 1000):
+               num_classes = 2):
     super().__init__()
 
     self.patch_embedding_layer = PatchEmbeddingLayer(in_channels = in_channels,
@@ -182,7 +197,6 @@ optimizer = Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay
 criterion = CrossEntropyLoss()
 for epoch in trange(epochs, desc="Training"):
     train_loss = 0.0
-    batch_count = 0
     for batch in tqdm(train_dataloader, desc=f"Epoch {epoch + 1} in training", leave=False):
         x, y = batch
         x, y = x.to(device), y.to(device)
