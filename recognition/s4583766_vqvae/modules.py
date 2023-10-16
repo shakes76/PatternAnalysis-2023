@@ -233,12 +233,12 @@ class VQVAE(nn.Module):
             n_residual_hidden_layers=n_residual_hidden_layers)
         # self.embedding = nn.Embedding(num_embeddings, latent_dim)
     
-    def forward(self, x):
-        z = self.encoder(x)
+    def forward(self, z):
+        z = self.encoder(z)
         z = self.conv1(z)
         embedding_loss, z_q = self.vector_quantizer(z)
         reconstructed_x = self.decoder(z_q)
-        return embedding_loss, reconstructed_x
+        return embedding_loss, reconstructed_x, z_q
 
 
 

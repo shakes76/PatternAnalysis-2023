@@ -23,7 +23,7 @@ def show_batch(dl):
     save_image(img, 'test.png')
 
 # Save all images in one train_dl batch
-def show_images(img):
+def show_images(img, epoch):
     """
     Plot images grid of single batch
     """
@@ -31,6 +31,8 @@ def show_images(img):
     fig = plt.imshow(np.transpose(img, (1,2,0)), interpolation='nearest')
     fig.axes.get_xaxis().set_visible(False)
     fig.axes.get_yaxis().set_visible(False)
+    # save to 'gen_img' folder
+    plt.savefig('gen_img/epoch_{}.png'.format(epoch))
 
 # show_batch(train_dl)
 
