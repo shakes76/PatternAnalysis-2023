@@ -49,6 +49,9 @@ class DatasetTest(Dataset):
         self.transforms = transforms
         self.size = size
         self.NC, self.AD = self.load_images(path)
+        self.classy = 0
+        self.NCIndex = 0
+        self.ADIndex = 0
 
     def load_images(self, path):
         NC = []
@@ -67,15 +70,19 @@ class DatasetTest(Dataset):
         return NC, AD
 
     def __len__(self):
-        return self.size
+        return len(self.NC) + len(self.AD)
     
     def __getitem__(self, index):
         image = None
-        r = random.randint(0, 1)
+        r = self.classy
         if r == 0:
-            image = random.choice(self.NC)
+            if self.NCIndex == len(self.NC) - 1:
+                self.classy = 1
+            image = self.NC[self.NCIndex]
+            self.NCIndex+=1
         if r == 1:
-            image = random.choice(self.AD)
+            image = self.AD[self.ADIndex]
+            self.ADIndex+=1
         
         if self.transforms:
             image = self.transforms(image)
