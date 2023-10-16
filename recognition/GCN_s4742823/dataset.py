@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 from torch_geometric.data import Data
+import scipy.sparse as sp
 
 # Directory for data
 data_dir = 'data/'
@@ -37,10 +38,15 @@ def load_data(filepath: str = data_dir + 'facebook.npz', test_size=0.2, val_size
     val_mask[val_idx] = 1
     test_mask[test_idx] = 1
 
+    # Create an adjacency matrix from the edge information
+    adj = sp.coo_matrix((np.ones(len(edges)), (edges[:, 0], edges[:, 1])), shape=(num_nodes, num_nodes))
+    adj = torch.Tensor(adj.todense())
+
     # Create the final Data object to be used for training
     data = Data(x=x, edge_index=edges_coo, y=y)
     data.train_mask = train_mask
     data.val_mask = val_mask
     data.test_mask = test_mask
+    data.adj = adj  # Store the adjacency matrix in the Data
 
     return data, features
