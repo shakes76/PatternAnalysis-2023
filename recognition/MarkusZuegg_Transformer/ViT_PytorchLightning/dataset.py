@@ -1,3 +1,9 @@
+"""
+This file contains the pytorch_lightning dataloading class and functions for image patching
+lightingdatamodule class for both CIFAR10 (testing purposes)
+                        and ADNI datasets
+ADNI valadation split is done manually through file manipulation
+"""
 import os
 import pytorch_lightning as pl
 from pytorch_lightning import LightningDataModule
@@ -57,3 +63,19 @@ class CIFAR10DataModule(LightningDataModule):
     
     def val_dataloader(self):
         return DataLoader(self.val, self.batch_size, num_workers=self.num_workers, shuffle=False)
+    
+def img_to_patch(x, patch_size, flatten_channels=True):
+    """
+    Args:
+        x: Tensor representing the image of shape [B, C, H, W]
+        patch_size: Number of pixels per dimension of the patches (integer)
+        flatten_channels: If True, the patches will be returned in a flattened format
+                           as a feature vector instead of a image grid.
+    """
+    B, C, H, W = x.shape
+    x = x.reshape(B, C, H // patch_size, patch_size, W // patch_size, patch_size)
+    x = x.permute(0, 2, 4, 1, 3, 5)  # [B, H', W', C, p_H, p_W]
+    x = x.flatten(1, 2)  # [B, H'*W', C, p_H, p_W]
+    if flatten_channels:
+        x = x.flatten(2, 4)  # [B, H'*W', C*p_H*p_W]
+    return x
