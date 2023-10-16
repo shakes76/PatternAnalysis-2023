@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 
+import CONSTANTS
+
 # global variables
 batch_size = 32
 workers = 0
@@ -14,20 +16,20 @@ workers = 0
 # TODO: deterministic pairing for validation set
 
 # alias for testing on different machines
-MAC = -1
-RANGPUR = 1
+LOCAL = -1
+GLOBAL = 1
 
-machine = RANGPUR
-if machine == RANGPUR:
-    # file paths for RANGPUR
-    train_path = '/home/groups/comp3710/ADNI/AD_NC/train'
-    test_path = '/home/groups/comp3710/ADNI/AD_NC/test'
+machine = GLOBAL
+if machine == GLOBAL:
+    # get filepaths from CONSTANTS.py
+    train_path = CONSTANTS.TRAIN_PATH
+    test_path = CONSTANTS.TEST_PATH
+    savepath = CONSTANTS.RESULTS_PATH
 else: 
-    # file paths for Mac
+    # configureable filepaths for local testing
     train_path = '/Users/minhaosun/Documents/COMP3710_local/data/AD_NC/train'
     test_path = '/Users/minhaosun/Documents/COMP3710_local/data/AD_NC/test'
-
-savepath = "/home/Student/s4641725/COMP3710/project_results" 
+    savepath = '/Users/minhaosun/Documents/COMP3710_local/project_results'
 
 # transforms
 Siamese_train_transforms = transforms.Compose([
@@ -184,7 +186,7 @@ def test_visualise_data_MLP():
         plt.axis("off")
         plt.imshow(np.transpose(next_batch[0][i].squeeze(), (1,2,0)), cmap="gray")
     
-    if machine == RANGPUR:
+    if machine == GLOBAL:
         print("saving figure for mlp")
         plt.savefig(f"{savepath}/data_for_mlp.png", dpi=300)
         print("figure saved for mlp")
@@ -213,7 +215,7 @@ def test_visualise_data_Siamese():
             axs[i,j*2].axis("off")
             axs[i,j*2+1].axis("off")
     
-    if machine == RANGPUR:
+    if machine == GLOBAL:
         print("saving figure for Siamese")
         plt.savefig(f"{savepath}/data_for_siamese.png", dpi=300)
         print("figure saved for Siamese")
@@ -252,7 +254,7 @@ def visualise_paired_data(dataset: PairedDataset):
             axs[i,j*2+1].set_title(next_batch[4][i*rows+j])
             axs[i,j*2].axis("off")
             axs[i,j*2+1].axis("off")
-    if machine == RANGPUR:
+    if machine == GLOBAL:
         plt.savefig(f"{savepath}/data_for_siamese_2.png")
     else: 
         plt.show()
