@@ -15,6 +15,8 @@ from sklearn.model_selection import train_test_split
 from modules import siamese_network 
 
 
+
+
 #%%
 #define varibles
 height = 32
