@@ -12,9 +12,9 @@ import matplotlib.pyplot as plt
 
 class Train():
     def __init__(self):
-        self.net = Model(shape=(1, 105, 105), patches=7, hidden_dim=8, blocks=2, heads=2, out_dim=2)
+        self.net = Model(shape=(1, 700, 700), patches=7, hidden_dim=8, blocks=2, heads=2, out_dim=2)
         self.transforms = transforms.Compose([
-            transforms.Resize((105,105)),
+            transforms.Resize((700, 700)),
             transforms.ToTensor()
         ])
         self.criterion = CrossEntropyLoss()
@@ -29,22 +29,26 @@ class Train():
             self.net.cuda()
 
         for epoch in range(constants.epochs):
+            correct, total = 0, 0
             losses = 0.0
             for i, (x, y) in enumerate(self.trainLoader):
                 # print("image: ", x)
                 if constants.cuda:
                     x, y = x.cuda(), y.cuda()
-                y1 = self.net(x).unsqueeze(0)
-                print("y1: ", y1)
-                print("argmax y1: ", torch.argmax(y1).unsqueeze(0))
-                print("y: ", y)
-                loss = self.criterion(y1, y.long())
+                y1 = self.net(x)
+                # print("y1: ", y1)
+                # print("argmax y1: ", torch.argmax(y1).unsqueeze(0))
+                # print("y: ", y)
+                loss = self.criterion(y1.unsqueeze(0), y.long())
                 losses += loss.detach().cpu().item() / len(self.trainLoader)
                 self.optimiser.zero_grad()
                 loss.backward()
                 self.optimiser.step()
-                print(f'Image at index {i} is type {y} and guess is type {y1}')
-            print(f'Loss at epoch {epoch} is {losses}')
+                # print(f'Image at index {i} is type {y} and guess is type {y1}')
+                if torch.argmax(y1, dim=0) == y:
+                    correct+=1
+                total+=1
+            print(f'Loss at epoch {epoch} is {losses} and accuracy is {correct * 1.0 / total}')
     
     def test(self):
         with torch.no_grad():
