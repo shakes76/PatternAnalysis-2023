@@ -209,8 +209,8 @@ class VQVAE(nn.Module):
         return output, total_loss, encoding_indices
     
     @torch.no_grad()
-    def img_from_indices(self, indices):
-        quant_out = self.quantiser.output_from_indices(indices, (26, 1, 32, 32))
+    def img_from_indices(self, indices, quant_out_shape):
+        quant_out = self.quantiser.output_from_indices(indices, quant_out_shape)   # Output is currently 32*32 img with 32 channels
         return self.decoder(quant_out)
     
 # ------------------------------------------------
@@ -220,7 +220,7 @@ losses = []     # for visualisation
 
 # Hyperparams
 learning_rate = 1.e-3
-num_epochs = 3
+num_epochs = 15
 
 num_embeddings = 256
 embedding_dim = 32
@@ -452,7 +452,7 @@ encoder = model.__getattr__("encoder")
 quantiser = model.__getattr__("quantiser")
 decoder = model.__getattr__("decoder")
 
-for epoch in range(num_epochs):
+for epoch_num, epoch in enumerate(range(num_epochs)):
     
     cnn_model.train()
     
@@ -496,23 +496,26 @@ for epoch in range(num_epochs):
         loss = bpd.mean()
         
     print("Epoch {} of {}. Total Loss: {}".format(epoch_num, num_epochs, loss))
+
+with torch.no_grad():
+    # Show one image
+    print(" > Showing Images")
+    print("Real indices shape: ", indices.detach().cpu().numpy().shape)
+    gen_indices = cnn_model.sample((1, 1, 32, 32))
+    print("Gen indices shape: ", gen_indices.detach().cpu().numpy().shape)
+
+    fig, ax = plt.subplots(2, 2)
     
-# Show one image
-print(" > Showing Images")
-print("Real indices shape: ", indices.detach().cpu().numpy().shape)
-gen_indices = cnn_model.sample((1, 1, 16, 16))
-print("Gen indices shape: ", gen_indices.detach().cpu().numpy().shape)
+    for a in ax.flatten():
+        a.axis('off')
+    
+    ax[0, 0].set_title("Real Indices")
+    ax[0, 0].imshow(indices[0][0].long(), cmap='gray')
+    ax[0, 1].set_title("Real Decoded")
+    ax[0, 1].imshow(model.img_from_indices(indices, quant_out_shape=(26, 32, 32, 32))[0][0], cmap='gray')
 
-fig, ax = plt.subplots(2, 2)
-ax[0, 0].set_title("Real Indices")
-ax[0, 0].imshow(indices[0][0].long())
-ax[0, 1].set_title("Real Decoded")
-ax[0, 1].imshow(model.img_from_indices(indices)[0][0])
-
-
-
-ax[1, 0].set_title("Generated Indices")
-ax[1, 0].imshow(gen_indices[0][0])
-ax[1, 1].set_title("Generated Image")
-ax[1, 1].imshow(model.img_from_indices(gen_indices)[0][0])
-plt.show()
+    ax[1, 0].set_title("Generated Indices")
+    ax[1, 0].imshow(gen_indices[0][0], cmap='gray')
+    ax[1, 1].set_title("Generated Image")
+    ax[1, 1].imshow(model.img_from_indices(gen_indices, (1, 32, 32, 32))[0][0], cmap='gray')
+    plt.show()
