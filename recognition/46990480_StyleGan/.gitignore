@@ -2,7 +2,7 @@
 # TODO: remove before opening PR
 data/
 outputs/
-models/
+Models/
 
 # Playground Directory for Development purposes
 test/
