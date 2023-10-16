@@ -21,7 +21,7 @@ each with 128 unique features, and 171002 edges, representing connections in the
 ## algorithm
 The algorithm employed in this project is a Graph Convolutional Network (GCN), a seminal architecture in 
 the field of graph neural networks. The algorithm extends the concept of 
-convolutional neural networks (CNNs) to graph-structured data, accounting for the dependency of nodes through their 
+[convolutional neural networks (CNNs)](https://saturncloud.io/blog/a-comprehensive-guide-to-convolutional-neural-networks-the-eli5-way/) to graph-structured data, accounting for the dependency of nodes through their 
 connections. The multi-layer Graph Convolutional Network (GCN) model initiates with an Input Layer that takes a 
 Node Feature Matrix X with dimensions [22470, 128] and an Adjacency Matrix Adj of dimensions [22470, 22470]. 
 This is followed by four sequential GCN Convolution Layers. Each layer performs operations involving the 
@@ -109,3 +109,8 @@ This is the ground-truth plot before training. After training the plot is shown 
 
 We can see that the plot shows good clustering, where nodes of a single colour are mostly grouped together. 
 it approves that the model has learned useful information about the nodes based on their class.
+
+**Reference:**[SEMI-SUPERVISED CLASSIFICATION WITH
+GRAPH CONVOLUTIONAL NETWORKS](https://arxiv.org/pdf/1609.02907.pdf)
+
+
