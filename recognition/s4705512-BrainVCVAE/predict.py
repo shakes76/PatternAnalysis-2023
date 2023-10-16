@@ -188,4 +188,5 @@ def reconstruct():
 
 if __name__ == "__main__":
     generate()
+    # reconstruct from encoded images
     reconstruct()
