@@ -58,3 +58,15 @@ vqvae_trainer.load_weights(models_directory + vqvae_weights_filename)
 encoder = vqvae_trainer.vqvae.get_layer("encoder")
 quantizer = vqvae_trainer.vqvae.get_layer("vector_quantizer")
 decoder = vqvae_trainer.vqvae.get_layer("decoder")
+
+# Load the PixelCNN model
+pixelcnn_input_shape = quantizer.output_shape[1:-1]
+print(f"Input shape of the PixelCNN: {pixelcnn_input_shape}")
+
+pixel_cnn = get_pixelcnn(
+        num_residual_blocks,
+        num_pixelcnn_layers,
+        pixelcnn_input_shape,
+        vqvae_trainer.num_embeddings,
+)
+pixel_cnn.load_weights(models_directory + pixelcnn_weights_filename)
