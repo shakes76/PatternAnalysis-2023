@@ -63,3 +63,74 @@ for i in range(10):
     output1, output2 = trained_siamese_net(Variable(x0), Variable(x1))
     euclidean_distance = F.pairwise_distance(output1, output2)
     imshow_grid(torchvision.utils.make_grid(concatenated),'Dissimilarity: {:.2f}'.format(euclidean_distance.item()))
+def classify_test_image(test_image_path):
+    test_image = Image.open(test_image_path)
+    test_image = test_image.convert("L")
+    test_image = transforms.Compose([transforms.Resize((100, 100)), transforms.ToTensor()])(test_image)
+    test_image = test_image.unsqueeze(0)
+
+    reference_images_class1 = ['/content/AD_NC/test/AD/1003730_100.jpeg', '/content/AD_NC/test/AD/1003730_101.jpeg']
+    reference_images_class2 = ['/content/AD_NC/test/NC/1182968_100.jpeg', '/content/AD_NC/test/NC/1182968_100.jpeg']
+
+    distances_class1 = []
+    distances_class2 = []
+
+    for ref_image_path in reference_images_class1:
+        ref_image = Image.open(ref_image_path)
+        ref_image = ref_image.convert("L")
+        ref_image = transforms.Compose([transforms.Resize((100, 100)), transforms.ToTensor()])(ref_image)
+        ref_image = ref_image.unsqueeze(0)
+        with torch.no_grad():
+            output1, output2 = trained_siamese_net(test_image, ref_image)
+            euclidean_distance = TorchFun.pairwise_distance(output1, output2)
+            distances_class1.append(euclidean_distance.item())
+
+    for ref_image_path in reference_images_class2:
+        ref_image = Image.open(ref_image_path)
+        ref_image = ref_image.convert("L")
+        ref_image = transforms.Compose([transforms.Resize((100, 100)), transforms.ToTensor()])(ref_image)
+        ref_image = ref_image.unsqueeze(0)
+        with torch.no_data():
+            output1, output2 = trained_siamese_net(test_image, ref_image)
+            euclidean_distance = TorchFun.pairwise_distance(output1, output2)
+            distances_class2.append(euclidean_distance.item())
+
+    mean_distance_class1 = sum(distances_class1) / len(distances_class1)
+    mean_distance_class2 = sum(distances_class2) / len(distances_class2)
+
+    if mean_distance_class1 < mean_distance_class2:
+        return "Has Alzheimer Disease"
+    else:
+        return "Is Cognitive Normal"
+
+test_image_path = '/content/AD_NC/test/AD/1003730_107.jpeg'
+classification = classify_test_image(test_image_path)
+imshow(test_image_path)
+print(f"Test Image: {classification}")
+
+def calculate_accuracy(test_folder_path, true_labels):
+    correct = 0
+    total = 0
+
+    for label, folder_name in true_labels.items():
+        folder_path = os.path.join(test_folder_path, folder_name)
+        image_files = os.listdir(folder_path)
+
+        for image_file in image_files:
+            image_path = os.path.join(folder_path, image_file)
+            classification = classify_test_image(image_path)
+            if classification == label:
+                correct += 1
+            total += 1
+
+    accuracy = (correct / total) * 100
+    return accuracy
+
+test_folder_path = '/content/AD_NC/test/'
+true_labels = {
+    'Class 1': 'AD',
+    'Class 2': 'NC',
+}
+
+accuracy = calculate_accuracy(test_folder_path, true_labels)
+print(f"Accuracy: {accuracy}%")
