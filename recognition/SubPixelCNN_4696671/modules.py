@@ -20,7 +20,7 @@ class ESPCN(nn.Module):
         self.conv3 = nn.Conv2d(128, 64, kernel_size=3, padding=1)
 
         # need to end up with r^2 filters, where r is the upscaling factor
-        self.conv4 = nn.Conv2d(32, in_channels * (upscaling_factor ** 2), kernel_size=3, padding=1)
+        self.conv4 = nn.Conv2d(64, in_channels * (upscaling_factor ** 2), kernel_size=3, padding=1)
 
         # Pixel shuffle is the sub-pixel layer, that takes the learnt feature maps and rearragnes them into the output, high resolution image.
         self.out = lambda x: nn.functional.pixel_shuffle(x, upscaling_factor)
