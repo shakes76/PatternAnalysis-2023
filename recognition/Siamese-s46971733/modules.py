@@ -178,15 +178,20 @@ class ResNet3D(nn.Module):
                                stride=2,
                                bias=False)
         self.bn1 = nn.BatchNorm3d(64)
+        self.max_pool1 = nn.MaxPool3d(kernel_size=3, stride=2, padding=1)
 
         self.layer1 = self._make_layer(block, 64, num_blocks[0], stride=1)
         self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
 
-        self.linear1 = nn.Linear(86528 * block.expansion, 512)
-        self.linear2 = nn.Linear(512, 128)
+        self.linear1 = nn.Linear(25088 * block.expansion, 64)
+        self.linear2 = nn.Linear(5120, 2560)
+
         self.linear3 = nn.Linear(128, 64)
+        self.linear4 = nn.Linear(25088*block.expansion, 4096)
+        self.linear5 = nn.Linear(25088*block.expansion, 1000)
+        self.linear6 = nn.Linear(25088, 512)
 
 
     def _make_layer(self, block, out_channels, num_blocks, stride):
@@ -202,6 +207,8 @@ class ResNet3D(nn.Module):
         #print(f"Initially: {x.shape}")
         out = F.relu(self.bn1(self.conv1(x)))
         #print(f"Output is {out.shape}")
+        out = self.max_pool1(out)
+        #print(f"MaxPool Output is {out.shape}")
         out = self.layer1(out)
         #print(f"Output is {out.shape}")
         out = self.layer2(out)
@@ -214,11 +221,15 @@ class ResNet3D(nn.Module):
         # Flattens layer.
         out = out.view(out.size(0), -1)
         #print(f"Output is {out.shape}")
-        out = self.linear1(out)
+        #out = self.linear4(out)
+        out = F.relu(self.linear5(out))
+        #out = F.relu(self.linear4(out))
+
+        #out = self.linear1(out)
         #print(f"Output is {out.shape}")
-        out = self.linear2(out)
+        #out = self.linear2(out)
         #print(f"Output is {out.shape}")
-        out = self.linear3(out)
+        # out = self.linear3(out)
         #print(f"Output is {out.shape}")
 
         return out
@@ -229,23 +240,18 @@ class classifier(nn.Module):
 
         self.layer0 = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(10, 2)
-        )
+            nn.Linear(64, 64),
+            nn.BatchNorm1d(64),
+            nn.ReLU(),
 
-        self.layer1 = nn.Sequential(
-            nn.Flatten(),
             nn.Linear(64, 32),
             nn.BatchNorm1d(32),
             nn.ReLU(),
 
-            nn.Linear(32, 16),
-            nn.BatchNorm1d(16),
-            nn.ReLU(),
-
-            nn.Linear(16, 2)
+            nn.Linear(32, 2)
         )
 
-        self.layer2 = nn.Sequential(
+        self.layer5 = nn.Sequential(
             nn.Flatten(),
             nn.Linear(512, 512),
             nn.BatchNorm1d(512),
@@ -255,18 +261,72 @@ class classifier(nn.Module):
             nn.BatchNorm1d(256),
             nn.ReLU(),
 
-            nn.Linear(256, 128),
-            nn.BatchNorm1d(128),
+            nn.Linear(256, 1)
+        )
+
+        self.layer1 = nn.Sequential(
+            nn.Flatten(),
+            nn.Linear(2560, 1280),
+            nn.BatchNorm1d(1280),
+            nn.ReLU(),
+
+            nn.Linear(1280, 512),
+            nn.BatchNorm1d(512),
+            nn.ReLU(),
+
+            nn.Linear(512, 2)
+        )
+
+        self.layer2 = nn.Sequential(
+            # nn.Flatten(),
+            # nn.Linear(4096, 4096),
+            # nn.BatchNorm1d(4096),
+            # nn.ReLU(),
+
+            nn.Linear(4096, 2048),
+            # nn.BatchNorm1d(2048),
+            nn.ReLU(),
+
+            nn.Linear(2048, 1024),
+            # nn.BatchNorm1d(1024),
+            nn.ReLU(),
+
+            nn.Linear(1024, 512),
+            # nn.BatchNorm1d(512),
             nn.ReLU(),
 
             nn.Dropout(p=0.5),
-            nn.Linear(128, 2)
+            nn.Linear(512, 1)
+        )
+
+        self.layer3 = nn.Sequential(
+            # nn.Flatten(),
+            # nn.Linear(4096, 4096),
+            # nn.BatchNorm1d(4096),
+            # nn.ReLU(),
+
+            nn.Linear(1000, 512),
+            # nn.BatchNorm1d(2048),
+            nn.ReLU(),
+
+            nn.Linear(512, 128),
+            # nn.BatchNorm1d(1024),
+            nn.ReLU(),
+
+            nn.Linear(128, 32),
+            # nn.BatchNorm1d(512),
+            nn.ReLU(),
+
+            #nn.Dropout(p=0.5),
+            nn.Linear(32, 1)
         )
 
         self.activation = nn.Sigmoid()
 
     def forward(self, x):
-        out = self.layer1(x)
+        #print(f"Initial Classifier: {x.shape}")
+        out = self.layer3(x)
+        #print(f"Out?: {out.shape}")
         out = self.activation(out)
 
         return out
@@ -280,3 +340,6 @@ def Resnet34():
 
 def Resnet3D():
     return ResNet3D(Block3D, [2, 2, 2, 2])
+
+def Resnet3D_34():
+    return ResNet3D(Block3D, [3, 4, 6, 3])
