@@ -2,18 +2,15 @@ import matplotlib.pyplot as plt
 import torch
 import torchvision
 from dataset import OASISDataLoader
+import parameters
+import os
 
-VQVAE_PATH = "./vqvae_model.txt"
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-batch_size = 32
 
-save_fig = False
-show_one = True
+model = torch.load(parameters.VQVAE_PATH)
+_, test_loader, _ = OASISDataLoader(batch_size=parameters.batch_size).get_dataloaders()
 
-model = torch.load(VQVAE_PATH)
-_, test_loader, _ = OASISDataLoader(batch_size=batch_size).get_dataloaders()
-
-
+# Image representations
 for i, test_data in enumerate(test_loader):
     fig, ax = plt.subplots(1, 3, figsize=(8, 3))
     for x in ax.ravel():
@@ -41,9 +38,66 @@ for i, test_data in enumerate(test_loader):
     ax[1].title.set_text("Codebook Representation")
     ax[2].imshow(decoded_grid)
     ax[2].title.set_text("Decoded Image")
-    if save_fig:
-        plt.savefig(f"image_representation_{i}.png")
-    if show_one:
-        plt.show()
+    if parameters.save_figure:
+        script_dir = os.path.dirname(__file__)
+        results_dir = os.path.join(script_dir, 'image_reconstructions/')
+        file_name = f"image_representation_{i}.png"
+        if not os.path.isdir(results_dir):
+            os.makedirs(results_dir)
+        plt.savefig(results_dir + file_name)
+    plt.show()
+    if parameters.show_one_figure:
         break
+
+
+# Plot graphs
+epochs = []
+training_losses = []
+validation_losses = []
+average_ssims = []
+
+# Read the data from the text file
+with open(parameters.TRAIN_OUTPUT_PATH, "r") as file:
+    lines = file.readlines()
+    for i in range(0, len(lines), 5):
+        epochs.append(int(lines[i].split()[1]))
+        training_losses.append(float(lines[i+1].split()[1]))
+        validation_losses.append(float(lines[i+2].split()[1]))
+        average_ssims.append(float(lines[i+3].split()[1]))
+
+# Create the plot
+if parameters.train_loss:
+    plt.figure(figsize=(8, 5))
+    plt.ylim(0, training_losses[0])
+    plt.plot(epochs, training_losses, linestyle='-', label="Training loss")
+    plt.plot(epochs, validation_losses, linestyle='-', label="Validation loss")
+    plt.legend()
+    plt.title('Loss vs Epochs')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.grid(False)
+    if parameters.save_graphs:
+        script_dir = os.path.dirname(__file__)
+        results_dir = os.path.join(script_dir, 'model_plots/')
+        file_name = "loss_plot.png"
+        if not os.path.isdir(results_dir):
+            os.makedirs(results_dir)
+        plt.savefig(results_dir + file_name)
+    plt.show()
+
+if parameters.mean_ssim:
+    plt.figure(figsize=(8, 5))
+    plt.plot(epochs, average_ssims, linestyle='-', color='red', label = "Average SSIM per epoch")
+    plt.legend()
+    plt.title('Average SSIM vs Epochs')
+    plt.xlabel('Epochs')
+    plt.ylabel('Average SSIM per epoch')
+    plt.grid(False)
+    if parameters.save_graphs:
+        script_dir = os.path.dirname(__file__)
+        results_dir = os.path.join(script_dir, 'model_plots/')
+        file_name = "average_ssim.png"
+        if not os.path.isdir(results_dir):
+            os.makedirs(results_dir)
+        plt.savefig(results_dir + file_name)
     plt.show()
