@@ -13,6 +13,7 @@ import tensorflow as tf
 from tensorflow.keras import layers
 import tensorflow_probability as tfp
 from dataset import *
+from modules import *
 
 image_size = (128, 128)
 latent_dim = 16
@@ -39,10 +40,11 @@ if not os.path.isfile(models_directory + pixelcnn_weights_filename + ".index"):
     exit(1)
 
 # Load testing dataset
-test_ds = get_test_dataset()
+ds = Data
+test_ds = ds.get_test_dataset()
 
 # Create the model and load the weights
-train_ds = get_train_dataset()
+train_ds = ds.get_train_dataset()
 data_variance = np.var(train_ds)
 vqvae_trainer = VQVAETrainer(
         data_variance,
