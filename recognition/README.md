@@ -6,7 +6,7 @@ Below is a solution that segments the ISIC dataset using an improved U-Net archi
 We can download the test, training and validation set 2018 version from the ISIC website.  
 
 #Training DSC and Loss Plots over Epochs:  
-https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/6ad6ed69-5483-4f55-89ce-1cad501deb80
+![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/6ad6ed69-5483-4f55-89ce-1cad501deb80)
 
 Average Dice Similarity Coefficient: 0.7197
 
