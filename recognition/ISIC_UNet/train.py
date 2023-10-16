@@ -12,6 +12,7 @@ import torch.nn.functional as funk
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import numpy as np
+from modules import UNet
 
 ##init
 device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -27,5 +28,13 @@ trainloader = DataLoader(trainset, batch_size=32, shuffle=True)
 total_step=len(trainloader)
 print(total_step)
 
+def improved_UNet():
+    return UNet()
 
+model=improved_UNet()
+model=model.to(device)
+
+for images in trainloader:
+    images=images.to(device)
+    output=model(images)
     
