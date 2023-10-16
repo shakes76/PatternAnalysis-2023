@@ -9,8 +9,14 @@ class ISICDataset(Dataset):
         self.img_dir = img_dir
         self.image_files = os.listdir(img_dir)
 
+        self.image_files.remove("ATTRIBUTE.txt")
+        self.image_files.remove("LICENSE.txt")
+
         self.truth_dir = truth_dir
         self.truth_files = os.listdir(truth_dir)
+
+        self.truth_files.remove("ATTRIBUTE.txt")
+        self.truth_files.remove("LICENSE.txt")
 
         self.transform = transform
 
@@ -20,14 +26,13 @@ class ISICDataset(Dataset):
 
     # get specific item from dataset
     def __getitem__(self, idx):
-        if self.image_files[idx] != "LICENCE.txt":
-            img_path = os.path.join(self.img_dir, self.image_files[idx])
-            image = Image.open(img_path)
-            truth_path = os.path.join(self.truth_dir, self.truth_files[idx])
-            truth = Image.open(truth_path)
+        img_path = os.path.join(self.img_dir, self.image_files[idx])
+        image = Image.open(img_path)
+        truth_path = os.path.join(self.truth_dir, self.truth_files[idx])
+        truth = Image.open(truth_path)
 
-            if self.transform:
-                image = self.transform(image)
-                truth = self.transform(truth)
+        if self.transform:
+            image = self.transform(image)
+            truth = self.transform(truth)
 
-            return image, truth
+        return image, truth
