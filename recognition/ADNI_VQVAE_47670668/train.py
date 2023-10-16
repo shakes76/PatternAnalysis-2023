@@ -1,10 +1,25 @@
 import torch
 import torch.optim as optim
+import matplotlib.pyplot as plt
 
 from dataset import train_dataloader
 from modules import *
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+def visualize_reconstructions(original_images, reconstructed_images, num_samples=10):
+    # This function assumes the images are tensors with shape [batch_size, channels, height, width]
+    
+    num_samples = min(num_samples, original_images.size(0))  # Ensure num_samples is within bounds
+    
+    _, axs = plt.subplots(2, num_samples, figsize=(15, 5))
+    for i in range(num_samples):
+        axs[0, i].imshow(original_images[i].permute(1, 2, 0).cpu().numpy())
+        axs[1, i].imshow(reconstructed_images[i].detach().permute(1, 2, 0).cpu().numpy())
+        axs[0, i].axis('off')
+        axs[1, i].axis('off')
+    plt.tight_layout()
+    plt.show()
 
 # Initialize values for incremental variance computation
 mean = torch.zeros(1).float().to(device)
