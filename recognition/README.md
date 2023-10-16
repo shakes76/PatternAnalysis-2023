@@ -15,5 +15,5 @@ Average Dice Similarity Coefficient: 0.7197
 torch 2.1.0  
 matplotlib 3.8.0  
 numpy 1.26.0  
-torchvision 0.16.0
+torchvision 0.16.0  
 Python 3.11
