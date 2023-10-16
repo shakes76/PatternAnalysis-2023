@@ -4,7 +4,7 @@ import torchvision.utils as vutils
 import torchvision.transforms as transforms
 from modules import SubPixel
 from dataset import *
-
+from  torch.nn.modules.upsampling import Upsample
 
 if __name__ == "__main__":
 
@@ -33,7 +33,11 @@ if __name__ == "__main__":
             output = model(down_scaled_image).detach().cpu()
             break
 
-    image = vutils.make_grid(output, padding=2, normalize = True)
+    m = Upsample(scale_factor=4)
+    down_scaled_image_up = m(down_scaled_image)
+
+    images = torch.cat((input,down_scaled_image_up,output))
+    image = vutils.make_grid(images, padding=2, normalize = True)
     transform = torchvision.transforms.ToPILImage()
     img = transform(image)
     img.show()
