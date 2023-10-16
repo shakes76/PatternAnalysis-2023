@@ -104,20 +104,12 @@ def test_valid_measure():
         list_loss.append(trainloss)   
         list_test.append(testloss)   
         acu.append(acc)  
-        # if acc >=81: break
+        if acc >=81: break
         #scheduler.step(testloss) # REDUCELRON PLATEAU
         #scheduler.step(epoch-1) # step cosine scheduling
     end = time.time()
     elapsed = end - start
     print("Training took " + str(elapsed) + " secs or " + str(elapsed / 60) + " mins in total")    
-    # Plots
-    plt.plot([i for i in range(1, args.n_epochs+1)], list_loss, label='Train')
-    plt.plot([i for i in range(1, args.n_epochs+1)], list_test, label='Valid')
-    plt.title("Training Plot")
-    plt.legend()
-    plt.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Report.png')
-    # plt1.plot([i for i in range(1, args.n_epochs+1)], acc)
-    # plt1.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Accuracy.png')
     print(acu)
     print('Testing..')
     net.eval()
@@ -128,7 +120,18 @@ def test_valid_measure():
     elapsed = end - start
     print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
     print('END')    
-    print("Test Loss:", val_loss,"Test Accuracy:", acc) 
+    print("Test Loss:", val_loss,"Test Accuracy:", acc)
+    # Plots
+    plt.plot([i for i in range(1, len(list_loss)+1)], list_loss, label='Train')
+    plt.plot([i for i in range(1, len(list_test)+1)], list_test, label='Valid')
+    plt.title("Training Plot")
+    plt.legend()
+    plt.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Report.png')
+    plt1.plot([i for i in range(1, len(acu)+1)], acu)
+    plt1.title("Accuracy Plot")
+    plt1.legend()
+    plt1.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Accuracy.png')
+    torch.save(net.train(), 'model_valid_stop.pth') 
 
 test_valid_measure()      
 #test_measure()           

@@ -21,20 +21,22 @@
 
 # Hyper-Param:
 - Learning Rate - 3e-4 (58.6), 1e-4 (58.12), 1e-3 (54), 5e-4 (57), 2e-4 (52.98)
-- Optimiser
 - Batch Size - 64 (55.88), 32 (56.25), 128 (56.255)
 - Patch Size - 64 (56.255), 128 (56.7), 32 (54.388), 256 (44.8), 16 (51.7)
 - Dimensionality Head - 1024 (56.7)(56.7), 256 (58.22), 128 (57.84), 512 (58.6), 768 (55.82)
-- Normalisation
 - Resize (128x128, patch - 128) (65.6667)
-- Crop
-- Flip
-- LR Scheduler
+- Crop - DONE
+- Flip - DONE
+- LR Scheduler - Cosine, OneCycle
+- Model - CCT
+- Epoch - 35 (64.2), 50 (65), 60 (65.3), 120 (66), 200 (66.7), 300 (65)
+
+- Normalisation
 - Optimizer
 - Criterion
-- Model
-- Epoch - 35 (64.2), 50 (65), 60 (65.3), 120 (66), 200 (66.7), 300 (65)
 - Dropout
+- CCT Hyper-Param
+
 # Jobs:
 750 - DViT - 60.6%
 754 - CCT - 71.73%
@@ -45,7 +47,7 @@
 1199 - RA + 150 E + n_ops = 3 - 76.5%
 1220 - TrivialAugmentWide, E - 80 - 75.244%
 1231 - TrivialAugmentWide, E - 200 - 76%
-253 - RA + 100 E + n_ops = 4 - 77.155% (STANDARD)
+253 - RA + 100 E + n_ops = 4 - 77.155%
 1307 - RA + 100 E + n_ops = 3 + LR: 1e-4 - 75.64%
 1364 - Data Leakage (only test) - 75.5%
 1438 - RA + 100 E + n_ops = 5 - 76%
@@ -54,7 +56,13 @@
 1590 - RA + 55 E + n_ops = 4 + Heads = 8 - 75%
 1604, 1607 - 10E + LR Scheduler - 69.5%
 1642 - OnceCycle (outside) - 72.6%
-1654 - OnceCycle (inside) - 
-1728 - ReduceLROnPlateau - 
-
-GIT PUSH
+1778, 1784 - OnceCycle (inside) - max_valid (81% in 47 E)
+1785 - Kernel size (6) - valid (78.6)
+1806 - embedding_dim = 96 - valid (77.3)
+1894 - OnceCycle (inside) stop at 81% + E - 60 - 78.156%
+1925 - OnceCycle (inside) stop at 81.5% (changed if loop) - 77.88%
+1954 - OnceCycle (inside) stop at 81.5% + E - 200 (changed if loop) - 78.28%
+1968 - OnceCycle (inside) stop at 80.5% + E - 100 (changed if loop) - 77.888%
+1996 - OnceCycle (inside) stop at 81.2% + E - 100 (changed if loop) - 77.31%
+2009 - OnceCycle (inside) stop at 81% + E - 100 (changed if loop) - 78.155% (STANDARD)
+2306 - OnceCycle (inside) stop at train<valid + 82% + E - 100 (changed if loop) - 76.77%

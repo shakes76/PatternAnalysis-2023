@@ -25,7 +25,7 @@ from torchvision.transforms import TrivialAugmentWide
 # parsers
 
 parser = argparse.ArgumentParser(description='ADNI Training')
-parser.add_argument('--lr', default=2e-4, type=float, help='learning rate') # resnets.. 1e-3, Vit..1e-4
+parser.add_argument('--lr', default=2e-4, type=float, help='learning rate')
 parser.add_argument('--opt', default="adam")
 parser.add_argument('--net', default='CCT')
 parser.add_argument('--bs', default='32')
@@ -99,13 +99,13 @@ def normalize_test():
 #print("Normalization Test", mean_test, std_test)
 transform_train = transforms.Compose([
     transforms.Resize((size,size)),
-    # transforms.RandomRotation(10),
-    # transforms.RandomHorizontalFlip(),
-    # transforms.RandomCrop(size),
     RandAugment(num_ops=4),
     transforms.ToTensor(),
     transforms.Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))    
 
+    # transforms.RandomRotation(10),
+    # transforms.RandomHorizontalFlip(),
+    # transforms.RandomCrop(size),
     # TrivialAugmentWide(),
     #transforms.RandomResizedCrop(size),
     #transforms.RandomVerticalFlip(),

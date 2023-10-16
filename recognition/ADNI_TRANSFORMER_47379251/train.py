@@ -297,7 +297,8 @@ def train_valid(epoch):
         _, predicted_valid = outputs_valid.max(1)
         total_valid += targets_valid.size(0)
         correct_valid += predicted_valid.eq(targets_valid).sum().item()
-        if (100.*correct_valid/total_valid) > acc: acc = 100.*correct_valid/total_valid
+        if (100.*correct_valid/total_valid) >= 81: return train_loss, valid_loss, 100.*correct_valid/total_valid
+        acc = 100.*correct_valid/total_valid
         if epoch%1==0: 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                 % (valid_loss/(batch_idx_valid+1), 100.*correct_valid/total_valid, correct_valid, total_valid))    
