@@ -12,7 +12,7 @@ num_epochs = 10
 # Initialize the dataset and data loaders
 data_loader = ADNIDataset()
 train_loader = data_loader.train_loader
-target_loader = data_loader.target_loader
+target_loader = data_loader.train_target_loader
 test_loader = data_loader.test_loader
 
 # Initialize the model
@@ -32,17 +32,18 @@ for epoch in range(num_epochs):
     train_loss = 0.0
 
     for train_batch, target_batch in zip(train_loader, target_loader):
-        inputs, targets = train_batch # input shape is: 60x60, target shape is: 240x240
+        train_inputs, train_targets = train_batch # input shape is: 60x60, target shape is: 240x240
+        target_inputs, target_targets = target_batch # input shape is: 60x60, target shape is: 240x240
         optimizer.zero_grad()
-        outputs = model(inputs) #outputs shape is: 240x240
-        # print(outputs.shape,targets.shape)
-        # exit()
-        loss = criterion(outputs, targets) # Compare with outputs and targets
-        loss.backward()
-        optimizer.step()
+        outputs = model(train_inputs) #outputs shape is: 240x240
+
+        # Calculate the loss by comparing super-resolved images with target images
+        loss = criterion(outputs, target_inputs) # Compare with outputs and targets
+        loss.backward() # Backpropagation
+        optimizer.step() # Optimizer update
         train_loss += loss.item()
 
-    train_loss /= len(train_loader)
+    train_loss /= len(train_loader) # Calculate the average training loss for the epoch
     train_losses.append(train_loss)
 
     # Print training loss for this epoch
