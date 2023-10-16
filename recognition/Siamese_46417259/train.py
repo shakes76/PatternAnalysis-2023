@@ -48,9 +48,8 @@ def contrastive_loss(x1:torch.Tensor, x2:torch.Tensor, label:torch.Tensor, margi
 #         nn.init.normal_(model.bias.data)
 #     elif classname.find('Linear') != -1:
 #         nn.init.normal_(model.weight.data, 0.0, 0.2)
-        
 
-# Training Loop ----------------------------------
+
 def initialise_Siamese_training():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     print("Device: ", device)
@@ -62,18 +61,6 @@ def initialise_Siamese_training():
     criterion = ContrastiveLoss(margin=1.0)
     optimiser = optim.Adam(siamese_net.parameters(), lr=0.0001, betas=(0.5, 0.999))
     return siamese_net, criterion, optimiser, device
-
-# def initialise_classifier_training(backbone: torch.nn.Module):
-#     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
-#     print("Device: ", device)
-
-#     classifier = SiameseMLP(backbone)
-#     classifier = classifier.to(device)
-#     print(classifier)
-
-#     criterion = nn.BCELoss()
-#     optimiser = optim.Adam(classifier.mlp.parameters(), lr=1e-3, betas=(0.9, 0.999))
-#     return classifier, criterion, optimiser, device
 
 def initialise_classifier_training():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
@@ -325,7 +312,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
             previous_best_loss = np.average(eval_losses)
             print(f"loss improved in epoch {epoch + 1}")
 
-    # save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
+    save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
     end = time.time()
     elapsed = end - start
     print("Siamese Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
@@ -382,7 +369,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
             previous_best_loss = np.average(eval_losses)
             print(f"loss improved in epoch {epoch + 1}")
 
-    # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
+    save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
     end = time.time()
     elapsed = end - start
     print("Classifier Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
@@ -398,10 +385,10 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
 
 if __name__ == "__main__":
     # normal training workflow
-    net = Siamese_training(10, 69)
-    classifier_training(net.backbone, 20, 69)
+    net = Siamese_training(15, 35)
+    classifier_training(net.backbone, 20, 35)
 
-    # train classifier from existing Siamese model workflow
+    # training classifier from existing Siamese model workflow
     # checkpoint = "SiameseNeuralNet_checkpoint.tar"
     # siamese_net, criterion, optimiser, device = initialise_Siamese_training()
     # start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
@@ -413,16 +400,6 @@ if __name__ == "__main__":
 
     # print("/n /n /n")
 
-    # # training Siamese workflow
+    # training Siamese workflow
     # Siamese_training(20, 35)
-
-    # # train classifier from existing Siamese model workflow
-    # checkpoint = "SiameseNeuralNet_checkpoint.tar"
-    # siamese_net, criterion, optimiser, device = initialise_Siamese_training()
-    # start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
-    # print(f"best epoch: {start_epoch - 1}")
-    # print(f"training losses: {training_losses}")
-    # print(f"eval losses: {eval_losses}")
-
-    # classifier_training(siamese_net.backbone, 20, 35)
 

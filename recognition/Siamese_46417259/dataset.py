@@ -33,7 +33,7 @@ savepath = "/home/Student/s4641725/COMP3710/project_results"
 Siamese_train_transforms = transforms.Compose([
     transforms.ToTensor(),
     # transforms.CenterCrop(240),
-    transforms.RandomCrop(240, 20, padding_mode='constant'),
+    transforms.RandomCrop(240, 25, padding_mode='constant'),
     # transforms.RandomHorizontalFlip(),
     # transforms.RandomVerticalFlip(),
     # transforms.RandomRotation(15)
@@ -43,7 +43,8 @@ Siamese_train_transforms = transforms.Compose([
 classifier_train_transforms = transforms.Compose([
     transforms.ToTensor(),
     # transforms.CenterCrop(240),
-    transforms.RandomCrop(240, 20, padding_mode='constant'),
+    transforms.RandomCrop(240, 25, padding_mode='constant'),
+    # transforms.RandomRotation(15)
 ])
 
 test_transforms = transforms.Compose([
