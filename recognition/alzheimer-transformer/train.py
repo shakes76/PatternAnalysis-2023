@@ -119,6 +119,8 @@ def main():
     # after all epochs, test the model performance on test data
     test_loss, test_acc = evaluate(model, test_loader, criterion, device)
     print(f"Test: Loss {test_loss:.4f}, Accuracy {test_acc:.4f}")
+    torch.save(model.state_dict(), 'vit-test{test_acc}%')
+
 
 if __name__ == "__main__":
     main()
