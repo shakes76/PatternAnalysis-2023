@@ -7,9 +7,7 @@ from PIL import Image
 # Torch configuration
 seed = 42
 torch.manual_seed(seed)
-# torch.use_deterministic_algorithms(True)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(device)
 
 resize_size = (128, 128)
 
