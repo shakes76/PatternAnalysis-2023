@@ -5,6 +5,10 @@ Below is a solution that segments the ISIC dataset using an improved U-Net archi
 # **ISIC Dataset** 
 We can download the test, training and validation set 2018 version from the ISIC website.  
 
+### **Architecture** 
+![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/88cd0f74-a50f-4aaf-921f-76f108f943e2)
+
+
 ### **Training DSC and Loss Plots over Epochs:** 
 ![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/6ad6ed69-5483-4f55-89ce-1cad501deb80)
 
