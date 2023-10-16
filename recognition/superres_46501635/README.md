@@ -113,4 +113,5 @@ To utilize this project with your ADNI dataset, follow these steps:
 
 This project is based on the principles of the ESPCN model for super-resolution and is inspired by various research papers and PyTorch tutorials.
 
-![Alt text](image.png)
+## Output
+![Alt text](outputimg.png)
