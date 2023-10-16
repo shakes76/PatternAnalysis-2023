@@ -43,13 +43,13 @@ class NiiImageLoader(DataLoader):
         return image, mask
 
 
-# load the dataset
+# load the dataset at local
 dataset = NiiImageLoader("semantic_MRs_anon/*",
                          "semantic_labels_anon/*")
 
-# path in rangpur
-# dataset = NiiImageLoader("/home/groups/comp3710/HipMRI_Study_open/semantic_MRs/*",
-#                          "/home/groups/comp3710/HipMRI_Study_open/semantic_labels_only/*")
+# load the dataset in rangpur
+dataset = NiiImageLoader("/home/groups/comp3710/HipMRI_Study_open/semantic_MRs/*",
+                         "/home/groups/comp3710/HipMRI_Study_open/semantic_labels_only/*")
 
 
 # split the dataset
