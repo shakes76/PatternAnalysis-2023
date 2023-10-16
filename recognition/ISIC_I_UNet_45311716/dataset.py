@@ -1,5 +1,6 @@
 import torch
 import torchvision
+import torchvision.transforms as transforms
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -9,14 +10,18 @@ if not torch.cuda.is_available():
 # Path to images
 path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/ISIC2018/'
 
+data_transform = transforms.Compose([transforms.Resize((512, 512)),
+                                             transforms.ToTensor()])
+
 # Training dataset
-train_set = torchvision.datasets.ImageFolder(root=path+'ISIC2018_Task1-2_Training_Input_x2')
-train_loader = torch.utils.data.DataLoader(train_set, batch_size=16, shuffle=False)
+train_set = torchvision.datasets.ImageFolder(root=path+'ISIC2018_Task1-2_Training_Input_x2', transform=data_transform)
+train_loader = torch.utils.data.DataLoader(train_set, batch_size=16, shuffle=True)
 
 # Testing dataset
-test_set = torchvision.datasets.ImageFolder(root=path+'ISIC2018_Task1-2_Test_Input')
-test_loader = torch.utils.data.DataLoader(test_set, batch_size=16, shuffle=False)
+test_set = torchvision.datasets.ImageFolder(root=path+'ISIC2018_Task1-2_Test_Input', transform=data_transform)
+test_loader = torch.utils.data.DataLoader(test_set, batch_size=16, shuffle=True)
 
 # Truth dataset
-truth_set = torchvision.datasets.ImageFolder(root=path+'ISIC2018_Task1_Training_GroundTruth_x2')
-truth_loader = torch.utils.data.DataLoader(truth_set, batch_size=16, shuffle=False)
+truth_set = torchvision.datasets.ImageFolder(root=path+'ISIC2018_Task1_Training_GroundTruth_x2', transform=data_transform)
+truth_loader = torch.utils.data.DataLoader(truth_set, batch_size=16, shuffle=True)
+
