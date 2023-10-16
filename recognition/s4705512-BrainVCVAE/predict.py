@@ -12,11 +12,23 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers
 import tensorflow_probability as tfp
+from dataset import *
 
-from dataset import get_test_dataset, get_train_dataset, scale_image, image_size
-from modules import VQVAETrainer, get_pixelcnn
-from hyperparameters import *
-from utils import models_directory, vqvae_weights_filename, pixelcnn_weights_filename
+image_size = (128, 128)
+latent_dim = 16
+num_embeddings = 128
+vqvae_epochs = 30
+vqvae_batch_size = 128
+
+# PixelCNN hyperparameters
+num_residual_blocks = 2
+num_pixelcnn_layers = 2
+pixelcnn_epochs = 30
+pixelcnn_batch_size = 128
+pixelcnn_validation_split = 0.1
+models_directory = "trained_models/"
+vqvae_weights_filename = "vqvae/vqvae"
+pixelcnn_weights_filename = "pixelcnn/pixelcnn"
 
 # Make sure the trained weights exist
 if not os.path.isfile(models_directory + vqvae_weights_filename + ".index"):
