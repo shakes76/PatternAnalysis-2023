@@ -22,6 +22,7 @@ import random
 # Local Locations
 TESTIMAGEPATH = '..\\ADNI\\AD_NC\\test'
 TRAINIMAGEPATH = '..\\ADNI\\AD_NC\\train'
+#TRAINIMAGEPATH = '..\\ADNI\\AD_NC\\train_big'
 
 # Creating Lists of Directories
 train_dirs_AD = os.listdir(TRAINIMAGEPATH + '\\AD')
@@ -132,9 +133,18 @@ for i in os.listdir(TESTIMAGEPATH):
 image_size = 210
 
 # Transforms to be applied to data loaders.
-transform = transforms.Compose([transforms.ToPILImage(),
-                                transforms.ToTensor(),
-                                transforms.Resize((image_size, image_size), antialias=None)
+# transform = transforms.Compose([transforms.ToPILImage(),
+#                                 transforms.ToTensor(),
+#                                 transforms.Resize((image_size, image_size), antialias=None)
+#                                  ])
+
+# transform = transforms.Compose([transforms.ToTensor(),
+#                                 transforms.Resize((image_size, image_size), antialias=None),
+#                                 transforms.Normalize(0.5, 0.2)
+#                                  ])
+
+transform = transforms.Compose([transforms.ToTensor(),
+                                transforms.Resize((image_size, image_size), antialias=None),
                                  ])
 
 class ImageDataset(Dataset):
@@ -292,7 +302,7 @@ class ImageDataset3D(Dataset):
             return anchor_full_data, anchor_label
 
 
-def get_dataset(train, clas, valid=0):
+def get_dataset(train=0, clas=0, valid=0):
     # if train == 1 and clas == 0:
     #     return ImageDataset(train_dirs_full, transform=transform, train=1)
     # elif train == 1 and clas == 1:
@@ -310,4 +320,3 @@ def get_dataset(train, clas, valid=0):
         return ImageDataset3D(valid_dirs_full_brain, transform=transform, clas=1)
     else:
         return ImageDataset3D(test_dirs_full_brain, transform=transform, clas=1)
-
