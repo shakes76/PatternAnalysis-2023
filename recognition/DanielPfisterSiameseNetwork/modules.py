@@ -5,32 +5,47 @@ from tensorflow.keras import layers
 def siamese_network(height,width,dimension):
 
     #deifne input of siamese network
-    left_input = layers.Input(shape = (height, width, dimension))
-    right_input = layers.Input(shape = (height, width, dimension))
+    input_shape = (height, width, dimension)
+    left_input = layers.Input(input_shape)
+    right_input = layers.Input(input_shape)
+    #define standard model of the left and right siamese network which is a VGG16 without all the dense layers
+    vgg16 = tf.keras.Sequential([ layers.Conv2D (filters =64, kernel_size =3, padding ='same', activation='relu'),
+                                layers.Conv2D (filters =64, kernel_size =3, padding ='same', activation='relu'),
+                                layers.MaxPool2D(pool_size =2, strides =2, padding ='same'),
 
-    #define standard model of the left and right siamese network
-    network = tf.keras.Sequential([layers.Reshape((height, width, dimension)),
-        layers.Conv2D(32, (3, 3), activation='relu'),
-        layers.BatchNormalization(),
-        layers.MaxPooling2D(),
-        layers.Conv2D(64, (3, 3), activation='relu'),
-        layers.BatchNormalization(),
-        layers.MaxPooling2D(),
-        layers.Flatten(),
-        layers.Dense(256, activation='sigmoid'),
-])
+                                layers.Conv2D (filters =128, kernel_size =3, padding ='same', activation='relu'),
+                                layers.Conv2D (filters =128, kernel_size =3, padding ='same', activation='relu'),
+                                layers.MaxPool2D(pool_size =2, strides =2, padding ='same'),
+
+                                layers.Conv2D (filters =256, kernel_size =3, padding ='same', activation='relu'),
+                                layers.Conv2D (filters =256, kernel_size =3, padding ='same', activation='relu'),
+                                layers.Conv2D (filters =256, kernel_size =3, padding ='same', activation='relu'),
+                                layers.MaxPool2D(pool_size =2, strides =2, padding ='same'),
+
+                                layers.Conv2D (filters =512, kernel_size =3, padding ='same', activation='relu'),
+                                layers.Conv2D (filters =512, kernel_size =3, padding ='same', activation='relu'),
+                                layers.Conv2D (filters =512, kernel_size =3, padding ='same', activation='relu'),
+                                layers.MaxPool2D(pool_size =2, strides =2, padding ='same'),
+
+                                layers.Conv2D (filters =512, kernel_size =3, padding ='same', activation='relu'),
+                                layers.Conv2D (filters =512, kernel_size =3, padding ='same', activation='relu'),
+                                layers.Conv2D (filters =512, kernel_size =3, padding ='same', activation='relu'),
+                                layers.MaxPool2D(pool_size =2, strides =2, padding ='same'),
+
+                                layers.Flatten(),
+                                layers.Dense(256, activation='sigmoid'), #60 precent 1024 vgg16 128 128
+                                ])
 
     #save the features from the left and right network in two variables
-    feature_vector_left_output = network(left_input)
-    feature_vector_right_output = network(right_input)
+    feature_vector_left_output = vgg16(left_input)
+    feature_vector_right_output = vgg16(right_input)
 
-    #euclidean distance layer
-    euclidean_distance = tf.keras.layers.Lambda(lambda features: tf.keras.backend.abs(features[0] - features[1]))([feature_vector_left_output, feature_vector_right_output])
+    #merge layer which claulates the distance between both networks
+    merge_layer = layers.Lambda(lambda features: tf.abs(features[0] - features[1]))([feature_vector_left_output, feature_vector_right_output])
+
 
     #fully connected layers
-    #dense = layers.Dense(64, activation='relu')(euclidean_distance)
-    #output = layers.Dense(1, activation='sigmoid')(dense)
-    output = layers.Dense(1, activation='sigmoid')(euclidean_distance)
+    output = layers.Dense(1, activation='sigmoid')(merge_layer)
     #create whole neural network model
     model = tf.keras.Model(inputs=[left_input, right_input], outputs=output)
 
