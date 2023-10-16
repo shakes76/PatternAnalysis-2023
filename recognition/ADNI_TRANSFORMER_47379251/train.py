@@ -30,7 +30,7 @@ from torchsummary import summary
 # Model factory..
 print('==> Building model..')
 if args.net=="CCT":
-    from vit_pytorch.cct import CCT
+    from modules import CCT
     net = CCT(
         img_size = (256, 256),
         embedding_dim = 192,
