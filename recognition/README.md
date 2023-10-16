@@ -17,3 +17,7 @@ matplotlib 3.8.0
 numpy 1.26.0  
 torchvision 0.16.0  
 Python 3.11
+
+## **Reference** 
+[1] K. He, G. Gkioxari, P. Dollár, and R. Girshick, “Mask R-CNN,” in 2017 IEEE International Conference on
+Computer Vision (ICCV), Oct. 2017, pp. 2980–2988.
