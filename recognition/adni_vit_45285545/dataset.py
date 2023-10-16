@@ -42,21 +42,27 @@ class ADNI(Dataset):
     def __len__(self) -> int:
         return self.count
 
-    def __getitem__(self, index: int) -> Tuple[Any, Any]:
-        # Fetch image and determine label
+    def __getitem__(self, index: int) -> Tuple[Any, Any, int]:
+        # Fetch image and determine label and patient ID
         if index < self.count_ad:
             label = 1
-            path = Path(self.img_dir, 'AD', self.ad_fnames[index])
+            fname = self.ad_fnames[index]
+            path = Path(self.img_dir, 'AD', fname)
         else:
             label = 0
-            path = Path(self.img_dir, 'NC', self.nc_fnames[index - self.count_ad])
+            fname = self.nc_fnames[index - self.count_ad]
+            path = Path(self.img_dir, 'NC', fname)
+
         image = torchvision.io.read_image(str(path), torchvision.io.ImageReadMode.RGB)
+        pid = int(fname.split('_')[0])
+
         # Apply image and labels transforms (if any specified)
         if self.transform:
             image = self.transform(image)
         if self.target_transform:
             label = self.target_transform(label)
-        return image, label
+        # Also return patient ID as metadata, used only during testing
+        return image, label, pid
 
 
 def train_val_split(dataset: ADNI, val_pct: float) -> Tuple[Dataset, Dataset]:
@@ -121,9 +127,6 @@ def create_train_dataloader(val_pct: float = 0.2) -> DataLoader:
 def create_test_dataloader() -> DataLoader:
     '''
     Returns a DataLoader on pre-processed test data from the ADNI dataset.'''
-    transform = transforms.Compose([
-        transforms.CenterCrop(224),
-        transforms.ConvertImageDtype(torch.float),
-    ])
-    test_dataset = ADNI(ADNI_ROOT, train=False, transform=get_transforms())
+    test_dataset = ADNI(ADNI_ROOT, train=False,
+                        transform=transforms.ConvertImageDtype(torch.float))
     return DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)

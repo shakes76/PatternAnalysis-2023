@@ -11,7 +11,7 @@ import torch
 
 from tqdm import tqdm
 
-from dataset import create_train_dataloader, create_test_dataloader
+from dataset import BATCH_SIZE, create_train_dataloader, create_test_dataloader
 from modules import ViT
 
 ### UTILITIES ##################################################################
@@ -80,7 +80,7 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
     for epoch in range(epochs):
         # Training loop
         losses = []; total = 0; correct = 0
-        for images, labels in wrapiter(train_loader):
+        for images, labels, _ in wrapiter(train_loader):
             images = images.to(device)
             labels = labels.to(device)
             optimizer.zero_grad()
@@ -102,7 +102,7 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
         # Validation loop
         losses = []; total = 0; correct = 0
         with torch.no_grad():
-            for images, labels in wrapiter(valid_loader):
+            for images, labels, _ in wrapiter(valid_loader):
                 images = images.to(device)
                 labels = labels.to(device)
                 # Forward pass
@@ -147,23 +147,45 @@ def test_model(mdl: Any, device: torch.device, pg: bool = False) -> None:
     '''Test the given model on the ADNI test dataset.'''
     wrapiter = (lambda iter: tqdm(iter)) if pg else (lambda iter: iter)
 
+    # Mapping of patient ID to prediction tallies
+    prediction = {}; actual = {}
+
     test_loader = create_test_dataloader()
     mdl.eval()
     time_start = time.time()
+
+    # Model inference
     with torch.no_grad():
-        total = 0
-        correct = 0
-        for images, labels in wrapiter(test_loader):
+        for images, labels, pid in wrapiter(test_loader):
             images = images.to(device)
             labels = labels.to(device)
             # Forward pass
             outputs = mdl(images)
             _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
 
-        time_elapsed = time.time() - time_start
-        print(f'Test accuracy: {100*correct/total:.2f}% ({strftime(time_elapsed)})')
+            for i in range(BATCH_SIZE):
+                # Tally predictions on per-patient basis
+                if pid[i] not in prediction:
+                    prediction[pid[i]] = 0
+                if predicted[i] == 0:
+                    prediction[pid[i]] -= 1 # minus 1 from tally if NC predicted
+                else:
+                    prediction[pid[i]] += 1 # add 1 to tally if AD predicted
+
+                # Record actual label, also on per-patient basis
+                if pid[i] not in actual:
+                    actual[pid[i]] = labels[i].item()
+
+    # Count predictions per patient to get overall prediction
+    assert prediction.keys() == actual.keys()
+    total = len(prediction)
+    correct = 0
+    for pid, tally in prediction.items():
+        pred = tally > 0 # implicitly predicts NC if AD and NC equally predicted
+        correct += int(pred == actual[pid])
+
+    time_elapsed = time.time() - time_start
+    print(f'Test accuracy: {100*correct/total:.2f}% ({strftime(time_elapsed)})')
 
 ### ENTRYPOINT #################################################################
 

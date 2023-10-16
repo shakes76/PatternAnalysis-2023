@@ -14,28 +14,52 @@ Transformers rely on attention, which calculates the pairwise inner product for 
 
 ## Data and Preprocessing
 
+### Dataset
+
 The ViT is trained and tested on patient-level splits of the dataset from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu). The train-test split dataset was obtained from the COMP3710 course page on the UQ Blackboard website.
 
-The training split contains 21,520 images; 11,120 images are cognitive normal (NC) and 10,400 are Alzheimer's disease (AD). The test split contains 9000 images; 4540 are NC and 4460 are AD. All subsets contain exactly 20 images per patient and there are no common patients between the sets. The training set is additionally 80/20 patient-level split into training and validation sets. Again, there are no common patients between the sets.
+The training split contains 21,520 images:
+- 11,120 images are cognitive normal (NC); and
+- 10,400 images are Alzheimer's disease (AD).
 
-Preprocessing of the data is minimal: all images are centre-cropped to 224x224.
+The test split contains 9000 images:
+- 4540 images are cognitive normal (NC); and
+- 4460 images are Alzheimer's disease (AD).
+
+All subsets contain exactly 20 images per patient and there are no common patients between the sets. The training set is additionally 80/20 patient-level split into training and validation sets. Again, there are no common patients between the sets.
+
+### Preprocessing
+
+Preprocessing of the data consists of data augmentation and type conversion. In order, images are subject to:
+
+1. A [`RandomHorizontalFlip`](https://pytorch.org/vision/0.15/generated/torchvision.transforms.RandomHorizontalFlip.html).
+
+2. A [`RandomCrop`](https://pytorch.org/vision/main/generated/torchvision.transforms.RandomCrop.html) to 224x224, with padding size of 4 and `reflect` padding mode.
+
+3. Conversion to tensor float type.
+
+The above transforms are applied to all training and validation images. Only the type conversion is applied to testing images.
 
 ## Model Training and Results
 
-This solution uses the [`vit_b_16`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) model provided by PyTorch. It leverages transfer learning using the [`IMAGENET1K_V1`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) pre-trained weights, also from PyTorch. The classification head is replaced with a fully-connected layer with 2 outputs rather than 10.
+This solution uses the [`vit_b_16`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) model provided by PyTorch. The classification head is replaced with a fully-connected layer with 2 outputs rather than 10. The solution leverages transfer learning using the [`IMAGENET1K_V1`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) weights, also from PyTorch. Transfer learning avoids retraining the more general, lower-level feature extractors of the ViT, which have been trained to high efficiency on the larger ImageNet dataset. Only the higher-level feature extractors and fully-connected classification head need to be retrained to be specific to the ADNI dataset.
 
-The model is trained for 16 epochs or until validation loss does not improve for three consecutive epochs, at which point early stopping triggers and the model is reverted to the state following the epoch with the lowest validation loss.
+The model is trained for 16 epochs or until validation loss does not improve for five consecutive epochs, at which point early stopping triggers and the model is reverted to the state following the epoch with the lowest validation loss. The training also uses the [`ReduceLROnPlateau`](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html) scheduler to decrease the learning rate by a factor of 10 if the validation loss does not improve for two consecutive epochs.
 
 The following figure presents example model training and validation metrics.
 
 ![Sample training metrics](static/adni-vit-metrics-1697362188.png)
 
+The model is evaluated on the testing set by running inference on all testing images and recording the model predictions. Since there are exactly 20 samples of every patient, the predictions for each patient are tallied and the more frequent prediction is used as the overall prediction for the patient.
+
 The model trained above achieves the following result on the test split of the ADNI dataset.
 
-```
+<!-- ```
 100%|███████████████████████████| 141/141 [01:53<00:00,  1.24it/s]
 Test accuracy: 75.56% (00:01:53.86790)
-```
+``` -->
+
+<!-- TODO: add image results; test image and prediction -->
 
 ## Reproducing Results
 
