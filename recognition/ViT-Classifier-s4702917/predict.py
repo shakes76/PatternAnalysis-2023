@@ -13,7 +13,7 @@ fh.setLevel(logging.DEBUG) # or any level you want
 logger.addHandler(fh)
 
 # Initialise device
-logger.debug("PyTorch Version:", torch.__version__)
+logger.debug(f"PyTorch Version: {torch.__version__}")
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -21,14 +21,14 @@ if (not torch.cuda.is_available()):
 	logger.warning("Warning: Cuda not available, using CPU instead.")
 
 # Parameters
-savePath = "models/mnistClassifier.pth"
+savePath = "models/vitClassifier.pth"
 
 # Initialise Model
 model = torch.load(savePath)
 model = model.to(device)
 
 # model info
-logger.debug("Model No. of Parameters:", sum([param.nelement() for param in model.parameters()]))
+logger.debug(f"Model No. of Parameters: {sum([param.nelement() for param in model.parameters()])}")
 logger.debug(model)
 
 # Test the model
