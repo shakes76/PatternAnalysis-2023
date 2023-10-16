@@ -51,15 +51,22 @@ else:
   # Apparently better to choose a pre-trained model that is lower resolution than the
 	# fine-tune database's images, i.e. for this choose a 224 model.
 	# Probably vit_base_patch32_224.augreg_in21k_ft_in1k
-	# trying vit_small_patch16_224.augreg_in21k_ft_in1k for less parameters
+	# trying vit_tiny_patch16_224.augreg_in21k_ft_in1k for less parameters
 	# 256 x 240
-	model = timm.create_model("vit_large_patch32_224.orig_in21k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
+	model = timm.create_model("vit_tiny_patch16_224.augreg_in21k_ft_in1k", img_size=256, num_classes=len(ds.classes), in_chans=ds.channels)
 model = model.to(device)
 
 # Initialise logging to display tracking information in TensorBoard
 
 # default `log_dir` is "runs" - we'll be more specific here
-writer = SummaryWriter('runs/classifier_experiment_0')
+id = 0
+for directory in os.listdir('runs'):
+	if not os.path.isdir(directory):
+		continue
+	if int(directory.split("_")[-1]) >= id:
+		id = int(directory.split("_")[-1]) + 1
+
+writer = SummaryWriter(f"runs/classifier_experiment_{id}")
 addedGraph = False
 
 # model info
