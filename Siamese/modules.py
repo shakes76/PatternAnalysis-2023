@@ -1,3 +1,11 @@
+"""
+    File name: modules.py
+    Author: Fanhao Zeng
+    Date created: 11/10/2023
+    Date last modified: 16/10/2023
+    Python Version: 3.10.12
+"""
+
 import torch
 import torch.nn as nn
 import torchvision

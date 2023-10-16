@@ -1,3 +1,12 @@
+"""
+    File name: modules.py
+    Author: Fanhao Zeng
+    Date created: 11/10/2023
+    Date last modified: 12/10/2023
+    Python Version: 3.10.12
+"""
+
+
 import torch
 from torch import nn
 from torch.hub import load_state_dict_from_url
