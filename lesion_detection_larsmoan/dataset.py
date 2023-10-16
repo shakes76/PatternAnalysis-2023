@@ -96,27 +96,77 @@ def download_and_unzip(folder_path, download_url):
 
 
 
-def main(txt_folder_path, img_folder_path):
+def visualize_labels(dataset_folder):
     """
     Iterate through the .txt files in the folder and draw YOLO bounding boxes on the corresponding images.
     """
-    for filename in os.listdir(txt_folder_path):
+    for filename in os.listdir(dataset_folder):
         if filename.endswith(".txt"):
             # Construct paths to the txt file and its corresponding image
-            txt_path = os.path.join(txt_folder_path, filename)
-            image_path = os.path.join(img_folder_path, filename.replace(".txt", ".jpg"))  # assuming .jpg extension for images
+            txt_path = os.path.join(dataset_folder, filename)
+            image_path = os.path.join(dataset_folder, filename.replace(".txt", ".jpg"))  # assuming .jpg extension for images
 
             # Check if the corresponding image exists
             if os.path.exists(image_path):
                 draw_yolo_bboxes_on_image(image_path, txt_path)
 
+import os
+from PIL import Image
+
+def get_image_dimensions(image_path):
+    """Return the dimensions of the image."""
+    with Image.open(image_path) as img:
+        return img.size
+
+def get_all_image_dimensions_in_folder(folder_path, valid_extensions={"jpg", "jpeg", "png"}):
+    """Return a list of dimensions of all images in the folder."""
+    
+    all_files = [f for f in os.listdir(folder_path) if f.lower().endswith(tuple(valid_extensions))]
+
+    all_dimensions = []
+
+    for file_name in all_files:
+        file_path = os.path.join(folder_path, file_name)
+        try:
+            dimensions = get_image_dimensions(file_path)
+            all_dimensions.append(dimensions)
+        except Exception as e:
+            # This means the file is probably not an image or there's an issue reading it
+            print(f"Could not process {file_name}. Error: {e}")
+
+    return all_dimensions
+
+def analyze_image_dimensions(folder_path):
+    dimensions = get_all_image_dimensions_in_folder(folder_path)
+
+    if not dimensions:
+        print("No valid images found in the specified folder.")
+        return
+
+    widths, heights = zip(*dimensions)
+
+    # Calculating statistics
+    max_width, max_height = max(widths), max(heights)
+    min_width, min_height = min(widths), min(heights)
+    mean_width, mean_height = sum(widths) / len(widths), sum(heights) / len(heights)
+
+    # Since mean and average are the same, we'll just display the mean
+    print(f"Max Width: {max_width}, Max Height: {max_height}")
+    print(f"Min Width: {min_width}, Min Height: {min_height}")
+    print(f"Mean/Average Width: {mean_width:.2f}, Mean/Average Height: {mean_height:.2f}")
+
+
+
+
 if __name__ == "__main__":
-    TXT_FOLDER_PATH = "/Users/larsmoan/Documents/UQ/COMP3710/PatternAnalysis-2023/lesion_detection_larsmoan/data/ISIC_2017/yolo_labels"
-    IMG_FOLDER_PATH = "/Users/larsmoan/Documents/UQ/COMP3710/PatternAnalysis-2023/lesion_detection_larsmoan/data/ISIC_2017/imgs"
-    #main(TXT_FOLDER_PATH, IMG_FOLDER_PATH)
+    folder = "/Users/larsmoan/Documents/UQ/COMP3710/PatternAnalysis-2023/lesion_detection_larsmoan/data/ISIC_2017_downsampled/train_downsampled"
+    #visualize_labels(folder)
+
+    analyze_image_dimensions(folder)
     
 
-    dataset_folder = "path/to/check/folder"
-    url = "https://drive.google.com/19HcgRBuXyhzxsukE2jHPnBkC0hEk_aMJ"
-    download_and_unzip(dataset_folder, url)
+    """ dataset_folder = "path/to/check/folder"
+    url = "https://drive.google.com/uc?id=19HcgRBuXyhzxsukE2jHPnBkC0hEk_aMJ" """
+
+    #download_and_unzip(dataset_folder, url)
 
