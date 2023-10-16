@@ -5,7 +5,7 @@ from torch.nn import Module, Linear, Parameter, ModuleList, Softmax, LayerNorm, 
 from utils import patch, position
 
 class Model(Module):
-    def __init__(self, shape=(1, 28, 28), patches=7, hidden_dim=8, blocks=2, heads=2, out_dim=2):
+    def __init__(self, shape=(1, 105, 105), patches=7, hidden_dim=8, blocks=2, heads=2, out_dim=2):
         super(Model, self).__init__()
         self.shape = shape
         self.patches = patches
