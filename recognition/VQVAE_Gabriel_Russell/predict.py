@@ -11,6 +11,7 @@ SSIM function is also called to summarise findings.
 """
 from modules import *
 from train import *
+from dataset import *
 
 def predict():
     """
@@ -26,12 +27,19 @@ def predict():
         None
     """
     #Call training function for VQVAE and DCGAN
-    run_training()
+    VQVAE_model, Gan_loader = run_training()
 
     #Initialise parameters
     p = Parameters()
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    #Load OASIS test dataset to visualise codebook indices and quantized image
+    load_data = OASISDataloader()
+    visualise_VQVAE_indices(load_data, VQVAE_model, device)
+
+    #Visualise the Gan training dataset formed from codebook indice images
+    visualise_gan_loader(Gan_loader)
 
     #Function to save an image of Gan output
     generated_images = gan_generated_images(device, p)

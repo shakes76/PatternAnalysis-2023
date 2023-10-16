@@ -51,7 +51,7 @@ class Parameters():
         self.grey_channel = 1 #Number of channels of image (all grey images)
 
         self.gan_lr = 1e-3 #Learning rate for DCGAN
-        self.features = 128 #Number of features used for Discriminator and Generator networks 
+        self.features = 64 #Number of features used for Discriminator and Generator networks 
         self.channel_noise = 100 #Channel noise amount for generation
         self.Gan_batch_size = 32 #DCGAN batch size
 
@@ -340,7 +340,8 @@ class VQVAEModel(nn.Module):
 
 # Referenced From
 # https://github.com/aladdinpersson/Machine-Learning-Collection/blob/master/ML/Pytorch/GANs/2.%20DCGAN/model.py
-
+# Also referenced from
+#https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html
 """
 Discriminator Class as part of making a DCGAN 
 """
@@ -363,7 +364,6 @@ class Discriminator(nn.Module):
         self.input = nn.Sequential(
             nn.Conv2d(3, features, kernel_size=4, stride=2, padding=1, bias = False),
             nn.LeakyReLU(0.2),
-            #nn.BatchNorm2d(features)
         )
 
         #Conv Block 1
@@ -478,6 +478,71 @@ def initialize_weights(model):
         if isinstance(i, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)):
             nn.init.normal_(i.weight.data, 0.0, 0.02)
 
+
+def visualise_VQVAE_indices(load_data, model, device):
+    """
+    Produces visualisations for the codebook indice and quantized image of a single 
+    brain test image. 
+
+    Args:
+        load_data (OASISDataloader): This instantiates the class that contains functions for retrieving data
+        model (VQVAEModel): The loaded VQVAE model used for encoding, quantizing and decoding
+        device: Reference to variable that instantiates GPU 
+
+    Returns:
+        None
+    """
+    test_data = load_data.get_test()
+    test_input = next(iter(test_data))
+    test_input = test_input[0][0].to(device) #batch of 32 images, 256x256
+    test_input = test_input.unsqueeze(0) #[1 256 256]
+    test_input = test_input.unsqueeze(0) #[1 1 256 256]
+    encoded = model.encoder(test_input)
+    print(encoded.shape)
+    conv = model.conv_layer(encoded)
+    print(conv.shape)
+
+    _,quantized,_,codebook_indices = model.quantizer(conv)
+    quantized = model.quantizer.get_quantized_results(codebook_indices)
+
+    codebook_indices = codebook_indices.view(64,64)
+    print(torch.unique(codebook_indices))
+    codebook_indices = codebook_indices.to('cpu')
+    codebook_indices = codebook_indices.detach().numpy()
+
+    quantized = quantized[0][0].to('cpu') #Gets [64 64] image
+    quantized = quantized.detach().numpy()
+
+    fig, (im1, im2) = plt.subplots(1,2)
+    fig.suptitle("codebook indice vs quantized")
+    im1.imshow(codebook_indices)
+    im2.imshow(quantized)
+    fig.savefig("Output_files/VQVAE_codebook_quantized.png")
+
+
+def visualise_gan_loader(Gan_loader):
+    """
+    Produces visualisations for DCGAN dataloader
+
+    Args:
+        Gan_loader (Dataloader): Dataloader that contains the training images for DCGAN
+
+    Returns:
+        None
+    """
+    batch_imgs = next(iter(Gan_loader))
+    num_rows = 4  # Number of rows in the grid
+    num_cols = 8  # Number of columns in the grid
+    for i in range(32):
+        plt.subplot(num_rows, num_cols, i + 1)
+        image = batch_imgs[i][0].detach().cpu() #i indexes the image in the batch
+        plt.imshow(image) 
+        plt.axis('off')
+
+    plt.tight_layout(pad = 0, w_pad = 0, h_pad = 0)
+    plt.show()
+    plt.savefig("Output_files/GAN_dataloader_examples.png")
+
 def gan_generated_images(device, p):
     """
     Function to visualise and save the generated GAN output.
@@ -523,7 +588,7 @@ def gan_create_codebook_indice(generated_images):
     code_indice = generated_images[0][0]
     code_indice = torch.flatten(code_indice)
     #Unique values retrieved during testing
-    unique_vals = [4,  21,  37,  49, 179, 207, 213, 220, 258, 391, 497]
+    unique_vals = [69, 413, 509]
     in_min = torch.min(code_indice)
     in_max = torch.max(code_indice)
     num_intervals = len(unique_vals) 

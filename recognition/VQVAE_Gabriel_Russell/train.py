@@ -25,7 +25,8 @@ def run_training():
         None
     
     Returns:
-        None
+        VQVAE_model (VQVAEModel): VQVAE model that has been trained
+        Gan_loader (DataLoader): Codebook indices forming the DCGAN dataloader
     """
 
     #Initialise parameters
@@ -57,3 +58,5 @@ def run_training():
 
     #Train DCGAN model, save models to folder in current dir
     DCGAN_init.train()
+
+    return VQVAE_model, Gan_loader
