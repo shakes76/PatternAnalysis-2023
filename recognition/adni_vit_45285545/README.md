@@ -38,7 +38,7 @@ Preprocessing of the data consists of data augmentation and type conversion. In 
 
 3. Conversion to tensor float type.
 
-The above transforms are applied to all training and validation images. Only the type conversion is applied to testing images.
+The above transforms are only all applied to training images. Validation and testing images are only subject to type conversion.
 
 ## Model Training and Results
 

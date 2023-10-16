@@ -118,6 +118,7 @@ def create_train_dataloader(val_pct: float = 0.2) -> DataLoader:
         return DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     else:
         train_dataset, valid_dataset = train_val_split(train_dataset, val_pct)
+        valid_dataset.transform = transforms.ConvertImageDtype(torch.float)
         return (DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True),
                 DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=True))
 
