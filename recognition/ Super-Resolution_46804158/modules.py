@@ -1,7 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import numpy as np
 
 # Define the upscale factor for super-resolution
 upscale_factor = 4

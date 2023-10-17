@@ -23,12 +23,12 @@ To use this solution:
 A GPU is recommended for faster training, as it significantly reduces training time.
 
 ## Reproducibility
-To reproduce the results, you'll need to download the ADNI brain dataset externally and specify the dataset paths in the dataset.py file. The trained model can be saved and loaded to apply the super-resolution technique to new images.
+To reproduce the results, you'll need to download the ADNI brain dataset externally and specify the dataset paths in the dataset.py file. The trained model can be saved and loaded to apply the super-resolution model to new images.
 - ADNI MRI Dataset: https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI
 
 
 ## Pre-processing
-The training, and test data images are centered, resized, and normalized to make them consistent and easy to compare. For more details on the data preprocessing, refer to the dataset.py file.
+The input training, and test data images are centered, resized, and normalized to make them consistent and easy to compare. For more details on the data preprocessing, refer to the dataset.py file.
 
 
 ## Example Inputs, Outputs, and Plots
@@ -36,7 +36,7 @@ This model was run on a mac laptop, and is therefore not very efficient as an im
 
 ![image of example input, target and output] (https://github.com/mhjos/PatternAnalysis-2023/blob/topic-recognition/recognition/%20Super-Resolution_46804158/Figures/Figure_1.png)
 
-![graph of loss] ()
+![graph of loss] (https://github.com/mhjos/PatternAnalysis-2023/blob/topic-recognition/recognition/%20Super-Resolution_46804158/Figures/Loss.png)
 
 ## Data Split
 About 30% of the data is reserved for testing, which is a reasonable portion for evaluation while the majority of the data (70%) to be used for training the model. This split is often used in machine learning because it provides a fair way to evaluate your model without using too much data for testing, which can be wasteful.

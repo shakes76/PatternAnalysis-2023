@@ -1,4 +1,3 @@
-import torch
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
@@ -39,13 +38,3 @@ class ADNIDataset():
         self.train_target_loader = DataLoader(train_target_dataset, batch_size=16, shuffle=True)
         self.test_loader = DataLoader(test_dataset, batch_size=16, shuffle=True)
         self.test_target_loader = DataLoader(test_dataset, batch_size=16, shuffle=True)
-
-
-# data = ADNIDataset()
-# train_img, train_label = next(iter(data.train_loader))
-# print(train_img.shape)
-# print(train_label)
-
-# test_img, test_label = next(iter(data.test_loader))
-# print(test_img.shape)
-# print(test_label)
