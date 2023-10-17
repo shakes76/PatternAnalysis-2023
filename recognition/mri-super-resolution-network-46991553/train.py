@@ -1,5 +1,5 @@
 """
-Training, validating, testing and saving the model
+Training, validating and saving the model
 """
 import torch.nn as nn
 import torch.optim as optim

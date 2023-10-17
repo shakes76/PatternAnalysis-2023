@@ -77,9 +77,7 @@ These downsampled images are fed into the model, and the model loss is calculate
     </tr>
 </table>
 
-
-
-
+Using a validation set during training is critical when trying to prevent overfitting.
 
 The model was trained for 10 epochs, which likely that 10 epochs is more than necessary. This can be seen in the loss plot:
 
@@ -128,13 +126,17 @@ ADAM is well known for its reliable performance in a variety of contexts. It was
                 └── NC/
                     ├── 218391_78.jpeg
                     └── ...
-    imgs/
-    config.py
-    dataset.py
-    generate.py
-    modules.py
-    predict.py
-    train.py
+    imgs/       # Folder that generated images are saved to
+    config.py   # Hyperparameters and other constants
+    dataset.py  # Data transformation, preprocessing and loading
+    generate.py # Model output generation
+    modules.py  # Model architecture definition
+    predict.py  # Example model usage
+    train.py    # Model training and validation
+
+Note the additional parent folders that I've added - AD-parent, NC-parent, ...
+
+This is due to a quirk in how I loaded the images.
 
 ### Dependencies
 

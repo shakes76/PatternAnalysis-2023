@@ -1,5 +1,5 @@
 """
-Example usage of the trained model
+Example usage of the trained model on images in the test set.
 """
 import torch
 import torch.nn as nn

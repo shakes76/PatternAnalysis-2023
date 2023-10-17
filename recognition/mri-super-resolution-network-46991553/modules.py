@@ -1,5 +1,5 @@
 """
-Source code of the components of the model
+Model architecture for the super resolution network.
 """
 import torch.nn as nn
 
