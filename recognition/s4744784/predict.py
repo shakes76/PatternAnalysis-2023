@@ -1,27 +1,39 @@
-import PIL
-import numpy as np
-import torch
-import torch.nn.functional as F
-from torchvision.transforms import ToPILImage, ToTensor
 from utils import *
+from modules import Network
+from dataset import load_data
+import torchvision.utils as vutils
+import torch
+import torchvision
+import torchvision.utils as vutils
+from dataset import *
 
-def upscale_image_using_upsample(img_path, upscale_factor=upscale_factor):
-    img = PIL.Image.open(img_path).convert('YCbCr')
-    y, cb, cr = img.split()
+if __name__ == '__main__':
+    
+    test_loader = load_data(test_path)
 
-    # Convert Y channel to tensor and upscale using nn.functional.upsample
-    input = ToTensor()(y).view(1, 1, y.size[1], y.size[0])
-    out = F.upsample(input, scale_factor=upscale_factor, mode='bicubic', align_corners=True)
-    out_img_y = ToPILImage()(out[0].detach().cpu())
+    # Load the pretrained model
+    model = Network(upscale_factor=upscale_factor, channels=channels)
 
-    # Upscale cb and cr channels using PIL's bicubic interpolation
-    out_img_cb = cb.resize(out_img_y.size, PIL.Image.BICUBIC)
-    out_img_cr = cr.resize(out_img_y.size, PIL.Image.BICUBIC)
+    model.load_state_dict(torch.load(trained_path, map_location=device))
 
-    # Merge channels back to RGB image
-    out_img = PIL.Image.merge('YCbCr', [out_img_y, out_img_cb, out_img_cr]).convert('RGB')
+    model.to(device)
 
-    return out_img
+    model.eval()
 
-result = upscale_image_using_upsample('./sample_path.jpg')
-result.save('./output_upsampled.jpg')
+    with torch.no_grad():
+        for input, label in test_loader:
+
+            down_sampled_img = down_sample(input).to(device)
+            input = input.to(device)
+
+            output = model(down_sampled_img) # .detach().cpu()
+
+            break
+    
+    down_scaled_img_upscaled = up_sample(down_sampled_img)
+
+    images = torch.cat((input, down_scaled_img_upscaled, output))
+    image = vutils.make_grid(images, padding=2, normalize=True)
+    transform = torchvision.transforms.ToPILImage()
+    img = transform(image)
+    img.show()
