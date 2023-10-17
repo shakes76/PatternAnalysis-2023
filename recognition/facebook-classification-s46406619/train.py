@@ -1,4 +1,5 @@
 import torch
+import time
 import matplotlib.pyplot as plt
 from modules import *
 from dataset import *
@@ -10,6 +11,8 @@ def run_training(lr, num_epochs):
 
     accuracies = []
     losses = []
+
+    start = time.time() # we time how long training takes
 
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     criterion = torch.nn.CrossEntropyLoss()
@@ -35,6 +38,9 @@ def run_training(lr, num_epochs):
         if (epoch + 1) % 5 == 0:
             print(f'Epoch {epoch + 1:>3} | Loss: {loss:.2f} | Acc: {accuracy*100:.2f}%')
 
+    end = time.time()
+    print('time consumed:', end - start)
+    time.sleep(10)
     torch.save(model, 'model.pth')
 
     # plot accuracy

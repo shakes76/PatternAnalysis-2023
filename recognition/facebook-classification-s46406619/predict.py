@@ -1,7 +1,9 @@
 import torch
+import matplotlib.pyplot as plt
 import sys
 import os
 from dataset import *
+from sklearn.manifold import TSNE
 
 # load dataset and trained model
 os.chdir(sys.path[0])
@@ -18,9 +20,6 @@ true = data.y[data.test_split]
 acc = model.accuracy(true, y_pred)
 print('test accuracy:', round(acc.item(), 4))
 pred = pred.argmax(dim=1)
-
-from sklearn.manifold import TSNE
-import matplotlib.pyplot as plt
 
 # produce a 2D embeddings plot via t-SNE
 tsne = TSNE(random_state=1, n_iter=300, metric="cosine")
