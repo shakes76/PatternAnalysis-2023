@@ -5,6 +5,9 @@ from tqdm.auto import tqdm
 from utils import Config
 from torch.utils.tensorboard import SummaryWriter
 
+from modules import Baseline
+from dataset import ContrastiveDataset
+from torch.utils.data import DataLoader, random_split
 
 def main(model, train_loader, val_loader, criterion, optimizer, epochs):
     print('---------Train on: ' + Config.DEVICE + '----------')
@@ -137,12 +140,45 @@ class ContrastiveLoss(torch.nn.Module):
         return loss_contrastive
 
 
+if __name__ == '__main__':
+    model = Baseline()
+
+    full_train_dataset = ContrastiveDataset(Config.TRAIN_DIR)
+    # Split the full training dataset into train and val sets
+    train_size = int(0.8 * len(full_train_dataset))
+    val_size = len(full_train_dataset) - train_size
+    dataset_tr, dataset_val = random_split(full_train_dataset, [train_size, val_size])
+
+    dataloader_tr = DataLoader(
+        dataset=dataset_tr,
+        shuffle=True,
+        batch_size=3,
+        num_workers=1,
+        drop_last=True
+    )
+    dataloader_val = DataLoader(
+        dataset=dataset_val,
+        shuffle=True,
+        batch_size=3,
+        num_workers=1,
+        drop_last=True
+    )
+
+    criterion = ContrastiveLoss()
+
+    lr = 0.005
+    weight_decay = 1e-5
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+    epochs = 50
+
+    main(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
+
+
+
 
 """
-from modules import Baseline
-from dataset import ContrastiveDataset
-from torch.utils.data import DataLoader, random_split
-
+# test
 if __name__ == '__main__':
     model = Baseline()
 
