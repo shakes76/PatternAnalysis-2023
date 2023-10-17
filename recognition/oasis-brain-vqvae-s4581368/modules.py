@@ -122,7 +122,7 @@ class Decoder(nn.Module):
             nn.ReLU(True),
             nn.ConvTranspose2d(
                 in_channels=hidden_layers//2,
-                out_channels=3, # For RGB image
+                out_channels=1, # For Grayscale image
                 kernel_size=4, 
                 stride=2,
                 padding=1
@@ -195,7 +195,7 @@ class VQVAE(nn.Module):
         super(VQVAE, self).__init__()
 
         self.encoder = Encoder(
-            in_channels=3,
+            in_channels=1,
             hidden_layers=hidden_layers,
             residual_hidden_layers=hidden_residual_layers
         )
