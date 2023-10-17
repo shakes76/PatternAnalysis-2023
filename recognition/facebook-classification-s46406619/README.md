@@ -1,14 +1,14 @@
-# Semi supervised node classification of the Facebook large page-page network dataset.
+# Semi-supervised node classification of the Facebook large page-page network dataset.
 
-We use a multi-layer graph-covolutional network to classify the Facebook large page-page network dataset [[1]](#1). Essentially, the given dataset consists of nodes (verticces) and edges between nodes. Each node represents an official Facebook page, and edges represent mutual likes between  two pages. Each node has 128 features associated with it, and belongs to one of four classes: politicians, government organizations, television shows, and companies. The task at hand is to be able to predict with high accuracy which of these four classes any given node in the dataset belongs to. 
+We use a multi-layer graph-covolutional network to classify the Facebook large page-page network dataset. [[1]](#1) Essentially, the given dataset consists of nodes (vertices) and edges between nodes. Each node represents an official Facebook page, and edges represent mutual likes between  two pages. Each node has 128 features associated with it, and belongs to one of four classes: politicians, government organizations, television shows, and companies. The task at hand is to be able to predict with high accuracy which of these four classes any given node in the dataset belongs to. 
 
-Graph convolutional networks are an adaption of the typical neural network for graph-based data. As such, they orbit around the usage of the graph convolutional layer as introduced by Kipf et al. in 2016 [[2]](#2). This layer takes in its function the degree of each node $i$ and all the neighbours of $i$. To be exact, for a given node $i$, the graph convolutional layer computes the following:
+Graph convolutional networks are an adaption of the typical neural network for graph-based data. As such, they orbit around the usage of the graph convolutional layer as introduced by Kipf et al. in 2016. [[2]](#2) This layer takes in its function the degree of each node $i$ and all the neighbours of $i$. To be exact, for a given node $i$, the graph convolutional layer computes the following:
 
 $$ 
 h_i=\sum_{j\in N_i}\frac{1}{\sqrt{\text{deg}(i)}\sqrt{\text{deg}(j)}}\boldsymbol{W}_{x_j},
 $$ 
 
-where $\boldsymbol{W}$ is a weight matrix, and $N_i$ is the set of neighbours (adjacent vertices) of $i$. Please see below a figure visualising the network.
+where $\boldsymbol{W}$ is a weight matrix, and $N_i$ is the set of neighbours (adjacent vertices) of $i$. Our network uses three graph convolutional layers followed by a final linear layer. Please see below a visualising of the overall network architecture.
 
 ![architecture](images/architecture.png?raw=true)
 
@@ -24,9 +24,9 @@ The model completed training over 100 epochs in 44.46 seconds with a training ac
 
 The model achieved an overall accuracy of 95.25% on the test set. Thus, overfitting was completely avoided. These results can be visualised through the use of t-SNE dimensionality reduction. Below we can see a 2D representation of the full dataset with labeled classes. Additionally, we see a 2D representation of the embeddings of the test set obtained by the model during prediction, with both the true and predicted labels coloured accordingly. 
 
-![embeddings](images/embeddings.png?raw=true)
+![results](images/results.png?raw=true)
 
-We can clearly see that the vertices of this dataset are highly clustered, and the model has learnt that effectively. Furthermore, the GCN model has emphasised the class clustering heavily, and thus eliminated the vast majority of class outliers.
+We can clearly see that the vertices of this dataset are highly clustered, and the model has learnt that effectively. Furthermore, the GCN model has emphasised the class clustering heavily by eliminating the vast majority of class outliers. Overall, we find that the the model has a robust performance on the test set, with a more than satisfactory test accuracy.
 
 ## Dependencies
 

@@ -89,5 +89,5 @@ ax2.set_title('Predicted test set labels')
 ax2.set(xlabel='X', ylabel='Y')
 ax2.legend(loc='lower right')
 
-fig.suptitle('True and predicted class labels')
+fig.tight_layout(h_pad=.1)
 plt.show()
