@@ -4,7 +4,7 @@ Recognition task: Project 5 - Image super resolution
 ## Description
 This implementation is a Sub-Pixel CNN-based approach for single image super-resolution. The goal is to enhance the resolution of images, making them clearer and more detailed. 
 
-The algorithim chosen for this is the ESPCN (Efficient Sub-Pixel CNN), found at (https://keras.io/examples/vision/super_resolution_sub_pixel/), which achieves the upsacling effect by sub-pixel convolution.
+The chosen algorithm for this is the ESPCN (Efficient Sub-Pixel CNN), found at [this link](https://keras.io/examples/vision/super_resolution_sub_pixel/), which achieves the upscaling effect using sub-pixel convolution.
 
 ## How It Works
 The input is down-sampled by a factor of 4 and then using PyTorch as PixelShuffle' it increases the resolution, achieving a 4x upscaling effect. This should produce a "clearer" image. 
