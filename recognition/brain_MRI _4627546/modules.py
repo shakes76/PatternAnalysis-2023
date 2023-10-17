@@ -10,16 +10,17 @@ Each component is implemented as a class or a function
 reference: https://keras.io/examples/vision/super_resolution_sub_pixel/:    Build a model
 """
 
-import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
 
 class ESPCN(nn.Module):
     def __init__(self, upscale_factor=4, channels=1):
+        """
+        upscale_factor: 4x
+        channels: input has only one channels
+        """
         super(ESPCN, self).__init__()
-
-        # Considering the architecture provided and adapting it to PyTorch
         self.conv1 = nn.Conv2d(channels, 64, kernel_size=5, padding=2, padding_mode='reflect')
         self.conv2 = nn.Conv2d(64, 64, kernel_size=3, padding=1, padding_mode='reflect')
         self.conv3 = nn.Conv2d(64, 32, kernel_size=3, padding=1, padding_mode='reflect')

@@ -1,3 +1,12 @@
+"""
+predict.py
+
+Student Name: Zijun Zhu
+Student ID: s4627546
+Bref intro:
+showing example usage of your trained model. Print out any results and / or provide visualisations where applicable
+"""
+
 import torch
 import matplotlib.pyplot as plt
 from torchvision import transforms
@@ -8,9 +17,9 @@ import numpy as np
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-# Load the model
+# Load the model that trained from train.py
 model = ESPCN().to(DEVICE)
-model.load_state_dict(torch.load('best_model.pth'))
+model.load_state_dict(torch.load('best_model_v2.pth'))
 model.eval()
 
 # Create test dataset
@@ -21,6 +30,7 @@ transform = transforms.Compose([
 test_dataset = SuperResolutionDataset(root_dir='AD_NC', transform=None, mode='test')
 
 # Process a few images from the test set
+# Here to set how many shown
 num_images_to_show = 3
 fig, axes = plt.subplots(num_images_to_show, 3, figsize=(15, 15))
 

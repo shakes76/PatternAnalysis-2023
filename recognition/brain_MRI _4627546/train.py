@@ -1,5 +1,15 @@
-import time
+"""
+train.py
 
+Student Name: Zijun Zhu
+Student ID: s4627546
+Bref intro:
+containing the source code for training, validating, testing and saving your model. The model
+should be imported from “modules.py” and the data loader should be imported from “dataset.py”. Make
+sure to plot the losses and metrics during training
+"""
+
+import time
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -41,7 +51,7 @@ scheduler = optim.lr_scheduler.OneCycleLR(optimizer, max_lr=LR, steps_per_epoch=
 scaler = GradScaler()
 
 
-# Training and validation functions with mixed precision
+# Update: Training and validation functions with mixed precision
 def train(model, loader, criterion, optimizer, scaler):
     model.train()
     running_loss = 0.0
@@ -84,7 +94,7 @@ for epoch in range(EPOCHS):
     train_loss = train(model, train_loader, criterion, optimizer, scaler)
     val_loss = validate(model, val_loader, criterion)
 
-    end_time = time.time()  # End the timer
+    end_time = time.time()
     epoch_time = end_time - start_time  # Calculate the time taken for the epoch
 
     train_losses.append(train_loss)

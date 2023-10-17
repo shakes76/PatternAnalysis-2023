@@ -38,7 +38,6 @@ class SuperResolutionDataset(Dataset):
         self.AD_paths = sorted(os.listdir(os.path.join(root_dir, mode, 'AD')))
         self.NC_paths = sorted(os.listdir(os.path.join(root_dir, mode, 'NC')))
 
-        self.NC_paths = None
     def __len__(self):
         return len(self.AD_paths) + len(self.NC_paths)
         # return len(self.AD_paths)
