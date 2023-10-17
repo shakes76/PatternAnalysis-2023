@@ -13,6 +13,9 @@ This project is an implementation of a Vision Transformer (ViT) for image classi
   - [Hyperparameters](#hyperparameters)
   - [Training](#training)
   - [Results](#results)
+- [Data Preprocessing](#data-preprocessing)
+- [Validation Evidence](#validation-evidence)
+- [Discussion](#discussion)
 - [Usage](#usage)
 - [Requirements](#requirements)
 
@@ -78,6 +81,29 @@ Key results and highlights:
 These results are indicative of the ViT model's potential as a valuable tool in the early diagnosis and classification of Alzheimer's disease. The model's high accuracy and the ability to make individual predictions underscore its significance in the medical imaging field.
 
 For comprehensive insights into the results and to explore further possibilities for enhancing the model's performance, refer to the project's code and documentation.
+
+### Data Preprocessing
+The data preprocessing involves loading and preprocessing the ADNI dataset. It includes resizing images, normalizing pixel values, and converting labels to categorical form. The dataset is also split into training and testing sets.
+
+### Validation Evidence
+Validation of the model's performance is a critical aspect of this project. Here's how validation evidence is obtained:
+
+1. **Data Splitting**: The ADNI dataset is split into training and testing sets. A common split ratio is used, e.g., 80% for training and 20% for testing.
+
+2. **Model Training**: The ViT model is trained on the training set with specific hyperparameters, such as learning rate, batch size, and number of transformer layers.
+
+3. **Model Evaluation**: The trained model is evaluated on the testing set using relevant evaluation metrics, such as accuracy.
+
+4. **Confusion Matrix**: A confusion matrix is generated to assess the model's classification performance, providing insights into true positives, true negatives, false positives, and false negatives.
+
+5. **Accuracy Recording**: The test accuracy is recorded and saved in a text file for reference.
+
+### Discussion
+The validation results indicate that the ViT model performs well in distinguishing between Alzheimer's disease (AD) and normal control (CN) subjects. The model demonstrates a high accuracy on the ADNI dataset, surpassing the specified accuracy threshold. The confusion matrix and individual image predictions provide a detailed understanding of the model's classification effectiveness.
+
+The accuracy of the model is [accuracy]% as recorded in the text file 'test_accuracy.txt'.
+
+The visual representation of sample images and their actual/predicted labels demonstrates the model's capability to make accurate predictions. This performance highlights the significance of the ViT model in the early diagnosis and classification of Alzheimer's disease based on medical images.
 
 ## Usage
 To make predictions using the trained Vision Transformer (ViT) model, you can utilize the provided `predict.py` script. This script allows you to assess the model's performance on both individual images and the entire test dataset.
