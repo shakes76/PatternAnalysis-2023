@@ -1,10 +1,12 @@
+"""
+predict.py
+Example use of the siamese model
+ - Samples random image and classifies it
+"""
 from modules import SiameseNetwork
 from dataset import * 
 
 import torch
-import torch.nn as nn 
-import time
-import numpy as np
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
 
@@ -14,17 +16,14 @@ if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
 BATCH_SIZE = 1
-MODEL_LAYERS = [1, 64, 128, 128, 256]
-KERNEL_SIZES = [10, 7, 4, 4]
 DATASET_DIR = "./recognition/Siamese-ADNI-46420763/data/AD_NC"
-
 MODEL_DIR = "./recognition/Siamese-ADNI-46420763/models/ADNI-SiameseNetwork-sigmoid.pt"
 
 def main():
     ######################    
     #   Retrieve Data:   #
     ######################
-    train_dataloader, _, test_dataloader = get_dataloader(DATASET_DIR, BATCH_SIZE, 0.7, transform=False) 
+    train_dataloader, _, test_dataloader = get_dataloader(DATASET_DIR, BATCH_SIZE, 0.7) 
     
     #########################   
     #   Initialize Model:   #
@@ -37,7 +36,6 @@ def main():
     #   Get Queries :   #
     #####################
     # Pick random AD and NC query image to test for similarity
-    random.seed(1337) # To maintain the same query across all random test samples
     q_class = -1
     while q_class != 0:
         AD_query, q_class = train_dataloader.dataset[random.randint(0, len(train_dataloader.dataset) - 1)]
@@ -55,7 +53,6 @@ def main():
     ###################  
     #   Prediction:   #
     ###################
-    random.seed() # Get random seed
     model.eval()
     # Get random sample from test:
     image, label = test_dataloader.dataset[random.randint(0, len(test_dataloader.dataset) - 1)]
@@ -107,6 +104,5 @@ def main():
     fig.suptitle("True: " + classes[label] + ", Prediction: " + classes[int(pred)], fontsize=30)
     plt.show()
 
-        
 if __name__ == "__main__":
     main()

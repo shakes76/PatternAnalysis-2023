@@ -1,6 +1,9 @@
+"""
+dataset.py
+Contains dataloader for loading and preprocessing the ADNI dataset for Alzheimer's disease
+"""
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, Dataset, Subset, random_split
-import torch
+from torch.utils.data import DataLoader, Subset
 import random
 
 def train_dataset_transforms():
@@ -24,15 +27,14 @@ def test_dataset_transforms():
     """    
     return transforms.Compose([transforms.Grayscale(), transforms.ToTensor()])
 
-def get_dataloader(dir, batch_size, train_split, transform = True):
+def get_dataloader(dir, batch_size, train_split):
     """    
     Returns all train, validation and test dataloaders. 
-    Dataset split has a set seed so that test dataloader is reproducable for for predict.py
 
     Args:
         dir (string): directory of dataset
         batch_size (int): batch size for dataloaders
-        split (list[float]): Percentages for splitting into train, validate and test datasets
+        train_split float: fraction of the dataset assigned to the train dataset
     Returns:
         train_dataloader (DataLoader): dataloader for the train dataset
         valid_dataloader (DataLoader): dataloader for the validation dataset
@@ -51,6 +53,16 @@ def get_dataloader(dir, batch_size, train_split, transform = True):
     return train_dataloader, valid_dataloader, test_dataloader
 
 def patient_split(dataset, train_split):
+    """    
+    Returns train and validation datasets, split at the patient level. 
+
+    Args:
+        dataset (ImageFolder): the dataset to split into train and validation sets
+        train_split float: fraction of the dataset assigned to the train dataset
+    Returns:
+        train_dataset (datasets): the train dataset
+        valid_dataset (datasets): the validation dataset
+    """    
     dataset_length = len(dataset)//20 # 20 samples per patient
     dataset_indices = list(range(dataset_length))
     random.shuffle(dataset_indices)

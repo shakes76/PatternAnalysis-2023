@@ -1,3 +1,9 @@
+"""
+train.py
+trains the siamese network
+ - validates, tests, and saves trained model
+ - plot training performance
+"""
 from modules import SiameseNetwork
 from dataset import * 
 
@@ -23,7 +29,7 @@ LOG = True
 VISUALIZE = False
 
 # Training Parameters
-NUM_EPOCHS = 35 #  35 # 200
+NUM_EPOCHS = 35
 LEARNING_RATE = 0.1
 WEIGHT_DECAY = 1e-5
 BATCH_SIZE = 32
@@ -82,7 +88,7 @@ def main():
             
             # Forward pass
             embeddings = model(images)
-            # Finds pairs which are hard to distinguish - the negative sample is sufficiently closs to the anchor
+            # Finds pairs in the batch which are hard to distinguish
             hard_pairs = miner(embeddings, labels) 
             loss = criterion(embeddings, labels, hard_pairs)
                 
@@ -189,16 +195,20 @@ def main():
         total_correct += correct
         
     print("Test loss: {:.5f}, Test accuracy: {:.2f}%".format(total_loss/len(test_dataloader), total_correct/len(test_dataloader.dataset) * 100))
-    
-    if VISUALIZE:
-        visualize(epoch_valid_acc, epoch_avg_train_loss, epoch_avg_valid_loss)
         
     if LOG:
         np.savetxt('epoch_train_loss.csv', epoch_avg_train_loss, delimiter=',')
         np.savetxt('epoch_valid_loss.csv', epoch_avg_valid_loss, delimiter=',')
         np.savetxt('epoch_valid_acc.csv', epoch_valid_acc, delimiter=',')
+        
+    if VISUALIZE:
+        visualize(epoch_valid_acc, epoch_avg_train_loss, epoch_avg_valid_loss)
     
 def visualize(epoch_valid_acc, epoch_train_loss, epoch_valid_loss):
+    """
+    Plots the training performance
+    - training loss, validation loss and validation accuracy
+    """
     plt.plot(range(len(epoch_train_loss)), epoch_train_loss, label = "Training Loss")
     plt.plot(range(len(epoch_valid_loss)), epoch_valid_loss, label = "Validation Loss")
     plt.grid(True)
@@ -216,7 +226,9 @@ def visualize(epoch_valid_acc, epoch_train_loss, epoch_valid_loss):
     plt.show()
 
 def get_class_queries(dataset):
-    # Get Class Queries
+    """
+    Returns a random sample from each class in the dataset
+    """
     q_class = -1
     while q_class != 0:
         AD_query, q_class = dataset[random.randint(0, len(dataset) - 1)]

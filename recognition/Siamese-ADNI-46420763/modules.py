@@ -1,4 +1,7 @@
-import torch
+"""
+modules.py
+Contains the modules required for the siamese network embedder
+"""
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -28,7 +31,7 @@ class SiameseNetwork(nn.Module):
         self.maxpool = nn.MaxPool2d(2, stride=2)
         self.linear = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(135168, 256),  #256 * 8 * 7 # 123648
+            nn.Linear(135168, 256),
         )
         
     def forward(self, x):
