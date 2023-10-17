@@ -5,7 +5,7 @@ from tensorflow import keras
 
 learning_rate = 0.001
 weight_decay = 0.0001
-num_epochs = 3
+num_epochs = 100
 img_size = 128
 batch_size = 128
 num_classes = 2
