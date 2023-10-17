@@ -86,14 +86,14 @@ Loss of classifier         |  Accuracy of classifier
 :-------------------------:|:-------------------------:
 ![](images_for_readme/classifier_loss_plot_classifier_model_50_30_3.png) |  ![](images_for_readme/classifier_accuracy_plot_classifier_model_50_30_3.png)
 
-Observing the loss plot above, from the first epoch, the training loss has already reached a minimum loss. The validation loss in the first couple of epochs fluctuates and then reaches the minimum loss at 20 epochs.
+Observing the loss plot above, from the first epoch, the training loss has already reached a minimum loss. The validation loss in the first couple of epochs fluctuates and then reaches a minimum loss at 20 epochs.
 
 Observing the accuracy plot above, from the first epoch, the training accuracy is already above 0.9. The validation accuracy in the first couple of epochs fluctuates and then reaches a high accuracy at 23 epochs.
 
 From both plots above, it can be concluded that the classifier overfits to the training data. One way to remedy overfitting is to make the classifier's architecture simpler since the current architecture can already learn well during the first few epochs. 
 
 ## Testing Results
-The best classifer was only able to reach 72% on the test set. More experiements (changing architectures, more data augmentation, etc.) and more time can hopfully achieve higher accuracy.
+The best classifer was only able to reach 72% on the test set. More experiements (changing architectures, more data augmentation, do normalisation,etc.) and more time can hopfully achieve higher accuracy.
  
  To do inference on trained siamese and classifier models, run the `predict.py` file. There is a section called `#----DEFINE MODEL PATHS----  ` where you can modify the paths of the trained models. The `predict.py` will do inference using both models of one input image. A test set path needs to be defined to extract a single input image and its corresponding label.
 
@@ -105,7 +105,18 @@ Below are the librarys needed to run the files in this repository:
 - numpy 1.25.2
 - matplotlib 3.7.2 
 
-To run the code files, make sure you have the ADNI dataset downloaded and modify the data paths in the `train.py` and `predict.py` if needed. To train your own siamese and classifier models, run the `train.py`. This code file will train the siamese network, train the classifer, and evaluate the classifier on the test set. `train.py` will also save the siamese and classifer models into your local repository, including some training plots. Make sure to modify the name paths of the saved models if needed. 
+To run the code files, make sure you have the ADNI dataset downloaded and modify the data paths in the `train.py` and `predict.py` if needed. The downloaded dataset must have the following file structure for the `dataset.py` to successfully process it:
+```
+├── AD_NC
+│   ├── test
+│   │   ├── AD
+│   │   ├── NC
+│   ├── train
+│   │   ├── AD
+└── └── ├── NC
+ ```
+
+ To train your own siamese and classifier models, run the `train.py`. This code file will train the siamese network, train the classifer, and evaluate the classifier on the test set. `train.py` will also save the siamese and classifer models into your local repository, including some training plots. Make sure to modify the name paths of the saved models if needed. 
 
 Concerning reproducibility, you won't get the same results because of the randomness on how to make pairs of images and splitting the data into training and validation. For further improvements, setting a seed to generate the pairs of images and to split the data can increase the chances of reproducibility and get more stable testing results.
 
