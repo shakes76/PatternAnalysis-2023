@@ -9,7 +9,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
 import numpy as np  
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from PIL import Image
 import torch.utils.data
 from torchvision import datasets, transforms, utils
@@ -22,14 +22,15 @@ print("Torch version ", torch.__version__)
 # ------------------------------------------------
 # Data Loader
 
-path = "C:/Users/61423/COMP3710/data/keras_png_slices_data/"
-#path = "//puffball.labs.eait.uq.edu.au/s4699292/Documents/2023 Sem2/Comp3710/keras_png_slices_data/keras_png_slices_data/"
+#path = "C:/Users/61423/COMP3710/data/keras_png_slices_data/"
+path = "//puffball.labs.eait.uq.edu.au/s4699292/Documents/2023 Sem2/Comp3710/keras_png_slices_data/keras_png_slices_data/"
 
 def load_data_from_folder(name):
     data = []
-    i = 0
-    
-    for filename in tqdm([f for f in os.listdir(path+name) if f.lower().endswith('.png')]):            # tqdm adds loading bar!
+    #i = 0
+    list_files = [f for f in os.listdir(path+name) if f.lower().endswith('.png')]
+
+    for filename in tqdm(list_files):            # tqdm adds loading bar
         
         image_path = os.path.join(path+name, filename)
         image = Image.open(image_path).convert('L')         # Convert to grayscale (single channel)
@@ -41,9 +42,9 @@ def load_data_from_folder(name):
 
         data.append(image)
 
-        if i == 25:
-            return np.array(data)
-        i += 1
+        #if i == 25:
+        #    return np.array(data)
+        #i += 1
 
     return np.array(data)
 
@@ -145,7 +146,7 @@ class Quantiser(nn.Module):
 
         quant_out = self.output_from_indices(encoding_indices, quant_input.shape)
 
-        print(quant_out.shape, quant_input.shape)
+        #print(quant_out.shape, quant_input.shape)
         
         # Compute losses
         commitment_loss = torch.mean((quant_out.detach() - quant_input)**2)             # TODO change to MSE
@@ -220,12 +221,10 @@ losses = []     # for visualisation
 
 # Hyperparams
 learning_rate = 1.e-3
-num_epochs = 15
+num_epochs = 30
 
 num_embeddings = 256
 embedding_dim = 32
-
-
 
 model = VQVAE(num_embeddings=num_embeddings, embedding_dim=embedding_dim).to(device)
 print(model)
@@ -325,7 +324,7 @@ class MaskedConvolution(nn.Module):
         self.register_buffer('mask', mask[None,None])
 
     def forward(self, x):
-        self.conv.weight.data *= self.mask # Set all following weights to 0
+        self.conv.weight.data = self.conv.weight.data.to(device) * self.mask.to(device)               # Set all following weights to 0 (make sure it is in GPU)
         return self.conv(x)
 
 
@@ -443,8 +442,12 @@ class PixelCNN(nn.Module):
         return ind
 
 
+# -------------------------------
+# Training PixCNN
 
-cnn_model = PixelCNN(in_channels=1, hidden_channels=128)
+num_epochs = 30
+
+cnn_model = PixelCNN(in_channels=1, hidden_channels=128).to(device)
 optimiser = torch.optim.Adam(cnn_model.parameters(), learning_rate)
 
 # For getting codebook indices
@@ -460,7 +463,7 @@ for epoch_num, epoch in enumerate(range(num_epochs)):
         
         # Get the quantised outputs
         with torch.no_grad():
-            encoder_output = encoder(train_batch)
+            encoder_output = encoder(train_batch.to(device))
             _, _, indices = quantiser(encoder_output)
             indices = indices.reshape(indices.size(0), 1, indices.size(1), indices.size(2)).to(device)
                         
@@ -480,14 +483,14 @@ for epoch_num, epoch in enumerate(range(num_epochs)):
     for test_batch in test_dataloader:
         # Get the quantised outputs
         with torch.no_grad():
-            encoder_output = encoder(test_batch)
+            encoder_output = encoder(test_batch.to(device))
             _, _, indices = quantiser(encoder_output)
             indices = indices.reshape(indices.size(0), 1, indices.size(1), indices.size(2)).to(device)
             
             
         output = cnn_model(indices)
-        print("Indices is shape: ", indices.detach().cpu().numpy().shape)
-        print("Output is shape: ", output.detach().cpu().numpy().shape)
+        #print("Indices is shape: ", indices.detach().cpu().numpy().shape)
+        #print("Output is shape: ", output.detach().cpu().numpy().shape)
 
         
         # Compute loss
@@ -500,9 +503,9 @@ for epoch_num, epoch in enumerate(range(num_epochs)):
 with torch.no_grad():
     # Show one image
     print(" > Showing Images")
-    print("Real indices shape: ", indices.detach().cpu().numpy().shape)
+    #print("Real indices shape: ", indices.detach().cpu().numpy().shape)
     gen_indices = cnn_model.sample((1, 1, 32, 32))
-    print("Gen indices shape: ", gen_indices.detach().cpu().numpy().shape)
+    #print("Gen indices shape: ", gen_indices.detach().cpu().numpy().shape)
 
     fig, ax = plt.subplots(2, 2)
     
@@ -510,12 +513,12 @@ with torch.no_grad():
         a.axis('off')
     
     ax[0, 0].set_title("Real Indices")
-    ax[0, 0].imshow(indices[0][0].long(), cmap='gray')
+    ax[0, 0].imshow(indices[0][0].long().cpu().numpy(), cmap='gray')
     ax[0, 1].set_title("Real Decoded")
-    ax[0, 1].imshow(model.img_from_indices(indices, quant_out_shape=(26, 32, 32, 32))[0][0], cmap='gray')
+    ax[0, 1].imshow(model.img_from_indices(indices, quant_out_shape=(26, 32, 32, 32))[0][0].cpu().numpy(), cmap='gray')
 
     ax[1, 0].set_title("Generated Indices")
-    ax[1, 0].imshow(gen_indices[0][0], cmap='gray')
+    ax[1, 0].imshow(gen_indices[0][0].cpu().numpy(), cmap='gray')
     ax[1, 1].set_title("Generated Image")
-    ax[1, 1].imshow(model.img_from_indices(gen_indices, (1, 32, 32, 32))[0][0], cmap='gray')
+    ax[1, 1].imshow(model.img_from_indices(gen_indices, (1, 32, 32, 32))[0][0].cpu().numpy(), cmap='gray')
     plt.show()
