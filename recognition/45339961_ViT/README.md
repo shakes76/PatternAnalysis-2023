@@ -1,11 +1,27 @@
 # Vision Transformer for ADNI
-This project explored the use of a Vision Transformer for the classification of Alzheimer's
-disease in the ADNI brain dataset.
+This project explored the use of a Vision Transformer for the classification of Alzheimer's disease in the ADNI brain dataset.
 
 # Contents
 
 
-# Data Background
+# Introduction
+The Alzheimer's Disease Neuroimaging Initiative (ADNI) is designed to provide researchers with study data to assist in defining the progression of Alzheimer's disease. The aim of this project was to classify Alzheimer's disease (normal and AD) of the ADNI brain data using a Vision Transformer, based on the architecture presented by the paper [An Image Is Worth 16x16 Words](https://arxiv.org/pdf/2010.11929.pdf) [1].
+
+This project used the dataset that contained 2D slices of MRI data for a patient, with the structure:
+```
+AD_NC
+|--train (21,520 total images)
+|  |--AD
+|  |  |-- 10,400 images
+|  |--NC
+|  |  |-- 11,120 images
+|--test (9,000 total images)
+|  |--AD
+|  |  |-- 4,460 images
+|  |--NC
+|  |  |-- 4,540 images
+```
+This means that there is ~70% of the total data in the training set, with the test set containing ~30%. Note that all images are formatted as ```{Patient ID}_{Slice Number}.jpeg```.
 
 # Vision Transformer Background
 ## ViT Architecture Overview
@@ -68,6 +84,10 @@ conda env create -n {environment name} -f environment.yml
 ## Train, Validation and Test split
 
 ## Experimentation
+
+### Basic Model
+
+### 
 
 ## Reproducibility of Results
 
