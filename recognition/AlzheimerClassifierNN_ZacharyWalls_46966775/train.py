@@ -2,11 +2,14 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from dataset import get_data_loaders
-from modules import GruCombinedCvT
+from modules import ViT3DWithConv
 import matplotlib.pyplot as plt
+from torchinfo import summary
+from cct_3d import CCT
+
 
 device = torch.device(
-    "mps"
+    "cpu"
     if torch.backends.mps.is_available()
     else "cuda"
     if torch.cuda.is_available()
@@ -21,13 +24,20 @@ if __name__ == "__main__":
     # Initialize Model
     print(f"\nINITIALIZING MODEL\n{'='*25}\n")
     print("Assigning model instance...")
-    num_labels = 2  # Alzheimer's or Normal
-    model = GruCombinedCvT().to(device)
+    model = ViT3DWithConv(
+        image_size=(240, 240, 20),
+        patch_size=(10, 10, 10),
+        num_classes=2,
+        dim=1920,
+        depth=10,
+        heads=12,
+        mlp_dim=2048,
+    ).to(device)
     print("Model ready.")
 
     # Define Loss, Optimizer and Scheduler
     lr = 0.000001
-    wd = 0.01
+    wd = 0.1
     beta1 = 0.5
     beta2 = 0.999
 
@@ -51,7 +61,7 @@ if __name__ == "__main__":
         model.train()
         total_loss, total_correct, total_samples = 0, 0, len(train_loader.dataset)
         for batch_idx, (images, labels) in enumerate(train_loader):
-            images, labels = images.to(device), labels.to(device) 
+            images, labels = images.to(device), labels.to(device)
 
             # Forward Pass
             logits = model(images)
@@ -99,6 +109,7 @@ if __name__ == "__main__":
 
         avg_val_loss = total_loss / total_samples
         val_accuracy = total_correct / total_samples
+
         print(
             f"Epoch {epoch}, Average Validation Loss: {avg_val_loss}, Total Validation Accuracy: {val_accuracy}\n"
         )

@@ -1,77 +1,51 @@
 import torch
-from torch import nn, einsum
-import torch.nn.functional as F
+from torch import nn
 
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 
-# Util Methods
+# helpers
 
 
-def group_dict_by_key(cond, d):
-    return_val = [dict(), dict()]
-    for key in d.keys():
-        match = bool(cond(key))
-        ind = int(not match)
-        return_val[ind][key] = d[key]
-    return (*return_val,)
+def pair(t):
+    return t if isinstance(t, tuple) else (t, t)
 
 
-def group_by_key_prefix_and_remove_prefix(prefix, d):
-    kwargs_with_prefix, kwargs = group_dict_by_key(lambda x: x.startswith(prefix), d)
-    kwargs_without_prefix = dict(
-        map(lambda x: (x[0][len(prefix) :], x[1]), tuple(kwargs_with_prefix.items()))
-    )
-    return kwargs_without_prefix, kwargs
+# classes
 
 
-# Model Classes
-
-
-class LayerNorm(nn.Module):  # layernorm, but done in the channel dimension #1
-    def __init__(self, dim, eps=1e-5):
+class Conv3DFeatureExtractor(nn.Module):
+    def __init__(self, input_channels=1, output_dim=512):
         super().__init__()
-        self.eps = eps
-        self.g = nn.Parameter(torch.ones(1, dim, 1, 1))
-        self.b = nn.Parameter(torch.zeros(1, dim, 1, 1))
 
-    def forward(self, x):
-        var = torch.var(x, dim=1, unbiased=False, keepdim=True)
-        mean = torch.mean(x, dim=1, keepdim=True)
-        return (x - mean) / (var + self.eps).sqrt() * self.g + self.b
-
-
-class FeedForward(nn.Module):
-    def __init__(self, dim, mult=4, dropout=0.0):
-        super().__init__()
-        self.net = nn.Sequential(
-            LayerNorm(dim),
-            nn.Conv2d(dim, dim * mult, 1),
-            nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Conv2d(dim * mult, dim, 1),
-            nn.Dropout(dropout),
+        # 3D Convolution block for feature extraction
+        self.conv3d_block = nn.Sequential(
+            nn.Conv3d(input_channels, 64, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv3d(64, 128, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv3d(128, 256, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(),
+            nn.Conv3d(256, output_dim, kernel_size=4, stride=2, padding=1),
+            nn.ReLU(),
+            nn.AdaptiveAvgPool3d((1, 1, 1)),  # Global Average Pooling
+            Rearrange("b c d h w -> b (c d h w)"),  # Flatten
         )
 
     def forward(self, x):
-        return self.net(x)
+        return self.conv3d_block(x)
 
 
-class DepthWiseConv2d(nn.Module):
-    def __init__(self, dim_in, dim_out, kernel_size, padding, stride, bias=True):
+class FeedForward(nn.Module):
+    def __init__(self, dim, hidden_dim, dropout=0.1):
         super().__init__()
         self.net = nn.Sequential(
-            nn.Conv2d(
-                dim_in,
-                dim_in,
-                kernel_size=kernel_size,
-                padding=padding,
-                groups=dim_in,
-                stride=stride,
-                bias=bias,
-            ),
-            nn.BatchNorm2d(dim_in),
-            nn.Conv2d(dim_in, dim_out, kernel_size=1, bias=bias),
+            nn.LayerNorm(dim),
+            nn.Linear(dim, hidden_dim),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_dim, dim),
+            nn.Dropout(dropout),
         )
 
     def forward(self, x):
@@ -79,80 +53,51 @@ class DepthWiseConv2d(nn.Module):
 
 
 class Attention(nn.Module):
-    def __init__(
-        self, dim, proj_kernel, kv_proj_stride, heads=8, dim_head=64, dropout=0.0
-    ):
+    def __init__(self, dim, heads=12, dim_head=64, dropout=0.1):
         super().__init__()
         inner_dim = dim_head * heads
-        padding = proj_kernel // 2
+        project_out = not (heads == 1 and dim_head == dim)
+
         self.heads = heads
         self.scale = dim_head**-0.5
 
-        self.norm = LayerNorm(dim)
+        self.norm = nn.LayerNorm(dim)
         self.attend = nn.Softmax(dim=-1)
         self.dropout = nn.Dropout(dropout)
 
-        self.to_q = DepthWiseConv2d(
-            dim, inner_dim, proj_kernel, padding=padding, stride=1, bias=False
-        )
-        self.to_kv = DepthWiseConv2d(
-            dim,
-            inner_dim * 2,
-            proj_kernel,
-            padding=padding,
-            stride=kv_proj_stride,
-            bias=False,
-        )
+        self.to_qkv = nn.Linear(dim, inner_dim * 3, bias=False)
 
-        self.to_out = nn.Sequential(nn.Conv2d(inner_dim, dim, 1), nn.Dropout(dropout))
+        self.to_out = (
+            nn.Sequential(nn.Linear(inner_dim, dim), nn.Dropout(dropout))
+            if project_out
+            else nn.Identity()
+        )
 
     def forward(self, x):
-        shape = x.shape
-        b, n, _, y, h = *shape, self.heads
-
         x = self.norm(x)
-        q, k, v = (self.to_q(x), *self.to_kv(x).chunk(2, dim=1))
-        q, k, v = map(
-            lambda t: rearrange(t, "b (h d) x y -> (b h) (x y) d", h=h), (q, k, v)
-        )
+        qkv = self.to_qkv(x).chunk(3, dim=-1)
+        q, k, v = map(lambda t: rearrange(t, "b n (h d) -> b h n d", h=self.heads), qkv)
 
-        dots = einsum("b i d, b j d -> b i j", q, k) * self.scale
+        dots = torch.matmul(q, k.transpose(-1, -2)) * self.scale
 
         attn = self.attend(dots)
         attn = self.dropout(attn)
 
-        out = einsum("b i j, b j d -> b i d", attn, v)
-        out = rearrange(out, "(b h) (x y) d -> b (h d) x y", h=h, y=y)
+        out = torch.matmul(attn, v)
+        out = rearrange(out, "b h n d -> b n (h d)")
         return self.to_out(out)
 
 
 class Transformer(nn.Module):
-    def __init__(
-        self,
-        dim,
-        proj_kernel,
-        kv_proj_stride,
-        depth,
-        heads,
-        dim_head=64,
-        mlp_mult=4,
-        dropout=0.0,
-    ):
+    def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout=0.1):
         super().__init__()
         self.layers = nn.ModuleList([])
         for _ in range(depth):
             self.layers.append(
                 nn.ModuleList(
                     [
-                        Attention(
-                            dim,
-                            proj_kernel=proj_kernel,
-                            kv_proj_stride=kv_proj_stride,
-                            heads=heads,
-                            dim_head=dim_head,
-                            dropout=dropout,
-                        ),
-                        FeedForward(dim, mlp_mult, dropout=dropout),
+                        Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout),
+                        FeedForward(dim, mlp_dim, dropout=dropout),
                     ]
                 )
             )
@@ -164,115 +109,56 @@ class Transformer(nn.Module):
         return x
 
 
-class CvT(nn.Module):
+class ViT3DWithConv(nn.Module):
     def __init__(
         self,
         *,
-        num_classes=2,
-        s1_emb_dim=1,
-        s1_emb_kernel=224,
-        s1_emb_stride=4,
-        s1_proj_kernel=3,
-        s1_kv_proj_stride=2,
-        s1_heads=1,
-        s1_depth=1,
-        s1_mlp_mult=4,
-        s2_emb_dim=192,
-        s2_emb_kernel=3,
-        s2_emb_stride=2,
-        s2_proj_kernel=3,
-        s2_kv_proj_stride=2,
-        s2_heads=3,
-        s2_depth=2,
-        s2_mlp_mult=4,
-        s3_emb_dim=384,
-        s3_emb_kernel=3,
-        s3_emb_stride=2,
-        s3_proj_kernel=3,
-        s3_kv_proj_stride=2,
-        s3_heads=6,
-        s3_depth=10,
-        s3_mlp_mult=4,
-        dropout=0.0,
+        image_size,
+        patch_size,
+        num_classes,
+        dim,
+        depth,
+        heads,
+        mlp_dim,
+        pool="cls",
+        channels=1,
+        dim_head=64,
+        dropout=0.1,
+        emb_dropout=0.1
     ):
         super().__init__()
-        kwargs = dict(locals())
 
-        dim = 1  # Change to 3 for RGB -> Dataset used is grayscale (1 Channel)
-        layers = []
-
-        for prefix in ("s1", "s2", "s3"):
-            config, kwargs = group_by_key_prefix_and_remove_prefix(f"{prefix}_", kwargs)
-
-            layers.append(
-                nn.Sequential(
-                    nn.Conv2d(
-                        dim,
-                        config["emb_dim"],
-                        kernel_size=config["emb_kernel"],
-                        padding=(config["emb_kernel"] // 2),
-                        stride=config["emb_stride"],
-                    ),
-                    LayerNorm(config["emb_dim"]),
-                    Transformer(
-                        dim=config["emb_dim"],
-                        proj_kernel=config["proj_kernel"],
-                        kv_proj_stride=config["kv_proj_stride"],
-                        depth=config["depth"],
-                        heads=config["heads"],
-                        mlp_mult=config["mlp_mult"],
-                        dropout=dropout,
-                    ),
-                )
-            )
-
-            dim = config["emb_dim"]
-
-        self.layers = nn.Sequential(*layers)
-
-        self.to_logits = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            Rearrange("... () () -> ..."),
-            nn.Linear(dim, num_classes),
+        # 3D Convolution block for feature extraction
+        self.conv3d_extractor = Conv3DFeatureExtractor(
+            input_channels=channels, output_dim=dim
         )
 
-    def forward(self, x):
-        latents = self.layers(x)
-        return self.to_logits(latents)
+        self.pos_embedding = nn.Parameter(torch.randn(1, dim))
+        self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
+        self.dropout = nn.Dropout(emb_dropout)
 
+        self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim, dropout)
 
-class GruCombinedCvT(nn.Module):
-    def __init__(self, num_slices=20, gru_hidden_dim=256, num_classes=2, **kwargs):
-        super().__init__()
+        self.pool = pool
+        self.to_latent = nn.Identity()
 
-        self.num_slices = num_slices
+        self.mlp_head = nn.Sequential(nn.LayerNorm(dim), nn.Linear(dim, num_classes))
 
-        self.cvt = CvT(num_classes=gru_hidden_dim, **kwargs)  # The main CvT model
-        self.gru = nn.GRU(gru_hidden_dim, gru_hidden_dim, batch_first=True)
+    def forward(self, scan):
+        # Feature extraction through 3D convolutions
+        x = self.conv3d_extractor(scan)
 
-        self.to_logits = nn.Linear(gru_hidden_dim, num_classes)
+        b, _ = x.shape
+        x = x.unsqueeze(1)  # Add the sequence length dimension
+        cls_tokens = repeat(self.cls_token, "1 1 d -> b 1 d", b=b)
 
-    def forward(self, x):
-        b, s, c, h, w = x.shape  # Extracting shape components
+        x = x + self.pos_embedding
+        x = torch.cat((cls_tokens, x), dim=1)
+        x = self.dropout(x)
 
-        # Ensure the number of slices matches
-        assert (
-            s == self.num_slices
-        ), f"Expected {self.num_slices} slices but got {s} slices."
+        x = self.transformer(x)
 
-        # Process each slice with CvT
-        cvt_outputs = []
-        for i in range(self.num_slices):
-            slice_output = self.cvt(x[:, i])
-            cvt_outputs.append(slice_output)
+        x = x.mean(dim=1) if self.pool == "mean" else x[:, 0]
 
-        # Stack the outputs to match GRU's input shape [batch, seq_len, input_size]
-        cvt_outputs = torch.stack(cvt_outputs, dim=1)
-
-        # Pass through the GRU
-        _, gru_hidden = self.gru(cvt_outputs)
-
-        # Classify using the last hidden state of the GRU
-        logits = self.to_logits(gru_hidden.squeeze(0))
-
-        return logits
+        x = self.to_latent(x)
+        return self.mlp_head(x)
