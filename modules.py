@@ -157,28 +157,130 @@ class TransformerBlock(nn.Module):
             nn.Dropout(dropout_rate),  # Regularization with dropout
         )
 
-        def forward(self, hidden_states):
-            # Self-attention part
-            attention_output = self.self_attention(hidden_states)
-            attention_output = self.attention_output_dropout(attention_output)
+    def forward(self, hidden_states):
+        # Self-attention part
+        attention_output = self.self_attention(hidden_states)
+        attention_output = self.attention_output_dropout(attention_output)
 
-            # Adding the residual connection, followed by normalization
-            attention_output = self.attention_output_layer_norm(attention_output + hidden_states)
+        # Adding the residual connection, followed by normalization
+        attention_output = self.attention_output_layer_norm(attention_output + hidden_states)
 
-            # Feed-forward network (FFN) part
-            ffn_output = self.ffn(attention_output)
-            # Adding the residual connection, followed by normalization
-            ffn_output = self.ffn_output_layer_norm(ffn_output + attention_output)
+        # Feed-forward network (FFN) part
+        ffn_output = self.ffn(attention_output)
+        # Adding the residual connection, followed by normalization
+        ffn_output = self.ffn_output_layer_norm(ffn_output + attention_output)
 
-            return ffn_output
+        return ffn_output
 
 class ConvolutionalEmbedding(nn.Module):
     """
     Embed images via convolutional layers in CViT- replaces the typical token embedding in a standard transformer model.
     """
-    pass
+    def __init__(self, config):
+        super(ConvolutionalEmbedding, self).__init__()
 
+        #Convolutional layers configuration
+        self.conv_layers = nn.ModuleList #List storing sequence of convolutions
+        self.conv_norms = nn.ModuleList
+
+        #Extract configuration parameters 
+        patch_sizes = config.patches['sizes']
+        patch_strides= config.patches['strides']
+        patch_padding= config.patches['padding']
+        embed_dims= config.transformer['embed_dim']
+
+        #Calculate no. convolutional layers based on the configuration list length
+        num_conv_layers = len(patch_sizes)
+
+        for i in range(num_conv_layers):
+            #Exttract individual configuration parameters for current layer
+            kernel_size=patch_sizes[i]
+            stride=patch_strides[i]
+            padding = patch_padding[i]
+            out_channels=embed_dims[i]
+
+            layer_norm = nn.LayerNorm(out_channels) #create layer norm for this layer
+           
+            #Add created layer and layer norm to module lists
+            self.conv_layers.append(conv_layer)
+            self.layer_norms.append(layer_norm)
+
+        #Determine num input channels for current layer
+        if i ==0:
+            in_channels = config.general['num_channels'] #first layer- use num image channels
+        else:
+            in_channels = embed_dims[i-1] #subsequent layers- use prev. layer's output channels
+
+        #Create convolutional layer with current config
+        conv_layer = nn.Conv2d(
+            in_channels = in_channels, 
+            out_channels = out_channels, 
+            kernel_size=kernel_size, 
+            stride=stride, 
+            padding = padding
+        )
+
+        #Add created layer to module list
+        self.conv_layers.append(conv_layer)
+
+    def forward(self, x):
+        #Pass input through convolutional layers
+        for conv_layer, layer_norm in zip(self.conv_layers, self.layer_norms):
+            x = conv_layer(x)
+            x = F.gelu(x) #apply GELU activation
+            x = layer_norm(x) #apply layer normalisation
+        
+        #Reshape tensor for compatability with subsequent transformer layers
+        batch_size, embed_dim, height, width = x.size()
+        x= x.view( batch_size, embed_dim, -1).transpose(1, 2) #flatten spatial dim and move embedding dimension
+
+        return x
+    
 class ConvolutionalVisionTransformer(nn.Module):
-    pass
+    """
+    CViT integrates CNNs with transformers for image processing
+    """
+    def __init__(self, config):
+        super(ConvolutionalVisionTransformer, self).__init__()
+
+        #Initialise convolutional embedding
+        self.conv_embedding=ConvolutionalEmbedding(config)
+
+        #Transformer blocks- considering different stages with various depths
+        self.transformer_stages = nn.ModuleList()
+        block_index = 0 #unified index for all blocks across stages
+        for stage_depth in config.transformer['depth']:
+            stage_layers=nn.ModuleList()
+            for _ in range(stage_depth):
+                transformer_block = TransformerBlock(config, block_index)
+                stage_layers.append(transformer_block)
+                block_index += 1
+
+            self.transformer_stages.append(stage_layers)
+        
+        self.final_layer_norm = nn.LayerNorm(config.transformer["hidden_size,"], eps =config.initialisation["layer_norm_eps"])
+        #classifier head
+        self.classifier = nn.Linear(config.transformer['hidden_size'], config.num_classes)
+      
+    def forward(self, x):
+        #Pass input through convolutional embedding layer
+        x = self.conv_embedding
+
+        #Propogate output sequentially through each stage
+        for stage in self.transformer_stages:
+            for transformer_block in stage:
+                x = transformer_block(x)
+        x = self.final_layer_norm(x)
+
+        #Flatten representation at token level 
+        x=x[:, 0]
+
+        #Pass through classification head
+        logits = self.classifier(x)
+
+        return logits
+
+        
+        
 
 
