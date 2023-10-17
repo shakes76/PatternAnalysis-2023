@@ -1,5 +1,5 @@
 data/
-imgs/*.png
+imgs/*output.png
 
 __pycache__/
 
