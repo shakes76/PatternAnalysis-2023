@@ -7,18 +7,19 @@ from modules import *
 from os import mkdir
 from os.path import exists
 import keras.callbacks
-from keras import optimizers
-from keras.models import load_model
+from keras import optimizers, losses
 import tensorflow_probability as tfp
 import matplotlib.pyplot as plt
 import pandas as pd
 
 # Change as needed
 FILE_PATH = r'C:/Users/jackc/OneDrive/Desktop/UQ/UQ23S2/COMP3710_PROJ/PatternAnalysis-2023/AD_NC/'
-SAVED_MODEL_PATH = './SavedModels/'
+SAVED_WEIGHTS_PATH = './SavedWeights/'
 RESULTS_PATH = './Results/'
 IMG_DIM = 256
 SEED = 69
+NUM_IMAGES_TO_SHOW = 10
+
 TRAINING_VQVAE = False  # Set to True 4 training
 TRAINING_PIXELCNN = True # Same as above
 
@@ -68,8 +69,6 @@ mean_pixel_train = tot_pixel_sum / num_train_pixels
 image_sse = full_train_data.reduce(np.float32(0), lambda x, y: x + (y - mean_pixel_train) ** 2).numpy().flatten()
 var_pixel_train = image_sse.sum() / (num_train_pixels - 1)
 
-# VQVAE
-vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM)
 
 # Define SSIM metric
 def mean_ssim(data, data_size, model):
@@ -98,15 +97,17 @@ def mean_ssim(data, data_size, model):
 
     return (ssim_sum / data_size).numpy()
 
+# VQ-VAE Model
+vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM)
 
-if not exists(SAVED_MODEL_PATH):
-    mkdir(SAVED_MODEL_PATH)
+
+if not exists(SAVED_WEIGHTS_PATH):
+    mkdir(SAVED_WEIGHTS_PATH)
 
 # Store training loss/metrix on CSV
-training_csv_logger = keras.callbacks.CSVLogger(SAVED_MODEL_PATH + 'training.log', separator=',', append=False)
+training_csv_logger = keras.callbacks.CSVLogger(SAVED_WEIGHTS_PATH + 'training.log', separator=',', append=False)
 
-final_train_mean_ssim = 0
-final_val_mean_ssim = 0
+final_train_mean_ssim = final_val_mean_ssim = 0
 
 # Train the VQVAE
 vqvae.compile(optimizer=OPTIMISER)
@@ -115,16 +116,18 @@ if TRAINING_VQVAE:
     with tf.device(device):
         vqvae.fit(train_data, epochs=NUM_EPOCHS_VQVAE, callbacks=[training_csv_logger], validation=val_data)
 
-# Final SSIM Values
-final_train_mean_ssim = mean_ssim(train_data, num_train_images, vqvae)
-final_val_mean_ssim = mean_ssim(val_data, num_val_images, vqvae)
-print(f'Final Training Mean SSIM: {final_train_mean_ssim}')
-print(f'Final Validation Mean SSIM: {final_val_mean_ssim}')
+        # Final SSIM Values
+        final_train_mean_ssim = mean_ssim(train_data, num_train_images, vqvae)
+        final_val_mean_ssim = mean_ssim(val_data, num_val_images, vqvae)
+        print(f'Final Training Mean SSIM: {final_train_mean_ssim}')
+        print(f'Final Validation Mean SSIM: {final_val_mean_ssim}')
 
-vqvae.save(SAVED_MODEL_PATH + 'trained_model')
+        # Save the trained model
+        vqvae.save(SAVED_WEIGHTS_PATH + 'trained_model_weights')
 
-vqvae = load_model(SAVED_MODEL_PATH + "trained_model")
-print(vqvae.summary())
+# Load the trained model
+vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM)
+vqvae.load_weights(SAVED_WEIGHTS_PATH + 'trained_model_weights')
 
 
 def plot_results(epoch_results):
@@ -170,9 +173,57 @@ def plot_results(epoch_results):
     plt.savefig(RESULTS_PATH + 'quantisation_losses.png')
 
 
-training_results = pd.read_csv(SAVED_MODEL_PATH + 'training.log', sep=',', engine='python')
+training_results = pd.read_csv(SAVED_WEIGHTS_PATH + 'training.log', sep=',', engine='python')
 plot_results(training_results)
 
-if TRAINING_PIXELCNN:
-    pass
+# Generate 10 reconstructions
+for sample_batch in test_data.take(1).as_numpy_iterator():
+    sample_batch = sample_batch[:NUM_IMAGES_TO_SHOW]
 
+# Reconstruction
+reconstructed = vqvae.predict(sample_batch)
+
+# Code (Flattened)
+encoder_outputs = vqvae.get_encoder().predict(sample_batch)
+encoder_outputs_flattened = encoder_outputs.reshape(-1, encoder_outputs.shape[-1])
+codebook_indices = vqvae.get_vq().get_codebook_indices(encoder_outputs_flattened)
+
+# Code (reshaped)
+codebook_indices = codebook_indices.numpy().reshape(encoder_outputs.shape[:-1])
+
+# Unshift and reshape reconstructions and original images and print SSIM values
+plt.figure()
+for i in range(len(sample_batch)):
+    test_image = tf.reshape(sample_batch[i], (1, IMG_DIMENSION, IMG_DIMENSION, num_channels))\
+                     + PIXEL_SHIFT
+
+    reconstructed_image = tf.reshape(reconstructed[i],
+                                     (1, IMG_DIMENSION, IMG_DIMENSION, num_channels)) + PIXEL_SHIFT
+
+    codebook_image = codebook_indices[i]
+
+    plt.subplot(1, 3, 1)
+    plt.imshow(tf.squeeze(test_image))
+    plt.title("Test Image")
+    plt.axis("off")
+
+    plt.subplot(1, 3, 2)
+    plt.imshow(codebook_image)
+    plt.title("Codebook")
+    plt.axis("off")
+
+    plt.subplot(1, 3, 3)
+    plt.imshow(tf.squeeze(reconstructed_image))
+    plt.title("Reconstruction")
+    plt.axis("off")
+
+    plt.show()
+    plt.savefig(RESULTS_PATH + f'vq_vae_reconstructions_{i}.png')
+
+    ssim = tf.math.reduce_sum(tf.image.ssim(test_image, reconstructed_image, max_val=1.0)).numpy()
+    print("SSIM between Test Image and Reconstruction: ", ssim)
+
+# Print overall mean test SSIM for VQ-VAE:
+with tf.device(device):
+    test_mean_ssim_vqvae = mean_ssim(test_data, num_test_images, vqvae)
+    print("VQ-VAE Test Mean SSIM:", test_mean_ssim_vqvae)
