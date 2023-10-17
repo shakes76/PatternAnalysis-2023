@@ -47,3 +47,4 @@ grid = make_grid(list(images), nrow=4)
 imshow(grid)
 
 train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
