@@ -7,10 +7,10 @@
 #SBATCH --mail-user=l.moan@uqconnect.edu.au
 #SBATCH -o out.txt
 #SBATCH -e err.txt
-#SBATCH --partition=test
+#SBATCH --partition=vgpu
 #SBATCH --gres=gpu:1
 
 # Activate Python environment (optional)
-conda activate torch-gpu
+conda activate gpu_fix
 
-python3 yolov7/train.py  --workers 8  --device 0 --batch-size 2 --data data/ISIC_2017_downsampled/isic.yaml --img 32 32 --cfg yolov7_isic_cfg.yaml --weights '' --name yolov7 --hyp hyp.scratch.p5.yaml
+python3 yolov7/train.py  --device 0 --workers 8  --batch-size 2 --data data/ISIC_2017_downsampled/isic.yaml --img 256 256 --cfg yolov7_isic_cfg.yaml --weights '' --name yolov7 --hyp hyp.scratch.p5.yaml

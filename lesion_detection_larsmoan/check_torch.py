@@ -1,4 +1,4 @@
-print("Checking if torch is installed correctl with GPU compatitbility: ")
+print("Checking if torch is installed correctly with GPU compatitbility: ")
 import torch
 
 print(torch.__version__)
