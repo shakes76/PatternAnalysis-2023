@@ -11,7 +11,7 @@ def loss(y_true, y_pred):
 
 class DistanceLayer(tf.keras.layers.Layer):
     def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+        super(DistanceLayer, self).__init__(**kwargs)
 
     def call(self, inputs):
         return tf.math.sqrt(
