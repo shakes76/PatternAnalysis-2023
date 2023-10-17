@@ -26,7 +26,7 @@ num_layers = 12  # Number of Transformer encoder layers
 mlp_size = 3072  # Number of hidden units between each linear layer
 dropout_size = 0.1
 num_classes = 2  # Number of different classes to classify (i.e. AD and NC)
-num_epochs = 5
+num_epochs = 3
 
 # Create the dataset
 train_dataroot = "AD_NC/train"
@@ -93,8 +93,8 @@ class TransformerEncoder(nn.Module):
     def __init__(self, ngpu):
         super(TransformerEncoder, self).__init__()
         self.ngpu = ngpu
-
-        self.transformer_encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim,
+        
+        self.full_transformer_encoder = nn.TransformerEncoder(encoder_layer=nn.TransformerEncoderLayer(d_model=embed_dim,
                                                                     nhead=num_heads,
                                                                     dim_feedforward=mlp_size,
                                                                     dropout=dropout_size,
@@ -102,10 +102,9 @@ class TransformerEncoder(nn.Module):
                                                                     layer_norm_eps=1e-5,
                                                                     batch_first=True,
                                                                     norm_first=True
-                                                                    )
-        
-        self.full_transformer_encoder = nn.TransformerEncoder(encoder_layer=self.transformer_encoder_layer,
+                                                                    ),
                                                                 num_layers=num_layers)
+        
     
     def forward(self, input):
         return self.full_transformer_encoder(input)
@@ -151,11 +150,11 @@ class MultiheadSelfAttention(nn.Module):
         
     def forward(self, input):
         input = self.norm(input)
-        attentio, _ = self.msa(query=input,
+        attention, _ = self.msa(query=input,
                             key=input,
                             value=input,
                             need_weights=False)
-        return attentio
+        return attention
     
 
 class ViT(nn.Module):
@@ -172,8 +171,8 @@ class ViT(nn.Module):
         self.mlp_head = MLPHead(workers)
 
     def forward(self, input):
-        prepend_embed_token_expanded = self.prepend_embed_token.expand(batch_size, -1, -1)
-
+        current_batch_size = input.size(0)
+        prepend_embed_token_expanded = self.prepend_embed_token.expand(current_batch_size, -1, -1)
         input = self.patch_embedding(input)  # Patch embedding
         input = torch.cat((prepend_embed_token_expanded, input), dim=1)  # Prepend class token
         input = input + self.position_embed_token  # Add position embedding
@@ -259,8 +258,16 @@ def test():
 
 def main():
     visual_transformer = ViT(workers).to(device)
-    alzheimers = 0.
-    normal = 1.
+    from torchinfo import summary
+
+    # # Print a summary of our custom ViT model using torchinfo (uncomment for actual output)
+    summary(model=visual_transformer, 
+            input_size=(32, 3, 224, 224), # (batch_size, color_channels, height, width)
+            col_names=["input_size", "output_size", "num_params", "trainable"],
+            col_width=20,
+            row_settings=["var_names"]
+    )
+
     
     # ----------------------------------------
     # Loss Function and Optimiser
@@ -289,12 +296,31 @@ def main():
             running_loss += loss.item()
             if (index+1) % 2 == 0:
                 running_time = time.time()
-                print("Epoch [{}/{}], Loss: {:.5f}".format(epoch+1, 20, loss.item()))
+                print("Epoch [{}/{}], Loss: {:.5f}".format(epoch+1, num_epochs, loss.item()))
                 print(f"Timer: {running_time - start_time}")
                 running_loss = 0.0
 
     print(f"Finished Training")
 
+    # ----------------------------------------
+    # Testing loop
+    print("Testing...")
+    start = time.time()
+    visual_transformer.eval()
+    with torch.no_grad():
+        correct = 0
+        total = 0
+        for images, labels in test_dataloader:
+            images = images.to(device)
+            labels = labels.to(device)
+            outputs = visual_transformer(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+        
+        print('Test Accuracy: {} %'.format(100 * correct / total))
+    end = time.time()
+    print(f"Testing took: {end - start}")
 
 if __name__ == '__main__':
     main()
