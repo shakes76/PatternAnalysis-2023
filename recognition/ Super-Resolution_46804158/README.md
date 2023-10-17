@@ -25,7 +25,7 @@ A GPU is recommended for faster training, as it significantly reduces training t
 
 ## Reproducibility
 To reproduce the results, you'll need to download the ADNI brain dataset externally and specify the dataset paths in the dataset.py file. The trained model can be saved and loaded to apply the super-resolution model to new images.
-- ADNI MRI Dataset: https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI
+- [ADNI MRI Dataset](https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI)
 
 
 ## Pre-processing
