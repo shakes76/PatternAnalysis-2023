@@ -39,7 +39,48 @@ The package dependencies used for the project are:
 | skimage | 3.5.3 |
 
 ## Documentation
-### 
+### `dataset.py`
+#### Abstract Class `Dataset`
+Abstract class for implementing the dataset object.
+
+#### Class `Dataset(Dataset)`
+
+#### Class `Dataloader(Dataset)`
+
+
+
+### `modules.py`
+#### Class `ResidualLayer(nn.Module)`
+#### Class `ResidualBlock(nn.Module)`
+#### Class `Encoder(nn.Module)`
+#### Class `VectorQuantiser(nn.Module)`
+#### Class `Decoder(nn.Module)`
+#### Class `VQVAE(nn.Module)`
+#### Class `Discriminator(nn.Module)`
+#### Class `Generator(nn.Module)`
+#### Class `GAn(nn.Module)`
+
+
+### `predict.py`
+#### Class `Predict()`
+
+### `train.py`
+#### Abstract Class `Trainer()`
+This super class is provided to define the required methods and initialise parameters for any future train classes.
+
+Parameters:
+
+#### Class `TrainVQVAE(Trainer)`
+#### Class `TrainGAN(Trainer)`
+
+
+### `utils.py`
+
+
+## Usage
+The code is bundled using the `utils.py` file into `main.py` which is an directly executable script. All files other than these two define the architecture, training, testing, dataset and prediction segments of the problem.
+
+Parameters can be edited in `utils.py` to modify the architecture or system.
 
 
 ## Results
