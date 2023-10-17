@@ -5,11 +5,10 @@ import os
 from PIL import Image
 
 #TODO: Clean up debugging notes/code.
-#      Change modules to use 3D layers where applicable.
-#      Change loss function to dice.
 #      Change rates for adam optimizer and activation/ReLU functions.
 #      Make sure references are in order. Note use of tensorflow documentation.
-#      Change resize to centre crop. May also want to increase size to 256x256 if doing this.
+#      May also want to increase size to 256x256.
+#      Remove one hot and squeeze when softmax is replaced with sigmoid in model.
 
 #NOTE: Expecting 2595 images in the training folders (-1 for license file) (should also be -1 for attribution file).
 #      Getting 2596 though, not sure why.
@@ -37,18 +36,23 @@ def loadDataFrom(directory, channels, size=128):
         #Make sure not to load in the license file.
         if imageName != "LICENSE.txt" and imageName != "ATTRIBUTION.txt":
             imagePath = os.path.join(directory, imageName)
-            #image = Image.open(imagePath)
-            #Get values for center crop.
-            #width, height = image.size
-            #left = (width - size) / 2
-            #top = (height - size) / 2
-            #right = (width + size) / 2
-            #bottom = (height + size) / 2
+            image = Image.open(imagePath)
+            #Get values for center crop
+            #Center crop algorithm from:
+            #https://stackoverflow.com/questions/16646183/crop-an-image-in-the-centre-using-pil
+            width, height = image.size
+            left = (width - size) // 2
+            top = (height - size) // 2
+            right = left + size
+            bottom = top + size
+            image = image.crop((left, top, right, bottom))
             #NOTE: Unsure if resizing should be done in this function.
             if channels > 1:
-                data[i, :, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
+                #data[i, :, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
+                data[i, :, :, :] = np.asarray(image)
             else:
-                data[i, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
+                #data[i, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
+                data[i, :, :] = np.asarray(image)
                 #data[i, :, :, :] = np.reshape(np.asarray(Image.open(imagePath).resize((size, size))), data_shape)
     #Need the extra dimension for image manipulation.
     if channels == 1:

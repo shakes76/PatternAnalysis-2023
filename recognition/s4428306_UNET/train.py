@@ -53,7 +53,7 @@ model_history = iunet_model.fit(train_batches,
                                 epochs=NUM_EPOCHS,
                                 steps_per_epoch=STEPS_PER_EPOCH,
                                 validation_data=val_batches)
-iunet_model.save("/home/Student/s4428306/report/iunet_model_attempt1.keras", save_format="keras")
+iunet_model.save("/home/Student/s4428306/report/iunet_model_attempt2.keras", save_format="keras")
 
 print(model_history)
 print("SUCCESS")
