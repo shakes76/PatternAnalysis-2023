@@ -21,8 +21,7 @@ num_epochs = 100
 learning_rate = 0.001
 root = 'AD_NC'
 
-train_loader = dataset.ADNIDataLoader(root, mode='train')
-valid_loader = dataset.ADNIDataLoader(root, mode='valid')
+train_loader, valid_loader = dataset.ADNIDataLoader(root, mode='train')
 
 model = modules.ESPCN()
 model = model.to(device)
@@ -40,7 +39,8 @@ print("> Training")
 start = time.time() #time generation
 for epoch in range(num_epochs):
     # training
-    for i, (downscaleds, origs) in enumerate(train_loader): #load a batch
+    total_loss = 0
+    for downscaleds, origs in train_loader: #load a batch
         downscaleds = downscaleds.to(device)
         origs = origs.to(device)
 
@@ -52,36 +52,38 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-
+        
+        total_loss += loss.item()
+    
+    total_loss = total_loss/len(train_loader)
     print ("Epoch [{}/{}], Loss: {:.5f}"
-           .format(epoch+1, num_epochs, loss.item()))
-    train_loss.append(loss.item())
+           .format(epoch+1, num_epochs, total_loss))
+    train_loss.append(total_loss)
         
     # validation
-    for i, (downscaleds, origs) in enumerate(valid_loader): #load a batch
-        downscaleds = downscaleds.to(device)
-        origs = origs.to(device)
+    total_loss = 0
+    with torch.no_grad():
+        for downscaleds, origs in valid_loader: #load a batch
+            downscaleds = downscaleds.to(device)
+            origs = origs.to(device)
+    
+            # Forward pass
+            outputs = model(downscaleds)
+            loss = criterion(outputs, origs)
+            
+            total_loss += loss.item()
 
-        # Forward pass
-        outputs = model(downscaleds)
-        loss = criterion(outputs, origs)
-
-        # Backward and optimize
-        optimizer.zero_grad()
-        loss.backward()
-        optimizer.step()
-
+    total_loss = total_loss/len(train_loader)
     print ("Epoch [{}/{}], Loss: {:.5f}"
-           .format(epoch+1, num_epochs, loss.item()))
-    valid_loss.append(loss.item())
+           .format(epoch+1, num_epochs, total_loss))
+    valid_loss.append(total_loss)
 
-    if smallest_valid_loss > loss.item():
+    if smallest_valid_loss > total_loss:
         torch.save(model.state_dict(), 'model.pth')
-        smallest_valid_loss = loss.item()
+        smallest_valid_loss = total_loss
 
 end = time.time()
 elapsed = end - start
 print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total") 
 
 # plotting
-plt

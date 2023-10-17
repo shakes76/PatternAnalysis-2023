@@ -7,11 +7,13 @@ ADNI: https://adni.loni.usc.edu/
 
 import torch
 import os
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision import transforms
 from PIL import Image
 
-BATCH_SIZE = 32
+# hyper-parameters
+batch_size = 32
+train_prop = 0.9
 
 class ADNIDataset(Dataset):
     """
@@ -58,8 +60,10 @@ def ADNIDataLoader(root, mode='train'):
     dataset = ADNIDataset(root, transform, mode=mode)
     
     if (mode == 'train'):
-        shuffle = True
+        trainset, validset = random_split(dataset, [int(len(dataset) * train_prop), len(dataset) - int(len(dataset) * train_prop)])
+        train_loader = DataLoader(trainset, batch_size=batch_size, shuffle=True)
+        valid_loader = DataLoader(validset, batch_size=batch_size, shuffle=False)
+        return train_loader, valid_loader
     else:
-        shuffle = False
-        
-    return DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=shuffle)
+        return DataLoader(dataset, batch_size=batch_size, shuffle=False)
+    
