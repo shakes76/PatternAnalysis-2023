@@ -19,7 +19,7 @@ class ADNIDataset(Dataset):
     """
     Loads Dataset from 3710 - ADNI_AD_NC_2D data
     """
-    def __init__(self, root, transform, mode='train', image_size=(256,240), downscale_factor=4):
+    def __init__(self, root, transform, mode='train', image_size=(240,256), downscale_factor=4):
         super(ADNIDataset, self).__init__()
         self.root = root
         self.transform = transform
