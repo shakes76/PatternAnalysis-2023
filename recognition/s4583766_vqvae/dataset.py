@@ -52,7 +52,12 @@ def show_images(img, epoch):
     fig.axes.get_xaxis().set_visible(False)
     fig.axes.get_yaxis().set_visible(False)
     # save to 'gen_img' folder
-    plt.savefig('gen_img/epoch_{}.png'.format(epoch))
+    img_name = f'gen_img/s_epoch_{epoch}.png'
+    save_image(img, img_name)
+    print("Saving", img_name)
+
+    plt.savefig(img_name)
+    plt.clf()
 
 # show_batch(train_dl)
 

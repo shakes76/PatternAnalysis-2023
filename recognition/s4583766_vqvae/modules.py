@@ -120,7 +120,7 @@ class Decoder(nn.Module):
             nn.ReLU(True),
             nn.ConvTranspose2d(
                 in_channels=n_hidden_layers//2,
-                out_channels=3, #TODO: set this no. channels as a constant in driver
+                out_channels=1, #TODO: set this no. channels as a constant in driver
                 kernel_size=4,
                 stride=2,
                 padding=1,
@@ -176,6 +176,7 @@ class VectorQuantizer(nn.Module):
         # z_e(x) is encoded vector. e_j is codebook vector. 
         # Trying to find the codebook vector that's the closest to the encoded vector, where 'closeness' is the Euclidean distance. 
         # Once we find the min index, that's our approximate posterior, it's deterministic distribution (one-hot) of the input variable. 
+        train_indices_return = torch.argmin(distance, dim=1)
         min_encoding_indices = torch.argmin(distance, dim=1).unsqueeze(1)
         # z_q(x) is just the closest vector to z_e(x). 
         # 
@@ -206,14 +207,14 @@ class VectorQuantizer(nn.Module):
         # reshape z_q back to (batch_size, height, width, channel)
         z_q = z_q.permute(0, 3, 1, 2).contiguous()
 
-        return embedding_loss, z_q
+        return embedding_loss, z_q, train_indices_return
 
 
 class VQVAE(nn.Module):
     def __init__(self, n_hidden_layers, n_residual_hidden_layers, n_embeddings, embeddings_dim, beta):
         super(VQVAE, self).__init__()
         
-        self.encoder = Encoder(n_inputs=3, 
+        self.encoder = Encoder(n_inputs=1, 
                                n_hidden_layers=n_hidden_layers, 
                                n_residual_hidden_layers=n_residual_hidden_layers)
         self.conv1 = nn.Conv2d(
@@ -236,22 +237,10 @@ class VQVAE(nn.Module):
     def forward(self, z):
         z = self.encoder(z)
         z = self.conv1(z)
-        embedding_loss, z_q = self.vector_quantizer(z)
+        embedding_loss, z_q, encodings = self.vector_quantizer(z)
         reconstructed_x = self.decoder(z_q)
-        return embedding_loss, reconstructed_x, z_q
+        return embedding_loss, reconstructed_x, z_q, encodings
 
-
-
-"""
-Architecture guidelines for stable Deep Convolutional GANs
-    • Replace any pooling layers with strided convolutions (discriminator) and fractional-strided convolutions (generator).
-    • Use batchnorm in both the generator and the discriminator.
-    • Remove fully connected hidden layers for deeper architectures.
-    • Use ReLU activation in generator for all layers except for the output, which uses Tanh.
-    • Use LeakyReLU activation in the discriminator for all layers.
-
-Note: no pooling layers are used. 
-"""
 class Discriminator(nn.Module):
     """
     Detect fake images from real images (encoder).

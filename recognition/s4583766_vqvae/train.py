@@ -6,7 +6,9 @@ Plots losses and metrics observed during training.
 Sophie Bates, s4583766.
 '''
 
+import datetime
 import os
+import sys
 
 import dataset
 import modules
@@ -17,12 +19,12 @@ from dataset import get_dataloaders, show_images
 from modules import VQVAE, Decoder, Encoder
 from torch import nn
 from torch.nn import functional as F
-from torchvision.utils import make_grid
+from torchvision.utils import make_grid, save_image
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
-	print("Warning CUDA not Found. Using CPU...")
+    print("Warning CUDA not Found. Using CPU...")
 
 # Setup file paths
 PATH = os.getcwd() + '/'
@@ -31,6 +33,12 @@ BASE_DATA_PATH = '/home/groups/comp3710/OASIS/'
 TRAIN_DATA_PATH = BASE_DATA_PATH + 'keras_png_slices_train/'
 TEST_DATA_PATH = BASE_DATA_PATH + 'keras_png_slices_test/'
 
+# Create new unique directory for this run
+time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+RUN_IMG_OUTPUT = FILE_SAVE_PATH + time + "/"
+os.makedirs(RUN_IMG_OUTPUT, exist_ok=True)
+
+# Hyper-parameters
 BATCH_SIZE = 32
 EPOCHS = 3
 
@@ -46,67 +54,109 @@ BETA = 0.25
 LEARNING_RATE = 1e-3
 
 def gen_imgs(images, model, device):
-	with torch.no_grad():
-		images = images.to(device)
-		_, x_hat, _ = model(images)
-		return x_hat
+    with torch.no_grad():
+        images = images.to(device)
+        _, x_hat, _ = model(images)
+        return x_hat
 
-def train_vqvae():
-	train_dl, test_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, BATCH_SIZE)
+def train_vqvae(train_dl):
+    vqvae = VQVAE(
+        n_hidden_layers=N_HIDDEN_LAYERS, 
+        n_residual_hidden_layers=N_RESIDUAL_HIDDENS, 
+        n_embeddings=N_EMBEDDINGS,
+        embeddings_dim=EMBEDDINGS_DIM, 
+        beta=BETA
+    )
+    vqvae = vqvae.to(device)
+    optimizer = torch.optim.Adam(vqvae.parameters(), lr=LEARNING_RATE)
+    recon_losses = []
+    print(vqvae)    
+    
+    # Store the original images for comparison
+    og_imgs = next(iter(train_dl))
+    grid = make_grid(og_imgs, nrow=8)
+    img_name = f"epoch_0.png"
+    save_image(grid, RUN_IMG_OUTPUT + img_name)
+    print("Saving", img_name)
 
-	vqvae = VQVAE(n_hidden_layers=N_HIDDEN_LAYERS, n_residual_hidden_layers=N_RESIDUAL_HIDDENS, n_embeddings=N_EMBEDDINGS, embeddings_dim=EMBEDDINGS_DIM, beta=BETA).to(device)
-	vqvae = vqvae.to(device)
-	optimizer = torch.optim.Adam(vqvae.parameters(), lr=LEARNING_RATE)
-	recon_losses = []
-	print(vqvae)
-	og_imgs = next(iter(train_dl))
-	grid = make_grid(og_imgs, nrow=8)
-	show_images(grid, "before")
+    # Initialise the best loss to be updated in loop
+    best_loss = float("-inf")
 
-	best_loss = float('-inf')
+    vqvae.train()
 
-	vqvae.train()
-	# Run training
-	for epoch in range(EPOCHS):
-		train_loss = []
-		avg_train_loss = 0
-		train_steps = 0
-		for data in train_dl:
-			data = data.to(device)
-			optimizer.zero_grad()
+    # flush the standard out print
+    sys.stdout.flush()
 
-			vq_loss, x_hat, z_q = vqvae(data)
-			recons_error = F.mse_loss(x_hat, data)
+    # Run training
+    for epoch in range(EPOCHS):
+        # print("Epoch: {}".format(epoch+1))
+        print("Epoch: ", epoch + 1, "\n")
+        train_loss = []
+        avg_train_loss = 0
+        train_steps = 0
+        for data in train_dl:
+            data = data.to(device)
+            optimizer.zero_grad()
 
-			loss = vq_loss + recons_error
-			loss.backward()
-			optimizer.step()
+            vq_loss, x_hat, z_q = vqvae(data)
 
-			train_loss.append(recons_error.item())
+            recons_error = F.mse_loss(x_hat, data)
 
-			gen_img = gen_imgs(data, vqvae, device)
-			grid = make_grid(gen_img, nrow=8)
-			show_images(grid, epoch)
+            loss = vq_loss + recons_error
+            loss.backward()
+            optimizer.step()
 
-			if train_steps % 100 == 0:
-				print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}'.format(
-				epoch, train_steps * len(data), len(train_dl.dataset),
-				100. * train_steps / len(train_dl),
-				recons_error.item() / len(data)))
-			train_steps += 1
+            train_loss.append(recons_error.item())
 
-			# Save the model if the average loss is the best we've seen so far.
-			if avg_train_loss > best_loss:
-				best_loss = avg_train_loss
-				torch.save(vqvae.state_dict(), PATH + 'vqvae.pth')
+            if train_steps % 100 == 0:
+                print(
+                    "Epoch: {}, Step: {}, Loss: {}".format(
+                        epoch, train_steps, np.mean(train_loss[-100:])
+                    )
+                )
+            train_steps += 1
 
-		# avg_train_loss = sum(train_loss) / len(train_loss)
-		# recon_losses.append(avg_train_loss)
-		# print('====> Epoch: {} Average loss: {:.4f}'.format(
-		# 	epoch, avg_train_loss))
+        gen_img = gen_imgs(og_imgs, vqvae, device)
+        grid = make_grid(gen_img.cpu(), nrow=8)
+        # grid = make_grid(og_imgs, nrow=8)
+        # show_images(grid, "before")
+        img_name = f"epoch_{epoch+1}.png"
+        save_image(grid, RUN_IMG_OUTPUT + img_name)
+        print("Saving", img_name)
+        sys.stdout.flush()
+
+        # Save the model if the average loss is the best we've seen so far.
+        avg_train_loss = sum(train_loss) / len(train_loss)
+
+        if avg_train_loss > best_loss:
+            best_loss = avg_train_loss
+            torch.save(vqvae.state_dict(), RUN_IMG_OUTPUT + "vqvae.pth")
+
+        recon_losses.append(avg_train_loss)
+        print("Recon loss: {}".format(avg_train_loss))
 
 def main():
-	train_vqvae()
+    train_dl, test_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, BATCH_SIZE)
+    train_vqvae(train_dl=train_dl)
+
+    model = VQVAE(
+        n_hidden_layers=N_HIDDEN_LAYERS,
+        n_residual_hidden_layers=N_RESIDUAL_HIDDENS,
+        n_embeddings=N_EMBEDDINGS,
+        embeddings_dim=EMBEDDINGS_DIM,
+        beta=BETA,
+    )
+    ## load in the saved gan model stored at path + 'best-gan.pth'
+    # model = Generator()
+    model.to(device)
+    model.load_state_dict(
+        torch.load(
+            FILE_SAVE_PATH + "2023-10-21_13-26-21/vqvae.pth",
+            map_location=torch.device("cpu"),
+        )
+    )
+    model.eval()
+
 
 if __name__ == '__main__':
-	main()
+    main()
