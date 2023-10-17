@@ -3,6 +3,7 @@ import tensorflow as tf
 import constants
 
 
+@tf.function
 def loss(y_true, y_pred):
     square_pred = tf.math.square(y_pred)
     margin_square = tf.math.square(tf.math.maximum(1 - y_pred, 0))
