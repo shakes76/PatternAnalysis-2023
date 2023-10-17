@@ -3,7 +3,7 @@ from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
 from tqdm import tqdm, trange
 
-from dataset import load_datasets
+from dataset import load_dataloaders
 from modules import ViT
 
 # device config
@@ -22,9 +22,9 @@ def create_model(image_size, in_channels, patch_size, embedding_dims, num_heads,
                num_classes=num_classes,
                patches=patches)
 
-def train_model(model, root, image_size, crop_size, batch_size, learning_rate, weight_decay, epochs):
+def train_model(model, root, image_size, batch_size, learning_rate, weight_decay, epochs):
     device = get_device()
-    train_loader, _, _ = load_datasets(root, image_size, crop_size, batch_size)
+    train_loader, _, _ = load_dataloaders(root, image_size, batch_size)
     model = model.to(device)
     optimizer = Adam(model.parameters(), lr=learning_rate, weight_decay=weight_decay)
     criterion = CrossEntropyLoss()
@@ -46,9 +46,9 @@ def train_model(model, root, image_size, crop_size, batch_size, learning_rate, w
 
         print(f"Epoch {epoch + 1}/{epochs} loss: {train_loss:.2f}")
 
-def evaluate_model(model, root, image_size, crop_size, batch_size):
+def evaluate_model(model, root, image_size, batch_size):
     device = get_device()
-    _, _, validation_dataloader = load_datasets(root, image_size, crop_size, batch_size)
+    _, _, validation_dataloader = load_dataloaders(root, image_size, batch_size)
     criterion = CrossEntropyLoss()
     model.eval()
     

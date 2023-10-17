@@ -6,7 +6,6 @@ def main():
     root = '/home/callum/AD_NC/'
     image_size = 256
     batch_size = 64
-    crop_size = 192
     patch_size = image_size // 8
     channels = 1
     embedding_dims = channels * patch_size**2
@@ -29,7 +28,6 @@ def main():
     train_model(model=model,
                 root=root,
                 image_size=image_size,
-                crop_size=crop_size,
                 batch_size=batch_size,
                 learning_rate=learning_rate,
                 weight_decay=weight_decay,
@@ -37,7 +35,6 @@ def main():
     evaluate_model(model=model,
                    root=root,
                    image_size=image_size,
-                   crop_size=crop_size,
                    batch_size=batch_size)
 
         
