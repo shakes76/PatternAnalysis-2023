@@ -37,16 +37,16 @@ The Dice Similarity Coefficient (DSC) was used to evaluate the model. DSC is a s
 ![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/6ad6ed69-5483-4f55-89ce-1cad501deb80)
 
 
-Average Dice Similarity Coefficient: 0.7197
+Average Dice Similarity Coefficient: 0.7197  
 
 ### Dependencies 
 torch 2.1.0  
 matplotlib 3.8.0  
 numpy 1.26.0  
 torchvision 0.16.0  
-Python 3.11
+Python 3.11  
 
 ## **Reference** 
 [1] K. He, G. Gkioxari, P. Dollár, and R. Girshick, “Mask R-CNN,” in 2017 IEEE International Conference on
-Computer Vision (ICCV), Oct. 2017, pp. 2980–2988.
-[2] Fabian Isensee, Philipp Kickingereder, Wolfgang Wick, Martin Bendszus, Klaus H. Maier-Hein ,Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge
+Computer Vision (ICCV), Oct. 2017, pp. 2980–2988.  
+[2] Fabian Isensee, Philipp Kickingereder, Wolfgang Wick, Martin Bendszus, Klaus H. Maier-Hein ,Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge  
