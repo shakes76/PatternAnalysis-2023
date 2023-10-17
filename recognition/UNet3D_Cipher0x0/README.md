@@ -1,7 +1,7 @@
 # 3D Unet for medical volumetric image segmentation
 
 ## Introduction
-This project uses Unet-3D to train the [Prostate 3D](https://data.csiro.au/collection/csiro:51392v2) dataset to achieve medical volumetric image segmentation， using dice similarity coefficient for evaluation. Image segmentation is to convert an image into a collection of pixel areas represented by masks segmentation maps according to the labels. These segmentation maps can be used for medical condition analysis, symptom prediction, etc.
+This project uses Unet-3D to train the [Prostate 3D](https://data.csiro.au/collection/csiro:51392v2) dataset to achieve medical volumetric image segmentation, using dice similarity coefficient for evaluation. Image segmentation is to convert an image into a collection of pixel areas represented by masks segmentation maps according to the labels. These segmentation maps can be used for medical condition analysis, symptom prediction, etc.
 
 ### Unet-3D
 3D Unet is transformed from Unet. Unet is convolutional neural network structure used for segmenting 2D images, while 3D Unet can segmenting video and 3D images while being compatible with Unet.The network structure in this project as following:
@@ -36,9 +36,8 @@ To run this project, some packages are required:
  - nibabel
  - matplotlib(if you want to plot segmentation)
 
-This project is designed for Prostate 3D dataset. If you want to use other dataset, you may need to modify it. For train.py, the input should come from the dataloader in dataset.py. The dataloader will load all image files in .nii.gz format according to the path. Its output is val_loss, val_DSC and test_DSC returned for each epoch, as well as the .pth model file automatically saved after training is completed. predict.py shows how to use this file (see below).
-
-`modules.py` contains the source code of Unet-3D.
+This project is designed for Prostate 3D dataset. If you want to use other dataset, you may need to modify it. For train.py, the input should come from the dataloader in dataset.py. The dataloader will load all image files in .nii.gz format according to the path. Its output is val_loss, val_DSC and test_DSC returned for each epoch, as well as the .pth model file automatically saved after training is completed. predict.py shows how to use this file. You may get more detail  below:
+`modules.py` contains the source code of Unet-3D. The network need receive tensor data with the shape B × C × H × W × D (batch_size, channel:1, height:256, width:256, depth:128).
 `dataset.py` contains NiiImageLoader which is used for load nii image as tensor and split into training, validation and testing sets. If you are using other type of data,you may need to modify the dataloader.
 `train.py` contains the main loop for training. It will return val dsc and test dsc every epoch. If you are using other datasets, you need to ensure the input channel and output channel are match.
 `predict.py` shows an example of how to load the model been trained in `train.py`, generate and save the segmentation maps to nii image.
