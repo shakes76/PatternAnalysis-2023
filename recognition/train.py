@@ -1,13 +1,14 @@
 import torch
 from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
-from dataset import ISICDataset  
-from modules import ImprovedUNet, device  
+from dataset import ISICDataset
+from modules import ImprovedUNet, device
 from torchvision import transforms
 import matplotlib.pyplot as plt
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
 
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(torch.cuda.is_available())
 
 
@@ -20,9 +21,10 @@ def dice_loss(pred, target, smooth=1.):
     return 1 - dice
 
 
-def combined_loss(pred, target, alpha=0.5):
+def combined_loss(pred, target):
     bce = F.binary_cross_entropy_with_logits(pred, target)
-    return alpha * bce + (1 - alpha) * dice_loss(pred, target)
+    dice = dice_loss(pred, target)
+    return bce + dice
 
 
 def evaluate_dsc(loader, model):
@@ -39,117 +41,108 @@ def evaluate_dsc(loader, model):
 
 
 def train():
+    # Define transformations
     image_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
-    mask_transform = transforms.Compose([transforms.ToTensor()])
+    mask_transform = transforms.ToTensor()
 
-    full_dataset = ISICDataset("ISIC2018_Task1-2_Training_Input_x2", "ISIC2018_Task1_Training_GroundTruth_x2",
-                               image_transform, mask_transform)
+    # Load dataset
+    full_dataset = ISICDataset("ISIC2018_Task1-2_Training_Input_x2", "ISIC2018_Task1_Training_GroundTruth_x2", image_transform, mask_transform)
 
-    train_size = int(0.7 * len(full_dataset))
-    val_size = int(0.15 * len(full_dataset))
-    test_size = len(full_dataset) - train_size - val_size
-    train_dataset, val_dataset, test_dataset = random_split(full_dataset, [train_size, val_size, test_size])
+    # Split dataset
+    train_size = int(0.85 * len(full_dataset))
+    test_size = len(full_dataset) - train_size
+    train_dataset, test_dataset = random_split(full_dataset, [train_size, test_size])
 
+    # Create data loaders
     train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
+    val_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
     model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-5)
     scheduler = ReduceLROnPlateau(optimizer, 'min')
 
-    num_epochs = 20
-    train_losses = []
-    val_losses = []
-    average_dscs = []
-    average_val_dscs = []
+    # Number of training epochs
+    num_epochs = 15
 
+    # Lists to keep track of training progress
+    train_losses, val_losses = [], []
+    avg_train_dscs, avg_val_dscs = [], []
+
+    # Training loop
     for epoch in range(num_epochs):
+        print(f"Epoch {epoch + 1}/{num_epochs}")  
         model.train()
-        running_loss = 0.0
-        val_running_loss = 0.0
-        total_samples = 0
-        total_val_samples = 0
-        total_dice_coefficient = 0.0
-        total_val_dice_coefficient = 0.0
+        running_loss, running_dsc = 0.0, 0.0
 
-        # Training phase
-        for images, masks in train_loader:
-            images, masks = images.to(device), masks.to(device)
+        # Training step
+        for inputs, labels in train_loader:
+            inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
-            outputs = model(images)
-            loss = combined_loss(outputs, masks)
+            outputs = model(inputs)
+            loss = combined_loss(outputs, labels)
             loss.backward()
             optimizer.step()
 
-            dice_coefficient = 1 - dice_loss(outputs, masks).item()
-            total_dice_coefficient += dice_coefficient
-            running_loss += loss.item() * images.size(0)
-            total_samples += images.size(0)
+            dsc = 1 - dice_loss(outputs, labels).item()
+            running_dsc += dsc
+            running_loss += loss.item()
 
-        # Validation phase
+        avg_train_loss = running_loss / len(train_loader)
+        avg_train_dsc = running_dsc / len(train_loader)
+        train_losses.append(avg_train_loss)
+        avg_train_dscs.append(avg_train_dsc)
+
+        # Validation step
         model.eval()
+        val_loss, val_dsc = 0.0, 0.0
+
         with torch.no_grad():
             for images, masks in val_loader:
                 images, masks = images.to(device), masks.to(device)
                 outputs = model(images)
                 loss = combined_loss(outputs, masks)
+                val_loss += loss.item()
+                dice_val = 1 - dice_loss(outputs, masks).item()
+                val_dsc += dice_val
 
-                dice_coefficient = 1 - dice_loss(outputs, masks).item()
-                total_val_dice_coefficient += dice_coefficient
-                val_running_loss += loss.item() * images.size(0)
-                total_val_samples += images.size(0)
+        avg_val_loss = val_loss / len(val_loader)
+        avg_val_dsc = val_dsc / len(val_loader)
+        val_losses.append(avg_val_loss)
+        avg_val_dscs.append(avg_val_dsc)
 
-        epoch_loss = running_loss / total_samples
-        epoch_val_loss = val_running_loss / total_val_samples
-        average_dice_coefficient = total_dice_coefficient / len(train_loader)
-        average_val_dice_coefficient = total_val_dice_coefficient / len(val_loader)
+        print(f"Epoch {epoch + 1}/{num_epochs}")
+        print(f"Train Loss: {avg_train_loss:.4f}, Train DSC: {avg_train_dsc:.4f}")
+        print(f"Val Loss: {avg_val_loss:.4f}, Val DSC: {avg_val_dsc:.4f}")
+        scheduler.step(avg_val_loss)
 
-        train_losses.append(epoch_loss)
-        val_losses.append(epoch_val_loss)
-        average_dscs.append(average_dice_coefficient)
-        average_val_dscs.append(average_val_dice_coefficient)
-
-        print(
-            f"Epoch {epoch + 1}/{num_epochs} - Training Loss: {epoch_loss:.4f}, Training DSC: {average_dice_coefficient:.4f}")
-        print(
-            f"Epoch {epoch + 1}/{num_epochs} - Validation Loss: {epoch_val_loss:.4f}, Validation DSC: {average_val_dice_coefficient:.4f}")
-
-        scheduler.step(epoch_val_loss)
-
-    # Evaluation phase
-    test_dscs = evaluate_dsc(test_loader, model)
-    print(f"\nAverage Test DSC: {sum(test_dscs) / len(test_dscs):.4f}")
-
-    # Plotting
-    epochs_range = range(1, num_epochs + 1)
     plt.figure(figsize=(15, 10))
+
     plt.subplot(2, 2, 1)
-    plt.plot(epochs_range, train_losses, '-o', label='Training Loss')
+    plt.plot(range(1, num_epochs + 1), train_losses, '-o', label='Training Loss')
     plt.title('Training Loss')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
 
     plt.subplot(2, 2, 2)
-    plt.plot(epochs_range, average_dscs, '-o', label='Training DSC')
+    plt.plot(range(1, num_epochs + 1), avg_train_dscs, '-o', label='Training DSC')
     plt.title('Training Dice Similarity Coefficient')
     plt.xlabel('Epochs')
     plt.ylabel('DSC')
     plt.legend()
 
     plt.subplot(2, 2, 3)
-    plt.plot(epochs_range, val_losses, '-o', label='Validation Loss')
+    plt.plot(range(1, num_epochs+ 1), val_losses, '-o', label='Validation Loss')
     plt.title('Validation Loss')
     plt.xlabel('Epochs')
     plt.ylabel('Loss')
     plt.legend()
 
     plt.subplot(2, 2, 4)
-    plt.plot(epochs_range, average_val_dscs, '-o', label='Validation DSC')
+    plt.plot(range(1, num_epochs + 1), avg_val_dscs, '-o', label='Validation DSC')
     plt.title('Validation Dice Similarity Coefficient')
     plt.xlabel('Epochs')
     plt.ylabel('DSC')
