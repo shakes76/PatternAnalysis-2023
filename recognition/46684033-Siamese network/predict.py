@@ -8,6 +8,7 @@ import random
 import modules
 import dataset
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+from torchsummary import summary
 if not torch.cuda.is_available():
     print("Warning VUDA not Found. Using CPU")
 
@@ -32,15 +33,15 @@ correct = 0
 total = 0
 best_epoch = 0
 best_acc = 0
-#or epoch in range(1,60):
-model = torch.load(f"C:/Users/wongm/Desktop/COMP3710/project/siamese_triplet_epoch_50.pth")
+
+model = torch.load(f"C:/Users/wongm/Desktop/COMP3710/project/siamese_augmented_epoch_12.pth")
 model = model.to(device)
 model.eval()
 
-learning_rate = 0.005
+learning_rate = 0.00005
 classifier = modules.Classifier(model)
 classifier = classifier.to(device)
-classifier_loss = nn.BCELoss()
+classifier_loss = nn.CrossEntropyLoss()
 classifier_optimizer = torch.optim.Adam(classifier.parameters(), lr=learning_rate, weight_decay=1e-3)
 
 # from torchview import draw_graph
@@ -49,9 +50,9 @@ classifier_optimizer = torch.optim.Adam(classifier.parameters(), lr=learning_rat
 # model_graph.visual_graph
 correct = 0
 total = 0
-num_epoch = 60
+num_epoch = 20
 classifier.train()
-print(classifier)
+#summary(classifier, input_size=(64, 1, 1))
 print("classifier training start")
 for epoch in range(num_epoch):
     c_correct = 0
@@ -69,12 +70,13 @@ for epoch in range(num_epoch):
         # train classifier
         classifier_optimizer.zero_grad()
         test_label = label.to(device)
+
         output = classifier(image).squeeze()
-        c_loss = classifier_loss(output, label.float())
+        c_loss = classifier_loss(output, label)
         c_loss.backward()
         classifier_optimizer.step()
 
-        pred = torch.where(output > 0.5, 1, 0)
+        _, pred = torch.max(output.data, 1)
         c_correct += (pred == label).sum().item()
         c_total += label.size(0)
         train_acc = 100 * c_correct / c_total
@@ -87,14 +89,15 @@ for epoch in range(num_epoch):
         for i, (test_image, test_label) in enumerate(test_loader):
             test_image = test_image.to(device)
             test_label = test_label.to(device)
-            output = classifier(test_image).squeeze()
-            tc_loss = classifier_loss(output,test_label.float())
 
-            pred = torch.where(output > 0.5, 1, 0)
+            output = classifier(test_image).squeeze()
+            tc_loss = classifier_loss(output,test_label)
+
+            _, pred = torch.max(output.data, 1)
             t_correct += (pred == test_label).sum().item()
             t_total += test_label.size(0)
             test_acc = 100 * t_correct / t_total
-    print("Epoch [{}/{}], Training Loss: {:.5f} Training Accuracy: {}% Testing Loss: {:.5f} Testing accuracy: {}%"
+    print("Epoch [{}/{}], Training Loss: {:.5f} Training Accuracy: {:.5f}% Testing Loss: {:.5f} Testing accuracy: {:.5f}%"
           .format(epoch + 1, num_epoch, c_loss.item(), train_acc, tc_loss.item(),test_acc))
 
 

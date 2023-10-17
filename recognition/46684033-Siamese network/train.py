@@ -8,7 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torchvision
 import torchvision.transforms as transforms
-
+from sklearn import manifold
+tsne = manifold.TSNE(n_components=2, init='pca')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning VUDA not Found. Using CPU")
@@ -52,7 +53,7 @@ def plot_embeddings(embeddings, targets, plot_number,plot_name, xlim=None, ylim=
 def extract_embeddings(dataloader, model):
     with torch.no_grad():
         model.eval()
-        embeddings = np.zeros((dataloader.batch_size * 10, 2))
+        embeddings = np.zeros((dataloader.batch_size * 10, 128))
         labels = np.zeros(dataloader.batch_size * 10)
         k = 0
         counter = 0
@@ -66,6 +67,8 @@ def extract_embeddings(dataloader, model):
             if counter == 5:
                 break
     return embeddings, labels
+
+
 
 
 class ContrastiveLoss(nn.Module):
@@ -107,8 +110,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning VUDA not Found. Using CPU")
 # hyperparameters
-num_epoch = 120
-learning_rate = 0.005
+num_epoch = 30
+learning_rate = 0.00006
 
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
@@ -139,52 +142,10 @@ for epoch in range(num_epoch):
     total_loss_this_epoch = []
     total_val_loss_this_epoch = []
     model.train()
-    # for i, ((images1, images2), labels) in enumerate(train_loader):
-    # #  BCELoss
-    #     optimizer.zero_grad()
-    #     images1 = images1.to(device)
-    #     images2 = images2.to(device)
-    #     labels = labels.to(device)
-    #     x = model(images1,images2).squeeze()
-    #     loss = criterion(x, labels.float())
-    #     loss.backward()
-    #     optimizer.step()
-    #
-    #     pred = torch.where(x > 0.5, 1, 0)
-    #     correct += (pred == labels).sum().item()
-    #     train_total += labels.size(0)
-    #     if (i + 1) % 100 == 0:
-    #         print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: {}%"
-    #               .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item(), 100 * correct / train_total))
-
+    x_embeddings = []
+    y_embeddings = []
     # #for contrastive loss
     for i, ((images1, images2, images3), labela, labelb, test_label) in enumerate(train_loader):
-    #     # BCELoss
-    #     optimizer.zero_grad()
-    #     images1 = images1.to(device)
-    #     images2 = images2.to(device)
-    #     labela = labela.to(device)
-    #     x = model(images1,images2).squeeze()
-    #     loss = criterion(x, labela.float())
-    #     loss.backward()
-    #     optimizer.step()
-    #
-    #     optimizer.zero_grad()
-    #     images1 = images1.to(device)
-    #     images3 = images3.to(device)
-    #     labelb = labelb.to(device)
-    #     x = model(images1, images3).squeeze()
-    #     loss = criterion(x, labelb.float())
-    #     loss.backward()
-    #     optimizer.step()
-    #
-    #     pred = torch.where(x > 0.5, 1, 0)
-    #     correct += (pred == labelb).sum().item()
-    #     train_total += labelb.size(0)
-    #     acc = 100*correct/train_total
-    #     if (i + 1) % 100 == 0:
-    #         print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: {}% "
-    #               .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item(), acc))
 
     #     # contrastive loss
         optimizer.zero_grad()
@@ -216,79 +177,35 @@ for epoch in range(num_epoch):
     training_loss.append(sum(total_loss_this_epoch)/len(total_loss_this_epoch))
 
 
+
     # train_embeddings_cl, train_labels_cl = extract_embeddings(train, model)
     # plot_embeddings(train_embeddings_cl, train_labels_cl,epoch,"training")
     #
     # test_embeddings_cl, test_labels_cl = extract_embeddings(test, model)
     # plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "test")
 
-    # triplet loss
-    # for i, (images1, images2, images3) in enumerate(train_loader):
-    #
-    #     optimizer.zero_grad()
-    #     images1 = images1.to(device)
-    #     images2 = images2.to(device)
-    #     images3 = images3.to(device)
-    #     x, y, z = model(images1, images2, images3)
-    #     loss = criterion(x, y, z)
-    #     loss.backward()
-    #     optimizer.step()
-    #
-    #     if (i + 1) % 100 == 0:
-    #         print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f}"
-    #               .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item()))
-    # #     total_loss_this_epoch.append(loss.item())
-    # # training_loss.append(sum(total_loss_this_epoch) / len(total_loss_this_epoch))
-    #
-    # train_embeddings_cl, train_labels_cl = extract_embeddings(train, model)
-    # plot_embeddings(train_embeddings_cl, train_labels_cl,epoch,"triplet_training")
-
-    # test_embeddings_cl, test_labels_cl = extract_embeddings(test, model)
-    # plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "triplet_test")
 
     # contrastive loss validation
-    # model.eval()
-    #
-    # val_loss = 0.0
-    # correct = 0
-    # total = 0
-    #
-    # with torch.no_grad():
-    #     for i, ((images1,images2,images3), labela,labelb) in enumerate(validation_loader):
-    #         images1 = images1.to(device)
-    #         images2 = images2.to(device)
-    #         labela = labela.to(device)
-    #         x,y = model(images1,images2)
-    #         val_loss = criterion(x,y, labela.float())
-    #         total_val_loss_this_epoch.append(val_loss.item())
-    #
-    # print(
-    #     f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}"
-    # )
-    #
-    # validation_loss.append(sum(total_val_loss_this_epoch)/len(total_val_loss_this_epoch))
+    model.eval()
 
-    # tripletLoss validation
-    # model.eval()
-    #
-    # val_loss = 0.0
-    # correct = 0
-    # total = 0
-    #
-    # with torch.no_grad():
-    #     for i, (images1, images2, images3) in enumerate(validation_loader):
-    #         images1 = images1.to(device)
-    #         images2 = images2.to(device)
-    #         images3 = images3.to(device)
-    #         x,y,z = model(images1,images2,images3)
-    #         val_loss = criterion(x,y,z)
-    #         total_val_loss_this_epoch.append(val_loss.item())
-    #
-    # print(
-    #     f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}"
-    # )
-    #
-    # validation_loss.append(sum(total_val_loss_this_epoch)/len(total_val_loss_this_epoch))
+    val_loss = 0.0
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for i, ((images1,images2,images3), labela,labelb,test_label) in enumerate(validation_loader):
+            images1 = images1.to(device)
+            images2 = images2.to(device)
+            labela = labela.to(device)
+            x,y = model(images1,images2)
+            val_loss = criterion(x,y, labela.float())
+            total_val_loss_this_epoch.append(val_loss.item())
+
+    print(
+        f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}"
+    )
+
+    validation_loss.append(sum(total_val_loss_this_epoch)/len(total_val_loss_this_epoch))
 
     torch.save(model,f"C:\\Users\\wongm\\Desktop\\COMP3710\\project\\siamese_augmented_epoch_{epoch+1}.pth")
 

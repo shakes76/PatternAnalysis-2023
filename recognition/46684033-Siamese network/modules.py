@@ -18,6 +18,7 @@ class Siamese(nn.Module):
         self.sigmoid = nn.Sigmoid()
         self.linear = nn.Linear(50, 1)
         self.batchNorm1 = nn.BatchNorm2d(50)
+        self.dropout = nn.Dropout(p=0.5)
         self.sequence = nn.Sequential(
             nn.Conv2d(1, 32, (5, 5), bias=False),
             nn.BatchNorm2d(32),
@@ -38,11 +39,13 @@ class Siamese(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear(1152, 512),
             nn.ReLU(),
+            #nn.Dropout(p=0.5),
             nn.Linear(512, 256),
             nn.ReLU(),
+            #nn.Dropout(p=0.5),
             nn.Linear(256, 128),
-            nn.ReLU(),
-            nn.Linear(128, 2)
+            # nn.ReLU(),
+            # nn.Linear(128, 64)
         )
 
     def forward_once(self, x):
@@ -80,10 +83,25 @@ class Classifier(nn.Module):
         super(Classifier, self).__init__()
         self.siamese = siamese
         self.sigmoid = nn.Sigmoid()
-        self.linear = nn.Linear(2, 1)
+        self.linear1 = nn.Linear(128, 64)
+        self.batchnorm1 = nn.BatchNorm2d(64)
+        self.relu = nn.ReLU()
+        self.linear2 = nn.Linear(64,2)
+        self.dropout = nn.Dropout(p=0.5)
+
 
     def forward(self, x):
         x = self.siamese.forward_once(x)
-        x = self.linear(x)
-        x = self.sigmoid(x)
+        x = self.relu(x)
+        x = self.linear1(x)
+        #x = self.batchnorm1(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+        x = self.linear2(x)
         return x
+
+#TODO:
+# try Siamese network output 128 features
+# classifier try add two linear layer, add batchnorm and dropout layer within
+# try the same data augmentation ramdoncrop on classifier and siamese
+# try triplet loss
