@@ -6,7 +6,7 @@ import time
 import CONSTANTS
 from dataset import load_test_data
 from modules import SiameseTwin, SimpleMLP, SiameseNeuralNet
-from train import load_from_checkpoint
+from utils import load_from_checkpoint
 
 def load_backbone(filename:str):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
@@ -109,14 +109,14 @@ def visualise_sample_predictions(classifier, backbone, device, random_seed=None,
     # https://github.com/pytorch/tutorials/blob/main/beginner_source/basics/data_tutorial.py
     # published under the BSD 3-Clause "New" or "Revised" License
     # full text of the license can be found in this project at BSD_new.txt
-    figure = plt.figure(figsize=(12, 12))
-    cols, rows = 4, 4
+    figure = plt.figure(figsize=(15, 12))
+    cols, rows = 6, 4
 
     labels_map = {0: 'AD', 1: 'NC'}
 
     for i in range(1, cols * rows + 1):
         figure.add_subplot(rows, cols, i)
-        plt.title(f"Actual label: {labels_map[labels[i].cpu().tolist()]}, prediction: {labels_map[predicted[i].cpu().tolist()]}")
+        plt.title(f"Actual label: {labels_map[labels[i].cpu().tolist()]}, \n Prediction: {labels_map[predicted[i].cpu().tolist()]}")
         plt.axis("off")
         plt.imshow(np.transpose(images[i].cpu().squeeze(), (1,2,0)), cmap="gray")
     

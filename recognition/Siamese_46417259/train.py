@@ -12,6 +12,9 @@ import matplotlib.pyplot as plt
 import CONSTANTS
 from modules import SiameseTwin, SiameseNeuralNet, SimpleMLP
 from dataset import PairedDataset, load_data, load_test_data
+from utils import load_from_checkpoint, save_checkpoint
+from predict import make_predictions, visualise_sample_predictions
+
 
 # Loss Functions and Optimizers -----------------------------------
 class ContrastiveLoss(nn.Module):
@@ -77,26 +80,6 @@ def initialise_classifier_training():
     criterion = nn.BCELoss()
     optimiser = optim.Adam(classifier.parameters(), lr=0.001, betas=(0.5, 0.999))
     return classifier, criterion, optimiser, device
-
-def load_from_checkpoint(filename:str, model:nn.Module, optimizer:optim.Optimizer):
-    checkpoint = torch.load(CONSTANTS.MODEL_PATH + filename)
-    model.load_state_dict(checkpoint['model_state_dict'])
-    optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
-    starting_epoch = checkpoint['epoch']
-    training_loss = checkpoint['loss_train']
-    eval_loss = checkpoint['loss_eval']
-    print(f"Resuming {model.__class__.__name__} training from epoch {str(starting_epoch)}")
-    return starting_epoch, model, optimizer, training_loss, eval_loss
-
-def save_checkpoint(epoch:int, model:nn.Module, optimizer:optim.Optimizer, training_loss:list, eval_loss:list):
-    torch.save({
-        'epoch': epoch,
-        'model_state_dict': model.state_dict(),
-        'optimizer_state_dict': optimizer.state_dict(),
-        'loss_train': training_loss,
-        'loss_eval': eval_loss
-    }, CONSTANTS.RESULTS_PATH + f"{model.__class__.__name__}_checkpoint.tar"
-    )
 
 def train_siamese_one_epoch(model: SiameseNeuralNet, 
                             criterion: nn.Module, 
@@ -304,11 +287,11 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
 
         # scheduler.step()
         if avg_eval_loss < previous_best_loss:
-            # save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
+            save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
             previous_best_loss = avg_eval_loss
             print(f"loss improved in epoch {epoch + 1}")
 
-    save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
+    # save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
     end = time.time()
     elapsed = end - start
     print("Siamese Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
@@ -365,7 +348,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
 
         # scheduler.step()
         if avg_eval_loss < best_loss:
-            # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
+            save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
             best_loss = avg_eval_loss
             print(f"loss improved in epoch {epoch + 1}")
 
@@ -374,7 +357,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
             best_accuracy = accuracy
             print(f"accuracy improved in epoch {epoch + 1}")
 
-    save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
+    # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
     end = time.time()
     elapsed = end - start
     print("Classifier Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
@@ -395,11 +378,14 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     plt.ylabel("Loss")
     plt.legend()
     plt.savefig(CONSTANTS.RESULTS_PATH + f"DClassifier_Accuracy_after_{total_epochs}_epochs.png")
+    return classifier
 
 if __name__ == "__main__":
     # normal training workflow
-    net = Siamese_training(15, 35)
-    classifier_training(net.backbone, 20, 35)
+    net = Siamese_training(20, 42)
+    classifier = classifier_training(net.backbone, 20, 42)
+    make_predictions(classifier, net.backbone, device=torch.device("cuda:0" if torch.cuda.is_available() else "mps"), random_seed=42)
+    visualise_sample_predictions(classifier, net.backbone, device=torch.device("cuda:0" if torch.cuda.is_available() else "mps"), random_seed=42, save_name='Predictions')
 
     # training classifier from existing Siamese model workflow
     # checkpoint = "SiameseNeuralNet_checkpoint.tar"

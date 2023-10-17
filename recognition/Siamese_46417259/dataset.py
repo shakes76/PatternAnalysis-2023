@@ -36,7 +36,7 @@ else:
 Siamese_train_transforms = transforms.Compose([
     transforms.ToTensor(),
     # transforms.CenterCrop(240),
-    transforms.RandomCrop(240, 25, padding_mode='constant'),
+    transforms.RandomCrop(240, 20, padding_mode='constant'),
     # transforms.RandomHorizontalFlip(),
     # transforms.RandomVerticalFlip(),
     # transforms.RandomRotation(15)
@@ -46,13 +46,14 @@ Siamese_train_transforms = transforms.Compose([
 classifier_train_transforms = transforms.Compose([
     transforms.ToTensor(),
     # transforms.CenterCrop(240),
-    transforms.RandomCrop(240, 25, padding_mode='constant'),
+    transforms.RandomCrop(240, 20, padding_mode='constant'),
     # transforms.RandomRotation(15)
 ])
 
 test_transforms = transforms.Compose([
     transforms.ToTensor(),
     transforms.CenterCrop(240),
+    # transforms.RandomCrop(240, 25, padding_mode='constant'),
 ])
 
 
@@ -171,8 +172,16 @@ def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.
     
     source = torch.utils.data.Subset(source, indices_to_be_included)
 
+    images = source.dataset.imgs
+    image_paths = [images[i][0] for i in indices_to_be_included]
+
     print(f'loading {"training" if training else "validation"} data with a training split of {train_proportion}')
     print(f'dataset has classes {source.dataset.class_to_idx} and {len(source)} images')
+
+    img_AD = [index for (index, item) in enumerate(image_paths) if item.find('AD' + os.path.sep) != -1]
+    print(f'AD images count: {len(img_AD)}')
+    img_NC = [index for (index, item) in enumerate(image_paths) if item.find(os.path.sep + 'NC') != -1]
+    print(f'NC images count: {len(img_NC)}')
 
     if Siamese:
         # loading paired data for the Siamese neural net
@@ -204,6 +213,7 @@ def load_test_data(Siamese:bool, random_seed=None) -> torch.utils.data.DataLoade
         # loading paired data for the Siamese neural net
         # each data point is of format [img1, img2, similarity]
         # where similarity is 1 if the two images are of the same class and 0 otherwise
+        source = torch.utils.data.Subset(source, range(len(source))) # wrapper class for compatiability with PairedDataset
         dataset = PairedDataset(source, False, random_seed=random_seed)
         loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                             shuffle=True, num_workers=workers)
