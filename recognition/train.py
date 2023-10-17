@@ -1,20 +1,26 @@
+import torch
 from dataset import *
 from modules import *
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import Recall, Precision
 
 
+
+
 if __name__ == "__main__":
-    device = torch.device( 'cuda' if torch.cuda.is_available() else 'cpu')
-    if not torch.cuda.is_available():
-        print("Warning CUDA not found. Using CPU")
+    physical_devices = tf.config.list_physical_devices('GPU') 
+    if physical_devices:
+        tf.config.experimental.set_memory_growth(physical_devices[0], True)
+        print("Using GPU")
+    else:
+        print("Warning: No GPU found, using CPU")
 
     dataset_path = r"C:\Users\raulm\Desktop\Uni\Sem2.2023\Patterns\ISIC-2017_Training_Data"
     (train_x, train_y), (valid_x, valid_y), (test_x, test_y) = load_data(dataset_path)
 
     batch_size = 4
     lr = 1e-4
-    num_epoch = 2
+    num_epoch = 20
     
     train_dataset = tf_dataset(train_x, train_y, batch_size)
     valid_dataset = tf_dataset(valid_x, valid_y, batch_size)
@@ -23,10 +29,9 @@ if __name__ == "__main__":
     valid_steps = get_steps(valid_x, batch_size)
 
     model = Unet((H, W, 3))
-    model = model.to(device)
     metrics = [Recall(), Precision()]
     model.compile(loss="binary_crossentropy", optimizer=Adam(lr), metrics=metrics)
-    model.summary()
+    # model.summary()
     
     # Start training the model
     model.fit(
