@@ -47,7 +47,7 @@ def split_test_data(root, image_size, crop_size, test_val_ratio=0.5):
     return validation_dataset, test_dataset
 
 
-def load_dataset(image_size, crop_size, batch_size, root):    
+def load_datasets(root, image_size, crop_size, batch_size): 
     # transform    
     transform = get_transform(image_size, crop_size)
 
