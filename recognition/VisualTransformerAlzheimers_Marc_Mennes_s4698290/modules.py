@@ -67,7 +67,8 @@ class ADNITransformer(torch.nn.Module):
 
         #the mlp classifier that takes in the class token and outputs the class of the image
         self.mlpClassifier = torch.nn.Sequential(*classifiernetwork)
-    
+        self.positionalEmbeddings = torch.nn.Parameter(torch.empty(self.nPatches + 1, self.patchSize*self.patchSize).normal_(std=0.02)) 
+
     def forward(self, imagePatches):
         
         if (self.flatten):
@@ -83,8 +84,7 @@ class ADNITransformer(torch.nn.Module):
         embeddingsAndClassTokens = torch.cat((batchedClassToken, imagePatches), dim=1)
 
         #add on the learnable positional embeddings for each patch including the class token
-        positionalEmbeddings = torch.nn.Parameter(torch.empty(self.nPatches + 1, self.patchSize*self.patchSize).normal_(std=0.02)) 
-        embeddingsAndClassTokens = embeddingsAndClassTokens + positionalEmbeddings
+        embeddingsAndClassTokens = embeddingsAndClassTokens + self.positionalEmbeddings
 
         y = self.encoderBlock(embeddingsAndClassTokens)
         
