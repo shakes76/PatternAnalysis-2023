@@ -7,7 +7,7 @@ from dataset import ADNIDataset
 
 # Hyperparameters
 learning_rate = 0.001
-num_epochs = 1
+num_epochs = 10
 
 # Initialize the dataset and data loaders
 data_loader = ADNIDataset()
@@ -60,5 +60,3 @@ torch.save(plt.show(), "super_resolution_model.pth")
 # Save the trained model
 torch.save(model.state_dict(), "super_resolution_model.pth")
 print("Model saved!")
-
-

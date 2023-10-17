@@ -16,8 +16,8 @@ model.eval()
 # Predict and visualize super-resolved images
 with torch.no_grad():
     for train_batch, target_batch in zip(test_loader, test_target_loader):
-        train_inputs, train_targets = train_batch # input shape is: 60x60, target shape is: 240x240
-        target_inputs, target_targets = target_batch # input shape is: 60x60, target shape is: 240x240
+        train_inputs, train_targets = train_batch 
+        target_inputs, target_targets = target_batch 
         outputs = model(train_inputs)
 
         # Visualize input, target, and output images

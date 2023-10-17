@@ -1,8 +1,8 @@
-#  Brain MRI super-resolution network on the ADNI brain dataset
+# Brain MRI super-resolution network on the ADNI brain dataset
 Recognition task: Project 5 - Image super resolution
 
 ## Description
-Sub-Pixel CNN-based approach for single image super-resolution, enhancing the resolution of images, making them clearer and more detailed. 
+This implementation is a Sub-Pixel CNN-based approach for single image super-resolution. The goal is enhancing the resolution of images, making them clearer and more detailed. 
 
 The algorithim Efficient Sub-Pixel CNN (https://keras.io/examples/vision/super_resolution_sub_pixel/) which uses sub-pixel convolution.
 
@@ -28,31 +28,18 @@ To reproduce the results, you'll need to download the ADNI brain dataset externa
 
 
 ## Pre-processing
-The images are centered, resized, and normalized. The training, validation, and test data splits are created to ensure robust evaluation. For more details on the data preprocessing, refer to the dataset.py file.
+The training, and test data images are centered, resized, and normalized to make them consistent and easy to compare. For more details on the data preprocessing, refer to the dataset.py file.
 
 
 ## Example Inputs, Outputs, and Plots
-This model was run on a mac laptop, and is therefore not very efficient as an improved model would take too long to run. I recognize that the images prodcues are not very good, however with a GPU you could increase the accuracy of the images with minor alterations. 
+This model was run on a mac laptop, and is therefore not very efficient as an improved model would take too long to run. I recognize that the images prodcues are not very good, however with a GPU you could increase the accuracy of the images with simple alterations to the model. 
 
-### Inputs
+![image of example input, target and output] (https://github.com/mhjos/PatternAnalysis-2023/blob/topic-recognition/recognition/%20Super-Resolution_46804158/Figures/Figure_1.png)
 
-- Input images should be in the JPEG format.
-- Images should be preprocessed to have a resolution of 240x240 pixels and normalized.
-
-### Outputs
-
-- XYZNet provides probability scores for each disease category.
-- A threshold of 0.5 is used to classify images into binary categories (e.g., 'Disease' or 'No Disease').
-
-### Plots
-
-
-
-
-
+![graph of loss] ()
 
 ## Data Split
-About 30% of the data is reserved for testing, which is a reasonable portion to ensure robust evaluation while allowing the majority of the data (70%) to be used for training the model effectively.
+About 30% of the data is reserved for testing, which is a reasonable portion for evaluation while the majority of the data (70%) to be used for training the model. This split is often used in machine learning because it provides a fair way to evaluate your model without using too much data for testing, which can be wasteful.
 
 Training Data (Total: 21,522 images):
 - Train AD: 10,401 images (approximately 48.3% of the training data)
@@ -61,5 +48,3 @@ Training Data (Total: 21,522 images):
 Testing Data (Total: 9,002 images):
 - Test AD: 4,461 images (approximately 49.5% of the testing data)
 - Test NC: 4,541 images (approximately 50.5% of the testing data)
-
-
