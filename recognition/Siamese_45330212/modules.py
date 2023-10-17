@@ -32,8 +32,8 @@ if not torch.cuda.is_available():
 class Config():
     training_dir = "../AD_NC/train"
     testing_dir = "../AD_NC/test"
-    train_batch_size = 8
-    train_number_epochs = 1
+    train_batch_size = 64
+    train_number_epochs = 20
 
 class SiameseNetwork(nn.Module):
     def __init__(self):
@@ -98,9 +98,9 @@ class CustomSiameseNetworkDataset(Dataset):
         self.labels = []
         folders = os.listdir(root_dir)
         print("> Creating image paths")
-        c = 0
         for i, folder1 in enumerate(folders):
             for j, folder2 in enumerate(folders):
+                c = 0
                 print("Folder:", folder1, folder2)
                 if i == j:
                     label = 0  # Images from the same folder
@@ -110,19 +110,23 @@ class CustomSiameseNetworkDataset(Dataset):
                 folder1_path = os.path.join(root_dir, folder1)
                 folder2_path = os.path.join(root_dir, folder2)
 
-                for img1 in os.listdir(folder1_path):
+                folder1_images = os.listdir(folder1_path)
+                folder2_images = os.listdir(folder2_path)
+
+                for img1 in folder1_images:
                     c += 1
                     if c % 1000 == 0:
                         print("Count:", c)
-                    img2 = random.choice(os.listdir(folder2_path))
+                    img2 = random.choice(folder2_images)
                     while img1 == img2:
-                        img2 = random.choice(os.listdir(folder2_path))
+                        print("FOUND SAME IMAGE - SHOULDN'T HAPPEN OFTEN")
+                        img2 = random.choice(folder2_images)
 
-                img1_path = os.path.join(folder1_path, img1)
-                img2_path = os.path.join(folder2_path, img2)
+                    img1_path = os.path.join(folder1_path, img1)
+                    img2_path = os.path.join(folder2_path, img2)
 
-                self.image_paths.append((img1_path, img2_path))
-                self.labels.append(label)
+                    self.image_paths.append((img1_path, img2_path))
+                    self.labels.append(label)
                         
         print("< Finished creating image paths. #Images:", len(self.image_paths))
 
@@ -130,7 +134,6 @@ class CustomSiameseNetworkDataset(Dataset):
         return len(self.image_paths)
 
     def __getitem__(self, index):
-        print("Getting item")
         img1_path, img2_path = self.image_paths[index]
         img1 = Image.open(img1_path).convert("RGB")
         img2 = Image.open(img2_path).convert("RGB")
@@ -146,7 +149,7 @@ class CustomSiameseNetworkDataset(Dataset):
 class ContrastiveLoss(torch.nn.Module):
     """
     Contrastive loss function.
-    Based on: http://yann.lecun.com/exdb/publis/pdf/hadsell-chopra-lecun-06.pdf
+    Based on formula provided during symposium.
     """
 
     def __init__(self, margin=2.0):
@@ -172,3 +175,53 @@ test_loader = torch.utils.data.DataLoader(testset, batch_size=Config.train_batch
 
 model = SiameseNetwork()
 model = model.to(device)
+
+# Decalre Loss Function
+criterion = ContrastiveLoss()
+optimizer = optim.RMSprop(model.parameters(), lr=1e-4, alpha=0.99, eps=1e-8, weight_decay=0.0005, momentum=0.9)
+
+def train():
+    counter = []
+    loss_history = [] 
+    iteration_number= 0
+    
+    for epoch in range(0,Config.train_number_epochs):
+        print(enumerate(train_loader,0).__sizeof__(), Config.train_batch_size)
+        print(enumerate(train_loader,0))
+        for i, data in enumerate(train_loader,0):
+            #Produce two sets of images with the label as 0 if they're from the same file or 1 if they're different
+            print("i:", i, "/", int(43040 / Config.train_batch_size))
+            img1, img2, labels = data
+            img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
+            # if i < Config.train_batch_size - 1:
+            # print(type(labels), labels.size(), labels[i])
+            # print(type(images), images.size(), images[i])
+            # imshow(images[i])
+            # get tensor image
+            # calculate mean and std
+            # mean, std = images[i].mean([1,2]), images[i].std([1,2])
+            
+            # print mean and std
+            # print("mean and std before normalize:")
+            # print("Mean of the image:", mean)
+            # print("Std of the image:", std)
+            # print("Channels", torchvision.transforms.functional.get_image_num_channels(images[i]))
+            # images = images.to(device)
+            # labels = labels.to(device)
+            optimizer.zero_grad()
+            output1, output2 = model(img1, img2)
+            # print("Out1len", output1.size(), "Out2len", output1.size(), "labelssize", labels.size())
+            loss_contrastive = criterion(output1, output2, labels)
+            loss_contrastive.backward()
+            optimizer.step()
+            if i % 1 == 0 :
+                print("Epoch number {}\n Current loss {}\n".format(epoch,loss_contrastive.item()))
+                iteration_number += 10
+                counter.append(iteration_number)
+                loss_history.append(loss_contrastive.item())
+    return model
+
+# Train the model
+model = train()
+torch.save(model.state_dict(), "model.pt")
+print("Model Saved Successfully")
