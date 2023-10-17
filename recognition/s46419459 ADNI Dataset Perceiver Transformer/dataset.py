@@ -1,12 +1,26 @@
-import torch
-from torch.utils.data import Dataset
+from torchvision.datasets import ImageFolder
+from torch.utils.data import DataLoader 
 
-import numpy as np
-
+# Defaults
+BATCH_SIZE = 64
 path = "C:\Users\dcp\Documents\OFFLINE-Projects\DATASETS\ADNI"
 # path = ...
+transforms = None
 
-class ADNIData(Dataset):
+def load_train_data():
+    train_dataset = ImageFolder(path + r"\train")
+    return DataLoader(
+        train_dataset, 
+        batch_size = BATCH_SIZE, 
+        transforms = transforms, 
+        shuffle = True
+    )
 
-    def __init__(self, csv_file, root_dir, transform = None) -> None:
-        pass
+def load_test_data():
+    test_dataset = ImageFolder(path + r"\test")
+    return DataLoader(
+        test_dataset, 
+        batch_size = BATCH_SIZE, 
+        transforms = transforms, 
+        shuffle = True
+    )
