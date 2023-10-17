@@ -42,4 +42,4 @@ if __name__ == '__main__':
     image = vutils.make_grid(images, padding=2, normalize=True)
     transform = torchvision.transforms.ToPILImage()
     img = transform(image)
-    img.show()
+    img.save('results.jpg')
