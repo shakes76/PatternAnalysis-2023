@@ -70,7 +70,7 @@ It is recommended to use hardware acceleration in the form of GPUs when training
 
 ### Data Preprocessing
 
-Data preprocessing is performed in the `dataset.py` in the `Dataset` class. The initialisation function first determines the type of dataset (train or test) based on the train parameter. It navigates to the appropriate file paths for the dataset, considering whether it's meant for training or testing.
+Data preprocessing is performed in the `dataset.py` in the `Dataset` class. The initialisation function first determines the type of dataset (train or test) based on the train parameter. It navigates to the appropriate file paths for the dataset, considering whether it's meant for training or testing. Note that the training in `train.py` is done on the training set and the predictions in `predict.py` is made from the testing set.
 
 Following that, the dataset then undergoes normalization. The mean and standard deviation values are set to 0.5 for each channel. Normalization ensures that the pixel values of the images are within a standardized range, making it easier for machine learning models to learn patterns from the data. Additionally, the images are converted into PyTorch tensors.
 
