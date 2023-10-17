@@ -4,10 +4,9 @@ We use a multi-layer graph-covolutional network to classify the Facebook large p
 
 Graph convolutional networks are an adaption of the typical neural network for graph-based data. As such, they orbit around the usage of the graph convolutional layer as introduced by Kipf et al. in 2016 [[2]](#2). This layer takes in its function the degree of each node $i$ and all the neighbours of $i$. To be exact, for a given node $i$, the graph convolutional layer computes the following:
 $$ 
-h_i=\sum_{j\in N_i}\frac{1}{\sqrt{\text{deg}(i)}\sqrt{\text{deg}(j)}}\boldsymbol{W}_{x_j},
+h_i=\sum_{j\in N_i}\frac{1}{\sqrt{\text{deg}(i)}\sqrt{\text{deg}(j)}}W_{x_j},
 $$ 
-where $\boldsymbol{W}$ is a weight matrix, and $N_i$ is the set of neighbours (adjacent vertices) of $i$.
-
+where $W$ is a weight matrix, and $N_i$ is the set of neighbours (adjacent vertices) of $i$.
 
 ## Preprocessing & Training
 
