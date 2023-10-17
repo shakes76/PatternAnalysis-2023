@@ -36,6 +36,7 @@ def snn():
                 activation="relu",
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
             ),
+            tf.keras.layers.Dropout(0.2),
             tf.keras.layers.MaxPooling2D((2, 2)),
             tf.keras.layers.Conv2D(
                 128,
