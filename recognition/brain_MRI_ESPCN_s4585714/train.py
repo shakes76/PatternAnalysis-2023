@@ -87,3 +87,12 @@ elapsed = end - start
 print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total") 
 
 # plotting
+plt.figure(1)
+plt.plot(train_loss, label="Training Loss")
+plt.plot(valid_loss, label="Validation Loss")
+plt.legend()
+plt.xlabel("Epochs")
+plt.ylabel("Loss")
+plt.title("Training and Validation Loss over Epochs")
+plt.tight_layout()
+plt.savefig("training_loss.png")
