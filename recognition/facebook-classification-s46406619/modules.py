@@ -1,5 +1,4 @@
 import torch
-import numpy as np
 from torch.nn import Linear
 from torch_geometric.nn import GCNConv
 

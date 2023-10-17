@@ -1,30 +1,30 @@
 import torch
+import sys
+import os
 from dataset import *
-from modules import *
 
-model = torch.load('C:/Area-51/2023-sem2/COMP3710/PatternAnalysis-2023/recognition/facebook-classification-s46406619/model.pth')
+# load dataset and trained model
+os.chdir(sys.path[0])
+model = torch.load('model.pth')
 model.eval()
-
 data = load_data(quiet=True, train_split=model.train_split, test_split=model.test_split)
 
 # perform prediction on test set
-embeddings, pred = model(data.X, data.edges) # forward pass
+embs, pred = model(data.X, data.edges) # forward pass
+y_pred = pred[data.test_split].argmax(dim=1)
 
 # print test accuracy
-y_test = data.y[data.test_split]
-y_pred = pred[data.test_split].argmax(dim=1)
-acc = model.accuracy(y_test, y_pred)
+acc = model.accuracy(data.y[data.test_split], y_pred)
 print('test accuracy:', round(acc.item(), 4))
 pred = pred.argmax(dim=1)
 
-# t-SNE embeddings plot
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
-# calculate 2D embeddings
-tsne = TSNE(random_state=1, n_iter=300, metric="cosine")
-embs_pred = tsne.fit_transform(embeddings.detach().numpy())
-tsne = TSNE(random_state=1, n_iter=300, metric="cosine")
+# produce a 2D embeddings plot via t-SNE
+tsne = TSNE(random_state=42, n_iter=300, metric="cosine")
+embs_pred = tsne.fit_transform(embs.detach().numpy())
+tsne = TSNE(random_state=42, n_iter=300, metric="cosine")
 embs_true = tsne.fit_transform(data.X)
 
 # extract embeddings
@@ -33,6 +33,7 @@ X_true = embs_true[:, 0]
 Y_pred = embs_pred[:, 1]
 Y_true = embs_true[:, 1]
 
+# helper function to split embeddings by class label
 def split_by_classification(X, Y):
     x1, x2, x3, x4 = [], [], [], []
     y1, y2, y3, y4 = [], [], [], []

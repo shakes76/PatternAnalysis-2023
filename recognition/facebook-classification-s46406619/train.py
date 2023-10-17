@@ -1,6 +1,5 @@
 import torch
 import matplotlib.pyplot as plt
-from torch.nn import Linear
 from modules import *
 from dataset import *
 

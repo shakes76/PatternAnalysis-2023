@@ -1,9 +1,11 @@
 import numpy as np
 import numpy.random as random
-import os
 import torch
+import sys
+import os
 
-random.seed(42)
+random.seed(42) # set random seed for reproducibility
+os.chdir(sys.path[0]) # set working directory
 
 class Data:
     def __init__(self, X, y, edges, train_split, test_split):
@@ -14,10 +16,7 @@ class Data:
         self.test_split = test_split # test split
 
 def load_data(quiet=False, train_split=None, test_split=None, test_size=0.2):
-    # set working directory
-    os.chdir('C:/Area-51/2023-sem2/COMP3710/PatternAnalysis-2023/recognition/facebook-classification-s46406619')
-
-    # import raw data files
+    # import data and convert to tensors
     facebook = np.load('facebook.npz')
     edges = torch.transpose(torch.tensor(facebook['edges']), 0, 1)
     X = torch.tensor(facebook['features'])
@@ -29,8 +28,8 @@ def load_data(quiet=False, train_split=None, test_split=None, test_size=0.2):
         print('features shape:', X.shape)
         print('edges shape:', edges.shape)
 
-    # create indices to determine train and test split
-    if train_split is None: # if the data has not been loaded before we generate a new split
+    # create train test split, stored as indices.
+    if train_split is None:
         train_split = []
         test_split = []
         split = random.random(size=int(np.round(len(y))))
