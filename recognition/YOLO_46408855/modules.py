@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F 
 from torch.autograd import Variable
 import numpy as np
+import tensorflow as tf
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -11,8 +12,9 @@ class YOLO(nn.Module):
 
     #REFERENCE: yolov3-tiny.cfg from https://github.com/pjreddie/darknet/blob/master/cfg
     #Used as basis for what layers were needed 
-    def __init__(self):
+    def __init__(self, num_classes):
         super(YOLO, self).__init__()
+        self.num_classes = num_classes
         layers = []
         filters = [16,32,64,128,256,512]
         in_channels = 3
@@ -60,11 +62,11 @@ class YOLO(nn.Module):
     def forward(self, x):
         out = self.conv_start(x)
         out = out.data
-        a = self.predict_transform(out, 416, self.anchor1, 80)
+        a = self.predict_transform(out, 416, self.anchor1, self.num_classes)
         out = self.conv_mid(out)
         out = self.conv_end(out)
         out = out.data
-        b = self.predict_transform(out, 416, self.anchor2, 80)
+        b = self.predict_transform(out, 416, self.anchor2, self.num_classes)
         return torch.cat((a, b), 1)
 
     def predict_transform(self, prediction, inp_dim, anchors, num_classes):
@@ -108,6 +110,52 @@ class YOLO(nn.Module):
         prediction[:,:,:4] *= stride
         return prediction
 
-        
+
+def calculate_iou(pred, label):
+    pred = pred.numpy()
+    label = label.numpy()
+    px, py, pw, ph = pred[0], pred[1], pred[2], pred[3]
+    lx, ly, lw, lh = label[0], label[1], label[2], label[3]
+    box_a = [px-(pw/2), py-(ph/2), px+(pw/2), py+(ph/2)]
+    box_b = [lx-(lw/2), ly-(lh/2), lx+(lw/2), ly+(lh/2)]
+
+    # determine the (x, y) of the corners of intersection area 
+    ax = max(box_a[0], box_b[0])
+    ay = max(box_a[1], box_b[1])
+    bx = min(box_a[2], box_b[2])
+    by = min(box_a[3], box_b[3])
+
+    # compute the area of intersection
+    intersect = abs(max((bx - ax, 0)) * max((by - ay), 0))
+    if intersect == 0:
+      return 0
+
+    # compute the area of both the prediction and ground-truth
+    area_a = abs((box_a[2] - box_a[0]) * (box_a[3] - box_a[1]))
+    area_b = abs((box_b[2] - box_b[0]) * (box_b[3] - box_b[1]))
+
+    # compute the iou
+    iou = intersect / float(area_a + area_b - intersect)
+    return iou
+
+def compute_loss(pred, label, i=0):
+    num_classes = 2
+
+    pred_xywh = pred[0:4]
+    pred_conf = pred[5]
+
+    label_xywh = label[0:4]
+    respond_bbox = label[5]
+    label_prob = label[5:]
+    print(pred_xywh, label_xywh)
+
+    #IoU
+    iou = calculate_iou(pred_xywh, label_xywh)
+
+    #Find 
+    if iou != 0:
+      other = 1
+
+    return iou
 
         
