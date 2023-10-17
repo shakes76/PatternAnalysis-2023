@@ -45,66 +45,6 @@ class Predict() :
         
         self.visualise(num_images=num_images, show = False, save = True, savename="vqvae_generated")
     
-    def generate_pixelcnn_vqvae(self, pixelcnn, num_images=1):
-        self.vqvae.eval()
-        pixelcnn.eval()
-
-        latent_map_shape = (num_images, 128, *self.img_size)
-        latent_map = torch.zeros(latent_map_shape, dtype=torch.long, device=self.device)
-
-        with torch.no_grad():
-            for i in range(self.img_size[0]):
-                for j in range(self.img_size[1]):
-                    pixel_probs = pixelcnn(latent_map[:, :, :i+1, :j+1].float())
-                    sampled_pixel = torch.multinomial(F.softmax(pixel_probs[:, :, i, j], dim=1), 1).squeeze(1)
-                    latent_map[:, :, i, j] = sampled_pixel
-            
-            embedding_result = self.vqvae.quantizer.embedding(latent_map)
-            print(f"Latent map shape: {latent_map.shape}")
-            print(f"Embedding result shape: {embedding_result.shape}")
-
-            # Taking the mean along the channel dimension to get a [batch_size, 32, 32, 64] tensor
-            random_embeddings = embedding_result.mean(dim=1)
-            print(f"Random embeddings shape: {random_embeddings.shape}")
-
-            self.generated_images = self.vqvae.decoder(random_embeddings.permute(0, 3, 1, 2))
-
-        self.visualise(num_images=num_images, show=False, save=True, savename="pixelcnn_vqvae_generated")
-
-
-
-
-
-
-
-    def generate_image(self, pixelcnn, num_images=1):
-        self.vqvae.eval()
-        pixelcnn.eval()
-
-        # Assuming your embeddings are of shape: [num_embeddings, embedding_dim]
-        embedding_dim = self.vqvae.quantizer.embedding.weight.shape[1]
-
-        # Initialize latent map
-        latent_map_shape = (num_images, *self.img_size)
-        latent_map = torch.zeros(latent_map_shape, dtype=torch.long, device=self.device)
-
-        with torch.no_grad():
-            for i in range(self.img_size[0]):
-                for j in range(self.img_size[1]):
-                    # Get the probabilities for the next pixel from PixelCNN
-                    pixel_probs = pixelcnn(latent_map)
-                    
-                    # Sample the next pixel value
-                    sampled_pixel = torch.multinomial(F.softmax(pixel_probs[:, :, i, j], dim=1), 1).squeeze(1)
-                    
-                    # Update the latent map
-                    latent_map[:, i, j] = sampled_pixel
-            
-            # Retrieve the corresponding embeddings
-            random_embeddings = self.vqvae.quantizer.embedding(latent_map).permute(0, 3, 1, 2)
-            self.generated_images = self.vqvae.decoder(random_embeddings)
-
-        self.visualise(num_images=num_images, show = False, save = True, savename="pixelcnn_vqvae_generated")
 
     def visualise(self, num_images = 4, show = True, save = True, savename="out"):
         rows = min(4, num_images)

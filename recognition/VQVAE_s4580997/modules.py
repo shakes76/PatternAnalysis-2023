@@ -446,34 +446,3 @@ class GAN(nn.Module):
 
     def forward(self, x):
         return self.generator(x)
-
-
-class MaskedConv2d(nn.Conv2d):
-    def __init__(self, mask_type, *args, **kwargs):
-        super(MaskedConv2d, self).__init__(*args, **kwargs)
-        self.register_buffer('mask', self.weight.data.clone())
-        _, _, kH, kW = self.weight.size()
-        self.mask.fill_(1)
-        self.mask[:, :, kH // 2, kW // 2 + (mask_type == 'B'):] = 0
-        self.mask[:, :, kH // 2 + 1:] = 0
-
-    def forward(self, x):
-        self.weight.data *= self.mask
-        return super(MaskedConv2d, self).forward(x)
-
-class PixelCNN(nn.Module):
-    def __init__(self, input_dim, n_filters=64, kernel_size=7):
-        super(PixelCNN, self).__init__()
-        self.layers = nn.Sequential(
-            MaskedConv2d('A', input_dim, n_filters, kernel_size, 1, kernel_size//2, bias=False),
-            nn.BatchNorm2d(n_filters),
-            nn.ReLU(True),
-            MaskedConv2d('B', n_filters, n_filters, kernel_size, 1, kernel_size//2, bias=False),
-            nn.BatchNorm2d(n_filters),
-            nn.ReLU(True),
-            nn.Conv2d(n_filters, 256, 1)
-        )
-
-    def forward(self, x):
-        x = self.layers(x)
-        return F.log_softmax(x, dim=1)

@@ -6,10 +6,10 @@
 ###################################
 
 import torch
-from modules import VQVAE, GAN, PixelCNN
+from modules import VQVAE, GAN
 import utils
 from dataset import Dataset, ModelDataset
-from train import TrainVQVAE, TrainGAN, TrainPixelCNN
+from train import TrainVQVAE, TrainGAN
 from predict import Predict
 from test import TestVQVAE
 import matplotlib.pyplot as plt
@@ -29,7 +29,6 @@ if __name__ == '__main__':
 
     gan = GAN(utils.CHANNELS, utils.NOISE, utils.GAN_IMG_SIZE)
     gan = gan.to(utils.DEVICE)
-    # pixelcnn = PixelCNN(utils.VQVAE_HIDDEN, utils.GAN_LATENT_DIM)
 
     # Core dataset
     adni_dataset = Dataset(batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=utils.FRACTION)
@@ -44,15 +43,6 @@ if __name__ == '__main__':
         # vqvae.load_state_dict(torch.load(utils.VQVAE_MODEL_PATH, map_location=utils.DEVICE)) # Change back to utils.VQVAE_MODEL_PATH
         vqvae.load_state_dict(torch.load(utils.VQVAE_RANGPUR_MODEL_PATH, map_location=utils.DEVICE)) # Change back to utils.VQVAE_MODEL_PATH
     
-    # if utils.PIXELCNN_RETRAIN :
-    #     pixel_trainer = TrainPixelCNN(vqvae, pixelcnn, adni_dataset, utils.VQVAE_LR, utils.VQVAE_WD, utils.GAN_EPOCHS, utils.PIXEL_SAVEPATH)
-    #     pixel_trainer.train()
-    #     pixel_trainer.plot(save = True)
-    #     pixel_trainer.save(utils.PIXEL_MODEL_PATH)
-    # else :
-    #     # pixelcnn.load_state_dict(torch.load(utils.PIXEL_MODEL_PATH, map_location=utils.DEVICE))
-    #     pixelcnn.load_state_dict(torch.load(utils.PIXEL_RANGPUR_MODEL_PATH, map_location=utils.DEVICE))
-
     # Train GAN prior
     if utils.GAN_RETRAIN :
         gan_dataset = ModelDataset(vqvae, batch_size=utils.BATCH_SIZE, root_dir = utils.ADNI_ROOT_DIR, fraction=utils.FRACTION)
@@ -77,19 +67,6 @@ if __name__ == '__main__':
         predict = Predict(vqvae, gan, adni_dataset, utils.DEVICE, savepath=utils.OUTPUT_PATH, img_size=64)
         predict.generate_gan(1)
         predict.generate_vqvae(1)
-        # predict.ssim('gan')
-        # predict.ssim('vqvae')
-        # predict.generate_pixelcnn_vqvae(pixelcnn)
-        # predict.pixel(pixelcnn, 32)
+        predict.ssim('gan')
+        predict.ssim('vqvae')
         # predict.gan_generated_images(gan.generator, 128, utils.DEVICE)
-
-        generated_images = other.gan_generated_images(gan, utils.DEVICE)
-
-        #Function to save visualisation of generated code indice
-        code_indice = other.gan_create_codebook_indice(generated_images)
-
-        #Function for decoding the generated outputs and save as final reconstruction
-        decoded = other.gan_reconstruct(vqvae, code_indice)
-
-        #Calculate the average and max SSIM against test data set and print to terminal
-        other.SSIM(decoded)
