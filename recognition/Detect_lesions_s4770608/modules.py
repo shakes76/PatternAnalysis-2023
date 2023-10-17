@@ -4,10 +4,9 @@ from torch import nn
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 
-torchvision.models.resnet50
 def get_model_instance_segmentation(num_classes):
     # 加载预训练的Mask R-CNN模型
-    model = torchvision.models.detection.maskrcnn_resnet50_fpn(pretrained=True)
+    model = torchvision.models.detection.maskrcnn_resnet50_fpn_v2(pretrained=True)
 
     # 获取分类器的输入特征数
     in_features = model.roi_heads.box_predictor.cls_score.in_features

@@ -21,12 +21,13 @@ from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 import torch.optim as optim
 import numpy as np
 import wandb
+from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
+
 from  modules import  get_model_instance_segmentation,ImageClassifier
 from PIL import Image
 def get_data_loaders(target_size):
     imagenet_mean = [0.485, 0.456, 0.406]
     imagenet_std = [0.229, 0.224, 0.225]
-
     def collate_fn(batch):
         images, targets = zip(*batch)
         images = [img.cuda() for img in images]
@@ -82,7 +83,7 @@ def get_data_loaders(target_size):
                                   transform=val_transform,
                                   mask_transoform=val_mask_transform,
                                   target_size=target_size)
-    train_data_loader = DataLoader(train_data, batch_size=24, shuffle=True,collate_fn=collate_fn)
+    train_data_loader = DataLoader(train_data, batch_size=12, shuffle=True,collate_fn=collate_fn)
     val_data_loader = DataLoader(val_data, batch_size=1, shuffle=False,collate_fn=collate_fn)
     test_data_loader = DataLoader(test_data, batch_size=1, shuffle=False,collate_fn=collate_fn)
     print(f'Training data: {len(train_data_loader.dataset)} samples, '
@@ -113,40 +114,7 @@ def calculate_iou_bbox(box_1, box_2):
     iou = poly_1.intersection(poly_2).area / poly_1.union(poly_2).area
 
     return iou
-def bb_intersection_over_union(boxA, boxB):
-    """
-    Calculate the Intersection over Union (IoU) of two bounding boxes.
 
-    Parameters:
-    boxA, boxB: list of int
-        Format: [x0, y0, x1, y1] where (x0, y0) is the top-left corner
-        coordinates and (x1, y1) is the bottom-right corner coordinates.
-
-    Returns:
-    float
-        IoU value
-    """
-    # determine the (x, y)-coordinates of the intersection rectangle
-    xA = max(boxA[0], boxB[0])
-    yA = max(boxA[1], boxB[1])
-    xB = min(boxA[2], boxB[2])
-    yB = min(boxA[3], boxB[3])
-
-    # compute the area of intersection rectangle
-    interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
-
-    # compute the area of both the prediction and ground-truth
-    # rectangles
-    boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
-    boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
-
-    # compute the intersection over union by taking the intersection
-    # area and dividing it by the sum of prediction + ground-truth
-    # areas - the intersection area
-    iou = interArea / float(boxAArea + boxBArea - interArea)
-
-    # return the intersection over union value
-    return iou
 
 
 
@@ -232,122 +200,13 @@ def log_predictions_to_wandb(images, predictions, targets,predicted_label):
 
 
 #
-#
-# # WandB Initialization
-#
-# def log_predictions_to_wandb(images, predictions, targets,step):
-#     """
-#     Log bounding box predictions to WandB.
-#
-#     Args:
-#         images: List of input images
-#         predictions: Model's predictions
-#         num_samples: Number of samples to log
-#     """
-#
-#     # Select a subset of images and predictions to log
-#     images_to_log = images
-#     predictions_to_log = predictions
-#     targets_to_log = targets
-#
-#     def map_label_to_name(label):
-#         mapping = {
-#             1: "Melanoma",
-#             2: "Seborrheic Keratosis",
-#             3: "Healthy"
-#         }
-#         return mapping[label]
-#     # Convert model predictions to wandb format
-#     wandb_images = []
-#     for image, pred, target in zip(images_to_log, predictions_to_log, targets_to_log):
-#         # Prepare data for visualization
-#         box_data = []
-#         predictions_box_data = []
-#         ground_truth_box_data = []
-#         # Process predictions
-#         for box, score, label, mask in zip(
-#                 pred['boxes'].cpu().numpy(),
-#                 pred['scores'].cpu().numpy(),
-#                 pred['labels'].cpu().numpy(),
-#                 pred['masks'].cpu().numpy()
-#         ):
-#             label_name = map_label_to_name(label)
-#             predictions_box_data.append({
-#                 'position': {
-#                     'minX': float(box[0]),
-#                     'maxX': float(box[2]),
-#                     'minY': float(box[1]),
-#                     'maxY': float(box[3]),
-#                 },
-#                 'class_id': int(label),
-#                 'box_caption': f"PRED: {label_name} ({score:.2f})",
-#                 'scores': {
-#                     'objectivity': float(score),  # Explicitly convert score to Python float
-#                     'class_prob': float(score),  # Explicitly convert score to Python float
-#                     'class_score': float(score),
-#                 },
-#                 'domain': 'pixel',
-#             })
-#
-#         # Process ground truth
-#         for box, label in zip(target['boxes'].cpu().numpy(), target['labels'].cpu().numpy()):
-#             label_name = map_label_to_name(label)
-#             ground_truth_box_data.append({
-#                 'position': {
-#                     'minX': float(box[0]),
-#                     'maxX': float(box[2]),
-#                     'minY': float(box[1]),
-#                     'maxY': float(box[3]),
-#                 },
-#                 'class_id': int(label),
-#                 'box_caption': f"TRUE: {label_name}",
-#                 'domain': 'pixel',
-#             })
-#
-#         # Convert image from torch.Tensor to PIL.Image
-#         image_pil = transforms.ToPILImage()(image)
-#         image_np = np.array(image_pil)
-#         if image_np.shape[-1] == 3:
-#             alpha_channel = np.ones(image_np.shape[:2] + (1,), dtype=image_np.dtype) * 255
-#             image_np = np.concatenate([image_np, alpha_channel], axis=-1)
-#         # Overlay mask onto image for predictions
-#         for mask in pred['masks'].cpu().numpy():
-#             mask = mask[0].astype(np.uint8) * 255  # Assuming single channel mask
-#             mask_pil = Image.fromarray(mask).convert("RGBA")
-#             mask_np = np.array(mask_pil)
-#
-#             # Creating a colored mask with 50% transparency
-#             mask_colored = np.zeros_like(mask_np)
-#             mask_colored[..., :3] = [255, 0, 0]  # Red color mask
-#             mask_colored[..., 3] = mask_np[..., 3] * 0.5  # 50% Transparency
-#
-#             # Overlaying the mask
-#             image_np = Image.alpha_composite(Image.fromarray(image_np), Image.fromarray(mask_colored))
-#         mapping = {
-#             1: "Melanoma",
-#             2: "Seborrheic Keratosis",
-#             3: "Healthy"
-#         }
-#         # Log image, bounding box data, and masks to wandb
-#         wandb_images.append(wandb.Image(image_np, boxes={
-#             'predictions': {
-#                 'box_data': predictions_box_data,
-#                 'class_labels': mapping,  # Assume you have a list of class names here
-#             },
-#             'ground_truth': {
-#                 'box_data': ground_truth_box_data,
-#                 'class_labels': mapping,  # Assume you have a list of class names here
-#             }
-#         }))
-#     return  wandb_images[0]
-
 def main():
     # Define your transformations
     max_epoch =50
 
     target_size = 224
     train_data_loader,val_data_loader,test_data_loader = get_data_loaders(target_size)
-    wandb.init(project='ISIC',name='only masker')  # Please set your project and entity name
+    wandb.init(project='ISIC',name='only masker maskrcnnv2 ')  # Please set your project and entity name
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
     output_folder = os.path.join('save_weights', timestamp)
@@ -363,8 +222,8 @@ def main():
     image_classifier_loss = torch.nn.CrossEntropyLoss()
     params = [p for p in maskrcnn_model.parameters() if p.requires_grad]
     params.extend([p  for p in image_classifier.parameters() if p.requires_grad])
-    optimizer = optim.AdamW(params, lr=0.001)
-
+    optimizer = optim.AdamW(params, lr=0.0005)
+    lr_sheduler = CosineAnnealingWarmRestarts(optimizer,T_0=3,T_mult=1,eta_min=2e-7)
     # for cur_e in pbar:
     pbar = tqdm.tqdm(range(max_epoch))
 
@@ -404,14 +263,13 @@ def main():
                    'new_loss_classifier':loss_dict['loss_classifier'].item(),
             "loss_mask": loss_dict['loss_mask'].item(),
             "loss_objectness": loss_dict['loss_objectness'].item(),
-            "loss_rpn_box_reg": loss_dict['loss_rpn_box_reg'].item()
+            "loss_rpn_box_reg": loss_dict['loss_rpn_box_reg'].item(),
+            'lr':lr_sheduler.get_lr()
         }, step=epoch)
         maskrcnn_model.eval()
         image_classifier.eval()
 
-        val_loss = 0
         all_ious = []
-        mean_iou=  []
         all_accuracies = []
         with torch.no_grad():
             pbar_val = tqdm.tqdm(val_data_loader, desc=f'Epoch {epoch + 1} VAL', leave=False)
@@ -424,26 +282,22 @@ def main():
                     print('zero prediction occurs')
                     continue
                 predictions = select_best_prediction(predictions)
-                # Compute IoU and append to all_ious list
                 iou = calculate_iou_bbox(predictions[0]["boxes"].cpu().numpy()[0], targets[0]["boxes"].cpu().numpy()[0])
                 all_ious.append(iou)
-                # print(predictions)
-                # Compute classification accuracy and append to all_accuracies list
-
                 classify_result = image_classifier(torch.stack(images)).argmax(1)
                 labels = torch.tensor([t['labels'] - 1 for t in targets]).cuda()
-
                 accuracy = compute_accuracy(classify_result, labels)
                 print( classify_result, labels)
                 all_accuracies.append(accuracy)
                 if 20<i< 50:  # Log images every 10 epochs
                     wandb_images.append(log_predictions_to_wandb(images,predictions,targets=targets,predicted_label=classify_result))
-            wandb.log({"predicted_and_true_boxes_masks": wandb_images[0:30]},step=epoch)
+            wandb.log({"predicted_and_true_boxes_masks": wandb_images},step=epoch)
             mean_iou = sum(all_ious) / len(all_ious)
             mean_accuracy = sum(all_accuracies) / len(all_accuracies)
             torch.save(maskrcnn_model.state_dict(), os.path.join(output_folder, f'epoch{epoch}.pt'))
             if mean_iou > max_iou:
                 torch.save(maskrcnn_model.state_dict(),os.path.join(output_folder,'best_iou_model.pt'))
+        lr_sheduler.step()
         wandb.log({"Val Mean IoU": mean_iou, "Val Mean Accuracy": mean_accuracy}, step=epoch)
 
 if __name__ == '__main__':
