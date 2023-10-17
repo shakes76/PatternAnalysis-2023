@@ -4,7 +4,7 @@ This project explored the use of a Vision Transformer for the classification of 
 # Contents
 
 
-# Introduction
+# 1. Introduction
 The Alzheimer's Disease Neuroimaging Initiative (ADNI) is designed to provide researchers with study data to assist in defining the progression of Alzheimer's disease. The aim of this project was to classify Alzheimer's disease (normal and AD) of the ADNI brain data using a Vision Transformer, based on the architecture presented by the paper [An Image Is Worth 16x16 Words](https://arxiv.org/pdf/2010.11929.pdf) [1].
 
 This project used the dataset that contained 2D slices of MRI data for a patient, with the structure:
@@ -23,8 +23,8 @@ AD_NC
 ```
 This means that there is ~70% of the total data in the training set, with the test set containing ~30%. Note that all images are formatted as ```{Patient ID}_{Slice Number}.jpeg```.
 
-# Vision Transformer Background
-## ViT Architecture Overview
+# 2. Vision Transformer Background
+## 2.1 ViT Architecture Overview
 | Vision Transformer (ViT) | Transformer Encoder |
 | :---: | :---: |
 | <img src="misc/vit.gif" width="550" height="400"/> | <img src="misc/encoderblock.png" width="175" height="400"/> |
@@ -61,16 +61,17 @@ The Vision Transformer architecture is comprised of a several stages:
     - This is the output layer of the architecture. It converts the learned features of an input to 
     a class output. Since this is a classification problem, this would be called the "classifier head".
 
-## How it works
+## 2.2 How it works
 
 Here is an example patched image:
 
 <img src="misc\patched_example.png" width="600" height="600"/>
 
-# Problem It Solves
+## 2.3 Problem It Solves
 
 
-# Dependencies & Requirements
+
+# 3. Dependencies & Requirements
 
 To run all the files within this repository, a conda environment can be created using the provided
 ```environment.yml``` file. After installing conda, one can run the following to instantiate a
@@ -79,19 +80,23 @@ new environment with the required dependencies:
 conda env create -n {environment name} -f environment.yml
 ```
 
-# Results
+# 4. Results
 
-## Train, Validation and Test split
+## 4.1 Data Preprocessing
+- needs to include train/validation split.
 
-## Experimentation
+## 4.2 Experimentation
 
-### Basic Model
+### 4.2.1 Basic Model
+- basic model from paper, using hyperparameters specified from paper.
 
-### 
+### 4.2.2 Fine-Tuning model
+- explanation of changing loss function / learning rate and model shape
 
-## Reproducibility of Results
+## 4.3 Reproducibility of Results
+- discussion of overall effectiveness as well?
 
-# References
+# 5. References
 https://arxiv.org/pdf/2010.11929.pdf
 
 https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
