@@ -43,7 +43,7 @@ Pic1.
 
 Pic2.
 
-Now, the generated picture is looks reasonably like a brain CT image and SSIM reaches can reach 80%, but it is still blur. Deep into the training code, autocast() is used to improve the speed of training, but the generated picture is not clear enough. Because autocast() will lower the graphic precision although it will accelerate the training speed. In the training, the min loss of using autocast() training 15000 times is 0.006, however if autocast() is not used, the min loss training 15000 is 0.0015. Besides, the matplotlib may also lower the resolution, so save_image inside torchvision.utils is used to take place of imshow(), the 5000 times trained picture is generated like Pic3. 
+Now, the generated picture is looks reasonably like a brain MRI image and SSIM reaches can reach 80%, but it is still blur. Deep into the training code, autocast() is used to improve the speed of training, but the generated picture is not clear enough. Because autocast() will lower the graphic precision although it will accelerate the training speed. In the training, the min loss of using autocast() training 15000 times is 0.006, however if autocast() is not used, the min loss training 15000 is 0.0015. Besides, the matplotlib may also lower the resolution, so save_image inside torchvision.utils is used to take place of imshow(), the 5000 times trained picture is generated like Pic3. 
 
 ![image](https://github.com/Albert-bc/vq-vae/assets/59477394/da8a8eaa-1691-4f69-ae94-752b7ebf581c)
 
