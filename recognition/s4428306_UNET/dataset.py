@@ -6,9 +6,9 @@ from PIL import Image
 
 #TODO: Clean up debugging notes/code.
 #      Make sure references are in order. Note use of tensorflow documentation.
-#      Clean up dice loss function.
 #      Change rates for adam optimizer.
 #      Rewrite train.py to be functional/non-script.
+#      Rewrite slurm script to us train.py instead of test_train.py
 #      Write prediction functions/script.
 #      Write README.
 #      Make pull request.

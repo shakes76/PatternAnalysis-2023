@@ -10,13 +10,17 @@ from tensorflow.keras import layers
 #      Write documentation for Dice loss function.
 
 class Dice(tf.keras.losses.Loss):
+    def __init__(self, reduction=tf.keras.losses.Reduction.AUTO, name=None, k=1):
+        super().__init__(reduction=reduction, name=name)
+        self.k = 1
+
     def call(self, y_true, y_pred):
         #Number of classes.
         #NOTE: Number of classes could be a class parameter passed to the init function.
-        k = y_true.shape[-1]
+        #k = y_true.shape[-1]
         #Compute Dice loss.
         total = 0
-        for i in range(k):
+        for i in range(self.k):
             #Will these be different shapes if batches are used?
             y_true = y_true[:, :, i]
             y_pred = y_pred[:, :, i]
@@ -24,7 +28,7 @@ class Dice(tf.keras.losses.Loss):
             denominator = tf.math.reduce_sum(y_true) + tf.math.reduce_sum(y_pred)
             total += numerator / denominator
         #NOTE: Unsure about whether this should be negative or not.
-        return -1 * (2 / k) * total
+        return -1 * (2 / self.k) * total
 
 dice_loss = Dice()
 
@@ -57,4 +61,3 @@ iunet_model.save("/home/Student/s4428306/report/iunet_model_attempt2.keras", sav
 
 print(model_history)
 print("SUCCESS")
-
