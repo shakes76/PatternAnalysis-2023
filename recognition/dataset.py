@@ -57,6 +57,8 @@ def tf_parse(x, y):
     x, y = tf.numpy_function(_parse, [x, y], [tf.float32, tf.float32])
     x.set_shape([H, W, 3])
     y.set_shape([H, W, 1])
+    x = tf.convert_to_tensor(x)
+    y = tf.convert_to_tensor(y)
     return x, y
 
 def tf_dataset(X, Y, batch_size):
