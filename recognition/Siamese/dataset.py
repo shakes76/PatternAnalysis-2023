@@ -46,11 +46,12 @@ class Siamese_dataset(Dataset):
         img0_Image = self.transform(img0_Image)
         img1_Image = self.transform(img1_Image)
 
-        return img0_Image, img1_Image, same_class
+        return img0_Image, img1_Image, torch.tensor(same_class, dtype=torch.float)
     
 train_path = "C:\\Users\\Asus\\Desktop\\AD_NC\\train"
 test_path = "C:\\Users\\Asus\\Desktop\\AD_NC\\test"
-batch_size = 64
+train_size = 12
+test_size = 12
 
 training_dataset = datasets.ImageFolder(root=train_path)
 testing_dataset = datasets.ImageFolder(root=test_path)
@@ -59,5 +60,5 @@ transform = transforms.Compose([transforms.ToTensor()])
 siamese_train = Siamese_dataset(imageFolder=training_dataset, transform=transform)
 siamese_test = Siamese_dataset(imageFolder=testing_dataset, transform=transform)
 
-trainloader = DataLoader(siamese_train, shuffle=True, batch_size=batch_size)
-testloader = DataLoader(siamese_test, shuffle=True, batch_size=batch_size)
+trainloader = DataLoader(siamese_train, shuffle=True, batch_size=train_size)
+testloader = DataLoader(siamese_test, shuffle=True, batch_size=test_size)
