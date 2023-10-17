@@ -1,30 +1,40 @@
-import torchvision.transforms as transforms
-import torchvision.datasets.vision as VisionDataset
-from torch.utils.data import DataLoader
-import torchvision
-import torch
 import os
+import torch
+from torchvision import transforms
+from torchvision.datasets.vision import VisionDataset
 from torchvision.io import read_image
-from torchvision.datasets import ImageFolder
-
-#Dataloader and preprocessing for the dataset
+from PIL import Image
 
 class TrainingDataset(VisionDataset):
     def __init__(self, root, data_transform=None, target_transform=None):
-        super(TrainingDataset, self).__init__(root, data_transform=data_transform, target_transform=target_transform)
+        super(TrainingDataset, self).__init__(root, transforms=None, transform=data_transform, target_transform=target_transform)
         self.data_transform = data_transform
         self.target_transform = target_transform
-        
         self.images = []
         self.masks = []
-
-        data_folder = os.path.join(root, 'ISIC2018_Task1-2_Training_Input')
-        mask_folder = os.path.join(root, 'ISIC2018_Task1_Training_GroundTruth')
-
+        
+        
+        
+        if(os.path.exists('recognition/Tord_Improved_UNet/tensorsets/images.pt')):
+            self.images = torch.load('recognition/Tord_Improved_UNet/tensorsets/images.pt')
+            self.masks = torch.load('recognition/Tord_Improved_UNet/tensorsets/masks.pt')
+            return
+        
+        data_folder = os.path.join(root, 'ISIC2018_Task1-2_Training_Input_x2')
+        mask_folder = os.path.join(root, 'ISIC2018_Task1_Training_GroundTruth_x2')
+        i = 0
         for image_name in os.listdir(data_folder):
+            i+=1
             mask_name = image_name.replace('.jpg', '_segmentation.png')  # Assumes naming conventions for masks
-            self.images.append(os.path.join(data_folder, image_name))
-            self.masks.append(os.path.join(mask_folder, mask_name))
+            image = read_image(os.path.join(data_folder, image_name))
+            mask = Image.open(os.path.join(mask_folder, mask_name))
+            image = self.data_transform(image)
+            mask = self.target_transform(mask)
+            self.images.append(image)
+            self.masks.append(mask)
+            print(i)
+        torch.save(self.images, 'recognition/Tord_Improved_UNet/tensorsets/images.pt')
+        torch.save(self.masks, 'recognition/Tord_Improved_UNet/tensorsets/masks.pt')
             
     def __len__(self):
         return len(self.images)
@@ -33,24 +43,18 @@ class TrainingDataset(VisionDataset):
         image_path = self.images[idx]
         mask_path = self.masks[idx]
 
-        image = read_image(image_path)
-        mask = read_image(mask_path)
+        return image_path, mask_path
 
-        if self.data_transform is not None:
-            image = self.data_transform(image)
-
-        if self.target_transform is not None:
-            mask = self.target_transform(mask)
-
-        return image, mask
-
+# Example usage:
 data_transform = transforms.Compose([
-        transforms.Resize((128, 128)),
-        transforms.ToTensor(),
-    ])
+    transforms.Resize((128, 128)),
+])
+
 target_transform = transforms.Compose([
-        transforms.Resize((128, 128)),
-        transforms.ToTensor(),
-    ])
-trainingset = TrainingDataset(root='./data', data_transform=data_transform, target_transform=target_transform)
-print(trainingset.__len__())
+    transforms.Resize((128, 128)),
+    transforms.ToTensor()
+])
+
+@staticmethod
+def load():
+    return TrainingDataset(root='recognition/Tord_Improved_UNet/data', data_transform=data_transform, target_transform=target_transform)
