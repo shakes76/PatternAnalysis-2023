@@ -1,13 +1,18 @@
-# Semi supervised node classification of the Facebook Large Page-Page Network dataset.
+# Semi supervised node classification of the *Facebook Large Page-Page Network* dataset.
 
 *Include a description of the algorithm and the problem that it solves
 (approximately a paragraph), how it works in a paragraph and a figure/visualisation*
 
-A multi-layer graph-covolutional network (GCN) that performs a semi supervised multi-class node classification of the Facebook Large Page-Page Network dataset.
+We use a multi-layer graph-covolutional network (GCN) to classify the Facebook Large Page-Page Network dataset. 
 
 ## Results
 
-*Provide example inputs, outputs and plots of your algorithm*
+See below a graph of the model's training accuracy and loss over 100 epochs.
+
+![Training](images/training.png?raw=true "Training accuracy and loss")
+
+With the setup as described above, the model achieved an impressive accuracy of 95.25% on the test set. 
+
 
 ## Preprocessing
 
