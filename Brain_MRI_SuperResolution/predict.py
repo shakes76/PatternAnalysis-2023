@@ -5,7 +5,7 @@ from models import sub_pixel_cnn
 
 print("[DEBUG] Starting the program.")
 
-test_image_path = 'AD_NC/test/AD/388206_84.jpeg'
+test_image_path = 'AD_NC/test/AD/388206_87.jpeg'
 print(f"[DEBUG] Loading image from path: {test_image_path}")
 test_image = cv2.imread(test_image_path, cv2.IMREAD_GRAYSCALE)
 
@@ -39,11 +39,28 @@ print(f"[DEBUG] Predicted image shape: {predicted_image[0].shape}")
 predicted_image_rescaled = (predicted_image[0] * 255).astype(np.uint8)
 print("[DEBUG] Rescaled predicted image for visualization.")
 
-# Display the image
-print("[DEBUG] Displaying the predicted image.")
-cv2.imshow('Predicted Image', predicted_image_rescaled)
+# # Display the image
+# print("[DEBUG] Displaying the predicted image.")
+# cv2.imshow('Predicted Image', predicted_image_rescaled)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
+
+# Display the images side by side for comparison
+# Ensure all images have the same height before concatenation
+height = test_image.shape[0]
+width_ratio_downsampled = test_image_downsampled.shape[1] / test_image_downsampled.shape[0]
+width_ratio_predicted = predicted_image_rescaled.shape[1] / predicted_image_rescaled.shape[0]
+
+
+test_image_downsampled_resized = cv2.resize(test_image_downsampled, (test_image_downsampled.shape[1] * height // test_image_downsampled.shape[0], height))
+predicted_image_rescaled_resized = cv2.resize(predicted_image_rescaled, (predicted_image_rescaled.shape[1] * height // predicted_image_rescaled.shape[0], height))
+
+
+concatenated_output = np.hstack((test_image, test_image_downsampled_resized, predicted_image_rescaled_resized))
+cv2.imshow('Original | Downsampled | Predicted', concatenated_output)
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+
 
 # Optionally, save the image
 # cv2.imwrite('path_to_save_predicted_image.png', predicted_image_rescaled)

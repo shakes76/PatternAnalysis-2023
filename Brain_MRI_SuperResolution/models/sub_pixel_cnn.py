@@ -1,9 +1,20 @@
-from tensorflow.keras.layers import Input, Conv2D, BatchNormalization, Add, LeakyReLU, Dropout, Lambda
-from tensorflow.keras.layers import Conv2DTranspose
-from tensorflow.keras.layers import Reshape
+from keras.layers import Input, Conv2D, BatchNormalization, Add, LeakyReLU, Dropout, Lambda
+from keras.layers import Conv2DTranspose
+from keras.layers import Reshape
 
-from tensorflow.keras.models import Model
+from keras.models import Model
 import tensorflow as tf
+tf.config.run_functions_eagerly(True)
+
+from keras.callbacks import Callback
+
+
+
+class PrintShape(Callback):
+    def on_epoch_end(self, epoch, logs=None):
+        print("\nOutput shapes after epoch {}:".format(epoch))
+        for layer in self.model.layers:
+            print(layer.name, ":", layer.output_shape)
 
 def residual_block(y, nb_channels, _strides=(1, 1)):
     shortcut = y
@@ -40,20 +51,19 @@ def sub_pixel_cnn(input_shape):
 
     # Dropout for regularization
     x = Dropout(0.3)(x)
-
     x = Conv2D(4, (3, 3), padding='same')(x)
     x = LeakyReLU()(x)
     x = BatchNormalization()(x)
 
-    # Sub-pixel convolution to get 200x200
+    # Sub-pixel convolution to upscale
     x = Lambda(lambda x: tf.nn.depth_to_space(x, 2))(x)
 
-    # Additional upscaling to get 300x300
+    # Additional upscaling using Conv2DTranspose
     x = Conv2D(64, (3, 3), padding='same')(x)
     x = LeakyReLU()(x)
-    x = Conv2DTranspose(1, (3, 3), strides=(2, 2), padding='same')(x) # This will upscale from 200 to 400
-    x = Lambda(lambda img: tf.image.resize(img, [300,300]))(x)
+    x = Conv2DTranspose(1, (3, 3), strides=(2, 2), padding='same')(x) # This will upscale the image to the desired size
 
     outputs = x
 
     return Model(inputs=inputs, outputs=outputs)
+
