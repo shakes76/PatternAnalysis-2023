@@ -50,7 +50,7 @@ def main():
     # change path to current directory
     os.chdir(os.path.dirname(__file__))
 
-    epoch = 60
+    epoch = 30
 
     # build model and optimizer
     loss_fn = nn.CrossEntropyLoss().to(device)
