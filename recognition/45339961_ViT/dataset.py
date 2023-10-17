@@ -1,4 +1,4 @@
-""" Data loader for loading and preprocessing the dataset. """
+""" Dataloader for loading and preprocessing the dataset. """
 
 import os
 from torchvision.datasets import ImageFolder
