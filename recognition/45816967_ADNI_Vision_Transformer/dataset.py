@@ -1,15 +1,17 @@
 import torch
 from torch.utils.data import Dataset
-from torchvision.transforms import Compose, ToTensor, PILToTensor, CenterCrop, ToPILImage
+from torchvision.transforms import Compose, ToTensor, CenterCrop, ToPILImage, Normalize, Resize
+import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 from glob import glob
 
 
 # standardTransform = Compose([ToTensor(), Resize([128, 128], antialias=True), Normalize(0.5, 0.5, 0.5)])
-standardTransform = Compose([PILToTensor(), CenterCrop(192)])
+standardTransform = Compose([ToTensor(), CenterCrop(224), Normalize(0.11553987, 0.22542113)])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class ADNIDataset(Dataset):  
+	"""Torch Dataset Wrapper for ADNI Dataset"""
 	def __init__(self, img_data, transform=ToTensor()):
 		self.transform = transform
 		self.imgs = [self.transform(imgset[0]) for imgset in img_data]
@@ -25,14 +27,18 @@ def load_images_from_directories(dirs, datasplit=0., verbose=False):
 	"""Load images from data directory
 
 	Args:
-		dirs (_type_): _description_
+		dirs ([[string, int]]): List of directories and their labels
+		datasplit (_type_, optional): The val to train split of the data. Defaults to 0..
+		verbose (bool, optional): Verbosity of the function. Defaults to False.
+
+	Returns:
+		([string, int], [string, int]): A tuple of the train and val images and their labels
 	"""
 	image_paths = []
 	train_paths = []
 	val_paths = []
 	train_images = []
 	val_images = []
-	print(dirs)
 	for dir in dirs:
 		temp_image_paths = []
 		for filename in glob(dir[0], recursive=True):
@@ -43,22 +49,18 @@ def load_images_from_directories(dirs, datasplit=0., verbose=False):
 		count = 0
 		for filename in temp_image_paths:
 			patient_id = filename.split("/")[-1].split("_")[0]
-			# print(patient_id)
 			if (curr_patient != patient_id):
 				curr_patient = patient_id
 				count += 1
 			if (datasplit != 0.):
-				# print(patient_id)
 				if (count % (round(1/datasplit)) == 0):
 					count = 0
 				if (count == 0):
-					# print("val")
 					val_paths.append(filename)
 					img = Image.open(filename)
 					val_images.append([img.copy(), dir[1]])
 					img.close()
 				else:
-					# print("train")
 					train_paths.append(filename)
 					img = Image.open(filename)
 					train_images.append([img.copy(), dir[1]])
@@ -68,10 +70,6 @@ def load_images_from_directories(dirs, datasplit=0., verbose=False):
 				img = Image.open(filename)
 				train_images.append([img.copy(), dir[1]])
 				img.close()
-	# image_paths = sorted(image_paths)
-	
-	# for ip in image_paths:
-		
 			
 	if verbose:
 		print("Set1: ", train_paths[:2])
@@ -85,10 +83,15 @@ def load_images_from_directories(dirs, datasplit=0., verbose=False):
 
 
 def load_adni_images(datasplit = 0.2, verbose=False, local=True):
-	"""Load oasis images from data directory provided
+	"""Load adni images from data directory provided
+
+	Args:
+		datasplit (float, optional): The val to train split of the data. Defaults to 0.2.
+		verbose (bool, optional): Verbosity of the function. Defaults to False.
+		local (bool, optional): Whether training on PC or Rangpur. Defaults to True.
 
 	Returns:
-		[string, list[np.array]]: image paths and images
+		_type_: _description_
 	"""
 	train_dirs = []
 	test_dirs = []
@@ -108,20 +111,36 @@ def load_adni_images(datasplit = 0.2, verbose=False, local=True):
 		train_dirs.append((f'{base_dir}train/NC/*', 0))
 		test_dirs.append((f'{base_dir}test/AD/*', 1))
 		test_dirs.append((f'{base_dir}test/NC/*', 0))
-  
-	print(train_dirs)
-	print(test_dirs)
 	
 	return load_images_from_directories(train_dirs, datasplit=datasplit, verbose=verbose), load_images_from_directories(test_dirs, datasplit=0, verbose=verbose)
 
 def generate_adni_datasets(datasplit = 0.2, verbose = False, local=True, test=False):
+	"""_summary_
+
+	Args:
+		datasplit (float, optional): The val to train split of the data . Defaults to 0.2.
+		verbose (bool, optional): Verbosity of the function. Defaults to False.
+		local (bool, optional): Whether training on PC or Rangpur. Defaults to True.
+		test (bool, optional): Set true if fake images are to be generated. Defaults to False.
+
+	Returns:
+		(torch.utils.data.Dataset, torch.utils.data.Dataset, torch.utils.data.Dataset)): _description_
+	"""
 	train_imgs, test_imgs = load_adni_images(datasplit=datasplit, verbose = verbose, local=local)
 	
 	if test:
 		tensor2pil = ToPILImage()
-		train_imgs = [[[tensor2pil(torch.randn(1, 192, 192)), 0], [tensor2pil(torch.randn(1, 192, 192)), 1]], [[torch.randn(1, 192, 192), 0], [torch.randn(1, 192, 192), 1]]]
-		test_imgs = [[[tensor2pil(torch.randn(1, 192, 192)), 0], [tensor2pil(torch.randn(1, 192, 192)), 1]], [[torch.randn(1, 192, 192), 0], [torch.randn(1, 192, 192), 1]]]
+		train_imgs = [[[tensor2pil(torch.randn(1, 224, 224)), 0], [tensor2pil(torch.randn(1, 224, 224)), 1]], [[torch.randn(1, 224, 224), 0], [torch.randn(1, 224, 224), 1]]]
+		test_imgs = [[[tensor2pil(torch.randn(1, 224, 224)), 0], [tensor2pil(torch.randn(1, 224, 224)), 1]], [[torch.randn(1, 224, 224), 0], [torch.randn(1, 224, 224), 1]]]
 	train_set = ADNIDataset(train_imgs[0], transform=standardTransform)
 	val_set = ADNIDataset(train_imgs[1], transform=standardTransform)
 	test_set = ADNIDataset(test_imgs[0], transform=standardTransform)
 	return train_set, val_set, test_set
+
+def get_normalise_constants():
+	train_imgs, test_imgs, = load_adni_images(datasplit=0)
+	transform = ToTensor()
+	# print([transform(imgset[0]).squeeze(0).numpy() for imgset in train_imgs[0]])
+	imgs = np.array([transform(imgset[0]).squeeze(0).numpy() for imgset in train_imgs[0]])
+	print(imgs.mean(), imgs.std())
+	return imgs.mean(), imgs.std()

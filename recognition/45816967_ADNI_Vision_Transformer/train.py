@@ -1,14 +1,14 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
-from torchinfo import summary
+# from torchinfo import summary
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 
 def train(model, train_loader, val_loader, criterion=nn.CrossEntropyLoss(), n_epochs=50, lr=0.000025, version_prefix="vit0", gen_plots=True):
 	# summary(model=model, 
-	# 			input_size=(128, 1, 192, 192),
+	# 			input_size=(128, 1, 224, 224),
 	# 			col_names=["input_size", "output_size", "num_params", "trainable"],
 	# 			col_width=20,
 	# 			row_settings=["var_names"]

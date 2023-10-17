@@ -2,19 +2,18 @@ import torch
 import torch.nn as nn
 
 patch_size = 16
-height = 192
-width = 192
+height = 224
+width = 224
 
-# 1. Create a class which subclasses nn.Module
+# Patch Embedding Module Modified from: https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
 class PatchEmbedding(nn.Module):
     """Turns a 2D input image into a 1D sequence learnable embedding vector.
     
     Args:
-        in_channels (int): Number of color channels for the input images. Defaults to 3.
+        in_channels (int): Number of color channels for the input images. Defaults to 1.
         patch_size (int): Size of patches to convert input image into. Defaults to 16.
-        embedding_dim (int): Size of embedding to turn image into. Defaults to 768.
+        embedding_dim (int): Size of embedding to turn image into. Defaults to 256.
     """ 
-    # 2. Initialize the class with appropriate variables
     def __init__(self, 
                  in_channels:int=1,
                  patch_size:int=16,
@@ -23,85 +22,77 @@ class PatchEmbedding(nn.Module):
         
         self.patch_size = patch_size
         
-        # 3. Create a layer to turn an image into patches
+        # Layer which converts images into patches
         self.patcher = nn.Conv2d(in_channels=in_channels,
                                  out_channels=embedding_dim,
                                  kernel_size=patch_size,
                                  stride=patch_size,
                                  padding=0)
 
-        # 4. Create a layer to flatten the patch feature maps into a single dimension
-        self.flatten = nn.Flatten(start_dim=2, # only flatten the feature map dimensions into a single vector
+        # Create a layer to flatten the patch feature maps into a single dimension
+        self.flatten = nn.Flatten(start_dim=2,
                                   end_dim=3)
 
-    # 5. Define the forward method 
     def forward(self, x):
-        # Create assertion to check that inputs are the correct shape
+        # Get Image Shape
         image_resolution = x.shape[-1]
         assert image_resolution % self.patch_size == 0, f"Input image size must be divisble by patch size, image shape: {image_resolution}, patch size: {patch_size}"
         
-        # Perform the forward pass
+        # Split into patches
         x_patched = self.patcher(x)
+        
+        # Flatten patches
         x_flattened = self.flatten(x_patched) 
-        # 6. Make sure the output shape has the right order 
+        
+        # Permute to make embedding dimension the last dimension
         return x_flattened.permute(0, 2, 1)
 
-# 1. Create a ViT class that inherits from nn.Module
+# Vision Transformer Model Modified from: https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
 class ViT(nn.Module):
-    """Creates a Vision Transformer architecture with ViT-Base hyperparameters by default."""
-    # 2. Initialize the class with hyperparameters from Table 1 and Table 3
     def __init__(self,
-                 img_size:int=192, # Training resolution from Table 3 in ViT paper
-                 in_channels:int=1, # Number of channels in input image
-                 patch_size:int=16, # Patch size
-                 num_transformer_layers:int=8, # Layers from Table 1 for ViT-Base
-                 embedding_dim:int=128, # Hidden size D from Table 1 for ViT-Base
-                 mlp_size:int=128, # MLP size from Table 1 for ViT-Base
-                 num_heads:int=8, # Heads from Table 1 for ViT-Base
-                 dropout:float=0.1, # Dropout for dense/MLP layers 
-                 embedding_dropout:float=0.1, # Dropout for patch and position embeddings
-                 num_classes:int=2): # Default for ImageNet but can customize this
-        super().__init__() # don't forget the super().__init__()!
+                 img_size:int=224,
+                 in_channels:int=1,
+                 patch_size:int=16,
+                 num_transformer_layers:int=8,
+                 embedding_dim:int=128,
+                 mlp_size:int=128,
+                 num_heads:int=8,
+                 dropout:float=0.1,
+                 embedding_dropout:float=0.1,
+                 num_classes:int=2):
+        super().__init__()
         
-        # 3. Make the image size is divisble by the patch size 
         assert img_size % patch_size == 0, f"Image size must be divisible by patch size, image size: {img_size}, patch size: {patch_size}."
         
-        # 4. Calculate number of patches (height * width/patch^2)
+        # Calculate number of patches (height * width/patch^2)
         self.num_patches = (img_size * img_size) // patch_size**2
                  
-        # 5. Create learnable class embedding (needs to go at front of sequence of patch embeddings)
+        # Create learnable class embedding
         self.class_embedding = nn.Parameter(data=torch.randn(1, 1, embedding_dim),
                                             requires_grad=True)
         
-        # 6. Create learnable position embedding
+        # Create learnable position embedding
         self.position_embedding = nn.Parameter(data=torch.randn(1, self.num_patches+1, embedding_dim),
                                                requires_grad=True)
                 
-        # 7. Create embedding dropout value
+        # Create embedding dropout value
         self.embedding_dropout = nn.Dropout(p=embedding_dropout)
         
-        # 8. Create patch embedding layer
+        # Create patch embedding layer
         self.patch_embedding = PatchEmbedding(in_channels=in_channels,
                                               patch_size=patch_size,
                                               embedding_dim=embedding_dim)
-        
-        self.transformer_encoder = nn.Sequential(*[nn.TransformerEncoderLayer(d_model=embedding_dim, # Hidden size D from Table 1 for ViT-Base
-                                                             nhead=num_heads, # Heads from Table 1 for ViT-Base
-                                                             dim_feedforward=mlp_size, # MLP size from Table 1 for ViT-Base
-                                                             dropout=dropout, # Amount of dropout for dense layers from Table 3 for ViT-Base
-                                                             activation="gelu", # GELU non-linear activation
-                                                             batch_first=True, # Do our batches come first?
+        # Transformer Encoder layers made up of MHSA and MLP blocks
+        self.transformer_encoder = nn.Sequential(*[nn.TransformerEncoderLayer(d_model=embedding_dim,
+                                                             nhead=num_heads,
+                                                             dim_feedforward=mlp_size,
+                                                             dropout=dropout,
+                                                             activation="gelu",
+                                                             batch_first=True,
                                                              norm_first=True) for _ in range(num_transformer_layers)])
        
         
-        # # 9. Create Transformer Encoder blocks (we can stack Transformer Encoder blocks using nn.Sequential()) 
-        # # Note: The "*" means "all"
-        # self.transformer_encoder = nn.Sequential(*[TransformerEncoderBlock(embedding_dim=embedding_dim,
-        #                                                                     num_heads=num_heads,
-        #                                                                     mlp_size=mlp_size,
-        #                                                                     mlp_dropout=mlp_dropout) for _ in range(num_transformer_layers)])
-       
-        # 10. Create classifier head
+        # Create classifier head
         self.classifier = nn.Sequential(
             nn.LayerNorm(normalized_shape=embedding_dim),
             nn.Linear(in_features=embedding_dim, 
@@ -109,31 +100,30 @@ class ViT(nn.Module):
             nn.Softmax(dim=-1) # calculate softmax across the last dimension
         )
     
-    # 11. Create a forward() method
     def forward(self, x):
         
-        # 12. Get batch size
+        # Get batch size
         batch_size = x.shape[0]
         
-        # 13. Create class token embedding and expand it to match the batch size (equation 1)
-        class_token = self.class_embedding.expand(batch_size, -1, -1) # "-1" means to infer the dimension (try this line on its own)
+        # Create class token embedding and expand it to match the batch size (equation 1)
+        class_token = self.class_embedding.expand(batch_size, -1, -1) # "-1" means to infer the dimension
 
-        # 14. Create patch embedding (equation 1)
+        # Create patch embedding
         x = self.patch_embedding(x)
 
-        # 15. Concat class embedding and patch embedding (equation 1)
+        # Concat class embedding and patch embedding
         x = torch.cat((class_token, x), dim=1)
 
-        # 16. Add position embedding to patch embedding (equation 1) 
+        # Add position embedding to patch embedding
         x = self.position_embedding + x
 
-        # 17. Run embedding dropout (Appendix B.1)
+        # Run embedding dropout
         x = self.embedding_dropout(x)
 
-        # 18. Pass patch, position and class embedding through transformer encoder layers (equations 2 & 3)
+        # Pass patch, position and class embedding through transformer encoder layers
         x = self.transformer_encoder(x)
 
-        # 19. Put 0 index logit through classifier (equation 4)
-        x = self.classifier(x[:, 0]) # run on each sample in a batch at 0 index
+        # Put 0 index logit through classifier
+        x = self.classifier(x[:, 0])
 
         return x       
