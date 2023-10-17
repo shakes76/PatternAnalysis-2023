@@ -35,7 +35,7 @@ class ImprovedUNet(nn.Module):
 
         self.pool = nn.MaxPool2d(2)
 
-        # Channel reducer (Bridge)
+        # Channel Reducer (Bridge)
         self.bridge = nn.Conv2d(512, 256, kernel_size=1)
 
         # Decoder
