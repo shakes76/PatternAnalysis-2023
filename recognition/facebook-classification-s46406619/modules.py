@@ -2,6 +2,7 @@ import torch
 from torch.nn import Linear
 from torch_geometric.nn import GCNConv
 
+# optimised GCN model for the given dt
 class GCN(torch.nn.Module):
     def __init__(self, train_split=None, test_split=None):
         super().__init__()

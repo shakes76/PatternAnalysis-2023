@@ -22,9 +22,8 @@ from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 
 # produce a 2D embeddings plot via t-SNE
-tsne = TSNE(random_state=42, n_iter=300, metric="cosine")
+tsne = TSNE(random_state=1, n_iter=300, metric="cosine")
 embs_pred = tsne.fit_transform(embs.detach().numpy())
-tsne = TSNE(random_state=42, n_iter=300, metric="cosine")
 embs_true = tsne.fit_transform(data.X)
 
 # extract embeddings
