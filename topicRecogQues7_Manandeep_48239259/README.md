@@ -44,6 +44,7 @@ The project is organized into four main components:
 3. **train.py**: Contains the code for training the Siamese Network, including data loading, model training, and saving the trained model.
 
 4. **predict.py**: Demonstrates the usage of the trained model for image classification, including classifying test images and calculating accuracy.
+
 ## How to Use
 
 1. **Training the Model**:
@@ -57,7 +58,6 @@ The project is organized into four main components:
     - Loading the trained model.
     - Preprocessing the test images.
     - Classifying the test images as "Has Alzheimer Disease" or "Is Cognitive Normal."
-
 
 3. **Calculating Accuracy**:
    - Use the `calculate_accuracy` function in `predict.py` to calculate the accuracy of the trained model on a test dataset. You can specify the true labels and the test folder path.
@@ -96,13 +96,9 @@ The Siamese Network outputs the final classification of the test image as either
 
 This classification process enables the model to effectively categorize test images based on their similarity to reference images from known categories.
 
-## Results
-
 The trained Siamese Network achieved the following results:
 
 - Test Accuracy: >= 84%
-
-Users can refer to the 'Testing and Classification' section for more details on using the model.
 
 ## Dependencies
 
@@ -117,8 +113,6 @@ To run this project, you need the following software, libraries, and modules:
 - torch.autograd.Variable - PyTorch module for automatic differentiation.
 - torch.nn (nn) - PyTorch's neural network module.
 - os - Python's built-in module for interacting with the operating system.
-
-You can install the required dependencies using `pip` if they are not already installed.
 
 ## References
 
