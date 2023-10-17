@@ -5,18 +5,15 @@ Jack Cashman - 47431748
 from tensorflow.keras.preprocessing import image_dataset_from_directory
 import matplotlib.pyplot as plt
 
-# Change as needed
-DATA_PATH = r'C:/Users/jackc/OneDrive/Desktop/UQ/UQ23S2/COMP3710_PROJ/PatternAnalysis-2023/AD_NC/'
-IMG_DIM = 256
-BATCH_SIZE = 32
-SHIFT = 0.5
-
-def prep_data(path, img_dim, batch_size, shift):
+def prep_data(path, img_dim, batch_size, validation_split=None, subset=None, seed=None, shift=0):
     """
     Load and preprocess the image data
     :param path: Path to unzipped data
     :param img_dim: Dimension of the square images
     :param batch_size: Size of each batch
+    :param validation_split: Portion of data reserved for validation set
+    :param subset: Whether to load train/val set if using a split
+    :param seed: Random seed to ensure no dataleakage due to train/val splot
     :param shift: Normalisation const.
     :return: tf.data.Dataset object
     """
@@ -25,6 +22,9 @@ def prep_data(path, img_dim, batch_size, shift):
                                             image_size=(img_dim, img_dim),
                                             color_mode='rgb',
                                             batch_size=batch_size,
-                                            shuffle=True)
+                                            shuffle=True,
+                                            validation_split=validation_split,
+                                            subset=subset,
+                                            seed=seed)
 
     return img_data.map(lambda x: (x / float(img_dim)) - shift)

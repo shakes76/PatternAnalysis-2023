@@ -345,7 +345,3 @@ class PixelCNN(Model):
         :return: Loss values
         """
         return self.train_step(data)
-
-p = PixelCNN()
-p.build((None, 7, 7))
-p.summary()
