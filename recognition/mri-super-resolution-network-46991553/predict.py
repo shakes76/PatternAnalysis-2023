@@ -31,6 +31,8 @@ def main():
             print("Exiting...")
             exit(1)
 
+    print("Loaded model from file:", model_filename)
+
     # Display the outputs from some testing images
     data_loader = get_test_dataloader()
     print("Displaying model output from test images...")

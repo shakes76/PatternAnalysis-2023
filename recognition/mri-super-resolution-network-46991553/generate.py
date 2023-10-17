@@ -54,6 +54,7 @@ def generate_model_output(model: nn.Module, data_loader: DataLoader, prefix='', 
             plt.imshow(output_img_formatted)
             plt.title(f"Model Output")
             plt.axis('off')  # Turn off axis labels
+            plt.tight_layout()
             
             filename = image_dir + prefix + 'output.png'
 

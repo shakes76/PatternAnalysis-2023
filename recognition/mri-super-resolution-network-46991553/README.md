@@ -57,7 +57,29 @@ Once loaded, they are downsampled by a factor of 4 using the Resize() transform:
 
 <img src="doc/downsampled.png" width="600">
 
-These downsampled images are fed into the model, and the model loss is calculated using the original images. The test set is used to generate regular checkpoint outputs during training, and these are later inspected to verify the model isn't getting overfitted.
+These downsampled images are fed into the model, and the model loss is calculated using the original images. A validation set was used to generate regular checkpoint outputs during training, and these are later inspected to verify the model isn't getting overfitted. As an example, here are some checkpoints from the first two epochs (chronologically left-to-right, top-to-bottom):
+
+<table>
+    <tr>
+        <td> <img src="doc/[1,10][0,169]output.png" width="200"> </td>
+        <td> <img src="doc/[1,10][1,169]output.png" width="200"> </td>
+        <td> <img src="doc/[1,10][40,169]output.png" width="200"> </td>
+    </tr> 
+    <tr>
+        <td> <img src="doc/[1,10][80,169]output.png" width="200"> </td>
+        <td> <img src="doc/[1,10][120,169]output.png" width="200"> </td>
+        <td> <img src="doc/[1,10][160,169]output.png" width="200"> </td>
+    </tr>
+    <tr>
+        <td> <img src="doc/[2,10][40,169]output.png" width="200"> </td>
+        <td> <img src="doc/[2,10][80,169]output.png" width="200"> </td>
+        <td> <img src="doc/[2,10][120,169]output.png" width="200"> </td>
+    </tr>
+</table>
+
+
+
+
 
 The model was trained for 10 epochs, which likely that 10 epochs is more than necessary. This can be seen in the loss plot:
 
