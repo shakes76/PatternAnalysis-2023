@@ -65,3 +65,60 @@ class Localisation(nn.Module):
         out = self.relu2(self.instNorm(self.conv2(out)))
         
         return out
+    
+'''
+    improved UNet block
+    implemented as per paper
+'''
+class ImprovedUNet(nn.Module):
+    def __init__(self):
+        super(ImprovedUNet, self).__init__()
+        
+        # 3x3x3 conv            16
+        
+        # context
+        
+        # 3x3x3 conv stride 2   32
+        
+        # context
+        
+        # 3x3x3 conv stride 2   64
+        
+        # context
+        
+        # 3x3x3 conv stride 2   128
+        
+        # context
+        
+        # 3x3x3 conv stride 2   256
+        
+        # upsample              128
+        
+        # concat
+        
+        # localisation
+        
+        # upsample              64
+        
+        # concat
+        
+        # localisation
+        
+        # upsample              32
+        
+        # concat
+        
+        # localisation
+        
+        # upsample              16
+        
+        # 3x3x3 conv
+        
+        # segmentation ???
+        
+        
+        
+    def forward(self, input):
+        out = 0
+        
+        return out
