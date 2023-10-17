@@ -23,18 +23,18 @@ class Quantize(nn.Module):
     def forward(self, input):
         """ Forward Propagation """
         flatten = input.reshape(-1, self.dim)           # flatten input
-        dist = (                                        # distance
+        dist = (                                        # get distance
             flatten.pow(2).sum(1, keepdim=True)
             - 2 * flatten @ self.embed
             + self.embed.pow(2).sum(0, keepdim=True)
         )
-        _, embed_ind = (-dist).max(1)                   # indices
-        embed_onehot = F.one_hot(embed_ind, self.n_embed).type(flatten.dtype)
-        embed_ind = embed_ind.view(*input.shape[:-1])
-        quantize = self.embed_code(embed_ind)           # quantized version of the input
+        _, embed_ind = (-dist).max(1)                   # get encoding indices
+        embed_onehot = F.one_hot(embed_ind, self.n_embed).type(flatten.dtype)   # get encodings
+        embed_ind = embed_ind.view(*input.shape[:-1])   # reshape indices
+        quantize = self.embed_code(embed_ind)           # get quantized version of the input
 
         if self.training:
-            embed_onehot_sum = embed_onehot.sum(0)
+            embed_onehot_sum = embed_onehot.sum(0)      # 
             embed_sum = flatten.transpose(0, 1) @ embed_onehot
 
             self.cluster_size.data.mul_(self.decay).add_(
@@ -54,7 +54,7 @@ class Quantize(nn.Module):
         return quantize, diff, embed_ind
 
     def embed_code(self, embed_id):
-        """ Returns embedding tensor """
+        """ Returns embedding tensor for a batch of indices """
         return F.embedding(embed_id, self.embed.transpose(0, 1))    # looks up embeddings
 
 

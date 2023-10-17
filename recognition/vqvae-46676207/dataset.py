@@ -14,7 +14,7 @@ from torchvision.utils import make_grid
 
 # IO Paths
 match node():                                                    # root of data dir
-    case 'Its-a-Macbook.modem':
+    case 'Its-a-MacBook.local':
         DATA_PATH = '/Users/samson/Documents/UQ/COMP3710/data/keras_png_slices_data/'
     case 'Its_a_PC':
         DATA_PATH = 'D:/Documents/UQ/COMP3710/data/keras_png_slices_data/'
