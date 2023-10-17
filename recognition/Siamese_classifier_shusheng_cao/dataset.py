@@ -13,6 +13,7 @@ def load_images(folder, img_list):
         with Image.open(os.path.join(folder, filename)) as img:
             img_list.append(img.copy())
 
+
 class ADNITrainSiameseDataset(Dataset):
     def __init__(self, data_dir, transform=None):
         self.data_dir = data_dir
@@ -30,16 +31,18 @@ class ADNITrainSiameseDataset(Dataset):
         self.preprocess()
 
     def preprocess(self):
-        ad_triplets = [(anchor, positive, negative)
-                       for anchor in self.ad_images
-                       for positive in random.choices([x for x in self.ad_images if x != anchor], k=1)
-                       for negative in random.choices(self.normal_images, k=1)]
-
-        nc_triplets = [(anchor, positive, negative)
-                       for anchor in self.ad_images
-                       for positive in random.choices([x for x in self.normal_images if x != anchor], k=1)
-                       for negative in random.choices(self.ad_images, k=1)]
-        self.triplets += ad_triplets + nc_triplets
+        for i in range(len(self.ad_images)):
+            pos_i = random.randint(0, len(self.ad_images) - 1)
+            while pos_i == i:
+                pos_i = random.randint(0, len(self.ad_images) - 1)
+            neg_i = random.randint(0, len(self.normal_images) - 1)
+            self.triplets.append((self.ad_images[i], self.ad_images[pos_i], self.normal_images[neg_i]))
+        for i in range(len(self.normal_images)):
+            pos_i = random.randint(0, len(self.normal_images) - 1)
+            while pos_i == i:
+                pos_i = random.randint(0, len(self.normal_images) - 1)
+            neg_i = random.randint(0, len(self.ad_images) - 1)
+            self.triplets.append((self.normal_images[i], self.normal_images[pos_i], self.ad_images[neg_i]))
 
     def __len__(self):
         return len(self.triplets)
