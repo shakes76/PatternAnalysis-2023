@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class Network(nn.Module):
-    def __init__(self, upscale_factor=3, channels=1):
+    def __init__(self, upscale_factor=4, channels=1):
         super(Network, self).__init__()
         
         self.conv1 = nn.Sequential(
