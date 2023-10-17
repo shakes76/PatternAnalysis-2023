@@ -13,7 +13,7 @@ import matplotlib.animation as animation
 import random
 
 batch_size = 64
-workers = 1
+workers = 2
 
 # Images are 256 by 240 pixels. Resize them to 224 by 224; must be divisible by 16
 image_size = 224  # Resized 2D image input
@@ -29,8 +29,8 @@ num_classes = 2  # Number of different classes to classify (i.e. AD and NC)
 num_epochs = 3
 
 # Create the dataset
-train_dataroot = "AD_NC/train"
-test_dataroot = "AD_NC/test"
+train_dataroot = "AD_NC_Small/train"
+test_dataroot = "AD_NC_Small/test"
 train_dataset = dset.ImageFolder(root=train_dataroot,
                             transform=transforms.Compose([
                             transforms.Resize((image_size, image_size)),
@@ -106,7 +106,6 @@ class TransformerEncoder(nn.Module):
         
         self.full_transformer_encoder = nn.TransformerEncoder(encoder_layer=self.transformer_encoder_layer,
                                                                 num_layers=num_layers)
-        
     
     def forward(self, input):
         return self.full_transformer_encoder(input)
@@ -175,6 +174,7 @@ class ViT(nn.Module):
     def forward(self, input):
         current_batch_size = input.size(0)
         prepend_embed_token_expanded = self.prepend_embed_token.expand(current_batch_size, -1, -1)
+
         input = self.patch_embedding(input)  # Patch embedding
         input = torch.cat((prepend_embed_token_expanded, input), dim=1)  # Prepend class token
         input = input + self.position_embed_token  # Add position embedding
@@ -260,16 +260,8 @@ def test():
 
 def main():
     visual_transformer = ViT(workers).to(device)
-    #from torchinfo import summary
-
-    # # Print a summary of our custom ViT model using torchinfo (uncomment for actual output)
-    #summary(model=visual_transformer, 
-            #input_size=(32, 3, 224, 224), # (batch_size, color_channels, height, width)
-           # col_names=["input_size", "output_size", "num_params", "trainable"],
-            #col_width=20,
-           # row_settings=["var_names"]
-    #)
-
+    alzheimers = 0.
+    normal = 1.
     
     # ----------------------------------------
     # Loss Function and Optimiser

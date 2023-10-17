@@ -7,13 +7,9 @@ import torchvision
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-import random
+from pathlib import Path
 
 batch_size = 64
-workers = 1
 
 # Images are 256 by 240 pixels. Resize them to 224 by 224; must be divisible by 16
 image_size = 224  # Resized 2D image input
@@ -26,9 +22,10 @@ num_layers = 12  # Number of Transformer encoder layers
 mlp_size = 3072  # Number of hidden units between each linear layer
 dropout_size = 0.1
 num_classes = 2  # Number of different classes to classify (i.e. AD and NC)
-num_epochs = 3
+num_epochs = 7
 
 # Create the dataset
+working_directory = Path.cwd()
 train_dataroot = "AD_NC/train"
 test_dataroot = "AD_NC/test"
 train_dataset = dset.ImageFolder(root=train_dataroot,
@@ -44,16 +41,21 @@ test_dataset = dset.ImageFolder(root=test_dataroot,
                         ]))
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
-                                        shuffle=True, num_workers=workers)
+                                        shuffle=True)
 
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,
-                                        shuffle=False, num_workers=workers)
+                                        shuffle=False)
 
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning CUDA not found. Using CPU")
+
+print(f"Device count: {torch.cuda.device_count()}")
+print(f"Current device: {torch.cuda.current_device()}")
+print(f"Device: {torch.cuda.device(0)}")
+print(f"Device name: {torch.cuda.get_device_name()}")
 
 # ------------------------------------------------------------------
 # Patch Embedding
@@ -65,9 +67,8 @@ class PatchEmbedding(nn.Module):
     N is the number of patches, 
     and P is the dimension of each patch; P^2 represents a flattened patch.
     """
-    def __init__(self, ngpu):
+    def __init__(self):
         super(PatchEmbedding, self).__init__()
-        self.ngpu = ngpu
         # Puts image through Conv2D layer with kernel_size = stride to ensure no patches overlap.
         # This will split image into fixed-sized patches; each patch has the same dimensions
         # Then, each patch is flattened, including all channels for each patch.
@@ -90,10 +91,8 @@ class TransformerEncoder(nn.Module):
     One transformer encoder layer consists of layer normalisation, multi-head self attention layer, 
     a residual connection, another layer normalisation, an mlp block, and another residual connection.
     """
-    def __init__(self, ngpu):
+    def __init__(self):
         super(TransformerEncoder, self).__init__()
-        self.ngpu = ngpu
-
         self.transformer_encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim,
                                                                     nhead=num_heads,
                                                                     dim_feedforward=mlp_size,
@@ -105,8 +104,8 @@ class TransformerEncoder(nn.Module):
                                                                     )
         
         self.full_transformer_encoder = nn.TransformerEncoder(encoder_layer=self.transformer_encoder_layer,
-                                                                num_layers=num_layers)
-        
+                                                                num_layers=num_layers,
+                                                                enable_nested_tensor=False)
     
     def forward(self, input):
         return self.full_transformer_encoder(input)
@@ -117,10 +116,8 @@ class MLPHead(nn.Module):
     """Creates an MLP head.
     Consists of a layer normalisation and a linear layer.
     """
-    def __init__(self, ngpu):
+    def __init__(self):
         super(MLPHead, self).__init__()
-        self.ngpu = ngpu
-
         self.main = nn.Sequential(nn.LayerNorm(normalized_shape=embed_dim),
                                     nn.Linear(in_features=embed_dim,
                                                 out_features=num_classes)
@@ -141,10 +138,8 @@ class MultiheadSelfAttention(nn.Module):
     This block uses a Multi-head self attention structure, which contains multiple different projection layers
     of self attention.
     """
-    def __init__(self, ngpu):
+    def __init__(self):
         super(MultiheadSelfAttention, self).__init__()
-        self.ngpu = ngpu
-
         self.norm = nn.LayerNorm(normalized_shape=embed_dim)
         self.msa = nn.MultiheadAttention(embed_dim=embed_dim,
                                         num_heads=num_heads,
@@ -161,16 +156,14 @@ class MultiheadSelfAttention(nn.Module):
 
 class ViT(nn.Module):
     """Creates a vision transformer model."""
-    def __init__(self, ngpu):
+    def __init__(self):
         super(ViT, self).__init__()
-        self.ngpu = ngpu
-
-        self.patch_embedding = PatchEmbedding(workers)
+        self.patch_embedding = PatchEmbedding()
         self.prepend_embed_token = nn.Parameter(torch.randn(1, 1, embed_dim), requires_grad=True)
         self.position_embed_token = nn.Parameter(torch.randn(1, num_patches + 1, embed_dim), requires_grad=True)
         self.embedding_dropout = nn.Dropout(p=dropout_size)  # Apply dropout after positional embedding as well
-        self.transformer_encoder = TransformerEncoder(workers)
-        self.mlp_head = MLPHead(workers)
+        self.transformer_encoder = TransformerEncoder()
+        self.mlp_head = MLPHead()
 
     def forward(self, input):
         current_batch_size = input.size(0)
@@ -184,92 +177,8 @@ class ViT(nn.Module):
         return input
 
 
-def imshow(img):
-    img = img / 2 + 0.5  # Unnormalize (assuming your normalization was (0.5, 0.5, 0.5))
-    npimg = img.numpy()
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    plt.show()
-
-def test():
-    dataiter = iter(train_loader)
-    images, labels = next(dataiter)
-
-    images = images[:10]
-    labels = labels[:10]
-
-    imshow(torchvision.utils.make_grid(images, nrow=5))
-
-    # Print labels
-    print(' '.join('%5s' % labels[j].item() for j in range(10)))
-
-    # Get initial shape, should be 224 (H) by 224 (W) by 3 (C)
-    sample_datapoint = torch.unsqueeze(train_dataset[0][0], 0)
-    #print("Initial shape: ", sample_datapoint.shape)
-
-    # Test patch embedding for 1 image
-    # For a 224 by 224 image with 16 patch size, this gives us a 14 by 14 number of patches, 
-    # each patch having 16 by 16 dimensions and 3 channels
-    patch_embedding = nn.Conv2d(in_channels=num_channels,
-                                out_channels=embed_dim,
-                                kernel_size=patch_size,
-                                stride=patch_size,
-                                padding=0)
-    image = train_dataset[0][0]
-    #imshow(image)
-    #plt.axis(False)
-    image_patched = patch_embedding(image.unsqueeze(0))  # Run conv layer through image
-    #print(image_patched.shape)  # Should have dimensions (embed size, sqrt(num_patches), sqrt(num_patches))
-
-    # Single feature map in tensor form
-    single_feature_map = image_patched[:, 0, :, :]
-    #print(single_feature_map, single_feature_map.requires_grad)
-
-    # Dimension 2 sqrt(num_patches) -> height of num_patches, dimension 3 is sqrt(num_patches) -> width of num_patches
-    flatten = nn.Flatten(start_dim=2, end_dim=3)
-    flattened_image_patched = flatten(image_patched)
-    #print(f"Flattened: {flattened_image_patched.shape}")  # Should be embed size, num_patches
-
-    reshaped_flattened_image_patched = flattened_image_patched.permute(0, 2, 1)  # Need to swap embed size and num_patches order
-    # This achieves the resizing in the paper: H x W x C -> N x (P^2*C)
-    #print(f"Reshaped:{reshaped_flattened_image_patched.shape}")
-
-    # ------------------------------------------------------------------------------------------------
-    # Test Embedding a random image tensor
-    random_image_tensor = torch.randn(1, 3, 224, 224)
-    patch_embedding = PatchEmbedding(workers)
-    patch_embedding_output = patch_embedding(random_image_tensor)
-    print(f"In shape: {random_image_tensor.shape}")
-    #print(f"Out shape: {patch_embedding_output.shape}")
-    #print({patch_embedding_output})
-
-    # Need to prepend a learnable embedding to the sequence of embeded patches.
-    embed_token = nn.Parameter(torch.randn(1, 1, embed_dim), requires_grad=True)
-    prepended_patch_embedding = torch.cat((embed_token, patch_embedding_output), dim=1)  
-    #print(f"Prepended embedding: {prepended_patch_embedding}")
-
-    # Need to add position embedding; E_pos, where E_pos has dimensions (N+1) x D
-    # Used to retain positional information of the patches.
-    positional_embed = nn.Parameter(torch.randn(1, num_patches + 1, embed_dim), requires_grad=True)
-    #print(f"Positional embed shape: {positional_embed.shape}, Current patch shape: {prepended_patch_embedding.shape}")
-    #print(f"Positional embed tensor: {positional_embed}")
-
-    patch_and_position_embedding = prepended_patch_embedding + positional_embed
-    print(f"Final: {patch_and_position_embedding}")
-    print(f"Final shape: {patch_and_position_embedding.shape}")   
-
-
 def main():
-    visual_transformer = ViT(workers).to(device)
-    #from torchinfo import summary
-
-    # # Print a summary of our custom ViT model using torchinfo (uncomment for actual output)
-    #summary(model=visual_transformer, 
-            #input_size=(32, 3, 224, 224), # (batch_size, color_channels, height, width)
-           # col_names=["input_size", "output_size", "num_params", "trainable"],
-            #col_width=20,
-           # row_settings=["var_names"]
-    #)
-
+    visual_transformer = ViT().to(device)
     
     # ----------------------------------------
     # Loss Function and Optimiser
@@ -296,7 +205,7 @@ def main():
             optimiser.step()
 
             running_loss += loss.item()
-            if (index+1) % 2 == 0:
+            if (index+1) % 50 == 0:
                 running_time = time.time()
                 print("Epoch [{}/{}], Loss: {:.5f}".format(epoch+1, num_epochs, loss.item()))
                 print(f"Timer: {running_time - start_time}")
