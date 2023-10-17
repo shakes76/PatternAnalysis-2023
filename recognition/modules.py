@@ -62,13 +62,4 @@ class ImprovedUNet(nn.Module):
         d3 = self.dec3(self.up(d2))
         out = self.out_conv(d3)
 
-        #print("Shape of e1:", e1.shape)
-        #print("Shape of upsampled e1:", self.up(e1).shape)
-        #print("Shape of e2:", e2.shape)
-        #print("Shape of upsampled e2:", self.up(e2).shape) # Fixed print label
-        #print("Shape of e3:", e3.shape)
-        #print("Shape of upsampled e3:", self.up(e3).shape)
-        #print("Shape of e4:", e4.shape)
-        #print("Shape of upsampled e4:", self.up(e4).shape)
-
         return out
