@@ -75,6 +75,22 @@ The dataset have been preprocessed, they are all in same size (256 * 240) and in
 And all the images have the same naming format, which is "1182968_94.jpeg", the first part is the patient's unique ID, 
 and the second part is the image's unique ID, each patient have 12 brain MRI scans.
 
+### Resnet18 architecture: 
+<ul style="list-style-type:none;">
+  <li>&#8226; test
+    <ul style="list-style-type:none; margin-left:20px;">
+      <li>&#8227; AD</li>
+      <li>&#8227; NC</li>
+    </ul>
+  </li>
+  <li>&#8226; train
+    <ul style="list-style-type:none; margin-left:20px;">
+      <li>&#8227; AD</li>
+      <li>&#8227; NC</li>
+    </ul>
+  </li>
+</ul>
+
 ## Training
 The training process is divided into two parts, the first part is to train the Resnet18, but in this case we used a 
 pre-trained one, and the second part is to train the Siamese network with the training set.
