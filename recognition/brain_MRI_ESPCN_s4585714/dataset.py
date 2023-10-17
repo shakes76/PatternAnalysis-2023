@@ -50,12 +50,12 @@ class ADNIDataset(Dataset):
     def __len__(self):
         return len(self.AD) + len(self.NC)
 
-def ADNIDataLoader(dataset, mode='train'):
+def ADNIDataLoader(root, mode='train'):
     transform = transforms.Compose([
         transforms.ToTensor(), 
         transforms.Normalize((0.5,), (0.5,))
         ])
-    dataset = ADNIDataset('AD_NC', transform, mode=mode)
+    dataset = ADNIDataset(root, transform, mode=mode)
     
     if (mode == 'train'):
         shuffle = True
