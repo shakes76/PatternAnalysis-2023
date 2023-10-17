@@ -21,7 +21,6 @@ model.fit(
     epochs=20,
     validation_data=validate_ds,
     verbose=1,
-    shuffle=True,
 )
 
 print("Testing SNN model")
