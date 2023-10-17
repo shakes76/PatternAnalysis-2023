@@ -22,8 +22,8 @@ class DoubleConv(nn.Module):
 class ContextModule(nn.Module):
     def __init__(self, in_channels, out_channels, pdrop=0.3):
             super(ContextModule, self).__init__()
-            self.conv1 = nn.Conv3(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
-            self.conv2 = nn.Conv3(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
+            self.conv1 = nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
+            self.conv2 = nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
             self.dropout = nn.Dropout3d(pdrop)
             self.norm = nn.LazyInstanceNorm3d(out_channels)
             self.relu = nn.LeakyReLU(0.01, inplace=True)
@@ -53,58 +53,54 @@ class LocalizationModule(nn.Module):
         x = self.norm(self.relu(self.conv2(x)))
         return x
 
-class UNET(nn.Module):
-    def __init__(
-            self, in_channels=3, out_channels=1, features=[64, 128, 256, 512],
-    ):
-        super(UNET, self).__init__()
-        self.ups = nn.ModuleList()
-        self.downs = nn.ModuleList()
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
+class ImprovedUNET(nn.Module):
+    def __init__(self, in_channels, out_channels, levels=4, features=4):
 
-        # Down part of UNET
-        for feature in features:
-            self.downs.append(DoubleConv(in_channels, feature))
-            in_channels = feature
+        super(ImprovedUNET, self).__init__()
+        self.context_ml = nn.ModuleList()
+        self.localization_ml = nn.ModuleList()
+        self.supervision_layers = nn.ModuleList()
 
-        # Up part of UNET
-        for feature in reversed(features):
-            self.ups.append(
-                nn.ConvTranspose2d(
-                    feature*2, feature, kernel_size=2, stride=2,
-                )
-            )
-            self.ups.append(DoubleConv(feature*2, feature))
+        # Context pathway of improved UNET
+        for level in range(levels):
+            in_channels = in_channels if level == 0 else features * 2
+            out_channels = features * 2
+            self.context_ml.append(ContextModule(in_channels, out_channels))
 
-        self.bottleneck = DoubleConv(features[-1], features[-1]*2)
-        self.final_conv = nn.Conv2d(features[0], out_channels, kernel_size=1)
+        # Localization pathway of improved UNET
+        for level in range(levels - 1, 0, -1):
+            in_channels = features * 2
+            out_channels = features
+            self.localization_ml.append(LocalizationModule(in_channels, out_channels))
+
+        # Create supervision layers
+        for level in range(levels):
+            out = nn.Conv3d(features, out_channels, kernel_size=1)
+            self.supervision_layers.append(out)
 
     def forward(self, x):
-        skip_connections = []
+        context_features = []
 
-        for down in self.downs:
-            x = down(x)
-            skip_connections.append(x)
-            x = self.pool(x)
+        # Forward pass through the context pathway
+        for context_module in self.context_ml:
+            x = context_module(x)
+            context_features.append(x)
 
-        x = self.bottleneck(x)
-        skip_connections = skip_connections[::-1]
+        # Initialize the output
+        output = self.supervision_layers[0](context_features[-1])
 
-        for idx in range(0, len(self.ups), 2):
-            x = self.ups[idx](x)
-            skip_connection = skip_connections[idx//2]
+        # Forward pass through the localization pathway
+        for level, localization_module in enumerate(self.localization_ml):
+            x = localization_module(x, context_features[-level - 2])
+            if level < len(self.supervision_layers):
+                output += self.supervision_layers[level](x)
 
-            if x.shape != skip_connection.shape:
-                x = TF.resize(x, size=skip_connection.shape[2:])
-
-            concat_skip = torch.cat((skip_connection, x), dim=1)
-            x = self.ups[idx+1](concat_skip)
-
-        return self.final_conv(x)
+        return output
+    
 
 def test():
-    x = torch.randn((3, 1, 161, 161))
-    model = UNET(in_channels=1, out_channels=1)
+    x = torch.randn((1, 1, 64, 64, 64))
+    model = ImprovedUNET(in_channels=1, out_channels=1)
     preds = model(x)
     assert preds.shape == x.shape
 
