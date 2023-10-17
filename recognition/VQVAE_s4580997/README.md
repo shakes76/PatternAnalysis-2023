@@ -298,8 +298,38 @@ Method to save the state dictionary of the model network. The save path can be o
 ## Usage
 The code is bundled using the `utils.py` file into `main.py` which is an directly executable script. All files other than these two define the architecture, training, testing, dataset and prediction segments of the problem.
 
-Parameters can be edited in `utils.py` to modify the architecture or system.
+Parameters can be edited in `utils.py` to modify the architecture or system. However, components of the code can also be modified to produce custom networks and/or change the models.
 
+For the dataset, create a new Dataset class with the path to the dataset, and the fraction of the dataset to use. This data can be in image folders with labels if desired.
+```console
+dataset = Dataset()
+```
+
+The model can then be created from any child class of `nn.class`. Using the selected `VQVAE()` and `GAN` classes:
+```
+vqvae = VQVAE()
+```
+
+The trainer can then be defined as a child class of `Trainer()` in `train.py`. As we are using the VQVAE model, we will define it:
+```
+vqvae_trainer = TrainVQVAE(vqvae, dataset)
+gan_trainer = TrainGAN(gan, dataset)
+```
+We can then train the model using the trainer and save the state dictionary containing the network weights to a selected directory and filename:
+```console
+vqvae_trainer.train()
+vqvae_trainer.save()
+gan_trainer.train()
+gan_trainer.save()
+```
+
+With the model trained, predictions can be performed using a child class of `Predict`. The predict class is implemented specifically to use the prior model (GAN) to generate images using the codebook of the VQVAE. Usage is as follows:
+```
+predict = Predict(vqvae, gan, dataset)
+predict.generate()
+```
+
+It is highly recommended to use the `main.py` file to execute the code as desired, with the parameters predefined in `utils.py`.
 
 ## Results
 ### Training
