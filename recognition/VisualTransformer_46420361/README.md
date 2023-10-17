@@ -31,8 +31,13 @@ conda env create -n <environment name> -f environment.yml
 ```
 
 ## References
+### Websites
 https://www.akshaymakes.com/blogs/vision-transformer?fbclid=IwAR2Wmo7_nlLg2EILO6vsKAYucaTl-AXK7NSGY_LBYTP3aPvU_uWW7iF4dVc
 
 https://medium.com/mlearning-ai/vision-transformers-from-scratch-pytorch-a-step-by-step-guide-96c3313c2e0c
 
+### Images
 https://www.google.com/url?sa=i&url=https%3A%2F%2Fpaperswithcode.com%2Fmethod%2Fvision-transformer&psig=AOvVaw1a8kPLGrK_UEKC5jbPwaJC&ust=1697543404952000&source=images&cd=vfe&ved=0CBAQjRxqFwoTCOibv47A-oEDFQAAAAAdAAAAABAE
+
+### Papers
+https://arxiv.org/pdf/2010.11929.pdf
