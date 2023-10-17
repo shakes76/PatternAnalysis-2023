@@ -360,14 +360,14 @@ The accuracy of the images produced by the model can be defined by the structura
 The generated image was compared using this metric to the entire testset, to compute the average and maximum structural similarity.
 
 | **Metric** | **Value** |
+|---|---|
 | Average | 0.0 |
 | Maximum | 0.0 |
-|---|---|
 
 The SSIM index defines 1.0 as identical, and a value of 0 as having no correlation. Hence, it can be stated that the model has adequate performance. 
 
 ## Conclusion
-
+The generated images had a structural similarity index above 0.5, indicating that there is distinct similarities between the images. However, visually and using this metric, this is not sufficient to deceive an outside observer that the generated image is real. The VQ-VAE was validated, and could reconstruct images from the testing set with loss approaching zero. The GAN was trained on the encoded indices of the VQ-VAE, and was able to classify the generated images as fake with a loss approaching zero. However, the generator loss diverged as the discriminator was able to easily classify the generated images as fake. This is a function of the discriminator rapidly improving, attaining virtually 0 loss. This results in the generator loss increasing as the discriminator is able to easily classify the generated images as fake. Hence, to achieve more realistic results, the autoregressive prior model must be better tuned or a different model must be used.
 
 ## References
 [1] A. v. d. Oord, O. Vinyals, and K. Kavukcuoglu, “Neural Discrete Representation Learning,”
