@@ -31,7 +31,7 @@ if __name__ == "__main__":
         for inputs, labels in train_loader:
             #Down sampling the image
             downsampled_inputs = down_sample(inputs).to(device)
-            inputs = inputs.to(device).to(device)
+            inputs = inputs.to(device)
 
             optimizer.zero_grad()
             
