@@ -1,12 +1,16 @@
 """ Customisable configuration for ViT model. """
 
 # General user preferences
-will_save = True
-will_load = False
-show_model_summary = True
+will_save = False
+will_load = True
+show_model_summary = False
+will_train = False
+will_test = False
+
+results_path = "recognition/45339961_ViT/results"
 
 # Dataloader specific parameters
-data_path = "C:\Users\Jacqu\Downloads\AD_NC"
+data_path = "C:/Users/Jacqu/Downloads/AD_NC"
 batch_size = 64
 n_channels = 1
 image_size = 224

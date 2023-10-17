@@ -6,7 +6,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch.nn.functional as F
 
-def predict(model, dataloader, device):
+def predict(model,
+            dataloader,
+            device,
+            save_path):
     """ Display images from the dataloader at the given indices along with their true labels, predictions, and image names.
 
     Args:
@@ -39,6 +42,7 @@ def predict(model, dataloader, device):
     selected_images, selected_labels = selected_images.to(device), selected_labels.to(device)
     
     # Make predictions
+    print(f"Making predictions...")
     with torch.no_grad():
         model.eval()  # Set the model to evaluation mode
         outputs = model(selected_images)
@@ -62,7 +66,7 @@ def predict(model, dataloader, device):
     plt.tight_layout()
 
     # Saving the plot
-    plt.savefig("results/predictions.png")
+    plt.savefig(save_path + "/predictions.png")
 
     # Show the plot
     plt.show()

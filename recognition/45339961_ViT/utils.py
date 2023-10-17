@@ -7,7 +7,8 @@ from torchvision import transforms
 def plot_losses_accuracies(train_accuracies,
             valid_accuracies,
             train_losses,
-            valid_losses):
+            valid_losses,
+            save_path):
     labels = ['Train', 'Valid']
 
     # Create x-axis values (epochs)
@@ -38,7 +39,7 @@ def plot_losses_accuracies(train_accuracies,
     plt.tight_layout()
 
     # Saving the plot
-    plt.savefig("results/losses_accuracies.png")
+    plt.savefig(save_path + "/losses_accuracies.png")
 
     # Show the plots
     plt.show()

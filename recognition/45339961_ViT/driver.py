@@ -1,5 +1,6 @@
 """ Driver script for creating/loading model, training, and evaluating. """
 import config
+import os
 import torch
 from torch.optim import Adam
 from torchinfo import summary
@@ -10,6 +11,9 @@ from train import train, test
 from predict import predict
 
 def main():
+    if not os.path.exists(config.results_path):
+        os.makedirs(config.results_path)
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device:", device, f"({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else "")
     
@@ -72,26 +76,29 @@ def main():
                 lr=config.learning_rate)
     criterion = torch.nn.CrossEntropyLoss()
 
-    # Train the model
-    train_accuracies, valid_accuracies, train_losses, valid_losses = train(model=model,
-                                                                        train_loader=train_loader,
-                                                                        valid_loader=valid_loader,
-                                                                        criterion=criterion,
-                                                                        optimizer=optimizer,
-                                                                        device=device,
-                                                                        n_epochs=config.n_epochs)
+    if config.will_train:
+        # Train the model
+        train_accuracies, valid_accuracies, train_losses, valid_losses = train(model=model,
+                                                                            train_loader=train_loader,
+                                                                            valid_loader=valid_loader,
+                                                                            criterion=criterion,
+                                                                            optimizer=optimizer,
+                                                                            device=device,
+                                                                            n_epochs=config.n_epochs)
 
-    # Plot results
-    plot_losses_accuracies(train_accuracies, 
-                            valid_accuracies, 
-                            train_losses,
-                            valid_losses)
+        # Plot results
+        plot_losses_accuracies(train_accuracies, 
+                                valid_accuracies, 
+                                train_losses,
+                                valid_losses,
+                                results_path=config.results_path)
 
     # Test the model
-    test(model=model,
-        test_loader=test_loader,
-        criterion=criterion,
-        device=device)
+    if config.will_test:
+        test(model=model,
+            test_loader=test_loader,
+            criterion=criterion,
+            device=device)
 
     # Save the model
     if config.will_save:
@@ -100,7 +107,8 @@ def main():
     # Predict a random subset of test images
     predict(model=model, 
         dataloader=test_loader, 
-        device=device)
+        device=device,
+        save_path=config.results_path)
 
 if __name__ == "__main__":
     main()
