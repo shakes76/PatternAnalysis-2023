@@ -7,7 +7,10 @@ class PatchEmbedding(nn.Module):
     def __init__(self, in_channels=3, patch_size=16, emb_size=768):
         super().__init__()
         self.patch_size = patch_size
-        self.proj = nn.Conv2d(in_channels, emb_size, kernel_size=patch_size, stride=patch_size)
+        self.proj = nn.Sequential(
+            nn.Conv2d(in_channels, emb_size, kernel_size=patch_size, stride=patch_size),
+            nn.BatchNorm2d(emb_size)  # BatchNormalization added after Conv2d
+        )
 
     def forward(self, x):
         x = self.proj(x)
@@ -36,6 +39,7 @@ class VisionTransformer(nn.Module):
         # Classifier head
         self.mlp_head = nn.Sequential(
             nn.Linear(emb_size, int(emb_size * mlp_ratio)),
+            nn.BatchNorm1d(int(emb_size * mlp_ratio)),
             nn.Dropout(0.4),  
             nn.ReLU(),
             nn.Linear(int(emb_size * mlp_ratio), num_classes)
