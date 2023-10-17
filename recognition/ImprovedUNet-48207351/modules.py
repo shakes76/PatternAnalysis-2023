@@ -18,8 +18,7 @@ def conv_block(inp, filters, padding='same', activation='relu'):
     return x
 
 
-def encoder_block(inp, filters, padding='same', pool_stride=2,
-                  activation='relu'):
+def encoder_block(inp, filters, padding='same', pool_stride=2, activation='relu'):
     """
     Encoder block of a UNet passes the result from the convolution block
     above to a max pooling layer
@@ -29,20 +28,17 @@ def encoder_block(inp, filters, padding='same', pool_stride=2,
     return x, p
 
 # Functions to build the decoder block
-def decoder_block(inp,filters,concat_layer,padding='same'):
+def decoder_block(inp, filters, concat_layer, padding='same'):
     # Upsample the feature maps
-    x = Conv2DTranspose(filters,(2,2),strides=(2,2),padding=padding)(inp)
-    x = concatenate([x,concat_layer]) # Concatenation/Skip conncetion with conjuagte encoder
-    x = conv_block(x,filters) # Passed into the convolution block above
+    x = Conv2DTranspose(filters, (2,2), strides=(2,2), padding=padding)(inp)
+    x = concatenate([x, concat_layer]) # Concatenation/Skip conncetion with conjuagte encoder
+    x = conv_block(x, filters) # Passed into the convolution block above
     return x
 
 class UNet2D(input, latent_dim=64, activation=None, kernel=[3, 3], channels=1, name_prefix=''):
-    # encoder
-    # building the first block
+    # Encoder
     inputs = Input((256,256,1))
     d1,p1 = encoder_block(inputs,64)
-
-    # building the other four
     d2,p2 = encoder_block(p1,128)
     d3,p3 = encoder_block(p2,256)
     d4,p4 = encoder_block(p3,512) 
@@ -50,6 +46,7 @@ class UNet2D(input, latent_dim=64, activation=None, kernel=[3, 3], channels=1, n
     # Middle convolution block (no max pooling) - final output will now be upsampled
     mid = conv_block(p4,1024) #Midsection   
 
+    # Decoder
     e2 = decoder_block(mid,512,d4) #Conjugate of encoder 4
     e3 = decoder_block(e2,256,d3) #Conjugate of encoder 3
     e4 = decoder_block(e3,128,d2) #Conjugate of encoder 2 
