@@ -58,5 +58,11 @@ def predict(model, dataloader, device):
                     fontsize=7)
         ax.axis('off')
 
+    # Set the spacing between subplots
     plt.tight_layout()
+
+    # Saving the plot
+    plt.savefig("results/predictions.png")
+
+    # Show the plot
     plt.show()

@@ -39,7 +39,7 @@ def create_datasets(root_dir, train_transform, test_transform, datasplit):
 
     # Create datasets
     train_data = ImageFolder(root=train_dir, transform=train_transform)
-    valid_data = ImageFolder(root=train_dir, transform=test_transform)
+    valid_data = ImageFolder(root=train_dir, transform=train_transform)
 
     # Overwrite samples
     train_data.samples = train_samples

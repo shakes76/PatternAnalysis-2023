@@ -2,7 +2,6 @@
 
 import torch
 from tqdm import tqdm, trange
-from utils import plot_losses_accuracies
 
 def train(model, train_loader, valid_loader, criterion, optimizer, device, n_epochs=10):
     """ Train the model. Plot the losses and accuracies during training. """
@@ -75,10 +74,7 @@ def train(model, train_loader, valid_loader, criterion, optimizer, device, n_epo
             valid_accuracies.append(accuracy)
             valid_losses.append(valid_loss)
 
-    plot_losses_accuracies(train_accuracies, 
-                            valid_accuracies, 
-                            train_losses,
-                            valid_losses)
+    return train_accuracies, valid_accuracies, train_losses, valid_losses
 
 def test(model, device, test_loader, criterion):
     """ Test the model on the test set.

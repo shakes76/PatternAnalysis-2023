@@ -15,6 +15,7 @@ train_mean = 0.1155
 train_std = 0.2224
 test_mean = 0.1167
 test_std = 0.2228
+data_split = 0.8
 
 # Training specific parameters
 n_epochs = 10

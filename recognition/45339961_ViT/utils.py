@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
+from torchvision import transforms
 
 def plot_losses_accuracies(train_accuracies,
             valid_accuracies,
@@ -35,6 +36,9 @@ def plot_losses_accuracies(train_accuracies,
 
     # Adjust spacing between plots
     plt.tight_layout()
+
+    # Saving the plot
+    plt.savefig("results/losses_accuracies.png")
 
     # Show the plots
     plt.show()
@@ -100,3 +104,28 @@ def determine_mean_std_dataset(dataset):
     std /= len(loader.dataset)
     print(f"Mean is: {mean}")
     print(f"Std is: {std}")
+
+def get_transform(data_type, data_mean, data_std, image_size):
+    """ Return the appropriate transforms for the data type. """
+    if data_type == "train":
+        return transforms.Compose([
+            transforms.Resize((image_size, image_size)),
+            transforms.Grayscale(num_output_channels=1),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=data_mean, std=data_std)
+        ])
+    elif data_type == "test":
+        return transforms.Compose([
+            transforms.Resize((image_size, image_size)),
+            transforms.Grayscale(num_output_channels=1),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=data_mean, std=data_std)
+        ])
+    elif data_type == "valid":
+        return transforms.Compose([
+            transforms.Resize((image_size, image_size)),
+            transforms.Grayscale(num_output_channels=1),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=data_mean, std=data_std)
+        ])
