@@ -8,7 +8,6 @@ containing the data loader for loading and preprocessing the data
 """
 
 import os
-import torch
 from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from PIL import Image
