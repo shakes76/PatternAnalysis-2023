@@ -22,7 +22,7 @@ def load_data(path: str):
 
     # TRANSFORMS
     training_transform = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
+        # transforms.RandomHorizontalFlip(),
         transforms.Grayscale(),
         transforms.ToTensor(),
     ])
