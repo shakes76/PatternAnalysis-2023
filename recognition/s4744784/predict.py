@@ -26,7 +26,7 @@ if __name__ == '__main__':
             down_sampled_img = down_sample(input).to(device)
             input = input.to(device)
 
-            output = model(down_sampled_img) # .detach().cpu()
+            output = model(down_sampled_img)
 
             break
     
