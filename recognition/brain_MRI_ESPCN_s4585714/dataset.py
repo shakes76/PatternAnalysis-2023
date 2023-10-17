@@ -11,13 +11,16 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 from PIL import Image
 
+BATCH_SIZE = 32
+
 class ADNIDataset(Dataset):
     """
     Loads Dataset from 3710 - ADNI_AD_NC_2D data
     """
-    def __init__(self, root, mode='train', image_size=(256,240), downscale_factor=4):
+    def __init__(self, root, transform, mode='train', image_size=(256,240), downscale_factor=4):
         super(ADNIDataset, self).__init__()
         self.root = root
+        self.transform = transform
         self.mode = mode
         self.image_size = image_size
         self.downscale_factor = downscale_factor
@@ -37,11 +40,8 @@ class ADNIDataset(Dataset):
             ])
         downscaled = downscaler(orig)
         
-        to_tensor = transforms.Compose ([
-            transforms.ToTensor()
-            ])
-        downscaled = to_tensor(downscaled)
-        orig = to_tensor(orig)
+        downscaled = self.transform(downscaled)
+        orig = self.transform(orig)
         
         return downscaled, orig
             
@@ -49,4 +49,17 @@ class ADNIDataset(Dataset):
         
     def __len__(self):
         return len(self.AD) + len(self.NC)
+
+def ADNIDataLoader(dataset, mode='train'):
+    transform = transforms.Compose([
+        transforms.ToTensor(), 
+        transforms.Normalize((0.5,), (0.5,))
+        ])
+    dataset = ADNIDataset('AD_NC', transform, mode=mode)
+    
+    if (mode == 'train'):
+        shuffle = True
+    else:
+        shuffle = False
         
+    return DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=shuffle)
