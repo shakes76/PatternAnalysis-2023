@@ -107,6 +107,7 @@ ADAM is well known for its reliable performance in a variety of contexts. It was
     imgs/
     config.py
     dataset.py
+    generate.py
     modules.py
     predict.py
     train.py

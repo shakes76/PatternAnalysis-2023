@@ -8,11 +8,9 @@ import sys
 from config import *
 from dataset import *
 from modules import SuperResolutionModel
-from predict import generate_model_output
+from generate import generate_model_output
 
-
-def main():
-    print("PyTorch Version:", torch.__version__)
+def train_model():
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Using device:", device)
@@ -104,6 +102,11 @@ def main():
     plt.close()
 
     print("Saved loss plot")
+
+
+def main():
+    print("PyTorch Version:", torch.__version__)
+    train_model()
 
 
 if __name__ == "__main__":
