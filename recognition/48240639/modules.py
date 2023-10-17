@@ -1,3 +1,14 @@
+"""
+Created on Wednesday October 18 
+
+The following script outlines the construction of the VQVAE model components, 
+encapsulated within a class to facilitate training.
+
+@author: Aniket Gupta 
+@ID: s4824063
+
+"""
+
 import numpy as np
 from numpy import f2py
 

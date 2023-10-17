@@ -1,4 +1,15 @@
 
+"""
+Created on Wednesday October 18 
+
+This script is dedicated to the complete process of training, validating, testing, and saving the VQVAE model.
+The model itself is imported from modules.py, and the data loader is sourced from dataset.py.
+Throughout the training process, relevant metrics are plotted to monitor progress effectively.
+
+@author: Aniket Gupta 
+@ID: s4824063
+
+"""
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
