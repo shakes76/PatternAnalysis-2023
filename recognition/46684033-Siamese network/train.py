@@ -52,8 +52,8 @@ def plot_embeddings(embeddings, targets, plot_number,plot_name, xlim=None, ylim=
 def extract_embeddings(dataloader, model):
     with torch.no_grad():
         model.eval()
-        embeddings = np.zeros((dataloader.batch_size * 5, 2))
-        labels = np.zeros(dataloader.batch_size * 5)
+        embeddings = np.zeros((dataloader.batch_size * 10, 2))
+        labels = np.zeros(dataloader.batch_size * 10)
         k = 0
         counter = 0
         for images, target in dataloader:
@@ -96,7 +96,7 @@ class TripletLoss(nn.Module):
         super(TripletLoss, self).__init__()
         self.margin = margin
 
-    def forward(self, anchor, positive, negative, size_average=True):
+    def forward(self, anchor, positive, negative, size_average=False):
         distance_positive = (anchor - positive).pow(2).sum(1)  # .pow(.5)
         distance_negative = (anchor - negative).pow(2).sum(1)  # .pow(.5)
         losses = F.relu(distance_positive - distance_negative + self.margin)
@@ -119,9 +119,10 @@ model = modules.Siamese()
 model = model.to(device)
 
 criterion = ContrastiveLoss(1.0)
-# criterion = nn.BCELoss()
+
 # criterion = TripletLoss(1.0)
-optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-3)
+
 total_steps = len(train_loader)
 
 model.train()
@@ -138,9 +139,8 @@ for epoch in range(num_epoch):
     total_loss_this_epoch = []
     total_val_loss_this_epoch = []
     model.train()
-    #for BCELoss and contrastive loss
-    for i, ((images1, images2, images3), labela, labelb) in enumerate(train_loader):
-    #     # BCELoss
+    # for i, ((images1, images2), labels) in enumerate(train_loader):
+    # #  BCELoss
     #     optimizer.zero_grad()
     #     images1 = images1.to(device)
     #     images2 = images2.to(device)
@@ -157,7 +157,36 @@ for epoch in range(num_epoch):
     #         print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: {}%"
     #               .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item(), 100 * correct / train_total))
 
-    # #     # contrastive loss
+    # #for contrastive loss
+    for i, ((images1, images2, images3), labela, labelb, test_label) in enumerate(train_loader):
+    #     # BCELoss
+    #     optimizer.zero_grad()
+    #     images1 = images1.to(device)
+    #     images2 = images2.to(device)
+    #     labela = labela.to(device)
+    #     x = model(images1,images2).squeeze()
+    #     loss = criterion(x, labela.float())
+    #     loss.backward()
+    #     optimizer.step()
+    #
+    #     optimizer.zero_grad()
+    #     images1 = images1.to(device)
+    #     images3 = images3.to(device)
+    #     labelb = labelb.to(device)
+    #     x = model(images1, images3).squeeze()
+    #     loss = criterion(x, labelb.float())
+    #     loss.backward()
+    #     optimizer.step()
+    #
+    #     pred = torch.where(x > 0.5, 1, 0)
+    #     correct += (pred == labelb).sum().item()
+    #     train_total += labelb.size(0)
+    #     acc = 100*correct/train_total
+    #     if (i + 1) % 100 == 0:
+    #         print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: {}% "
+    #               .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item(), acc))
+
+    #     # contrastive loss
         optimizer.zero_grad()
         images1 = images1.to(device)
         images2 = images2.to(device)
@@ -180,18 +209,18 @@ for epoch in range(num_epoch):
         #average loss in this epoch
         total_loss_this_epoch.append(loss.item())
         if (i + 1) % 100 == 0:
-                print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: %"
+                print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} "
                       .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item()))
 
 
     training_loss.append(sum(total_loss_this_epoch)/len(total_loss_this_epoch))
 
 
-    train_embeddings_cl, train_labels_cl = extract_embeddings(train, model)
-    plot_embeddings(train_embeddings_cl, train_labels_cl,epoch,"training")
-
-    test_embeddings_cl, test_labels_cl = extract_embeddings(test, model)
-    plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "test")
+    # train_embeddings_cl, train_labels_cl = extract_embeddings(train, model)
+    # plot_embeddings(train_embeddings_cl, train_labels_cl,epoch,"training")
+    #
+    # test_embeddings_cl, test_labels_cl = extract_embeddings(test, model)
+    # plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "test")
 
     # triplet loss
     # for i, (images1, images2, images3) in enumerate(train_loader):
@@ -218,26 +247,26 @@ for epoch in range(num_epoch):
     # plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "triplet_test")
 
     # contrastive loss validation
-    model.eval()
-
-    val_loss = 0.0
-    correct = 0
-    total = 0
-
-    with torch.no_grad():
-        for i, ((images1,images2,images3), labela,labelb) in enumerate(validation_loader):
-            images1 = images1.to(device)
-            images2 = images2.to(device)
-            labela = labela.to(device)
-            x,y = model(images1,images2)
-            val_loss = criterion(x,y, labela.float())
-            total_val_loss_this_epoch.append(val_loss.item())
-
-    print(
-        f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}"
-    )
-
-    validation_loss.append(sum(total_val_loss_this_epoch)/len(total_val_loss_this_epoch))
+    # model.eval()
+    #
+    # val_loss = 0.0
+    # correct = 0
+    # total = 0
+    #
+    # with torch.no_grad():
+    #     for i, ((images1,images2,images3), labela,labelb) in enumerate(validation_loader):
+    #         images1 = images1.to(device)
+    #         images2 = images2.to(device)
+    #         labela = labela.to(device)
+    #         x,y = model(images1,images2)
+    #         val_loss = criterion(x,y, labela.float())
+    #         total_val_loss_this_epoch.append(val_loss.item())
+    #
+    # print(
+    #     f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}"
+    # )
+    #
+    # validation_loss.append(sum(total_val_loss_this_epoch)/len(total_val_loss_this_epoch))
 
     # tripletLoss validation
     # model.eval()
@@ -285,4 +314,4 @@ plt.show(block=True)
 # RESULT
 # metric 1.0 aruond 72% accuarcy, 2.0 around 73%, no significant different
 # triplet loss and contrastive loss no significant different ~ 72%
-#
+# try SGD optimizer

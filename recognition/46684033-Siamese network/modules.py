@@ -10,25 +10,26 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+
 class Siamese(nn.Module):
     def __init__(self):
         super(Siamese, self).__init__()
         self.relu = nn.ReLU()
         self.sigmoid = nn.Sigmoid()
-        self.linear = nn.Linear(64, 1)
-        self.batchNorm1 = nn.BatchNorm2d(64)
+        self.linear = nn.Linear(50, 1)
+        self.batchNorm1 = nn.BatchNorm2d(50)
         self.sequence = nn.Sequential(
-            nn.Conv2d(1, 32, (5, 5),bias=False),
+            nn.Conv2d(1, 32, (5, 5), bias=False),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(4),
 
-            nn.Conv2d(32, 64, (3, 3),bias=False),
+            nn.Conv2d(32, 64, (3, 3), bias=False),
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(3),
 
-            nn.Conv2d(64, 128, (3, 3),bias=False),
+            nn.Conv2d(64, 128, (3, 3), bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.MaxPool2d(2),
@@ -51,24 +52,38 @@ class Siamese(nn.Module):
 
         return x
 
-    def forward(self, x, y,z=None):
-        #BCELoss
-        # x = self.forward_once(x)
-        # y = self.forward_once(y)
-        # distance = torch.abs(y - x).view(64,64,1,1)
-        # output = self.batchNorm1(distance)
-        # output = torch.flatten(output, start_dim=1)
-        # output = self.linear(output)
-        # output = self.sigmoid(output)
-        # return output
+    def forward(self, x, y, z=None):
+        #     #BCELoss
+        #     x = self.forward_once(x)
+        #     y = self.forward_once(y)
+        #     distance = torch.abs(y - x).view(64,50,1,1)
+        #     output = self.batchNorm1(distance)
+        #     output = torch.flatten(output, start_dim=1)
+        #     output = self.linear(output)
+        #     output = self.sigmoid(output)
+        #     return output
 
         # contrastive Loss
         x = self.forward_once(x)
         y = self.forward_once(y)
-        return x,y
+        return x, y
 
         # #triplet loss
         # x = self.forward_once(x)
         # y = self.forward_once(y)
         # z = self.forward_once(z)
         # return x,y,z
+
+
+class Classifier(nn.Module):
+    def __init__(self, siamese):
+        super(Classifier, self).__init__()
+        self.siamese = siamese
+        self.sigmoid = nn.Sigmoid()
+        self.linear = nn.Linear(2, 1)
+
+    def forward(self, x):
+        x = self.siamese.forward_once(x)
+        x = self.linear(x)
+        x = self.sigmoid(x)
+        return x
