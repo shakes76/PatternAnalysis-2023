@@ -10,14 +10,11 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 import torchvision.utils
 import numpy as np
-import time
-import copy
 from torch.optim import lr_scheduler
 import os
 from PIL import Image
 import torch
 from torch.autograd import Variable
-import PIL.ImageOps    
 import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
@@ -28,11 +25,13 @@ import random
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
+else:
+    print("Using CUDA.")
 
 class Config():
     training_dir = "../AD_NC/train"
     testing_dir = "../AD_NC/test"
-    train_batch_size = 64
+    train_batch_size = 8
     train_number_epochs = 20
 
 class SiameseNetwork(nn.Module):
@@ -41,39 +40,33 @@ class SiameseNetwork(nn.Module):
         
         # Setting up the Sequential of CNN Layers
         self.cnn1 = nn.Sequential(
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(3, 64, kernel_size=3),
+            nn.ReLU(inplace=True),
+            nn.BatchNorm2d(64),
+            nn.Dropout2d(p=.2),
             
-            nn.Conv2d(3, 96, kernel_size=11,stride=1),
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(64, 64, kernel_size=3),
             nn.ReLU(inplace=True),
-            nn.LocalResponseNorm(5,alpha=0.0001,beta=0.75,k=2),
-            nn.MaxPool2d(3, stride=2),
-            
-            nn.Conv2d(96, 256, kernel_size=5,stride=1,padding=2),
-            nn.ReLU(inplace=True),
-            nn.LocalResponseNorm(5,alpha=0.0001,beta=0.75,k=2),
-            nn.MaxPool2d(3, stride=2),
-            nn.Dropout(p=0.3),
+            nn.BatchNorm2d(64),
+            nn.Dropout2d(p=.2),
 
-            nn.Conv2d(256,384 , kernel_size=3,stride=1,padding=1),
+            nn.ReflectionPad2d(1),
+            nn.Conv2d(64, 32, kernel_size=3),
             nn.ReLU(inplace=True),
-            nn.Conv2d(384,256 , kernel_size=3,stride=1,padding=1),
-            nn.ReLU(inplace=True),
-            nn.MaxPool2d(3, stride=2),
-            nn.Dropout(p=0.3),
-
+            nn.BatchNorm2d(32),
+            nn.Dropout2d(p=.2),
         )
         
         # Defining the fully connected layers
         self.fc1 = nn.Sequential(
-            nn.Linear(200448, 1024),
-            nn.ReLU(inplace=True),
-            nn.Dropout(p=0.5),
-            
-            nn.Linear(1024, 128),
-            nn.ReLU(inplace=True),
-            
-            nn.Linear(128,2))
-        
-  
+            nn.Linear(1966080, 500),
+            #self.fc1 = nn.Linear(2*1000, 500)
+            nn.Linear(500, 500),
+            nn.Linear(500, 2)
+        )
+         
     def forward_once(self, x):
         # Forward pass 
         output = self.cnn1(x)
@@ -181,9 +174,9 @@ criterion = ContrastiveLoss()
 optimizer = optim.RMSprop(model.parameters(), lr=1e-4, alpha=0.99, eps=1e-8, weight_decay=0.0005, momentum=0.9)
 
 def train():
-    counter = []
-    loss_history = [] 
-    iteration_number= 0
+    # counter = []
+    # loss_history = [] 
+    # iteration_number= 0
     
     for epoch in range(0,Config.train_number_epochs):
         print(enumerate(train_loader,0).__sizeof__(), Config.train_batch_size)
@@ -216,9 +209,9 @@ def train():
             optimizer.step()
             if i % 1 == 0 :
                 print("Epoch number {}\n Current loss {}\n".format(epoch,loss_contrastive.item()))
-                iteration_number += 10
-                counter.append(iteration_number)
-                loss_history.append(loss_contrastive.item())
+                # iteration_number += 10
+                # counter.append(iteration_number)
+                # loss_history.append(loss_contrastive.item())
     return model
 
 # Train the model
