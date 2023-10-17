@@ -45,14 +45,14 @@ To train the Siamese network, the training and validation data need to be groupe
 To train the classifier, training and validation data are loaded using the DataLoader library, without organizing them into pairs.
 
 The training data goes through these pre-processing steps: 
-1. Convert images into grayscale
-2. Do data augmentation by RandomHorizontalFlip
-3. Convert images to tensors 
+1. Convert images into grayscale.
+2. Do data augmentation by RandomHorizontalFlip.
+3. Convert images to tensors .
 
 ## Training Parameters and Results
 The process of training a Siamese network and a classifier is a follows:
 1. Train a Siamese Network on image pairs using contrastive loss.
-2. Train classifier that is added at the end of the trained Siamese network, while freezing the trained Siamese network weights. BCE Loss is used along with a with a learning rate scheduler
+2. Train classifier that is added at the end of the trained Siamese network, while freezing the trained Siamese network weights. BCE Loss is used along with a with a learning rate scheduler.
 3. The trained classifer will then be evaluated on the test set.
 
 The hyperparameters that are tuned for both models are number of epochs and learning rate. An additional hyperparameter for the Siamese network is the margin for the contrastive loss. Both the Siamese network and the classifier uses the Adam optimiser during training.
@@ -81,7 +81,7 @@ Below is the loss plot when training siamese.50.pth (the best Siamese)
 ![](images_for_readme/siamese_loss_curve_siamese_50.png) 
 Observing the plot above, the Siamese model converges to a low loss.
 
-Below is the loss and accuracy plot when training best_classifier_model_50_30_3.pth (the best classifier)
+Below are the loss and accuracy plots when training best_classifier_model_50_30_3.pth (the best classifier)
 Loss of classifier         |  Accuracy of classifier
 :-------------------------:|:-------------------------:
 ![](images_for_readme/classifier_loss_plot_classifier_model_50_30_3.png) |  ![](images_for_readme/classifier_accuracy_plot_classifier_model_50_30_3.png)
