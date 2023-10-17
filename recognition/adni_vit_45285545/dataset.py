@@ -118,13 +118,19 @@ def create_train_dataloader(val_pct: float = 0.2) -> DataLoader:
         return DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     else:
         train_dataset, valid_dataset = train_val_split(train_dataset, val_pct)
-        valid_dataset.transform = transforms.ConvertImageDtype(torch.float)
+        valid_dataset.transform = transforms.Compose([
+            transforms.CenterCrop(224),
+            transforms.ConvertImageDtype(torch.float),
+        ])
         return (DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True),
                 DataLoader(valid_dataset, batch_size=BATCH_SIZE, shuffle=True))
 
 def create_test_dataloader() -> DataLoader:
     '''
     Returns a DataLoader on pre-processed test data from the ADNI dataset.'''
-    test_dataset = ADNI(ADNI_ROOT, train=False,
-                        transform=transforms.ConvertImageDtype(torch.float))
+    transform = transforms.Compose([
+        transforms.CenterCrop(224),
+        transforms.ConvertImageDtype(torch.float),
+    ])
+    test_dataset = ADNI(ADNI_ROOT, train=False, transform=transform)
     return DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=True)

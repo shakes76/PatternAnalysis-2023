@@ -193,18 +193,19 @@ def test_model_agg(mdl: Any, device: torch.device, pg: bool = False) -> None:
             outputs = mdl(images)
             _, predicted = torch.max(outputs.data, 1)
 
-            for i in range(BATCH_SIZE):
+            for i in range(len(pid)):
+                k_pid = pid[i].item()
                 # Tally predictions on per-patient basis
-                if pid[i] not in prediction:
-                    prediction[pid[i]] = 0
+                if k_pid not in prediction:
+                    prediction[k_pid] = 0
                 if predicted[i] == 0:
-                    prediction[pid[i]] -= 1 # minus 1 from tally if NC predicted
+                    prediction[k_pid] -= 1 # minus 1 from tally if NC predicted
                 else:
-                    prediction[pid[i]] += 1 # add 1 to tally if AD predicted
+                    prediction[k_pid] += 1 # add 1 to tally if AD predicted
 
                 # Record actual label, also on per-patient basis
-                if pid[i] not in actual:
-                    actual[pid[i]] = labels[i].item()
+                if k_pid not in actual:
+                    actual[k_pid] = labels[i].item()
 
     # Count predictions per patient to get overall prediction
     assert prediction.keys() == actual.keys()

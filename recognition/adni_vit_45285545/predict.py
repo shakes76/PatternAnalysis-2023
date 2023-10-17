@@ -17,6 +17,7 @@ from train import test_model
 def predict(image: Image, mdl: Any, device: torch.device) -> int:
     '''Runs the given model on the given image and returns a predicted label.'''
     image = transforms.ToTensor()(image).unsqueeze(0).to(device)
+    image = transforms.CenterCrop(224)(image)
     image = transforms.ConvertImageDtype(torch.float)(image)
     output = mdl(image)
     _, predicted = torch.max(output.data, 1)

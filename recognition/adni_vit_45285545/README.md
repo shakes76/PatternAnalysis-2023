@@ -1,6 +1,6 @@
 # Vision Transformer for Alzheimer's Disease Classification
 
-This project applies the Vision Transformer architecture to the task of classifying MRI brain images as either Cognitive Normal (CN) or representative of Alzheimer's disease (AD). The ViT is trained and tested on patient-level splits of the dataset from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu). A test accuracy of 75.56% is achieved.
+This project applies the Vision Transformer architecture to the task of classifying MRI brain images as either Cognitive Normal (CN) or representative of Alzheimer's disease (AD). The ViT is trained and tested on patient-level splits of the dataset from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu). A test accuracy of 75.02% is achieved.
 
 ## Model Architecture
 
@@ -30,7 +30,7 @@ All subsets contain exactly 20 images per patient and there are no common patien
 
 ### Preprocessing
 
-Preprocessing of the data consists of data augmentation and type conversion. In order, images are subject to:
+Preprocessing of the training data consists of data augmentation and type conversion:
 
 1. A [`RandomHorizontalFlip`](https://pytorch.org/vision/0.15/generated/torchvision.transforms.RandomHorizontalFlip.html).
 
@@ -38,9 +38,11 @@ Preprocessing of the data consists of data augmentation and type conversion. In 
 
 3. Conversion to tensor float type.
 
-The above transforms are only all applied to training images. Validation and testing images are only subject to type conversion.
+Validation and testing images are simply centre-cropped to 224x224 then converted to tensors.
 
 ## Model Training and Results
+
+### Model Training
 
 This solution uses the [`vit_b_16`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) model provided by PyTorch. The classification head is replaced with a fully-connected layer with 2 outputs rather than 10. The solution leverages transfer learning using the [`IMAGENET1K_V1`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) weights, also from PyTorch. Transfer learning avoids retraining the more general, lower-level feature extractors of the ViT, which have been trained to high efficiency on the larger ImageNet dataset. Only the higher-level feature extractors and fully-connected classification head need to be retrained to be specific to the ADNI dataset.
 
@@ -50,16 +52,32 @@ The following figure presents example model training and validation metrics.
 
 ![Sample training metrics](static/adni-vit-metrics-1697362188.png)
 
-The model is evaluated on the testing set by running inference on all testing images and recording the model predictions. Since there are exactly 20 samples of every patient, the predictions for each patient are tallied and the more frequent prediction is used as the overall prediction for the patient.
+### Model Testing
 
-The model trained above achieves the following result on the test split of the ADNI dataset.
+There are two ways to test the model. The simpler method, and the default for `train.py` and `predict.py`, runs inference on the test split of the ADNI dataset and returns the percentage of images correctly predicted. This is the typical approach when test images are independent. Using this method, the model trained above achieves 75.02% on the test split of the ADNI dataset.
 
-<!-- ```
-100%|███████████████████████████| 141/141 [01:53<00:00,  1.24it/s]
-Test accuracy: 75.56% (00:01:53.86790)
-``` -->
+```
+100%|███████████████████████████| 141/141 [01:51<00:00,  1.26it/s]
+Test accuracy: 75.02% (00:01:53.86790)
+```
 
-<!-- TODO: add image results; test image and prediction -->
+The second method recognises that images are not independent, but in fact come in sets of 20 images per patient. Therefore, when running inference, it is possible to keep a running tally for each patient of the number of `AD` predictions versus `NC`. At the end, each patient (rather than each image) is assigned an overall prediction based on which of `AD` or `NC` was more frequently predicted for the patient's set of 20 images. Using this approach, the model trained above achieves 75.78% on the test split of the ADNI dataset.
+
+```
+100%|███████████████████████████| 141/141 [01:51<00:00,  1.27it/s]
+Test accuracy (agg.): 75.78% (00:01:51.01899)
+```
+
+The results are unexpectedly similar. This suggests that for each patient, the trained model generally produces the same prediction for all 20 images - whether correctly or incorrectly. The benefit of the aggregation is therefore minimal.
+
+### Interactive Usage
+
+Finally, `predict.py` can also be used to start a web GUI to interactively use the model. The GUI allows the user to upload any image and will show the model's prediction. For example, the following four images are from the test split of the ADNI dataset. The first two are AD and the following two are NC. We see the model predict with 75% accuracy.
+
+![GUI prediction example 1](static/gui-prediction-ex1.png)
+![GUI prediction example 2](static/gui-prediction-ex2.png)
+![GUI prediction example 3](static/gui-prediction-ex3.png)
+![GUI prediction example 4](static/gui-prediction-ex4.png)
 
 ## Reproducing Results
 
@@ -86,10 +104,10 @@ python train.py N_EPOCHS [--pg]
 
 3. Run the following with a saved model file to run inference. The `--test` option will run the model on the test split of the ADNI dataset and print a test result. The `--gui` option will start a web-based GUI to interactively use the model.
 ```
-python predict.py MDLFILE [--test] [--gui]
+python predict.py MDLFILE [--test] [--gui] [--agg]
 ```
 
-_NOTE: while the GUI accepts any image, using samples from the ADNI test set are useful because then the correct labels are known._
+_NOTE: while the GUI accepts any image, samples from the ADNI dataset are useful for demos because the ground truth is known._
 
 ## References
 
