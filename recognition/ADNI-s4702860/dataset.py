@@ -38,28 +38,34 @@ def load_dataset():
 
 """
 Python function used to create anchor, positive and negative triplets for the siamese neural network. 
+Two triples are returned, the image data and the image labels. 
 
 Input:
     data_generator - the data_generator (either train or test)
 
 Outputs:
     [anchor_triplets, pos_triplets, neg_triplets] - triplet array used for input into the siamese model
+    [anchor_labels, pos_labels, neg_labels] - triplet array used for the labels into the siamese model
 """
-def create_triplets(data_generator, num_samples=10):
+def create_triplets(data_generator):
     anchor_triplets = []
     pos_triplets = []
     neg_triplets = []
+    anchor_labels = []
+    pos_labels = []
+    neg_labels = []
 
-    for _ in range(num_samples):
-        anchor_idx = random.randint(0, len(data_generator) - 1)
-        anchor_img, anchor_label = data_generator[anchor_idx]
+    for i in range(10):
+        anchor_img, anchor_label = data_generator[i]
         anchor_triplets.append(anchor_img)
+        anchor_labels.append(anchor_label)
 
         while True:
             pos_idx = random.randint(0, len(data_generator) - 1)
             pos_img, pos_label = data_generator[pos_idx]
             if pos_label.argmax() == anchor_label.argmax():
                 pos_triplets.append(pos_img)
+                pos_labels.append(pos_label)
                 break
 
         while True:
@@ -67,20 +73,21 @@ def create_triplets(data_generator, num_samples=10):
             neg_img, neg_label = data_generator[neg_idx]
             if neg_label.argmax() != anchor_label.argmax():
                 neg_triplets.append(neg_img)
+                neg_labels.append(neg_label)
                 break
-        # Reshape to remove the batch dimension
 
     anchor_triplets = tf.convert_to_tensor(anchor_triplets)
     pos_triplets = tf.convert_to_tensor(pos_triplets)
     neg_triplets = tf.convert_to_tensor(neg_triplets)
+    anchor_labels = tf.convert_to_tensor(anchor_labels)
+    pos_labels = tf.convert_to_tensor(pos_labels)
+    neg_labels = tf.convert_to_tensor(neg_labels)
     
-    # Reshape to remove the batch dimension
     anchor_triplets = tf.reshape(anchor_triplets, [-1, 256, 240, 3])
     pos_triplets = tf.reshape(pos_triplets, [-1, 256, 240, 3])
     neg_triplets = tf.reshape(neg_triplets, [-1, 256, 240, 3])
 
-    return anchor_triplets, pos_triplets, neg_triplets
-
+    return [anchor_triplets, pos_triplets, neg_triplets], [anchor_labels, pos_labels, neg_labels]
 
 
 
@@ -112,7 +119,7 @@ def main():
     print("Batch size:", test_generator.batch_size)
     print("Image shape:", test_generator.image_shape)
     """
-    anchor_triplets, pos_triplets, neg_triplets = create_triplets(train_generator)
+    create_triplets(train_generator)
 
 
 
