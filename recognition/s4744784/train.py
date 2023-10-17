@@ -19,13 +19,14 @@ def train(epochs: int):
     for epoch in range(1, epochs + 1):
         running_loss = 0.0
 
-        for input, _ in dataloader:
-            input = input.to(device)
+        for target, _ in dataloader:
+            target = target.to(device)
+            input = down_sample(target) 
 
             optimizer.zero_grad()
 
             outputs = model(input)
-            loss = criterion(outputs, input)
+            loss = criterion(outputs, target) 
 
             loss.backward()
             optimizer.step()
@@ -54,7 +55,6 @@ def train(epochs: int):
 
 if __name__ == '__main__':
     dataloader = load_data()
-
     start_time = time.time()
     print("Starting training...")
     train(num_epochs)
