@@ -45,7 +45,7 @@ class Encoder(nn.Module):
     self._relu = nn.ReLU()
 
     self._enc_1 = nn.Conv2d(
-        in_channels=3,
+        in_channels=1,
         out_channels=self._num_hiddens // 2,
         kernel_size=(4, 4),
         stride=(2, 2),
@@ -113,7 +113,7 @@ class Decoder(nn.Module):
 
         self._dec_3 = nn.ConvTranspose2d(
             in_channels=self._num_hiddens // 2,
-            out_channels=3,
+            out_channels=1,
             kernel_size=(4, 4),
             stride=(2, 2),
             padding=1)

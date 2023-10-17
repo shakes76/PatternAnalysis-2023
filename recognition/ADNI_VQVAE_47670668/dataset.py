@@ -1,6 +1,6 @@
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
@@ -12,27 +12,23 @@ TEST_DATASET_PATH = './AD_NC/test'
 BATCH_SIZE = 32
 
 transform = transforms.Compose([
-    # Convert images to tensor
+    transforms.Grayscale(),
+    transforms.Resize((224, 224)),
     transforms.ToTensor(),
 
-    # Rotates the image by a random angle between -15 to +15 degrees.
-    transforms.RandomRotation(degrees=15),
-
-    # With a probability of 50% (p=0.5), flips the image horizontally.
-    transforms.RandomHorizontalFlip(p=0.5),
-
-    # With a probability of 50% (p=0.5), flips the image vertically.
-    transforms.RandomVerticalFlip(p=0.5),
-
-    # Crops the image to a size of 224x224 pixels.
-    transforms.RandomResizedCrop(size=(224, 224), scale=(0.5, 1.0)),
-
-    # Randomly changes the brightness, contrast, saturation, and hue of the image.
-    transforms.ColorJitter(brightness=0.1, contrast=0.1, saturation=0.1, hue=0.1),
 ])
 
-# Use image folder due to directory structure of dataset
-train_dataset = ImageFolder(TRAIN_DATASET_PATH, transform=transform)
+# Define the initial dataset from the root directory without train/test specific transforms
+full_dataset = ImageFolder(root=TRAIN_DATASET_PATH)
+
+# Define the lengths of train and validation datasets
+train_size = int(0.8 * len(full_dataset))
+val_size = len(full_dataset) - train_size
+
+train_dataset, val_dataset = random_split(full_dataset, [train_size, val_size])
+
+train_dataset.dataset.transform = transform
+val_dataset.dataset.transform = transform
 test_dataset = ImageFolder(TEST_DATASET_PATH, transform=transform)
 
 # Visualize first 16 training images

@@ -81,13 +81,13 @@ model = VQVAEModel(encoder, decoder, vq_vae, pre_vq_conv1,
 optimizer = optim.Adam(lr=learning_rate, params=model.parameters())
 model.to(device)
 
-def train_step(image, label): # Added label as an input, even if you might not use it.
+def train_step(image, label):
     # Zero the parameter gradients
     optimizer.zero_grad()
 
     # Move data to device
     image = image.to(device)
-    label = label.to(device) # If you use the label in the model
+    label = label.to(device) 
 
     # Forward pass
     model_output = model(image)
