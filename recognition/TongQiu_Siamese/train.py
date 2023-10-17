@@ -35,10 +35,10 @@ def main(model, train_loader, val_loader, criterion, optimizer, epochs):
             print(f"no improvement: score {best_score:.5f} --> {val_batch_acc:.5f}")
 
         # Write loss and score to TensorBoard
-        writer.add_scalar("Training Loss", train_batch_loss.item(), epoch)
-        writer.add_scalar("Training Score", train_batch_acc.item(), epoch)
-        writer.add_scalar("Validation Loss", val_batch_loss.item(), epoch)
-        writer.add_scalar("Validation Score", val_batch_acc.item(), epoch)
+        writer.add_scalar("Training Loss", train_batch_loss, epoch)
+        writer.add_scalar("Training Score", train_batch_acc, epoch)
+        writer.add_scalar("Validation Loss", val_batch_loss, epoch)
+        writer.add_scalar("Validation Score", val_batch_acc, epoch)
 
     writer.close()
 
@@ -80,7 +80,7 @@ def train(model, train_loader, optimizer, criterion, epoch, epochs):
         negative_pairs_below_margin += negative_dists_below_margin.sum().item()
 
     train_loss = sum(train_loss_lis) / len(train_loss_lis)
-    accuracy = 100.0 * correct_predictions / total_samples
+    accuracy = correct_predictions / total_samples
 
     # Adjust the margin if too many negative pairs are below it
     proportion_negative_below_margin = negative_pairs_below_margin / (total_negative_pairs + 1e-10)
@@ -88,7 +88,8 @@ def train(model, train_loader, optimizer, criterion, epoch, epochs):
         criterion.margin *= 0.95  # Reduce the margin by 5%
 
     # Print the information.
-    print(f"[ Train | {epoch + 1:03d}/{epochs:03d} ] margin = {criterion.margin}, acc = {accuracy:.5f}, loss = {train_loss:.5f}")
+    print(
+        f"[ Train | {epoch + 1:03d}/{epochs:03d} ] margin = {criterion.margin}, acc = {accuracy:.5f}, loss = {train_loss:.5f}")
     return train_loss, accuracy
 
 
@@ -115,20 +116,67 @@ def validate(model, val_loader, criterion, epoch, epochs):
             total_samples += labels.size(0)
 
     average_loss = total_loss / len(val_loader)
-    val_acc = 100.0 * correct_predictions / total_samples
+    val_acc = correct_predictions / total_samples
 
     # Print the information.
-    print(f"[ Validation | {epoch + 1:03d}/{epochs:03d} ] margin = {criterion.margin:.5f}, acc = {val_acc:.5f}, loss = {average_loss:.5f}")
+    print(
+        f"[ Validation | {epoch + 1:03d}/{epochs:03d} ] margin = {criterion.margin:.5f}, acc = {val_acc:.5f}, loss = {average_loss:.5f}")
 
     return average_loss, val_acc
+
 
 class ContrastiveLoss(torch.nn.Module):
     def __init__(self, margin=2.0):
         super(ContrastiveLoss, self).__init__()
         self.margin = margin  # margin specifies how far apart the embeddings of dissimilar pairs should be
 
-    def forward(self, logits1, logits2, label):
-        euclidean_distance = F.pairwise_distance(logits1, logits2)
+    def forward(self, embedding1, embedding2, label):
+        euclidean_distance = F.pairwise_distance(embedding1, embedding2)
         loss_contrastive = torch.mean((1 - label) * torch.pow(euclidean_distance, 2) +
                                       label * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
         return loss_contrastive
+
+
+
+"""
+from modules import Baseline
+from dataset import ContrastiveDataset
+from torch.utils.data import DataLoader, random_split
+
+if __name__ == '__main__':
+    model = Baseline()
+
+
+    def generate_random_tensors(channels, height, width):
+        return torch.rand(channels, height, width)
+
+    # Generate random tensors with the desired shape
+    random_batch_size = 3
+    random_channels = 20
+    random_height = 256
+    random_width = 240
+    random_input1 = generate_random_tensors(random_channels, random_height, random_width)
+    random_input2 = generate_random_tensors(random_channels, random_height, random_width)
+    random_labels = torch.randint(0, 2, (3, 1))
+
+    random_dataset = [{'volume1': random_input1,
+                       'volume2': random_input2,
+                       'label': label} for label in random_labels]
+    dataloader = DataLoader(
+        dataset=random_dataset,
+        shuffle=True,
+        batch_size=3,
+        num_workers=1,
+        drop_last=True
+    )
+    
+    criterion = ContrastiveLoss()
+
+    lr = 0.005
+    weight_decay = 1e-5
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+    epochs = 5
+
+    main(model, dataloader, dataloader, criterion, optimizer, epochs)
+"""
