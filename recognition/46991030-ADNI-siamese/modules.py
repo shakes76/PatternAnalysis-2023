@@ -35,6 +35,7 @@ def snn():
                 (10, 10),
                 activation="relu",
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
+                kernel_initializer="he_uniform",
             ),
             tf.keras.layers.Dropout(0.2),
             tf.keras.layers.MaxPooling2D((2, 2)),
@@ -43,6 +44,7 @@ def snn():
                 (7, 7),
                 activation="relu",
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
+                kernel_initializer="he_uniform",
             ),
             tf.keras.layers.MaxPooling2D((2, 2)),
             tf.keras.layers.Conv2D(
@@ -50,6 +52,7 @@ def snn():
                 (4, 4),
                 activation="relu",
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
+                kernel_initializer="he_uniform",
             ),
             tf.keras.layers.MaxPooling2D((2, 2)),
             tf.keras.layers.Conv2D(
@@ -57,6 +60,7 @@ def snn():
                 (4, 4),
                 activation="relu",
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
+                kernel_initializer="he_uniform",
             ),
             tf.keras.layers.Flatten(),
             tf.keras.layers.BatchNormalization(),
