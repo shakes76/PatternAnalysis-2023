@@ -69,7 +69,7 @@ File contains:
 
 This file contains the model CCT which was explained in the model architecture heading
 
-### utils.py
+### util.py
 
 This file contains all the miscellaneous necessary functions for this report
 
@@ -175,6 +175,7 @@ Various other training were carried out (please refer appendix 1)
 ![Alt text](ADNI_TRANSFORMER_47379251/assets/00%EF%80%BA20%EF%80%BA11_Report.png)
 
 * Here X-axis is the number of epochs and Y-axis is Loss.
+* The un-usual plot difference between train and validation is mainly due to the pre-processing effect.
 
 #### Validation Accuracy
 
@@ -183,6 +184,12 @@ Various other training were carried out (please refer appendix 1)
 * Here X-axis is the number of epochs and Y-axis is Accuracy.
 
 #### Rangpur Performance (refer appendix 2)
+
+## Discussion
+
+This report analyzes the ADNI dataset with Convoluted Vision Transformers to enhance performance,
+there are other ways to improve the accuracy, for one instance we can change the setting of the input to
+3D so that we have a real life representation.
 
 ## Package Dependencies
 

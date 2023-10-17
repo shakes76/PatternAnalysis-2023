@@ -1,5 +1,5 @@
-'''showing example usage of your trained model. 
-Print out any results and / or provide visualisations where applicable'''
+''' This file acts as the starting point which activates other modules,
+it tests the model and saves the neccessary assets'''
 
 from __future__ import print_function
 
@@ -27,11 +27,10 @@ from train import *
 from dataset import *
 from utils import *
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' 
-
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2' # To suppress warnings in rangpur
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-##### Validation
+
+## This functions tests our model
 def test():
     global best_acc
     # net.eval()
@@ -53,7 +52,6 @@ def test():
             progress_bar(batch_idx, len(testloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
                 % (test_loss/(batch_idx+1), 100.*correct/total, correct, total))
     
-    # Save checkpoint.
     acc = 100.*correct/total
     if acc > best_acc:
         best_acc = acc
@@ -62,39 +60,14 @@ def test():
     print(content)
     return test_loss, acc
 
-
-def test_measure():
-    list_loss = []
-    print('Training..')
-    start = time.time()
-    for epoch in range(start_epoch, args.n_epochs):
-        trainloss = train(epoch) 
-        list_loss.append(trainloss)     
-    end = time.time()
-    elapsed = end - start
-    print("Training took " + str(elapsed) + " secs or " + str(elapsed / 60) + " mins in total")    
-    # Plots
-    plt.plot([i for i in range(1, args.n_epochs+1)], list_loss, label='Train')
-    plt.title("Training Plot")
-    plt.legend()
-    plt.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Report.png')
-    print('Testing..')
-    net.eval()
-    print(net.eval())
-    start = time.time()
-    val_loss, acc = test()    
-    end = time.time()
-    elapsed = end - start
-    print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
-    print('END')    
-    print("Test Loss:", val_loss,"Test Accuracy:", acc) 
-
 def test_valid_measure():
     to_print = 0
     list_loss = []
     list_acc = []
     list_test=[]
     acu = []
+
+    # Training
     print('Training..')
     start = time.time()
     for epoch in range(start_epoch, args.n_epochs):
@@ -103,11 +76,12 @@ def test_valid_measure():
         list_loss.append(trainloss)   
         list_test.append(testloss)   
         acu.append(acc)  
-        # if acc >=95: break
     end = time.time()
     elapsed = end - start
     print("Training took " + str(elapsed) + " secs or " + str(elapsed / 60) + " mins in total")    
     print(acu)
+
+    # Testing
     print('Testing..')
     net.eval()
     print(net.eval())
@@ -118,20 +92,25 @@ def test_valid_measure():
     print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
     print('END')    
     print("Test Loss:", val_loss,"Test Accuracy:", acc)
+
     # Save model
-    torch.save(net.train(), str(datetime.now().strftime("%H:%M:%S")) + 'model_valid_stop.pth')
+    torch.save(net.train(), str(datetime.now().strftime("%H:%M:%S")) + 'model.pth')
+
     # Plots
     plt.figure()
     plt.plot([i for i in range(1, len(list_loss)+1)], list_loss, label='Train')
     plt.plot([i for i in range(1, len(list_test)+1)], list_test, label='Valid')
     plt.title("Training Plot")
+    plt.xlabel("Number of Epochs")
+    plt.ylabel("Loss")
     plt.legend()
     plt.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Report.png')
     plt1.figure()
     plt1.plot([i for i in range(1, len(acu)+1)], acu)
     plt1.title("Accuracy Plot")
+    plt1.xlabel("Number of Epochs")
+    plt1.ylabel("Validation Accuracy")
     plt1.legend()
     plt1.savefig(str(datetime.now().strftime("%H:%M:%S"))+'_Accuracy.png') 
 
-test_valid_measure()      
-#test_measure()           
+test_valid_measure()                

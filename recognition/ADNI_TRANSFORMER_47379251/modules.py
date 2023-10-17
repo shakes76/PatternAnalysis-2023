@@ -1,7 +1,7 @@
-# '''Containing the source code of the components of your model. Each component must be
-# implementated as a class or a function'''
+''' This file contains the source code of the components of my model.
+please refer to read me (model architecture heading) for more insights'''
 
-'''This code was adapted from the CCT paper and 
+'''Parts of this code were adapted from the CCT paper (refer README.md) and 
 https://github.com/lucidrains/vit-pytorch/blob/main/vit_pytorch/vit.py'''
 
 import torch
