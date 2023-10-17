@@ -9,83 +9,141 @@ import torch.nn as nn
 class UNet3D(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(UNet3D, self).__init__()
-
-        self.in_channels_encoder = in_channels
-        self.out_channels_encoder = 64 
-        self.out_channels = out_channels
-
-        self.context_path = nn.ModuleList()
-        self.segmentation_layers = nn.ModuleList()
-        self.localization_path = nn.ModuleList()
         
-        self.context_pathway(4)
-        self.localization_pathway(4)
-        self.segmentation_pathway(4)
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.context1 = context_module(out_channels, out_channels)
+       
+        in_channels = out_channels
+        out_channels = out_channels * 2
+        print(in_channels, out_channels)
+        self.conv2 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
+        self.context2 = context_module(out_channels, out_channels)
         
-    #Defining the context pathway
-    def context_pathway(self, levels):
-        for _ in range(levels):
-            self.context_path.append(context_module(self.in_channels_encoder, self.out_channels_encoder))
-            self.in_channels_encoder = self.out_channels_encoder
-            self.out_channels_encoder *= 2
-            self.context_path.append(nn.MaxPool3d(kernel_size=2, stride=2))
+        in_channels = in_channels * 2
+        out_channels = out_channels * 2
+        self.conv3 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
+        self.context3 = context_module(out_channels, out_channels)
+        
+        in_channels = in_channels * 2
+        out_channels = out_channels * 2
+        self.conv4 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
+        self.context4 = context_module(out_channels, out_channels)
+        
+        in_channels = in_channels * 2
+        out_channels = out_channels * 2
+        self.conv5 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
+        self.context5 = context_module(out_channels, out_channels)
+        
+        in_channels = out_channels
+        out_channels = out_channels // 2
+        print('here')
+        print(in_channels, out_channels)
+        self.up1 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
+        self.localization1 = localization_module(in_channels, out_channels)
+        
+        in_channels = in_channels // 2
+        out_channels = out_channels // 2
+        print(in_channels, out_channels)
+        self.up2 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
+        self.localization2 = localization_module(in_channels, out_channels)
+        self.segmentation_layer2 = nn.Conv2d(out_channels, 32, kernel_size=1)
+        
+        in_channels = in_channels // 2
+        out_channels = out_channels // 2
+        self.up3 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
+        self.localization3 = localization_module(in_channels, out_channels)
+        self.segmentation_layer3 = nn.Conv2d(out_channels, out_channels, kernel_size=1)
+        
+        in_channels = in_channels // 2
+        out_channels = out_channels // 2
+        print(in_channels, out_channels)
+        self.up4 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
+        self.lastconv = nn.Conv2d(in_channels, in_channels, kernel_size=1)
+        self.segmentation_layer4 = nn.Conv2d(in_channels, in_channels, kernel_size=1)
+        self.sample = nn.Upsample(scale_factor=2)
     
-    
-    #Defining the localization pathway
-    def localization_pathway(self, levels):
-        self.in_channels_decoder = self.out_channels_encoder // 2
-        self.out_channels_decoder = self.in_channels_decoder
-
-        for _ in range(levels):
-            # Upsample
-            self.localization_path.append(nn.ConvTranspose3d(self.in_channels_decoder, self.out_channels_decoder, kernel_size=2, stride=2))
-            # Convolution to reduce feature maps
-            self.localization_path.append(nn.Conv3d(self.in_channels_decoder, self.out_channels_decoder // 2, kernel_size=3, padding=1))
-            self.in_channels_decoder = self.out_channels_decoder
-            self.out_channels_decoder //= 2
-    
-    #Defining the segmentation pathway
-    def segmentation_pathway(self, levels):
-        for _ in range(levels):
-            segmentation_layer = nn.Conv3d(self.out_channels_decoder, self.out_channels, kernel_size=1)
-            self.segmentation_layers.append(segmentation_layer)       
+    def element_wise_sum(self, x, y):
+        x = x + y
+        return x
     
     def forward(self, x):
-        # Forward pass through the context pathway
         features = []
-        for module in self.context_path:
-            x = module(x)
-            features.append(x)
+        x = self.conv1(x)
+        elem1 = x
+        x = self.context1(x)
+        x = self.element_wise_sum(x, elem1)
+        features.append(x)
+        x = self.conv2(x)
+        elem2 = x
+        x = self.context2(x)
+        x = self.element_wise_sum(x, elem2)
+        features.append(x)
+        x = self.conv3(x)
+        elem3 = x
+        x = self.context3(x)
+        x = self.element_wise_sum(x, elem3)
+        features.append(x)
+        x = self.conv4(x)
+        elem4 = x
+        x = self.context4(x)
+        x = self.element_wise_sum(x, elem4)
+        features.append(x)
+        x = self.conv5(x)
+        elem5 = x
+        x = self.context5(x)
+        x = self.element_wise_sum(x, elem5)
+        print('start')
+        print(x.shape)
+        x = self.up1(x)
+        print(x.shape)
+        x = torch.cat((x, features[-1]), dim=1)
+        print(x.shape)
+        x = self.localization1(x)
+        print(x.shape)
+        x = self.up2(x)
+        print(2)
+        print(x.shape)
+        print(features[-2].shape)
+        x = torch.cat((x, features[-2]), dim=1)
+        print(x.shape)
+        x = self.localization2(x)
+        print('local2')
         
-        # Forward pass through the localization pathway
-        for i, module in enumerate(self.localization_path):
-            x = module(x)
-            x = torch.cat((x, features[-(i+1)]), dim=1)
+        print(self.segmentation_layer2(x).shape)
+        segmentation2 = self.sample(self.segmentation_layer2(x))
+        print(segmentation2.shape)
+        x = self.up3(x)
+        x = torch.cat((x, features[-3]), dim=1)
+        x = self.localization3(x)
         
-        # Perform segmentation at each level
-        segmentations = []
-        for i, layer in enumerate(self.segmentation_layers):
-            segmentation = layer(x)
-            segmentations.append(segmentation)
-            
-        return segmentations
+        segmentation3 = self.segmentation_layer3(x)
+        print(segmentation3.shape)
+        x = self.up4(x)
+        x = torch.cat((x, features[-4]), dim=1)
+        x = self.lastconv(x)
+        segmentation4 = self.segmentation_layer4(x)
+        print(segmentation4.shape)
+        combine1 = self.element_wise_sum(segmentation2, segmentation3)
+        combine1 = self.sample(combine1)
+        conbine2 = self.element_wise_sum(combine1, segmentation4)
+        final = nn.Softmax(conbine2)
+        return final
 
 def context_module(in_channels, out_channels):
         module = nn.Sequential(
-            nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.LeakyReLU(0.01),
             nn.Dropout(p=0.3),  # Dropout is applied here
-            nn.Conv3d(out_channels, out_channels, kernel_size=3, padding=1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.LeakyReLU(0.01)
         )
         return module
 
 def localization_module(in_channels, out_channels):
         module = nn.Sequential(
-            nn.ConvTranspose3d(in_channels, out_channels, kernel_size=2, stride=2),
-            nn.Conv3d(out_channels, out_channels // 2, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.LeakyReLU(0.01),
-            nn.Conv3d(out_channels // 2, out_channels // 2, kernel_size=1),
+            nn.Conv2d(out_channels, out_channels, kernel_size=1),
             nn.LeakyReLU(0.01)
         )
         return module
