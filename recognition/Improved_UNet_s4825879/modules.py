@@ -2,13 +2,27 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+# REF: DiceLoss function gotten from
+# REF: https://www.kaggle.com/code/bigironsphere/loss-function-library-keras-pytorch?fbclid=IwAR3q7bjIDoKFlc5IDGpd24TW8QhQdzbxh2TrIP6FCXb7A8FaluU_HhTqmHA
+class DiceLoss(nn.Module):
+    def __init__(self):
+        super(DiceLoss, self).__init__()
+        
+    def forward(self, predict, target):
+        predict = predict.view(-1)
+        target = target.view(-1)
+
+        intersect = (predict * target).sum()
+        dice = (2*intersect)/(predict.sum() + target.sum())
+        return 1 - dice
+
 class Context(nn.Module):
     def __init__(self, size):
         super(Context, self).__init__()
         self.pdrop = 0.3
         self.neagative_slope = 10**(-2)
 
-        self.instNorm = nn.InstanceNorm2d(size)
+        self.batchNorm = nn.BatchNorm2d(size)
         self.conv = nn.Conv2d(
             size, size, kernel_size=3, padding=(1,1)
         )
@@ -16,26 +30,23 @@ class Context(nn.Module):
 
     def forward(self, input):
         out = input
-        out = F.leaky_relu(self.instNorm(self.conv(out)), self.neagative_slope)
+        out = F.relu(self.batchNorm(self.conv(out)))
         out = self.dropOut(out)
-        out = F.leaky_relu(self.instNorm(self.conv(out)), self.neagative_slope)
+        out = F.relu(self.batchNorm(self.conv(out)))
         return torch.add(out, input)
 
 class Upsampling(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(Upsampling, self).__init__()
 
-        self.upsample = nn.Upsample(scale_factor=2)
-        self.instNorm = nn.InstanceNorm2d(out_channels)
+        self.batchNorm = nn.BatchNorm2d(out_channels)
         self.conv = nn.Conv2d(
            in_channels, out_channels, kernel_size=3 , padding=(1,1)
         ) 
 
     def forward(self, out):
-        print(f"before upsamp: \n{out.shape}")
-        out = self.upsample(out)
-        print(f"after upsamp: \n{out.shape}")
-        out = F.leaky_relu(self.instNorm(self.conv(out)), 10**(-2))
+        out = F.interpolate(out, scale_factor=2, mode='nearest')
+        out = F.relu(self.batchNorm(self.conv(out)))
         return out
         
 class Localization(nn.Module):
@@ -44,15 +55,15 @@ class Localization(nn.Module):
         self.conv1 = nn.Conv2d(
             in_channels, in_channels, kernel_size=3, padding=(1,1)
         )
-        self.instNorm1 = nn.InstanceNorm2d(in_channels)
+        self.batchNorm1 = nn.BatchNorm2d(in_channels)
         self.conv2 = nn.Conv2d(
             in_channels, out_channels, kernel_size=1
         )
-        self.instNorm2 = nn.InstanceNorm2d(out_channels)
+        self.batchNorm2 = nn.BatchNorm2d(out_channels)
         
     def forward(self, out):
-        out = F.leaky_relu(self.instNorm1(self.conv1(out)), 10**(-2))
-        out = F.leaky_relu(self.instNorm2(self.conv2(out)), 10**(-2)) 
+        out = F.relu(self.batchNorm1(self.conv1(out)))
+        out = F.relu(self.batchNorm2(self.conv2(out))) 
         return out
         
 class ImpUNet(nn.Module):
@@ -63,31 +74,31 @@ class ImpUNet(nn.Module):
         self.conv1 = nn.Conv2d(
             in_channel, 16, kernel_size=3, padding=(1,1)
         )
-        self.instNorm1 = nn.InstanceNorm2d(16)
+        self.batchNorm1 = nn.BatchNorm2d(16)
         self.context1 = Context(16)
 
         self.conv2 = nn.Conv2d(
             16, 32, kernel_size=3, stride=2, padding=(1,1)
         )
-        self.instNorm2 = nn.InstanceNorm2d(32)
+        self.batchNorm2 = nn.BatchNorm2d(32)
         self.context2 = Context(32)
 
         self.conv3 = nn.Conv2d(
             32, 64, kernel_size=3, stride=2, padding=(1,1)
         )
-        self.instNorm3 = nn.InstanceNorm2d(64)
+        self.batchNorm3 = nn.BatchNorm2d(64)
         self.context3 = Context(64)
         
         self.conv4 = nn.Conv2d(
             64, 128, kernel_size=3, stride=2, padding=(1,1)
         )
-        self.instNorm4 = nn.InstanceNorm2d(128)
+        self.batchNorm4 = nn.BatchNorm2d(128)
         self.context4 = Context(128)
         
         self.conv5 = nn.Conv2d(
             128, 256, kernel_size=3, stride=2, padding=(1,1)
         )
-        self.instNorm5 = nn.InstanceNorm2d(256)
+        self.batchNorm5 = nn.BatchNorm2d(256)
         self.context5 = Context(256)
         
         self.upsample0 = Upsampling(256, 128)
@@ -104,52 +115,52 @@ class ImpUNet(nn.Module):
         self.conv6 = nn.Conv2d(
             32, 32, kernel_size=3, padding=(1,1)
         )
-        self.instNorm6 = nn.InstanceNorm2d(32)
+        self.batchNorm6 = nn.BatchNorm2d(32)
 
         self.upscale = nn.Upsample(scale_factor=2)
         
-        self.softmax = nn.Softmax(dim=3)
+        self.Sigmoid = nn.Sigmoid()
         # segmentation layers
         self.seg1 = nn.Conv2d(
-            64, 3, kernel_size=1
+            64, 1, kernel_size=1
         )
-        self.segNorm1 = nn.InstanceNorm2d(3)
+        self.segNorm1 = nn.BatchNorm2d(1)
         self.seg2 = nn.Conv2d(
-            32, 3, kernel_size=1
+            32, 1, kernel_size=1
         )
-        self.segNorm2 = nn.InstanceNorm2d(3)
+        self.segNorm2 = nn.BatchNorm2d(1)
         self.seg3 = nn.Conv2d(
-            32, 3, kernel_size=1
+            32, 1, kernel_size=1
         )
-        self.segNorm3 = nn.InstanceNorm2d(3)
+        self.segNorm3 = nn.BatchNorm2d(1)
         
     def forward(self, out):
         # convolution layer. input 3d image output 16 channels
-        out = F.leaky_relu(self.instNorm1(self.conv1(out)), self.negative_slope) 
+        out = F.relu(self.batchNorm1(self.conv1(out))) 
         # contaxt block. input/output 16 channels
         out = self.context1(out)
         # save information
         layer1 = out
         # convolution layer. input 16 channels, output 32 channels
-        out = F.leaky_relu(self.instNorm2(self.conv2(out)), self.negative_slope)
+        out = F.relu(self.batchNorm2(self.conv2(out)))
         # context block. input/output 32 channels
         out = self.context2(out)
         # save information
         layer2 = out
         # convolution layer. input 32 channels. output 64 channels
-        out = F.leaky_relu(self.instNorm3(self.conv3(out)), self.negative_slope) 
+        out = F.relu(self.batchNorm3(self.conv3(out))) 
         # context block. input/output 64 channels
         out = self.context3(out)
         # save information
         layer3 = out
         # convolutional layer. input 64 channels. output 128 channels
-        out = F.leaky_relu(self.instNorm4(self.conv4(out)), self.negative_slope)
+        out = F.relu(self.batchNorm4(self.conv4(out)))
         # context block. input/output 128 channels
         out = self.context4(out)
         # save information
         layer4 = out
         # convolutional layer. input 128 channels. output 256 channels
-        out = F.leaky_relu(self.instNorm5(self.conv5(out)), self.negative_slope)
+        out = F.relu(self.batchNorm5(self.conv5(out)))
         # context block. input/output 256 channels
         out = self.context5(out)
         # upsample module. input 256 channels. output 128 channels
@@ -165,7 +176,7 @@ class ImpUNet(nn.Module):
         # localization layer. input 128 channels. output 64 channels
         out = self.localize2(out)
         # first segmentation layer
-        seg1 = self.upscale(F.leaky_relu(self.segNorm1(self.seg1(out)), self.negative_slope))
+        seg1 = F.interpolate(F.relu(self.segNorm1(self.seg1(out))), scale_factor=2, mode='nearest')
         # upsampling module. input 64 channels. output 32 channels
         out = self.upsample2(out)
         # concatinate
@@ -173,15 +184,15 @@ class ImpUNet(nn.Module):
         # localization module. input 64 channels, output 32 channels
         out = self.localize3(out)
         # second segmentation layer
-        seg2 = self.upscale(torch.add(F.leaky_relu(self.segNorm2(self.seg2(out)), self.negative_slope), seg1))
+        seg2 = F.interpolate(torch.add(F.relu(self.segNorm2(self.seg2(out))), seg1), scale_factor=2, mode='nearest')
         # upsampling module. input 32 channels. output 16 channels
         out = self.upsample3(out)
         # concatinate
         out = torch.cat((out, layer1), 1)
         # convolutional layer. input/output 32 channels
-        out = F.leaky_relu(self.instNorm6(self.conv6(out)), self.negative_slope)
+        out = F.relu(self.batchNorm6(self.conv6(out)))
         # elementwise summation of current out and seg2
-        out = torch.add(F.leaky_relu(self.segNorm3(self.seg3(out)), self.negative_slope), seg2)
+        out = torch.add(F.relu(self.segNorm3(self.seg3(out))), seg2)
         # softmax
-        out = self.softmax(out)
+        out = self.Sigmoid(out)
         return out
