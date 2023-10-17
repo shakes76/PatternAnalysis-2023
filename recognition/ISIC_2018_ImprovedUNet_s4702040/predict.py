@@ -1,3 +1,6 @@
+"""
+
+"""
 
 import torch
 import torchvision.transforms as transforms
@@ -11,11 +14,10 @@ if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
 imageTransform_test = transforms.Compose([transforms.ToTensor(),
-                                           transforms.Normalize((0.7083, 0.5821, 0.5360), (0.0969, 0.1119, 0.1261)),
-                                           transforms.Resize((1024, 672))])
+                                           transforms.Resize((672, 1024))])
 
 # File path for loading model
-filepath = "path to file"
+filepath = "filepath\\ImprovedUNet.pt"
 
 loadedModel = torch.load(filepath)
 
@@ -24,7 +26,7 @@ print("> Predicting")
 loadedModel.eval()
 with torch.no_grad():
     # Path to image to be predicted
-    testImagePath = "path to file"
+    testImagePath = "filepath\\imageName.jpg"
     testImage = Image.open(testImagePath).convert('RGB')
 
     testImage = imageTransform_test(testImage)
@@ -38,7 +40,7 @@ with torch.no_grad():
     output = loadedModel(testImage)
 
     # Convert 4D tensor of [n, c, w, h] to 2D tensor of [w, h]
-    output = output.view(1024, 672)
+    output = output.view(672, 1024)
 
     # Verify dimensions of tensor
     #print(output.size())
@@ -47,4 +49,4 @@ with torch.no_grad():
     output = output.cpu().numpy()
 
     # Save predicted mask as png greyscale
-    plt.imsave("testPredMask.png", output, cmap="gray")
+    plt.imsave("imageName_PredMask.png", output, cmap="gray")
