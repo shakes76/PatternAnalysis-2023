@@ -2,10 +2,16 @@ import torch
 from dataset import *
 from modules import *
 from tensorflow.keras.optimizers import Adam
-from tensorflow.keras.metrics import Recall, Precision
+from tensorflow.keras.metrics import Precision
 
 
-
+def dice_coef(y_true, y_pred):
+    y_true = tf.keras.layers.Flatten()(y_true)
+    y_pred = tf.keras.layers.Flatten()(y_pred)
+    intersection = tf.reduce_sum(y_true * y_pred)
+    total_sum = tf.reduce_sum(y_true) + tf.reduce_sum(y_pred)
+    dice = (2. * intersection) / total_sum
+    return dice
 
 if __name__ == "__main__":
     physical_devices = tf.config.list_physical_devices('GPU') 
@@ -29,7 +35,7 @@ if __name__ == "__main__":
     valid_steps = get_steps(valid_x, batch_size)
 
     model = Unet((H, W, 3))
-    metrics = [Recall(), Precision()]
+    metrics = [dice_coef, Precision()]
     model.compile(loss="binary_crossentropy", optimizer=Adam(lr), metrics=metrics)
     # model.summary()
     
