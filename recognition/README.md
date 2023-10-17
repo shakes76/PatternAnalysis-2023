@@ -77,16 +77,16 @@ and the second part is the image's unique ID, each patient have 12 brain MRI sca
 
 ### Resnet18 architecture: 
 <ul style="list-style-type:none;">
-  <li>&#8226; test
+  <li>test
     <ul style="list-style-type:none; margin-left:20px;">
-      <li>&#8227; AD</li>
-      <li>&#8227; NC</li>
+      <li>AD</li>
+      <li>NC</li>
     </ul>
   </li>
-  <li>&#8226; train
+  <li>train
     <ul style="list-style-type:none; margin-left:20px;">
-      <li>&#8227; AD</li>
-      <li>&#8227; NC</li>
+      <li>AD</li>
+      <li>NC</li>
     </ul>
   </li>
 </ul>
