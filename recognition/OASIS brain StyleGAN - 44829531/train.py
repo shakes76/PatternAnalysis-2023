@@ -206,8 +206,8 @@ class StyleGAN(keras.Model):
         z = [tf.random.normal((self.batch_size, 512)) for i in range(7)]
 
         # Generate noise tensors for unique resolutions.
-        noise = [tf.random.normal((self.batch_size, res, res, 1))
-                 for res in [4, 8, 16, 32, 64, 128, 256]]
+        noise = [tf.random.uniform((self.batch_size, res, res, 1)) for res in
+                 [4, 8, 16, 32, 64, 128, 256]]
 
         # Create a constant input tensor.
         input = tf.ones([self.batch_size, 4, 4, 512])
