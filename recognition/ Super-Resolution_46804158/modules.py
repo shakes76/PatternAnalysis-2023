@@ -15,9 +15,9 @@ class SuperResolutionModel(nn.Module):
             self.inputs = nn.Conv2d(channels, 64, kernel_size=5, padding=2)
             # Convolutional layers for feature extraction
             self.conv1 = nn.Conv2d(64, 64, **self.conv_args)
-            self.conv2 = nn.Conv2d(64, 128, **self.conv_args)
+            self.conv2 = nn.Conv2d(64, 32, **self.conv_args)
             # Convolutional layer for upscaling, output channels depend on the upscale factor
-            self.conv3 = nn.Conv2d(128, channels * (upscale_factor ** 2), **self.conv_args)
+            self.conv3 = nn.Conv2d(32, channels * (upscale_factor ** 2), **self.conv_args)
 
     def forward(self, out):
         # Apply ReLU activation 

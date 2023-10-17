@@ -1,7 +1,6 @@
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader
-import torchvision.transforms.functional as fn
 
 class ADNIDataset():
     def __init__(self):
