@@ -15,7 +15,6 @@ class UNet3D(nn.Module):
        
         in_channels = out_channels
         out_channels = out_channels * 2
-        print(in_channels, out_channels)
         self.conv2 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
         self.context2 = context_module(out_channels, out_channels)
         
@@ -36,14 +35,11 @@ class UNet3D(nn.Module):
         
         in_channels = out_channels
         out_channels = out_channels // 2
-        print('here')
-        print(in_channels, out_channels)
         self.up1 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
         self.localization1 = localization_module(in_channels, out_channels)
         
         in_channels = in_channels // 2
         out_channels = out_channels // 2
-        print(in_channels, out_channels)
         self.up2 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
         self.localization2 = localization_module(in_channels, out_channels)
         self.segmentation_layer2 = nn.Conv2d(out_channels, 32, kernel_size=1)
@@ -56,7 +52,6 @@ class UNet3D(nn.Module):
         
         in_channels = in_channels // 2
         out_channels = out_channels // 2
-        print(in_channels, out_channels)
         self.up4 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
         self.lastconv = nn.Conv2d(in_channels, in_channels, kernel_size=1)
         self.segmentation_layer4 = nn.Conv2d(in_channels, in_channels, kernel_size=1)
@@ -92,41 +87,25 @@ class UNet3D(nn.Module):
         elem5 = x
         x = self.context5(x)
         x = self.element_wise_sum(x, elem5)
-        print('start')
-        print(x.shape)
         x = self.up1(x)
-        print(x.shape)
         x = torch.cat((x, features[-1]), dim=1)
-        print(x.shape)
         x = self.localization1(x)
-        print(x.shape)
         x = self.up2(x)
-        print(2)
-        print(x.shape)
-        print(features[-2].shape)
         x = torch.cat((x, features[-2]), dim=1)
-        print(x.shape)
         x = self.localization2(x)
-        print('local2')
-        
-        print(self.segmentation_layer2(x).shape)
         segmentation2 = self.sample(self.segmentation_layer2(x))
-        print(segmentation2.shape)
         x = self.up3(x)
         x = torch.cat((x, features[-3]), dim=1)
         x = self.localization3(x)
-        
         segmentation3 = self.segmentation_layer3(x)
-        print(segmentation3.shape)
         x = self.up4(x)
         x = torch.cat((x, features[-4]), dim=1)
         x = self.lastconv(x)
         segmentation4 = self.segmentation_layer4(x)
-        print(segmentation4.shape)
         combine1 = self.element_wise_sum(segmentation2, segmentation3)
         combine1 = self.sample(combine1)
         conbine2 = self.element_wise_sum(combine1, segmentation4)
-        final = nn.Softmax(conbine2)
+        final = nn.Softmax(dim=1)(conbine2)
         return final
 
 def context_module(in_channels, out_channels):
