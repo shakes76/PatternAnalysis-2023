@@ -6,7 +6,7 @@ import time
 
 NUM_EPOCHS = 100
 # Placeholder for now
-PATH = "~"
+PATH = "model.pt"
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -39,7 +39,8 @@ for epoch in range(NUM_EPOCHS):
     optimizer.step()
 
     if (epoch % 10 == 0):
-        print(f'Epoch {epoch:>3} | Loss: {loss:.2f}')
+        print(f'Epoch {epoch:>3} | Loss: {loss:.2f}\n', flush=True)
+        
 
 end = time.time()
 elapsed = end - start
