@@ -7,11 +7,13 @@ We use a multi-layer graph-covolutional network (GCN) to classify the Facebook L
 
 ## Results
 
-See below a graph of the model's training accuracy and loss over 100 epochs.
+See below a graph of the model's steady training accuracy and loss over 100 epochs.
 
-![Training](images/training.png?raw=true "Training accuracy and loss")
+![training](images/training.png?raw=true)
 
-With the setup as described above, the model achieved an impressive accuracy of 95.25% on the test set. 
+The model completed training after 100 epochs with a 96.79% accuracy on the training set. Moreover, the model achieved an accuracy of 95.25% on the test set. Thus, overfitting was avoided.
+
+
 
 
 ## Preprocessing
