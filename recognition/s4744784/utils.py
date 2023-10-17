@@ -3,6 +3,8 @@ File for all utilities/constants used in the model/other files.
 """
 import os
 import torch
+import torchvision.transforms as transforms
+from torch.nn.modules.upsampling import Upsample
 
 # CONSTANTS
 # HYPERPARAMETERS
@@ -26,3 +28,6 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # PATHS FOR LOCAL DEVELOPMENT
 directory = os.path.abspath('./data/AD_NC')
 train_path = os.path.join(directory, 'train')
+
+down_sample = transforms.Compose([transforms.Resize((new_height, new_width))])
+up_sample = Upsample(scale_factor=upscale_factor)
