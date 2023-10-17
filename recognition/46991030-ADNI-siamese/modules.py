@@ -58,6 +58,7 @@ def snn():
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
             ),
             tf.keras.layers.Flatten(),
+            tf.keras.layers.BatchNormalization(),
             tf.keras.layers.Dense(64, activation="relu"),
         ]
     )
