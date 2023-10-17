@@ -35,12 +35,13 @@ The images were cropped to be square, scaled to have its pixel values between 0 
 
 After training for 60 epochs the loss and accuracy curves were observed
 
-![Alt text](readmeImages/acc.png) ![Alt text](readmeImages/loss.png)
+![Alt text](readmeImages/FirstTrainAcc.png) ![Alt text](readmeImages/FirstTrainLoss.png)
 
 At first the performance of the validation set is better than the train set, this is due to dropout. Neuron weights are being killed during training which hinders performance, then being all switched on during validation. However the validation
 performance eventually starts to slowly get worse, while the training performance continues to increase, overfitting. The correct epoch to stop to maximise test performance would be somewhere around the 20 epoch mark.
 
-[comment]: <24x24 pixel patches, 100 patches total, single layer 1000 neuron classification layer, 3 encoder blocks of [800,1000, 800] mlp blocks>
+
+![Alt text](readmeImages/SecondTrainAcc.png) ![Alt text](readmeImages/SecondTrainLoss.png)
 
 # Results
 
@@ -51,3 +52,7 @@ Retraining the model and stopping at epoch 20 gave a test set accuracy of 67%
 The model was trained on a a100 gpu node and took 66 minutes to train for the whole 60 epochs, and 21 minutes to train for the 20 epochs.
 
 The torch and torchvision libraries were used. The data in its form used for training was obtained in its current form from the COMP3710 course blackboard website and is inaccessable to the general public. However the ADNI dataset is available to everyone, but is likely not in a form suitable for dataset.py. So if someone wanted to reproduce the results they would need to download the data themselves and make their own torch.utils.data.Dataset object with it.
+
+#License
+
+
