@@ -35,7 +35,7 @@ The input training, and test data images are centered, resized, and normalized t
 ## Example Inputs, Outputs, and Plots
 The provided visualizations include an image of example input, target, and output for the super-resolution model, along with a graph illustrating the model's loss during training.
 
-![image of example input, target and output](https://github.com/mhjos/PatternAnalysis-2023/blob/topic-recognition/recognition/%20Super-Resolution_46804158/Figures/Figure_1.png)
+![image of example input, target and output](https://github.com/mhjos/PatternAnalysis-2023/blob/topic-recognition/recognition/%20Super-Resolution_46804158/Figures/Image.png)
 
 ![graph of loss](https://github.com/mhjos/PatternAnalysis-2023/blob/topic-recognition/recognition/%20Super-Resolution_46804158/Figures/Loss.png)
 
