@@ -1,10 +1,11 @@
 import tensorflow as tf
 from tensorflow import keras
-from tensorflow.keras import layers
+from keras import layers
 
 # Define the Efficient Sub-Pixel CNN model
 def subpixel_conv2d(input_tensor, scale, num_filters):
     x = layers.Conv2D(num_filters, (3, 3), activation='relu', padding='same')(input_tensor)
+    x = layers.Conv2D(num_filters, (3, 3), activation='relu', padding='same')(x)
     x = layers.UpSampling2D(size=(scale, scale))(x)
     return x
 
@@ -12,11 +13,13 @@ def efficient_subpixel_cnn(input_shape, scale):
     # Input layer
     input_lr = keras.Input(shape=input_shape)
 
-    # Sub-pixel convolution blocks
-    x = subpixel_conv2d(input_lr, scale, 64)
-    x = subpixel_conv2d(x, scale, 64)
-    x = subpixel_conv2d(x, scale, 64)
+    # Initial convolutional layer
+    x = layers.Conv2D(64, (3, 3), activation='relu', padding='same')(input_lr)
 
+    # Sub-pixel convolution blocks
+    for _ in range(5):  # Add more convolution blocks
+        x = subpixel_conv2d(x, scale, 64)
+    
     # Output layer
     output_hr = layers.Conv2D(1, (3, 3), activation='relu', padding='same')(x)
 
@@ -26,8 +29,8 @@ def efficient_subpixel_cnn(input_shape, scale):
     return model
 
 # Define the input shape and upscaling factor
-input_shape = (64, 64, 1)  # Modify this according to your dataset's input size
-scale = 4  # Adjust the scale factor based on your super-resolution task
+input_shape = (64, 64, 1)  # dataset's input size
+scale = 4  # scale factor based on super-resolution task
 
 # Create the model
 model = efficient_subpixel_cnn(input_shape, scale)
