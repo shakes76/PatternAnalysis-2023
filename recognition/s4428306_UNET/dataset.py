@@ -5,10 +5,12 @@ import os
 from PIL import Image
 
 #TODO: Clean up debugging notes/code.
-#      Change rates for adam optimizer and activation/ReLU functions.
 #      Make sure references are in order. Note use of tensorflow documentation.
-#      May also want to increase size to 256x256.
+#      Replace softmax layer with sigmoid, and change segmentation layer filters to 1.
 #      Remove one hot and squeeze when softmax is replaced with sigmoid in model.
+#      May also want to increase size to 256x256.
+#      Clean up dice loss function.
+#      Change rates for adam optimizer.
 
 #NOTE: Expecting 2595 images in the training folders (-1 for license file) (should also be -1 for attribution file).
 #      Getting 2596 though, not sure why.

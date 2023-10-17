@@ -76,14 +76,15 @@ def build_improved_unet_model():
     #      It looks like they all need to be the same for them to add together.
     #      Setting them all to 1 so that the output matches the masks.
     #      Changed filters to 2, because there are 2 classes.
-    x = segmentation_layer(x, 2)
+    x = segmentation_layer(x, 1)
     #Upscale and add segmentation layers.
-    s1 = segmentation_layer(l1, 2)
+    s1 = segmentation_layer(l1, 1)
     s1 = layers.UpSampling2D(size=(2,2))(s1)
-    s2 = segmentation_layer(l2, 2) + s1
+    s2 = segmentation_layer(l2, 1) + s1
     s2 = layers.UpSampling2D(size=(2,2))(s2)
     x = x + s2
-    outputs = layers.Softmax(axis=3)(x)
+    #outputs = layers.Softmax(axis=3)(x)
+    outputs = tf.keras.activations.sigmoid(x)
     #NOTE: Squeezing to make sure dimensions are the same as the masks.
     #      Looks like this actually shouldn't be done.
     #outputs = tf.squeeze(outputs)
