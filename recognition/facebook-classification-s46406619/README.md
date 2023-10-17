@@ -11,10 +11,11 @@ See below a graph of the model's steady training accuracy and loss over 100 epoc
 
 ![training](images/training.png?raw=true)
 
-The model completed training after 100 epochs with a 96.79% accuracy on the training set. Moreover, the model achieved an accuracy of 95.25% on the test set. Thus, overfitting was avoided.
+The model completed training after 100 epochs with a 96.79% accuracy on the training set. Moreover, the model achieved an accuracy of 95.25% on the test set. Thus, overfitting was avoided. These results were further visualised through the use of a t-SNE embedding. Both the original 128-dimensional dataset and the 16-dimensional embeddings produced after training the model were reduced via t-SNE dimensionality reduction to two dimensions. The results are shown below.
 
+![labels](images/labels.png?raw=true)
 
-
+We clearly see that the GCN model has efficiently clustered the dataset by class. 
 
 ## Preprocessing
 
