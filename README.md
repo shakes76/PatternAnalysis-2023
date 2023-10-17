@@ -9,22 +9,22 @@ We can download the test, training and validation set 2018 version from the ISIC
 ![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/88cd0f74-a50f-4aaf-921f-76f108f943e2)
 Figure 1(above), Our design was inspired by the U-Net. Top level data is gathered by the context left pathway and then precisely localized by the localization right pathway.  Through deep supervision, we introduce gradient signals deeply into the network.
 
--###Data Preparation 
+- ### Data Preparation  
 Feature extraction and normalization to prepare raw data for the model.
 Data augmentation techniques to enhance model robustness and generalization.
 Segregation of data into distinct training and validation sets for effective model evaluation.
 
--###Model Building 
+- ### Model Building  
 Construction of model architecture using appropriate layers (e.g., convolutional, recurrent, etc.), considering the specific requirements of the task.
 Integration of activation functions to introduce non-linearities essential for learning complex patterns.
 Implementation of regularization methods to prevent overfitting and improve model generalization.
 
--###Training Procedure 
+- ### Training Procedure  
 Selection and application of a relevant loss function to assess model predictions during training.
 Utilization of optimizers to adjust model parameters based on the computed loss, enhancing model performance.
 Systematic training process over multiple iterations (epochs), using mini-batches of data for efficient learning.
 
--###Prediction and Evaluation 
+- ### Prediction and Evaluation  
 Execution of model inference to generate predictions on new, unseen data.
 Assessment of model performance post-training using task-relevant metrics to determine accuracy and reliability.
 Iterative model tuning and hyperparameter adjustments based on evaluation feedback to optimize results.
