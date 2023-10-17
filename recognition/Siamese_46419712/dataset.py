@@ -4,10 +4,8 @@ import torchvision.transforms as transforms
 import random
 
 TRAIN_PATH = "/home/groups/comp3710/ADNI/AD_NC/train"
-# TRAIN_PATH = "./AD_NC/train"
 
-TEST_PATH = "/home/groups/comp3710/ADNI/AD_NC/train"
-# TEST_PATH = "./AD_NC/train"
+TEST_PATH = "/home/groups/comp3710/ADNI/AD_NC/test"
 
 class ClassifierDataset(torch.utils.data.Dataset):
     """
