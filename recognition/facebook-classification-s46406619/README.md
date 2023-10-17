@@ -8,7 +8,9 @@ $$
 h_i=\sum_{j\in N_i}\frac{1}{\sqrt{\text{deg}(i)}\sqrt{\text{deg}(j)}}\boldsymbol{W}_{x_j},
 $$ 
 
-where $\boldsymbol{W}$ is a weight matrix, and $N_i$ is the set of neighbours (adjacent vertices) of $i$.
+where $\boldsymbol{W}$ is a weight matrix, and $N_i$ is the set of neighbours (adjacent vertices) of $i$. Please see below a figure visualising the network.
+
+![architecture](images/architecture.png?raw=true)
 
 ## Preprocessing & Training
 
