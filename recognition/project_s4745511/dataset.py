@@ -9,44 +9,41 @@ NC_PATH = 'C://Users//Danita//OneDrive//Desktop//UQ//sem3//PatterRecognision//Pr
 AD_TEST_PATH = 'C://Users//Danita//OneDrive//Desktop//UQ//sem3//PatterRecognision//Project3//ADNI_AD_NC_2D//AD_NC//test//AD'
 NC_TEST_PATH = 'C://Users//Danita//OneDrive//Desktop//UQ//sem3//PatterRecognision//Project3//ADNI_AD_NC_2D//AD_NC//test//NC'
 
-def load_siamese_data(batch_size=32, train_ratio=0.8):
-    custom_ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
-    custom_nc_paths = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
+# def load_siamese_data(batch_size=32, train_ratio=0.8):
+#     custom_ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
+#     custom_nc_paths = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
 
-    num_pairs = min(len(custom_ad_paths), len(custom_nc_paths)) // 3  # Modify the data splitting strategy
+#     num_pairs = min(len(custom_ad_paths), len(custom_nc_paths)) // 3  # Modify the data splitting strategy
 
-    # Create pairs for "AD, AD" combination (positive pairs)
-    custom_pair_base_ad_ad = custom_ad_paths[::3][:num_pairs]
-    custom_pair_ad_ad = custom_ad_paths[1::3][:num_pairs]
-    custom_labels_ad_ad = np.ones([num_pairs])
+    
+#     custom_pair_base_ad_ad = custom_ad_paths[::3][:num_pairs]
+#     custom_pair_ad_ad = custom_ad_paths[1::3][:num_pairs]
+#     custom_labels_ad_ad = np.ones([num_pairs])
 
-    # Create pairs for "AD, NC" combination (negative pairs)
-    # Create pairs for "NC, AD" combination (negative pairs)
-    custom_pair_base_ad_nc = custom_ad_paths[::3][:num_pairs]
-    custom_pair_ad_nc = custom_ad_paths[1::3][:num_pairs]
-    custom_pair_nc_ad = custom_nc_paths[1::3][:num_pairs]
-    custom_pair_compare_ad_nc = custom_pair_ad_nc + custom_pair_nc_ad
-    custom_labels_ad_nc = np.zeros([num_pairs])
+#     custom_pair_base_ad_nc = custom_ad_paths[::3][:num_pairs]
+#     custom_pair_ad_nc = custom_ad_paths[1::3][:num_pairs]
+#     custom_pair_nc_ad = custom_nc_paths[1::3][:num_pairs]
+#     custom_pair_compare_ad_nc = custom_pair_ad_nc + custom_pair_nc_ad
+#     custom_labels_ad_nc = np.zeros([num_pairs])
 
-    # Create pairs for "NC, NC" combination (positive pairs)
-    custom_pair_base_nc_nc = custom_nc_paths[::3][:num_pairs]
-    custom_pair_nc_nc = custom_nc_paths[1::3][:num_pairs]
-    custom_labels_nc_nc = np.ones([num_pairs])
+#     custom_pair_base_nc_nc = custom_nc_paths[::3][:num_pairs]
+#     custom_pair_nc_nc = custom_nc_paths[1::3][:num_pairs]
+#     custom_labels_nc_nc = np.ones([num_pairs])
 
-    # Combine all the combinations
-    custom_base_ds = tf.data.Dataset.from_tensor_slices(custom_pair_base_ad_ad + custom_pair_base_ad_nc + custom_pair_base_nc_nc).map(preprocess_image)
-    custom_pair_ds = tf.data.Dataset.from_tensor_slices(custom_pair_ad_ad + custom_pair_compare_ad_nc + custom_pair_nc_nc).map(preprocess_image)
-    custom_labels_ds = tf.data.Dataset.from_tensor_slices(
-        np.concatenate([custom_labels_ad_ad, custom_labels_ad_nc, custom_labels_nc_nc])
-    )
+#     custom_base_ds = tf.data.Dataset.from_tensor_slices(custom_pair_base_ad_ad + custom_pair_base_ad_nc + custom_pair_base_nc_nc).map(preprocess_image)
+#     custom_pair_ds = tf.data.Dataset.from_tensor_slices(custom_pair_ad_ad + custom_pair_compare_ad_nc + custom_pair_nc_nc).map(preprocess_image)
+#     custom_labels_ds = tf.data.Dataset.from_tensor_slices(
+#         np.concatenate([custom_labels_ad_ad, custom_labels_ad_nc, custom_labels_nc_nc])
+#     )
 
-    custom_dataset = tf.data.Dataset.zip(((custom_base_ds, custom_pair_ds), custom_labels_ds)).shuffle(len(custom_pair_base_ad_ad) + len(custom_pair_base_ad_nc) + len(custom_pair_base_nc_nc))
+#     custom_dataset = tf.data.Dataset.zip(((custom_base_ds, custom_pair_ds), custom_labels_ds)).shuffle(len(custom_pair_base_ad_ad) + len(custom_pair_base_ad_nc) + len(custom_pair_base_nc_nc))
 
-    train_num = int(round(len(custom_dataset) * train_ratio, 0))
-    custom_train = custom_dataset.take(train_num)
-    custom_val = custom_dataset.skip(train_num)
+#     train_num = int(round(len(custom_dataset) * train_ratio, 0))
+#     custom_train = custom_dataset.take(train_num)
+#     custom_val = custom_dataset.skip(train_num)
 
-    return custom_train.batch(batch_size), custom_val.batch(batch_size)
+#     return custom_train.batch(batch_size), custom_val.batch(batch_size)
+
 
 
 

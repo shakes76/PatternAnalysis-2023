@@ -1,8 +1,8 @@
 from modules import siamese
 from modules import classification_model
 from modules import contrastive_loss
-from dataset1 import load_siamese_data
-from dataset1 import load_classify_data
+from dataset import load_siamese_data
+from dataset import load_classify_data
 from tensorflow.keras.models import load_model
 import matplotlib.pyplot as plt
 
@@ -26,7 +26,7 @@ def train():
     plt.show()
 
 
-def trainSNN(epochs=10):
+def trainSNN(epochs=20):
     """ Train the SNN
 
     Args:
@@ -49,7 +49,7 @@ def trainSNN(epochs=10):
     return siamese_fit
 
 
-def trainClassifier(epochs=5):
+def trainClassifier(epochs=10):
     """ Train the classifier
 
     Args:
