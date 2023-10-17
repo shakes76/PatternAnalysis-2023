@@ -2,11 +2,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from dataset import get_data_loaders
-from modules import ViT3DWithConv
-import matplotlib.pyplot as plt
-from torchinfo import summary
-from cct_3d import CCT
-
+from modules import ViT
+import matplotlib as plt
 
 device = torch.device(
     "cpu"
@@ -23,16 +20,8 @@ if __name__ == "__main__":
 
     # Initialize Model
     print(f"\nINITIALIZING MODEL\n{'='*25}\n")
-    print("Assigning model instance...")
-    model = ViT3DWithConv(
-        image_size=(240, 240, 20),
-        patch_size=(10, 10, 10),
-        num_classes=2,
-        dim=1920,
-        depth=10,
-        heads=12,
-        mlp_dim=2048,
-    ).to(device)
+    num_labels = 2  # Alzheimer's or Normal
+    model = ViT(num_classes=num_labels).to(device)
     print("Model ready.")
 
     # Define Loss, Optimizer and Scheduler
@@ -83,13 +72,14 @@ if __name__ == "__main__":
                     f"Epoch {epoch}/{num_epochs}, Batch {batch_idx}/{len(train_loader)}, Training Loss: {loss.item()}, Training Accuracy: {correct / len(images)}"
                 )
 
+        train_accuracy = total_correct / total_samples
+        print(
+            f"Epoch {epoch}/{num_epochs}, Total Training Loss: {total_loss}, Total Training Accuracy: {train_accuracy}"
+        )
+
         # Validation Loop
         model.eval()
         total_loss, total_correct, total_samples = 0, 0, len(test_loader.dataset)
-
-        # Counters for True Positives (TP), True Negatives (TN), False Positives (FP), and False Negatives (FN)
-        TP, TN, FP, FN = 0, 0, 0, 0
-
         with torch.no_grad():
             for images, labels in test_loader:
                 images, labels = images.to(device), labels.to(device)
@@ -97,13 +87,6 @@ if __name__ == "__main__":
                 loss = criterion(logits, labels)
                 pred = logits.argmax(dim=1)
                 correct = pred.eq(labels).sum().item()
-
-                # Update counters based on predictions
-                TP += ((pred == 0) & (labels == 0)).sum().item()
-                TN += ((pred == 1) & (labels == 1)).sum().item()
-                FP += ((pred == 0) & (labels == 1)).sum().item()
-                FN += ((pred == 1) & (labels == 0)).sum().item()
-
                 total_loss += loss.item()
                 total_correct += correct
 
