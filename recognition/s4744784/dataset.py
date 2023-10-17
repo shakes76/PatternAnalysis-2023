@@ -38,23 +38,17 @@ def load_data():
     print("Loading data...")
 
     # TRANSFORMS
-    transform_low_res = transforms.Compose([
+    training_transform = transforms.Compose([
         transforms.Resize((new_height, new_width)),
         transforms.RandomHorizontalFlip(),
         transforms.Grayscale(),
         transforms.ToTensor(),
     ])
 
-    transform_high_res = transforms.Compose([
-        transforms.Grayscale(),
-        transforms.ToTensor(),
-    ])
-
-    dataset_low_res = torchvision.datasets.ImageFolder(train_path, transform=transform_low_res)
-    dataset_high_res = torchvision.datasets.ImageFolder(train_path, transform=transform_high_res)
+    dataset = torchvision.datasets.ImageFolder(root=train_path, transform=training_transform)
 
     dataloader = torch.utils.data.DataLoader(
-        [(low, high) for low, high in zip(dataset_low_res, dataset_high_res)],
+        dataset,
         batch_size=batch_size,
         num_workers=num_workers,
     )
