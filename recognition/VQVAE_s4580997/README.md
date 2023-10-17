@@ -141,14 +141,59 @@ Check if the testing set has not yet been loaded.
 Get the variance of the testing set.
 
 #### Class `ModelLoader()`
+Abstract class for implementing the dataset object.
+
 **Parameters**
+- __model__ Model to use to generate the images
+- __batch_size, 32__ Size of the batch for processing
+- __path__ Directory path of the dataset
+- __fraction, 1.0__ How much of the dataset to use to create the loader
+- __transform__ Transform to apply to the data
 
 **Methods**
+`load() -> None`
+Load the dataset from the ImageFolder at the given path and store it.
+
+`get() -> DataLoader`
+Return the loaded dataset.
+
+`unloaded() -> bool`
+Verify that the dataset has been loaded.
+
+`variance() -> float`
+Compute the variance of the dataset and store it. Once computed, it does not need to be recalculated.
 
 #### Class `ModelDataset()`
 **Parameters**
+- __model__ Model to use to generate the image loaders
+- __batch_size, 32__ -> Size of the batch for processing
+- __path__ -> Directory path of the dataset for both test and train splits
+- __fraction, 1.0__ -> How much of the dataset to use to create the loader
 
 **Methods**
+`load_train() -> None`
+Loads the data for the training set.
+
+`get_train() -> DataLoader`
+Returns the training dataset.
+
+`load_test() -> None`
+Loads the data for the testing set.
+
+`get_test() -> DataLoader`
+Returns the testing dataset.
+
+`train_unloaded() -> bool`
+Check if the training set has not yet been loaded.
+
+`train_var() -> float`
+Get the variance of the training set.
+
+`test_unloaded() -> bool`
+Check if the testing set has not yet been loaded.
+
+`test_var() -> float`
+Get the variance of the testing set.
 
 ### `modules.py`
 #### Class `ResidualLayer(nn.Module)`
@@ -229,7 +274,22 @@ The Predict class is specific to the VQVAE with Prior model. It handles the gene
 - __img_size, 64__ The size of the images to be generated
 
 **Methods**
+`generate_vqvae() -> None`
+Generate an image directly from the VQVAE model and visualise the image.
 
+`generate_gan() -> None`
+Generate an image by using the VQVAE encoding indices through the GAN and visualise the result.
+
+`vqvae_encoded() -> None`
+Create the encoding indices using the VQVAE.
+
+`visualise() -> None`
+Plotting helper method to visualise the images. If called standalone, it will visualise the most recent image generated.
+
+`ssim(model='vqvae') -> float`
+- __model__ The model to use to compute the SSIM, if none provided or does not match, use vqvae
+
+Compute and print the max and average structural similarity index of the generated images compared to the testset of the provided dataset.
 
 ### `train.py`
 #### Abstract Class `Trainer(ABC)`
