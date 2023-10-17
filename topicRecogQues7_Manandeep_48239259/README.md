@@ -132,3 +132,30 @@ Here are some of the references and resources that were instrumental in the deve
 
 5. **Contrastive Loss Function for Siamese Network**  
     Stack Overflow discussion on applying contrastive loss to Siamese Networks. [Read more](https://stackoverflow.com/questions/54091571/contrastive-loss-function-apply-on-siamese-network-and-something-wrong-with-opti)
+
+
+af Network for Alzheimer's Disease Detection
+
+Data Pre-processing
+
+Training and Validation Evidencea
+
+Project Structure
+
+How to Use
+
+References
+Dependencies
+
+Thresholding
+
+Classification Decision
+Classification Process
+
+Feature Extraction
+
+Pairwise Comparison
+
+Feature Similaritya
+
+Classification Decision

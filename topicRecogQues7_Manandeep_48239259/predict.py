@@ -10,16 +10,16 @@ from torch.utils.data import DataLoader, Dataset
 import torchvision.transforms as transforms
 import random
 import numpy as np
-from PIL import Image
 import PIL.ImageOps
 import torch.nn.functional as F
 import torch.nn.functional as TorchFun
 import torchvision
 import matplotlib.pyplot as plt
-import numpy np
+import numpy as np
 from PIL import Image
 from torch.autograd import Variable
 
+# Define a function to display an image
 def imshow(img, text=None, should_save=False):
     npimg = np.array(Image.open(img))
     plt.axis("off")
@@ -29,15 +29,17 @@ def imshow(img, text=None, should_save=False):
     plt.imshow(npimg)
     plt.show()
 
-def imshow_grid(img,text=None,should_save=False):
+# Define a function to display a grid of images
+def imshow_grid(img, text=None, should_save=False):
     npimg = img.numpy()
     plt.axis("off")
     if text:
-        plt.text(75, 8, text, style='italic',fontweight='bold',
-            bbox={'facecolor':'white', 'alpha':0.8, 'pad':10})
+        plt.text(75, 8, text, style='italic', fontweight='bold',
+            bbox={'facecolor': 'white', 'alpha': 0.8, 'pad': 10})
     plt.imshow(np.transpose(npimg, (1, 2, 0))
     plt.show()
 
+# Create an instance of the trained Siamese network
 trained_siamese_net = CustomSiameseNetwork()
 trained_siamese_net.load_state_dict(torch.load('/content/drive/MyDrive/dataset/model.pth'))
 trained_siamese_net.eval()
@@ -55,6 +57,8 @@ siamese_dataset = CustomDataset(folder_dataset_test,
 test_dataloader = DataLoader(siamese_dataset, num_workers=6, batch_size=1, shuffle=True)
 dataiter = iter(test_dataloader)
 x0, _, _ = next(dataiter)
+
+# Iterate through the test dataset and display pairs of images
 for i in range(10):
     _, x1, label2 = next(dataiter)
     print(label2)
@@ -62,7 +66,9 @@ for i in range(10):
 
     output1, output2 = trained_siamese_net(Variable(x0), Variable(x1))
     euclidean_distance = F.pairwise_distance(output1, output2)
-    imshow_grid(torchvision.utils.make_grid(concatenated),'Dissimilarity: {:.2f}'.format(euclidean_distance.item()))
+    imshow_grid(torchvision.utils.make_grid(concatenated), 'Dissimilarity: {:.2f}'.format(euclidean_distance.item()))
+
+# Define a function to classify a test image
 def classify_test_image(test_image_path):
     test_image = Image.open(test_image_path)
     test_image = test_image.convert("L")
@@ -90,7 +96,7 @@ def classify_test_image(test_image_path):
         ref_image = ref_image.convert("L")
         ref_image = transforms.Compose([transforms.Resize((100, 100)), transforms.ToTensor()])(ref_image)
         ref_image = ref_image.unsqueeze(0)
-        with torch.no_data():
+        with torch.no_grad():
             output1, output2 = trained_siamese_net(test_image, ref_image)
             euclidean_distance = TorchFun.pairwise_distance(output1, output2)
             distances_class2.append(euclidean_distance.item())
@@ -103,11 +109,13 @@ def classify_test_image(test_image_path):
     else:
         return "Is Cognitive Normal"
 
+# Test image classification and display
 test_image_path = '/content/AD_NC/test/AD/1003730_107.jpeg'
 classification = classify_test_image(test_image_path)
 imshow(test_image_path)
 print(f"Test Image: {classification}")
 
+# Define a function to calculate accuracy
 def calculate_accuracy(test_folder_path, true_labels):
     correct = 0
     total = 0
@@ -126,6 +134,7 @@ def calculate_accuracy(test_folder_path, true_labels):
     accuracy = (correct / total) * 100
     return accuracy
 
+# Calculate and print accuracy for the test folder and true labels
 test_folder_path = '/content/AD_NC/test/'
 true_labels = {
     'Class 1': 'AD',

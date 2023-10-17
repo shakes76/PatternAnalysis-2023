@@ -8,7 +8,7 @@ import torch
 from modules import CustomSiameseNetwork, ContrastiveLoss
 from dataset import CustomDataset
 
-
+# Define a configuration class to store parameters
 class Config():
     training_dir = "/content/AD_NC/train"
     testing_dir = "/content/AD_NC/test"
@@ -55,14 +55,10 @@ for epoch in range(Config.num_epochs):
             iteration_counter.append(iteration_number)
             loss_history.append(loss_contrastive.item())
 
-    
-    if epoch + 1 == Config.num_epochs:
-        break 
-
-
+# Save the trained model
 torch.save(siamese_net.state_dict(), model_save_path)
 
-
+# Plot the training loss
 plt.plot(iteration_counter, loss_history)
 plt.xlabel('No of Iteration')
 plt.ylabel('Loss')
