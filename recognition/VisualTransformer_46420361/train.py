@@ -72,6 +72,15 @@ def test_model():
     
     return
 
+def save_model(model, file):
+    """saves model to current working directory
+
+    Args:
+        model (<class 'modules.ViT'>): the vision transformer model to be saved
+        file (string): file name of the model to be saved (needs .pth)
+    """
+    torch.save(model, file)
+
 # Training loop
 def main():
     # data variables
