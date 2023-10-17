@@ -14,17 +14,19 @@ from predict import Predict
 from test import TestVQVAE
 import matplotlib.pyplot as plt
 import torch.nn.functional as F
+import other
 
 if __name__ == '__main__':
     # Models
     vqvae = VQVAE(channels = utils.CHANNELS, 
                 n_hidden = utils.VQVAE_HIDDEN, 
                 n_residual = utils.VQVAE_RESIDUAL , 
-                n_embeddings = 512, 
-                dim_embedding = 64, 
+                n_embeddings = utils.VQVAE_EMBEDDINGS, 
+                dim_embedding = utils.VQVAE_EMBEDDING_DIM,
                 beta = utils.BETA
     )
     vqvae = vqvae.to(utils.DEVICE)
+
     gan = GAN(utils.CHANNELS, utils.NOISE, utils.GAN_IMG_SIZE)
     gan = gan.to(utils.DEVICE)
     # pixelcnn = PixelCNN(utils.VQVAE_HIDDEN, utils.GAN_LATENT_DIM)
@@ -67,16 +69,27 @@ if __name__ == '__main__':
     
     # Run test
     if utils.VQVAE_TEST :
-        vqvae_tester = TestVQVAE(vqvae, adni_dataset, savepath=utils.VQVAE_SAVEPATH)
+        vqvae_tester = TestVQVAE(vqvae, adni_dataset, savepath=utils.VQVAE_SAVEPATH, device=utils.DEVICE)
         vqvae_tester.reconstruct(path=utils.VQVAE_RECONSTRUCT_PATH, show=True)
     
     # Run predict
     if utils.VQVAE_PREDICT :
-        predict = Predict(vqvae, gan, adni_dataset, utils.DEVICE, savepath=utils.OUTPUT_PATH, img_size=utils.H)
+        predict = Predict(vqvae, gan, adni_dataset, utils.DEVICE, savepath=utils.OUTPUT_PATH, img_size=64)
         predict.generate_gan(1)
         predict.generate_vqvae(1)
-        predict.ssim('gan')
-        predict.ssim('vqvae')
+        # predict.ssim('gan')
+        # predict.ssim('vqvae')
         # predict.generate_pixelcnn_vqvae(pixelcnn)
         # predict.pixel(pixelcnn, 32)
         # predict.gan_generated_images(gan.generator, 128, utils.DEVICE)
+
+        generated_images = other.gan_generated_images(gan, utils.DEVICE)
+
+        #Function to save visualisation of generated code indice
+        code_indice = other.gan_create_codebook_indice(generated_images)
+
+        #Function for decoding the generated outputs and save as final reconstruction
+        decoded = other.gan_reconstruct(vqvae, code_indice)
+
+        #Calculate the average and max SSIM against test data set and print to terminal
+        other.SSIM(decoded)

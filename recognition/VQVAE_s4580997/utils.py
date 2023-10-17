@@ -25,7 +25,7 @@ BETA = 0.25
 FRACTION = 0.1
 
 # Running Parameters
-VQVAE_RETRAIN = True
+VQVAE_RETRAIN = False
 GAN_RETRAIN = True
 PIXELCNN_RETRAIN = False
 VQVAE_TEST = True

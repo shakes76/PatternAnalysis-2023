@@ -16,7 +16,7 @@ The models are trained on the Alzheimer's Disease Neuroimaging Initiative (ADNI)
 
 Images were scaled to 128 by 128 for interaction with the models used. No augmentation was used as the dataset is of a suitable size.
 
-### Modules
+### Architecture
 #### VQVAE
 
 Very efficient at representing a latent space in imaging
@@ -38,7 +38,9 @@ The package dependencies used for the project are:
 | matplotlib | 3.5.3 |
 | skimage | 3.5.3 |
 
-## Usage
+## Documentation
+### 
+
 
 ## Results
 ### Training

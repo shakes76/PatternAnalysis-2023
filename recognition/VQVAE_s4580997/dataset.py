@@ -170,9 +170,10 @@ class ModelLoader() :
     def __getitem__(self, index):
         img, _ = self.dataset[index]
         img = self.transform(img)
+        img = img.unsqueeze(dim = 0)
         img = img.to(self.device)
         encoded = self.model.encoder(img)
-        conv = self.model.conv_layer(encoded)
+        conv = self.model.conv(encoded)
         _, _, _, encoding, encoding_indices = self.model.quantizer(conv)
         encoding_indices = encoding_indices.float().to(self.device)
         encoding_indices = encoding_indices.view(64, 64)

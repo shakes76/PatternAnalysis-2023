@@ -110,7 +110,7 @@ class TrainGAN(Trainer) :
         self.criterion = nn.BCELoss().to(DEVICE)
         self.d_losses = list()
         self.g_losses = list()
-        self.latent = 128
+        self.latent = 100
 
     def train(self) -> None :
         if self.dataset.train_unloaded() :

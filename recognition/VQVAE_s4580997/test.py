@@ -9,7 +9,6 @@ class TestVQVAE() :
         self.savepath = savepath
         self.device = device
 
-
     def reconstruct(self, path: None, show = False) :
         x, label = next(iter(self.dataset.get_test()))
         x = x.to(self.device)

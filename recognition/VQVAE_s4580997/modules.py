@@ -268,6 +268,7 @@ class VectorQuantizer(nn.Module):
             torch.matmul(z_flattened, self.embedding.weight.t())
 
         # find closest encodings
+        codebook = torch.argmin(d, dim=1)
         min_embeddingsncoding_indices = torch.argmin(d, dim=1).unsqueeze(1)
         min_embeddingsncodings = torch.zeros(
             min_embeddingsncoding_indices.shape[0], self.n_embeddings).to(DEVICE)
@@ -293,7 +294,7 @@ class VectorQuantizer(nn.Module):
         z_q = z_q.permute(0, 3, 1, 2).contiguous()
         # print('VQ PERMUTE: ', z_q.shape)
 
-        return loss, z_q, perplexity, min_embeddingsncodings, min_embeddingsncoding_indices
+        return loss, z_q, perplexity, min_embeddingsncodings, codebook
 
 class VQVAE(nn.Module):
     """
@@ -420,7 +421,6 @@ class Discriminator(nn.Module):
             self.layer(img_size * 2, img_size * 4, 4, 2, 1),
             self.layer(img_size * 4, img_size * 8, 4, 2, 1),            
             nn.Conv2d(img_size * 8, 1, 4, 2, 0, bias=False),
-            nn.Flatten(),
             nn.Sigmoid()
         )
     

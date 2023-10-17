@@ -106,11 +106,6 @@ class Predict() :
 
         self.visualise(num_images=num_images, show = False, save = True, savename="pixelcnn_vqvae_generated")
 
-
-
-# Rest of your code remains the same...
-
-
     def visualise(self, num_images = 4, show = True, save = True, savename="out"):
         rows = min(4, num_images)
         cols = num_images // rows
@@ -145,7 +140,7 @@ class Predict() :
             
             if i >= num_images:
                 break
-            real_img = data[0].numpy() 
+            real_img = data[0].cpu().detach().numpy() 
             print(gen_img.shape)
             print(real_img.shape)
             ssim = structural_similarity(
@@ -153,7 +148,7 @@ class Predict() :
                 real_img,
                 multichannel=True,
                 win_size=3,
-                data_range=1.0,
+                data_range = gen_img.max() - gen_img.min()
             )
             ssim_scores.append(ssim)
         
