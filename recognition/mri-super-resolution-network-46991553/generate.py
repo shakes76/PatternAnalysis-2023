@@ -10,7 +10,7 @@ from modules import SuperResolutionModel
 
 # Generates model output and displays next to the input and target image.
 # Either saves the plot to a file or displays it.
-def generate_model_output(model: nn.Module, data_loader: DataLoader, prefix='', device='cpu', show=False):
+def generate_model_output(model: nn.Module, data_loader: DataLoader, prefix='', device='cpu', show=False, plot_title=''):
     with torch.no_grad():
         for expected_outputs, _ in data_loader:
             inputs = downsample_tensor(expected_outputs)
@@ -55,6 +55,7 @@ def generate_model_output(model: nn.Module, data_loader: DataLoader, prefix='', 
             plt.title(f"Model Output")
             plt.axis('off')  # Turn off axis labels
             plt.tight_layout()
+            plt.suptitle(plot_title, fontsize=16)
             
             filename = image_dir + prefix + 'output.png'
 
