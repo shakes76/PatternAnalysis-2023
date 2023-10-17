@@ -5,10 +5,10 @@ from keras.layers import Dense, Layer, Flatten, Normalization, Resizing, RandomF
     RandomZoom, Dropout, Embedding, Input, LayerNormalization, MultiHeadAttention, Add
 
 
-# set hyperparameters
+# set parameters
 num_classes = 2
-img_size = 256 # may need resizing
-batch_size=128
+img_size = 128
+batch_size = 128
 patch_size = 16
 num_patches = (img_size // patch_size) ** 2
 projection_dim = 64
@@ -17,7 +17,7 @@ transformer_units = [projection_dim * 2, projection_dim, ]
 transformer_layers = 4
 mlp_head_units = [2048, 1024]
 
-input_shape = (32, 32, 3)  # may need to change size
+input_shape = (128, 128, 3)  # may need to change size
 
 data_augmentation = keras.Sequential(
     [
@@ -38,7 +38,7 @@ def mlp(x, hidden_units, dropout_rate):
 
 class Patches(Layer):
     def __init__(self, patch_size):
-        super.__init__()
+        super().__init__()
         self.patch_size = patch_size
 
     def call(self, images):
@@ -56,9 +56,9 @@ class Patches(Layer):
 
 class PatchEncoder(Layer):
     def __init__(self, num_patches, projection_dim):
-        super.__init__()
+        super().__init__()
         self.num_patches = num_patches
-        self.projection - Dense(units=projection_dim)
+        self.projection = Dense(units=projection_dim)
         self.position_embedding = Embedding(input_dim=num_patches, output_dim=projection_dim)
 
     def call(self, patch):
