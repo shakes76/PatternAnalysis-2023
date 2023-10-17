@@ -12,22 +12,28 @@ class RawSiameseModel(nn.Module):
         # first layer
         self.model1 = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=64, kernel_size=10, stride=1),
+            nn.BatchNorm2d(64),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2)
+            nn.MaxPool2d(kernel_size=2),
+            nn.Dropout2d()
         )
 
         # second layer
         self.model2 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=7, stride=1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2)
+            nn.MaxPool2d(kernel_size=2),
+            nn.Dropout2d()
         )
 
         # third layer
         self.model3 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=4, stride=1),
+            nn.BatchNorm2d(128),
             nn.ReLU(),
-            nn.MaxPool2d(kernel_size=2)
+            nn.MaxPool2d(kernel_size=2),
+            nn.Dropout2d()
         )
 
         # fourth layer
@@ -52,8 +58,7 @@ class RawSiameseModel(nn.Module):
 class BinaryModelClassifier(nn.Module):
     """
         Base CNN binary classifier
-        The idea is put the feature vector through 5 fully connected layers for classifcation
-        the out_features of the first four layer is 1/4 of the respective in_feature 
+        The idea is put the feature vector through 3 fully connected layers for classifcation
         # adapt from https://machinelearningmastery.com/building-a-binary-classification-model-in-pytorch/
     """
     def __init__(self):
@@ -62,11 +67,9 @@ class BinaryModelClassifier(nn.Module):
         self.binary_layer = nn.Sequential(
             nn.Linear(4096, 1024),
             nn.ReLU(),
-            nn.Linear(1024, 256),
+            nn.Linear(1024, 128),
             nn.ReLU(),
-            nn.Linear(256, 64),
-            nn.ReLU(),
-            nn.Linear(64, 16),
+            nn.Linear(128, 16),
             nn.ReLU(),
             nn.Linear(16, 1),
             nn.Sigmoid()
@@ -85,7 +88,7 @@ class ContrastiveLossFunction(nn.Module):
     """
     def __init__(self):
         super(ContrastiveLossFunction, self).__init__()
-        self.margin = 0.2
+        self.margin = 0.5
 
     def forward(self, output1, output2, label): 
         output = F.pairwise_distance(output1, output2)
