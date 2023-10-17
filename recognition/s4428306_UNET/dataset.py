@@ -7,8 +7,9 @@ from PIL import Image
 #TODO: Clean up debugging notes/code.
 #      Change modules to use 3D layers where applicable.
 #      Change loss function to dice.
-#      Change masks to 0s and 1s?
 #      Change rates for adam optimizer and activation/ReLU functions.
+#      Make sure references are in order. Note use of tensorflow documentation.
+#      Change resize to centre crop. May also want to increase size to 256x256 if doing this.
 
 #NOTE: Expecting 2595 images in the training folders (-1 for license file) (should also be -1 for attribution file).
 #      Getting 2596 though, not sure why.
@@ -36,6 +37,13 @@ def loadDataFrom(directory, channels, size=128):
         #Make sure not to load in the license file.
         if imageName != "LICENSE.txt" and imageName != "ATTRIBUTION.txt":
             imagePath = os.path.join(directory, imageName)
+            #image = Image.open(imagePath)
+            #Get values for center crop.
+            #width, height = image.size
+            #left = (width - size) / 2
+            #top = (height - size) / 2
+            #right = (width + size) / 2
+            #bottom = (height + size) / 2
             #NOTE: Unsure if resizing should be done in this function.
             if channels > 1:
                 data[i, :, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
@@ -79,6 +87,10 @@ def normalize(image, mask):
     #NOTE: Squeeze in here to get rid of useless dim?
     #image = tf.squeeze(image)
     #mask = tf.squeeze(mask)
+    #Convert mask to one hot encoding.
+    mask = tf.cast(mask, tf.int8)
+    mask = tf.one_hot(mask, 2)
+    mask = tf.squeeze(mask)
     return image, mask
 
 #Based on code from:

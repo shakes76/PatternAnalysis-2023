@@ -10,6 +10,7 @@ def context_module(x, n_filters):
     #TODO: Write specification.
     #NOTE: Layers in paper are said to be 3D, but this may be because they incorporate channels.
     #      Also unsure about whether padding should be used, and what type.
+    #      No padding needed.
     og_x = x
     x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
     x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
