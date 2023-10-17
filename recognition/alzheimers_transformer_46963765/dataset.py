@@ -85,15 +85,14 @@ class ADNI_Dataset:
     # image starts off at 3x240x256 need to convert to 1x240x240
     def get_transformation(self, type):
         """Method that dictates the transformations done in pre processing. Includes cropping 
-           image to event size. Random flips, blur, random rotation and changing to single dimention 
-           on top of custom normalisation
+           image to event size. Blur, random rotation and changing to single dimention 
+           on top of custom normalisation.
         """
         # apply crops, grayscale and normalisation
         if type == "train":
             transform_method = transforms.Compose([
             transforms.ToTensor(),
             transforms.RandomRotation(degrees=15),
-            transforms.RandomHorizontalFlip(),
             transforms.GaussianBlur(kernel_size=3),  # Apply Gaussian blur with a specified kernel size
             transforms.RandomCrop(240),
             transforms.Grayscale(num_output_channels=1),
