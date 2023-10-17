@@ -2,12 +2,13 @@
 Recognition task: Project 5 - Image super resolution
 
 ## Description
-This implementation is a Sub-Pixel CNN-based approach for single image super-resolution. The goal is enhancing the resolution of images, making them clearer and more detailed. 
+This implementation is a Sub-Pixel CNN-based approach for single image super-resolution. The goal is to enhance the resolution of images, making them clearer and more detailed. 
 
-The algorithim Efficient Sub-Pixel CNN (https://keras.io/examples/vision/super_resolution_sub_pixel/) which uses sub-pixel convolution.
+The algorithim chosen for this is the ESPCN (Efficient Sub-Pixel CNN), found at (https://keras.io/examples/vision/super_resolution_sub_pixel/), which achieves the upsacling effect by sub-pixel convolution.
 
 ## How It Works
-The input is down-sampled by a factor of 4 and then uding PyTorch as PixelShuffle' it increases the resolution, achieving a 4x upscaling effect. This should produce a "clearer" image. The loss fucntion calculates the mean squared error between the model's output and the target input. The loss is then used to perform backpropagation and optimize the model.
+The input is down-sampled by a factor of 4 and then using PyTorch as PixelShuffle' it increases the resolution, achieving a 4x upscaling effect. This should produce a "clearer" image. 
+The model learns the transformation through a series of convolutional layers. The loss fucntion calculates the mean squared error (implemented in PyTorch as torch.nn.MSELoss) between the model's output and the target input. The loss is then used to perform backpropagation and optimize the model. The Adam optimizer algorithm adjusts the learning rate for each model parameter during training.
 
 To use this solution:
 - Run train.py to train the ESPCN model using the ADNI brain dataset.
@@ -32,11 +33,11 @@ The input training, and test data images are centered, resized, and normalized t
 
 
 ## Example Inputs, Outputs, and Plots
-This model was run on a mac laptop, and is therefore not very efficient as an improved model would take too long to run. I recognize that the images prodcues are not very good, however with a GPU you could increase the accuracy of the images with simple alterations to the model. 
+The provided visualizations include an image of example input, target, and output for the super-resolution model, along with a graph illustrating the model's loss during training.
 
-![image of example input, target and output] (https://github.com/mhjos/PatternAnalysis-2023/blob/topic-recognition/recognition/%20Super-Resolution_46804158/Figures/Figure_1.png)
+![image of example input, target and output](https://github.com/mhjos/PatternAnalysis-2023/blob/topic-recognition/recognition/%20Super-Resolution_46804158/Figures/Figure_1.png)
 
-![graph of loss] (https://github.com/mhjos/PatternAnalysis-2023/blob/topic-recognition/recognition/%20Super-Resolution_46804158/Figures/Loss.png)
+![graph of loss](https://github.com/mhjos/PatternAnalysis-2023/blob/topic-recognition/recognition/%20Super-Resolution_46804158/Figures/Loss.png)
 
 ## Data Split
 About 30% of the data is reserved for testing, which is a reasonable portion for evaluation while the majority of the data (70%) to be used for training the model. This split is often used in machine learning because it provides a fair way to evaluate your model without using too much data for testing, which can be wasteful.
