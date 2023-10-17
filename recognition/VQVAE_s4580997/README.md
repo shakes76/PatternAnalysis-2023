@@ -333,14 +333,41 @@ It is highly recommended to use the `main.py` file to execute the code as desire
 
 ## Results
 ### Training
+Training was performed for 80 epochs, with a learning rate of 0.001 and a weight decay of 0.0001 on the training set. The training set was not split, as the problem was generation and so added data is beneficial, and was segmented with a batch size of 32. The loss function used was the embedding loss and mean-squared error of the output. The loss function was plotted at each batch, this time unit was defined as an iteration denoted as batch by epoch. The loss over training is shown in Figure _ below.
+
+Figure
+
+The loss rapidly converges after the first few iterations. Hence, the additional epochs were redundant for training as a local minima was already attained. The loss function was not observed to increase after this point, and so the model was not overfitting. The model was saved at the end of training.
+
+The GAN network was trained on the encoded indices of the images produced at the end of the VQVAE training. This was performed for 80 epochs, with a learning rate of 0.001. The loss function used was the binary cross-entropy loss. The loss over training is shown in Figure _ below.
+
+Figure 
+
+The loss of the generator does not converge, and diverges as the training progresses. This is a function of the discriminator rapidly improving, attaining virtually 0 loss. This results in the generator loss increasing as the discriminator is able to easily classify the generated images as fake. 
 
 
 ### Validation
+Validation was performed through a reconstruction process of the test set, to observe how well the model was able to reconstruct the images. This was observed manually. Figure _ below compares the original images (left), to the reconstructed images.
+
+Figure
 
 ### Generation
-Images can be generated
+The model produces images by taking the codebook from the VQVAE, and encoding the indices based on the most probabilistic from the GAN. The GAN then acts as the generator from the latent space. A generated image from this process is shown below, compared to an actual testset image.
+
+Figure
+
+The accuracy of the images produced by the model can be defined by the structural similarity of the generated image to the testset. It is the overlap of between the structure of the objects in the image, and hence can define the image quality [6].
+The generated image was compared using this metric to the entire testset, to compute the average and maximum structural similarity.
+
+| **Metric** | **Value** |
+| Average | 0.0 |
+| Maximum | 0.0 |
+|---|---|
+
+The SSIM index defines 1.0 as identical, and a value of 0 as having no correlation. Hence, it can be stated that the model has adequate performance. 
 
 ## Conclusion
+
 
 ## References
 [1] A. v. d. Oord, O. Vinyals, and K. Kavukcuoglu, “Neural Discrete Representation Learning,”
@@ -353,3 +380,5 @@ arXiv:1711.00937 [cs], May 2018, arXiv: 1711.00937. [Online]. Available: http://
 [4] https://arxiv.org/pdf/1406.2661v1.pdf
 
 [5] https://www.jeremyjordan.me/variational-autoencoders/
+
+[6] https://www.frontiersin.org/articles/10.3389/fpsyg.2017.01404/full
