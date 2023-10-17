@@ -1,4 +1,5 @@
 import torch
+import os
 from torch.cuda.amp import GradScaler, autocast
 import torchvision.transforms as transforms
 
@@ -12,8 +13,9 @@ transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize((0.1155,), (0.2254,))
 ])
-siamese_trainset = ADNITrainSiameseDataset(".\\AD_NC\\train")
+siamese_trainset = ADNITrainSiameseDataset(os.path.join(".", "AD_NC", "train"), transform)
 trainloader = torch.utils.data.DataLoader(siamese_trainset, batch_size=128, shuffle=True, pin_memory=True)
+print("Data load finish")
 
 model = SiameseNetwork()
 model = model.to(device)
