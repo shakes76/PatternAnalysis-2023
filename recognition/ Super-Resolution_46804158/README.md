@@ -16,10 +16,10 @@ To use this solution:
 
 ## Dependencies
 
-- Python 3.7 or higher
-- Matplotlib 3.3.4
-- Pytorch
-- Pytorch Torchvision
+- Python Python 3.11.4 
+- Matplotlib 3.7.1
+- Pytorch 2.0.1
+- Pytorch Torchvision 0.15.2
 
 A GPU is recommended for faster training, as it significantly reduces training time.
 
