@@ -126,6 +126,7 @@ ADAM is well known for its reliable performance in a variety of contexts. It was
                 └── NC/
                     ├── 218391_78.jpeg
                     └── ...
+    doc/        # Folder for images used in the README
     imgs/       # Folder that generated images are saved to
     config.py   # Hyperparameters and other constants
     dataset.py  # Data transformation, preprocessing and loading
