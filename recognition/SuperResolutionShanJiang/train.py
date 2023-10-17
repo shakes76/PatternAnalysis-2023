@@ -115,8 +115,8 @@ test_img_paths = sorted(
 )
 
 # Testing metrics
-total_bicubic_psnr = 0.0
-total_test_psnr = 0.0
+total_bicubic_psnr = 0.0 # PSNR of downsampled image
+total_test_psnr = 0.0 # PSNR of model output
 
 # Dowansample resolution of iamges by factor of 4, then predict higher resolution image using the model
 for index, test_img_path in enumerate(test_img_paths[0:len(test_img_paths)]):
