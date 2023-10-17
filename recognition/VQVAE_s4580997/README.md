@@ -1,5 +1,42 @@
 # VQVAE on the ADNI Brain Data Set
 
+## Table of Contents
+- [Background](#background)
+    - [Problem Description](#problem-description)
+    - [Dataset: ADNI](#dataset-adni)
+    - [Architecture](#architecture)
+        - [VQVAE](#vqvae)
+        - [Prior](#prior)
+- [Dependencies](#dependencies)
+- [Documentation](#documentation)
+    - [dataset.py](#datasetpy)
+        - [Loader](#class-loader)
+        - [Dataset](#class-dataset)
+        - [ModelLoader](#class-modelloader)
+        - [ModelDataset](#class-modeldataset)
+    - [modules.py](#modulespy)
+        - [ResidualLayer](#class-residuallayernnmodule)
+        - [ResidualBlock](#class-residualblocknnmodule)
+        - [Encoder](#class-encodernnmodule)
+        - [VectorQuantiser](#class-vectorquantisernnmodule)
+        - [Decoder](#class-decodernnmodule)
+        - [Discriminator](#class-discriminatornnmodule)
+        - [Generator](#class-discriminatornnmodule)
+        - [GAN](#class-gannnmodule)
+    - [predict.py](#predictpy)
+        - [Predict](#class-predict)
+    - [train.py](#trainpy)
+        - [Trainer](#abstract-class-trainer)
+        - [TrainVQVAE](#class-trainvqvaetrainer)
+        - [TrainGAN](#class-traingantrainer)
+- [Usage](#usage)
+- [Results](#results)
+    - [Training](#training)
+    - [Validation](#validation)
+    - [Generation](#generation)
+- [Conclusion](#conclusion)
+- [References](#references)
+
 ## Background
 ### Problem Description
 The selected problem is to develop a generative model on the ADNI brain dataset using a VQVAE, to learn the latent space representation and thus produce realistic images.
@@ -23,8 +60,8 @@ Very efficient at representing a latent space in imaging
 
 The loss function for training the VQVAE
 
-#### Priors
-A prior model was used to provide more controlled generation to predict the next code from a given sequence. This was required as randomly sampling from the embedded space resulted in poor images, as the sequences of codes were not meaningful. 
+#### Prior
+A prior model has been included to provide more controlled generation to predict the next code from a given sequence. This was required as randomly sampling from the embedded space resulted in poor images, as the sequences of codes were not meaningful. 
 
 
 ## Dependencies
@@ -39,15 +76,17 @@ The package dependencies used for the project are:
 | skimage | 3.5.3 |
 
 ## Documentation
+Documentation for all classes, and their associated methods/parameters are provided below. These files contain exclusively classes, and are not executable directly as a script. Implementation of the flow is provided in `main.py`, with all parameters defined in `utils.py`.
+
 ### `dataset.py`
-#### Abstract Class `Dataset`
+#### Class `Loader()`
 Abstract class for implementing the dataset object.
 
-#### Class `Dataset(Dataset)`
+#### Class `Dataset()`
 
-#### Class `Dataloader(Dataset)`
+#### Class `ModelLoader()`
 
-
+#### Class `ModelDataset()`
 
 ### `modules.py`
 #### Class `ResidualLayer(nn.Module)`
@@ -58,7 +97,7 @@ Abstract class for implementing the dataset object.
 #### Class `VQVAE(nn.Module)`
 #### Class `Discriminator(nn.Module)`
 #### Class `Generator(nn.Module)`
-#### Class `GAn(nn.Module)`
+#### Class `GAN(nn.Module)`
 
 
 ### `predict.py`
@@ -73,10 +112,6 @@ Parameters:
 #### Class `TrainVQVAE(Trainer)`
 #### Class `TrainGAN(Trainer)`
 
-
-### `utils.py`
-
-
 ## Usage
 The code is bundled using the `utils.py` file into `main.py` which is an directly executable script. All files other than these two define the architecture, training, testing, dataset and prediction segments of the problem.
 
@@ -86,10 +121,12 @@ Parameters can be edited in `utils.py` to modify the architecture or system.
 ## Results
 ### Training
 
-### Validation / Testing
+### Validation
 
 ### Generation
 Images can be generated
+
+## Conclusion
 
 ## References
 [1] A. v. d. Oord, O. Vinyals, and K. Kavukcuoglu, “Neural Discrete Representation Learning,”
