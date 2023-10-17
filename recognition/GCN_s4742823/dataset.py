@@ -6,14 +6,34 @@ import scipy.sparse as sp
 # Directory for data
 data_dir = 'data/'
 
-def load_data(filepath: str = data_dir + 'facebook.npz', test_size=0.2, val_size=0.1) -> (Data, Data, Data):
+# Data object to store all properties related to the data.
+class GCNData:
+    def __init__(self, x, y, train_mask, val_mask, test_mask, adj, features):
+        self.x = x
+        self.y = y
+        self.train_mask = train_mask
+        self.val_mask = val_mask
+        self.test_mask = test_mask
+        self.adj = adj
+        self.features=features
+
+    def to(self, device):
+        self.x = self.x.to(device)
+        self.y = self.y.to(device)
+        self.train_mask = self.train_mask.to(device)
+        self.val_mask = self.val_mask.to(device)
+        self.test_mask = self.test_mask.to(device)
+        self.adj = self.adj.to(device)
+
+        return self
+
+def load_data(filepath: str = data_dir + 'facebook.npz', test_size=0.2, val_size=0.1) -> GCNData:
     # Load the data
     data = np.load(filepath)
     edges = data['edges']
     features = data['features']
     target = data['target']
 
-    edges_coo = torch.tensor(edges, dtype=torch.int64).t().contiguous()
     x = torch.tensor(features, dtype=torch.float32)
     y = torch.tensor(target, dtype=torch.int64)
 
@@ -43,10 +63,6 @@ def load_data(filepath: str = data_dir + 'facebook.npz', test_size=0.2, val_size
     adj = torch.Tensor(adj.todense())
 
     # Create the final Data object to be used for training
-    data = Data(x=x, edge_index=edges_coo, y=y)
-    data.train_mask = train_mask
-    data.val_mask = val_mask
-    data.test_mask = test_mask
-    data.adj = adj  # Store the adjacency matrix in the Data
+    data = GCNData(x=x, y=y, train_mask=train_mask, val_mask=val_mask, test_mask=test_mask, adj=adj, features=features)
 
-    return data, features
+    return data

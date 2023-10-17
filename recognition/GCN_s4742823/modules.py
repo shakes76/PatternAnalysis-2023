@@ -29,7 +29,7 @@ class Model(torch.nn.Module):
         self.dropout = torch.nn.Dropout(p=dropout_prob)
 
     def forward(self, data):
-        x, edge_index, adj = data.x, data.edge_index, data.adj
+        x, adj = data.x, data.adj
         x = self.conv1(x, adj)
         x = self.bn1(x)
         x = torch.relu(x)

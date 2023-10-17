@@ -15,11 +15,11 @@ test_size = 0.1
 val_size = 0.1
 
 # load_data() can take a filepath, otherwise will use default filepath in method.
-data, features = load_data(test_size=test_size, val_size=val_size)  # Get features to get their shape.
+data = load_data(test_size=test_size, val_size=val_size)
 data = data.to(device)
 
 num_epochs = 500
-num_features = features.shape[1]  # 128 for default data
+num_features = data.features.shape[1]  # 128 for default data
 hidden_dim = 64
 classes = ["Politicians", "Governmental Organisations", "Television Shows", "Companies"]
 num_classes = len(classes)
@@ -43,7 +43,7 @@ for epoch in range(num_epochs):
     total_loss = 0
 
     out = model(data)  # Pass the whole graph in.
-    loss = criterion(out[data.train_mask], data.y[data.train_mask])  # Only calculate loss with train nodes.
+    loss = criterion(out[data.train_mask].to(device), data.y[data.train_mask].to(device))  # Only calculate loss with train nodes.
     loss.backward()
     optimizer.step()
     total_loss += loss.item()
@@ -67,7 +67,8 @@ for epoch in range(num_epochs):
 
 # ----- Testing -----
 print("--- Testing ---")
-model.load_state_dict(best_model)
+if (best_model is not None):
+    model.load_state_dict(best_model)
 model.eval()
 with torch.no_grad():
     out = model(data)
