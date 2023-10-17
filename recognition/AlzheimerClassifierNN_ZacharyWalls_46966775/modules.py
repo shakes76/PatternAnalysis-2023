@@ -1,241 +1,269 @@
 import torch
-from torch import nn, einsum
-import torch.nn.functional as F
-
+from torch import nn
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 
-# helper methods
+
+# Helper function to handle tuples
+def pair(t):
+    """
+    Helper function to handle tuples.
+
+    Parameters:
+        t (int or tuple): Input which can be a single integer or a tuple.
+
+    Returns:
+        tuple: A tuple containing two values.
+    """
+    return t if isinstance(t, tuple) else (t, t)
 
 
-def group_dict_by_key(cond, d):
-    return_val = [dict(), dict()]
-    for key in d.keys():
-        match = bool(cond(key))
-        ind = int(not match)
-        return_val[ind][key] = d[key]
-    return (*return_val,)
-
-
-def group_by_key_prefix_and_remove_prefix(prefix, d):
-    kwargs_with_prefix, kwargs = group_dict_by_key(lambda x: x.startswith(prefix), d)
-    kwargs_without_prefix = dict(
-        map(lambda x: (x[0][len(prefix) :], x[1]), tuple(kwargs_with_prefix.items()))
-    )
-    return kwargs_without_prefix, kwargs
-
-
-# classes
-
-
-class LayerNorm(nn.Module):  # layernorm, but done in the channel dimension #1
-    def __init__(self, dim, eps=1e-5):
-        super().__init__()
-        self.eps = eps
-        self.g = nn.Parameter(torch.ones(1, dim, 1, 1))
-        self.b = nn.Parameter(torch.zeros(1, dim, 1, 1))
-
-    def forward(self, x):
-        var = torch.var(x, dim=1, unbiased=False, keepdim=True)
-        mean = torch.mean(x, dim=1, keepdim=True)
-        return (x - mean) / (var + self.eps).sqrt() * self.g + self.b
-
-
+# Feed Forward Neural Network
 class FeedForward(nn.Module):
-    def __init__(self, dim, mult=4, dropout=0.0):
+    """
+    Feed Forward Neural Network.
+
+    Parameters:
+        dim (int): Dimension of the input.
+        hidden_dim (int): Dimension of the hidden layer.
+        dropout (float, optional): Dropout rate. Defaults to 0.0.
+    """
+
+    def __init__(self, dim, hidden_dim, dropout=0.0):
         super().__init__()
         self.net = nn.Sequential(
-            LayerNorm(dim),
-            nn.Conv2d(dim, dim * mult, 1),
+            nn.LayerNorm(dim),
+            nn.Linear(dim, hidden_dim),
             nn.GELU(),
             nn.Dropout(dropout),
-            nn.Conv2d(dim * mult, dim, 1),
+            nn.Linear(hidden_dim, dim),
             nn.Dropout(dropout),
         )
 
     def forward(self, x):
+        """
+        Forward pass of the Feed Forward Network.
+
+        Parameters:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            torch.Tensor: Output tensor.
+        """
         return self.net(x)
 
 
-class DepthWiseConv2d(nn.Module):
-    def __init__(self, dim_in, dim_out, kernel_size, padding, stride, bias=True):
-        super().__init__()
-        self.net = nn.Sequential(
-            nn.Conv2d(
-                dim_in,
-                dim_in,
-                kernel_size=kernel_size,
-                padding=padding,
-                groups=dim_in,
-                stride=stride,
-                bias=bias,
-            ),
-            nn.BatchNorm2d(dim_in),
-            nn.Conv2d(dim_in, dim_out, kernel_size=1, bias=bias),
-        )
-
-    def forward(self, x):
-        return self.net(x)
-
-
+# Multi-head Attention Mechanism
 class Attention(nn.Module):
-    def __init__(
-        self, dim, proj_kernel, kv_proj_stride, heads=8, dim_head=64, dropout=0.0
-    ):
+    """
+    Multi-head Attention Mechanism.
+
+    Parameters:
+        dim (int): Dimension of the input.
+        heads (int, optional): Number of attention heads. Defaults to 8.
+        dim_head (int, optional): Dimension of each attention head. Defaults to 64.
+        dropout (float, optional): Dropout rate. Defaults to 0.0.
+    """
+
+    def __init__(self, dim, heads=8, dim_head=64, dropout=0.0):
         super().__init__()
         inner_dim = dim_head * heads
-        padding = proj_kernel // 2
+        project_out = not (heads == 1 and dim_head == dim)
+
         self.heads = heads
         self.scale = dim_head**-0.5
 
-        self.norm = LayerNorm(dim)
+        self.norm = nn.LayerNorm(dim)
         self.attend = nn.Softmax(dim=-1)
         self.dropout = nn.Dropout(dropout)
 
-        self.to_q = DepthWiseConv2d(
-            dim, inner_dim, proj_kernel, padding=padding, stride=1, bias=False
-        )
-        self.to_kv = DepthWiseConv2d(
-            dim,
-            inner_dim * 2,
-            proj_kernel,
-            padding=padding,
-            stride=kv_proj_stride,
-            bias=False,
-        )
+        self.to_qkv = nn.Linear(dim, inner_dim * 3, bias=False)
 
-        self.to_out = nn.Sequential(nn.Conv2d(inner_dim, dim, 1), nn.Dropout(dropout))
+        self.to_out = (
+            nn.Sequential(nn.Linear(inner_dim, dim), nn.Dropout(dropout))
+            if project_out
+            else nn.Identity()
+        )
 
     def forward(self, x):
-        shape = x.shape
-        b, n, _, y, h = *shape, self.heads
+        """
+        Forward pass of the Attention mechanism.
 
+        Parameters:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            torch.Tensor: Output tensor.
+        """
         x = self.norm(x)
-        q, k, v = (self.to_q(x), *self.to_kv(x).chunk(2, dim=1))
-        q, k, v = map(
-            lambda t: rearrange(t, "b (h d) x y -> (b h) (x y) d", h=h), (q, k, v)
-        )
+        qkv = self.to_qkv(x).chunk(3, dim=-1)
+        q, k, v = map(lambda t: rearrange(t, "b n (h d) -> b h n d", h=self.heads), qkv)
 
-        dots = einsum("b i d, b j d -> b i j", q, k) * self.scale
+        dots = torch.matmul(q, k.transpose(-1, -2)) * self.scale
 
         attn = self.attend(dots)
         attn = self.dropout(attn)
 
-        out = einsum("b i j, b j d -> b i d", attn, v)
-        out = rearrange(out, "(b h) (x y) d -> b (h d) x y", h=h, y=y)
+        out = torch.matmul(attn, v)
+        out = rearrange(out, "b h n d -> b n (h d)")
         return self.to_out(out)
 
 
+# Transformer (comprising multiple layers of multi-head attention and feed-forward networks)
 class Transformer(nn.Module):
-    def __init__(
-        self,
-        dim,
-        proj_kernel,
-        kv_proj_stride,
-        depth,
-        heads,
-        dim_head=64,
-        mlp_mult=4,
-        dropout=0.0,
-    ):
+    """
+    Transformer comprising multiple layers of multi-head attention and feed-forward networks.
+
+    Parameters:
+        dim (int): Dimension of the input.
+        depth (int): Number of layers in the transformer.
+        heads (int): Number of attention heads.
+        dim_head (int): Dimension of each attention head.
+        mlp_dim (int): Dimension of the hidden layer in the feed forward network.
+        dropout (float, optional): Dropout rate. Defaults to 0.0.
+    """
+
+    def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout=0.0):
         super().__init__()
         self.layers = nn.ModuleList([])
         for _ in range(depth):
             self.layers.append(
                 nn.ModuleList(
                     [
-                        Attention(
-                            dim,
-                            proj_kernel=proj_kernel,
-                            kv_proj_stride=kv_proj_stride,
-                            heads=heads,
-                            dim_head=dim_head,
-                            dropout=dropout,
-                        ),
-                        FeedForward(dim, mlp_mult, dropout=dropout),
+                        Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout),
+                        FeedForward(dim, mlp_dim, dropout=dropout),
                     ]
                 )
             )
 
     def forward(self, x):
+        """
+        Forward pass of the Transformer.
+
+        Parameters:
+            x (torch.Tensor): Input tensor.
+
+        Returns:
+            torch.Tensor: Output tensor.
+        """
         for attn, ff in self.layers:
             x = attn(x) + x
             x = ff(x) + x
         return x
 
 
-class CvT(nn.Module):
+class ViT(nn.Module):
+    """
+    Vision Transformer (ViT) model.
+
+    Parameters:
+        image_size (int or tuple): Size of the input image.
+        image_patch_size (int or tuple): Size of each image patch.
+        frames (int): Number of frames.
+        frame_patch_size (int): Size of each frame patch.
+        num_classes (int): Number of target classes.
+        dim (int): Dimension of the input.
+        depth (int): Number of layers in the transformer.
+        heads (int): Number of attention heads.
+        mlp_dim (int): Dimension of the hidden layer in the feed forward network.
+        pool (str, optional): Pooling type, either "cls" for cls token or "mean" for mean pooling. Defaults to "cls".
+        channels (int, optional): Number of channels in the input image. Defaults to 3.
+        dim_head (int, optional): Dimension of each attention head. Defaults to 64.
+        dropout (float, optional): Dropout rate. Defaults to 0.0.
+        emb_dropout (float, optional): Dropout rate for embeddings. Defaults to 0.0.
+    """
+
     def __init__(
         self,
         *,
+        image_size,
+        image_patch_size,
+        frames,
+        frame_patch_size,
         num_classes,
-        s1_emb_dim=64,
-        s1_emb_kernel=7,
-        s1_emb_stride=4,
-        s1_proj_kernel=3,
-        s1_kv_proj_stride=2,
-        s1_heads=1,
-        s1_depth=1,
-        s1_mlp_mult=4,
-        s2_emb_dim=192,
-        s2_emb_kernel=3,
-        s2_emb_stride=2,
-        s2_proj_kernel=3,
-        s2_kv_proj_stride=2,
-        s2_heads=3,
-        s2_depth=2,
-        s2_mlp_mult=4,
-        s3_emb_dim=384,
-        s3_emb_kernel=3,
-        s3_emb_stride=2,
-        s3_proj_kernel=3,
-        s3_kv_proj_stride=2,
-        s3_heads=6,
-        s3_depth=10,
-        s3_mlp_mult=4,
-        dropout=0.1,
+        dim,
+        depth,
+        heads,
+        mlp_dim,
+        pool="cls",
+        channels=3,
+        dim_head=64,
+        dropout=0.0,
+        emb_dropout=0.0
     ):
         super().__init__()
-        kwargs = dict(locals())
+        image_height, image_width = pair(image_size)
+        patch_height, patch_width = pair(image_patch_size)
 
-        dim = 1
-        layers = []
+        assert (
+            image_height % patch_height == 0 and image_width % patch_width == 0
+        ), "Image dimensions must be divisible by the patch size."
+        assert (
+            frames % frame_patch_size == 0
+        ), "Frames must be divisible by frame patch size"
 
-        for prefix in ("s1", "s2", "s3"):
-            config, kwargs = group_by_key_prefix_and_remove_prefix(f"{prefix}_", kwargs)
+        num_patches = (
+            (image_height // patch_height)
+            * (image_width // patch_width)
+            * (frames // frame_patch_size)
+        )
+        patch_dim = channels * patch_height * patch_width * frame_patch_size
 
-            layers.append(
-                nn.Sequential(
-                    nn.Conv2d(
-                        dim,
-                        config["emb_dim"],
-                        kernel_size=config["emb_kernel"],
-                        padding=(config["emb_kernel"] // 2),
-                        stride=config["emb_stride"],
-                    ),
-                    LayerNorm(config["emb_dim"]),
-                    Transformer(
-                        dim=config["emb_dim"],
-                        proj_kernel=config["proj_kernel"],
-                        kv_proj_stride=config["kv_proj_stride"],
-                        depth=config["depth"],
-                        heads=config["heads"],
-                        mlp_mult=config["mlp_mult"],
-                        dropout=dropout,
-                    ),
-                )
-            )
+        assert pool in {
+            "cls",
+            "mean",
+        }, "pool type must be either cls (cls token) or mean (mean pooling)"
 
-            dim = config["emb_dim"]
-
-        self.layers = nn.Sequential(*layers)
-
-        self.to_logits = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),
-            Rearrange("... () () -> ..."),
-            nn.Linear(dim, num_classes),
+        self.to_patch_embedding = nn.Sequential(
+            Rearrange(
+                "b c (f pf) (h p1) (w p2) -> b (f h w) (p1 p2 pf c)",
+                p1=patch_height,
+                p2=patch_width,
+                pf=frame_patch_size,
+            ),
+            nn.LayerNorm(patch_dim),
+            nn.Linear(patch_dim, dim),
+            nn.LayerNorm(dim),
         )
 
-    def forward(self, x):
-        latents = self.layers(x)
-        return self.to_logits(latents)
+        self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
+        self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
+        self.dropout = nn.Dropout(emb_dropout)
+
+        self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim, dropout)
+
+        self.pool = pool
+        self.to_latent = nn.Identity()
+
+        self.mlp_head = nn.Sequential(nn.LayerNorm(dim), nn.Linear(dim, num_classes))
+
+        # Initialize linear layers and LayerNorm in your model
+        for module in self.modules():
+            if isinstance(module, nn.Linear):
+                nn.init.xavier_uniform_(
+                    module.weight
+                )  # Use Xavier initialization for linear layers
+                if module.bias is not None:
+                    nn.init.constant_(module.bias, 0)  # Initialize biases to zeros
+
+            elif isinstance(module, nn.LayerNorm):
+                nn.init.constant_(module.weight, 1)  # Initialize LayerNorm weights to 1
+                nn.init.constant_(
+                    module.bias, 0
+                )  # Initialize LayerNorm biases to zeros
+
+    def forward(self, image):
+        x = self.to_patch_embedding(image)
+        b, n, _ = x.shape
+
+        cls_tokens = repeat(self.cls_token, "1 1 d -> b 1 d", b=b)
+        x = torch.cat((cls_tokens, x), dim=1)
+        x += self.pos_embedding[:, : (n + 1)]
+        x = self.dropout(x)
+
+        x = self.transformer(x)
+
+        x = x.mean(dim=1) if self.pool == "mean" else x[:, 0]
+
+        x = self.to_latent(x)
+        return self.mlp_head(x)

@@ -2,8 +2,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from dataset import get_data_loaders
-from modules import CvT
-import matplotlib as plt
+from modules import ViT
+import matplotlib.pyplot as plt
 
 device = torch.device(
     "mps"
@@ -12,7 +12,6 @@ device = torch.device(
     if torch.cuda.is_available()
     else "cpu"
 )
-
 if __name__ == "__main__":
     # Load Data
     print(f"\nFETCHING DATA LOADERS\n{'='*25}\n")
@@ -20,42 +19,31 @@ if __name__ == "__main__":
 
     # Initialize Model
     print(f"\nINITIALIZING MODEL\n{'='*25}\n")
-    model = CvT(
+    print("Assigning model instance...")
+    dim = 1536
+    model = ViT(
+        image_size=240,
+        image_patch_size=10,
+        frames=20,
+        frame_patch_size=10,
         num_classes=2,
-        s1_emb_dim=128,
-        s1_emb_kernel=7,
-        s1_emb_stride=4,
-        s1_proj_kernel=3,
-        s1_kv_proj_stride=2,
-        s1_heads=1,
-        s1_depth=1,
-        s1_mlp_mult=4,
-        s2_emb_dim=384,
-        s2_emb_kernel=3,
-        s2_emb_stride=2,
-        s2_proj_kernel=3,
-        s2_kv_proj_stride=2,
-        s2_heads=3,
-        s2_depth=2,
-        s2_mlp_mult=4,
-        s3_emb_dim=768,
-        s3_emb_kernel=3,
-        s3_emb_stride=2,
-        s3_proj_kernel=3,
-        s3_kv_proj_stride=2,
-        s3_heads=6,
-        s3_depth=10,
-        s3_mlp_mult=4,
+        dim=dim,
+        depth=12,
+        heads=16,
+        mlp_dim=dim * 4,
+        pool="cls",
+        channels=1,
+        dim_head=96,
         dropout=0.1,
+        emb_dropout=0.1,
     ).to(device)
     print("Model ready.")
 
     # Define Loss, Optimizer and Scheduler
     lr = 0.000001
     wd = 0.1
-    beta1 = 0.5
+    beta1 = 0.9
     beta2 = 0.999
-
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(
         model.parameters(), lr=lr, weight_decay=wd, betas=(beta1, beta2)
@@ -63,7 +51,7 @@ if __name__ == "__main__":
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
 
     # Training and Validation Loop
-    num_epochs = 50
+    num_epochs = 40
     best_val_accuracy = 0
 
     # Used for Graphing after Training
@@ -75,6 +63,7 @@ if __name__ == "__main__":
         # Training Loop
         model.train()
         total_loss, total_correct, total_samples = 0, 0, len(train_loader.dataset)
+        batch_loss, batch_correct = 0, 0
         for batch_idx, (images, labels) in enumerate(train_loader):
             images, labels = images.to(device), labels.to(device)
 
@@ -90,18 +79,23 @@ if __name__ == "__main__":
             # Log Info
             pred = logits.argmax(dim=1)
             correct = pred.eq(labels).sum().item()
+
+            # For Batch Print
+            batch_loss += loss.item()
+            batch_correct += correct
+
+            # For Epoch Print
             total_loss += loss.item()
             total_correct += correct
 
             if batch_idx % 10 == 0:
+                avg_batch_loss = batch_loss / (10 * len(images))
+                avg_batch_accuracy = batch_correct / (10 * len(images))
                 print(
-                    f"Epoch {epoch}/{num_epochs}, Batch {batch_idx}/{len(train_loader)}, Training Loss For Batch: {loss.item()}, Training Accuracy For Batch: {correct / len(images)}"
+                    f"Epoch {epoch}/{num_epochs}, Batch {batch_idx}/{len(train_loader)}, 10 Batch Average Training Loss: {avg_batch_loss}, 10 Batch Average Training Accuracy: {avg_batch_accuracy}"
                 )
-
-        train_accuracy = total_correct / total_samples
-        print(
-            f"Epoch {epoch}/{num_epochs}, Total Training Loss: {total_loss}, Total Training Accuracy: {train_accuracy}"
-        )
+                batch_loss = 0
+                batch_correct = 0
 
         # Validation Loop
         model.eval()
@@ -117,13 +111,11 @@ if __name__ == "__main__":
                 loss = criterion(logits, labels)
                 pred = logits.argmax(dim=1)
                 correct = pred.eq(labels).sum().item()
-
                 # Update counters based on predictions
                 TP += ((pred == 0) & (labels == 0)).sum().item()
                 TN += ((pred == 1) & (labels == 1)).sum().item()
                 FP += ((pred == 0) & (labels == 1)).sum().item()
                 FN += ((pred == 1) & (labels == 0)).sum().item()
-
                 total_loss += loss.item()
                 total_correct += correct
 
@@ -172,5 +164,4 @@ if __name__ == "__main__":
     plt.title("Validation Accuracy over Time")
     plt.legend()
     plt.show()
-
     print("Training Completed!")
