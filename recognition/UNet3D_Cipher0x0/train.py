@@ -54,6 +54,7 @@ def main():
 
     # build model and optimizer
     loss_fn = nn.CrossEntropyLoss().to(device)
+    dice_loss = DiceLoss()
     optimizer = torch.optim.Adam(unet.parameters())
 
     # train loop
@@ -84,7 +85,7 @@ def main():
                 y = y.long().to(device)
                 pred = unet(X)
                 val_loss += loss_fn(pred, y).item()
-                dsc, dsc_list = DiceLoss(pred, y)
+                dsc, dsc_list = dice_loss(pred, y)
                 dice_all += (1 - dsc)
                 for j in range(6):
                     dice_detail[j] += (1 - dsc_list[j])
@@ -111,7 +112,7 @@ def main():
                 X = X.float().to(device)
                 y = y.long().to(device)
                 pred = unet(X)
-                dsc, dsc_list = DiceLoss(pred, y)
+                dsc, dsc_list = dice_loss(pred, y)
                 dice_all += (1 - dsc)
                 for j in range(6):
                     dice_detail[j] += (1 - dsc_list[j])
