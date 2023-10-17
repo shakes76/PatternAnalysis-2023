@@ -37,22 +37,31 @@ After training for 60 epochs the loss and accuracy curves were observed
 
 ![Alt text](readmeImages/FirstTrainAcc.png) ![Alt text](readmeImages/FirstTrainLoss.png)
 
-At first the performance of the validation set is better than the train set, this is due to dropout. Neuron weights are being killed during training which hinders performance, then being all switched on during validation. However the validation
-performance eventually starts to slowly get worse, while the training performance continues to increase, overfitting. The correct epoch to stop to maximise test performance would be somewhere around the 20 epoch mark.
+At first the performance of the validation set is better than the train set, this is due to dropout and the data augmentation while training. Neuron outputs are being killed during training which hinders performance, then being all switched on during validation. In the case of data augmentation, the model is having a much harder time classifying on the train set since it is recieving images that are flipped, warped, cropped, etc. and then during validation the model recieves nice unaltered (besides the general scaling and square cropping) images.
+
+Strangely enough the validation loss goes up, and is extremely noisy compared to the train loss. A possible explanation for the upward trend is that, since the model outputs a number between 0 and 1 with the prediction coming from rounding to the nearest integer, the wrong predictions are very wrong. For example, by the end of training if the true label is 1, the model might be outputting 0 (very wrong) rather than maybe a 0.4 (still wrong but less so according to the loss function) earlier in training.
+
+As far as the noisyness goes, the validation data is very different from the train data as far as the model sees. All train data goes through 4 lots of random image augmentation, while the validation data goes though only scaling and square cropping. So while the model tries to minimise error on the train set, the decisions it makes might not directly carry over to the validation set, hence the noisyness. The train loss is the actual function being optimised, so it makes sense for that to decrease quite smoothly.
+
+After this first 60 epochs, the model was trained for another 60 epochs, this time with a learning rate of 0.000001, 10 times less than before.
 
 
 ![Alt text](readmeImages/SecondTrainAcc.png) ![Alt text](readmeImages/SecondTrainLoss.png)
 
+This time it can be seen that the model is starting to overfit, the validation accuracy stagnates while the train accuracy keeps increasing.
+
 # Results
 
-Retraining the model and stopping at epoch 20 gave a test set accuracy of 67%
+Testing the model after the first 60 epochs gave a test set accuracy of 66%. The difference between the validation set and test set accuracies are surprising. This is cant be attributed to data leakage between the train and validation set, since this was tested for extensively.
+
+The only plausible outcomes for this difference is natural variation in the test set compared to the validation set, or some very, very subtle bug in the code.
 
 # Requirements to Run and Libraries Used
 
-The model was trained on a a100 gpu node and took 66 minutes to train for the whole 60 epochs, and 21 minutes to train for the 20 epochs.
+The model was trained on a p100 gpu and took 2 hours to train per 60 epochs.
 
 The torch and torchvision libraries were used. The data in its form used for training was obtained in its current form from the COMP3710 course blackboard website and is inaccessable to the general public. However the ADNI dataset is available to everyone, but is likely not in a form suitable for dataset.py. So if someone wanted to reproduce the results they would need to download the data themselves and make their own torch.utils.data.Dataset object with it.
 
-#License
+# License
 
 
