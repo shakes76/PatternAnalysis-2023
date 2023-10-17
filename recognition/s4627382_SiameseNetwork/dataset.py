@@ -1,5 +1,3 @@
-# containing the data loader for loading and preprocessing your data
-
 import os
 import random
 import torch
@@ -8,7 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
 device = torch.device('cuda')
-batch_size = 16
+batch_size = 32
 
 class CustomDataset(Dataset):
     def __init__(self, ad_dir, nc_dir, transform=None, validate=False, split_ratio=0.8):
@@ -41,27 +39,35 @@ class CustomDataset(Dataset):
         return 2 * min(len(self.ad_names), len(self.nc_names))
 
     def __getitem__(self, index):
-
-        # path to the image, randomly select ad image and nc image
-        # chooce anchor image evently from ad image set and nc image set
-        if index % 2 == 0:
-            anchor_path = os.path.join(self.ad_folder, self.ad_names[index//2])
-            positive_path = os.path.join(self.ad_folder, random.choice(self.ad_names))
-            negative_path = os.path.join(self.nc_folder, random.choice(self.nc_names))
-        else:
-            anchor_path = os.path.join(self.nc_folder, self.nc_names[index//2])
-            positive_path = os.path.join(self.nc_folder, random.choice(self.nc_names))
-            negative_path = os.path.join(self.ad_folder, random.choice(self.ad_names))
+        # Depending on the index, choose the type of pair
+        pair_type = index % 4
+        
+        if pair_type == 0:  # (ad, ad, 0)
+            img1_path = os.path.join(self.ad_folder, random.choice(self.ad_names))
+            img2_path = os.path.join(self.ad_folder, random.choice(self.ad_names))
+            label = 0
+        elif pair_type == 1:  # (nc, nc, 0)
+            img1_path = os.path.join(self.nc_folder, random.choice(self.nc_names))
+            img2_path = os.path.join(self.nc_folder, random.choice(self.nc_names))
+            label = 0
+        elif pair_type == 2:  # (ad, nc, 1)
+            img1_path = os.path.join(self.ad_folder, random.choice(self.ad_names))
+            img2_path = os.path.join(self.nc_folder, random.choice(self.nc_names))
+            label = 1
+        else:  # (nc, ad, 1)
+            img1_path = os.path.join(self.nc_folder, random.choice(self.nc_names))
+            img2_path = os.path.join(self.ad_folder, random.choice(self.ad_names))
+            label = 1
 
         # open images
-        with Image.open(anchor_path) as anchor, Image.open(positive_path) as positive, Image.open(negative_path) as negative:
+        with Image.open(img1_path) as img1, Image.open(img2_path) as img2:
             # apply transformation
             if self.transform:
-                anchor = self.transform(anchor)
-                positive = self.transform(positive)
-                negative = self.transform(negative)
-        
-        return anchor, positive, negative
+                img1 = self.transform(img1)
+                img2 = self.transform(img2)
+
+        return img1, img2, torch.tensor(label, dtype=torch.float32)
+
 
 # calculate the mean and std of the dataset
 # input: The folder containing folders containing images
@@ -103,7 +109,6 @@ def compute_mean_std(img_folder):
     print("mean: ", mean.item(), "std: ", std.item())
     return mean.item(), std.item()
 
-# a function to load all required data
 def load_data(train_folder_path, train_ad_path, train_nc_path, test_ad_path, test_nc_path, batch_size=batch_size):
     # calculate mean and std for train set
     mean, std = compute_mean_std(train_folder_path)

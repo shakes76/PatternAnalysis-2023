@@ -3,3 +3,6 @@ recognition/SiameseNetwork/__pycache__/modules.cpython-311.pyc
 recognition/s4627382_SiameseNetwork/__pycache__/dataset.cpython-311.pyc
 recognition/s4627382_SiameseNetwork/__pycache__/modules.cpython-311.pyc
 recognition/s4627382_SiameseNetwork/SiameseNet.pth
+test/dataset.py
+test/modules.py
+test/train.py

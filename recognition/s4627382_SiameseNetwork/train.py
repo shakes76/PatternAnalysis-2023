@@ -1,11 +1,10 @@
-# containing the source code for training, validating, testing and saving your model. 
-# The model should be imported from “modules.py” and the data loader should be imported from “dataset.py”. 
-# Make sure to plot the losses and metrics during training
-
 import dataset, modules
 import torch
 import torch.optim as optim
-from annoy import AnnoyIndex
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
+from sklearn.neighbors import KNeighborsClassifier
+
 device = torch.device('cuda')
 
 # data path
@@ -15,9 +14,8 @@ train_nc_path = "D:/Study/MLDataSet/AD_NC/train/NC"
 test_ad_path = "D:/Study/MLDataSet/AD_NC/test/AD"
 test_nc_path = "D:/Study/MLDataSet/AD_NC/test/NC"
 
-# hyperparameters
-margin = 0.5
-epoches = 8
+margin = 0.3
+epoches = 16
 
 # create data loader
 train_loader, validation_loader, test_loader = dataset.load_data(
@@ -29,63 +27,52 @@ model = modules.SiameseNet(embbeding)
 model.to(device)
 
 # define loss function
-criterion = modules.TripletLoss(margin)
+criterion = modules.ContrastiveLoss(margin)
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-
-# train
 def train(train_loader, epoches):
     for epoch in range(epoches):
         # set model to train mode
         model.train()
-        skip = 0
+        total_loss = 0
         total_accuracy = 0
         total_samples = 0
-        highest_val_accuracy = 0
 
-        for anchor, positive, negative in train_loader:
+        for img1, img2, labels in train_loader:
             # move data to gpu
-            anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
+            img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
 
             # front propagation
-            emb_anchor, emb_positive, emb_negative = model(anchor, positive, negative)
-
-            # mask = modules.semi_hard_triplet_mining(emb_anchor, emb_positive, emb_negative, int(len(emb_anchor) * 0.5), margin)
-            mask = modules.semi_hard_triplet_mining(emb_anchor, emb_positive, emb_negative, 0, margin)
-            if len(emb_anchor[mask]) == 0:
-                skip += 1
-                del emb_anchor, emb_positive, emb_negative
-                torch.cuda.empty_cache()
-                continue
-        
-            loss = criterion(emb_anchor[mask], emb_positive[mask], emb_negative[mask])
-            # loss = criterion(emb_anchor, emb_positive, emb_negative)
+            emb1, emb2 = model(img1, img2)
+            loss = criterion(emb1, emb2, labels)
             
             # calculate accuracy
-            batch_accuracy = calculate_accuracy(emb_anchor, emb_positive, emb_negative)
-            total_accuracy += batch_accuracy * anchor.size(0)
-            total_samples += anchor.size(0)
+            batch_accuracy = calculate_accuracy(emb1, emb2, labels)
+            total_loss += loss.item() * img1.size(0)
+            total_accuracy += batch_accuracy * img1.size(0)
+            total_samples += img1.size(0)
 
             # back propagation
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
 
-        # calculate accuracy
+        # calculate accuracy and loss
         avg_accuracy = total_accuracy / total_samples
+        avg_loss = total_loss / total_samples
 
         validate_loss, validate_accuracy = validate(validation_loader)
 
-        print(f"Epoch [{epoch+1}/{epoches}], Loss: {loss.item():.4f}, Accuracy: {avg_accuracy:.4f}, validate loss: {validate_loss:.4f}, validate accuracy: {validate_accuracy:.4f}")
-        
-        # save the model
-        if validate_accuracy > highest_val_accuracy:
-            torch.save(model.state_dict(),
-                       "D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/s4627382_SiameseNetwork/SiameseNet.pth")
-            highest_val_accuracy = validate_accuracy
-            print("Model saved")
+        print(f"Epoch [{epoch+1}/{epoches}], Loss: {avg_loss:.4f}, Accuracy: {avg_accuracy:.4f}, validate loss: {validate_loss:.4f}, validate accuracy: {validate_accuracy:.4f}")
 
-# validate
+        if epoch % 2 == 0:
+            visualize_embeddings(train_loader, model)
+
+        # save the model
+        torch.save(model.state_dict(),
+                    "D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/s4627382_SiameseNetwork/SiameseNet.pth")
+        print("Model saved")
+
 def validate(validation_loader):
     # set model to evaluation mode
     model.eval()
@@ -93,17 +80,17 @@ def validate(validation_loader):
     total_accuracy = 0
 
     with torch.no_grad():
-        for anchor, positive, negative in validation_loader:
+        for img1, img2, labels in validation_loader:
             # move data to gpu
-            anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
+            img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
 
             # front propagation
-            emb_anchor, emb_positive, emb_negative = model(anchor, positive, negative)
-            loss = criterion(emb_anchor, emb_positive, emb_negative)
+            emb1, emb2 = model(img1, img2)
+            loss = criterion(emb1, emb2, labels)
 
             # get loss and accuracy
             total_loss += loss.item()
-            total_accuracy += calculate_accuracy(emb_anchor, emb_positive, emb_negative)
+            total_accuracy += calculate_accuracy(emb1, emb2, labels)
     
     # calculate average loss and average accuracy
     validate_loss = total_loss/len(validation_loader)
@@ -112,72 +99,70 @@ def validate(validation_loader):
     return validate_loss, validate_accuracy
 
 
-# test
-def test(test_loader):
-    # set model to evaluation mode
-    model.eval()
-    total_loss = 0
-    total_accuracy = 0
-
-    with torch.no_grad():
-        for anchor, positive, negative in test_loader:
-            # move data to gpu
-            anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
-
-            # front propagation
-            emb_anchor, emb_positive, emb_negative = model(anchor, positive, negative)
-            loss = criterion(emb_anchor, emb_positive, emb_negative)
-
-            # get loss and accuracy
-            total_loss += loss.item()
-            total_accuracy += calculate_accuracy(emb_anchor, emb_positive, emb_negative)
-    
-    # calculate average loss and average accuracy
-    test_loss = total_loss/len(test_loader)
-    test_accuracy = total_accuracy/len(test_loader)
-    print(f"Test loss: {test_loss:.4f}, Test accuracy: {test_accuracy:.4f}")
-
-    return test_loss, test_accuracy
-
-
-
 # calculate accuracy, 
-# if anchor_positive distance < threshold, these two samples will be considered similar
-# if anchor_negative distance > threshold, these two samples will be considered unsimilar
-def calculate_accuracy(anchor, positive, negative, threshold=0.5):
+# if  distance < threshold, these two samples will be considered same
+def calculate_accuracy(img1, img2, labels, threshold=0.5):
     
-    # calculate the distance from anchor to positive and negative samples
-    # .sum(1) will reduce a dimension, so the shape of anchor_positive: [batch_size, 2] -> [batch_size]
-    anchor_positive = (anchor - positive).pow(2).sum(1).sqrt()
-    anchor_negative = (anchor - negative).pow(2).sum(1).sqrt()
+    # calculate the distance between two samples
+    distance = (img1 - img2).pow(2).sum(1).sqrt()
 
-    # correct predictions
-    true_positive = (anchor_positive < threshold).float()
-    true_negative = (anchor_negative > threshold).float()
+    # Predict similarity: 0 for same (distance < threshold), 1 for diff
+    predicts = (distance >= threshold).float()
 
-    # total are true_positive + true_negative + false_positive +  false_negative, 
-    # they summing up equal to true_positive.size(0) + true_negative.size(0)
-    total = true_positive.size(0) + true_negative.size(0)
-    accuracy = (true_positive.sum().item() + true_negative.sum().item())/total
+    # Calculate accuracy by comparing predictions to labels
+    correct = (predicts == labels).float()
+    accuracy = correct.sum().item() / len(labels)
     
     return accuracy
 
-def main():
-    train_mode = 1
+def visualize_embeddings(loader, model, num_samples=300):
+    model.eval()
+    embeddings = []
+    labels_list = []
 
-    if train_mode:
-        # train the model
+    # Define label to color mapping
+    label_to_color = {0: 'red', 1: 'blue'}
+
+    with torch.no_grad():
+        for i, (img1, img2, labels) in enumerate(loader):
+            if i * loader.batch_size > num_samples:
+                break
+            
+            img1, img2 = img1.to(device), img2.to(device)
+            
+            emb1 = model.get_embedding(img1)
+            emb2 = model.get_embedding(img2)
+            
+            embeddings.append(emb1.cpu())
+            embeddings.append(emb2.cpu())
+            
+            labels_list.extend(labels.cpu().numpy())
+            labels_list.extend(labels.cpu().numpy())
+
+    # Convert labels to colors
+    color_labels = [label_to_color[label] for label in labels_list]
+
+    embeddings = torch.cat(embeddings, dim=0)
+    tsne = TSNE(n_components=2, random_state=42)
+    tsne_results = tsne.fit_transform(embeddings)
+
+    plt.figure(figsize=(10, 7))
+    plt.scatter(tsne_results[:, 0], tsne_results[:, 1], c=color_labels, s=50, alpha=0.6)
+    plt.title("t-SNE visualization of embeddings")
+    plt.show()
+
+def main():
+    
+    # hyperparameters
+
+    mode = 0
+    if mode == 0:
         print("Training")
         train(train_loader, epoches)
 
-    else:
+    elif mode == 1:
         print("Testing")
-        model.load_state_dict(
-        torch.load("D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/s4627382_SiameseNetwork/SiameseNet.pth"))
-        test(test_loader)
 
-    print("Done")
-    
 
 if __name__ == "__main__":
     main()
