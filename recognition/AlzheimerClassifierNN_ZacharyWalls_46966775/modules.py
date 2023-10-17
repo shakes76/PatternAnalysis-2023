@@ -1,102 +1,241 @@
 import torch
-from torch import nn
+from torch import nn, einsum
+import torch.nn.functional as F
 
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange
 
-# helpers
+# helper methods
 
 
-def pair(t):
-    return t if isinstance(t, tuple) else (t, t)
+def group_dict_by_key(cond, d):
+    return_val = [dict(), dict()]
+    for key in d.keys():
+        match = bool(cond(key))
+        ind = int(not match)
+        return_val[ind][key] = d[key]
+    return (*return_val,)
+
+
+def group_by_key_prefix_and_remove_prefix(prefix, d):
+    kwargs_with_prefix, kwargs = group_dict_by_key(lambda x: x.startswith(prefix), d)
+    kwargs_without_prefix = dict(
+        map(lambda x: (x[0][len(prefix) :], x[1]), tuple(kwargs_with_prefix.items()))
+    )
+    return kwargs_without_prefix, kwargs
 
 
 # classes
 
 
-class PatchEmbedding(nn.Module):
-    def __init__(self, in_channels=3, patch_size=16, emb_size=768):
+class LayerNorm(nn.Module):  # layernorm, but done in the channel dimension #1
+    def __init__(self, dim, eps=1e-5):
         super().__init__()
-
-        # 3D Convolution block for feature extraction
-        self.conv3d_block = nn.Sequential(
-            nn.Conv3d(input_channels, 64, kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv3d(64, 128, kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv3d(128, 256, kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.Conv3d(256, output_dim, kernel_size=4, stride=2, padding=1),
-            nn.ReLU(),
-            nn.AdaptiveAvgPool3d((1, 1, 1)),  # Global Average Pooling
-            Rearrange("b c d h w -> b (c d h w)"),  # Flatten
-        )
+        self.eps = eps
+        self.g = nn.Parameter(torch.ones(1, dim, 1, 1))
+        self.b = nn.Parameter(torch.zeros(1, dim, 1, 1))
 
     def forward(self, x):
-        return self.conv3d_block(x)
+        var = torch.var(x, dim=1, unbiased=False, keepdim=True)
+        mean = torch.mean(x, dim=1, keepdim=True)
+        return (x - mean) / (var + self.eps).sqrt() * self.g + self.b
 
 
-class TransformerBlock(nn.Module):
-    def __init__(self, emb_size=768, drop_p=0.0, num_heads=8, forward_expansion=4):
+class FeedForward(nn.Module):
+    def __init__(self, dim, mult=4, dropout=0.0):
         super().__init__()
-        self.norm1 = nn.LayerNorm(emb_size)
-        self.norm2 = nn.LayerNorm(emb_size)
-
-        self.attn = nn.MultiheadAttention(emb_size, num_heads)
-        self.fc = nn.Sequential(
-            nn.Linear(emb_size, forward_expansion * emb_size),
+        self.net = nn.Sequential(
+            LayerNorm(dim),
+            nn.Conv2d(dim, dim * mult, 1),
             nn.GELU(),
-            nn.Linear(forward_expansion * emb_size, emb_size),
+            nn.Dropout(dropout),
+            nn.Conv2d(dim * mult, dim, 1),
+            nn.Dropout(dropout),
         )
 
-        self.drop = nn.Dropout(drop_p)
+    def forward(self, x):
+        return self.net(x)
+
+
+class DepthWiseConv2d(nn.Module):
+    def __init__(self, dim_in, dim_out, kernel_size, padding, stride, bias=True):
+        super().__init__()
+        self.net = nn.Sequential(
+            nn.Conv2d(
+                dim_in,
+                dim_in,
+                kernel_size=kernel_size,
+                padding=padding,
+                groups=dim_in,
+                stride=stride,
+                bias=bias,
+            ),
+            nn.BatchNorm2d(dim_in),
+            nn.Conv2d(dim_in, dim_out, kernel_size=1, bias=bias),
+        )
 
     def forward(self, x):
-        attn_out, _ = self.attn(x, x, x)
-        x = x + self.drop(attn_out)
-        x = self.norm1(x)
+        return self.net(x)
 
-        fc_out = self.fc(x)
-        x = x + self.drop(fc_out)
-        x = self.norm2(x)
 
+class Attention(nn.Module):
+    def __init__(
+        self, dim, proj_kernel, kv_proj_stride, heads=8, dim_head=64, dropout=0.0
+    ):
+        super().__init__()
+        inner_dim = dim_head * heads
+        padding = proj_kernel // 2
+        self.heads = heads
+        self.scale = dim_head**-0.5
+
+        self.norm = LayerNorm(dim)
+        self.attend = nn.Softmax(dim=-1)
+        self.dropout = nn.Dropout(dropout)
+
+        self.to_q = DepthWiseConv2d(
+            dim, inner_dim, proj_kernel, padding=padding, stride=1, bias=False
+        )
+        self.to_kv = DepthWiseConv2d(
+            dim,
+            inner_dim * 2,
+            proj_kernel,
+            padding=padding,
+            stride=kv_proj_stride,
+            bias=False,
+        )
+
+        self.to_out = nn.Sequential(nn.Conv2d(inner_dim, dim, 1), nn.Dropout(dropout))
+
+    def forward(self, x):
+        shape = x.shape
+        b, n, _, y, h = *shape, self.heads
+
+        x = self.norm(x)
+        q, k, v = (self.to_q(x), *self.to_kv(x).chunk(2, dim=1))
+        q, k, v = map(
+            lambda t: rearrange(t, "b (h d) x y -> (b h) (x y) d", h=h), (q, k, v)
+        )
+
+        dots = einsum("b i d, b j d -> b i j", q, k) * self.scale
+
+        attn = self.attend(dots)
+        attn = self.dropout(attn)
+
+        out = einsum("b i j, b j d -> b i d", attn, v)
+        out = rearrange(out, "(b h) (x y) d -> b (h d) x y", h=h, y=y)
+        return self.to_out(out)
+
+
+class Transformer(nn.Module):
+    def __init__(
+        self,
+        dim,
+        proj_kernel,
+        kv_proj_stride,
+        depth,
+        heads,
+        dim_head=64,
+        mlp_mult=4,
+        dropout=0.0,
+    ):
+        super().__init__()
+        self.layers = nn.ModuleList([])
+        for _ in range(depth):
+            self.layers.append(
+                nn.ModuleList(
+                    [
+                        Attention(
+                            dim,
+                            proj_kernel=proj_kernel,
+                            kv_proj_stride=kv_proj_stride,
+                            heads=heads,
+                            dim_head=dim_head,
+                            dropout=dropout,
+                        ),
+                        FeedForward(dim, mlp_mult, dropout=dropout),
+                    ]
+                )
+            )
+
+    def forward(self, x):
+        for attn, ff in self.layers:
+            x = attn(x) + x
+            x = ff(x) + x
         return x
 
 
-class ViT(nn.Module):
+class CvT(nn.Module):
     def __init__(
         self,
-        in_channels=3,
-        patch_size=16,
-        emb_size=768,
-        img_size=240,
-        num_blocks=12,
-        num_heads=8,
-        forward_expansion=4,
-        num_classes=2,
+        *,
+        num_classes,
+        s1_emb_dim=64,
+        s1_emb_kernel=7,
+        s1_emb_stride=4,
+        s1_proj_kernel=3,
+        s1_kv_proj_stride=2,
+        s1_heads=1,
+        s1_depth=1,
+        s1_mlp_mult=4,
+        s2_emb_dim=192,
+        s2_emb_kernel=3,
+        s2_emb_stride=2,
+        s2_proj_kernel=3,
+        s2_kv_proj_stride=2,
+        s2_heads=3,
+        s2_depth=2,
+        s2_mlp_mult=4,
+        s3_emb_dim=384,
+        s3_emb_kernel=3,
+        s3_emb_stride=2,
+        s3_proj_kernel=3,
+        s3_kv_proj_stride=2,
+        s3_heads=6,
+        s3_depth=10,
+        s3_mlp_mult=4,
+        dropout=0.1,
     ):
         super().__init__()
-        self.patch_emb = PatchEmbedding(in_channels, patch_size, emb_size)
+        kwargs = dict(locals())
 
-        self.cls_token = nn.Parameter(randn(1, 1, emb_size))
-        self.pos_emb = nn.Parameter(randn((img_size // patch_size) ** 2 + 1, emb_size))
+        dim = 1
+        layers = []
 
-        self.blocks = nn.ModuleList(
-            [
-                TransformerBlock(
-                    emb_size, num_heads=num_heads, forward_expansion=forward_expansion
+        for prefix in ("s1", "s2", "s3"):
+            config, kwargs = group_by_key_prefix_and_remove_prefix(f"{prefix}_", kwargs)
+
+            layers.append(
+                nn.Sequential(
+                    nn.Conv2d(
+                        dim,
+                        config["emb_dim"],
+                        kernel_size=config["emb_kernel"],
+                        padding=(config["emb_kernel"] // 2),
+                        stride=config["emb_stride"],
+                    ),
+                    LayerNorm(config["emb_dim"]),
+                    Transformer(
+                        dim=config["emb_dim"],
+                        proj_kernel=config["proj_kernel"],
+                        kv_proj_stride=config["kv_proj_stride"],
+                        depth=config["depth"],
+                        heads=config["heads"],
+                        mlp_mult=config["mlp_mult"],
+                        dropout=dropout,
+                    ),
                 )
-                for _ in range(num_blocks)
-            ]
+            )
+
+            dim = config["emb_dim"]
+
+        self.layers = nn.Sequential(*layers)
+
+        self.to_logits = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            Rearrange("... () () -> ..."),
+            nn.Linear(dim, num_classes),
         )
 
-        self.norm = nn.LayerNorm(emb_size)
-        self.fc = nn.Linear(emb_size, num_classes)
-
     def forward(self, x):
-        x = self.norm(x)
-
-        cls_repr = x[:, 0]
-        out = self.fc(cls_repr)
-
-        return out
+        latents = self.layers(x)
+        return self.to_logits(latents)
