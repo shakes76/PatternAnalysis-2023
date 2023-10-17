@@ -6,12 +6,10 @@ from PIL import Image
 
 #TODO: Clean up debugging notes/code.
 #      Make sure references are in order. Note use of tensorflow documentation.
-#      Remove one hot and squeeze when softmax is replaced with sigmoid in model.
-#      May also want to increase size to 256x256.
 #      Clean up dice loss function.
 #      Change rates for adam optimizer.
 #      Rewrite train.py to be functional/non-script.
-#      Write prediction fucntions/script.
+#      Write prediction functions/script.
 #      Write README.
 #      Make pull request.
 
@@ -42,15 +40,16 @@ def loadDataFrom(directory, channels, size=128):
         if imageName != "LICENSE.txt" and imageName != "ATTRIBUTION.txt":
             imagePath = os.path.join(directory, imageName)
             image = Image.open(imagePath)
-            #Get values for center crop
+            #Center crop then resize to maintain aspect ratio.
             #Center crop algorithm from:
             #https://stackoverflow.com/questions/16646183/crop-an-image-in-the-centre-using-pil
+            crop_size = 256
             width, height = image.size
-            left = (width - size) // 2
-            top = (height - size) // 2
-            right = left + size
-            bottom = top + size
-            image = image.crop((left, top, right, bottom))
+            left = (width - crop_size) // 2
+            top = (height - crop_size) // 2
+            right = left + crop_size
+            bottom = top + crop_size
+            image = image.crop((left, top, right, bottom)).resize((size, size))
             #NOTE: Unsure if resizing should be done in this function.
             if channels > 1:
                 #data[i, :, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
