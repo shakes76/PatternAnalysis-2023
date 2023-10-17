@@ -1,3 +1,10 @@
+"""
+This is an implementation of the Improved UNet architecture described in the following paper:
+
+
+
+"""
+
 import torch
 from torch import nn
 from torch.nn import functional as F
@@ -6,6 +13,7 @@ from torch.nn import functional as F
 class ImprovedUNet(nn.Module):
     def __init__(self, in_channels, out_channels, base_n_filter = 4):
         super(ImprovedUNet, self).__init__()
+        # Set up model
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.base_n_filter = base_n_filter
@@ -14,8 +22,10 @@ class ImprovedUNet(nn.Module):
 
         # Level 1 context layer
         self.conv3E11 = nn.Conv2d(self.in_channels, self.base_n_filter, kernel_size=3, stride=1, padding=1, bias=False)
+
+        # Level 1 Context Module
         self.conv3d2 = nn.Conv2d(self.base_n_filter, self.base_n_filter, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dropoutE1 = nn.Dropout2d(0.3)
+        self.dropoutE1 = nn.Dropout2d(0.5)
         self.conv3d3 = nn.Conv2d(self.base_n_filter, self.base_n_filter, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3d = nn.InstanceNorm2d(self.base_n_filter)
 
@@ -23,7 +33,7 @@ class ImprovedUNet(nn.Module):
         self.conv3E21 = nn.Conv2d(self.base_n_filter, self.base_n_filter*2, kernel_size=3, stride=2, padding=1, bias=False)
         self.inorm3E21 = nn.InstanceNorm2d(self.base_n_filter*2)
         self.conv3E22 = nn.Conv2d(self.base_n_filter*2, self.base_n_filter*2, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dropoutE2 = nn.Dropout2d(0.3)
+        self.dropoutE2 = nn.Dropout2d(0.5)
         self.inorm3E22 = nn.InstanceNorm2d(self.base_n_filter*2)
         self.conv3E23 = nn.Conv2d(self.base_n_filter*2, self.base_n_filter*2, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3E23 = nn.InstanceNorm2d(self.base_n_filter*2)
@@ -32,7 +42,7 @@ class ImprovedUNet(nn.Module):
         self.conv3E31 = nn.Conv2d(self.base_n_filter*2, self.base_n_filter*4, kernel_size=3, stride=2, padding=1, bias=False)
         self.inorm3E31 = nn.InstanceNorm2d(self.base_n_filter*4)
         self.conv3E32 = nn.Conv2d(self.base_n_filter*4, self.base_n_filter*4, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dropoutE3 = nn.Dropout2d(0.3)
+        self.dropoutE3 = nn.Dropout2d(0.5)
         self.inorm3E32 = nn.InstanceNorm2d(self.base_n_filter*4)
         self.conv3E33 = nn.Conv2d(self.base_n_filter*4, self.base_n_filter*4, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3E33 = nn.InstanceNorm2d(self.base_n_filter*4)
@@ -41,7 +51,7 @@ class ImprovedUNet(nn.Module):
         self.conv3E41 = nn.Conv2d(self.base_n_filter*4, self.base_n_filter*8, kernel_size=3, stride=2, padding=1, bias=False)
         self.inorm3E41 = nn.InstanceNorm2d(self.base_n_filter*8)
         self.conv3E42 = nn.Conv2d(self.base_n_filter*8, self.base_n_filter*8, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dropoutE4 = nn.Dropout2d(0.3)
+        self.dropoutE4 = nn.Dropout2d(0.5)
         self.inorm3E42 = nn.InstanceNorm2d(self.base_n_filter*8)
         self.conv3E43 = nn.Conv2d(self.base_n_filter*8, self.base_n_filter*8, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3E43 = nn.InstanceNorm2d(self.base_n_filter*8)
@@ -50,7 +60,7 @@ class ImprovedUNet(nn.Module):
         self.conv3E51 = nn.Conv2d(self.base_n_filter*8, self.base_n_filter*16, kernel_size=3, stride=2, padding=1, bias=False)
         self.inorm3E51 = nn.InstanceNorm2d(self.base_n_filter*16)
         self.conv3E52 = nn.Conv2d(self.base_n_filter*16, self.base_n_filter*16, kernel_size=3, stride=1, padding=1, bias=False)
-        self.dropoutE5 = nn.Dropout2d(0.3)
+        self.dropoutE5 = nn.Dropout2d(0.5)
         self.inorm3E52 = nn.InstanceNorm2d(self.base_n_filter*16)
         self.conv3E53 = nn.Conv2d(self.base_n_filter*16, self.base_n_filter*16, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3E53 = nn.InstanceNorm2d(self.base_n_filter*16)
@@ -106,7 +116,7 @@ class ImprovedUNet(nn.Module):
 
         # Output layer
         self.convOut = nn.Conv2d(self.base_n_filter, self.out_channels, kernel_size=1, stride=1, padding=0, bias=False)
-        self.softmax = nn.Softmax(dim=1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         #  Level 1 context pathway
@@ -231,5 +241,5 @@ class ImprovedUNet(nn.Module):
         # Output layers
         out = self.convOut(out)
         out = torch.add(out, segementResult)
-        out = self.softmax(out)
+        out = self.sigmoid(out)
         return out
