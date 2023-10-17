@@ -1,4 +1,4 @@
-from modules import ResNetEmbedder
+from modules import SiameseNetwork
 from dataset import * 
 
 import torch
@@ -18,7 +18,7 @@ MODEL_LAYERS = [1, 64, 128, 128, 256]
 KERNEL_SIZES = [10, 7, 4, 4]
 DATASET_DIR = "./recognition/Siamese-ADNI-46420763/data/AD_NC"
 
-MODEL_DIR = "./recognition/Siamese-ADNI-46420763/models/ADNI-SiameseNetwork-resnet-SGD-euclid-trans-randrot-73_51.pt"
+MODEL_DIR = "./recognition/Siamese-ADNI-46420763/models/ADNI-SiameseNetwork-sigmoid.pt"
 
 def main():
     ######################    
@@ -29,7 +29,7 @@ def main():
     #########################   
     #   Initialize Model:   #
     #########################
-    model = ResNetEmbedder()
+    model = SiameseNetwork()
     model = model.to(device)  
     model.load_state_dict(torch.load(MODEL_DIR, map_location=device))
 
@@ -61,8 +61,6 @@ def main():
     image, label = test_dataloader.dataset[random.randint(0, len(test_dataloader.dataset) - 1)]
     image = image[None, :, :, :]
     image = image.to(device)
-    
-    print(image.shape)
     
     embedding = model(image)
     AD_query_embedding = model(AD_query)
