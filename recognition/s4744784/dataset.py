@@ -14,7 +14,7 @@ from utils import *
 # For the purpose of this report, we want to downscale the images by a factor of 4, before 
 # upscaling by a factor of 4. This is to simulate the effect of a low resolution image.
 
-def load_data():
+def load_data(path: str):
     """
     Function that loads the data and creates the dataloader. Returns the dataloader.
     """
@@ -27,7 +27,7 @@ def load_data():
         transforms.ToTensor(),
     ])
 
-    dataset = torchvision.datasets.ImageFolder(root=train_path, transform=training_transform)
+    dataset = torchvision.datasets.ImageFolder(root=path, transform=training_transform)
 
     dataloader = torch.utils.data.DataLoader(
         dataset,

@@ -54,7 +54,7 @@ def train(epochs: int):
     plt.savefig('training_loss.png')
 
 if __name__ == '__main__':
-    dataloader = load_data()
+    dataloader = load_data(train_path)
     start_time = time.time()
     print("Starting training...")
     train(num_epochs)
