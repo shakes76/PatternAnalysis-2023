@@ -1,4 +1,8 @@
-# This is the dataset file
+"""
+dataset.py: Defines a custom dataset class for Alzheimer's Disease (AD) and Normal Control (NC) image data, 
+along with associated transformations and dataloaders for training and testing.
+"""
+
 
 #Importing all the required libraries
 import os
@@ -6,26 +10,36 @@ from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
+# Define AlzheimerDataset class that extends torch's Dataset
 class AlzheimerDataset(Dataset):
+    # Constructor for the AlzheimerDataset class
     def __init__(self, root_dir, transform=None, num_AD=0, num_NC=0):
         self.root_dir = root_dir
         self.transform = transform
 
+        # Get the list of AD (Alzheimer's Disease) image files
         self.AD_files = [os.path.join(root_dir, "AD", f) for f in os.listdir(os.path.join(root_dir, "AD")) if os.path.isfile(os.path.join(root_dir, "AD", f))]
-        self.NC_files = [os.path.join(root_dir, "NC", f) for f in os.listdir(os.path.join(root_dir, "NC")) if os.path.isfile(os.path.join(root_dir, "NC", f))]
-               
+        
+        # Get the list of NC (Normal Control) image files
+        self.NC_files = [os.path.join(root_dir, "NC", f) for f in os.listdir(os.path.join(root_dir, "NC")) if os.path.isfile(os.path.join(root_dir, "NC", f))]     
+        
         if not self.AD_files:
             raise ValueError("No AD images found!")
         if not self.NC_files:
             raise ValueError("No NC images found!")
        
+        # Limit the number of AD and NC images if specified
         self.AD_files = self.AD_files[:num_AD]
-        self.NC_files = self.NC_files[:num_NC]        
+        self.NC_files = self.NC_files[:num_NC]   
+
+
         self.all_files = self.AD_files + self.NC_files
 
+    # Get the total number of images in the dataset
     def __len__(self):
         return len(self.all_files)
     
+    # Fetch an image and its label by index
     def __getitem__(self, idx):
         image_path = self.all_files[idx]
         image = Image.open(image_path).convert('RGB')
@@ -56,10 +70,11 @@ test_transforms = transforms.Compose([
 train_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/full_dataset/ADNI_AD_NC_2D/AD_NC/train', transform=train_transforms, num_AD=10400, num_NC=11120)
 test_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/full_dataset/ADNI_AD_NC_2D/AD_NC/test', transform=test_transforms, num_AD=1410, num_NC=1410)
 
+# Define dataloaders to load data in batches
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
 
 # Displaying counts
-print(f"Training set: AD={len(train_dataset.AD_files)} images, NC={len(train_dataset.NC_files)} images")
-print(f"Test set: AD={len(test_dataset.AD_files)} images, NC={len(test_dataset.NC_files)} images")
+#print(f"Training set: AD={len(train_dataset.AD_files)} images, NC={len(train_dataset.NC_files)} images")
+#print(f"Test set: AD={len(test_dataset.AD_files)} images, NC={len(test_dataset.NC_files)} images")
     
