@@ -61,10 +61,11 @@ class ISICDatset(Dataset):
         prob = label1 + label2
 
         #Putting together answer vector
-        vector = np.array([prob, x, y, w, h, label1, label2], dtype=int)
+        vector = np.array([x + (w/2), y + (h/2), w, h, prob, label1, label2], dtype=int)
 
-        #Convert image to tensor
-        image = image.transpose((2, 0, 1))
+        #Convert image to tensor and normalise
+        image = image.transpose((2, 0, 1)).astype(np.float32)
+        image = image/255
         sample = (torch.from_numpy(image), torch.from_numpy(vector))
 
         return sample
