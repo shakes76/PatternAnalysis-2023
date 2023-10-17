@@ -39,7 +39,7 @@ class ESPCNCallback(keras.callbacks.Callback):
         train_psnr_history.append(np.mean(self.psnr))
         valid_psnr_history.append(np.mean(self.psnr))
         
-        if epoch % 20 == 0:
+        if epoch % 20 == 0 and epoch!=0:
             # Plot loss history after each epoch
             plt.figure(figsize=(10, 6))
             plt.plot(train_loss_history, label='Training Loss', color='blue')
@@ -104,9 +104,8 @@ model.fit(
 model.load_weights(checkpoint_filepath)
 
 #Test the model
-# define test data from test AD 
+# Get acees to path of each image
 test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test/AD'
-# test_path = 'H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/AD_NC/test/AD'
 test_img_paths = sorted(
     [
         os.path.join(test_path, fname)
@@ -114,16 +113,19 @@ test_img_paths = sorted(
         if fname.endswith(".jpeg")
     ]
 )
+
+# Testing metrics
 total_bicubic_psnr = 0.0
 total_test_psnr = 0.0
 
+# Dowansample resolution of iamges by factor of 4, then predict higher resolution image using the model
 for index, test_img_path in enumerate(test_img_paths[0:len(test_img_paths)]):
     img = load_img(test_img_path)
-    lowres_input = get_lowres_image(img, upscale_factor)
+    lowres_input = get_lowres_image(img, upscale_factor) # downsample
     w = lowres_input.size[0] * upscale_factor
     h = lowres_input.size[1] * upscale_factor
     highres_img = img.resize((w, h))
-    prediction = upscale_image(model, lowres_input)
+    prediction = upscale_image(model, lowres_input) # Predict
     lowres_img = lowres_input.resize((w, h))
     lowres_img_arr = img_to_array(lowres_img)
     highres_img_arr = img_to_array(highres_img)
