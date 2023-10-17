@@ -22,7 +22,7 @@ def load_dataset():
     # Create training generator
     train_generator = train_datagen.flow_from_directory("AD_NC/train", # Path for train set
                                                 target_size=(256, 240),  # Set the desired image size
-                                                batch_size=32, # Det the batch size
+                                                batch_size=1, # Det the batch size
                                                 class_mode='categorical')  # Split into AD and NC classes
     
     # Define the testing ImageDataGenerator
@@ -31,7 +31,7 @@ def load_dataset():
     # Create testing generator
     test_generator = test_datagen.flow_from_directory("AD_NC/test", # Path for test set
                                                     target_size=(256, 240), # Det the desired image size
-                                                    batch_size=32, # Set the batch size
+                                                    batch_size=1, # Set the batch size
                                                     class_mode='categorical') # Split into AD and NC classes
     return train_generator, test_generator
 
@@ -45,38 +45,41 @@ Input:
 Outputs:
     [anchor_triplets, pos_triplets, neg_triplets] - triplet array used for input into the siamese model
 """
-def create_triplets(data_generator):
+def create_triplets(data_generator, num_samples=10):
     anchor_triplets = []
     pos_triplets = []
     neg_triplets = []
 
-    num_samples = 10 #len(data_generator)
-    indices = list(range(num_samples))
-
     for _ in range(num_samples):
-        anchor_idx = random.randint(0, num_samples - 1)
+        anchor_idx = random.randint(0, len(data_generator) - 1)
         anchor_img, anchor_label = data_generator[anchor_idx]
-        anchor_img, anchor_label = anchor_img[0], anchor_label[0]
-
-        while True:
-            pos_idx = random.randint(0, num_samples - 1)
-            pos_img, pos_label = data_generator[pos_idx]
-            pos_img, pos_label = pos_img[0], pos_label[0]
-            if pos_label.argmax() == anchor_label.argmax():
-                break
-
-        while True:
-            neg_idx = random.randint(0, num_samples - 1)
-            neg_img, neg_label = data_generator[neg_idx]
-            neg_img, neg_label = neg_img[0], neg_label[0]
-            if neg_label.argmax() != anchor_label.argmax():
-                break
-
         anchor_triplets.append(anchor_img)
-        pos_triplets.append(pos_img)
-        neg_triplets.append(neg_img)
 
-    return [anchor_triplets, pos_triplets, neg_triplets]
+        while True:
+            pos_idx = random.randint(0, len(data_generator) - 1)
+            pos_img, pos_label = data_generator[pos_idx]
+            if pos_label.argmax() == anchor_label.argmax():
+                pos_triplets.append(pos_img)
+                break
+
+        while True:
+            neg_idx = random.randint(0, len(data_generator) - 1)
+            neg_img, neg_label = data_generator[neg_idx]
+            if neg_label.argmax() != anchor_label.argmax():
+                neg_triplets.append(neg_img)
+                break
+        # Reshape to remove the batch dimension
+
+    anchor_triplets = tf.convert_to_tensor(anchor_triplets)
+    pos_triplets = tf.convert_to_tensor(pos_triplets)
+    neg_triplets = tf.convert_to_tensor(neg_triplets)
+    
+    # Reshape to remove the batch dimension
+    anchor_triplets = tf.reshape(anchor_triplets, [-1, 256, 240, 3])
+    pos_triplets = tf.reshape(pos_triplets, [-1, 256, 240, 3])
+    neg_triplets = tf.reshape(neg_triplets, [-1, 256, 240, 3])
+
+    return anchor_triplets, pos_triplets, neg_triplets
 
 
 
@@ -110,9 +113,8 @@ def main():
     print("Image shape:", test_generator.image_shape)
     """
     anchor_triplets, pos_triplets, neg_triplets = create_triplets(train_generator)
-    print(len(anchor_triplets))
-    print(len(pos_triplets))
-    print(len(neg_triplets))
+
+
 
 
 
