@@ -10,6 +10,7 @@ unet.eval()
 dataset = NiiImageLoader("semantic_MRs_anon/*",
                          "semantic_labels_anon/*")
 
+# pick a nii image randomly
 test, _ = torch.utils.data.random_split(dataset, [1, 210])
 
 # predict
