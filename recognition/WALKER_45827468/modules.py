@@ -35,7 +35,7 @@ class UpSampling(nn.Module):
     def __init__(self, size):
         super(UpSampling, self).__init__()
         self.upsamp = nn.Upsample(scale_factor=2)
-        self.instNorm = nn.InstanceNorm2d(size)
+        self.instNorm = nn.InstanceNorm2d(size // 2)
         self.conv = nn.Conv2d(size, size // 2, kernel_size=3, padding=1)
         
     def forward(self, input):
@@ -99,25 +99,21 @@ class ImprovedUNet(nn.Module):
         self.bn5 = nn.BatchNorm2d(256)
         
         # upsample              256->128
-  
+        self.upsamp1 = UpSampling(256)
         # localisation
-
-        # upsample              64
-        
-        # concat
-        
+        self.local1 = Localisation(128)
+        # upsample              128->64
+        self.upsamp2 = UpSampling(128)
         # localisation
-        
-        # upsample              32
-        
-        # concat
-        
+        self.local2 = Localisation(64)
+        # upsample              64->32
+        self.upsamp3 = UpSampling(64)
         # localisation
-        
-        # upsample              16
-        
+        self.local3 = Localisation(32)
+        # upsample              32->16
+        self.upsamp4 = UpSampling(32)
         # 3x3x3 conv
-        
+        self.conv6 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
         # segmentation ???
         
         
