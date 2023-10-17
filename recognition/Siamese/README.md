@@ -79,6 +79,12 @@ loader = DataLoader(ds.siamese_train,
     print(label.numpy().reshape(-1))
 ```
 
+The output is 
 
+![Figure_1](https://github.com/Picayune1/PatternAnalysis-2023/assets/141021565/c7f0a51c-d71f-42d1-9bbe-66ba8e5d902d)
+
+With a label tensor showing which two images are from the same class 
+
+[0. 1. 0. 1. 1. 0. 0. 0.]
 
 The next important aspect is the 
