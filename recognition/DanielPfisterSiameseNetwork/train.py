@@ -10,12 +10,8 @@ from dataset import load_images_train_generator
 from dataset import valid_order
 from dataset import load_images_valid_generator
 import random
-
-from sklearn.model_selection import train_test_split
 from modules import siamese_network 
-
-
-
+import matplotlib.pyplot as plt
 
 #%%
 #define varibles
@@ -68,4 +64,64 @@ history = model.fit(x=train_images,
                             steps_per_epoch = len(train_data_AD)//batch_size,
                             validation_steps = len(valid_data_AD)//batch_size,
                             shuffle = False, epochs=20)
+
+
 # %%
+
+# Plot training and validation accuracy per epoch
+acc = history.history['accuracy']
+val_acc = history.history['val_accuracy']
+loss = history.history['loss']
+val_loss = history.history['val_loss']
+# Get number of epochs
+epochs = range(len(acc))
+
+plt.figure()
+plt.plot(epochs, acc)
+plt.plot(epochs, val_acc)
+plt.title('Training and validation accuracy')
+plt.ylabel('Accuracy')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Validation'], loc='upper right')
+plt.show()
+
+# Plot training and validation loss per epoch
+plt.figure()
+plt.plot(epochs, loss)
+plt.plot(epochs, val_loss)
+plt.title('Training and validation loss')
+plt.ylabel('Loss')
+plt.xlabel('Epoch')
+plt.legend(['Train', 'Validation'], loc='upper right')
+plt.show()
+
+
+# %%
+#saves the model
+model.save('C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5')
+
+#%%
+#load the trained weights of the neural network
+model = tf.keras.saving.load_model("C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5")
+
+# %%
+
+# validate the model with the validate dataset
+metrics_valid = model.evaluate(valid_images,steps = len(train_data_AD)//batch_size)
+print('Loss of {} and Accuracy is {} %'.format(metrics_valid[0], metrics_valid[1] * 100))
+
+
+# %%
+# Test model with the test dataset
+
+#define the order of the test images
+test_data_order_AD = valid_order(list_test_AD)
+test_data_order_NC = valid_order(list_test_NC)
+
+#load test images
+test_images = load_images_valid_generator(path_test_images_AD, path_test_images_NC, list_test_AD, list_test_NC, number_test_AD, number_test_NC,test_data_order_AD, test_data_order_NC,height, width, batch_size= batch_size)
+
+#test the model with test images
+metrics_test = model.evaluate(test_images,steps = len(list_test_AD)//batch_size)
+print('Loss of {} and Accuracy is {} %'.format(metrics_test[0], metrics_test[1] * 100))
+
