@@ -5,15 +5,15 @@
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers
+from tensorflow.keras.layers import LeakyReLU
 
 def context_module(x, n_filters):
     #TODO: Write specification.
     #NOTE: Layers in paper are said to be 3D, but this may be because they incorporate channels.
-    #      Also unsure about whether padding should be used, and what type.
-    #      No padding needed.
+    #      Leaving padding as "same" to prevent headaches with dimensions.
     og_x = x
-    x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
-    x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    x = layers.Conv2D(n_filters, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
+    x = layers.Conv2D(n_filters, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     x = layers.Dropout(0.3)(x)
     return x + og_x
 
@@ -24,7 +24,7 @@ def upsampling_module(x, n_filters):
     #NOTE: This looks like what is mentioned in the paper, but the arguments to the upsample layers, or whether they
     #      should be 3D may require some experimentation.
     x = layers.UpSampling2D(size=(2,2))(x)
-    x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    x = layers.Conv2D(n_filters, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     return x
 
 #NOTE: Concatenation happens inside this module now, because it always happens before data is passed into it.
@@ -33,8 +33,8 @@ def localization_module(x, conv_features, n_filters):
     #TODO: Write specifictaion.
     #NOTE: Again, unsure if these should be 2D or 3D.
     x = layers.concatenate([x, conv_features])
-    x = layers.Conv2D(n_filters, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
-    x = layers.Conv2D(n_filters, 1, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    x = layers.Conv2D(n_filters, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
+    x = layers.Conv2D(n_filters, 1, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     return x
 
 #NOTE: From what I can see from the papers this is just a 1x1 (or 1x1x1) convolution.
@@ -43,7 +43,7 @@ def localization_module(x, conv_features, n_filters):
 def segmentation_layer(x, n_filters):
     #TODO: Write specifictaion.
     #NOTE: Again, unsure if these should be 2D or 3D.
-    x = layers.Conv2D(n_filters, 1, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    x = layers.Conv2D(n_filters, 1, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     return x
 
 def build_improved_unet_model():
@@ -52,15 +52,15 @@ def build_improved_unet_model():
     inputs = layers.Input(shape=(128,128,3))
     #TODO: Name this path. (down?)
     #NOTE: Again, unsure if these should be 2D or 3D.
-    x = layers.Conv2D(16, 3, padding="same", activation="relu", kernel_initializer="he_normal")(inputs)
+    x = layers.Conv2D(16, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(inputs)
     c1 = context_module(x, 16)
-    x = layers.Conv2D(32, 3, padding="same", strides=2, activation="relu", kernel_initializer="he_normal")(c1)
+    x = layers.Conv2D(32, 3, padding="same", strides=2, activation=LeakyReLU(0.01), kernel_initializer="he_normal")(c1)
     c2 = context_module(x, 32)
-    x = layers.Conv2D(64, 3, padding="same", strides=2, activation="relu", kernel_initializer="he_normal")(c2)
+    x = layers.Conv2D(64, 3, padding="same", strides=2, activation=LeakyReLU(0.01), kernel_initializer="he_normal")(c2)
     c3 = context_module(x, 64)
-    x = layers.Conv2D(128, 3, padding="same", strides=2, activation="relu", kernel_initializer="he_normal")(c3)
+    x = layers.Conv2D(128, 3, padding="same", strides=2, activation=LeakyReLU(0.01), kernel_initializer="he_normal")(c3)
     c4 = context_module(x, 128)
-    x = layers.Conv2D(256, 3, padding="same", strides=2, activation="relu", kernel_initializer="he_normal")(c4)
+    x = layers.Conv2D(256, 3, padding="same", strides=2, activation=LeakyReLU(0.01), kernel_initializer="he_normal")(c4)
     x = context_module(x, 256)
     #TODO: Name this path. (up?)
     x = upsampling_module(x, 128)
@@ -71,7 +71,7 @@ def build_improved_unet_model():
     l2 = localization_module(x, c2, 32)
     x = upsampling_module(l2, 16)
     x = layers.concatenate([x, c1])
-    x = layers.Conv2D(32, 3, padding="same", activation="relu", kernel_initializer="he_normal")(x)
+    x = layers.Conv2D(32, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     #NOTE: Unsure how many filters segmentation layers should have.
     #      It looks like they all need to be the same for them to add together.
     #      Setting them all to 1 so that the output matches the masks.
