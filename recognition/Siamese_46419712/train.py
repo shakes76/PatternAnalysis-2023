@@ -9,11 +9,13 @@ import random
 from modules import RawSiameseModel, ContrastiveLossFunction, BinaryModelClassifier
 from dataset import LoadData
 
-SIAMESE_LOSS_SAVE_PATH = "siamese_loss_plot.png"
-SIAMESE_MODEL_SAVE_PATH = "siamese.pt"
+SIAMESE_LOSS_SAVE_PATH = "/home/Student/s4641971/project/result/siamese_loss_plot.png"
+SIAMESE_MODEL_SAVE_PATH = "/home/Student/s4641971/project/result/siamese.pt"
 
-CLASSIFIER_LOSS_SAVE_PATH = "classifier_loss_plot.png"
-CLASSIFIER_MODEL_SAVE_PATH = "classifier.pt"
+CLASSIFIER_LOSS_SAVE_PATH = "/home/Student/s4641971/project/result/classifier_loss_plot.png"
+CLASSIFIER_MODEL_SAVE_PATH = "/home/Student/s4641971/project/result/classifier.pt"
+
+VALIDATE_ACCURACY_SAVE_PATH = "/home/Student/s4641971/project/result/Accuracy_plot.png"
 
 def train_siamese(model, train_loader, criterion, optimizer, loss_list):
     model.train()
@@ -132,11 +134,11 @@ def test_model(model, cModel, test_loader):
             output = output.view(-1)
 
             predicted = (output > 0.5).float()
-            print(">>>>> Predicted")
-            print(predicted)
+            # print(">>>>> Predicted")
+            # print(predicted)
 
-            print(">>>>> Actual")
-            print(label)
+            # print(">>>>> Actual")
+            # print(label)
             total_test += label.size(0)
             correct_predict += (predicted == label).sum().item()
     
@@ -171,7 +173,7 @@ def save_val_accuracy_plot(accuracy_list, epoch=0):
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy %')
     plt.title(f"Classifier validate accuracy -> Total epoch {epoch + 1}")
-    plt.savefig("Accuracy_plot.png")
+    plt.savefig(VALIDATE_ACCURACY_SAVE_PATH)
 
     plt.close()
 
@@ -215,7 +217,7 @@ def execute_sTrain(train_loader, val_loader):
     learning_rate = 0.0001
 
     criterion = ContrastiveLossFunction()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.9, 0.999)) # Optimize model parameter
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999)) # Optimize model parameter
 
     # training
     loss_list = []
