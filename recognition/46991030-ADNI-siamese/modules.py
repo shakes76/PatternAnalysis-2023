@@ -73,7 +73,7 @@ def snn():
 
     model = tf.keras.models.Model(inputs=[input_1, input_2], outputs=output)
 
-    model.compile(optimizer="RMSProp", loss=loss, metrics=["accuracy"])
+    model.compile(optimizer="sgd", loss=loss, metrics=["accuracy"])
 
     return model
 
@@ -90,7 +90,7 @@ def snn_classifier(model: tf.keras.Model):
     )
 
     classifier.compile(
-        optimizer=tf.optimizers.SGD(learning_rate=0.001),
+        optimizer="sgd",
         loss="binary_crossentropy",
         metrics=["accuracy"],
     )
