@@ -20,8 +20,10 @@ However, the difference between VAE and VQVAE lies in how to build latent vector
 	Inside VQ class, 3 parts are used to form the loss function: reconstruction loss (optimize encoder and decoder), take stop gradient (output from encoder) as a constant ->which let the embedding get closer and closer to the output, commitment loss (take embedding as a constant -> which let Ze(x) get closer and closer to embedding.
 
 
+## Pixel CNN
 
-
+Pixel CNN generally works by generating one pixel within one epoch, and use the trained pixel to the next one. Inside our code, Pixel CNN is divided into two types, “A” type basically works for only the first layer convolution, while “B” type works for other layer convolution except the first layer. Then, we will apply a residual block and mask layer for our project. 
+Pixel CNN is built in this project to generate quantized x to form a code book, the code book will be used for decoder to generate images. 
 
 
 
