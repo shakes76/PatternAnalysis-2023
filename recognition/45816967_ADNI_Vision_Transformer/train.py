@@ -1,68 +1,114 @@
 import torch
-from torch.utils.data import DataLoader
-import matplotlib.pyplot as plt
-from dataset import *
-from vit import *
 import torch.optim as optim
+import torch.nn as nn
+from torchinfo import summary
 from tqdm import tqdm
+import matplotlib.pyplot as plt
 
-from torch.utils.data import DataLoader
+
+def train(model, train_loader, val_loader, criterion=nn.CrossEntropyLoss(), n_epochs=50, lr=0.000025, version_prefix="vit0", gen_plots=True):
+	# summary(model=model, 
+	# 			input_size=(128, 1, 192, 192),
+	# 			col_names=["input_size", "output_size", "num_params", "trainable"],
+	# 			col_width=20,
+	# 			row_settings=["var_names"]
+	# )
+	
+	# Defining model and training options
+	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+	print("Using device: ", device, f"({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else "")
+	
+	train_losses = []
+	val_losses = []
+	train_accs = []
+	val_accs = []
+	# Training loop
+	optimizer = optim.Adam(model.parameters(), lr=lr)
+	for epoch in range(n_epochs):
+			model.train()
+			correct, total = 0, 0
+			train_loss = 0.0
+			for batch in tqdm(train_loader, desc=f"Epoch {epoch + 1} in training", leave=False):
+					x, y = batch
+					x, y = x.type(torch.FloatTensor).to(device), y.to(device)
+					y_hat = model(x)
+					loss = criterion(y_hat, y)
+
+					train_loss += loss.detach().cpu().item() / len(train_loader)
+
+					correct += torch.sum(torch.argmax(y_hat, dim=1) == y).detach().cpu().item()
+					total += len(x)
+					optimizer.zero_grad()
+					loss.backward()
+					optimizer.step()
+			
+			train_acc = correct / total * 100
+			train_accs.append(train_acc)
+			print(f"Epoch {epoch + 1}/{n_epochs} loss: {train_loss:.2f}")
+			print(f"Train accuracy: {correct / total * 100:.2f}%")
+			
+			# Test loop
+			model.eval()
+			with torch.no_grad():
+					correct, total = 0, 0
+					val_loss = 0.0
+					for batch in tqdm(val_loader, desc="Validation"):
+							x, y = batch
+							x, y = x.type(torch.FloatTensor).to(device), y.to(device)
+							y_hat = model(x)
+							loss = criterion(y_hat, y)
+							val_loss += loss.detach().cpu().item() / len(val_loader)
+
+							correct += torch.sum(torch.argmax(y_hat, dim=1) == y).detach().cpu().item()
+							total += len(x)
+					val_acc = correct / total * 100
+					val_accs.append(val_acc)
+					print(f"Val loss: {val_loss:.2f}")
+					print(f"Val accuracy: {correct / total * 100:.2f}%")
+					
+			torch.save(model, f"models/{version_prefix}_model_{epoch + 1}_{val_acc}.pth")
+			train_losses.append(train_loss)
+			val_losses.append(val_loss)
+			
+	if gen_plots:
+		plt.plot(train_losses, label="Train loss")
+		# label the plot
+		plt.title("Training loss")
+		plt.xlabel("Epoch")
+		plt.ylabel("Loss")
+		plt.legend()
+		# save figure
+		plt.savefig(f"{version_prefix}_trainloss.png")
+		plt.show()
 
 
-def train(model, train_loader, val_loader, criterion, n_epochs, lr):
-  # Define and optimizer
-  optimizer = optim.Adam(model.parameters(), lr=lr)
+		plt.plot(val_losses, label="Validation loss")
+		# label the plot
+		plt.title("Validation loss")
+		plt.xlabel("Epoch")
+		plt.ylabel("Loss")
+		plt.legend()
+		# save figure
+		plt.savefig(f"{version_prefix}_valloss.png")
+		plt.show()
 
-  # Train the model
-  for epoch in range(n_epochs):
-    # Train the model for one epoch
-    model.train()
-    train_loss = 0.0
-    for imgs, labels in tqdm(train_loader):
-      optimizer.zero_grad()
-      out = model(imgs)
-      loss = criterion(out, labels)
-      loss.backward()
-      optimizer.step()
-      train_loss += loss.item() * imgs.size(0)
-    train_loss /= len(train_loader.dataset)
+		plt.plot(val_accs, label="Validation accuracy")
+		# label the plot
+		plt.title("Validation accuracy")
+		plt.xlabel("Epoch")
+		plt.ylabel("Accuracy (%)")
+		plt.legend()
+		# save figure
+		plt.savefig(f"{version_prefix}_valacc.png")
+		plt.show()
+		
+		plt.plot(train_accs, label="Train accuracy")
+		# label the plot
+		plt.title("Validation accuracy")
+		plt.xlabel("Epoch")
+		plt.ylabel("Accuracy (%)")
+		plt.legend()
+		# save figure
+		plt.savefig(f"{version_prefix}_trainacc.png")
+		plt.show()
 
-    # Evaluate the model on the validation set
-    model.eval()
-    val_loss = 0.0
-    val_acc = 0.0
-    with torch.no_grad():
-      for imgs, labels in tqdm(val_loader):
-        outputs = model(imgs)
-        loss = criterion(outputs, labels)
-        val_loss += loss.item() * imgs.size(0)
-        _, preds = torch.max(outputs, 1)
-        val_acc += torch.sum(preds == labels.data)
-    val_loss /= len(val_loader.dataset)
-    val_acc /= len(val_loader.dataset)
-
-    # Print the loss and accuracy for this epoch
-    print('Epoch [{}/{}], Train Loss: {:.4f}, Val Loss: {:.4f}, Val Acc: {:.4f}'
-        .format(epoch+1, n_epochs, train_loss, val_loss, val_acc))
-  
-  
-
-# train_imgs, test_imgs = load_adni_images(verbose = False)
-# # print(train_imgs[0][0])
-
-# # plt.imshow(train_imgs[0][0][0], cmap="gray")
-# # plt.show()
-
-# train_set = ADNIDataset(train_imgs[0], transform=standardTransform)
-# val_set = ADNIDataset(train_imgs[1], transform=standardTransform)
-# test_set = ADNIDataset(test_imgs[0], transform=standardTransform)
-
-# train_loader = DataLoader(train_set, batch_size=2)
-# val_loader = DataLoader(val_set, batch_size=2)
-# test_loader = DataLoader(val_set, batch_size=2)
-# # nextimg = next(iter(dl))
-# # print(nextimg)
-
-# model = ViT(image_size=128, patch_size=32, num_classes=2, dim=1024, depth=6, heads=16, mlp_dim=2048, dropout=0.1)
-
-# train(model, train_loader, val_loader, nn.CrossEntropyLoss(), n_epochs=10, lr=0.001)
