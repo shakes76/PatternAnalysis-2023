@@ -50,15 +50,15 @@ class UpSampling(nn.Module):
     3x3x3 conv, followed by 1x1x1 conv
 '''    
 class Localisation(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, size):
         super(Localisation, self).__init__()
         
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
-        self.instNorm = nn.InstanceNorm2d(out_channels)
-        self.relu1 = nn.LeakyReLU(out_channels)
+        self.conv1 = nn.Conv2d(size, size, kernel_size=3, padding=1)
+        self.instNorm = nn.InstanceNorm2d(size)
+        self.relu1 = nn.LeakyReLU(size)
         
-        self.conv2 = nn.Conv2d(out_channels, out_channels // 2, kernel_size=1)
-        self.relu2 = nn.LeakyReLU(out_channels // 2)
+        self.conv2 = nn.Conv2d(size, size // 2, kernel_size=1)
+        self.relu2 = nn.LeakyReLU(size // 2)
         
     def forward(self, input):
         out = self.relu1(self.instNorm(self.conv1(input)))
@@ -74,30 +74,34 @@ class ImprovedUNet(nn.Module):
     def __init__(self):
         super(ImprovedUNet, self).__init__()
         
-        # 3x3x3 conv            16
-        
+        # 3x3x3 conv            3->16
+        self.conv1 = nn.Conv2d(3, 16, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm2d(16)
         # context
-        
-        # 3x3x3 conv stride 2   32
-        
+        self.context1 = Context(16)
+        # 3x3x3 conv stride 2   16->32
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
+        self.bn2 = nn.BatchNorm2d(32)
         # context
-        
-        # 3x3x3 conv stride 2   64
-        
+        self.context2 = Context(32)
+        # 3x3x3 conv stride 2   32->64
+        self.conv3 = nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1)
+        self.bn3 = nn.BatchNorm2d(64)
         # context
-        
-        # 3x3x3 conv stride 2   128
-        
+        self.context3 = Context(64)
+        # 3x3x3 conv stride 2   64->128
+        self.conv4 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1)
+        self.bn4 = nn.BatchNorm2d(128)
         # context
+        self.context4 = Context(128)
+        # 3x3x3 conv stride 2   128->256
+        self.conv5 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1)
+        self.bn5 = nn.BatchNorm2d(256)
         
-        # 3x3x3 conv stride 2   256
-        
-        # upsample              128
-        
-        # concat
-        
+        # upsample              256->128
+  
         # localisation
-        
+
         # upsample              64
         
         # concat
