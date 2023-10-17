@@ -22,7 +22,6 @@ def load_data():
 
     # TRANSFORMS
     training_transform = transforms.Compose([
-        transforms.Resize((new_height, new_width)),
         transforms.RandomHorizontalFlip(),
         transforms.Grayscale(),
         transforms.ToTensor(),
@@ -35,8 +34,6 @@ def load_data():
         batch_size=batch_size,
         num_workers=num_workers,
     )
-
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     if os.path.exists("training_images.png"):
         print("Overwriting existing training image picture!")
