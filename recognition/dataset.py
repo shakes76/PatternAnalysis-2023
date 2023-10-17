@@ -6,7 +6,8 @@ batch_size = 20
 
 
 #Need to change the resize method
-
+# randaugment, centercropping, Normalize (0-1)
+#change randomcrop to centercrop
 class ADNI():
     def __init__(self, batch_size):
         self.batch_size = batch_size

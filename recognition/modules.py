@@ -154,7 +154,7 @@ class Classifier(nn.Module):
 
     def forward(self, latent):
         result = self.linear_layer1(latent)
-        result = result.mean(dim=0)
+        # result = result.mean(dim=0)
         return self.linear_layer2(result)
 
 class Perceiver(nn.Module):
@@ -186,20 +186,3 @@ class Perceiver(nn.Module):
         #Need to do the classifier here
         latent = self.classifier(latent)
         return latent
-    
-
-
-model_kwargs = {
-    "input_shape":(28, 28),
-    "latent_dim":8,
-    "embed_dim":16,
-    "attn_mlp_dim":16, 
-    "trnfr_mlp_dim":16, 
-    "trnfr_heads":8, 
-    "dropout":0.1, 
-    "trnfr_layers":6, 
-    "n_blocks":6, 
-    "n_classes":10,
-    "batch_size":64,
-    "learning_rate":0.003
-}

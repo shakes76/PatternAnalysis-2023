@@ -31,8 +31,11 @@ with torch.no_grad():
         results = perceiver(images)
         #change below
         _, predicted = torch.max(results.data, 1)
+        #predicted = torch.mac(results.data, 1)[1]
         total_predictions +=labels.size(0)
+        #total_predictions += labels.shape[0]
         correct_predictions += (predicted == labels).sum().item()
+        #correct_predictions += torch.sum(predicted == labels).item()
         
         if (index == 50):
             break
