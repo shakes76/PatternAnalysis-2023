@@ -1,3 +1,5 @@
+""" OASIS MRI Dataset """
+
 import os
 from enum import Enum
 from platform import node
@@ -9,8 +11,6 @@ from torch.utils.data import DataLoader, Dataset
 from torch.utils.data.sampler import SubsetRandomSampler
 from torchvision import transforms
 from torchvision.utils import make_grid
-
-from utils import *
 
 # IO Paths
 match node():                                                    # root of data dir
@@ -37,18 +37,18 @@ TEST_TXT = './oasis_test.txt'       # info of img for test
 BATCH_SIZE = 256    # Depends on your machine
 
 class DataType(Enum):
-    """
-        Represents types of datasets
-    """
+    """ Represents types of datasets """
     TRAIN = 1   # Training set
     VALID = 2   # Validating set
     TEST = 3    # Testing set
 
 class OASIS_MRI(Dataset):
+    """ OASIS MRI Dataset """
     def __init__(self, input_folder, transform = None, target_transform=None) -> None:
+        """ Initialize a OASIS MRI Dataset """
         super(OASIS_MRI, self).__init__()
         
-        self.input_folder = input_folder  # folder of training set / valid set / test set
+        self.input_folder = input_folder    # folder of training set / valid set / test set
         self.transform = transform
         self.target_transform = target_transform
 
@@ -57,33 +57,32 @@ class OASIS_MRI(Dataset):
         self.inputs = []
         self.labels = []
         for line in data_list:
-            img_names = line.split() # slipt by ' ', [0]: input, [1]: target
+            img_names = line.split()        # slipt by ' ', [0]: input, [1]: target
             input = Image.open(self.input_folder + img_names[0])    # read input img
             preprocess = transforms.Compose([
                 transforms.ToTensor(),
             ])
-            input = preprocess(input) # to tensore
+            input = preprocess(input)       # to tensore
             self.inputs.append(input)
             self.labels.append(img_names[1])
 
     def __getitem__(self, index):
+        """ Return a pair of data """
         # index will be handled by dataloader
         input = self.inputs[index]
         label = int(self.labels[index])
         return input, label
     
     def __len__(self):
+        """ Return self length """
         return len(self.inputs)
 
     def get_data_list(self, include_label=True):
-        """
-        Generate a list for each dataset
-        """
-
+        """ Generate a list for each dataset """
         file_list = []
         count=0
 
-        for file in os.listdir(self.input_folder):    # iterate through all files
+        for file in os.listdir(self.input_folder):  # iterate through all files
             filename=os.path.splitext(file)[0]      # filename (without .png)
             filetype = os.path.splitext(file)[1]    # .png
             if include_label:
@@ -102,9 +101,7 @@ def load_data(batch_size=BATCH_SIZE,
                 valid_size=0.1,
                 shuffle=True,
                 test=False) -> DataLoader :
-    """
-    Return a Dataloader of OASIS_MRI
-    """
+    """ Return a Dataloader of OASIS_MRI """
 
     # define transforms
     transform = transforms.Compose([
@@ -122,7 +119,7 @@ def load_data(batch_size=BATCH_SIZE,
         )
 
         return data_loader
-    
+
     else:       # get the training data & validating data
         train_dataset = OASIS_MRI(      # get training set
             TRAIN_INPUT_PATH,
@@ -150,21 +147,18 @@ def load_data(batch_size=BATCH_SIZE,
         train_loader = DataLoader(
             train_dataset, batch_size=batch_size, sampler=train_sampler, num_workers=2
         )
-    
         valid_loader = DataLoader(
             valid_dataset, batch_size=batch_size, sampler=valid_sampler, num_workers=2
         )
 
         return (train_loader, valid_loader)
 
-def show_img(data_dir=DATA_PATH, datatype=DataType.TRAIN):
-    """
-    Show images in the OASIS_MRI dataset
-    """
-    dataloader = load_data(batch_size=64, test=True) # get the dataloader
+def show_img():
+    """ Show images in the OASIS_MRI dataset """
+    dataloader = load_data(batch_size=64, test=True)    # get the dataloader
 
-    for i, (b_x, _) in enumerate(dataloader): # b_x: input, b_y: target
-        if i < 3:    # show 3 batches of images
+    for i, (b_x, _) in enumerate(dataloader):           # b_x: input, b_y: target
+        if i < 3:                                       # show 3 batches of images
             imgs = make_grid(b_x)
             imgs = np.transpose(imgs,(1,2,0))
             plt.imshow(imgs)

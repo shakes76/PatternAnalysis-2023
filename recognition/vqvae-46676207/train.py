@@ -1,19 +1,21 @@
-import time
+""" Training module for VQVAE2 """
 
-import torch
-import torch.nn as nn
-from torchvision.utils import save_image
+import time
 import argparse
 
-from dataset import *
-from modules import *
-from utils import *
+import torch
+from torch import nn
+from torchvision.utils import save_image
+from torch.utils.data import DataLoader
+
+from dataset import load_data
+from modules import VQVAE
 
 # IO Paths
-CHECKPOINT_PATH = "checkpoint/"
+CHECKPOINT_PATH = "checkpoint/" # dir saving model snapshots
 
 # Configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # use gpu when cuda is available
 
 # Hyperparameters
 INPUT_DIM = 256*256 # dimension of Input
@@ -23,33 +25,35 @@ NUM_EPOCHS = 20     # number of epoch
 LR_RATE = 3e-4      # learning rate
 
 def train(epoch, loader: DataLoader, model: VQVAE, optimizer, scheduler, device):
-    criterion = nn.MSELoss()
+    """ Train the given VQVAE model """
+    criterion = nn.MSELoss()    # loss function
 
-    latent_loss_weight = 0.25
-    sample_size = 10
+    latent_loss_weight = 0.25   # weight of latent loss
+    sample_size = 10            # number of samples 
 
-    mse_sum = 0
+    mse_sum = 0                 # avg mse = mse_sum / mse_n
     mse_n = 0
 
-    for i, (img, _) in enumerate(loader):
+    for i, (imgs, _) in enumerate(loader):
         model.zero_grad()
 
-        img = img.to(device)
+        imgs = imgs.to(device)    # use gpu when available
 
-        out, latent_loss = model(img)
-        recon_loss = criterion(out, img)
-        latent_loss = latent_loss.mean()
-        loss = recon_loss + latent_loss_weight * latent_loss
-        loss.backward()
+        # Loss
+        out, latent_loss = model(imgs)      # get output and corresponding latent loss
+        recon_loss = criterion(out, imgs)   # get recon loss from loss function
+        latent_loss = latent_loss.mean()    # get average latent loss
+        loss = recon_loss + latent_loss_weight * latent_loss    # get loss
+        loss.backward()                     # backward
 
-        if scheduler is not None:
+        if scheduler is not None:           # currently not in use
             scheduler.step()
         optimizer.step()
 
-        mse_sum = recon_loss.item() * img.shape[0]
-        mse_n = img.shape[0]
+        mse_sum = recon_loss.item() * imgs.shape[0] # keep tracking mse
+        mse_n = imgs.shape[0]
 
-        lr = optimizer.param_groups[0]["lr"]
+        lr = optimizer.param_groups[0]["lr"]    # learning rate
 
         if i % 100 == 0:
             # Give training status
@@ -57,40 +61,40 @@ def train(epoch, loader: DataLoader, model: VQVAE, optimizer, scheduler, device)
             print(f"latent: {latent_loss.item():.3f}; avg mse: {mse_sum / mse_n:.5f}; ")
             print(f"lr: {lr:.5f}")
 
-            model.eval()
+            model.eval()                            # set the model in evaluation mode
 
-            sample = img[:sample_size]
+            sample = imgs[:sample_size]
 
-            with torch.no_grad():
-                out, _ = model(sample)
+            with torch.no_grad():                   # disable gradient calculation
+                out, _ = model(sample)              # get generated imgs
 
             save_image(
-                torch.cat([sample, out], 0),
-                f"sample/{str(epoch + 1).zfill(5)}_{str(i).zfill(5)}.png",
-                nrow=sample_size,
-                normalize=True,
-                range=(-1, 1),
+                torch.cat([sample, out], 0),        # concatenates sequence in dimension 0
+                f"sample/{str(epoch + 1).zfill(5)}_{str(i).zfill(5)}.png",  # file name
+                nrow=sample_size,                   # number of samples
+                normalize=True,                     # normalize
+                range=(-1, 1),                      # range of data
             )
 
-            model.train()
+            model.train()                           # back to training
 
 def main(args):
-    start_time = time.time()
+    start_time = time.time()        # tracking execution time
 
     # Data
     print("Loading Data...")
-    trainloader, _ = load_data(batch_size=args.size, test=False)
+    trainloader, _ = load_data(batch_size=args.size, test=False)    # get dataloader
 
-    model = VQVAE().to(device)
+    model = VQVAE().to(device)                                      # use gpu when available
 
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
-    scheduler = None
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)    # adam is good enough
+    scheduler = None                                                # not required for this task
 
     print("Training Model...")
     for i in range(args.epoch):
-        train(i, trainloader, model, optimizer, scheduler, device)
+        train(i, trainloader, model, optimizer, scheduler, device)  # train the model
 
-        torch.save(model.state_dict(), f"{CHECKPOINT_PATH}vqvae_{str(i + 1).zfill(3)}.pt")
+        torch.save(model.state_dict(), f"{CHECKPOINT_PATH}vqvae_{str(i + 1).zfill(3)}.pt")  # save model snapshot
 
     print("Execution Time: %.2f min" % ((time.time() - start_time) / 60))
 
@@ -98,11 +102,10 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--size", type=int, default=256)    # Depends on your machine
-    parser.add_argument("--epoch", type=int, default=400)
-    parser.add_argument("--lr", type=float, default=3e-4)
+    parser.add_argument("--epoch", type=int, default=400)   # can be larger (>500) for a better quality
+    parser.add_argument("--lr", type=float, default=3e-4)   # learning rate
 
     args = parser.parse_args()
-
     print(args)
 
     main(args)

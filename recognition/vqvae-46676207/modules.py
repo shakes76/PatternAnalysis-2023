@@ -1,18 +1,19 @@
+""" VQVAE2 Moduels """
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from utils import *
-from dataset import *
-
 class Quantize(nn.Module):
+    """ Quantization Encoder """
     def __init__(self, dim, n_embed, decay=0.99, eps=1e-5):
+        """ Initialize a Quantize Encoder """
         super().__init__()
 
-        self.dim = dim
-        self.n_embed = n_embed
-        self.decay = decay
-        self.eps = eps
+        self.dim = dim              # dimension of data
+        self.n_embed = n_embed      # number of embedding layer
+        self.decay = decay          # embedding table decay
+        self.eps = eps              # epsilon
 
         embed = torch.randn(dim, n_embed)
         self.register_buffer("embed", embed)
@@ -20,16 +21,17 @@ class Quantize(nn.Module):
         self.register_buffer("embed_avg", embed.clone())
 
     def forward(self, input):
-        flatten = input.reshape(-1, self.dim)
-        dist = (
+        """ Forward Propagation """
+        flatten = input.reshape(-1, self.dim)           # flatten input
+        dist = (                                        # distance
             flatten.pow(2).sum(1, keepdim=True)
             - 2 * flatten @ self.embed
             + self.embed.pow(2).sum(0, keepdim=True)
         )
-        _, embed_ind = (-dist).max(1)
+        _, embed_ind = (-dist).max(1)                   # indices
         embed_onehot = F.one_hot(embed_ind, self.n_embed).type(flatten.dtype)
         embed_ind = embed_ind.view(*input.shape[:-1])
-        quantize = self.embed_code(embed_ind)
+        quantize = self.embed_code(embed_ind)           # quantized version of the input
 
         if self.training:
             embed_onehot_sum = embed_onehot.sum(0)
@@ -52,11 +54,14 @@ class Quantize(nn.Module):
         return quantize, diff, embed_ind
 
     def embed_code(self, embed_id):
-        return F.embedding(embed_id, self.embed.transpose(0, 1))
+        """ Returns embedding tensor """
+        return F.embedding(embed_id, self.embed.transpose(0, 1))    # looks up embeddings
 
 
 class ResBlock(nn.Module):
+    """ Residual Block """
     def __init__(self, in_channel, channel):
+        """ Initialize a Residual Block """
         super().__init__()
 
         self.conv = nn.Sequential(
@@ -67,14 +72,17 @@ class ResBlock(nn.Module):
         )
 
     def forward(self, input):
+        """ Forward Propagation """
         out = self.conv(input)
-        out += input
+        out += input            # skip connection
 
         return out
 
 
 class Encoder(nn.Module):
+    """ Transform input into latent code """
     def __init__(self, in_channel, channel, n_res_block, n_res_channel, stride):
+        """ Initialize an Encoder """
         super().__init__()
 
         if stride == 4:
@@ -101,13 +109,16 @@ class Encoder(nn.Module):
         self.blocks = nn.Sequential(*blocks)
 
     def forward(self, input):
+        """ Forward Propagation """
         return self.blocks(input)
 
 
 class Decoder(nn.Module):
+    """ Take a latent code and generate an output """
     def __init__(
         self, in_channel, out_channel, channel, n_res_block, n_res_channel, stride
     ):
+        """ Initialize a Decoder """
         super().__init__()
 
         blocks = [nn.Conv2d(in_channel, channel, 3, padding=1)]
@@ -136,10 +147,12 @@ class Decoder(nn.Module):
         self.blocks = nn.Sequential(*blocks)
 
     def forward(self, input):
+        """ Forward Propagation """
         return self.blocks(input)
 
 
 class VQVAE(nn.Module):
+    """ Vector Quantized Variational Autoencoder """
     def __init__(
         self,
         in_channel=1,
@@ -150,6 +163,7 @@ class VQVAE(nn.Module):
         n_embed=512,
         decay=0.99,
     ):
+        """ Initialize a VQVAE module """
         super().__init__()
 
         self.enc_b = Encoder(in_channel, channel, n_res_block, n_res_channel, stride=4)
@@ -174,12 +188,14 @@ class VQVAE(nn.Module):
         )
 
     def forward(self, input):
+        """ Forward Propagation """
         quant_t, quant_b, diff, _, _ = self.encode(input)
         dec = self.decode(quant_t, quant_b)
 
         return dec, diff
 
     def encode(self, input):
+        """ Transform input into latent code """
         enc_b = self.enc_b(input)
         enc_t = self.enc_t(enc_b)
 
@@ -199,6 +215,7 @@ class VQVAE(nn.Module):
         return quant_t, quant_b, diff_t + diff_b, id_t, id_b
 
     def decode(self, quant_t, quant_b):
+        """ Take a latent code and generate an output """
         upsample_t = self.upsample_t(quant_t)
         quant = torch.cat([upsample_t, quant_b], 1)
         dec = self.dec(quant)
@@ -206,6 +223,7 @@ class VQVAE(nn.Module):
         return dec
 
     def decode_code(self, code_t, code_b):
+        """ Take a latent code and generate an output """
         quant_t = self.quantize_t.embed_code(code_t)
         quant_t = quant_t.permute(0, 3, 1, 2)
         quant_b = self.quantize_b.embed_code(code_b)
