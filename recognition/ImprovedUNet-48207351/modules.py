@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.transforms.functional as TF
 import numpy as np
 
@@ -17,6 +18,40 @@ class DoubleConv(nn.Module):
 
     def forward(self, x):
         return self.conv(x)
+    
+class ContextModule(nn.Module):
+    def __init__(self, in_channels, out_channels, pdrop=0.3):
+            super(ContextModule, self).__init__()
+            self.conv1 = nn.Conv3(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
+            self.conv2 = nn.Conv3(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
+            self.dropout = nn.Dropout3d(pdrop)
+            self.norm = nn.LazyInstanceNorm3d(out_channels)
+            self.relu = nn.LeakyReLU(0.01, inplace=True)
+
+
+    def forward(self, x):
+        out = self.norm(self.relu(self.conv1(x)))
+        out = self.norm(self.relu(self.conv2(out)))
+        out = self.dropout(out)
+        return out
+    
+
+class LocalizationModule(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(LocalizationModule, self).__init__()
+        self.upsample = nn.ConvTranspose3d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.conv1 = nn.Conv3d(out_channels, out_channels, kernel_size=3, padding=1)
+        self.conv2 = nn.Conv3d(out_channels, out_channels, kernel_size=1)
+        self.norm = nn.InstanceNorm3d(out_channels)
+        self.relu = nn.LeakyReLU(0.01, inplace=True)
+
+    def forward(self, x, context_features):
+        x = self.norm(self.relu(self.upsample(x)))
+        # Concatenate with features from the context pathway
+        x = torch.cat((x, context_features), dim=1)
+        x = self.norm(self.relu(self.conv1(x)))
+        x = self.norm(self.relu(self.conv2(x)))
+        return x
 
 class UNET(nn.Module):
     def __init__(
