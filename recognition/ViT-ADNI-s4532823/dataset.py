@@ -1,3 +1,7 @@
+"""
+Load the dataset
+"""
+
 import torch
 from torch.utils.data import DataLoader, Dataset
 import os
@@ -16,7 +20,14 @@ if sys.platform == 'win32':
     ADNI_PATH = Path('D:', 'ADNI', 'AD_NC')
 
 # Centre crop all images to 224x224
-TRANSFORM = transforms.Compose([
+TRAIN_TRANSFORM = transforms.Compose([
+    transforms.CenterCrop(224),
+    transforms.RandomHorizontalFlip(),
+    transforms.Grayscale(num_output_channels=3),
+    transforms.ToTensor(),
+])
+
+TEST_TRANSFORM = transforms.Compose([
     transforms.CenterCrop(224),
     transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
@@ -77,6 +88,7 @@ def split_train_val(dataset: ADNIDataset, val_proportion: float, keep_proportion
 
     # Make the validation dataset a deep copy of the training dataset
     val_dataset = copy.deepcopy(dataset)
+    val_dataset.transform = TEST_TRANSFORM
 
     # Update each dataset's files by patient level split above 
     dataset.ad_files = [file for file in dataset.ad_files if file.split('_')[0] not in ad_pids_val and file.split('_')[0] in ad_patient_ids]
@@ -90,10 +102,10 @@ def split_train_val(dataset: ADNIDataset, val_proportion: float, keep_proportion
 Returns data loader for either the training (plus validation) set, or the test set.
 """
 def get_dataloader(batch_size, train: bool, val_proportion: float = 0.2, keep_proprtion: float = 1.0):
-    train_dataset = ADNIDataset(root_path=ADNI_PATH, train=True, transform=TRANSFORM)
+    train_dataset = ADNIDataset(root_path=ADNI_PATH, train=True, transform=TRAIN_TRANSFORM)
     train_dataset, val_dataset = split_train_val(dataset=train_dataset, val_proportion=val_proportion, keep_proportion=keep_proprtion)
     loader = (DataLoader(train_dataset, batch_size=batch_size, shuffle=True), DataLoader(val_dataset, batch_size=batch_size, shuffle=True))
     if train == False:
-        dataset = ADNIDataset(root_path=ADNI_PATH, train=False, transform=TRANSFORM)
+        dataset = ADNIDataset(root_path=ADNI_PATH, train=False, transform=TEST_TRANSFORM)
         loader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
     return loader
