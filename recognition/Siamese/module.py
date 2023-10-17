@@ -11,6 +11,12 @@ import torch.nn as nn
 def cfg(layer):
     if layer == 'VGG2' :
         return [32, 32, 'M']
+    if layer == 'VGG4' :
+        return [32, 32, 'M', 64, 64]
+    if layer == 'VGG13' :
+        return [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M']
+    if layer == 'VGG16' :
+        return [64, 64, 'M', 128, 128 , 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M']
 
 #define Siamese model
 class Siamese(nn.Module):
@@ -19,7 +25,7 @@ class Siamese(nn.Module):
         self.in_channels = in_channels
         self.classes = classes
         self.features = self.make_layers(cfg(layers), self.in_channels)
-        self.classifier = nn.Linear(512, self.classes)
+        self.classifier = nn.Linear(491520, self.classes)
     
     def make_layers(self, cfg, in_channels):
         layers = []
@@ -43,13 +49,15 @@ class Siamese(nn.Module):
         output2 = output2.view(output2.size(0), -1)
         output2 = self.classifier(output2)
         return output1, output2
+
+class ContrastiveLoss(torch.nn.Module):
+    def __init__(self, margin=2.0):
+        super(ContrastiveLoss, self).__init__()
+        self.margin = margin
     
-def loss_func(margin, img1, img2, label):
-    if label == 1: #This means both images are in the same class
-        distance = torch.nn.functional.pairwise_distance(img1, img2)
-        return torch.mean(torch.pow(distance))
-    if label == 0: #This means both images are from different classes
-        distance = torch.nn.functional.pairwise_distance(img1, img2)
-        reverse_dist = margin - distance #reverse distance find's difference between images
+    def forward(self, img1, img2, label):
+        distance = torch.nn.functional.pairwise_distance(img1, img2, keepdim=True) #distance finds similarities between images
+        reverse_dist = self.margin - distance #reverse distance find's difference between images
         reverse_dist = torch.clamp(reverse_dist, min=0.0)
-        return torch.mean(torch.pow(reverse_dist, 2))
+        #if label is 1, returns distance, else if label is 0 returns reverse distance
+        return torch.mean(torch.pow(reverse_dist, 2) * (abs(label-1)) + ((torch.pow(distance, 2)) * label))
