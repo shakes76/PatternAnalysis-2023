@@ -85,7 +85,8 @@ transformed = tsne.fit_transform(out_np)
 
 plt.figure(figsize=(10, 8))
 for class_idx in range(num_classes):
-    plt.scatter(transformed[data.y == class_idx, 0], transformed[data.y == class_idx, 1], label=classes[class_idx])
+    mask = data.test_mask.cpu().numpy()
+    plt.scatter(transformed[mask, 0][y_true == class_idx], transformed[mask, 1][y_true == class_idx], label=classes[class_idx])
 plt.legend()
 plt.title("t-SNE Plot")
 plt.savefig("tsne_plot.png")
