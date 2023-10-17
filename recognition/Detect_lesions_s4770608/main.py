@@ -12,6 +12,7 @@ from torch.utils.data import DataLoader
 import tqdm
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+from shapely.geometry import Polygon
 
 import torchvision
 from torchvision.models.detection import MaskRCNN
@@ -92,15 +93,64 @@ def get_data_loaders(target_size):
           f'{len(test_data_loader)} batches')
     return  train_data_loader,val_data_loader,test_data_loader
 
+def calculate_iou_bbox(box_1, box_2):
+    """
+    Calculate the Intersection over Union (IoU) of two bounding boxes.
+
+    Parameters:
+    box_1, box_2: list of float
+        Bounding boxes coordinates: [x1, y1, x2, y2]
+
+    Returns:
+    float
+        IoU value
+    """
+    # 将 bounding boxes 从 [x1, y1, x2, y2] 格式转换为 Polygon 所需的坐标格式
+    poly_1 = Polygon([(box_1[0], box_1[1]), (box_1[2], box_1[1]), (box_1[2], box_1[3]), (box_1[0], box_1[3])])
+    poly_2 = Polygon([(box_2[0], box_2[1]), (box_2[2], box_2[1]), (box_2[2], box_2[3]), (box_2[0], box_2[3])])
+
+    # 计算 IoU
+    iou = poly_1.intersection(poly_2).area / poly_1.union(poly_2).area
+
+    return iou
+def bb_intersection_over_union(boxA, boxB):
+    """
+    Calculate the Intersection over Union (IoU) of two bounding boxes.
+
+    Parameters:
+    boxA, boxB: list of int
+        Format: [x0, y0, x1, y1] where (x0, y0) is the top-left corner
+        coordinates and (x1, y1) is the bottom-right corner coordinates.
+
+    Returns:
+    float
+        IoU value
+    """
+    # determine the (x, y)-coordinates of the intersection rectangle
+    xA = max(boxA[0], boxB[0])
+    yA = max(boxA[1], boxB[1])
+    xB = min(boxA[2], boxB[2])
+    yB = min(boxA[3], boxB[3])
+
+    # compute the area of intersection rectangle
+    interArea = max(0, xB - xA + 1) * max(0, yB - yA + 1)
+
+    # compute the area of both the prediction and ground-truth
+    # rectangles
+    boxAArea = (boxA[2] - boxA[0] + 1) * (boxA[3] - boxA[1] + 1)
+    boxBArea = (boxB[2] - boxB[0] + 1) * (boxB[3] - boxB[1] + 1)
+
+    # compute the intersection over union by taking the intersection
+    # area and dividing it by the sum of prediction + ground-truth
+    # areas - the intersection area
+    iou = interArea / float(boxAArea + boxBArea - interArea)
+
+    # return the intersection over union value
+    return iou
 
 
 
 
-def compute_iou(pred_masks, target_masks):
-    intersect = torch.logical_and(pred_masks, target_masks)
-    union = torch.logical_or(pred_masks, target_masks)
-    iou = torch.sum(intersect.float()) / torch.sum(union.float())
-    return iou.item()
 
 
 def compute_accuracy(pred_labels, target_labels):
@@ -134,10 +184,11 @@ def select_best_prediction(predictions):
 
     return best_predictions
 
-def log_predictions_to_wandb(images, predictions, targets,label):
+def log_predictions_to_wandb(images, predictions, targets,predicted_label):
+    plt.close()
     fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-    input_image = images[0]
-    axs[0].imshow(images[0].cpu().numpy())
+    input_image = images[0].cpu().permute(1,2,0).numpy()
+    axs[0].imshow(input_image)
     axs[0].set_title("Input Image")
     axs[1].imshow(input_image)
     pred=predictions[0]
@@ -149,11 +200,11 @@ def log_predictions_to_wandb(images, predictions, targets,label):
         2: "Healthy"
     }
     for box, mask in zip(pred_boxes, pred_masks):
-        ymin, xmin, ymax, xmax = box
-        rect = plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin, fill=False, color='red')
+        xmin,ymin, xmax, ymax,  = box
+        rect = plt.Rectangle((xmin, ymin), xmax - xmin,ymax - ymin,  fill=False, color='red')
         axs[1].add_patch(rect)
-        axs[1].text(xmin, ymin, label_map[label], color='red')
-        axs[1].imshow(mask, alpha=0.5)
+        axs[1].text(xmin, ymin, label_map[predicted_label.item()], color='red')
+        axs[1].imshow(mask[0], alpha=0.7)
     axs[1].set_title("Predicted Boxes and Masks")
 
     # 绘制真实框和掩膜
@@ -164,11 +215,11 @@ def log_predictions_to_wandb(images, predictions, targets,label):
     true_labels = targets['labels'].cpu().numpy()
 
     for box, mask, label in zip(true_boxes, true_masks, true_labels):
-        ymin, xmin, ymax, xmax = box
-        rect = plt.Rectangle((xmin, ymin), xmax - xmin, ymax - ymin, fill=False, color='green')
+        xmin,ymin, xmax, ymax,  = box
+        rect = plt.Rectangle((xmin, ymin),   xmax - xmin,ymax - ymin,fill=False, color='green')
         axs[2].add_patch(rect)
-        axs[2].text(xmin, ymin, label_map[label], color='green')
-        axs[2].imshow(mask, alpha=0.5)
+        axs[2].text(xmin, ymin, label_map[label.item()-1], color='green')
+        axs[2].imshow(mask, alpha=0.7)
     axs[2].set_title("True Boxes and Masks")
 
 
@@ -176,6 +227,7 @@ def log_predictions_to_wandb(images, predictions, targets,label):
         ax.axis('off')
 
     plt.tight_layout()
+
     return  wandb.Image(plt)
 
 
@@ -295,14 +347,14 @@ def main():
 
     target_size = 224
     train_data_loader,val_data_loader,test_data_loader = get_data_loaders(target_size)
-    wandb.init(project='ISIC')  # Please set your project and entity name
+    wandb.init(project='ISIC',name='only masker')  # Please set your project and entity name
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
     output_folder = os.path.join('save_weights', timestamp)
     os.makedirs(output_folder,exist_ok=True)
 
     maskrcnn_model = get_model_instance_segmentation(4)
-    backbone = maskrcnn_model.backbone
+    backbone = maskrcnn_model.backbone.body
 
     # 创建图片分类器
     image_classifier = ImageClassifier(backbone, num_classes=3)  # a
@@ -311,7 +363,7 @@ def main():
     image_classifier_loss = torch.nn.CrossEntropyLoss()
     params = [p for p in maskrcnn_model.parameters() if p.requires_grad]
     params.extend([p  for p in image_classifier.parameters() if p.requires_grad])
-    optimizer = optim.AdamW(params, lr=0.0005, weight_decay=0.0005)
+    optimizer = optim.AdamW(params, lr=0.001)
 
     # for cur_e in pbar:
     pbar = tqdm.tqdm(range(max_epoch))
@@ -329,8 +381,8 @@ def main():
             loss_dict = maskrcnn_model(images, targets)
             classify_logits = image_classifier(torch.stack(images))
             labels = torch.tensor([t['labels'] - 1 for t in targets]).cuda()
-            classify_loss = image_classifier_loss(classify_logits,labels)
-            loss_dict['new_loss_classifier'] = classify_loss
+            # classify_loss = image_classifier_loss(classify_logits,labels)
+            # loss_dict['new_loss_classifier'] = classify_loss
             losses = sum(loss for loss in loss_dict.values())
             optimizer.zero_grad()
             losses.backward()
@@ -338,9 +390,12 @@ def main():
             epoch_loss += losses.item()
             # break
 
+        # wandb.log({"new_loss_classifier": loss_dict['new_loss_classifier'].item()},step=epoch)
+
+
         # wandb.log({"loss_classifier": loss_dict['loss_classifier'].item(),
         #     "loss_box_reg": loss_dict['loss_box_reg'].item(),
-        #            'new_loss_classifier':loss_dict['loss_classifier'].item(),
+        #    'new_loss_classifier':loss_dict['loss_classifier'].item(),
         #     "loss_mask": loss_dict['loss_mask'].item(),
         #     "loss_objectness": loss_dict['loss_objectness'].item(),
         #     "loss_rpn_box_reg": loss_dict['loss_rpn_box_reg'].item()
@@ -356,6 +411,7 @@ def main():
 
         val_loss = 0
         all_ious = []
+        mean_iou=  []
         all_accuracies = []
         with torch.no_grad():
             pbar_val = tqdm.tqdm(val_data_loader, desc=f'Epoch {epoch + 1} VAL', leave=False)
@@ -369,7 +425,7 @@ def main():
                     continue
                 predictions = select_best_prediction(predictions)
                 # Compute IoU and append to all_ious list
-                iou = compute_iou(predictions[0]["boxes"], targets[0]["boxes"].to('cuda'))
+                iou = calculate_iou_bbox(predictions[0]["boxes"].cpu().numpy()[0], targets[0]["boxes"].cpu().numpy()[0])
                 all_ious.append(iou)
                 # print(predictions)
                 # Compute classification accuracy and append to all_accuracies list
@@ -378,9 +434,10 @@ def main():
                 labels = torch.tensor([t['labels'] - 1 for t in targets]).cuda()
 
                 accuracy = compute_accuracy(classify_result, labels)
+                print( classify_result, labels)
                 all_accuracies.append(accuracy)
-                if i< 30:  # Log images every 10 epochs
-                    wandb_images.append(log_predictions_to_wandb(images,predictions,targets=targets,label=labels))
+                if 20<i< 50:  # Log images every 10 epochs
+                    wandb_images.append(log_predictions_to_wandb(images,predictions,targets=targets,predicted_label=classify_result))
             wandb.log({"predicted_and_true_boxes_masks": wandb_images[0:30]},step=epoch)
             mean_iou = sum(all_ious) / len(all_ious)
             mean_accuracy = sum(all_accuracies) / len(all_accuracies)
