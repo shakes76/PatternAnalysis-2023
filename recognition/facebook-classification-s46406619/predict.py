@@ -23,37 +23,61 @@ import matplotlib.pyplot as plt
 
 # calculate 2D embeddings
 tsne = TSNE(random_state=1, n_iter=300, metric="cosine")
-embs = tsne.fit_transform(embeddings.detach().numpy())
-X = embs[:, 0]
-Y = embs[:, 1]
+embs_pred = tsne.fit_transform(embeddings.detach().numpy())
+tsne = TSNE(random_state=1, n_iter=300, metric="cosine")
+embs_true = tsne.fit_transform(data.X)
+
+# extract embeddings
+X_pred = embs_pred[:, 0]
+X_true = embs_true[:, 0]
+Y_pred = embs_pred[:, 1]
+Y_true = embs_true[:, 1]
+
+def split_by_classification(X, Y):
+    x1, x2, x3, x4 = [], [], [], []
+    y1, y2, y3, y4 = [], [], [], []
+
+    for i in range(len(X)):
+        if pred[i] == 0:
+            x1.append(X[i])
+            y1.append(Y[i])
+        elif pred[i] == 1:
+            x2.append(X[i])
+            y2.append(Y[i])
+        elif pred[i] == 2:
+            x3.append(X[i])
+            y3.append(Y[i])
+        else:
+            x4.append(X[i])
+            y4.append(X[i])
+
+    return x1, x2, x3, x4, y1, y2, y3, y4
 
 # seperate embeddings by classification
-X_one = []
-Y_one = []
-X_two = []
-Y_two = []
-X_three = []
-Y_three = []
-X_four = []
-Y_four = []
-for i in range(len(X)):
-    if pred[i] == 0:
-        X_one.append(X[i])
-        Y_one.append(Y[i])
-    elif pred[i] == 1:
-        X_two.append(X[i])
-        Y_two.append(Y[i])
-    elif pred[i] == 2:
-        X_three.append(X[i])
-        Y_three.append(Y[i])
-    else:
-        X_four.append(X[i])
-        Y_four.append(X[i])
+(x1_pred, x2_pred, x3_pred, x4_pred, 
+ y1_pred, y2_pred, y3_pred, y4_pred) = split_by_classification(X_pred, Y_pred)
+(x1_true, x2_true, x3_true, x4_true,
+ y1_true, y2_true, y3_true, y4_true) = split_by_classification(X_true, Y_true)
 
-# plot embeddings
-fig, ax = plt.subplots()
-ax.scatter(X_one, Y_one, alpha=.1, c='blue')
-ax.scatter(X_two, Y_two, alpha=.1, c='red')
-ax.scatter(X_three, Y_three, alpha=.1, c='green')
-ax.scatter(X_four, Y_four, alpha=.1, c='pink')
+# plot true class labels
+fig, (ax0, ax1) = plt.subplots(1, 2)
+ax0.scatter(x1_true, y1_true, alpha=.2, c='blue', label='0')
+ax0.scatter(x2_true, y2_true, alpha=.2, c='red', label='1')
+ax0.scatter(x3_true, y3_true, alpha=.2, c='green', label='2')
+ax0.scatter(x4_true, y4_true, alpha=.2, c='pink', label='3')
+ax0.set_title('True class labels')
+ax0.set(xlabel='X', ylabel='Y')
+ax0.legend(loc='lower right')
+
+# plot predicted class labels
+ax1.scatter(x1_pred, y1_pred, alpha=.2, c='blue', label='0')
+ax1.scatter(x2_pred, y2_pred, alpha=.2, c='red', label='1')
+ax1.scatter(x3_pred, y3_pred, alpha=.2, c='green', label='2')
+ax1.scatter(x4_pred, y4_pred, alpha=.2, c='pink', label='3')
+ax1.set_title('Predicted class labels')
+ax1.set(xlabel='X', ylabel='Y')
+ax1.legend(loc='lower right')
+
+fig.suptitle('True and predicted class labels')
+fig.tight_layout(pad=2)
 plt.show()

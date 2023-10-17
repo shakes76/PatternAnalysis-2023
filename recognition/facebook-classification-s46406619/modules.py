@@ -8,8 +8,6 @@ class GCN(torch.nn.Module):
         super().__init__()
         self.train_split = train_split
         self.test_split = test_split
-        self.embeddings = None
-        self.outputs = None
         self.gcn1 = GCNConv(128, 64)
         self.gcn2 = GCNConv(64, 32)
         self.gcn3 = GCNConv(32, 16)
