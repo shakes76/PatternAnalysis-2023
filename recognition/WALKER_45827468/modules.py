@@ -103,54 +103,67 @@ class ImprovedUNet(nn.Module):
         # upsample              256->128
         self.upsamp1 = UpSampling(256)
         # localisation
-        self.local1 = Localisation(128)
+        self.local1 = Localisation(2*128)
         # upsample              128->64
         self.upsamp2 = UpSampling(128)
         # localisation
-        self.local2 = Localisation(64)
+        self.local2 = Localisation(2*64)
         # upsample              64->32
         self.upsamp3 = UpSampling(64)
         # localisation
-        self.local3 = Localisation(32)
+        self.local3 = Localisation(2*32)
         # upsample              32->16
         self.upsamp4 = UpSampling(32)
         # 3x3x3 conv
-        self.conv6 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
+        self.conv6 = nn.Conv2d(2*16, 32, kernel_size=3, padding=1)
         # segmentation ???
         
          
     def forward(self, input):
+        # layer 1
         out = self.bn1(self.conv1(input))
         out = self.context1(out)
+        out1 = out                      # save output for concat
         
+        # layer 2
         out = self.bn2(self.conv2(out))
         out = self.context2(out)
+        out2 = out                      # save output for concat
         
+        # layer 3
         out = self.bn3(self.conv3(out))
         out = self.context3(out)
+        out3 = out                      # save output for concat
         
+        # layer 4
         out = self.bn4(self.conv4(out))
         out = self.context4(out)
+        out4 = out                      # save output for concat
         
+        # layer 5
         out = self.bn5(self.conv5(out))
         out = self.context5(out)
         
+        # layer 4
         out = self.upsamp1(out)
-        # concat ?
+        out = torch.cat((out,out4), 1)
         out = self.local1(out)
         
+        # layer 3
         out = self.upsamp2(out)
-        # concat ?
+        out = torch.cat((out,out3), 1)
         out = self.local2(out)
         # seg ?
         
+        # layer 2
         out = self.upsamp3(out)
-        # concat ?
+        out = torch.cat((out,out2), 1)
         out = self.local3(out)
         # seg ?
         
+        # layer 1
         out = self.upsamp4(out)
-        # concat ?
+        out = torch.cat((out,out1), 1)
         out = self.conv6(out)
         # seg ?
         
