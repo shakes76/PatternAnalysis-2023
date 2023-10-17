@@ -2,7 +2,8 @@ import os
 from glob import glob
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
-
+import cv2
+import numpy as np
 # preset img size
 H = 256
 W = 256
@@ -37,11 +38,11 @@ def read_image(path):
 
 def read_mask(path):
     path = path.decode()
-     ## (H, W) no channels present
+    # (H, W) no channels present
     x = cv2.imread(path, cv2.IMREAD_GRAYSCALE) 
     x = cv2.resize(x, (W, H))
     x = x/255.0
-    ## (256, 256)
+    # (256, 256)
     x = x.astype(np.float32) 
     # Add chanel for gs (256, 256, 1)            
     x = np.expand_dims(x, axis=-1)
@@ -65,3 +66,11 @@ def tf_dataset(X, Y, batch_size):
     # Procces batches on CPU while GPU in use (consumer/prod overlap)
     dataset = dataset.prefetch(10)
     return dataset
+
+def get_steps(data, batch_size):
+    steps = len(data)//batch_size
+
+    if len(data) % batch_size != 0:
+        steps += 1
+
+    return steps
