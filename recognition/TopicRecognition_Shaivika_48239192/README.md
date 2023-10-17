@@ -18,6 +18,7 @@ This project is an implementation of a Vision Transformer (ViT) for image classi
 - [Discussion](#discussion)
 - [Usage](#usage)
 - [Requirements](#requirements)
+-[References](#references)
 
 ## ADNI Dataset
 The Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset is a valuable and widely used collection of medical imaging and clinical data aimed at advancing our understanding of Alzheimer's disease. Comprising a comprehensive range of neuroimaging modalities, including MRI and PET scans, as well as clinical and cognitive assessments, the ADNI dataset has played a pivotal role in enhancing research related to neurodegenerative diseases. This dataset not only facilitates the identification of biomarkers associated with Alzheimer's disease but also promotes the development of innovative diagnostic and prognostic tools. Researchers employ the ADNI dataset for various tasks, such as disease prediction, progression tracking, and the evaluation of treatment interventions, ultimately contributing to advancements in Alzheimer's disease research and patient care.
@@ -51,8 +52,8 @@ The ViT model consists of the following main components:
 6. **Classification Head**: The output of the encoder stack is passed to a classification head. The classification head can vary depending on the task. For Alzheimer's disease classification, a dense feedforward layer followed by a sigmoid activation function is commonly used to predict the probability of the input image belonging to a particular class (AD or CN).
 
 #### Hyperparameters
-- `image_size`: The size of the input image (e.g., 128x128).
-- `patch_size`: The size of patches extracted from the image (e.g., 16x16).
+- `image_size`: The size of the input image .
+- `patch_size`: The size of patches extracted from the image .
 - `num_heads`: The number of self-attention heads in the transformer encoder.
 - `transformer_units`: The number of units in the feedforward layers within the transformer encoder.
 - `num_layers`: The number of transformer encoder layers.
@@ -61,9 +62,9 @@ The ViT model consists of the following main components:
 
 #### Training
 - Loss Function: Categorical Cross-Entropy (for multi-class classification) or Binary Cross-Entropy (for binary classification, such as AD vs. CN).
-- Optimizer: Adam or another suitable optimizer.
+- Optimizer: Adam optimizer.
 - Training Data: The ADNI dataset with labeled images.
-- Evaluation Metric: Accuracy, F1-score, or other relevant metrics.
+- Evaluation Metric: Accuracy
 
 ### Results
 The application of the Vision Transformer (ViT) model for Alzheimer's disease image classification has yielded promising results. The trained ViT model demonstrates its effectiveness in accurately distinguishing between Alzheimer's disease (AD) and normal control (CN) subjects based on medical images.
@@ -77,10 +78,6 @@ Key results and highlights:
 3. **Individual Image Predictions**: The `predict.py` script allows for the classification of individual images. This feature is useful for making predictions on new, unseen images to identify potential cases of Alzheimer's disease.
 
 4. **Visual Representation**: The script not only provides numerical results but also offers a visual representation of model predictions. A set of random test images, along with their actual and predicted labels, allows for a qualitative assessment of the model's performance.
-
-These results are indicative of the ViT model's potential as a valuable tool in the early diagnosis and classification of Alzheimer's disease. The model's high accuracy and the ability to make individual predictions underscore its significance in the medical imaging field.
-
-For comprehensive insights into the results and to explore further possibilities for enhancing the model's performance, refer to the project's code and documentation.
 
 ### Data Preprocessing
 The data preprocessing involves loading and preprocessing the ADNI dataset. It includes resizing images, normalizing pixel values, and converting labels to categorical form. The dataset is also split into training and testing sets.
@@ -101,7 +98,7 @@ Validation of the model's performance is a critical aspect of this project. Here
 ### Discussion
 The validation results indicate that the ViT model performs well in distinguishing between Alzheimer's disease (AD) and normal control (CN) subjects. The model demonstrates a high accuracy on the ADNI dataset, surpassing the specified accuracy threshold. The confusion matrix and individual image predictions provide a detailed understanding of the model's classification effectiveness.
 
-The accuracy of the model is [accuracy]% as recorded in the text file 'test_accuracy.txt'.
+The accuracy of the model is [94]% as recorded in the text file 'test_accuracy.png'.
 
 The visual representation of sample images and their actual/predicted labels demonstrates the model's capability to make accurate predictions. This performance highlights the significance of the ViT model in the early diagnosis and classification of Alzheimer's disease based on medical images.
 
@@ -131,3 +128,12 @@ You can further customize and extend the `predict.py` script to suit your specif
 - Numpy
 - OpenCV
 - Matplotlib
+
+## References 
+- https://adni.loni.usc.edu/
+- https://www.kaggle.com/datasets/katalniraj/adni-extracted-axial
+- https://medium.com/data-and-beyond/vision-transformers-vit-a-very-basic-introduction-6cd29a7e56f3
+- https://paperswithcode.com/method/vision-transformer
+- https://viso.ai/deep-learning/vision-transformer-vit/#:~:text=Vision%20Transformers%20(ViT)%20is%20an,     and%20a%20feed%2Dforward%20layer.
+- https://towardsdatascience.com/understand-and-implement-vision-transformer-with-tensorflow-2-0-f5435769093
+- https://machinelearningmastery.com/the-vision-transformer-model/
