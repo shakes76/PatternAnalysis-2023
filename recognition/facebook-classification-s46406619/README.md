@@ -1,4 +1,4 @@
-# Semi supervised node classification of the *Facebook Large Page-Page Network* dataset.
+# Semi supervised node classification of the Facebook Large Page-Page Network dataset.
 
 *Include a description of the algorithm and the problem that it solves
 (approximately a paragraph), how it works in a paragraph and a figure/visualisation*
@@ -23,12 +23,10 @@ We can clearly see that the vertices of this dataset are highly clustered, and t
 
 ## Dependencies
 
-*It should also list any dependencies required, including versions and address reproduciblility of results, if applicable.*
-
-* numpy 1.23.2
-* torch 2.0.1
-* torch-geometric 2.3.1
-* matplotlib 3.5.3
-* sklearn 1.1.2
+* `numpy` 1.23.2
+* `torch` 2.0.1
+* `torch-geometric` 2.3.1
+* `matplotlib` 3.5.3
+* `sklearn` 1.1.2
 
 Please note that `numpy.random.seed(42)` is set when performing the train/test split in `dataset.py`, and we set `random_state=1` when using the `TSNE` function from `sklearn.manifold`.
