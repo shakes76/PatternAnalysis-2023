@@ -1,5 +1,5 @@
 """
-dataset.py: Defines a custom dataset class for Alzheimer's Disease (AD) and Normal Control (NC) image data, 
+dataset.py: Defines a custom dataset class for AD and NC image data, 
 along with associated transformations and dataloaders for training and testing.
 """
 
@@ -17,10 +17,10 @@ class AlzheimerDataset(Dataset):
         self.root_dir = root_dir
         self.transform = transform
 
-        # Get the list of AD (Alzheimer's Disease) image files
+        # Get the list of AD image files
         self.AD_files = [os.path.join(root_dir, "AD", f) for f in os.listdir(os.path.join(root_dir, "AD")) if os.path.isfile(os.path.join(root_dir, "AD", f))]
         
-        # Get the list of NC (Normal Control) image files
+        # Get the list of NC image files
         self.NC_files = [os.path.join(root_dir, "NC", f) for f in os.listdir(os.path.join(root_dir, "NC")) if os.path.isfile(os.path.join(root_dir, "NC", f))]     
         
         if not self.AD_files:
@@ -68,7 +68,7 @@ test_transforms = transforms.Compose([
 ])
 # Creating datasets and dataloaders
 train_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/full_dataset/ADNI_AD_NC_2D/AD_NC/train', transform=train_transforms, num_AD=10400, num_NC=11120)
-test_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/full_dataset/ADNI_AD_NC_2D/AD_NC/test', transform=test_transforms, num_AD=1410, num_NC=1410)
+test_dataset = AlzheimerDataset(root_dir='/content/drive/My Drive/full_dataset/ADNI_AD_NC_2D/AD_NC/test', transform=test_transforms, num_AD=2000, num_NC=2000)
 
 # Define dataloaders to load data in batches
 train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
