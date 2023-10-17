@@ -32,11 +32,10 @@ class Siamese_dataset(Dataset):
                 if img0[1] == img1[1]:
                     break
         
-        else:
-            while True:
-                img1 = random.choice(self.imageFolder.imgs)
-                if img0[1] != img1[1]:
-                    break
+        while True:
+            img1 = random.choice(self.imageFolder.imgs)
+            if img0[1] != img1[1]:
+                break
         
         img0_Image = Image.open(img0[0])
         img1_Image = Image.open(img1[0])
@@ -49,3 +48,16 @@ class Siamese_dataset(Dataset):
 
         return img0_Image, img1_Image, same_class
     
+train_path = "C:\\Users\\Asus\\Desktop\\AD_NC\\train"
+test_path = "C:\\Users\\Asus\\Desktop\\AD_NC\\test"
+batch_size = 64
+
+training_dataset = datasets.ImageFolder(root=train_path)
+testing_dataset = datasets.ImageFolder(root=test_path)
+
+transform = transforms.Compose([transforms.ToTensor()])
+siamese_train = Siamese_dataset(imageFolder=training_dataset, transform=transform)
+siamese_test = Siamese_dataset(imageFolder=testing_dataset, transform=transform)
+
+trainloader = DataLoader(siamese_train, shuffle=True, batch_size=batch_size)
+testloader = DataLoader(siamese_test, shuffle=True, batch_size=batch_size)
