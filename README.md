@@ -30,6 +30,8 @@ Figure 1(above), Our design was inspired by the U-Net. Top level data is gathere
 - Iterative model tuning and hyperparameter adjustments based on evaluation feedback to optimize results.  
 - Each of these points represents a critical stage in the machine learning model's lifecycle, from initial data handling to the model building, followed by the training phase, and culminating in evaluation and optimization based on performance feedback.  
 
+### Performance Metric
+The Dice Similarity Coefficient (DSC) was used to evaluate the model. DSC is a statistic used to compare the similarity of two sets, most commonly use when comparing two images in biomedical image processing.  
 
 ### Training DSC and Loss Plots over Epochs:
 ![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/6ad6ed69-5483-4f55-89ce-1cad501deb80)
