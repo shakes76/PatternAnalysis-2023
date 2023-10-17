@@ -7,7 +7,7 @@ We can download the test, training and validation set 2018 version from the ISIC
 
 ### **Architecture** 
 ![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/88cd0f74-a50f-4aaf-921f-76f108f943e2)
-*Figure 1*
+#*Figure 1*
 Our design was inspired by the U-Net. Top level data is gathered by the context left pathway and then precisely localized by the localization right pathway.  Through deep supervision, we introduce gradient signals deeply into the network.
 
 
