@@ -3,9 +3,10 @@ File containing the module/s used in the efficient sup pixel convolutional neura
 """
 import torch.nn as nn
 import torch.nn.functional as F
+from utils import *
 
 class Network(nn.Module):
-    def __init__(self, upscale_factor=4, channels=1):
+    def __init__(self, upscale_factor=upscale_factor, channels=1):
         super(Network, self).__init__()
         
         self.conv1 = nn.Sequential(

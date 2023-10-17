@@ -6,12 +6,9 @@ from dataset import load_data
 from modules import Network
 import time
 import matplotlib.pyplot as plt
+from utils import *
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-num_epochs = 100
-learning_rate = 0.001
-
-model = Network(upscale_factor=4, channels=1).to(device)
+model = Network(upscale_factor=upscale_factor, channels=channels).to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 criterion = nn.MSELoss()
 

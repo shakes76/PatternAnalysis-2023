@@ -9,27 +9,10 @@ import torchvision.utils as vutils
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import numpy as np
+from utils import *
 
 # For the purpose of this report, we want to downscale the images by a factor of 4, before 
 # upscaling by a factor of 4. This is to simulate the effect of a low resolution image.
-
-# CONSTANTS
-image_width = 256
-image_height = 240
-downscale_factor = 4
-new_width = image_width // downscale_factor
-new_height = image_height // downscale_factor
-upscale_factor = 4
-batch_size = 8
-
-
-ngpu = torch.cuda.device_count() # number of GPUs available. Use 0 for CPU mode.
-num_workers = 2 * ngpu if ngpu > 1 else 2 # number of subprocesses to use for data loading
-
-# PATHS FOR LOCAL DEVELOPMENT
-directory = os.path.abspath('./data/AD_NC')
-train_path = os.path.join(directory, 'train')
-# test_path = os.path.join(directory, 'test')
 
 def load_data():
     """
