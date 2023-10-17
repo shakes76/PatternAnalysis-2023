@@ -15,7 +15,7 @@ def main():
     plt.title("model accuracy")
     plt.xlabel("epoch")
     plt.ylabel("accuracy")
-    plt.legend(['train', 'test'], loc='upper left')
+    plt.legend(['train', 'validation'], loc='upper left')
     plt.show()
 
     # plot loss
@@ -24,7 +24,7 @@ def main():
     plt.title("model loss")
     plt.xlabel("epoch")
     plt.ylabel("loss")
-    plt.legend(['train', 'test'], loc='upper left')
+    plt.legend(['train', 'validation'], loc='upper left')
     plt.show()
 
 

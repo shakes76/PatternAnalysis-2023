@@ -5,7 +5,7 @@ from tensorflow import keras
 
 learning_rate = 0.001
 weight_decay = 0.0001
-num_epochs = 100
+num_epochs = 80
 img_size = 128
 batch_size = 128
 num_classes = 2
@@ -28,7 +28,7 @@ def run_model(model):
 
     # reduce learning rate as model progresses
     reduce_lr = keras.callbacks.ReduceLROnPlateau(
-        monitor="accuracy", factor=0.1, patience=3
+        monitor="accuracy", factor=0.3, patience=5
     )
 
     history = model.fit(

@@ -43,7 +43,9 @@ def create_data():
 
     # split training data into validation and training set
     X_train, X_val, Y_train, Y_val = train_test_split(training_images,
-                                                      training_labels, train_size=0.9)
+                                                      training_labels,
+                                                      train_size=0.85,
+                                                      shuffle=True)
 
     x_train = tf.convert_to_tensor(np.array(X_train, dtype=np.uint8))
     x_train = tf.cast(x_train, tf.float16) / 255.0
