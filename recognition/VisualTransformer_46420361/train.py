@@ -13,13 +13,14 @@ def get_device():
         print("WARNING: CUDA not found, using CPU")
     return device
 
-def create_model(image_size, in_channels, patch_size, embedding_dims, num_heads, num_classes):
+def create_model(image_size, in_channels, patch_size, embedding_dims, num_heads, num_classes, patches):
     return ViT(img_size=image_size, 
                in_channels=in_channels,
                patch_size=patch_size,
                embedding_dims=embedding_dims,
                num_heads=num_heads,
-               num_classes=num_classes)
+               num_classes=num_classes,
+               patches=patches)
 
 def train_model(model, root, image_size, crop_size, batch_size, learning_rate, weight_decay, epochs):
     device = get_device()
@@ -95,7 +96,8 @@ def main():
                          patch_size=patch_size,
                          embedding_dims=embedding_dims,
                          num_heads=num_heads,
-                         num_classes=num_classes)
+                         num_classes=num_classes,
+                         patches=patches)
     train_model(model=model,
                 root=root,
                 image_size=image_size,
