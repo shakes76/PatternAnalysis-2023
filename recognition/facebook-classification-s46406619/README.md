@@ -29,3 +29,6 @@ We can clearly see that the vertices of this dataset are highly clustered, and t
 * torch 2.0.1
 * torch-geometric 2.3.1
 * matplotlib 3.5.3
+* sklearn 1.1.2
+
+Please note that `numpy.random.seed(42)` is set when performing the train/test split in `dataset.py`, and we set `random_state=1` when using the `TSNE` function from `sklearn.manifold`.
