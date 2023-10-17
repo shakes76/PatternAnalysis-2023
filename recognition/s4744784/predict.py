@@ -6,7 +6,7 @@ from dataset import load_data
 from modules import Network
 
 model = Network(upscale_factor=4, channels=1)
-model.load_state_dict(torch.load('./espcn_epoch_80.pth'))
+model.load_state_dict(torch.load('./Trained_Model.pth'))
 model.eval()
 
 def upscale_image(img_path):
