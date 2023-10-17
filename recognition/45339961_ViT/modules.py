@@ -100,8 +100,8 @@ class TransformerEncoderBlock(nn.Module):
 
         # Create MSA block (equation 2)
         self.msa_block = MSABlock(embedding_dim=embedding_dim,
-                                                    num_heads=num_heads,
-                                                    attn_dropout=attn_dropout)
+                                    num_heads=num_heads,
+                                    attn_dropout=attn_dropout)
 
         # Create MLP block (equation 3)
         self.mlp_block =  MLPBlock(embedding_dim=embedding_dim,

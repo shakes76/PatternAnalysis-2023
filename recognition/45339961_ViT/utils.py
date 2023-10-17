@@ -1,33 +1,42 @@
-""" Utility functions for model training and evaluation. """
+""" Utility functions for generic use. """
 
 import matplotlib.pyplot as plt
+from torch.utils.data import DataLoader
 
-def plot_data(train_data, 
-                    test_data, 
-                    heading,
-                    labels=None):
-    if labels is None:
-        labels = ['Train', 'Test']
-
-    # Check if the lengths of input lists match
-    if len(train_data) != len(test_data):
-        raise ValueError("Train and test accuracy lists must have the same length.")
+def plot_losses_accuracies(train_accuracies,
+            valid_accuracies,
+            train_losses,
+            valid_losses):
+    labels = ['Train', 'Valid']
 
     # Create x-axis values (epochs)
-    epochs = range(1, len(train_data) + 1, 1)
+    epochs = range(1, len(train_accuracies) + 1, 1)
 
-    # Plot train and test accuracies
-    plt.plot(epochs, train_data, label=labels[0])
-    plt.plot(epochs, test_data, label=labels[1])
+    # Create a 1x2 grid of subplots
+    fig, axs = plt.subplots(1, 2, figsize=(14, 6))
 
-    # Set plot labels and legend
-    plt.xlabel('Epoch')
-    plt.ylabel(f'{heading}')
-    plt.legend(loc='best')
+    # Plot accuracy data on the first subplot
+    axs[0].plot(epochs, train_accuracies, label=labels[0])
+    axs[0].plot(epochs, valid_accuracies, label=labels[1])
+    axs[0].set_title('Accuracy Over Epochs')
+    axs[0].set_xlabel('Epoch')
+    axs[0].set_ylabel('Accuracy')
+    axs[0].legend(loc='best')
+    axs[0].grid(True)
 
-    # Show the plot
-    plt.grid(True)
-    plt.title(f'{labels[0]} and {labels[1]} {heading} Over Epochs')
+    # Plot loss data on the second subplot
+    axs[1].plot(epochs, train_losses, label=labels[0])
+    axs[1].plot(epochs, valid_losses, label=labels[1])
+    axs[1].set_title('Loss Over Epochs')
+    axs[1].set_xlabel('Epoch')
+    axs[1].set_ylabel('Loss')
+    axs[1].legend(loc='best')
+    axs[1].grid(True)
+
+    # Adjust spacing between plots
+    plt.tight_layout()
+
+    # Show the plots
     plt.show()
 
 # Function uses a modification of the code found in 
@@ -36,8 +45,6 @@ def show_patched_image(img, img_size, patch_size):
     """ Plot a permuted image as a series of patches. """
     # Setup hyperparameters and make sure img_size and patch_size are compatible
     num_patches = img_size/patch_size
-    
-    assert img_size % patch_size == 0, "Image size must be divisible by patch size"
 
     # Create a series of subplots
     fig, axs = plt.subplots(nrows=img_size // patch_size, # need int not float
@@ -71,3 +78,25 @@ def show_patched_image(img, img_size, patch_size):
     # Set a super title
     fig.suptitle("Example patched image", fontsize=16)
     plt.show()
+
+# This function was based on the solution provided in:
+# https://discuss.pytorch.org/t/computing-the-mean-and-std-of-dataset/34949/2
+def determine_mean_std_dataset(dataset):
+    """ Determine the mean and standard deviation of a dataset. """
+    loader = DataLoader(dataset,
+                        batch_size=64,
+                        num_workers=4,
+                        shuffle=False)
+
+    mean = 0.
+    std = 0.
+    for images, _ in loader:
+        batch_samples = images.size(0) # batch size (the last batch can have smaller size!)
+        images = images.view(batch_samples, images.size(1), -1)
+        mean += images.mean(2).sum(0)
+        std += images.std(2).sum(0)
+
+    mean /= len(loader.dataset)
+    std /= len(loader.dataset)
+    print(f"Mean is: {mean}")
+    print(f"Std is: {std}")
