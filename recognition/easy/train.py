@@ -9,6 +9,8 @@ from unet.UNet_model import UNet
 import os
 from torchvision import transforms
 from PIL import Image
+import numpy as np
+
 
 # Define your U-Net model
 model = UNet(n_class=1)  # Adjust the number of classes according to your task
@@ -63,9 +65,11 @@ class CustomDataset(torch.utils.data.Dataset):
             mask = read_image(mask_path)
         
         # Resize images to the target size
-            resize_transform = transforms.Resize(self.target_size)
+            print("heere mask", np.unique(mask))
+            resize_transform = transforms.Resize(self.target_size, interpolation= Image.NEAREST)
             image = resize_transform(image)
             mask = resize_transform(mask)
+            print("after mask", np.unique(mask))
 
             if self.transform:
                 image = self.transform(image)
@@ -88,7 +92,12 @@ for epoch in range(num_epochs):
         print(i)
         inputs, masks = data
         inputs, masks = inputs.to(device), masks.to(device)
-
+        print(inputs.shape)
+        print( inputs.max())
+        print(inputs.min())
+        print(inputs.unique())
+        print(masks.shape)
+        print(masks.unique())
         optimizer.zero_grad()
         # print(inputs)
         # Forward pass
@@ -107,43 +116,43 @@ for epoch in range(num_epochs):
 print("Finished Training")
 
 # testing
-relative_img_path = 'recognition/easy/testsmall/image/'
+# relative_img_path = 'recognition/easy/testsmall/image/'
 
 
-test_image_dir = Path(os.path.join(current_directory, relative_img_path))
-output_dir = Path(current_directory)
+# test_image_dir = Path(os.path.join(current_directory, relative_img_path))
+# output_dir = Path(current_directory)
 
-# Ensure the output directory exists
-output_dir.mkdir(parents=True, exist_ok=True)
+# # Ensure the output directory exists
+# output_dir.mkdir(parents=True, exist_ok=True)
 
-# Prepare the test dataset and data loader (similar to training)
+# # Prepare the test dataset and data loader (similar to training)
 
-test_dataset = CustomDataset(image_dir=test_image_dir, mask_dir=None, transform=transform)
-print(test_dataset.__len__())
-test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=True)
+# test_dataset = CustomDataset(image_dir=test_image_dir, mask_dir=None, transform=transform)
+# print(test_dataset.__len__())
+# test_dataloader = DataLoader(test_dataset, batch_size=1, shuffle=True)
 
 # Perform inference and save the results
-with torch.no_grad():
-    for i, data in enumerate(test_dataloader):
-        print(i)
-        inputs, _ = data  # Assuming you only have test images, no masks
+# with torch.no_grad():
+#     for i, data in enumerate(test_dataloader):
+#         print(i)
+#         inputs, _ = data  # Assuming you only have test images, no masks
 
-        # Move inputs to the device (GPU/CPU) if needed
-        inputs = inputs.to(device)
+#         # Move inputs to the device (GPU/CPU) if needed
+#         # inputs = inputs.to(device)
 
-        # Forward pass
-        outputs = model(inputs)
+#         # Forward pass
+#         # outputs = model(inputs)
 
-        # Convert model outputs to images (PIL format) if needed
-        output_images = []
-        for j in range(outputs.shape[0]):
-            output_image = outputs[j].squeeze().cpu().numpy() * 255  # Assuming the output is in the range [0, 1]
-            output_image = Image.fromarray(output_image.astype('uint8'))
-            output_images.append(output_image)
+#         # Convert model outputs to images (PIL format) if needed
+#         output_images = []
+#         for j in range(outputs.shape[0]):
+#             output_image = outputs[j].squeeze().cpu().numpy() * 255  # Assuming the output is in the range [0, 1]
+#             output_image = Image.fromarray(output_image.astype('uint8'))
+#             output_images.append(output_image)
 
-        # Save the output images
-        for j, output_image in enumerate(output_images):
-            output_path = output_dir / f'result_{i * batch_size + j}.png'
-            output_image.save(output_path)
+#         # Save the output images
+#         for j, output_image in enumerate(output_images):
+#             output_path = output_dir / f'result_{i * batch_size + j}.png'
+#             output_image.save(output_path)
 
 print("Testing and saving results complete.")
