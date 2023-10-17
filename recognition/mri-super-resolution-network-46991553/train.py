@@ -10,6 +10,8 @@ from dataset import *
 from modules import SuperResolutionModel
 from generate import generate_model_output
 
+# Trains the model based on the configuration in config.py.
+# Saves the model to a file.
 def train_model():
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -22,7 +24,7 @@ def train_model():
 
     model = SuperResolutionModel(upscale_factor=dimension_reduce_factor).to(device)
 
-    # Define the loss function (MSE) and optimizer (Adam)
+    # Define the loss function and optimizer
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
@@ -43,9 +45,10 @@ def train_model():
         batch = 0
 
         for expected_outputs, _ in train_loader:
+            # Generate downsampled inputs
             inputs = downsample_tensor(expected_outputs)
-
             inputs = inputs.to(device)
+
             expected_outputs = expected_outputs.to(device)
             
             # Zero the parameter gradients
@@ -61,8 +64,10 @@ def train_model():
             loss.backward()
             optimizer.step()
 
+            # Keep track of loss
             running_loss += loss.item()
 
+            # Handle checkpoints for both loss and model output
             batch += 1
             if batch % 10 == 0 or batch == 1:
                 print(f"Finished [{batch},{n}] loss: {loss.item()}")

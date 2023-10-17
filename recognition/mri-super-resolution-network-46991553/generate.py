@@ -8,6 +8,8 @@ from dataset import *
 from config import *
 from modules import SuperResolutionModel
 
+# Generates model output and displays next to the input and target image.
+# Either saves the plot to a file or displays it.
 def generate_model_output(model: nn.Module, data_loader: DataLoader, prefix='', device='cpu', show=False):
     with torch.no_grad():
         for expected_outputs, _ in data_loader:

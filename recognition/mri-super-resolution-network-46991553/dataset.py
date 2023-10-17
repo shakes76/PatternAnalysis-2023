@@ -8,7 +8,7 @@ from torch.utils.data import DataLoader, ConcatDataset
 import matplotlib.pyplot as plt
 from config import *
 
-
+# Performs the image downsampling
 def downsample_tensor(original: torch.Tensor):
     return transforms.Resize([
         original_height // dimension_reduce_factor, 
@@ -16,6 +16,7 @@ def downsample_tensor(original: torch.Tensor):
     ],antialias=True)(original)
 
 
+# Gets the training data loader, with appropriate data transformations
 def get_train_dataloader(shuffle=True):
     transform = transforms.Compose([
         transforms.RandomHorizontalFlip(),
@@ -32,6 +33,7 @@ def get_train_dataloader(shuffle=True):
     return DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle)
 
 
+# Gets the test data loader, with no data transformations
 def get_test_dataloader(shuffle=True):
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -47,6 +49,8 @@ def get_test_dataloader(shuffle=True):
     return DataLoader(dataset=dataset, batch_size=batch_size, shuffle=shuffle)
 
 
+# Helper function to debug what the downsampled images look like, and to
+# check their dimensions
 def save_dimensions(data_loader):
     for original, _ in data_loader:
         print('original.shape', original.shape)

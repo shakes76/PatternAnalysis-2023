@@ -1,3 +1,5 @@
+# MRI Super Resolution Network - Elijah Nelson
+
 ### Abstract
 This project implements a brain MRI super-resolution network by training on the ADNI brain dataset. The network is trained to up-scale from 4x down-sampled input images and produce reasonably clear output images.
 

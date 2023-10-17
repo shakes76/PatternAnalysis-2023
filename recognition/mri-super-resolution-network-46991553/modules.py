@@ -3,7 +3,7 @@ Source code of the components of the model
 """
 import torch.nn as nn
 
-
+# Super resolution model
 class SuperResolutionModel(nn.Module):
     def __init__(self, upscale_factor=4, channels=3):
         super(SuperResolutionModel, self).__init__()

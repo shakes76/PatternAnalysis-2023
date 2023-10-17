@@ -31,7 +31,9 @@ def main():
             print("Exiting...")
             exit(1)
 
+    # Display the outputs from some testing images
     data_loader = get_test_dataloader()
+    print("Displaying model output from test images...")
     generate_model_output(model, data_loader, show=True)
 
 
