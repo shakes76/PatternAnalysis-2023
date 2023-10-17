@@ -20,7 +20,6 @@ COMMITMENT_COST = 0.25
 LEARNING_RATE = 1e-2
 
 
-
 def train():
 
     # Device Configuration
@@ -29,6 +28,9 @@ def train():
     # Create image saving path
     if not os.path.exists("./Pic"):
         os.mkdir("./Pic")
+
+    if not os.path.exists("./Model"):
+        os.mkdir("./Model")
 
     # Train 15000 times
     tqdm_bar = tqdm(range(15000))
@@ -42,9 +44,10 @@ def train():
     # Load Model, Loss function and multistep scheduler
     model = Model(HIDDEN_DIM, RESIDUAL_HIDDEN_DIM, NUM_RESIDUAL_LAYER, NUM_EMBEDDINGS, EMBEDDING_DIM,
                   COMMITMENT_COST).to(device)
+
     optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE)
 
-    scheduler = MultiStepLR(optimizer, milestones=[3000, 10000], gamma=10)
+    scheduler = MultiStepLR(optimizer, milestones=[1000, 9000], gamma=0.1)
 
     model.train()
 
@@ -63,7 +66,7 @@ def train():
         model = model.to(device)
 
         # Fit data into model
-        vq_loss, recon, perplexity = model(train_img)
+        vq_loss, recon, perplexity, _ = model(train_img)
         loss = F.mse_loss(recon, train_img) + vq_loss
         loss.backward()
         optimizer.step()
@@ -80,7 +83,6 @@ def train():
             training_times_beyond_3000.append(i)
             loss_beyond_3000_train.append(loss.cpu().detach().item())
 
-
         # Only record the smaller loss
         if loss < previous_loss:
             recon_img = recon
@@ -95,6 +97,8 @@ def train():
             loss_img = loss.cpu().detach().item()
             save_image(recon, "./Pic/No_{}_img_Loss_{}_SSIM_{}%.jpg".
                        format(i, loss_img, ssim * 100))
+            # Save the generated model under the folder
+            torch.save(model.state_dict(), "./Model/Vqvae.pth")
 
         # Show the running status every 10 epochs(show it is still working and visualisation of loss changing)
         if i % 10 == 0:
@@ -104,6 +108,7 @@ def train():
     plt.plot(training_times_under_3000, loss_under_3000_train)
     plt.plot(training_times_beyond_3000, loss_beyond_3000_train)
     plt.show()
+
 
 if __name__ == '__main__':
 

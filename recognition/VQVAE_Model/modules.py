@@ -1,13 +1,16 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+from torch.optim import Adam
 
 # Device Configuration
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Define VQ class
 class VQ(nn.Module):
+    '''
+    Get quantized value, perplexity and loss
+    '''
     def __init__(self, num_embedding, embedding_dim, commitment_cost):
         super(VQ, self).__init__()
         self.K = num_embedding
@@ -60,15 +63,19 @@ class VQ(nn.Module):
         return loss, quantized_x, perplexity
 
 
-# Define Encoder (Usage of Pixel CNN)
+# Define Encoder
 class Encoder(nn.Module):
+    '''
+    Encode the images
+    '''
     def __init__(self, in_channel, hidden_dim, num_res_layer, res_hidden_dim):
         super(Encoder, self).__init__()
         self.conv1 = nn.Conv2d(in_channel, hidden_dim // 2, kernel_size=4, stride=2, padding=1)
         self.conv2 = nn.Conv2d(hidden_dim // 2, hidden_dim, kernel_size=4, stride=2, padding=1)
         self.conv3 = nn.Conv2d(hidden_dim, hidden_dim, kernel_size=3, stride=1, padding=1)
-        self.residual = Residual_Block(hidden_dim, hidden_dim, res_hidden_dim, num_res_layer)
+        self.residual = Residual_Block(hidden_dim, hidden_dim, num_res_layer, res_hidden_dim)
         self.relu = nn.ReLU()
+
 
     def forward(self, x):
         x = self.conv1(x)
@@ -80,8 +87,10 @@ class Encoder(nn.Module):
 
         return x
 
-
 class Residual_Layer(nn.Module):
+    '''
+    Build a residual layer
+    '''
     def __init__(self, in_channel, hidden_dim, res_hidden_layer):
         super(Residual_Layer, self).__init__()
         self.relu = nn.ReLU(True)
@@ -96,9 +105,11 @@ class Residual_Layer(nn.Module):
         result = x + x_
         return result
 
-
 class Residual_Block(nn.Module):
-    def __init__(self, in_channel, hidden_dim, res_hidden_dim, num_res_layer):
+    '''
+    Use the residual block to connect the input and output
+    '''
+    def __init__(self, in_channel, hidden_dim, num_res_layer, res_hidden_dim):
         super(Residual_Block, self).__init__()
         self.residual = nn.ModuleList([Residual_Layer(in_channel, hidden_dim, res_hidden_dim)]*num_res_layer)
 
@@ -108,12 +119,14 @@ class Residual_Block(nn.Module):
         x = F.relu(x)
         return x
 
-# Transpose of the Pixel CNN in Encoder
 class Decoder(nn.Module):
+    '''
+    Define the Decoder which will decode the codebook
+    '''
     def __init__(self, in_channel, hidden_dim, num_res_layer, res_hidden_dim):
         super(Decoder, self).__init__()
         self.conv1 = nn.ConvTranspose2d(in_channel, hidden_dim, kernel_size=3, stride=1, padding=1)
-        self.residual = Residual_Block(hidden_dim, hidden_dim, res_hidden_dim, num_res_layer)
+        self.residual = Residual_Block(hidden_dim, hidden_dim, num_res_layer, res_hidden_dim)
         self.conv2 = nn.ConvTranspose2d(hidden_dim, hidden_dim // 2, kernel_size=4, stride=2, padding=1)
         self.relu1 = nn.ReLU()
         self.conv3 = nn.ConvTranspose2d(hidden_dim // 2, 1, kernel_size=4, stride=2, padding=1)
@@ -130,6 +143,10 @@ class Decoder(nn.Module):
         return x
 
 class Model(nn.Module):
+    '''
+    Build the model using encoder to encode first, then get quantized value to form the code book.
+    Then, take the quantized value to the decoder to reconstruct images
+    '''
     def __init__(self, hidden_dim, res_hidden_dim, num_res_layer, num_embeddings, embedding_dim, commitment_cost):
         super(Model, self).__init__()
 
@@ -144,4 +161,5 @@ class Model(nn.Module):
         loss, quantized, perplexity = self._vq(x)
         x_re = self._decoder(quantized)
 
-        return loss, x_re, perplexity
+        return loss, x_re, perplexity, quantized
+
