@@ -97,6 +97,8 @@ class ImprovedUNet(nn.Module):
         # 3x3x3 conv stride 2   128->256
         self.conv5 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1)
         self.bn5 = nn.BatchNorm2d(256)
+        # context
+        self.context5 = Context(256)
         
         # upsample              256->128
         self.upsamp1 = UpSampling(256)
@@ -116,9 +118,44 @@ class ImprovedUNet(nn.Module):
         self.conv6 = nn.Conv2d(16, 32, kernel_size=3, padding=1)
         # segmentation ???
         
-        
-        
+         
     def forward(self, input):
-        out = 0
+        out = self.bn1(self.conv1(input))
+        out = self.context1(out)
+        
+        out = self.bn2(self.conv2(out))
+        out = self.context2(out)
+        
+        out = self.bn3(self.conv3(out))
+        out = self.context3(out)
+        
+        out = self.bn4(self.conv4(out))
+        out = self.context4(out)
+        
+        out = self.bn5(self.conv5(out))
+        out = self.context5(out)
+        
+        out = self.upsamp1(out)
+        # concat ?
+        out = self.local1(out)
+        
+        out = self.upsamp2(out)
+        # concat ?
+        out = self.local2(out)
+        # seg ?
+        
+        out = self.upsamp3(out)
+        # concat ?
+        out = self.local3(out)
+        # seg ?
+        
+        out = self.upsamp4(out)
+        # concat ?
+        out = self.conv6(out)
+        # seg ?
+        
+        # combine seg
+        
+        # softmax
         
         return out
