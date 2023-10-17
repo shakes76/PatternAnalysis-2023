@@ -1,24 +1,27 @@
 import PIL
 import numpy as np
 import torch
+import torch.nn.functional as F
 from torchvision.transforms import ToPILImage, ToTensor
-from dataset import load_data
-from modules import Network
+from utils import *
 
-model = Network(upscale_factor=4, channels=1)
-model.load_state_dict(torch.load('./Trained_Model.pth'))
-model.eval()
-
-def upscale_image(img_path):
+def upscale_image_using_upsample(img_path, upscale_factor=upscale_factor):
     img = PIL.Image.open(img_path).convert('YCbCr')
     y, cb, cr = img.split()
-    input = ToTensor()(y).view(1, -1, y.size[1], y.size[0])
-    out = model(input)
+
+    # Convert Y channel to tensor and upscale using nn.functional.upsample
+    input = ToTensor()(y).view(1, 1, y.size[1], y.size[0])
+    out = F.upsample(input, scale_factor=upscale_factor, mode='bicubic', align_corners=True)
     out_img_y = ToPILImage()(out[0].detach().cpu())
+
+    # Upscale cb and cr channels using PIL's bicubic interpolation
     out_img_cb = cb.resize(out_img_y.size, PIL.Image.BICUBIC)
     out_img_cr = cr.resize(out_img_y.size, PIL.Image.BICUBIC)
+
+    # Merge channels back to RGB image
     out_img = PIL.Image.merge('YCbCr', [out_img_y, out_img_cb, out_img_cr]).convert('RGB')
+
     return out_img
 
-result = upscale_image('./sample_path.jpg')
-result.save('./output.jpg')
+result = upscale_image_using_upsample('./sample_path.jpg')
+result.save('./output_upsampled.jpg')
