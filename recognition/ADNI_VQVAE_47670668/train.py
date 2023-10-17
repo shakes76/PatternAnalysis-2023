@@ -1,8 +1,10 @@
 import torch
 import torch.optim as optim
 import matplotlib.pyplot as plt
+import numpy as np
+from pytorch_msssim import ssim
 
-from dataset import train_dataloader
+from dataset import train_dataloader, val_dataloader
 from modules import *
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -47,6 +49,7 @@ else:
 
 # initialize all variables for training
 num_training_updates = 30000
+num_epochs = 10
 
 num_hiddens = 128
 num_residual_hiddens = 32
@@ -60,7 +63,7 @@ commitment_cost = 0.25
 
 decay = 0.99
 
-learning_rate = 1e-6
+learning_rate = 1e-5
 
 
 encoder = Encoder(num_hiddens, num_residual_layers, num_residual_hiddens)
@@ -78,53 +81,91 @@ pre_vq_conv1 = nn.Conv2d(in_channels=num_hiddens, out_channels=embedding_dim,
 model = VQVAEModel(encoder, decoder, vq_vae, pre_vq_conv1,
                    data_variance=train_data_variance)
 
-optimizer = optim.Adam(lr=learning_rate, params=model.parameters())
+optimizer = optim.Adam(lr=learning_rate, weight_decay=decay, params=model.parameters())
 model.to(device)
 
-def train_step(image, label):
+torch.autograd.set_detect_anomaly(True)
+
+def train_step(image, label): # Added label as an input, even if you might not use it.
     # Zero the parameter gradients
     optimizer.zero_grad()
 
     # Move data to device
     image = image.to(device)
-    label = label.to(device) 
+    label = label.to(device) # If you use the label in the model
 
     # Forward pass
     model_output = model(image)
     loss = model_output['loss']
+
+    # Calculate SSIM
+    ssim_value = ssim(model_output['x_recon'], image, data_range=1.0)
 
     # Backward pass and optimization
     loss.backward()
     torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
     optimizer.step()
 
-    return model_output
+    return model_output, ssim_value.item()
 
-train_losses = []
-train_recon_errors = []
-train_perplexities = []
-train_vqvae_loss = []
+for epoch in range(num_epochs):  # Added epoch loop
 
-for step_index, (image, label) in enumerate(train_dataloader): # Updated data unpacking
+    # Reset training metrics at the start of each epoch
+    train_losses = []
+    train_recon_errors = []
+    train_perplexities = []
+    train_vqvae_loss = []
+    train_ssim_values = []
+    
+    for step_index, (image, label) in enumerate(train_dataloader): # Updated data unpacking
 
-    train_results = train_step(image, label)
-    train_losses.append(train_results['loss'].item())
-    train_recon_errors.append(train_results['recon_error'].item())
-    train_perplexities.append(train_results['vq_output']['perplexity'].item())
-    train_vqvae_loss.append(train_results['vq_output']['loss'].item())
+        train_results, ssim_value = train_step(image, label)
+        train_losses.append(train_results['loss'].item())
+        train_ssim_values.append(ssim_value)
+        train_recon_errors.append(train_results['recon_error'].item())
+        train_perplexities.append(train_results['vq_output']['perplexity'].item())
+        train_vqvae_loss.append(train_results['vq_output']['loss'].item())
 
-     # Visualization logic
-    if (step_index + 1) % 100 == 0:  # e.g., visualization_frequency=100 means every 100 steps
-        with torch.no_grad():
-            reconstructed_images = train_results['x_recon']
-        visualize_reconstructions(image, reconstructed_images)
 
-    if (step_index + 1) % 100 == 0:
-        print('%d train loss: %f ' % (step_index + 1,
-                                      np.mean(train_losses[-100:])) +
-              ('recon_error: %.3f ' % np.mean(train_recon_errors[-100:])) +
-              ('perplexity: %.3f ' % np.mean(train_perplexities[-100:])) +
-              ('vqvae loss: %.3f' % np.mean(train_vqvae_loss[-100:])))
+        if (step_index + 1) % 100 == 0:  # Adjust frequency as needed
+            print('Epoch %d/%d - Step %d train loss: %f ' % (epoch + 1, num_epochs, step_index + 1,
+                                                              np.mean(train_losses[-100:])) +
+                  ('recon_error: %.3f ' % np.mean(train_recon_errors[-100:])) +
+                  ('perplexity: %.3f ' % np.mean(train_perplexities[-100:])) +
+                  ('vqvae loss: %.3f' % np.mean(train_vqvae_loss[-100:])) +
+                  ('ssim: %.3f' % np.mean(train_ssim_values[-100:]))) 
 
-    if step_index == num_training_updates:
-        break
+        if step_index == num_training_updates:
+            break
+
+    # Visualization logic
+    with torch.no_grad():
+        reconstructed_images = train_results['x_recon']
+        reconstructed_images = torch.clamp(reconstructed_images, 0, 1)
+    visualize_reconstructions(image, reconstructed_images)
+
+    # After training loop, begin validation
+    model.eval()  # Switch to evaluation mode
+
+    # Initialize validation metrics
+    val_losses = []
+    val_recon_errors = []
+    val_perplexities = []
+    val_vqvae_loss = []
+    
+    with torch.no_grad():  # Disable gradient computation during validation
+        for image, label in val_dataloader:
+            image, label = image.to(device), label.to(device)
+            val_results = model(image)
+            val_losses.append(val_results['loss'].item())
+            val_recon_errors.append(val_results['recon_error'].item())
+            val_perplexities.append(val_results['vq_output']['perplexity'].item())
+            val_vqvae_loss.append(val_results['vq_output']['loss'].item())
+
+    # Print validation metrics
+    print(f"Epoch {epoch + 1}/{num_epochs} - Val loss: {np.mean(val_losses):.3f}, "
+          f"recon_error: {np.mean(val_recon_errors):.3f}, "
+          f"perplexity: {np.mean(val_perplexities):.3f}, "
+          f"vqvae loss: {np.mean(val_vqvae_loss):.3f}")
+
+    model.train()  # Switch back to training mode
