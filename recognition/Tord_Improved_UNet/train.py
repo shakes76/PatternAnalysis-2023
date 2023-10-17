@@ -1,31 +1,28 @@
 import torch
-import torchvision
-import torchvision.transforms as transforms
-import torch.nn.functional as F
-import torch.nn as nn
-from torch.utils.data import DataLoader, TensorDataset
-import time
-from recognition.Tord_Improved_UNet.dataset import load
-from recognition.Tord_Improved_UNet.modules import UNet3D
-
+from torch.utils.data import DataLoader
+from dataset import load, DiceLoss
+from modules import UNet3D
+import torch
 
 #training, validating, testing and saving the model
 
 dataset = load()
+dataLoader = DataLoader(dataset, batch_size=1, shuffle=True, num_workers=0)
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-net = UNet3D().to(device)
+net = UNet3D(3,16).to(device)
 
-
-optimizer = torch.optim.SGD(net.parameters(), lr=0.001,
-                      momentum=0.9, weight_decay=5e-4)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
+criterion = DiceLoss()
+lr_init = 5e-4
+weight_decay = 1e-5
+optimizer = torch.optim.Adam(net.parameters(), lr=lr_init, weight_decay=weight_decay)
+scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: lr_init * (0.985 ** epoch))
 
 
 #Training the Network
-for epoch in range(10):  
+for epoch in range(100):  
 
     running_loss = 0.0
-    for i, data in enumerate(trainloader, 0):
+    for i, data in enumerate(dataLoader, 0):
         inputs, labels = data
         inputs = inputs.to(device)
         labels = labels.to(device)
@@ -34,6 +31,7 @@ for epoch in range(10):
 
         # forward + backward + optimize
         outputs = net(inputs)
+        #loss = dice_coefficient(outputs, labels)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
@@ -43,4 +41,6 @@ for epoch in range(10):
         if i % 1000 == 999:
             print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 1000:.3f}')
             running_loss = 0.0
-    print('Finished Training epoch ', epoch)
+    scheduler.step()
+    print('Finished Training epoch ', epoch + 1)
+    torch.save(net.state_dict(), 'recognition/Tord_Improved_UNet/model.pth')
