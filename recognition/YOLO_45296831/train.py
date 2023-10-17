@@ -4,10 +4,9 @@ import datetime
 from modules import get_device, get_yolo
 
 def main():
-    """
-    Set up the model and live stream analysis video.
-    Available for testing.
-    """
+    '''
+    Trains the YOLO model based on the data.yaml file
+    '''
     start_time = time.time()
     print(f"Start time: {time.ctime(start_time)}")
 
