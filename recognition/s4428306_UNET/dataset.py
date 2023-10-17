@@ -6,11 +6,14 @@ from PIL import Image
 
 #TODO: Clean up debugging notes/code.
 #      Make sure references are in order. Note use of tensorflow documentation.
-#      Replace softmax layer with sigmoid, and change segmentation layer filters to 1.
 #      Remove one hot and squeeze when softmax is replaced with sigmoid in model.
 #      May also want to increase size to 256x256.
 #      Clean up dice loss function.
 #      Change rates for adam optimizer.
+#      Rewrite train.py to be functional/non-script.
+#      Write prediction fucntions/script.
+#      Write README.
+#      Make pull request.
 
 #NOTE: Expecting 2595 images in the training folders (-1 for license file) (should also be -1 for attribution file).
 #      Getting 2596 though, not sure why.
@@ -94,9 +97,9 @@ def normalize(image, mask):
     #image = tf.squeeze(image)
     #mask = tf.squeeze(mask)
     #Convert mask to one hot encoding.
-    mask = tf.cast(mask, tf.int8)
-    mask = tf.one_hot(mask, 2)
-    mask = tf.squeeze(mask)
+    #mask = tf.cast(mask, tf.int8)
+    #mask = tf.one_hot(mask, 2)
+    #mask = tf.squeeze(mask)
     return image, mask
 
 #Based on code from:
