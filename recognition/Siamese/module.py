@@ -18,8 +18,8 @@ class Siamese(nn.Module):
         super().__init__()
         self.in_channels = in_channels
         self.classes = classes
-        self.features = self.make_layers(cfg[layers], self.in_channels)
-        self.classifier = nn.Linear(512, self.nbr_classes)
+        self.features = self.make_layers(cfg(layers), self.in_channels)
+        self.classifier = nn.Linear(512, self.classes)
     
     def make_layers(self, cfg, in_channels):
         layers = []
