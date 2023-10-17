@@ -3,6 +3,10 @@ import torch
 from torchvision import transforms, datasets
 from sklearn.model_selection import train_test_split
 
+"""
+Loads the AD_NC dataset to get train, validation, and test data loaders.
+"""
+
 # Define the data directory
 data_dir = "AD_NC/"
 

@@ -3,14 +3,18 @@ import torch
 import numpy as np
 import dataset
 import module
-
 import logging
+
+"""    
+Training the Perceiver Transformer for Alzheimer's classification using PyTorch.
+"""
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Load training data with train valid split of 0.8 to 0.2
     train_data, valid_data, test_data = dataset.get_loaders()
+    print(f"Train Data Size: {len(train_data.dataset)}\nValid Data Size: {len(valid_data.dataset)}")
 
     sample, _ = next(iter(train_data))
 
@@ -26,23 +30,17 @@ def main():
         embed_dim=16,                     # Smaller image patch dimension
         attention_mlp_dim=16,            # Smaller dimension for cross-attention's feedforward network
         transformer_mlp_dim=16,          # Smaller dimension for the latent transformer's feedforward network
-        transformer_heads=1,              # Fewer attention heads for the latent transformer
+        transformer_heads=4,              # Fewer attention heads for the latent transformer
         dropout=0.1,                      # Reduce dropout for lower memory usage
-        transformer_layers=1,            # Fewer layers in the latent transformer
-        n_blocks=1,                       # Fewer Perceiver blocks
+        transformer_layers=4,            # Fewer layers in the latent transformer
+        n_blocks=4,                       # Fewer Perceiver blocks
         n_classes=2,                      # Number of target classes (binary classification)
-        batch_size=16,                     # Further reduce batch size to save memory
-        lr=0.0001,                        # Smaller learning rate for stability
+        lr=0.005,                        # Smaller learning rate for stability
     )
 
     model = model.to(device)
 
     EPOCHS = 30
-
-    train_size = len(train_data.dataset)
-    valid_size = len(valid_data.dataset)
-
-    print(f"Train size: {train_size}\nValid size: {valid_size}")
 
     # Tracking minimum loss
     min_valid_loss = np.inf
@@ -84,12 +82,12 @@ def main():
             epochs_without_improvement += 1
 
         if epochs_without_improvement >= early_stopping_patience:
-            logging.info(f"Early stopping. No improvement in validation loss for {early_stopping_patience} epochs.")
-            break  # Exit the training loop
+            logging.info(f"No improvement in validation loss for {early_stopping_patience} epochs.")
+            #break  # Exit the training loop
 
     # Save the best model state
     torch.save(best_model_state, 'saved/best_model.pth')
-
+    
     # Plot training history
     plot_training_history(history)
 
@@ -144,6 +142,7 @@ def plot_training_history(history):
     plt.title('Accuracy')
     plt.legend(['Training', 'Validation'])
     plt.show()
+    plt.savefig('plots/accuracy.png')
 
     plt.figure(figsize=(12, 8), dpi=80)
     plt.plot(history['train_loss'])
@@ -154,6 +153,7 @@ def plot_training_history(history):
     plt.title('Loss')
     plt.legend(['Training', 'Validation'])
     plt.show()
+    plt.savefig('plots/loss.png')
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO)
