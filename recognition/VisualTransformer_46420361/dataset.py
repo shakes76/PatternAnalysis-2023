@@ -21,19 +21,18 @@ def split_test_data(root, image_size, crop_size, test_val_ratio=0.5):
     # Load the test data without applying transforms
     test_data = ImageFolder(root=test_dir)
 
-    # Extract patient IDs
-    patient_ids = set(os.path.basename(path).split('_')[0] for path, _ in test_data.samples)
-
-    # Determine the number of patients for validation and test
-    num_validation_patients = int(len(patient_ids) * test_val_ratio)
-
     # Randomly select patient IDs for validation
     random.seed(42)
     patient_ids = list(set(os.path.basename(path).split('_')[0] for path, _ in test_data.samples))
+
+    # Determine the number of patients for validation and test
+    num_patients = int(len(patient_ids) * test_val_ratio)
+    test_patients = set(patient_ids[num_patients:])
+    validation_patients = set(patient_ids[:num_patients]) 
     
     # Split test dataset based on patient IDs
-    validation_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] in patient_ids]
-    test_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] not in patient_ids]
+    validation_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] in validation_patients]
+    test_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] not in test_patients]
     
     transform = get_transform(image_size, crop_size)
 
