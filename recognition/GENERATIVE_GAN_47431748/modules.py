@@ -221,7 +221,7 @@ Pixel CNN Implementation
 """
 
 
-class PixelConvLayer(layers.Layer):
+class PixelConv(layers.Layer):
     """
     Custom convolutions layer + masking
     """
@@ -345,3 +345,7 @@ class PixelCNN(Model):
         :return: Loss values
         """
         return self.train_step(data)
+
+p = PixelCNN()
+p.build((None, 7, 7))
+p.summary()
