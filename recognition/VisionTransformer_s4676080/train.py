@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 def initialize_model():
     model = VisionTransformer().to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=2e-4)  # Introduced weight decay
+    optimizer = optim.Adam(model.parameters(), lr=1e-4, weight_decay=2e-4)  
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=3, factor=0.7, verbose=True)
     torch.cuda.empty_cache()
     return model, criterion, optimizer, scheduler
@@ -49,6 +49,31 @@ def test_model(model, criterion, test_loader):
             running_loss += loss.item() * images.size(0)    
     return running_loss, correct_test, total_test
 
+def plot_metrics(train_losses, test_losses, train_accuracies, test_accuracies):
+    epochs = list(range(1, len(train_losses) + 1))  
+    
+    plt.figure(figsize=(10, 4))
+    
+    # Plot losses
+    plt.subplot(1, 2, 1)
+    plt.plot(epochs, train_losses, label="Train Loss")  
+    plt.plot(epochs, test_losses, label="Test Loss")  
+    plt.legend()
+    plt.title("Losses over Epochs")
+    plt.xticks(epochs)  
+    plt.savefig('/content/drive/MyDrive/losses_plot.png')
+    
+    # Plot accuracies
+    plt.subplot(1, 2, 2)
+    plt.plot(epochs, train_accuracies, label="Train Accuracy")  
+    plt.plot(epochs, test_accuracies, label="Test Accuracy")  
+    plt.legend()
+    plt.title("Accuracies over Epochs")
+    plt.xticks(epochs)  
+    plt.savefig('/content/drive/MyDrive/accuracies_plot.png')
+    plt.show()
+
+
 if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
@@ -62,8 +87,7 @@ if __name__ == "__main__":
     best_test_loss = float('inf')
     counter = 0
 
-    # Suggestion: If you're not using data augmentation, consider adding some common ones like rotation, scaling, flipping, etc.
-
+    
     print("Training started!")
     for epoch in range(1, num_epochs + 1):  # Changed the range to fix the numbering issue
         train_loss, correct_train, total_train = train_one_epoch(model, criterion, optimizer, train_loader)
@@ -91,5 +115,6 @@ if __name__ == "__main__":
                 break
 
     print("Training finished!")
+    plot_metrics(train_losses, test_losses, train_accuracies, test_accuracies)
     print(f"Best Training Accuracy: {max(train_accuracies):.2f}%")
     print(f"Best Test Accuracy: {max(test_accuracies):.2f}%")
