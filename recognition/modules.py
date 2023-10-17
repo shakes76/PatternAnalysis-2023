@@ -39,7 +39,7 @@ class ImprovedUNet(nn.Module):
         self.bridge = nn.Conv2d(512, 256, kernel_size=1)
 
         # Decoder
-        self.dec1 = DoubleConv(512, 256, 384) # Adjusted the channels
+        self.dec1 = DoubleConv(512, 256, 384) 
         self.dec2 = DoubleConv(384, 128, 192)
         self.dec3 = DoubleConv(128, 64)
         self.out_conv = nn.Conv2d(64, out_channels, 1)
@@ -56,7 +56,7 @@ class ImprovedUNet(nn.Module):
         # Reduce channels of e4 to match e3
         e4_reduced = self.bridge(self.up(e4))
 
-        # Decoder (with channel-reduced e4)
+        # Decoder 
         d1 = self.dec1(torch.cat([e4_reduced, e3], 1))
         d2 = self.dec2(torch.cat([self.up(d1), e2], 1))
         d3 = self.dec3(self.up(d2))
