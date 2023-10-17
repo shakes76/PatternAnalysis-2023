@@ -1,20 +1,28 @@
 import os
-import gdown
-import zipfile
+from torchvision import transforms
+from torchvision.datasets import ImageFolder
+from torch.utils.data import DataLoader, Dataset, random_split
 
+# Define the dataset root directory and transformation for data preprocessing.
+data_root = '/ISIC-2017_Training_Data'
+transform = transforms.Compose([
+    transforms.Resize((128, 128)),  # Resize the images to 128x128.
+    transforms.ToTensor(),  # Convert to a PyTorch tensor.
+])
 
-# link to dataset: https://drive.google.com/file/d/1wKjoSg3QUNyN_6dqYS54OVyAr1lyQImV/view?usp=sharing
+# Load the ISIC 2017 dataset.
+def load_isic_dataset(batch_size, split_ratio=(0.8, 0.1, 0.1), num_workers=4):
+    dataset = ImageFolder(root=data_root, transform=transform)
 
-def get_data_from_url(destination_dir, google_drive_id):
+    # Split the dataset into training, validation, and test sets.
+    train_size = int(len(dataset) * split_ratio[0])
+    val_size = int(len(dataset) * split_ratio[1])
+    test_size = len(dataset) - train_size - val_size
+    train_set, val_set, test_set = random_split(dataset, [train_size, val_size, test_size])
 
-  if not os.path.exists(destination_dir):
-    compressed_data = 'ISIC_data.zip'
-    url = f'https://drive.google.com/uc?id={google_drive_id}'
-    gdown.download(url, compressed_data, quiet=False)
+    # Create DataLoader instances for each split.
+    train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
+    test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=num_workers)
 
-    with zipfile.ZipFile(compressed_data, 'r') as zip_ref:
-      zip_ref.extractall()
-    os.remove(compressed_data)
-
-  else:
-    print('Data already loaded')
+    return train_loader, val_loader, test_loader
