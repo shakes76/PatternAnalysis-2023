@@ -1,5 +1,5 @@
 data/
-
+__pycache__
 out.txt
 err.txt
 
