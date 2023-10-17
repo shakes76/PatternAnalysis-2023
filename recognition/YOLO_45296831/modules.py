@@ -14,6 +14,3 @@ def get_yolo(device, pretrained=True):
         model = YOLO("yolov8n.yaml")
     model.to(device)
     return model
-
-def detect_image(img, model):
-    model.predict(img)

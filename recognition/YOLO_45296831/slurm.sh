@@ -7,6 +7,6 @@
 #SBATCH --partition=vgpu
 #SBATCH --gres=gpu:1
 
-conda activate conda-torch
+conda activate py39-torch
 
-python -u ~/COMP3710/PatternAnalysis-2023/recognition/YOLO_45296831/dataset.py
+python -u ~/COMP3710/PatternAnalysis-2023/recognition/YOLO_45296831/train.py
