@@ -22,9 +22,9 @@ To view the dataset format used in this report refer appendix 3.
 
 The model architecture for this report is inspired by two main research papers, namingly "AN IMAGE IS WORTH 16X16 WORDS: TRANSFORMERS FOR IMAGE RECOGNITION AT SCALE" [3] and "Escaping the Big Data Paradigm with Compact Transformers" [4].
 
-The initial model trained and tested was based on vision tranformer with patching, in this architecture the images are broken into patches and then the linear projection of the patches undergoe positional embedding (this is because that transformers unlike CNN's cannot place the patches in a sequential order hence positional embedding is carried out so that the transformer knows the relative positions). After this part, we now move to the classical transformer encoder block to execute attention mechanism and other neural-network tasks such as normalizing. Finally, the output from the last encoder layer is used for classification task this is achieved by adding a MLP head which assigns class probabilities and classifies the images into their classes (in this case either AD or NC). 
+The initial model trained and tested was based on vision tranformer with patching; in this architecture the images are broken into patches and then the linear projection of the patches undergoe positional embedding (this is because that, transformers unlike CNN's cannot place the patches in a sequential order hence positional embedding is carried out so that the transformer knows the relative positions). After this part, we now move to the classical transformer encoder block to execute attention mechanism and other neural-network tasks such as normalizing. Finally, the output from the last encoder layer is used for classification task this is achieved by adding a MLP head which assigns class probabilities and classifies the images into their classes (in this case either AD or NC). 
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/image.png#center)
+![Alt text](ADNI_TRANSFORMER_47379251/assets/image.png)
 
 
 <br>
@@ -34,7 +34,9 @@ Turns out the above described model is no exception to the power of transformers
 <br>
 
 ![Alt text](ADNI_TRANSFORMER_47379251/assets/image-1.png)
+
 <br>
+
 ![Alt text](ADNI_TRANSFORMER_47379251/assets/image-2.png)
 
 ## Report structure
@@ -97,7 +99,7 @@ first presenting the optimal mode and also displaying other attempts (models wit
 
 ### Optimal Model:
 
-This model attains a test accuracy of 89%
+This model attains a test accuracy of 92.52%
 
 **Table 1**
 
