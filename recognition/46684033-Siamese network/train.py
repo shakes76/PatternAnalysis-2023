@@ -24,12 +24,15 @@ transform = transforms.Compose([
     transforms.Normalize(0.5, 0.5),
 
 ])
+batch_size = 16
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 trainset = torchvision.datasets.ImageFolder(root=train_path, transform=transform)
+trainset, validationset = torch.utils.data.random_split(trainset,[int(len(trainset)*0.8),len(trainset)-int(len(trainset)*0.8)])
 testset = torchvision.datasets.ImageFolder(root=test_path, transform=transform)
-train = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True)
-test = torch.utils.data.DataLoader(testset, batch_size=64,shuffle=True)
+train = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
+valid = torch.utils.data.DataLoader(validationset, batch_size=batch_size, shuffle=True)
+test = torch.utils.data.DataLoader(testset, batch_size=batch_size,shuffle=True)
 
 import matplotlib
 
@@ -51,20 +54,21 @@ def plot_embeddings(embeddings, targets, plot_number,plot_name, xlim=None, ylim=
 
 
 def extract_embeddings(dataloader, model):
+    no_of_batch = 40
     with torch.no_grad():
         model.eval()
-        embeddings = np.zeros((dataloader.batch_size * 10, 128))
-        labels = np.zeros(dataloader.batch_size * 10)
+        embeddings = np.zeros((dataloader.batch_size * no_of_batch, 128))
+        labels = np.zeros(dataloader.batch_size * no_of_batch)
         k = 0
         counter = 0
-        for images, target in dataloader:
+        for (images, images2, images3), labela, labelb, target in dataloader:
 
             images = images.to(device)
             embeddings[k:k + len(images)] = model.forward_once(images).data.cpu().numpy()
             labels[k:k + len(images)] = target.numpy()
             k += len(images)
             counter += 1
-            if counter == 5:
+            if counter == no_of_batch:
                 break
     return embeddings, labels
 
@@ -110,8 +114,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning VUDA not Found. Using CPU")
 # hyperparameters
-num_epoch = 30
-learning_rate = 0.00006
+num_epoch = 20
+learning_rate = 0.001
 
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
@@ -120,7 +124,9 @@ test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 train_loader, validation_loader, test_loader = dataset.load_data2(train_path, test_path)
 model = modules.Siamese()
 model = model.to(device)
-
+from pytorch_metric_learning import losses, miners
+miner = miners.MultiSimilarityMiner()
+# criterion = losses.TripletMarginLoss()
 criterion = ContrastiveLoss(1.0)
 
 # criterion = TripletLoss(1.0)
@@ -147,7 +153,7 @@ for epoch in range(num_epoch):
     # #for contrastive loss
     for i, ((images1, images2, images3), labela, labelb, test_label) in enumerate(train_loader):
 
-    #     # contrastive loss
+        # contrastive loss
         optimizer.zero_grad()
         images1 = images1.to(device)
         images2 = images2.to(device)
@@ -166,6 +172,15 @@ for epoch in range(num_epoch):
         loss.backward()
         optimizer.step()
 
+        # images1 = images1.to(device)
+        # test_label = test_label.to(device)
+        # optimizer.zero_grad()
+        # embeddings = model.forward_once(images1)
+        # hard_pairs = miner(embeddings, test_label)
+        # loss = criterion(embeddings, test_label, hard_pairs)
+        # loss.backward()
+        # optimizer.step()
+
 
         #average loss in this epoch
         total_loss_this_epoch.append(loss.item())
@@ -178,11 +193,14 @@ for epoch in range(num_epoch):
 
 
 
-    # train_embeddings_cl, train_labels_cl = extract_embeddings(train, model)
-    # plot_embeddings(train_embeddings_cl, train_labels_cl,epoch,"training")
-    #
-    # test_embeddings_cl, test_labels_cl = extract_embeddings(test, model)
-    # plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "test")
+    train_embeddings_cl, train_labels_cl = extract_embeddings(train_loader, model)
+    plot_embeddings(train_embeddings_cl, train_labels_cl,epoch,"training")
+
+    train_embeddings_cl, train_labels_cl = extract_embeddings(validation_loader, model)
+    plot_embeddings(train_embeddings_cl, train_labels_cl, epoch, "validation")
+
+    test_embeddings_cl, test_labels_cl = extract_embeddings(test_loader, model)
+    plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "test")
 
 
     # contrastive loss validation
@@ -200,6 +218,12 @@ for epoch in range(num_epoch):
             x,y = model(images1,images2)
             val_loss = criterion(x,y, labela.float())
             total_val_loss_this_epoch.append(val_loss.item())
+
+            # images1 = images1.to(device)
+            # test_label = test_label.to(device)
+            # embeddings = model.forward_once(images1)
+            # val_loss = criterion(embeddings, test_label)
+            # total_val_loss_this_epoch.append(val_loss.item())
 
     print(
         f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}"

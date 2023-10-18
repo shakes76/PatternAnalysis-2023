@@ -8,33 +8,40 @@ import random
 import modules
 import dataset
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-from torchsummary import summary
+# from torchsummary import summary
 if not torch.cuda.is_available():
     print("Warning VUDA not Found. Using CPU")
 
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
-transform = transforms.Compose([
+train_transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
+    transforms.Resize((128, 128)),
+    transforms.RandomCrop(128, 16),
+    transforms.RandomRotation(degrees=(-20, 20)),
+    transforms.ToTensor(),
+    transforms.Normalize(0.5, 0.5),
+])
+test_transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
     transforms.Resize((128, 128)),
     transforms.ToTensor(),
     transforms.Normalize(0.5, 0.5),
-
-
 ])
+batch_size = 64
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
-trainset = torchvision.datasets.ImageFolder(root=train_path, transform=transform)
-testset = torchvision.datasets.ImageFolder(root=test_path, transform=transform)
+trainset = torchvision.datasets.ImageFolder(root=train_path, transform=train_transform)
+testset = torchvision.datasets.ImageFolder(root=test_path, transform=test_transform)
 paired_testset = dataset.SiameseDatset_test(trainset,testset)
-train_loader = torch.utils.data.DataLoader(trainset, batch_size=64, shuffle=True)
-test_loader = torch.utils.data.DataLoader(testset, batch_size=64)
+train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
+test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size)
 correct = 0
 total = 0
 best_epoch = 0
 best_acc = 0
 
-model = torch.load(f"C:/Users/wongm/Desktop/COMP3710/project/siamese_augmented_epoch_12.pth")
+model = torch.load(f"C:/Users/wongm/Desktop/COMP3710/project/siamese_augmented_epoch_20.pth")
 model = model.to(device)
 model.eval()
 
@@ -80,9 +87,9 @@ for epoch in range(num_epoch):
         c_correct += (pred == label).sum().item()
         c_total += label.size(0)
         train_acc = 100 * c_correct / c_total
-        # if (i + 1) % 100 == 0:
-        #         print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} Accuracy: {}% "
-        #               .format(epoch + 1, num_epoch, i + 1, len(train_loader), c_loss.item(), acc))
+        if (i + 1) % 100 == 0:
+                print("Epoch [{}/{}], Step[{}/{}] Training accuracy: {}% "
+                      .format(epoch + 1, num_epoch, i + 1, len(train_loader), train_acc))
 
     classifier.eval()
     with torch.no_grad():
@@ -97,6 +104,9 @@ for epoch in range(num_epoch):
             t_correct += (pred == test_label).sum().item()
             t_total += test_label.size(0)
             test_acc = 100 * t_correct / t_total
+            if (i + 1) % 100 == 0:
+                print("Epoch [{}/{}], Step[{}/{}] test Accuracy: {}% "
+                      .format(epoch + 1, num_epoch, i + 1, len(test_loader), test_acc))
     print("Epoch [{}/{}], Training Loss: {:.5f} Training Accuracy: {:.5f}% Testing Loss: {:.5f} Testing accuracy: {:.5f}%"
           .format(epoch + 1, num_epoch, c_loss.item(), train_acc, tc_loss.item(),test_acc))
 

@@ -39,10 +39,10 @@ class Siamese(nn.Module):
         self.fc = nn.Sequential(
             nn.Linear(1152, 512),
             nn.ReLU(),
-            #nn.Dropout(p=0.5),
+            #nn.Dropout(p=0.2),
             nn.Linear(512, 256),
             nn.ReLU(),
-            #nn.Dropout(p=0.5),
+            #nn.Dropout(p=0.2),
             nn.Linear(256, 128),
             # nn.ReLU(),
             # nn.Linear(128, 64)
@@ -87,7 +87,7 @@ class Classifier(nn.Module):
         self.batchnorm1 = nn.BatchNorm2d(64)
         self.relu = nn.ReLU()
         self.linear2 = nn.Linear(64,2)
-        self.dropout = nn.Dropout(p=0.5)
+        self.dropout = nn.Dropout(p=0.2)
 
 
     def forward(self, x):
@@ -96,12 +96,15 @@ class Classifier(nn.Module):
         x = self.linear1(x)
         #x = self.batchnorm1(x)
         x = self.relu(x)
-        x = self.dropout(x)
+        #x = self.dropout(x)
         x = self.linear2(x)
         return x
 
 #TODO:
-# try Siamese network output 128 features
-# classifier try add two linear layer, add batchnorm and dropout layer within
+# try resnet50
+# add more pairs
+# data augmentation randomcrop, randomrotation, ...
 # try the same data augmentation ramdoncrop on classifier and siamese
-# try triplet loss
+# try triplet loss (try metric learning library first)
+# try different contrastive loss function
+# tmr: first put on some stuff to train on rangpur, then try metric learning library/ or finish BIOE6901 A3 report first

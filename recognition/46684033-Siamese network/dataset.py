@@ -11,13 +11,13 @@ test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
     transforms.Resize((128, 128)),
+    transforms.RandomCrop(128, 16),
+    transforms.RandomRotation(degrees=(-20, 20)),
     transforms.ToTensor(),
     transforms.Normalize(0.5, 0.5),
-
-
 ])
 
-
+batch_size = 16
 def load_data2(train_path, test_path):
     dataset = torchvision.datasets.ImageFolder(root=train_path, transform=transform)
     testset = torchvision.datasets.ImageFolder(root=test_path, transform=transform)
@@ -28,10 +28,10 @@ def load_data2(train_path, test_path):
 
     paired_trainset = SiameseDatset_contrastive(trainset)
     paired_validationset = SiameseDatset_contrastive(validation_set)
-    #paired_testset = SiameseDatset_contrastive(testset)
-    train_loader = torch.utils.data.DataLoader(paired_trainset, batch_size=64, shuffle=True)
-    validation_loader = torch.utils.data.DataLoader(paired_validationset, batch_size=64, shuffle=True)
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=True)
+    paired_testset = SiameseDatset_contrastive(testset)
+    train_loader = torch.utils.data.DataLoader(paired_trainset, batch_size=batch_size, shuffle=True)
+    validation_loader = torch.utils.data.DataLoader(paired_validationset, batch_size=batch_size, shuffle=True)
+    test_loader = torch.utils.data.DataLoader(paired_testset, batch_size=batch_size, shuffle=True)
     return train_loader,validation_loader,test_loader
 class SiameseDatset_BCE(torch.utils.data.Dataset):
     #same person label ==1, else label ==0
@@ -94,9 +94,9 @@ def load_data3(train_path, test_path):
     paired_trainset = SiameseDatset_triplet(trainset)
     paired_validation_set = SiameseDatset_triplet(testset)
 
-    train_loader = torch.utils.data.DataLoader(paired_trainset, batch_size=64, shuffle=True)
-    validation_loader = torch.utils.data.DataLoader(paired_validation_set, batch_size=64,shuffle=True)
-    test_loader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=True)
+    train_loader = torch.utils.data.DataLoader(paired_trainset, batch_size=batch_size, shuffle=True)
+    validation_loader = torch.utils.data.DataLoader(paired_validation_set, batch_size=batch_size,shuffle=True)
+    test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle=True)
     return train_loader,validation_loader,test_loader
 
 class SiameseDatset_triplet(torch.utils.data.Dataset):
