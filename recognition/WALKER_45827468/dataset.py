@@ -31,8 +31,8 @@ class ISICDataset(Dataset):
             im = self.transform(im)
             mask = transforms.ToTensor()(mask)
             
-        im = transforms.ToTensor()(transforms.ToPILImage()im.resize([512, 512], Image.LANCZOS))
-        mask = transforms.ToTensor()(transforms.ToPILImage()mask.resize([512, 512], Image.LANCZOS))
+        im = transforms.ToTensor()(transforms.ToPILImage()(im.resize([512, 512], Image.LANCZOS)))
+        mask = transforms.ToTensor()(transforms.ToPILImage()(mask.resize([512, 512], Image.LANCZOS)))
             
         return im, mask
     
