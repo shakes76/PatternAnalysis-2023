@@ -117,7 +117,7 @@ def get_transform(data_type, data_mean, data_std, image_size):
             # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
             # transforms.Lambda(centre_transform),
-            transforms.Normalize(mean=data_mean, std=data_std)
+            # transforms.Normalize(mean=data_mean, std=data_std)
         ])
     elif data_type == "test":
         return transforms.Compose([
@@ -138,10 +138,6 @@ def get_transform(data_type, data_mean, data_std, image_size):
 def centre_of_mass(img_tensor, threshold=0.5):
     """ Compute the centre of mass of an image. """
     height, width = img_tensor.shape[-2:]
-
-    # Threshold the image tensor
-    img_tensor = img_tensor.clone()
-    img_tensor[img_tensor < threshold] = 0
 
     x = torch.arange(width)
     y = torch.arange(height)
@@ -165,13 +161,17 @@ def centre_transform(img_tensor):
 
     print(f"x_trans: {x_trans}, y_trans: {y_trans}")
 
-    # Create affine transform matrix for translation
+    # Compute normalized translations
+    x_trans_normalized = 2 * x_trans / (img_tensor.shape[-1] - 1) - 1
+    y_trans_normalized = 2 * y_trans / (img_tensor.shape[-2] - 1) - 1
+
+    # Create affine transform matrix with normalized translations
     theta = torch.tensor([
-        [1, 0, x_trans],
-        [0, 1, y_trans]
+        [1, 0, x_trans_normalized],
+        [0, 1, y_trans_normalized]
     ], dtype=torch.float)
 
     grid = TF.affine_grid(theta.unsqueeze(0), img_tensor.unsqueeze(0).size())
-    centred_tensor = TF.grid_sample(img_tensor.unsqueeze(0), grid).squeeze(0)
+    centred_tensor = TF.grid_sample(img_tensor.unsqueeze(0), grid, padding_mode='border').squeeze(0)
 
-    return centred_tensor
+    return centred_tensor, x_trans, y_trans
