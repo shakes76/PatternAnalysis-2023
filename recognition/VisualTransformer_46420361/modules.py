@@ -3,12 +3,12 @@ from torch import nn
 
 
 class PatchEmbeddingLayer(nn.Module):
-    def __init__(self, in_channels, patch_size, embedding_dims, batch_size, patches):
+    def __init__(self, in_channels, patch_size, embedding_dim, batch_size, patches, embedding_dims):
         super().__init__()
         self.patch_size = patch_size
-        self.embedding_dims = embedding_dims
+        self.embedding_dim = embedding_dim
         self.in_channels = in_channels
-        self.conv_layer = nn.Conv2d(in_channels=in_channels, out_channels=embedding_dims, kernel_size=patch_size, stride=patch_size)
+        self.conv_layer = nn.Conv2d(in_channels=in_channels, out_channels=embedding_dim, kernel_size=patch_size, stride=patch_size)
         self.flatten_layer = nn.Flatten(start_dim=1, end_dim=2)
         self.class_token_embeddings = nn.Parameter(torch.rand((batch_size, 1, embedding_dims), requires_grad=True))
         self.position_embeddings = nn.Parameter(torch.rand((1, patches + 1, embedding_dims), requires_grad=True))
@@ -106,9 +106,10 @@ class ViT(nn.Module):
 
     self.patch_embedding_layer = PatchEmbeddingLayer(in_channels = in_channels,
                                                      patch_size=patch_size,
-                                                     embedding_dims = embedding_dims,
+                                                     embedding_dim = embedding_dims,
                                                      batch_size=batch_size,
-                                                     patches=patches)
+                                                     patches=patches,
+                                                     embedding_dims=embedding_dims)
 
     self.transformer_encoder = nn.Sequential(*[TransformerBlock(embedding_dims = embedding_dims,
                                               mlp_dropout = mlp_dropout,
