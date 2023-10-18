@@ -1,6 +1,8 @@
 import torch
 import numpy as np
 from torch_geometric.data import Data
+from torch_geometric.data import DataLoader
+import random
 
 # Load dataset from npz file
 data = np.load('facebook.npz')
@@ -15,10 +17,17 @@ edge_index = edge_index.t().contiguous()
 
 
 # create dataset
-data = Data(x=x, y=y, edge_index=edge_index)
+train_mask_index = [1]*16000 + [0]*(22470-16000)
+test_mask_index = [0]*16000 + [1]*(22470-16000)
+
+
+dataset = Data(x=x, y=y, edge_index=edge_index)
+dataset.train_mask = torch.Tensor(train_mask_index).bool()
+dataset.test_mask = torch.Tensor(test_mask_index).bool()
+
 
 # check if there are any errors in the dataset
-data.validate(raise_on_error=True)
+dataset.validate(raise_on_error=True)
 
 # shuffle. then split data into train and test
 

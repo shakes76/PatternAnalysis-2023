@@ -18,7 +18,8 @@ model = modules.GCN(in_channels=128, num_classes=4)
 model = model.to(device)
 
 # get dataset
-dataset = dataset.data
+data = dataset.dataset
+
 
 print('starting test')
 
@@ -33,8 +34,8 @@ start = time.time()
 for epoch in range(NUM_EPOCHS):
     #Might want to change to batches instead
     optimizer.zero_grad()
-    out = model(dataset.x, dataset.edge_index)
-    loss = criterion(out, dataset.y)
+    out = model(data.x, data.edge_index)
+    loss = criterion(out[data.train_mask], data.y[data.train_mask])
     loss.backward()
     optimizer.step()
 
@@ -49,12 +50,14 @@ print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins i
 # Test the model
 model.eval()
 start = time.time()
-out = model(dataset.x, dataset.edge_index)
+
+out = model(data.x, data.edge_index)
 pred = out.argmax(dim=1)
-test_correct = pred[dataset.test_mask] == dataset.y[dataset.test_mask]
-test_acc = int(test_correct.sum()) / int(dataset.test_mask.sum()) 
+test_correct = (pred[data.test_mask] == data.y[data.test_mask]).sum()
+test_acc = int(test_correct) / int(data.test_mask.sum().item()) 
 print("Test Accuracy: " + str(test_acc))
     
 # Check if this works
 torch.save(model,PATH)
+
 
