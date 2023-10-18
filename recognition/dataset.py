@@ -1,7 +1,7 @@
 from torchvision import transforms, datasets
 import torch
 
-path = "/Users/angusbuchanan/Documents/Semester 2/COMP3710/project/PatternAnalysis-2023/recognition/ADNI/AD_NC/"
+path = "./ADNI/AD_NC/"
 batch_size = 20
 
 
