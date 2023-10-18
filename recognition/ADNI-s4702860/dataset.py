@@ -47,7 +47,7 @@ Outputs:
     [anchor_triplets, pos_triplets, neg_triplets] - triplet array used for input into the siamese model
     [anchor_labels, pos_labels, neg_labels] - triplet array used for the labels into the siamese model
 """
-def create_triplets(data_generator):
+def create_triplets(data_generator, num):
     anchor_triplets = []
     pos_triplets = []
     neg_triplets = []
@@ -55,25 +55,26 @@ def create_triplets(data_generator):
     pos_labels = []
     neg_labels = []
 
-    for i in range(10):
+    for i in range(num):
         anchor_img, anchor_label = data_generator[i]
-        anchor_triplets.append(anchor_img)
-        anchor_labels.append(anchor_label)
+        anchor_triplets.append(anchor_img[0])
+        anchor_labels.append(anchor_label[0][0])
 
         while True:
             pos_idx = random.randint(0, len(data_generator) - 1)
             pos_img, pos_label = data_generator[pos_idx]
             if pos_label.argmax() == anchor_label.argmax():
-                pos_triplets.append(pos_img)
-                pos_labels.append(pos_label)
+                pos_triplets.append(pos_img[0])
+                pos_labels.append(pos_label[0][0])
                 break
 
         while True:
             neg_idx = random.randint(0, len(data_generator) - 1)
             neg_img, neg_label = data_generator[neg_idx]
+
             if neg_label.argmax() != anchor_label.argmax():
-                neg_triplets.append(neg_img)
-                neg_labels.append(neg_label)
+                neg_triplets.append(neg_img[0])
+                neg_labels.append(neg_label[0][0])
                 break
 
     anchor_triplets = tf.convert_to_tensor(anchor_triplets)
@@ -82,10 +83,7 @@ def create_triplets(data_generator):
     anchor_labels = tf.convert_to_tensor(anchor_labels)
     pos_labels = tf.convert_to_tensor(pos_labels)
     neg_labels = tf.convert_to_tensor(neg_labels)
-    
-    anchor_triplets = tf.reshape(anchor_triplets, [-1, 256, 240, 3])
-    pos_triplets = tf.reshape(pos_triplets, [-1, 256, 240, 3])
-    neg_triplets = tf.reshape(neg_triplets, [-1, 256, 240, 3])
+
 
     return [anchor_triplets, pos_triplets, neg_triplets], [anchor_labels, pos_labels, neg_labels]
 

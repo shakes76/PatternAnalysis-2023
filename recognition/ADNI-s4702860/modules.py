@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
 from tensorflow.keras.models import Model
+import tensorflow_addons as tfa
 
 class SiameseModel:
     def __init__(self):
@@ -41,7 +42,7 @@ class SiameseModel:
         output_embeddings = [anchor_embedding, positive_embedding, negative_embedding]
 
         siamese_network = Model(inputs=inputs, outputs=output_embeddings)
-        siamese_network.compile(optimizer='adam', loss=self.triplet_loss)
+        siamese_network.compile(optimizer='adam', loss=tfa.losses.TripletSemiHardLoss())
         return siamese_network
     
     def create_classifier(self):
