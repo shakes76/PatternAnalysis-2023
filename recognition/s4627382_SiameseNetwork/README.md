@@ -1,7 +1,7 @@
 # KNN classifier based on siamese network embedding
 Liang Kaige s4627382
 ## Introduction
-The purpose of this project is to construct a [Siamese network](#siamese-network) and use its embedding to train a [knn classifier](#k-nearest-neighbour) to classify the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](#adni-dataset) brain dataset.
+The purpose of this project is to construct a [Siamese network](#siamese-network) and use its embedding to train a [knn classifier](#k-nearest-neighbour-classifier) to classify the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](#adni-dataset) brain dataset.
 
 ### ADNI Dataset
 The ADNI dataset that use in here comprises 30,520 MRI brain slice in total. Of these, 14,860 images are associated with Alzheimer’s disease (AD), while 15,660 images correspond to cognitively normal (NC) conditions.  
