@@ -19,7 +19,7 @@ VALID_MASK_PATH = "/home/Student/s4482296/report1/ISIC2018_Task1_Validation_Grou
 OUTPUT_DIR_PATH = "/home/Student/s4482296/report1"
 
 # Global constants
-BATCH_SIZE = 8 
+BATCH_SIZE = 8
 LEARNING_RATE = 0.00005
 
 def train(model, train_loader, valid_loader, num_epochs=100, device="cuda"):
@@ -39,16 +39,21 @@ def train(model, train_loader, valid_loader, num_epochs=100, device="cuda"):
         running_loss = 0.0
 
         for inputs, masks in train_loader:
+
             inputs, masks = inputs.to(device), masks.to(device)
 
             optimiser.zero_grad()
 
             outputs = model(inputs)
             loss = 1 - criterion(outputs, masks) # we want to maximise dice coefficient, 1 is perfct. 
+            # also consider appending coefficients here?
+
             loss.backward()
             optimiser.step()
 
             running_loss += loss.item()
+
+        scheduler.step()
 
         print(f"Epoch {epoch + 1}, Training Loss: {running_loss / len(train_loader)}")
 
@@ -70,11 +75,11 @@ def train(model, train_loader, valid_loader, num_epochs=100, device="cuda"):
 
     return model, training_losses, validation_losses 
 
-def dice_coefficient(y_true, y_pred):
+def dice_coefficient(y_true, y_pred, eps=10**-8):
     y_true_f = y_true.view(-1)
     y_pred_f = y_pred.view(-1)
     intersection = torch.sum(y_true_f * y_pred_f)
-    dice = (2. * intersection + 1.) / (torch.sum(y_true_f) + torch.sum(y_pred_f) + 1.)
+    dice = (2. * intersection + eps) / (torch.sum(y_true_f) + torch.sum(y_pred_f) + 1.)
     return dice
 
 def plot_losses(train_losses, valid_losses, save_dir):
@@ -101,11 +106,15 @@ def load_data(img_path, labels_path, transform, batch_size, shuffle=True):
 
 
 if __name__ == "__main__":
-    # connect to gpu 
+    # connect to gpu
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    
+    if not torch.cuda.is_available():
+        print("Warning CUDA not Found. Using CPU")
+
+
     # create improvised unet. 
     model = ImprovedUnet()  
+    print("model made")
 
     # set up data transform for data 
     data_transform = transforms.Compose([

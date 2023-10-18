@@ -12,6 +12,7 @@ DROPOUT_PROB = 0.3
 """
 
 padding = kernel - stride/2 , padding = 1 
+changed padding to 0 to retain
 """
 class StandardConv(nn.Module):
     def __init__(self, in_channels, out_channels, 
@@ -19,10 +20,12 @@ class StandardConv(nn.Module):
         super(StandardConv, self).__init__()
         self.conv2d = nn.Conv2d(in_channels, out_channels, 
                                 kernel_size=kernel_size, stride=stride, padding=padding)
-        self.relu = nn.LeakyReLU()
+        self.instance_norm = nn.InstanceNorm2d(out_channels, affine=True)
+        self.relu = nn.LeakyReLU(negative_slope=NEGATIVE_SLOPE)
 
     def forward(self, x):
         x = self.conv2d(x)
+        x = self.instance_norm(x)
         x = self.relu(x)
         return x
 
@@ -34,16 +37,21 @@ class ContextModule(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(ContextModule, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.instance_norm = nn.InstanceNorm2d(out_channels, affine=True)
         self.relu = nn.LeakyReLU(negative_slope=NEGATIVE_SLOPE, inplace=True)
         self.dropout = nn.Dropout(DROPOUT_PROB)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
+        self.instance_norm2 = nn.InstanceNorm2d(out_channels, affine=True)
+        self.relu2 = nn.LeakyReLU(negative_slope=NEGATIVE_SLOPE, inplace=True)
 
     def forward(self, x):
         x = self.conv1(x)
+        x = self.instance_norm(x)
         x = self.relu(x)
         x = self.dropout(x)
         x = self.conv2(x)
-        x = self.relu(x)
+        x = self.instance_norm2(x)
+        x = self.relu2(x)
         return x
 
 """
@@ -74,6 +82,7 @@ class UpsamplingModule(nn.Module):
                                                  kernel_size=2, stride=2, padding=0)
         self.conv = nn.Conv2d(out_channels, out_channels, 
                               kernel_size=3, stride=1, padding=1)
+        self.norm = nn.InstanceNorm2d(out_channels, affine=True)
         self.relu = nn.LeakyReLU(negative_slope=NEGATIVE_SLOPE, inplace=True)
 
     def forward(self, x):
@@ -88,13 +97,22 @@ class UpsamplingModule(nn.Module):
 class LocalisationModule(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(LocalisationModule, self).__init__()
+        
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.norm = nn.InstanceNorm2d(out_channels, affine=True)
+        self.relu = nn.LeakyReLU(negative_slope=NEGATIVE_SLOPE, inplace=True)
 
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=1, padding=0)
+        self.norm2 = nn.InstanceNorm2d(out_channels, affine=True)
+        self.relu2 = nn.LeakyReLU(negative_slope=NEGATIVE_SLOPE, inplace=True)
         
     def forward(self, x):
-        x = F.leaky_relu(self.conv1(x))
-        x = F.leaky_relu(self.conv2(x))
+        x = self.conv1(x)
+        x = self.norm(x)
+        x = self.relu(x)
+        x = self.conv2(x)
+        x = self.norm2(x)
+        x = self.relu2(x)
         return x
 
 
@@ -201,57 +219,57 @@ class ImprovedUnet(nn.Module):
         
 
     def forward(self, x):
-        conv_out_1 = self.conv_1.forward(x)
-        context_out_1 = self.context_1.forward(conv_out_1)
+        conv_out_1 = self.conv_1(x)
+        context_out_1 = self.context_1(conv_out_1)
         element_sum_1 = conv_out_1 + context_out_1 
 
         # second term 
-        conv_out_2 = self.conv2.forward(element_sum_1)
-        context_out_2  = self.context_layer_2.forward(conv_out_2)
+        conv_out_2 = self.conv_2(element_sum_1)
+        context_out_2  = self.context_layer_2(conv_out_2)
         element_sum_2 = conv_out_2 + context_out_2
 
         # third downsample
-        conv_out_3 = self.conv_3.forward(element_sum_2)
-        context_out_3 = self.context_layer_3.forward(conv_out_3)
+        conv_out_3 = self.conv_3(element_sum_2)
+        context_out_3 = self.context_layer_3(conv_out_3)
         element_sum_3 = conv_out_3 + context_out_3 
 
-        conv_out_4 = self.conv_4.forward(element_sum_3)
+        conv_out_4 = self.conv_4(element_sum_3)
         context_out_4 = self.context_layer_4(conv_out_4)
         element_sum_4 = conv_out_4 + context_out_4 
 
-        conv_out_5 = self.conv_5.forward(element_sum_4)
-        context_out_5 = self.context_layer_5.forward(conv_out_5)
+        conv_out_5 = self.conv_5(element_sum_4)
+        context_out_5 = self.context_layer_5(conv_out_5)
         element_sum_5 = conv_out_5 + context_out_5 
 
         # First upsampling module. 
-        upsample_out_1 = self.upsample_layer_1.forward(element_sum_5)
+        upsample_out_1 = self.upsample_layer_1(element_sum_5)
         concat_1 = torch.cat((element_sum_4, upsample_out_1), dim=1)
  
-        localisation_out_1 = self.localise_layer_1.forward(concat_1)
-        upsample_out_2 = self.upsample_layer_2.forward(localisation_out_1)
+        localisation_out_1 = self.localise_layer_1(concat_1)
+        upsample_out_2 = self.upsample_layer_2(localisation_out_1)
         concat_2 = torch.cat((element_sum_3, upsample_out_2))
 
-        localisation_out_2 = self.localise_layer_2.forward(concat_2)
-        upsample_out_3 = self.upsample_layer_3.forward(localisation_out_2)
+        localisation_out_2 = self.localise_layer_2(concat_2)
+        upsample_out_3 = self.upsample_layer_3(localisation_out_2)
         concat_3 = torch.cat((element_sum_2, upsample_out_3))
 
-        localisation_out_3 = self.localise_layer_3.forward(concat_3)
-        upsample_out_4 = self.upsample_layer_4.forward(localisation_out_3)
+        localisation_out_3 = self.localise_layer_3(concat_3)
+        upsample_out_4 = self.upsample_layer_4(localisation_out_3)
         concat_4 = torch.cat((element_sum_1, upsample_out_4))
         
-        segment_out_1 = self.segmentation_layer_1.forward(localisation_out_2)
-        upscale_out_1 = self.upscale_1.forward(segment_out_1)
+        segment_out_1 = self.segmentation_layer_1(localisation_out_2)
+        upscale_out_1 = self.upscale_1(segment_out_1)
 
-        segment_out_2 = self.segmentation_layer_2.forward(localisation_out_3)
+        segment_out_2 = self.segmentation_layer_2(localisation_out_3)
         seg_sum_1 = upscale_out_1 + segment_out_2
 
-        upscale_out_2 = self.upscale_2.forward(seg_sum_1)
+        upscale_out_2 = self.upscale_2(seg_sum_1)
 
-        segment_out_1 = self.segmentation_layer_1.forward(localisation_out_2)
-        upscale_out_1 = self.upscale_1.forward(segment_out_1)
+        segment_out_1 = self.segmentation_layer_1(localisation_out_2)
+        upscale_out_1 = self.upscale_1(segment_out_1)
 
-        convoutput_out = self.conv_output.forward(concat_4)
-        segment_out_3 = self.segmentation_layer_3.forward(convoutput_out)
+        convoutput_out = self.conv_output(concat_4)
+        segment_out_3 = self.segmentation_layer_3(convoutput_out)
 
         final_sum = upscale_out_2 + segment_out_3
         
