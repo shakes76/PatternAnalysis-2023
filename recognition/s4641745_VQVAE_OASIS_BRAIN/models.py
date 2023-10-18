@@ -184,3 +184,21 @@ class VectorQuantizer(nn.Module):
         quantized = t.matmul(encodings, self.embedding.weight).view(1, 64, 64, 64)
         # reshape BHWC -> BCHW
         return quantized.permute(0, 3, 1, 2).contiguous()
+
+
+class VQVAE(nn.Module):
+    def __init__(self, num_hiddens, residual_inter,
+                 num_embeddings, embedding_dim, commitment_cost):
+        super(VQVAE, self).__init__()
+
+        self.encoder = Encoder(3, num_hiddens, residual_inter)
+        self.conv1 = nn.Conv2d(num_hiddens, embedding_dim, 1, 1)
+        self.vq = VectorQuantizer(num_embeddings, embedding_dim, commitment_cost)
+        self.decoder = Decoder(embedding_dim, num_hiddens, residual_inter)
+
+    def forward(self, x):
+        z = self.encoder(x)
+        z = self.conv1(z)
+        loss, quantized, _, _ = self.vq(z)
+        x_recon = self.decoder(quantized) # reconstructed image
+        return loss, x_recon
