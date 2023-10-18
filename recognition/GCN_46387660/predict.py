@@ -1,3 +1,7 @@
+'''
+Show example usage of the trained model from train.py
+'''
+
 import torch
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE

@@ -1,3 +1,6 @@
+'''
+Train the model from modules.py with the data from dataset.py and save the model
+'''
 import torch
 import torch.nn as nn
 import modules

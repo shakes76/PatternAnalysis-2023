@@ -1,3 +1,6 @@
+'''
+Create a GCN model
+'''
 import torch
 import torch.nn as nn
 from torch_geometric.nn.conv import GCNConv
