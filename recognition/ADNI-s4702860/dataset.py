@@ -55,17 +55,19 @@ def create_triplets(data_generator, num):
     pos_labels = []
     neg_labels = []
 
+    label_test = []
+
     for i in range(num):
         anchor_img, anchor_label = data_generator[i]
         anchor_triplets.append(anchor_img[0])
-        anchor_labels.append(anchor_label[0][0])
+        anchor_labels.append(tf.math.argmax(anchor_label, axis=1).numpy()) 
 
         while True:
             pos_idx = random.randint(0, len(data_generator) - 1)
             pos_img, pos_label = data_generator[pos_idx]
             if pos_label.argmax() == anchor_label.argmax():
                 pos_triplets.append(pos_img[0])
-                pos_labels.append(pos_label[0][0])
+                pos_labels.append(tf.math.argmax(pos_label, axis=1).numpy())
                 break
 
         while True:
@@ -74,23 +76,16 @@ def create_triplets(data_generator, num):
 
             if neg_label.argmax() != anchor_label.argmax():
                 neg_triplets.append(neg_img[0])
-                neg_labels.append(neg_label[0][0])
+                neg_labels.append(tf.math.argmax(neg_label, axis=1).numpy())
                 break
 
     anchor_triplets = tf.convert_to_tensor(anchor_triplets)
     pos_triplets = tf.convert_to_tensor(pos_triplets)
     neg_triplets = tf.convert_to_tensor(neg_triplets)
-    anchor_labels = tf.convert_to_tensor(anchor_labels)
-    pos_labels = tf.convert_to_tensor(pos_labels)
-    neg_labels = tf.convert_to_tensor(neg_labels)
-
-
+    anchor_labels = tf.concat(anchor_labels, axis=0)
+    pos_labels = tf.concat(pos_labels, axis=0)
+    neg_labels = tf.concat(neg_labels, axis=0)
     return [anchor_triplets, pos_triplets, neg_triplets], [anchor_labels, pos_labels, neg_labels]
-
-
-
-
-
 
 
 """
@@ -117,7 +112,11 @@ def main():
     print("Batch size:", test_generator.batch_size)
     print("Image shape:", test_generator.image_shape)
     """
-    create_triplets(train_generator)
+    triplets, labels = create_triplets(train_generator, 10)
+    print(labels[0])
+    print(labels[1])
+    print(labels[2])
+
 
 
 
