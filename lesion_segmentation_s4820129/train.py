@@ -19,7 +19,9 @@ train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 # Initialize Model, Loss and Optimizer
 n_channels = 3 # RGB Images
 n_classes = 1  # Background and Object
+device = 'cuda'
 model = ImprovedUNET(n_channels, n_classes)
+model = model.to(device)
 criterion = DiceLoss()
 optimizer = Adam(model.parameters(), lr=0.001)
 
@@ -30,6 +32,8 @@ for epoch in range(num_epochs):
     epoch_loss = 0
     progress_bar = tqdm(train_dataloader)
     for image, truth in progress_bar:
+        image = image.to(device)
+        truth = truth.to(device)
         optimizer.zero_grad()
         
         # Forward pass
