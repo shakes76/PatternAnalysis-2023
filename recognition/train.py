@@ -4,6 +4,7 @@ import keras.api._v2.keras as keras # Required as, though it violates Python con
 from keras.layers import *
 from keras.models import Sequential, Model
 from keras.optimizers import Adam
+import os
 
 import modules
 import dataset
@@ -16,14 +17,14 @@ model = modules.get_model()
 # Extract X and y from the train dataset
 X_train = [X for X, _ in train]
 y_train = [y for _, y in train]
-X_train = np.array(X_train[0:20])
-y_train = np.array(y_train[0:20])
+X_train = np.array(X_train)
+y_train = np.array(y_train)
 
 # Do the same in test
 X_test = [X for X, _ in test]
 y_test = [y for _, y in test]
-X_test = np.array(X_test[0:20])
-y_test = np.array(y_test[0:20])
+X_test = np.array(X_test)
+y_test = np.array(y_test)
 
 def create_pairs(X, y):
     X_pairs, ys = [], []
@@ -47,11 +48,21 @@ def create_pairs(X, y):
 X_train_pairs, ys_train = create_pairs(X_train, y_train)
 X_test_pairs, ys_test = create_pairs(X_test, y_test)
 
+# Specify checkpoint paths
+checkpoint_path = "cp.ckpt"
+checkpoint_dir = os.path.dirname(checkpoint_path)
+
+# Create a callback that saves the model's weights
+cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
+                                                 save_weights_only=True,
+                                                 verbose=1)
+
 model.compile(loss='binary_crossentropy', # As we are using Sigmoid activation
               optimizer=Adam(learning_rate=0.001),
               metrics=['accuracy'])
 model.fit(x=[X_train_pairs[:, 0, :, :], X_train_pairs[:, 1, :, :]],
           y=ys_train,
-          validation_data=([X_train_pairs[:, 0, :, :], X_train_pairs[:, 1, :, :]], ys_test),
+          validation_data=([X_test_pairs[:, 0, :, :], X_test_pairs[:, 1, :, :]], ys_test),
           epochs=200,
-          batch_size=32)
+          batch_size=32,
+          callbacks=[cp_callback])

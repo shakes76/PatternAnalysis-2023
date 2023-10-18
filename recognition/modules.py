@@ -4,8 +4,8 @@ import keras.api._v2.keras as keras # Required as, though it violates Python con
 from keras.layers import *
 from keras.models import Sequential, Model
 
-input_A = Input((256, 240), name='input_A')
-input_B = Input((256, 240), name='input_B')
+input_A = Input((240, 256, 3), name='input_A')
+input_B = Input((240, 256, 3), name='input_B')
 
 def get_block(depth):
     return Sequential([Conv2D(depth, 3, 1), # 3x3 padding with a stride of 1
@@ -14,7 +14,7 @@ def get_block(depth):
 
 DEPTH = 384
 
-cnn = Sequential([Reshape((256, 240, 1)),
+cnn = Sequential([Reshape((240, 256, 3)),
                   get_block(DEPTH),
                   get_block(DEPTH * 2),
                   get_block(DEPTH * 4),
