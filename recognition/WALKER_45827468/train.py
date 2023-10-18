@@ -50,6 +50,7 @@ loss_valid = []
 
 for epoch in range(NUM_EPOCH):
 
+    ImpUNET.train()
     total_loss = 0
     # iterate through training set
     for im,mask in train_loader:
@@ -57,12 +58,30 @@ for epoch in range(NUM_EPOCH):
         im = im.to(device)
         mask = mask.to(device)
         
-        
         opt.zero_grad()
         pred = ImpUNET(im)
         loss = lossFunc(pred, mask)
         loss.backward()
         opt.step()
         total_loss += float(loss)
+    print("EPOCH", epoch, ":")
+    print("     TRAINING LOSS:", total_loss/len(train_loader))
+    loss_train.append(total_loss/len(train_loader))
+    
+    ImpUNET.eval()
+    total_loss = 0
+    with torch.no_grad():
+        for im,mask in valid_loader:
+            im = im.to(device)
+            mask = mask.to(device)
+            
+            pred = ImpUNET(im)
+            loss = lossFunc(pred, mask)
+            
+            total_loss += float(loss)
+    print("     VALIDATION LOSS:", total_loss/len(valid_loader))
+    loss_valid.append(total_loss/len(valid_loader))
+    
+    
 
 torch.save(ImpUNET, "impUNetMODEL.pth")
