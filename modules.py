@@ -180,8 +180,8 @@ class ConvolutionalEmbedding(nn.Module):
         super(ConvolutionalEmbedding, self).__init__()
 
         #Convolutional layers configuration
-        self.conv_layers = nn.ModuleList #List storing sequence of convolutions
-        self.conv_norms = nn.ModuleList
+        self.conv_layers =nn.ModuleList()  #List storing sequence of convolutions
+        self.conv_norms = nn.ModuleList()
 
         #Extract configuration parameters 
         patch_sizes = config.patches['sizes']
@@ -205,23 +205,21 @@ class ConvolutionalEmbedding(nn.Module):
             self.conv_layers.append(conv_layer)
             self.layer_norms.append(layer_norm)
 
-        #Determine num input channels for current layer
-        if i ==0:
-            in_channels = config.general['num_channels'] #first layer- use num image channels
-        else:
-            in_channels = embed_dims[i-1] #subsequent layers- use prev. layer's output channels
+            #Determine num input channels for current layer
+            in_channels = config.general['num_channels'] if i == 0 else embed_dims[i-1]
 
-        #Create convolutional layer with current config
+        # Create the convolutional layer with the current configuration
         conv_layer = nn.Conv2d(
-            in_channels = in_channels, 
-            out_channels = out_channels, 
+            in_channels=in_channels, 
+            out_channels=out_channels, 
             kernel_size=kernel_size, 
             stride=stride, 
-            padding = padding
+            padding=padding
         )
 
-        #Add created layer to module list
+        # Add the created layer and its corresponding layer norm to the module lists
         self.conv_layers.append(conv_layer)
+        self.conv_norms.append(layer_norm)
 
     def forward(self, x):
         #Pass input through convolutional layers
@@ -258,13 +256,13 @@ class ConvolutionalVisionTransformer(nn.Module):
 
             self.transformer_stages.append(stage_layers)
         
-        self.final_layer_norm = nn.LayerNorm(config.transformer["hidden_size,"], eps =config.initialisation["layer_norm_eps"])
+        self.final_layer_norm = nn.LayerNorm(config.transformer["hidden_size"], eps=config.initialisation["layer_norm_eps"]) 
         #classifier head
         self.classifier = nn.Linear(config.transformer['hidden_size'], config.num_classes)
       
     def forward(self, x):
         #Pass input through convolutional embedding layer
-        x = self.conv_embedding
+        x = self.conv_embedding(x)
 
         #Propogate output sequentially through each stage
         for stage in self.transformer_stages:
@@ -277,7 +275,6 @@ class ConvolutionalVisionTransformer(nn.Module):
 
         #Pass through classification head
         logits = self.classifier(x)
-
         return logits
 
         

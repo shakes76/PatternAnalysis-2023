@@ -92,17 +92,18 @@ class ADNC_Dataset(Dataset):
                 
              return image, label
         
-# Data normalisation and augmentation for training
+# Data normalisation and augmentation for training- data transformation for train, validation and test
 data_transforms = {
     'train': transforms.Compose([
-        transforms.RandomResizedCrop(240),  # Using 240 as the crop size- divisible common patch sizes  (i.e. 16x16)
+        transforms.Resize(299),
+        transforms.CenterCrop(299),
         transforms.RandomHorizontalFlip(),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
     'val': transforms.Compose([
-        transforms.Resize(256),
-        transforms.CenterCrop(240),  #Center cropping to 240x240
+        transforms.Resize(299),
+        transforms.CenterCrop(299),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
