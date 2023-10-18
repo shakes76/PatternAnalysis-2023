@@ -19,10 +19,13 @@ python=3.10.12
 torch=2.01
 cuda=11.7
 
+
 - Installation steps: 
+```
 git clone git@github.com:larsmoan/PatternAnalysis-2023.git
 git submodule init
 git submodule update
+```
 
 The last two commands are nedded as yolov7 is installed as a git submodule.
 
