@@ -13,7 +13,7 @@
 ### Libraries
 
 ### Dataset
-
+The ISIC 2018 dataset is part of a public data repository. This dataset includes training data in the form of png images of skin lesions as well as their ground-truth segmentation. 
 ### UNET Architecture
 
 ### Training procedure

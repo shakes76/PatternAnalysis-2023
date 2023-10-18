@@ -5,6 +5,7 @@ import wandb
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from tqdm import tqdm
+import torch
 
 wandb.init(project="Lesion_detection", name="UNET")
 
@@ -22,11 +23,16 @@ n_classes = 1  # Background and Object
 device = 'cuda'
 model = ImprovedUNET(n_channels, n_classes)
 model = model.to(device)
+# criterion = DiceLoss()
+# optimizer = Adam(model.parameters(), lr=0.001)
 criterion = DiceLoss()
-optimizer = Adam(model.parameters(), lr=0.001)
+lr_init = 0.001
+weight_decay = 1e-5
+optimizer = torch.optim.Adam(model.parameters(), lr=lr_init, weight_decay=weight_decay)
+scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: lr_init * (0.985 ** epoch))
 
 # Training Loop
-num_epochs = 8
+num_epochs = 20
 for epoch in range(num_epochs):
     model.train()
     epoch_loss = 0
@@ -48,6 +54,7 @@ for epoch in range(num_epochs):
         
         epoch_loss += loss.item()
         progress_bar.set_description(f'Epoch {epoch+1}, Loss {loss.item()}')
+    scheduler.step()
     wandb.log({'loss': epoch_loss}) 
     print(f'Epoch {epoch+1}, Avg Loss {epoch_loss/len(train_dataloader)}')
 
