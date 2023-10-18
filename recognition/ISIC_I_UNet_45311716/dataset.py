@@ -12,24 +12,42 @@ class UNetData():
 
         # RGB 3 channel input images
         data_transform = transforms.Compose([transforms.Resize((height, width)),
-                                                    transforms.ToTensor()])
-
+                                            transforms.ToTensor()])
         # Black and white 1 channel mask image
         mask_transform = transforms.Compose([transforms.Resize((height, width)),
-                                                    transforms.Grayscale(num_output_channels=1),  # Convert to single channel
-                                                    transforms.ToTensor(),
-                                                    transforms.Lambda(lambda x: x > 0.5)  # Threshold to 0 or 1
-                                                    ])
-
+                                            transforms.Grayscale(num_output_channels=1),  # Convert to single channel (grayscale)
+                                            transforms.ToTensor(),  # Convert to a tensor
+                                            transforms.Lambda(lambda x: x > 0.5)  # Threshold to 0 or 1
+                                            ])
         # Training dataset
-        train_set = torchvision.datasets.ImageFolder(root=path+'ISIC2018_Task1-2_Training_Input_x2', transform=data_transform)
-        self.train_loader = torch.utils.data.DataLoader(train_set, batch_size=16, shuffle=True)
-
-        # Testing dataset
-        test_set = torchvision.datasets.ImageFolder(root=path+'ISIC2018_Task1-2_Test_Input', transform=data_transform)
-        self.test_loader = torch.utils.data.DataLoader(test_set, batch_size=16, shuffle=True)
+        train_set = torchvision.datasets.ImageFolder(root=path+'training_images', transform=data_transform)
+        train_loader = torch.utils.data.DataLoader(train_set, batch_size=1, shuffle=False)
 
         # Truth dataset
-        truth_set = torchvision.datasets.ImageFolder(root=path+'ISIC2018_Task1_Training_GroundTruth_x2', transform=mask_transform)
-        self.truth_loader = torch.utils.data.DataLoader(truth_set, batch_size=16, shuffle=True)
+        truth_set = torchvision.datasets.ImageFolder(root=path+'training_masks', transform=mask_transform)
+        truth_loader = torch.utils.data.DataLoader(truth_set, batch_size=1, shuffle=False)
+
+        self.train_data = []
+        
+        print(' - - Filling Train - - ')
+        for x, y in zip(train_loader, truth_loader):
+            self.train_data.append((x[0], y[0]))
+
+        # ---------------------------------------------------------
+
+        # Validating dataset
+        valid_set = torchvision.datasets.ImageFolder(root=path+'validation_images', transform=data_transform)
+        valid_loader = torch.utils.data.DataLoader(valid_set, batch_size=1, shuffle=False)
+
+        # Truth dataset
+        valid_t_set = torchvision.datasets.ImageFolder(root=path+'validation_masks', transform=mask_transform)
+        valid_t_loader = torch.utils.data.DataLoader(valid_t_set, batch_size=1, shuffle=False)
+
+        self.valid_data = []
+        
+        print(' - - Filling Valid - - ')
+        for x, y in zip(valid_loader, valid_t_loader):
+            self.valid_data.append((x[0], y[0]))
+    
+        print(' - - Data Loaded - - ')
 
