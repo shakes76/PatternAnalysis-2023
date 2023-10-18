@@ -176,6 +176,13 @@ def compute_loss(pred, label, batch_size):
       conf_loss[box] = best_box_conf[box]*iou[box]
     conf_loss = ones - conf_loss
 
+    best_box_class1 = best_box_class1.to(device)
+    best_box_class2 = best_box_class2.to(device)
+    best_box_w = best_box_w.to(device)
+    best_box_h = best_box_h.to(device)
+    best_box_x = best_box_x.to(device)
+    best_box_y = best_box_y.to(device)
+
     #classification loss
     step1 = torch.square(label_prob[:,0] - best_box_class1)
     step2 = torch.square(label_prob[:,1] - best_box_class2)
