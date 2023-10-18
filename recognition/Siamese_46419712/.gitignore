@@ -7,3 +7,6 @@ siamese_loss_plot.png
 classifier_loss_plot.png
 classifier_loss_plot_validate.png
 file.txt
+train.txt
+validate.txt
+.vscode

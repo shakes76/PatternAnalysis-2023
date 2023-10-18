@@ -1,17 +1,15 @@
-import torchvision
 import torch
-import torchvision.transforms as transforms
-import torch.nn as nn
+
 import os
-import time
 import matplotlib.pyplot as plt
 import random
+import numpy as np
 
 from modules import RawSiameseModel, BinaryModelClassifier
 from dataset import LoadData
 
-SIAMESE_MODEL_SAVE_PATH = "siamese.pt"
-CLASSIFIER_MODEL_SAVE_PATH = "classifier.pt"
+SIAMESE_MODEL_SAVE_PATH = "/home/Student/s4641971/project/result/siamese.pt"
+CLASSIFIER_MODEL_SAVE_PATH = "/home/Student/s4641971/project/result/classifier.pt"
 
 def load_model(model_type=0):
     if model_type == 0:
@@ -46,8 +44,19 @@ def test_model(model, cModel, test_loader):
                 return img, label, predicted
 
 def save_plot_image(img, label, predicted):
+    n_col = 3
+    n_row = 4
+    plt.figure(figsize=(1.8 * n_col, 2.4 * n_row))
 
-    pass
+    verbose = ["AD", "NC"]
+    for i in range(n_row * n_col):
+        plt.subplot(n_row, n_col, i + 1)
+        plt.imshow(np.transpose(img[i].cpu().squeeze(), (1,2,0)), cmap="gray")
+        plt.title(f"Actual: {verbose[label[i]]}, Predicted: {verbose[predicted[i]]}", size=12)
+        plt.axis('off')
+    
+    plt.savefig("/home/Student/s4641971/project/result/predict_result.png")  # Specify the desired file format and filename
+    plt.close()
         
 if __name__ == "__main__":
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
