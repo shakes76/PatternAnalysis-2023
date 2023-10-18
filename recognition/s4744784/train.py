@@ -7,9 +7,14 @@ from modules import Network
 import time
 import matplotlib.pyplot as plt
 from utils import *
+from torch.optim.lr_scheduler import StepLR
 
 model = Network(upscale_factor=upscale_factor, channels=channels).to(device)
+# optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+scheduler = StepLR(optimizer, step_size=30, gamma=0.1)
+
 criterion = nn.MSELoss()
 
 def train(epochs: int):
@@ -37,6 +42,9 @@ def train(epochs: int):
         epoch_losses.append(avg_epoch_loss)
         
         print(f"Epoch [{epoch}/{epochs}] Loss: {avg_epoch_loss}")
+
+        # Update the learning rate
+        scheduler.step()
 
         # Save model
         if epoch in [20, 40, 60, 80, 100]:
