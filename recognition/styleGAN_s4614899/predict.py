@@ -5,6 +5,8 @@ import os
 #import train
 import modules
 
+# Random seed to ensure reproducibility
+torch.manual_seed(42)
 
 DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 Z_DIm = 512
@@ -29,10 +31,17 @@ generated_images = generated_images.cpu().numpy().transpose(0, 2, 3, 1)  # (batc
 # Plot
 _,ax = plt.subplots(3,3,figsize=(8,8))
 plt.suptitle('Generated sample images')
-for idx, img in enumerate(generated_images):
-    for k in range(3):
-        for kk in range(3):
-            ax[k][kk].imshow(img)
+
+# for idx, img in enumerate(generated_images):
+#     for k in range(3):
+#         for kk in range(3):
+#             ax[k][kk].imshow(img)
+for i in range(3):
+    for j in range(3):
+        idx = i * 3 + j
+        if idx < len(generated_images):
+            ax[i][j].imshow(generated_images[idx])
+            ax[i][j].axis('off')
 
 if not os.path.exists("output_images"):
         os.makedirs("output_images")
