@@ -24,7 +24,8 @@ The model architecture for this report is inspired by two main research papers, 
 
 The initial model trained and tested was based on vision tranformer with patching, in this architecture the images are broken into patches and then the linear projection of the patches undergoe positional embedding (this is because that transformers unlike CNN's cannot place the patches in a sequential order hence positional embedding is carried out so that the transformer knows the relative positions). After this part, we now move to the classical transformer encoder block to execute attention mechanism and other neural-network tasks such as normalizing. Finally, the output from the last encoder layer is used for classification task this is achieved by adding a MLP head which assigns class probabilities and classifies the images into their classes (in this case either AD or NC). 
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/image.png)
+![Alt text](ADNI_TRANSFORMER_47379251/assets/image.png#center)
+
 
 <br>
 
@@ -77,7 +78,9 @@ This file contains all the miscellaneous necessary functions for this report
 
 It includes:
 * Patient level data split
-* Graph to visualize normalization
+* Graph to visualize normalization and calculating estimates of the data
+* Calculating classification metrics
+* Custom Augmentation
 
 ### predict.py
 
@@ -133,7 +136,7 @@ The optimal model contains:
 | CCT   | Adam        | 192 | 2    | TrivAug | 75.244% |
 
 Table 2 is trained without patient level split
-Various other training were carried out (please refer appendix 1)
+various other training were carried out (please refer appendix 1)
 
 ## Results
 
@@ -179,7 +182,7 @@ Various other training were carried out (please refer appendix 1)
 
 * Here X-axis is the number of epochs and Y-axis is Loss.
 * The un-usual plot difference between train and validation is mainly due to the pre-processing effects
-and also depends on the number of training and validation images (since loss for a misclassification is a sum over all probabilities)[7].
+and also depends on the number of training and validation images (since loss for a misclassification is a sum over all data)[7].
 
 #### Validation Accuracy
 
