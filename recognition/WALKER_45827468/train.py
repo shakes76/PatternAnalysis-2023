@@ -34,7 +34,8 @@ VALID_MASK_PATH = "./ISIC-2017_Validation_Part1_GroundTruth"
 valid = ISICDataset(TRAIN_DATA_PATH, TRAIN_MASK_PATH, transform=transforms.ToTensor())
 valid_loader = DataLoader(valid, batch_size=BATCH_SIZE)
 
-print(calc_mean_std(train_loader))
+mean,std = calc_mean_std(train_loader)
+print(mean,std)
 
 ImpUNET = ImprovedUNet()
 ImpUNET.to(device)
@@ -85,3 +86,8 @@ for epoch in range(NUM_EPOCH):
     
 
 torch.save(ImpUNET, "impUNetMODEL.pth")
+import pandas as pd
+losses = pd.DataFrame()
+losses['TRAIN'] = loss_train
+losses['VALID'] = loss_valid
+losses.to_csv('losses.csv')

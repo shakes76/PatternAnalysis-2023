@@ -118,9 +118,9 @@ class ImprovedUNet(nn.Module):
         self.conv6 = nn.Conv2d(2*16, 32, kernel_size=3, padding=1)
         
         # segmentation
-        self.seg1 = nn.Conv2d(64, 3, kernel_size=1)
-        self.seg2 = nn.Conv2d(32, 3, kernel_size=1)
-        self.seg3 = nn.Conv2d(32, 3, kernel_size=1)
+        self.seg1 = nn.Conv2d(64, 1, kernel_size=1)
+        self.seg2 = nn.Conv2d(32, 1, kernel_size=1)
+        self.seg3 = nn.Conv2d(32, 1, kernel_size=1)
         self.segNorm = nn.InstanceNorm2d(3)
         self.segRelu = nn.LeakyReLU(3)
         self.upscale = nn.Upsample(scale_factor=2)
