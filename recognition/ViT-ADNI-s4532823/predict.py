@@ -4,22 +4,31 @@ Load saved model and show a sample of predictions, alongside the true labels.
 import torch
 from dataset import ADNIDataset, ADNI_PATH, TEST_TRANSFORM
 import random
+from torchvision import transforms
 
-def do_prediction(model, num_predictions: int = 1):
+
+def do_prediction(model, device: torch.device, num_predictions: int = 1):
     test_dataset = ADNIDataset(ADNI_PATH, train=False, transform=TEST_TRANSFORM)
     for i in range(num_predictions):
         # load random image & label
-        idx = random.randint(0, test_dataset.__len__()-1)
+        idx = random.randint(0,test_dataset.__len__()-1)
         image, label = test_dataset.__getitem__(idx)
         # apply necessary transforms
+        image = image.unsqueeze(0).to(device)
+        image = transforms.CenterCrop(224)(image)
+        image = transforms.Grayscale(3)(image)
         # make prediction
         output = model(image)
         _, predicted = torch.max(output, 1)
         pred = predicted[0]
 
-        # show prediction vs real result
-        image.show()
         print(f"Predicted {pred}, actually {label}")
+
+        # show prediction vs real result
+        image = image.squeeze(0)
+        image = transforms.ToPILImage()(image)
+        image.show()
+        
 
 # Set device
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -29,4 +38,4 @@ if not torch.cuda.is_available():
 # Load model
 model = torch.load("adni_vit.pt").to(device)
 
-do_prediction(model)
+do_prediction(model, device)
