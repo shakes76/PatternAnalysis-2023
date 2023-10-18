@@ -12,28 +12,22 @@ class RawSiameseModel(nn.Module):
         # first layer
         self.model1 = nn.Sequential(
             nn.Conv2d(in_channels=3, out_channels=64, kernel_size=10, stride=1),
-            nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
-            nn.Dropout2d()
         )
 
         # second layer
         self.model2 = nn.Sequential(
             nn.Conv2d(in_channels=64, out_channels=128, kernel_size=7, stride=1),
-            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
-            nn.Dropout2d()
         )
 
         # third layer
         self.model3 = nn.Sequential(
             nn.Conv2d(in_channels=128, out_channels=128, kernel_size=4, stride=1),
-            nn.BatchNorm2d(128),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2),
-            nn.Dropout2d()
         )
 
         # fourth layer
@@ -69,9 +63,7 @@ class BinaryModelClassifier(nn.Module):
             nn.ReLU(),
             nn.Linear(1024, 128),
             nn.ReLU(),
-            nn.Linear(128, 16),
-            nn.ReLU(),
-            nn.Linear(16, 1),
+            nn.Linear(128, 1),
             nn.Sigmoid()
         )
 
@@ -88,7 +80,7 @@ class ContrastiveLossFunction(nn.Module):
     """
     def __init__(self):
         super(ContrastiveLossFunction, self).__init__()
-        self.margin = 0.5
+        self.margin = 0.7
 
     def forward(self, output1, output2, label): 
         output = F.pairwise_distance(output1, output2)
