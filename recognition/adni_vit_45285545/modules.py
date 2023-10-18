@@ -37,26 +37,31 @@ class EncoderBlock(nn.Module):
         norm_layer: Callable[..., torch.nn.Module] = partial(nn.LayerNorm, eps=1e-6),
     ):
         super().__init__()
+
+        # Number of self attention heads, for multi-head self attention (MSA)
         self.num_heads = num_heads
 
-        # Attention block
+        # Attention block: layer norm + MSA
         self.ln_1 = norm_layer(hidden_dim)
         self.self_attention = nn.MultiheadAttention(hidden_dim, num_heads, dropout=attention_dropout, batch_first=True)
         self.dropout = nn.Dropout(dropout)
 
-        # MLP block
+        # MLP block: layer norm + fully-connected layers
         self.ln_2 = norm_layer(hidden_dim)
         self.mlp = MLPBlock(hidden_dim, mlp_dim, dropout)
 
     def forward(self, input: torch.Tensor):
         torch._assert(input.dim() == 3, f'Expected (batch_size, seq_length, hidden_dim) got {input.shape}')
+
         x = self.ln_1(input)
+        # PyTorch MSA module returns (attention output, output weights), but we
+        # do not need the output weights (have specified need_weights=False)
         x, _ = self.self_attention(x, x, x, need_weights=False)
         x = self.dropout(x)
         x = x + input
 
         y = self.ln_2(x)
-        y = self.mlp(y)
+        y = self.mlp(y) # MLP block implements its own dropout, if required
         return x + y
 
 
@@ -84,6 +89,7 @@ class Encoder(nn.Module):
 
         self.dropout = nn.Dropout(dropout)
 
+        # Stack encoder layers; layer names are important for loading pre-trained weights
         layers: OrderedDict[str, nn.Module] = OrderedDict()
         for i in range(num_layers):
             layers[f'encoder_layer_{i}'] = EncoderBlock(
@@ -99,8 +105,11 @@ class Encoder(nn.Module):
 
     def forward(self, input: torch.Tensor):
         torch._assert(input.dim() == 3, f'Expected (batch_size, seq_length, hidden_dim) got {input.shape}')
-        input = input + self.pos_embedding
-        return self.ln(self.layers(self.dropout(input)))
+        x = input + self.pos_embedding
+        x = self.dropout(x)
+        x = self.layers(x)
+        x = self.ln(x)
+        return x
 
 
 class ViT(nn.Module):
@@ -127,17 +136,20 @@ class ViT(nn.Module):
         self.mlp_dim = mlp_dim
         self.num_classes = num_classes
 
+        # Conv layer used to project patches before going into Transformer encoder
         self.conv_proj = nn.Conv2d(
             in_channels=3, out_channels=hidden_dim, kernel_size=patch_size, stride=patch_size
         )
 
-        # Length of transformer input sequence
+        # Length of transformer input sequence; i.e. number of patches in image
         seq_length = (image_size // patch_size) ** 2
 
         # Add a class token
         self.class_token = nn.Parameter(torch.zeros(1, 1, hidden_dim))
         seq_length += 1
 
+        # Transformer encoder, consisting of `num_layers` stacked
+        # encoder blocks (multi-head self attention + FC)
         self.encoder = Encoder(
             seq_length,
             num_layers,
@@ -155,7 +167,7 @@ class ViT(nn.Module):
         heads_layers['head'] = nn.Linear(hidden_dim, num_classes)
         self.heads = nn.Sequential(heads_layers)
 
-        # Initialise patchify stem
+        # Initialise patchify stem, which transforms/projects vectorised patches
         fan_in = self.conv_proj.in_channels * self.conv_proj.kernel_size[0] * self.conv_proj.kernel_size[1]
         nn.init.trunc_normal_(self.conv_proj.weight, std=math.sqrt(1 / fan_in))
         if self.conv_proj.bias is not None:
@@ -167,12 +179,12 @@ class ViT(nn.Module):
 
     def _process_input(self, x: torch.Tensor) -> torch.Tensor:
         '''Patchify input images into vectorised patches.'''
-        n, _, h, w = x.shape
+        n, _, h, w = x.shape # channels get incorporated into patches
         p = self.patch_size
         torch._assert(h == self.image_size, f'Wrong image height! Expected {self.image_size} but got {h}')
         torch._assert(w == self.image_size, f'Wrong image width! Expected {self.image_size} but got {w}')
-        n_h = h // p # number of rows of patches
-        n_w = w // p # number of cols of patches
+        n_h = h // p # image height divides into n_h patches
+        n_w = w // p # image width divides into n_w patches
 
         # (n, c, h, w) -> (n, hidden_dim, n_h, n_w); i.e. patchify
         x = self.conv_proj(x)
@@ -198,6 +210,7 @@ class ViT(nn.Module):
         x = self.encoder(x)
 
         # Classifier "token" as used by standard language architectures
+        # by feeding trained "class" embedding into MLP classification head
         x = x[:, 0]
         x = self.heads(x)
 
