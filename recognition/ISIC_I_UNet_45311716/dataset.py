@@ -21,11 +21,11 @@ class UNetData():
                                             ])
         # Training dataset
         train_set = torchvision.datasets.ImageFolder(root=path+'training_images', transform=data_transform)
-        train_loader = torch.utils.data.DataLoader(train_set, batch_size=1, shuffle=False)
+        train_loader = torch.utils.data.DataLoader(train_set, batch_size=16, shuffle=False)
 
         # Truth dataset
         truth_set = torchvision.datasets.ImageFolder(root=path+'training_masks', transform=mask_transform)
-        truth_loader = torch.utils.data.DataLoader(truth_set, batch_size=1, shuffle=False)
+        truth_loader = torch.utils.data.DataLoader(truth_set, batch_size=16, shuffle=False)
 
         self.train_data = []
         
@@ -37,11 +37,11 @@ class UNetData():
 
         # Validating dataset
         valid_set = torchvision.datasets.ImageFolder(root=path+'validation_images', transform=data_transform)
-        valid_loader = torch.utils.data.DataLoader(valid_set, batch_size=1, shuffle=False)
+        valid_loader = torch.utils.data.DataLoader(valid_set, batch_size=16, shuffle=False)
 
         # Truth dataset
         valid_t_set = torchvision.datasets.ImageFolder(root=path+'validation_masks', transform=mask_transform)
-        valid_t_loader = torch.utils.data.DataLoader(valid_t_set, batch_size=1, shuffle=False)
+        valid_t_loader = torch.utils.data.DataLoader(valid_t_set, batch_size=16, shuffle=False)
 
         self.valid_data = []
         
