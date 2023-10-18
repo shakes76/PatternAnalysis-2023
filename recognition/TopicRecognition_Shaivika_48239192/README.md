@@ -87,6 +87,27 @@ Key results and highlights:
 
 4. **Visual Representation**: The script not only provides numerical results but also offers a visual representation of model predictions. A set of random test images, along with their actual and predicted labels, allows for a qualitative assessment of the model's performance.
 
+#### Resizing image
+![Resized image loading..][recognition/TopicRecognition_Shaivika_48239192/output_images/image.png]
+
+#### Dividing images into Patches
+![Patched image loading..][recognition/TopicRecognition_Shaivika_48239192/output_images/patches.png]
+
+#### Model loss graph
+![Model loss graph image loading..][recognition/TopicRecognition_Shaivika_48239192/output_images/model_loss.png]
+
+#### Model accuracy graph
+![Model accuracy graph image loading..][recognition/TopicRecognition_Shaivika_48239192/output_images/model_accuracy.png]
+
+#### Heatmap
+![Heatmap image loading..][recognition/TopicRecognition_Shaivika_48239192/output_images/heatmap.png]
+
+#### Accuracy
+![Accuracy image loading..][recognition/TopicRecognition_Shaivika_48239192/output_images/accuracy.png]
+
+#### Actual vs Predicted Analysis
+![Actual vs Predicted image loading..][recognition/TopicRecognition_Shaivika_48239192/output_images/actual_vs_prediction.png]
+
 ### Data Preprocessing
 The data preprocessing involves loading and preprocessing the ADNI dataset. It includes resizing images, normalizing pixel values. 
 
