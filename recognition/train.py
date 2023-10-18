@@ -14,8 +14,8 @@ EMBEDDED_DIMENTIONS = 32 # Dimensions in lower dimensionality space
 CROSS_ATTENTION_HEADS = 1
 SELF_ATTENTION_HEADS = 4
 SELF_ATTENTION_DEPTH = 4
-MODEL_DEPTH = 2
-EPOCHS = 300
+MODEL_DEPTH = 4
+EPOCHS = 2
 BATCH_SIZE = 5
 LEARNING_RATE = 0.0004
 SAVE_PATH_LOCATION = "./MODEL.txt"
@@ -44,10 +44,10 @@ for epoch in range(EPOCHS):
     running_loss = 0
     for data in trainloader:
         # get the inputs; data is a list of [inputs, labels]
-        inputs, labels = [a.to(device) for a in data]
-        # inputs, labels = data
-        # inputs = inputs.to(device)
-        # labels = labels.to(device)
+        #inputs, labels = [a.to(device) for a in data]
+        inputs, labels = data
+        inputs = inputs.to(device)
+        labels = labels.to(device)
 
         # zero the parameter gradients
         optimiser.zero_grad()
@@ -59,12 +59,12 @@ for epoch in range(EPOCHS):
         loss.backward()
         optimiser.step()
 
-        _, predicted = torch.max(outputs.data, 1)
-        #predicted = torch.max(outputs.data, 1)[1]
-        total += labels.size(0)
-        #total += labels.shape[0]
-        correct += (predicted == labels).sum().item()
-        #correct += torch.sum(predicted == labels).item()
+        #_, predicted = torch.max(outputs.data, 1)
+        predicted = torch.max(outputs.data, 1)[1]
+        #total += labels.size(0)
+        total += labels.shape[0]
+        #correct += (predicted == labels).sum().item()
+        correct += torch.sum(predicted == labels).item()
 
         running_loss += loss.item()
 
