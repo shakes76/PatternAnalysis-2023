@@ -72,8 +72,6 @@ def data_loader():
     # Get all the paths to the images in the directories
     ad_path = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
     nc_path = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
-    ad_test_path = [os.path.join(AD_TEST_PATH, path) for path in os.listdir(AD_TEST_PATH)]
-    nc_test_path = [os.path.join(NC_TEST_PATH, path) for path in os.listdir(NC_TEST_PATH)]
 
     X_data = []
     X_data_labels = []
@@ -87,20 +85,6 @@ def data_loader():
 
     # Load images in the NC train path
     for fpath in nc_path:
-        image = Image.open(fpath)
-        X_data.append(np.array(image))
-        X_data_labels.append(0)
-        image.close()
-
-    # Load images in the AD test path
-    for fpath in ad_test_path:
-        image = Image.open(fpath)
-        X_data.append(np.array(image))
-        X_data_labels.append(0)
-        image.close()
-
-    # Load images in the AD test path
-    for fpath in nc_test_path:
         image = Image.open(fpath)
         X_data.append(np.array(image))
         X_data_labels.append(0)
@@ -138,3 +122,31 @@ def data_loader():
     return (x_train_1, x_train_2), labels_train, (x_val_1, x_val_2), labels_val, (x_test_1, x_test_2), labels_test, X_data, X_data_labels
 
 
+def data_test_loader():
+
+    # Get all the paths to the images in the directories
+    ad_test_path = [os.path.join(AD_TEST_PATH, path) for path in os.listdir(AD_TEST_PATH)]
+    nc_test_path = [os.path.join(NC_TEST_PATH, path) for path in os.listdir(NC_TEST_PATH)]
+
+    X_data = []
+    X_data_labels = []
+
+    # Load images in the AD test path
+    for fpath in ad_test_path:
+        image = Image.open(fpath)
+        X_data.append(np.array(image))
+        X_data_labels.append(0)
+        image.close()
+
+    # Load images in the NC test path
+    for fpath in nc_test_path:
+        image = Image.open(fpath)
+        X_data.append(np.array(image))
+        X_data_labels.append(0)
+        image.close()
+    
+    # Convert to numpy array
+    X_test_data = np.array(X_data)
+    X_test_data_labels = np.array(X_data_labels)
+
+    return X_test_data, X_test_data_labels
