@@ -2,24 +2,6 @@ import os
 import zipfile
 import torch
 
-def train(model, loader, optimizer, criterion, DEVICE):
-  model.train()
-  for batch_idx, (images, masks) in enumerate(loader):
-    optimizer.zero_grad()
-    masks = masks.unsqueeze(1)
-    images = images.to(device=DEVICE)
-    masks = masks.to(device=DEVICE)
-
-    preds = model(images)
-    loss = criterion(preds, masks.float())
-    print(loss.item())
-    loss.backward()
-
-    optimizer.step()
-
-def DSC(predictions, masks):
-  return (2 * predictions * masks).sum() / (predictions + masks).sum() + 1e-8
-
 def accuracy(model, loader, device, criterion):
   model.eval()
   correct = 0

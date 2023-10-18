@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 import torch.nn.functional as F
+import torchvision.transforms as tt
 
 class ImprovedUNET(nn.Module):
   def __init__(self, n_channels, n_classes):
@@ -135,3 +136,18 @@ class DiceLoss(nn.Module):
     overlap = (pred_f*truth_f).sum()
     dice = (2*overlap+self.smooth)/(pred_f.sum()+truth_f.sum()+self.smooth)
     return 1-dice
+
+class CustomCompose(tt.Compose):
+    def __call__(self, image, mask):
+        for t in self.transforms:
+            image, mask = t(image, mask)
+        return image, mask
+
+class CustomResize:
+    def __init__(self, size):
+        self.size = size
+
+    def __call__(self, image, mask):
+        image = tt.Resize(self.size)(image)
+        mask = tt.Resize(self.size)(mask)
+        return image, mask

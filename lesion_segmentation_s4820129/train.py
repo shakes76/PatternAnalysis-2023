@@ -1,36 +1,30 @@
-from modules import ImprovedUNET, DiceLoss
+from modules import ImprovedUNET, DiceLoss, CustomCompose, CustomResize
 from dataset import ISICdataset
-from utilities import get_data_from_url, train, DSC, accuracy
-import albumentations as A
-from albumentations.pytorch import ToTensorV2
-from torch.utils.data import Dataset, DataLoader
-import torch
-from torch import nn
+from torch.utils.data import DataLoader
 import wandb
-import torchvision.transforms as tt
-
-wandb.init(project="Lesion_detection", name="UNET")
-
 from torch.utils.data import DataLoader
 from torch.optim import Adam
 from tqdm import tqdm
 
+wandb.init(project="Lesion_detection", name="UNET")
+
+
 # Initialize Dataset and Dataloader
 image_dir = '/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2'
 truth_dir = '/home/groups/comp3710//ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2'
-transform = tt.Compose([tt.Resize((256,256)), tt.ToTensor()])
+transform = CustomCompose([CustomResize((256,256))])
 train_dataset = ISICdataset(image_dir, truth_dir, transform=transform)
 train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 
 # Initialize Model, Loss and Optimizer
 n_channels = 3 # RGB Images
-n_classes = 2  # Background and Object
+n_classes = 1  # Background and Object
 model = ImprovedUNET(n_channels, n_classes)
 criterion = DiceLoss()
 optimizer = Adam(model.parameters(), lr=0.001)
 
 # Training Loop
-num_epochs = 1
+num_epochs = 8
 for epoch in range(num_epochs):
     model.train()
     epoch_loss = 0
@@ -50,7 +44,7 @@ for epoch in range(num_epochs):
         
         epoch_loss += loss.item()
         progress_bar.set_description(f'Epoch {epoch+1}, Loss {loss.item()}')
-        
+    wandb.log({'loss': epoch_loss}) 
     print(f'Epoch {epoch+1}, Avg Loss {epoch_loss/len(train_dataloader)}')
 
 
