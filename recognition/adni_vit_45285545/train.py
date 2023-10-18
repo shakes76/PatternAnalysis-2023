@@ -3,15 +3,15 @@ Training, validation, testing and saving of ViT model on ADNI dataset.
 '''
 import argparse
 import time
-
 from typing import Any
 
 import pandas as pd
 import torch
+from torchvision.models.vision_transformer import ViT_B_16_Weights
 
 from tqdm import tqdm
 
-from dataset import BATCH_SIZE, create_train_dataloader, create_test_dataloader
+from dataset import create_train_dataloader, create_test_dataloader
 from modules import ViT
 
 ### UTILITIES ##################################################################
@@ -230,8 +230,22 @@ def test_model(mdl: Any, device: torch.device, agg: bool = False,
 
 def main(args):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    mdl = ViT().to(device)
+
+    # Model initialised with num_classes=1000 so ImageNet weights can be loaded
+    mdl = ViT(224, 16, 12, 12, 768, 3072, num_classes=1000) # original ViT-B/16 arch.
+    weights = ViT_B_16_Weights.IMAGENET1K_V1 # ImageNet pre-trained weights
+    mdl.load_state_dict(weights.get_state_dict(progress=True, check_hash=True))
+
+    # Now replace model head with equivalent 2-output classifier
+    mdl.heads.head = torch.nn.Linear(768, 2)
+    torch.nn.init.zeros_(mdl.heads.head.weight)
+    torch.nn.init.zeros_(mdl.heads.head.bias)
+
+    # Train the model, returning state after epoch with lowest validation loss
+    mdl = mdl.to(device)
     mdl = train_model(mdl, epochs=args.epochs, device=device, pg=args.pg)
+
+    # Test the model
     test_model(mdl, device=device, pg=args.pg)
 
 
