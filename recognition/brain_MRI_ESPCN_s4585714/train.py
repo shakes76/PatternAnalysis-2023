@@ -22,7 +22,7 @@ if not torch.cuda.is_available():
 # Hyper-parameters
 num_epochs = 100
 learning_rate = 0.001
-root = 'AD_NC'
+root = '/home/group/comp3710/ADNI/AD_NC'
 
 train_loader, valid_loader = dataset.ADNIDataLoader(root, mode='train')
 test_loader = dataset.ADNIDataLoader(root, mode='test')
@@ -139,7 +139,7 @@ with torch.no_grad():
 
         
     print('Avg. PSNR of lowres images is: {}'.format(total_psnr_downscaled/ len(psnr_downscaleds)))
-    print('Avg. PSNR of reconstructions is: {}'.format(total_psnr_pred/ len(psnr_pred)))
+    print('Avg. PSNR of reconstructions is: {}'.format(total_psnr_pred/ len(psnr_preds)))
 end = time.time()
 elapsed = end - start
 print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total") 
