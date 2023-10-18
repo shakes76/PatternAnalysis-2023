@@ -1,4 +1,4 @@
-# Perceiver Transformer 
+# Visual Transformer 
 #### Rhys Tyne s46481894
 
 #### Task explanation
