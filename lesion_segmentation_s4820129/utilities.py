@@ -21,7 +21,7 @@ def train(model, loader, optimizer, criterion, DEVICE):
   model.train()
   for batch_idx, (images, masks) in enumerate(loader):
     optimizer.zero_grad()
-    masks = masks.unsqueeze(0)
+    masks = masks.unsqueeze(1)
     images = images.to(device=DEVICE)
     masks = masks.to(device=DEVICE)
 
