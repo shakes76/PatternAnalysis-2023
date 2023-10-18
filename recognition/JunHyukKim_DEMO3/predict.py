@@ -85,7 +85,7 @@ def main():
     loaded_model.to(DEVICE)
     loaded_model.eval()
     utils.save_predictions_as_imgs(valid_dataloader,loaded_model)
-    utils.check_accuracy(valid_dataloader,loaded_model)
+    utils.check_accuracy(valid_dataloader,loaded_model,folder="saved_images/")
 
 
 

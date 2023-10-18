@@ -42,21 +42,28 @@ def load_checkpoint(checkpoint, model):
 
 
 
-def save_predictions_as_imgs(loader, model, folder="valid_images/", device="cuda"):
+def save_predictions_as_imgs(loader, model, folder="saved_images/", device="cuda"):
     DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     model.eval()
     for idx, batch in enumerate(loader):
         images = batch['image']
         masks = batch['mask']
+        #print("1",masks.max())        
         images = images.to(DEVICE)
         masks = masks.to(DEVICE)
         images, masks = images.cuda(), masks.cuda() 
         with torch.no_grad():
             preds = model(images)
-            preds = (preds > 0.5).float()
+            print("1",preds.max())
+            print("1",masks.max())
+            preds = torch.round(preds)
+            masks = torch.round(masks)
+            print("2",preds.max())
+            print("2",masks.max())
         torchvision.utils.save_image(
             preds, f"{folder}/pred_{idx}.png"
         )
         torchvision.utils.save_image(masks, f"{folder}{idx}.png")
 
     model.train()
+    

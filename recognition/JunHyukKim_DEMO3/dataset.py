@@ -82,9 +82,9 @@ class CustomDataset(Dataset):
 
         image = np.array(image)
         mask = np.array(mask)
-        #mask[mask != 255.0] = 0.0
+        mask[mask != 255.0] = 0.0
         #mask[mask == 255.0] = 1.0
-        
+        #print("dataset1",mask.max())
         #print(mask)
         #print(mask.mean())
         #print(mask.max())
@@ -96,6 +96,8 @@ class CustomDataset(Dataset):
         
         if self.transform is not None:
             image, mask = self.custom_transform(image, mask)
+            #print("dataset2",mask.max())
+
             #image = augmentations["image"]
             #mask = augmentations["mask"]
         sample = {'image': image, 'mask': mask}
