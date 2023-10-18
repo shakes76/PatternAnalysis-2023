@@ -38,12 +38,6 @@ def main():
                 weight_decay=weight_decay,
                 epochs=epochs)
     
-    evaluate_model(model=model,
-                   root=root,
-                   image_size=image_size,
-                   crop_size=crop_size,
-                   batch_size=batch_size)
-    
     save_model(model, model_name)
 
         

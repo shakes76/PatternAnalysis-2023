@@ -29,7 +29,7 @@ def create_model(image_size, in_channels, patch_size, embedding_dims, num_heads,
 
 def train_model(model, root, image_size, batch_size, crop_size, learning_rate, weight_decay, epochs):
     device = get_device()
-    train_loader, _ = load_dataloaders(root, image_size, crop_size, batch_size)
+    train_loader, test_loader = load_dataloaders(root, image_size, crop_size, batch_size)
     model = model.to(device)
     optimizer = Adam(model.parameters(), lr=learning_rate)
     criterion = CrossEntropyLoss()
@@ -50,11 +50,7 @@ def train_model(model, root, image_size, batch_size, crop_size, learning_rate, w
             optimizer.step()
 
         print(f"Epoch {epoch + 1}/{epochs} loss: {train_loss:.2f}")
-
-def evaluate_model(model, root, image_size, crop_size, batch_size):
-    device = get_device()
-    _, test_loader = load_dataloaders(root, image_size, crop_size, batch_size)
-    criterion = CrossEntropyLoss()
+        
     model.eval()
     
     with torch.no_grad():
@@ -71,7 +67,7 @@ def evaluate_model(model, root, image_size, crop_size, batch_size):
             total += len(x)
         print(f"Validation loss: {validation_loss:.2f}")
         print(f"Validation accuracy: {correct / total * 100:.2f}%")
-    return
+    
 
 def predict(model, dataloader, num_samples=5):
     # Set the model to evaluation mode
