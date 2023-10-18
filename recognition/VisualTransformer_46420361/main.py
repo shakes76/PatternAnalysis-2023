@@ -14,8 +14,8 @@ def main():
     num_classes = 2
     
     # hyperparameters
-    epochs = 10
-    learning_rate = 0.001
+    epochs = 5
+    learning_rate = 0.002
     weight_decay = 0.0001
 
     model = create_model(image_size=image_size,
