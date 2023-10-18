@@ -1,3 +1,4 @@
+"""The primary function where hyperparameters and variables can be tuned"""
 from train import *
 
 

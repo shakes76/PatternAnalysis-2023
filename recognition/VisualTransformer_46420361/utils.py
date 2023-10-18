@@ -1,3 +1,4 @@
+"""Utility file for miscellaneous helper functions"""
 import random
 import matplotlib
 matplotlib.use('tkagg')

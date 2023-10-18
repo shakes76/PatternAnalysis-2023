@@ -1,3 +1,4 @@
+"""Preprocessing of data, generating and loading of datasets and loaders"""
 from torchvision.datasets import ImageFolder
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader

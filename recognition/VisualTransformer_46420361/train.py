@@ -1,3 +1,4 @@
+"""Used to train and evaluate the model performance"""
 import torch
 from torch.optim import Adam
 from torch.nn import CrossEntropyLoss

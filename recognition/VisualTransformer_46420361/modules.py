@@ -1,3 +1,4 @@
+"""Blocks and layers that make up the ViT model"""
 import torch
 from torch import nn
 
