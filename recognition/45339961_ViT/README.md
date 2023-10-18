@@ -165,21 +165,43 @@ embedding_dropout = 0.1 # Table 3 from [1]
 learning_rate = 0.003   # Table 3 from [1]
 ```
 
-### 4.2.2 Varying Hyperparameters
+### 4.2.2 Hyperparameter Tuning
 The following parameters were kept the same throughout testing:
 ```
 LIST OF HYPERPARAMETERS
 ```
+| Learning Rate | Accuracy |
+|-|-|
+| 0.01   | X% |
+| 0.001  | X% |
+| 0.0001 | X% |
 
-| Test | Accuracy |
-|------|----------|
-| something | something else |
+| Data Split | Accuracy |
+|-|-|
+| 0.01   | X% |
+| 0.001  | X% |
+| 0.0001 | X% |
+
+| Test | Change | Accuracy |
+|------|--------|----------|
+| Data Split | 0.6, 0.7, 0.9 | X%, X%, X% |
+| Learning Rate | 0.1, 0.01, 0.001 | X%, X%, X% |
+
+### Visualisations
+The image below is an example plot of accuracies and losses of training and validation data during model training:
+
+<img src="misc\past_results\example_losses_accuracies.png" width="" height=""/>
+
+The image below is an example set of predictions of a trained model on a random sample of test images:
+
+<img src="misc\past_results\example_predictions.png" width="600" height="400"/>
 
 ## 4.3 Reproducibility of Results
 - Due to the dynamic nature of the training and validation data split (the )
 - discussion of overall effectiveness as well?
 
 # 5. Future Direction
+For future training and testing, it is recommended that the PyTorch tool 
 
 # 6. References
 https://arxiv.org/pdf/2010.11929.pdf

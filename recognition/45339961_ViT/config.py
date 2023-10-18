@@ -1,7 +1,7 @@
 """ Customisable configuration for ViT model. """
 
 # General user preferences
-will_save = True
+will_save = False
 will_load = False
 show_model_summary = False
 will_train = True

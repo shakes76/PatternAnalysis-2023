@@ -1,4 +1,5 @@
 """ Source of the components of model. """
+
 # Acknowledgement: This code is adapted from the following source:
 # https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
 
