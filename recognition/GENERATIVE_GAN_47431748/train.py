@@ -47,23 +47,23 @@ PIXEL_CNN_LEARNING_RATE = VQVAE_LEARNING_RATE
 PIXEL_CNN_OPTIMISER = VQVAE_OPTIMISER
 PIXEL_CNN_LOSS = losses.SparseCategoricalCrossentropy(from_logits=True)
 
-num_channels = 3 if RGB else 1
+NUM_CHANNELS = 3 if RGB else 1
 
 # GPU config
 gpu_used = len(tf.config.list_physical_devices('GPU'))
 device = '/GPU:0' if gpu_used else '/CPU:0'
 
 train_data = prep_data(path=FILE_PATH + 'train', img_dim=IMG_SHAPE,
-                       batch_size=BATCH_SIZE, rgb=RGB,
+                       batch_size=BATCH_SIZE, RGB=RGB,
                        validation_split=VALIDATION_SPLIT,
                        subset='training', seed=SEED, shift=PIXEL_SHIFT)
 
 val_data = prep_data(path=FILE_PATH + "train", img_dim=IMG_SHAPE,
-                     batch_size=BATCH_SIZE, rgb=RBG,
+                     batch_size=BATCH_SIZE, RGB=RGB,
                      validation_split=VALIDATION_SPLIT,
                      subset="validation", seed=SEED, shift=PIXEL_SHIFT)
 
-test_data = prep_data(path=FILE_PATH + 'test', img_dim=IMG_SHAPE, batch_size=BATCH_SIZE, rgb=RGB, shift=PIXEL_SHIFT)
+test_data = prep_data(path=FILE_PATH + 'test', img_dim=IMG_SHAPE, batch_size=BATCH_SIZE, RGB=RGB, shift=PIXEL_SHIFT)
 
 # Calculate training variance across pixels
 full_train_data = train_data.unbatch()
@@ -76,7 +76,7 @@ full_test_data = val_data.unbatch()
 num_test_images = full_test_data.reduce(np.int32(0), lambda x, _: x + 1).numpy()
 
 # Calculate training variance
-num_train_pixels = num_train_images * num_channels * IMG_SHAPE ** 2
+num_train_pixels = num_train_images * NUM_CHANNELS * IMG_SHAPE ** 2
 
 image_sum = full_train_data.reduce(np.float32(0), lambda x, y: x + y).numpy().flatten()
 tot_pixel_sum = image_sum.sum()
@@ -116,8 +116,8 @@ def mean_ssim(data, data_size, model):
 
 # VQ-VAE Model
 vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM,
-              beta=BETA, num_channels=num_channels)
-
+              beta=BETA, num_channels=NUM_CHANNELS)
+print('Model created')
 # Create directories if they do not already exist
 if not exists(SAVED_WEIGHTS_PATH):
     mkdir(SAVED_WEIGHTS_PATH)
@@ -133,6 +133,7 @@ final_train_mean_ssim = final_val_mean_ssim = 0
 # Train the VQVAE
 vqvae.compile(optimizer=VQVAE_OPTIMISER)
 
+print('Training beginning ')
 if TRAINING_VQVAE:
     with tf.device(device):
         vqvae.fit(train_data, epochs=NUM_EPOCHS_VQVAE, callbacks=[training_csv_logger], validation=val_data)
@@ -154,7 +155,7 @@ if TRAINING_VQVAE:
         vqvae.save_weights(SAVED_WEIGHTS_PATH + 'trained_model_weights')
 
 # Load the trained model
-vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM, num_channels=num_channels)
+vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM, num_channels=NUM_CHANNELS)
 vqvae.load_weights(VQVAE_WEIGHTS_PATH + 'trained_model_weights')
 
 
