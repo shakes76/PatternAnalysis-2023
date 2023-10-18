@@ -29,7 +29,7 @@ def create_model(image_size, in_channels, patch_size, embedding_dims, num_heads,
 
 def train_model(model, root, image_size, batch_size, crop_size, learning_rate, weight_decay, epochs):
     device = get_device()
-    train_loader, _, _ = load_dataloaders(root, image_size, crop_size, batch_size)
+    train_loader, _ = load_dataloaders(root, image_size, crop_size, batch_size)
     model = model.to(device)
     optimizer = Adam(model.parameters(), lr=learning_rate)
     criterion = CrossEntropyLoss()
@@ -53,19 +53,19 @@ def train_model(model, root, image_size, batch_size, crop_size, learning_rate, w
 
 def evaluate_model(model, root, image_size, crop_size, batch_size):
     device = get_device()
-    _, _, validation_dataloader = load_dataloaders(root, image_size, crop_size, batch_size)
+    _, test_loader = load_dataloaders(root, image_size, crop_size, batch_size)
     criterion = CrossEntropyLoss()
     model.eval()
     
     with torch.no_grad():
         correct, total = 0, 0
         validation_loss = 0.0
-        for batch in tqdm(validation_dataloader, desc="Validation"):
+        for batch in tqdm(test_loader, desc="Validation"):
             x, y = batch
             x, y = x.to(device), y.to(device)
             y_hat = model(x)
             loss = criterion(y_hat, y)
-            validation_loss += loss.detach().cpu().item() / len(validation_dataloader)
+            validation_loss += loss.detach().cpu().item() / len(test_loader)
 
             correct += torch.sum(torch.argmax(y_hat, dim=1) == y).detach().cpu().item()
             total += len(x)
