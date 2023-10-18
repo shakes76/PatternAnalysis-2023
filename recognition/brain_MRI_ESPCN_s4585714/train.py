@@ -103,7 +103,7 @@ plt.tight_layout()
 plt.savefig("training_loss.png")
 
 # load the model state
-model.load_state_dict(torch.load(model.pth))
+model.load_state_dict(torch.load('model.pth'))
 
 # Test the model
 print("> Testing")
