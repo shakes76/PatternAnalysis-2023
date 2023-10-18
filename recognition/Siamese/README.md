@@ -87,4 +87,31 @@ With a label tensor showing which two images are from the same class
 
 [0. 1. 0. 1. 1. 0. 0. 0.]
 
-The next important aspect is the 
+The next important aspect is the Siamese model itself. The Siamese model is set up like other CNN model's but with one key difference. That difference is that the Siamese model takes two images and run's them through the convulation layers before outputing them. Thus the model need's to run two images simultaneously through the model to get two different outputs. The forward function that handles this looks like 
+```
+    def forward(self, x1, x2):
+        output1 = self.features(x1)
+        output2 = self.features(x2)
+        output1 = output1.view(output1.size(0), -1)
+        output1 = self.classifier(output1)
+        output2 = output2.view(output2.size(0), -1)
+        output2 = self.classifier(output2)
+        return output1, output2
+```
+
+The reason two output's are given is to make use of the custom contrastive loss function used to train the model. The contrastive loss function take's two image outputs from the model and compares them based on the label. If the label say's the images are from the same class, the loss function calculates the euclidean distance of the two outputs in order to calculate dissimilarity of the two images. On the other hand if the two images are from different classes, the loss function calculates similarity of the two images. This is so that images in the same class can be as similar as possible while images in different classes can be as different as possible. 
+
+### The loss contrastive function used look's like this 
+```
+class ContrastiveLoss(torch.nn.Module):
+    def __init__(self, margin=2.0):
+        super(ContrastiveLoss, self).__init__()
+        self.margin = margin
+    
+    def forward(self, img1, img2, label):
+        distance = torch.nn.functional.pairwise_distance(img1, img2, keepdim=True) #distance finds similarities between images
+        reverse_dist = self.margin - distance #reverse distance find's difference between images
+        reverse_dist = torch.clamp(reverse_dist, min=0.0)
+        #if label is 1, returns distance, else if label is 0 returns reverse distance
+        return torch.mean(torch.pow(reverse_dist, 2) * (abs(label-1)) + ((torch.pow(distance, 2)) * label))
+```
