@@ -1,3 +1,9 @@
+"""
+File: predict.py
+Author: Maia Josang
+Description: Performs super-resolution on test data using the trained model and visualizes the results.
+"""
+
 import torch
 import matplotlib.pyplot as plt
 from modules import SuperResolutionModel

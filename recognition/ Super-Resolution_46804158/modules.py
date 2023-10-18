@@ -1,3 +1,9 @@
+"""
+File: modules.py
+Author: Maia Josang
+Description: Contains the Super-Resolution model implementation using PyTorch.
+"""
+
 import torch
 import torch.nn as nn
 

@@ -1,3 +1,9 @@
+"""
+File: dataset.py
+Author: Maia Josang
+Description: Contains the data loading and preprocessing for the Super-Resolution project.
+"""
+
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader

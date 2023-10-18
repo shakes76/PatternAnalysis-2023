@@ -1,3 +1,9 @@
+"""
+File: train.py
+Author: Maia Josang
+Description: Trains the Super-Resolution model using the ADNI brain dataset and saves the trained model.
+"""
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
