@@ -97,7 +97,7 @@ first presenting the optimal mode and also displaying other attempts (models wit
 
 ### Optimal Model:
 
-This model attains a test accuracy of 89%
+This model attains a test accuracy of 92.52%
 
 **Table 1**
 
