@@ -1,62 +1,59 @@
 from imports import *
 from dataset import *
 from modules import *
-
-# Set device
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-def beta_schedule(timesteps):
-    start = 0.0001
-    end = 0.02
-    return torch.linspace(start, end, timesteps)
-
-# Initialize models and dataset
-num_steps = 1000
-betas = beta_schedule(num_steps)
+from utils import *
 
 # Load trained model
-model_path = "diffusion_network99.pth"
-diffusion_process = DiffusionProcess(betas, num_steps).to(device)
-diffusion_network = DiffusionNetwork()
-diffusion_network.load_state_dict(torch.load(model_path))
-diffusion_network.to(device)
-diffusion_network.eval()  # set to evaluation mode
+model_path = "diffusion_network51.pth"
+model = DiffusionNetwork()
+model.load_state_dict(torch.load(model_path))
+model.to(device)
+model.eval()
 
-# Load a sample batch of data
-batch_size = 3
-dataloader = process_dataset(batch_size=batch_size, is_validation=True)
-sample_batch = next(iter(dataloader)).to(device)
-
-# Apply diffusion process
-diffused_sample = diffusion_process(sample_batch)
-
-# Generate images from diffused images
-with torch.no_grad():
-    output_samples = diffusion_network(diffused_sample)
-
-# Move data to CPU for visualization
-sample_batch = sample_batch.cpu()
-diffused_sample = diffused_sample.cpu()
-output_samples = output_samples.cpu()
-
-# Visualize
-fig, axes = plt.subplots(3, 3, figsize=(15, 15))
-
-for i in range(3):
-    axes[i, 0].imshow(sample_batch[i][0], cmap='gray')
-    axes[i, 0].set_title('Original Image')
+"""
+Taken from https://huggingface.co/blog/annotated-diffusion
+"""
+@torch.no_grad()
+def reverse_diffusion_step(model, x, t, t_index):
+    betas_t = extract(betas, t, x.shape)
+    sqrt_one_minus_alphas_cumprod_t = extract(sqrt_one_minus_alphas_cumprod, t, x.shape)
+    sqrt_recip_alphas_t = extract(sqrt_recip_alphas, t, x.shape)
     
-    axes[i, 1].imshow(diffused_sample[i][0], cmap='gray')
-    axes[i, 1].set_title('Diffused Image')
+    # use our model to predict the mean
+    model_mean = sqrt_recip_alphas_t * (x - betas_t * model(x, t) / sqrt_one_minus_alphas_cumprod_t)
+
+    if t_index == 0:
+        return model_mean
+    else:
+        posterior_var_t = extract(posterior_variance, t, x.shape)
+        noise = torch.randn_like(x)
+        return model_mean + torch.sqrt(posterior_var_t) * noise
+
+@torch.no_grad()
+def reverse_diffusion(model, shape=(1, 1, 256, 256)):
+    device = next(model.parameters()).device
+    fig = plt.figure(figsize=(15, 15))
+    plt.axis("off")
+
+    reverse_transform = Compose([
+        Lambda(lambda t: (t + 1) / 2),
+        Lambda(lambda t: t * 255.),
+    ])
+
+    rows = 3
+    cols = 3
+    counter = 1
+
+    for i in range(1, rows * cols + 1):
+        img = torch.randn((1, 1, 256, 256)).cuda()
+        t = torch.full((1,), 0, device=device, dtype=torch.long)  # Assuming the last time step
+        with torch.no_grad():
+            img = reverse_diffusion_step(model, img, t, 0)  # Assuming `reverse_diffusion_step` is defined elsewhere
+        ax = plt.subplot(rows, cols, counter)
+        ax.axis("off")
+        plt.imshow(reverse_transform(img[0].permute(1, 2, 0).detach().cpu()), cmap="gray")
+        counter += 1
     
-    axes[i, 2].imshow(output_samples[i][0], cmap='gray')
-    axes[i, 2].set_title('Generated Image')
-
-for ax_row in axes:
-    for ax in ax_row:
-        ax.axis('off')
-
-# Save images
-save_dir = os.path.expanduser("~/demo_eiji/sd/images")
-full_path = os.path.join(save_dir, "image_visualization.png")
-plt.savefig(full_path)
+    save_dir = os.path.expanduser("~/demo_eiji/sd/images")
+    full_path = os.path.join(save_dir, "image_visualization.png")
+    plt.savefig(full_path)
