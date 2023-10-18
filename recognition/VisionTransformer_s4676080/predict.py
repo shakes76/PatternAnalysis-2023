@@ -1,4 +1,9 @@
-# This is predict file
+"""
+predict.py: This script loads a trained VisionTransformer model and uses it to 
+predict the class of a given image. It then visualizes the input image and 
+provides a confidence score bar chart.
+"""
+
 
 #importing libraries
 import torch
@@ -62,6 +67,39 @@ def plot_image(image_path, save_path):
     plt.savefig(save_path)
     plt.show()
 
+def plot_confidence_scores(probabilities, predicted_class, save_path):
+    """
+    Plot and save the model's confidence scores for both classes.
+    
+    Parameters:
+        probabilities: Model's softmax output.
+        predicted_class: Predicted class ('AD' or 'NC').
+        save_path: Path to save the plotted graph.
+    """
+    labels = ['AD', 'NC']
+    scores = [probabilities[0, 1].item()*100, probabilities[0, 0].item()*100]
+    y_pos = np.arange(len(labels))
+    bars = plt.bar(y_pos, scores, align='center', alpha=0.75, color=['red', 'blue'])
+    plt.xticks(y_pos, labels)
+    plt.ylabel('Confidence (%)')
+    plt.title('Model Confidence Scores')
+
+    # Highlighting the predicted class
+    plt.gca().patches[y_pos[labels.index(predicted_class)]].set_facecolor('yellow')
+
+    # Annotating bars with their respective percentages
+    for bar in bars:
+        yval = bar.get_height()
+        plt.annotate(f'{yval:.2f}%',
+                     xy=(bar.get_x() + bar.get_width() / 2, yval),
+                     xytext=(0, 1),  # 3 points vertical offset
+                     textcoords="offset points",
+                     ha='center', va='bottom')
+
+    # Saving the figure
+    plt.savefig(save_path)
+    plt.show()
+
 # main function
 if __name__ == '__main__':
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -75,4 +113,4 @@ if __name__ == '__main__':
     print(f"Predicted Class: {predicted_class}")
     print(f"Confidence Scores - AD: {probabilities[0, 1].item()*100:.2f}%, NC: {probabilities[0, 0].item()*100:.2f}%")
     
-    
+    plot_confidence_scores(probabilities, predicted_class, '/content/drive/MyDrive/confidence_scores.png')
