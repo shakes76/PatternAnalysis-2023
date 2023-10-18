@@ -4,9 +4,9 @@ import tensorflow as tf
 
 @tf.function
 def load_jpeg(path: str):
-    return tf.cast(
-        tf.io.decode_jpeg(tf.io.read_file(path), channels=1), dtype=tf.float32
-    ) / tf.constant(255.0)
+    return tf.image.per_image_standardization(
+        tf.cast(tf.io.decode_jpeg(tf.io.read_file(path), channels=1), dtype=tf.float32)
+    )
 
 
 def get_jpegs(path: str) -> list[str]:
