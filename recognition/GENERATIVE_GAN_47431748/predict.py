@@ -6,7 +6,8 @@ from train import *
 TRAINING_VQVAE = False
 TRAINING_PIXELCNN = False
 
-vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM, num_channels=NUM_CHANNELS)
+vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM,
+              num_channels=NUM_CHANNELS)
 vqvae.load_weights(VQVAE_WEIGHTS_PATH + 'trained_model_weights')
 
 # Generate and plot some VQ-VAE reconstructions from test set
@@ -62,9 +63,9 @@ def generate_vqvae_images(images):
             print(f"SSIM between Test Image {i} and Reconstruction: ", ssim)
             sys.stdout = main_stdout
 
-    for sample_batch in test_data.take(1).as_numpy_iterator():
-        sample_batch = sample_batch[:NUM_IMAGES_TO_SHOW]
-        generate_vqvae_images(sample_batch)
+for sample_batch in test_data.take(1).as_numpy_iterator():
+    sample_batch = sample_batch[:NUM_IMAGES_TO_SHOW]
+    generate_vqvae_images(sample_batch)
 
     # Load trained model
     pixelCNN = PixelCNN(num_res=NUM_RESIDUAL_LAYERS, num_pixel_B=NUM_PIXEL_B_LAYERS,

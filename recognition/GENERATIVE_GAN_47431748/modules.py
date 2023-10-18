@@ -20,7 +20,8 @@ class VQ(layers.Layer):
 
         runif_initialiser = tf.random_uniform_initializer()
         encoded_shape = self._latent_dim, self._num_encoded
-        self._encoded = tf.Variable(initial_value=runif_initialiser(shape=encoded_shape, dtype='float32'))
+        self._encoded = tf.Variable(initial_value=runif_initialiser(shape=encoded_shape,
+                                                                    dtype='float32'))
 
     def get_encoded(self):
         """
@@ -56,7 +57,8 @@ class VQ(layers.Layer):
         # Quantise
         encoded_indices = self.get_codebook_indices(flattened_input)
         onehot_indices = tf.one_hot(encoded_indices, self._num_encoded)
-        quantised = tf.reshape(tf.linalg.matmul(onehot_indices, self._encoded, transpose_b=True), original_shape)
+        quantised = tf.reshape(
+            tf.linalg.matmul(onehot_indices, self._encoded, transpose_b=True), original_shape)
 
         # Calculates VQ loss from **insert ref**
         quantised_loss = tf.reduce_mean((quantised - tf.stop_gradient(inputs)) ** 2)
@@ -91,7 +93,7 @@ class Encoder(Model):
 
 
 class Decoder(Model):
-    def __int__(self, name='decoder', num_channels=1, **kwargs):
+    def __init__(self, name='decoder', num_channels=1, **kwargs):
         """
         Defined decoder portion of VQ-VAE
         :return: None
@@ -114,12 +116,13 @@ class Decoder(Model):
 
 
 class VQVAE(Model):
-    def __init__(self, tr_var, num_encoded=64, latent_dim=16, beta=0.25, num_channels=3, name='vq_vae', **kwargs):
+    def __init__(self, tr_var, num_encoded=64, latent_dim=16, beta=0.25, num_channels=3,
+                 name='vq_vae', **kwargs):
         """
         Defines VQVAE
         :return: None
         """
-        super(VQVAE, self).__init__(name=name)
+        super(VQVAE, self).__init__(name=name, **kwargs)
         self._tr_var = tr_var
         self._num_encoded = num_encoded
         self._num_channels = num_channels
@@ -128,7 +131,7 @@ class VQVAE(Model):
 
         self._encoder = Encoder(self._latent_dim)
         self._vq = VQ(self._num_encoded, self._latent_dim, self._beta)
-        self._decoder = Decoder(num_channels=self._num_channels)
+        self._decoder = Decoder(num_channels=num_channels)
 
         self._total_loss = metrics.Mean(name='total_loss')
         self._vq_loss = metrics.Mean(name='vq_loss')
@@ -227,7 +230,6 @@ class PixelConv(layers.Layer):
     def __init__(self, kernel_mask_type, name='pixel_conv', **kwargs):
         super(PixelConv, self).__init__(name=name)
         self._main_conv = layers.Conv2D(**kwargs)
-
         self._kernel_mask_type = kernel_mask_type
 
     def build(self, input_shape):
