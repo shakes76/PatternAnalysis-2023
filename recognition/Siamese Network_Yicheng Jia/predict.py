@@ -1,93 +1,75 @@
 import torch
-import torchvision
-from matplotlib.pyplot import imshow
-from sklearn.metrics import confusion_matrix
-import seaborn as sns
-import matplotlib.pyplot as plt
-from modules import SiameseResNet
-from train import test_dataloader, writer
+import torch.nn as nn
+from torch.utils.data import DataLoader
+
+import dataset
+from modules import SiameseNetwork
 
 
-# Set the device
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-# Set seeds for reproducibility
-SEED = 1234
-torch.manual_seed(SEED)
-torch.cuda.manual_seed(SEED)
-
-# Check if CUDA is available and set the device accordingly
-torch.backends.cudnn.deterministic = True
-torch.backends.cudnn.benchmark = False
-
-# Initialize the number of correct predictions to zero
-correct = 0
-total = 0
-
-# Load the trained Siamese network model
-net = SiameseResNet().to(device)
-net.load_state_dict(torch.load("model.pth", map_location=device))
-
-# Set the network to evaluation mode
-net.eval()
-
-# Define a threshold for classification based on the distance between outputs
-threshold = 0.5
-
-# Create lists to store the true labels and predicted labels
-labels_list = []
-predict_list = []
-
-# Loop through the test data and make predictions using the trained model
-for i, data in enumerate(test_dataloader, 0):
-    # Get the images and labels from the data
-    img0, img1, label = data
-
-    # Move the images and labels to the appropriate device
-    img0, img1, label = img0.to(device), img1.to(device), label.to(device)
-
-    # Get the outputs from the Siamese network
-    output1, output2 = net(img0, img1)
-
-    # Calculate the Euclidean distance between the two outputs
-    distance = torch.nn.functional.pairwise_distance(output1, output2)
-
-    # Classify the pair based on the distance
-    pred = (distance < threshold).float()
-
-    # Update the total number of predictions
-    total += label.size(0)
-
-    # Update the number of correct predictions
-    correct += (pred == label).sum().item()
-
-    # Concatenate and display the images
-    concatenated = torch.cat((img0, img1), 0)
-    imshow(torchvision.utils.make_grid(concatenated.cpu().detach()))
-
-    # Print the predicted and actual labels
-    print(f"Predicted: {pred.item()}, Actual: {label.item()}")
-
-    labels_list.append(label.item())
-    predict_list.append(pred.item())
+def write_to_file(file_path, content):
+    with open(file_path, 'a') as file:
+        file.write(content + '\n')
 
 
-# Calculate the accuracy
-accuracy = 100 * correct / total
-print(f"Accuracy: {accuracy}%")
+def check_CUDA():
+    # Check if CUDA is available and set the device accordingly
+    if torch.cuda.is_available():
+        current_device = torch.device("cuda")
+        torch.cuda.empty_cache()
+    else:
+        current_device = torch.device("cpu")
+    return current_device
 
-# Plot the confusion matrix
-cm = confusion_matrix(labels_list, predict_list)
-print(cm)
-plt.figure(figsize=(10, 10))
-plt.title('Confusion Matrix')
-sns.heatmap(cm, annot=True, fmt='g')
-plt.xlabel('Predicted labels')
-plt.ylabel('True labels')
-plt.show()
 
-# Log the accuracy to tensorboard
-writer.add_scalar('Test Accuracy', accuracy)
+def read_from_checkpoint(current_model_pth: str):
+    # read the model
+    current_checkpoint = torch.load(current_model_pth)
+    net.load_state_dict(current_checkpoint['module_state_dict'])
+    current_training_epoch = current_checkpoint['epoch']
 
-# Close the tensorboard writer
-writer.close()
+    return current_checkpoint, current_training_epoch
+
+
+def predict_progress(current_device,  dataloader):
+    predicted_loss = 0.0
+    predicted_accuracy = 0.0
+    predicted_total_labels = 0.0
+    print("Start testing!")
+    for index, image_data in enumerate(dataloader):
+        img_0, img_1, current_image_label = image_data
+        img_0, img_1, current_image_label = img_0.to(current_device), img_1.to(current_device), current_image_label.to(current_device)
+        with torch.no_grad():
+            outputs = net(img_0, img_1)
+            outputs = outputs.squeeze()
+            loss_values = criterion(outputs, current_image_label)
+
+        predicted_label = (outputs > 0.5).float()
+        predicted_total_labels += current_image_label.size(0)
+        predicted_accuracy += (predicted_label == current_image_label).sum().item()
+        predicted_loss += loss_values.item()
+
+    print("Testing finished, printing results...")
+
+    test_average_loss = predicted_loss / len(dataloader)
+    accuracy = predicted_accuracy / predicted_total_labels * 100
+
+    print(f"Test_Average_Loss:{test_average_loss:.4f},Test_Accuracy:{accuracy:.4f}")
+
+
+if __name__ == '__main__':
+
+    device = check_CUDA()
+    net = SiameseNetwork().to(device)
+
+    # Define the loss function
+    criterion = nn.BCELoss()
+    net.eval()
+
+    # Create data loaders for training and testing datasets AFTER re-instantiating train_dataset
+    current_train_dir, test_dir, current_train_dataset, test_dataset = dataset.transform_directory()
+    test_dataloader = DataLoader(test_dataset, shuffle=True, num_workers=4, batch_size=32)
+
+    # read the model from the checkpoint of the previous module
+    checkpoint, current_epoch = read_from_checkpoint('module_8.pth') # Please usethe pth file you prefre after running train.py.
+
+    predict_progress(device, test_dataloader)
