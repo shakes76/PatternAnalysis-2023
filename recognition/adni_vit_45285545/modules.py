@@ -131,7 +131,7 @@ class ViT(nn.Module):
             in_channels=3, out_channels=hidden_dim, kernel_size=patch_size, stride=patch_size
         )
 
-        # Length of transformer innput sequence
+        # Length of transformer input sequence
         seq_length = (image_size // patch_size) ** 2
 
         # Add a class token
