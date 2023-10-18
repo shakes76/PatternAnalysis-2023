@@ -3,29 +3,28 @@ import tensorflow as tf
 import numpy as np
 import random
 
-AD_PATH = 'C://Users//Danita//OneDrive//Desktop//UQ//sem3//PatterRecognision//Project3//ADNI_AD_NC_2D//AD_NC//train//AD'
-NC_PATH = 'C://Users//Danita//OneDrive//Desktop//UQ//sem3//PatterRecognision//Project3//ADNI_AD_NC_2D//AD_NC//train//NC'
+AD_PATH = "/content/extracted/AD_NC/train/AD"
+NC_PATH = "/content/extracted/AD_NC/train/NC"
 
-AD_TEST_PATH = 'C://Users//Danita//OneDrive//Desktop//UQ//sem3//PatterRecognision//Project3//ADNI_AD_NC_2D//AD_NC//test//AD'
-NC_TEST_PATH = 'C://Users//Danita//OneDrive//Desktop//UQ//sem3//PatterRecognision//Project3//ADNI_AD_NC_2D//AD_NC//test//NC'
+AD_TEST_PATH = "/content/extracted/AD_NC/test/AD"
+NC_TEST_PATH = "/content/extracted/AD_NC/test/NC"
 
-def load_siamese_data(batch_size=32, train_ratio=0.8):# CODE WITH SSHUFFLE
+def load_siamese_data(batch_size=32, train_ratio=0.8):
     def preprocess_image(path):
         image = tf.io.read_file(path)
         image = tf.image.decode_jpeg(image, 1)
         image = tf.image.resize(image, [128, 128])  # You can adjust the size here
         return image / 255
-
     custom_ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
     custom_nc_paths = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
 
-    num_pairs = min(len(custom_ad_paths), len(custom_nc_paths)) // 3  # Modify the data splitting strategy
-
-    #Randominzing the paths before pairing
+    # Shuffle the paths
     random.shuffle(custom_ad_paths)
     random.shuffle(custom_nc_paths)
 
-    # Create pairs and labels
+    num_pairs = min(len(custom_ad_paths), len(custom_nc_paths)) // 3  # Modify the data splitting strategy
+
+
     custom_pair_base_ad_ad = custom_ad_paths[::3][:num_pairs]
     custom_pair_ad_ad = custom_ad_paths[1::3][:num_pairs]
     custom_labels_ad_ad = np.ones([num_pairs])
@@ -46,22 +45,20 @@ def load_siamese_data(batch_size=32, train_ratio=0.8):# CODE WITH SSHUFFLE
         np.concatenate([custom_labels_ad_ad, custom_labels_ad_nc, custom_labels_nc_nc])
     )
 
-    # Shuffle the dataset
     custom_dataset = tf.data.Dataset.zip(((custom_base_ds, custom_pair_ds), custom_labels_ds)).shuffle(len(custom_pair_base_ad_ad) + len(custom_pair_base_ad_nc) + len(custom_pair_base_nc_nc))
 
     train_num = int(round(len(custom_dataset) * train_ratio, 0))
-    custom_train = custom_dataset.shuffle(buffer_size=len(custom_dataset), reshuffle_each_iteration=True).take(train_num).batch(batch_size)
+    custom_train = custom_dataset.take(train_num)
     custom_val = custom_dataset.skip(train_num)
 
     return custom_train.batch(batch_size), custom_val.batch(batch_size)
 
-def load_classify_data(testing: bool, batch_size=32): 
+def load_classify_data(testing: bool, batch_size=32):
     def preprocess_image(path):
-        image = tf.io.read_file(path)
-        image = tf.image.decode_jpeg(image, 1)
-        image = tf.image.resize(image, [128, 128])  # You can adjust the size here
-        return image / 255
-    
+          image = tf.io.read_file(path)
+          image = tf.image.decode_jpeg(image, 1)
+          image = tf.image.resize(image, [128, 128])  # You can adjust the size here
+          return image / 255
     if not testing:
         ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
         cn_paths = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
