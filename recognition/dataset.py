@@ -1,61 +1,66 @@
-import os
 import torch
-from torch.utils.data import Dataset
-from PIL import Image
-from torchvision import transforms
-
+import torch.nn as nn
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(f"Dataset: {torch.cuda.is_available()}")
-
-class ISICDataset(Dataset):
-    def __init__(self, image_dir, mask_dir=None, img_transform=None, mask_transform=None, img_size=None):
-        self.img_size = img_size
-        self.image_dir = image_dir
-        self.mask_dir = mask_dir
-        self.images = os.listdir(image_dir)
-        self.img_transform = img_transform
-        self.mask_transform = mask_transform
-
-    def __len__(self):
-        return len(self.images)
-
-    def __getitem__(self, idx):
-        img_path = os.path.join(self.image_dir, self.images[idx])
-        image = Image.open(img_path).convert("RGB")
-        image = image.resize(self.img_size, Image.BILINEAR)
-
-        mask = None  # We start by assuming there is no mask
-        if self.mask_dir:  # If a mask directory is provided
-            mask_name = self.images[idx].replace('.jpg', '_segmentation.png')
-            mask_path = os.path.join(self.mask_dir, mask_name)
-
-            if os.path.exists(mask_path):  # Check if the mask file exists
-                mask = Image.open(mask_path).convert("L")
-                mask = mask.resize(self.img_size, Image.NEAREST)
-            else:
-                print(f"File not found: {mask_path}")
-
-                # Apply transformations if specified
-        if self.img_transform:
-            image = self.img_transform(image)
-
-        if mask is not None and self.mask_transform:  # Only apply mask transform if mask is present
-            mask = self.mask_transform(mask)
-
-        return image, mask
-
-def get_mask_transform():
-    # Masks usually don't require normalization, but they still need to be tensors
-    return transforms.Compose([
-        transforms.ToTensor()
-    ])
+print(f"Modules: {torch.cuda.is_available()}")
 
 
-# Define the transformation function
-def get_transform():
-    return transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
+class DoubleConv(nn.Module):
+    def __init__(self, in_channels, out_channels, middle_channels=None):
+        super().__init__()
+        if not middle_channels:
+            middle_channels = out_channels
 
+        self.double_conv = nn.Sequential(
+            nn.Conv2d(in_channels, middle_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(middle_channels),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(middle_channels, out_channels, kernel_size=3, padding=1),
+            nn.BatchNorm2d(out_channels),
+            nn.ReLU(inplace=True)
+        )
+
+    def forward(self, x):
+        return self.double_conv(x)
+
+
+class ImprovedUNet(nn.Module):
+    def __init__(self, in_channels=3, out_channels=1):
+        super(ImprovedUNet, self).__init__()
+
+        # Encoder
+        self.enc1 = DoubleConv(in_channels, 64)
+        self.enc2 = DoubleConv(64, 128)
+        self.enc3 = DoubleConv(128, 256)
+        self.enc4 = DoubleConv(256, 512)
+
+        self.pool = nn.MaxPool2d(2)
+
+        # Channel reducer (Bridge)
+        self.bridge = nn.Conv2d(512, 256, kernel_size=1)
+
+        # Decoder
+        self.dec1 = DoubleConv(512, 256, 384)
+        self.dec2 = DoubleConv(384, 128, 192)
+        self.dec3 = DoubleConv(128, 64)
+        self.out_conv = nn.Conv2d(64, out_channels, 1)
+
+        self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+
+    def forward(self, x):
+        # Encoder
+        e1 = self.enc1(x)
+        e2 = self.enc2(self.pool(e1))
+        e3 = self.enc3(self.pool(e2))
+        e4 = self.enc4(self.pool(e3))
+
+        # Reduce channels of e4 to match e3
+        e4_reduced = self.bridge(self.up(e4))
+
+        # Decoder
+        d1 = self.dec1(torch.cat([e4_reduced, e3], 1))
+        d2 = self.dec2(torch.cat([self.up(d1), e2], 1))
+        d3 = self.dec3(self.up(d2))
+        out = self.out_conv(d3)
+
+        return out
