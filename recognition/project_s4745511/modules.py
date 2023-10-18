@@ -1,130 +1,20 @@
-import tensorflow.keras as k
-import keras.layers as kl
-import keras.backend as kb
+import os
+from xmlrpc.client import Boolean
 import tensorflow as tf
-from keras.models import Model
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv2D, MaxPooling2D, Dense, Flatten
+import keras as k
+import numpy as np
+import random
 
-# def cnn_network(height, width):
-#     """ The modified complex subnetwork using CNN
+# GLOBAL_PATH = 'C:\\Users\\Wom\\Desktop\\COMP3710\\ADNI_AD_NC_2D\\'
 
-#     Args:
-#         height (int): Height of the input image
-#         width (int): Width of the input image
+AD_PATH = "/content/extracted/AD_NC/train/AD"
+CN_PATH = "/content/extracted/AD_NC/train/NC"
 
-#     Returns:
-#         tf.keras.Model: The modified complex subnetwork Model
-#     """
-#     input = kl.Input(shape=(height, width, 1))
+AD_TEST_PATH = "/content/extracted/AD_NC/test/AD"
+CN_TEST_PATH = "/content/extracted/AD_NC/test/NC"
 
-#     # Convolutional Layers
-#     conv1 = kl.Conv2D(64, (3, 3), activation='relu', padding='same')(input)
-#     conv2 = kl.Conv2D(128, (3, 3), activation='relu', padding='same')(conv1)
-#     pool1 = kl.MaxPooling2D((2, 2))(conv2)
-
-#     conv3 = kl.Conv2D(256, (3, 3), activation='relu', padding='same')(pool1)
-#     conv4 = kl.Conv2D(256, (3, 3), activation='relu', padding='same')(conv3)
-#     pool2 = kl.MaxPooling2D((2, 2))(conv4)
-
-#     conv5 = kl.Conv2D(512, (3, 3), activation='relu', padding='same')(pool2)
-#     conv6 = kl.Conv2D(512, (3, 3), activation='relu', padding='same')(conv5)
-#     pool3 = kl.MaxPooling2D((2, 2))(conv6)
-
-#     # Flatten and Dense Layers
-#     flat = kl.Flatten()(pool3)
-#     dense1 = kl.Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))(flat)
-#     dense2 = kl.Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))(dense1)
-
-#     # Output Layer
-#     output = kl.Dense(10, activation='softmax')(dense2)
-
-#     subnet = k.Model(inputs=input, outputs=output, name='complex_subnet')
-
-#     return subnet
-
-# def cnn_network(height, width):
-#     model = Sequential()
-
-#     # Block 1
-#     model.add(Conv2D(64, (3, 3), input_shape=(height, width, 1), padding="same", activation="relu"))
-#     model.add(Conv2D(64, (3, 3), padding="same", activation="relu"))
-#     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-
-#     # Block 2
-#     model.add(Conv2D(128, (3, 3), padding="same", activation="relu"))
-#     model.add(Conv2D(128, (3, 3), padding="same", activation="relu"))
-#     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-
-#     # Block 3
-#     model.add(Conv2D(256, (3, 3), padding="same", activation="relu"))
-#     model.add(Conv2D(256, (3, 3), padding="same", activation="relu"))
-#     model.add(Conv2D(256, (3, 3), padding="same", activation="relu"))
-#     model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-
-#     # Fully Connected Layers
-#     model.add(Flatten())
-#     model.add(Dense(4096, activation='relu'))
-#     model.add(Dense(4096, activation='relu'))
-#     # model.add(Dense(num_classes, activation='softmax'))
-
-#     return model
-
-
-# import tensorflow as tf
-# from tensorflow.keras import layers as kl
-# from tensorflow.keras import Model as k
-
-# def cnn_network(height, width):
-#     """ VGG16-like network for grayscale images
-
-#     Args:
-#         height (int): Height of the input image
-#         width (int): Width of the input image
-
-#     Returns:
-#         tf.keras.Model: The VGG16-like model for grayscale images
-#     """
-#     input = kl.Input(shape=(height, width, 1))  # Input has 1 channel for grayscale image
-
-#     # Block 1
-#     conv1_1 = kl.Conv2D(64, (3, 3), activation='relu', padding='same')(input)
-#     conv1_2 = kl.Conv2D(64, (3, 3), activation='relu', padding='same')(conv1_1)
-#     pool1 = kl.MaxPooling2D((2, 2))(conv1_2)
-
-#     # Block 2
-#     conv2_1 = kl.Conv2D(128, (3, 3), activation='relu', padding='same')(pool1)
-#     conv2_2 = kl.Conv2D(128, (3, 3), activation='relu', padding='same')(conv2_1)
-#     pool2 = kl.MaxPooling2D((2, 2))(conv2_2)
-
-#     # Block 3
-#     conv3_1 = kl.Conv2D(256, (3, 3), activation='relu', padding='same')(pool2)
-#     conv3_2 = kl.Conv2D(256, (3, 3), activation='relu', padding='same')(conv3_1)
-#     conv3_3 = kl.Conv2D(256, (3, 3), activation='relu', padding='same')(conv3_2)
-#     pool3 = kl.MaxPooling2D((2, 2))(conv3_3)
-
-#     # Block 4
-#     conv4_1 = kl.Conv2D(512, (3, 3), activation='relu', padding='same')(pool3)
-#     conv4_2 = kl.Conv2D(512, (3, 3), activation='relu', padding='same')(conv4_1)
-#     conv4_3 = kl.Conv2D(512, (3, 3), activation='relu', padding='same')(conv4_2)
-#     pool4 = kl.MaxPooling2D((2, 2))(conv4_3)
-
-#     # Block 5
-#     conv5_1 = kl.Conv2D(512, (3, 3), activation='relu', padding='same')(pool4)
-#     conv5_2 = kl.Conv2D(512, (3, 3), activation='relu', padding='same')(conv5_1)
-#     conv5_3 = kl.Conv2D(512, (3, 3), activation='relu', padding='same')(conv5_2)
-#     pool5 = kl.MaxPooling2D((2, 2))(conv5_3)
-
-#     # Flatten and Fully Connected Layers
-#     flat = kl.Flatten()(pool5)
-#     dense1 = kl.Dense(4096, activation='relu')(flat)
-#     dense2 = kl.Dense(4096, activation='relu')(dense1)
-#     output = kl.Dense(2, activation='softmax')(dense2)  # NUM_CLASSES is the number of output classes
-
-#     model = k.Model(inputs=input, outputs=output, name='subnet')
-
-#     return model
-
+import tensorflow as tf
+from tensorflow.keras import layers, models
 
 def cnn_network(height, width): 
     """ The modified subnetwork using CNN
