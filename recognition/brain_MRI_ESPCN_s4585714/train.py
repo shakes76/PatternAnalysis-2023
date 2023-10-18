@@ -22,7 +22,7 @@ if not torch.cuda.is_available():
 # Hyper-parameters
 num_epochs = 100
 learning_rate = 0.001
-root = '/home/group/comp3710/ADNI/AD_NC'
+root = '/home/groups/comp3710/ADNI/AD_NC'
 
 train_loader, valid_loader = dataset.ADNIDataLoader(root, mode='train')
 test_loader = dataset.ADNIDataLoader(root, mode='test')

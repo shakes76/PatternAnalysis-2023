@@ -9,7 +9,7 @@ import modules
 import dataset
 from torchvision import transforms
 
-root = '/home/group/comp3710/ADNI/AD_NC'
+root = '/home/groups/comp3710/ADNI/AD_NC'
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
