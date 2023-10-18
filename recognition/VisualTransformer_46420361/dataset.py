@@ -38,46 +38,28 @@ class CropBrainScan:
         cropped_image = Image.fromarray(cropped_image)
         
         return cropped_image
-    
-def calc_std_and_mean(root, batch_size):
-    train_path = root + 'train'
-    train_dataset = ImageFolder(train_path)
-    dataloader = DataLoader(train_dataset, batch_size)
-    
-    mean = 0.
-    std = 0.
-    
-    for images, _ in dataloader:
-        batch_samples = images.size(0)
-        images = images.view(batch_samples, images.size(1), -1)
-        mean += images.mean(2).sum(0)
-        std += images.std(2).sum(0)
-        
-    mean /= len(dataloader.dataset)
-    std /= len(dataloader.dataset)
-    
-    return mean, std
 
-def get_train_transform(image_size, crop_size, mean, std):
+
+def get_train_transform(image_size, crop_size):
     transform = transforms.Compose([
         # CropBrainScan(),
         transforms.CenterCrop((crop_size, crop_size)),
         transforms.Resize((image_size, image_size)),
         transforms.Grayscale(),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[mean], std=[std]) # ImageNet constants
+        transforms.Normalize(mean=[0.1155], std=[0.2224]) # Calculated values
     ])
     return transform
 
 
-def get_test_transform(image_size, crop_size, mean, std):
+def get_test_transform(image_size, crop_size):
     transform = transforms.Compose([
         # CropBrainScan(),
         transforms.CenterCrop((crop_size, crop_size)),
         transforms.Resize((image_size, image_size)),
         transforms.Grayscale(),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[mean], std=[std]) # ImageNet constants
+        transforms.Normalize(mean=[0.1167], std=[0.2228]) # Calculated values
     ])
     return transform
 
@@ -101,10 +83,8 @@ def split_test_data(root, image_size, crop_size, batch_size, test_val_ratio=0.5)
     validation_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] in validation_patients]
     test_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] in test_patients]
     
-    mean, std = calc_std_and_mean(root, batch_size)
-    
-    train_transform = get_train_transform(image_size, crop_size, mean, std)
-    test_transform = get_test_transform(image_size, crop_size, mean, std)
+    train_transform = get_train_transform(image_size, crop_size)
+    test_transform = get_test_transform(image_size, crop_size)
 
     # Create validation and test datasets
     validation_dataset = ImageFolder(root=test_dir, transform=train_transform)
@@ -117,10 +97,9 @@ def split_test_data(root, image_size, crop_size, batch_size, test_val_ratio=0.5)
     return validation_dataset, test_dataset
 
 
-def load_dataloaders(root, image_size, crop_size, batch_size): 
-    mean, std = calc_std_and_mean(root, batch_size)
+def load_dataloaders(root, image_size, crop_size, batch_size):
     # transform    
-    train_transform = get_train_transform(image_size, crop_size, mean, std)
+    train_transform = get_train_transform(image_size, crop_size)
 
     # create datasets
     train_dataset = ImageFolder(root + 'train', transform=train_transform)
