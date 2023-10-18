@@ -1,21 +1,29 @@
 import torch
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
+import dataset
+import modules
+
+transform = TSNE
 
 # Placeholder for now
-PATH = "~"
+PATH = "model.pt"
 
-dataset = dataset.data
+data = dataset.dataset
+print("data retrieved")
 
 
 model = torch.load(PATH)
+print("model loaded")
 model.eval()
 
-out = model(dataset.x, dataset.edge_index)
+out = model(data.x, data.edge_index)
+print("computed out")
 z = TSNE(n_components=2).fit_transform(out.detach().cpu().numpy())
-plt.figure(figsize(10,10))
+print("computed z")
+
 plt.xticks([])
 plt.yticks([])
-
-plt.scatter(z[:,0], z[:, 1], s=70, c=dataset.y, cmap="Set2")
+# s changes the size of the markers
+plt.scatter(z[:,0], z[:, 1], s=35, c=data.y, marker=".",cmap="Set2")
 plt.show()
