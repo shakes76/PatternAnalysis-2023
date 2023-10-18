@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 import modules
 import dataset
-import matplotlib as plt
+import matplotlib.pyplot as plt
 import time
 from skimage.metrics import peak_signal_noise_ratio
 from torchvision import transforms
