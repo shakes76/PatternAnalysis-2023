@@ -3,6 +3,10 @@ from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
 from tqdm import tqdm, trange
 
+import matplotlib
+matplotlib.use('tkagg')
+import matplotlib.pyplot as plt
+
 from dataset import load_dataloaders
 from modules import ViT
 
@@ -64,13 +68,30 @@ def evaluate_model(model, root, image_size, crop_size, batch_size):
 
             correct += torch.sum(torch.argmax(y_hat, dim=1) == y).detach().cpu().item()
             total += len(x)
-        print(f"Test loss: {validation_loss:.2f}")
-        print(f"Test accuracy: {correct / total * 100:.2f}%")
+        print(f"Validation loss: {validation_loss:.2f}")
+        print(f"Validation accuracy: {correct / total * 100:.2f}%")
     return
 
-def test_model():
-    
-    return
+def predict(model, dataloader, num_samples=5):
+    # Set the model to evaluation mode
+    model.eval()
+
+    # randomly sample images 
+    samples = []
+    for _ in range(num_samples):
+        data, _ = next(iter(dataloader))  # You may need to adapt this based on your dataloader structure
+        samples.append(data)
+
+    # Make predictions
+    with torch.no_grad():
+        predictions = model(torch.stack(samples))  # Assuming your model takes a batch as input
+
+    # Plot the predictions
+    for i in range(num_samples):
+        plt.figure()
+        plt.imshow(samples[i][0].permute(1, 2, 0).cpu().numpy())  # Assuming your input is an image tensor
+        plt.title(f"Prediction: {predictions[i].argmax()}")
+        plt.show()
 
 def load_model(model_name):
     """loads saved model
