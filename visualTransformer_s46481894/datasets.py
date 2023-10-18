@@ -7,30 +7,28 @@ from sklearn.model_selection import train_test_split
 
 
 # get dataset, using pre-processed ADNI dataset from blackboard
-
-
 def create_data():
-    trainDataDir = './ADNI_AD_NC_2D/AD_NC/train'
-    testDataDir = './ADNI_AD_NC_2D/AD_NC/test'
+    train_data_dir = './ADNI_AD_NC_2D/AD_NC/train'
+    test_data_dir = './ADNI_AD_NC_2D/AD_NC/test'
 
     # training data paths
-    AD_train_path = os.listdir(trainDataDir + "/AD")
-    NC_train_path = os.listdir(trainDataDir + "/NC")
+    AD_train_path = os.listdir(train_data_dir + "/AD")
+    NC_train_path = os.listdir(train_data_dir + "/NC")
     #  testing data paths
-    AD_test_path = os.listdir(testDataDir + "/AD")
-    NC_test_path = os.listdir(testDataDir + "/NC")
+    AD_test_path = os.listdir(test_data_dir + "/AD")
+    NC_test_path = os.listdir(test_data_dir + "/NC")
 
     # image size is (240, 256, 3)
     # create training data
     training = []  # array containing train data
 
     for i in AD_train_path:
-        image = load_img(trainDataDir + "/AD/" + i, target_size=(128, 128, 3))
+        image = load_img(train_data_dir + "/AD/" + i, target_size=(128, 128, 3))
         image = img_to_array(image)
         training.append([image, 1])  # append with 1 label
 
     for i in NC_train_path:
-        image = load_img(trainDataDir + "/NC/" + i, target_size=(128, 128, 3))
+        image = load_img(train_data_dir + "/NC/" + i, target_size=(128, 128, 3))
         image = img_to_array(image)
         training.append([image, 0])  # append with 0 label
 
@@ -59,12 +57,12 @@ def create_data():
     testing = []  # array containing test data
 
     for i in AD_test_path:
-        image = load_img(testDataDir + "/AD/" + i, target_size=(128, 128, 3))
+        image = load_img(test_data_dir + "/AD/" + i, target_size=(128, 128, 3))
         image = img_to_array(image)
         testing.append([image, 1])  # append with 1 label
 
     for i in NC_test_path:
-        image = load_img(testDataDir + "/NC/" + i, target_size=(128, 128, 3))
+        image = load_img(test_data_dir + "/NC/" + i, target_size=(128, 128, 3))
         image = img_to_array(image)
         testing.append([image, 0])  # append with 0 label
 

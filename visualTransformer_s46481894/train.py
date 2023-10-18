@@ -3,9 +3,10 @@ import datasets
 import tensorflow as tf
 from tensorflow import keras
 
+# hyperparameters
 learning_rate = 0.001
 weight_decay = 0.0001
-num_epochs = 80
+num_epochs = 100
 img_size = 128
 batch_size = 128
 num_classes = 2
@@ -13,11 +14,14 @@ num_classes = 2
 
 def run_model(model):
 
+    # import data
     x_train, y_train, x_test, y_test, x_val, y_val = datasets.create_data()
-
-    optimiser = tf.optimizers.Adam(
-        learning_rate=learning_rate, weight_decay=weight_decay
+    # define optimiser
+    optimiser = tf.optimizers.AdamW(
+        learning_rate=learning_rate,
+        weight_decay=weight_decay,
     )
+    # define model
     model.compile(
         optimizer=optimiser,
         loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
@@ -28,23 +32,21 @@ def run_model(model):
 
     # reduce learning rate as model progresses
     reduce_lr = keras.callbacks.ReduceLROnPlateau(
-        monitor="accuracy", factor=0.3, patience=5
+        monitor="accuracy",  # reduces learning rate based on accuracy
+        factor=0.3,  # new_lr = lr * factor
+        patience=5  # only reduce if plateaus for 5 straight epochs
     )
-
+    # train model
     history = model.fit(
-        x=x_train,
-        y=y_train,
+        x=x_train,  # images
+        y=y_train,  # labels
         batch_size=batch_size,
         epochs=num_epochs,
-        callbacks=[reduce_lr],
-        validation_data=(x_val, y_val),
+        callbacks=[reduce_lr],  # reduction method
+        validation_data=(x_val, y_val),  # validation data
     )
-
-    _, accuracy =model.evaluate(x_test, y_test)
+    # evaluate model
+    _, accuracy = model.evaluate(x_test, y_test)
     print("test accuracy = " + str(round(accuracy * 100, 2)))
 
     return history
-
-
-
-
