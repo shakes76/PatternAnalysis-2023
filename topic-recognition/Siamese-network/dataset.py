@@ -5,12 +5,14 @@ import numpy as np
 import tensorflow as tf
 import keras.layers as kl
 import keras.backend as kb
-from keras.models import Model
-from xmlrpc.client import Boolean
-from tensorflow.keras.models import load_model
+from PIL import Image
 from matplotlib import image
 from matplotlib import pyplot
+from keras.models import Model
+from xmlrpc.client import Boolean
 import matplotlib.pyplot as plt
+from tensorflow.keras.models import load_model
+from sklearn.model_selection import train_test_split
 
 
 AD_PATH = '/Users/jollylogan/TryTry/AD_NC/train/AD'
@@ -20,134 +22,119 @@ AD_TEST_PATH = '/Users/jollylogan/TryTry/AD_NC/test/AD'
 NC_TEST_PATH = '/Users/jollylogan/TryTry/AD_NC/test/NC'
 
 
-def load_train_data(batch_size=32):
-    # Get all the paths to the images in the directories
-    ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
-    nc_paths = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
+def make_pairs(x, y):
+    ### reference: https://keras.io/examples/vision/siamese_contrastive/
+    """Creates a tuple containing image pairs with corresponding label.
 
-    # Create tf.data.Dataset objects
-    ad_ds = tf.data.Dataset.from_tensor_slices(ad_paths)
-    nc_ds = tf.data.Dataset.from_tensor_slices(nc_paths)
+    Arguments:
+        x: List containing images, each index in this list corresponds to one image.
+        y: List containing labels, each label with datatype of `int`.
 
-    # Create pairs 
-    pos_pair1 = tf.data.Dataset.zip((ad_ds, ad_ds)) # Positive pair (both from AD) 
-    pos_pair2 = tf.data.Dataset.zip((nc_ds, nc_ds)) # Positive pair (both from NC) 
-    neg_pair1 = tf.data.Dataset.zip((ad_ds, nc_ds)) # Negative pair (one from AD and one from AC) 
-    neg_pair2 = tf.data.Dataset.zip((nc_ds, ad_ds)) # Negative pair (one from NC and one from AD) 
-                                                    # - the same as previous combination 
-                                                    # - the purpose is to make the amount of +ve pairs and -ve pairs balance
+    Returns:
+        Tuple containing two numpy arrays as (pairs_of_samples, labels),
+        where pairs_of_samples' shape is (2len(x), 2,n_features_dims) and
+        labels are a binary array of shape (2len(x)).
+    """
 
-    num_pairs = min(len(ad_paths), len(nc_paths))
-    # Limit the length of pos_pair2 to num_pairs
-    pos_pair2 = pos_pair2.take(num_pairs)
+    num_classes = max(y) + 1
+    digit_indices = [np.where(y == i)[0] for i in range(num_classes)]
 
-    subset_size = 2600  
-    pos_pair1 = pos_pair1.take(subset_size)
-    pos_pair2 = pos_pair2.take(subset_size)
-    neg_pair1 = neg_pair1.take(subset_size)
-    neg_pair2 = neg_pair2.take(subset_size)
+    pairs = []
+    labels = []
 
-    # Shuffling tf.data.Dataset
-    pos_pair1 = pos_pair1.shuffle(buffer_size=10000)  
-    pos_pair2 = pos_pair2.shuffle(buffer_size=10000)
-    neg_pair1 = neg_pair1.shuffle(buffer_size=10000)
-    neg_pair2 = neg_pair2.shuffle(buffer_size=10000)
-    print(len(pos_pair1))
-    print(len(pos_pair2))
-    print(len(neg_pair1))
-    print(len(neg_pair2))
+    for idx1 in range(len(x)):
+        # add a matching example
+        x1 = x[idx1]
+        label1 = y[idx1]
+        idx2 = random.choice(digit_indices[label1])
+        x2 = x[idx2]
 
-    # Concatenate the pairs
-    pair_compare = pos_pair1.concatenate(pos_pair2).concatenate(neg_pair1).concatenate(neg_pair2)
-    print(len(pair_compare))
+        pairs += [[x1, x2]]
+        labels += [0]
 
-    num_pairs = len(pair_compare)
-    labels = np.concatenate([np.zeros([num_pairs//2]), np.ones([num_pairs//2])])
-    labels = np.expand_dims(labels, -1)
+        # add a non-matching example
+        label2 = random.randint(0, num_classes - 1)
+        while label2 == label1:
+            label2 = random.randint(0, num_classes - 1)
 
-    first_input = pair_compare.map(lambda x, y: tf.image.resize(tf.image.decode_jpeg(tf.io.read_file(x), 1), [128, 128]) / 255)
-    second_input = pair_compare.map(lambda x, y: tf.image.resize(tf.image.decode_jpeg(tf.io.read_file(y), 1), [128, 128]) / 255)
-    print(len(first_input))
-    print(len(second_input))
+        idx2 = random.choice(digit_indices[label2])
+        x2 = x[idx2]
 
-    label_input = tf.data.Dataset.from_tensor_slices(labels)
-    print(len(label_input))
+        pairs += [[x1, x2]]
+        labels += [1]
 
-    # Create a dataset where each element is ([base_image, pair_image], label)
-    dataset = tf.data.Dataset.zip(((first_input, second_input), label_input)).shuffle(num_pairs)
-    print(len(dataset))
-
-    # Determine the number of images to use for training (80%)
-    train_num = int(round(0.8 * num_pairs, 1))
-    # Create the training and validation datasets
-    train = dataset.take(train_num).batch(batch_size)
-    val = dataset.skip(train_num).batch(batch_size)
-
-    return train, val
+    return np.array(pairs), np.array(labels).astype("float32")
 
 
-def load_classify_data(batch_size=32):
+def data_loader():
+    ### reference: https://keras.io/examples/vision/siamese_contrastive/
 
     # Get all the paths to the images in the directories
     ad_path = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
     nc_path = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
-    print(len(ad_path))
+    ad_test_path = [os.path.join(AD_TEST_PATH, path) for path in os.listdir(AD_TEST_PATH)]
+    nc_test_path = [os.path.join(NC_TEST_PATH, path) for path in os.listdir(NC_TEST_PATH)]
 
-    num_ad = min(len(ad_path), len(nc_path)) 
-    # Limit the amount of NC images to num_pairs (make it balance)
-    nc_path = nc_path[:num_ad]
-    print(len(nc_path))
+    X_data = []
+    X_data_labels = []
 
-    # Combine all images together
-    paths = ad_path + nc_path
-    print(len(paths))
+    # Load images in the AD train path
+    for fpath in ad_path:
+        image = Image.open(fpath)
+        X_data.append(np.array(image))
+        X_data_labels.append(1)
+        image.close()
 
-    # Create labels for the images: 0 for AD and 1 for CN
-    labels = np.concatenate([np.ones([len(ad_path)]), np.zeros([len(nc_path)])])
-    labels = np.expand_dims(labels, -1)
+    # Load images in the NC train path
+    for fpath in nc_path:
+        image = Image.open(fpath)
+        X_data.append(np.array(image))
+        X_data_labels.append(0)
+        image.close()
 
-    all_images = tf.data.Dataset.from_tensor_slices(paths)
-    all_images = all_images.map(lambda x: tf.image.resize(tf.image.decode_jpeg(tf.io.read_file(x), 1), [128, 128]) / 255)
-    print(len(all_images))
-    labels_ds = tf.data.Dataset.from_tensor_slices(labels)
+    # Load images in the AD test path
+    for fpath in ad_test_path:
+        image = Image.open(fpath)
+        X_data.append(np.array(image))
+        X_data_labels.append(0)
+        image.close()
 
-    # Create a  dataset from all the images with labels
-    dataset = tf.data.Dataset.zip((all_images, labels_ds)).shuffle(len(paths))
+    # Load images in the AD test path
+    for fpath in nc_test_path:
+        image = Image.open(fpath)
+        X_data.append(np.array(image))
+        X_data_labels.append(0)
+        image.close()
+    
+    # Convert to numpy array
+    X_data = np.array(X_data)
+    X_data_labels = np.array(X_data_labels)
 
-    # Determine the number of images to use for training (80%)
-    train_num = int(round(0.8 * len(dataset), 1))
-    # Create the training and validation datasets
-    train = dataset.take(train_num).batch(batch_size)
-    val = dataset.skip(train_num).batch(batch_size)
+    # Make train, validation and test sets
+    x_train, x_test, y_train, y_test = train_test_split(X_data, X_data_labels, test_size=0.2, random_state=42, shuffle=True)
+    x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.2, random_state=42, shuffle=True)
+    
+    # Make train pairs
+    pairs_train, labels_train = make_pairs(x_train, y_train)
 
-    return train, val
+    # Make validation pairs
+    pairs_val, labels_val = make_pairs(x_val, y_val)
+
+    # Make test pairs
+    pairs_test, labels_test = make_pairs(x_test, y_test)
+
+    # Split the training pairs
+    x_train_1 = pairs_train[:, 0]
+    x_train_2 = pairs_train[:, 1]
+
+    # Split the validation pairs
+    x_val_1 = pairs_val[:, 0]
+    x_val_2 = pairs_val[:, 1]
+
+    # Split the test pairs
+    x_test_1 = pairs_test[:, 0]
+    x_test_2 = pairs_test[:, 1]
+
+    return (x_train_1, x_train_2), labels_train, (x_val_1, x_val_2), labels_val, (x_test_1, x_test_2), labels_test, X_data, X_data_labels
 
 
-def load_testing_data(batch_size=32):
-
-    # Get all the paths to the images in the directories
-    ad_path = [os.path.join(AD_TEST_PATH, path) for path in os.listdir(AD_TEST_PATH)]
-    nc_path = [os.path.join(NC_TEST_PATH, path) for path in os.listdir(NC_TEST_PATH)]
-    print(len(ad_path))
-
-    num_ad = min(len(ad_path), len(nc_path)) 
-    # Limit the length of pos_pair2 to num_pairs  
-    nc_path = nc_path[:num_ad]
-    print(len(nc_path))
-
-    # Combine all images together
-    paths = ad_path + nc_path
-    print(len(paths))
-
-    # Create labels for the images: 0 for AD and 1 for CN
-    labels = np.concatenate([np.ones([len(ad_path)]), np.zeros([len(nc_path)])])
-    labels = np.expand_dims(labels, -1)
-
-    all_images = tf.data.Dataset.from_tensor_slices(paths)
-    all_images = all_images.map(lambda x: tf.image.resize(tf.image.decode_jpeg(tf.io.read_file(x), 1), [128, 128]) / 255)
-    print(len(all_images))
-    labels_ds = tf.data.Dataset.from_tensor_slices(labels)
-
-    dataset = tf.data.Dataset.zip((all_images, labels_ds)).shuffle(len(paths))
-
-    return dataset.batch(32)
