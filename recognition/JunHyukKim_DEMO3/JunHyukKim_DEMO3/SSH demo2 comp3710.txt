@@ -1,0 +1,14 @@
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh 
+bash Miniconda3-latest-Linux-x86_64.sh 
+PATH="/miniconda/bin:$PATH" 
+
+sshfs s4742320@wiener.hpc.dc.uq.edu.au:/john C:\Users\John\My Drive\2. Uni\2023 s2\Comp3710\Demo2
+
+ssh s4742320@wiener.hpc.dc.uq.edu.au
+
+\\ssh s4742320@rangpur.compute.eait.uq.edu.au
+
+\\sshfs\s4742320@rangpur.compute.eait.uq.edu.au
+
+git add -- . ':!ISIC'
+git add -- . ':!ISIC' ':!saved_images'

@@ -18,11 +18,13 @@ def save_predictions_as_imgs(loader, model, folder="saved_images/", device="cuda
     for idx, batch in enumerate(loader):
         images = batch['image']
         masks = batch['mask']
-        x = images.to(device=DEVICE)
+        images = images.to(DEVICE)
         masks = masks.to(DEVICE)
         with torch.no_grad():
-            preds = torch.sigmoid(model(x))
-            preds = (preds > 0.5).float()
+            preds = model(images)
+            preds = torch.round(preds)
+            masks = torch.round(masks)
+        
         torchvision.utils.save_image(
             preds, f"{folder}/pred_{idx}.png"
         )

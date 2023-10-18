@@ -11,4 +11,4 @@ ssh s4742320@wiener.hpc.dc.uq.edu.au
 \\sshfs\s4742320@rangpur.compute.eait.uq.edu.au
 
 git add -- . ':!ISIC'
-git add -- . ':!ISIC' ':!saved_images'
+git add -- . ':!ISIC' ':!saved_images' ':!valid_images'
