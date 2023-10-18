@@ -112,8 +112,6 @@ class YOLO(nn.Module):
 
 
 def calculate_iou(pred, label):
-    pred = pred.numpy()
-    label = label.numpy()
     px, py, pw, ph = pred[0], pred[1], pred[2], pred[3]
     lx, ly, lw, lh = label[0], label[1], label[2], label[3]
     box_a = [px-(pw/2), py-(ph/2), px+(pw/2), py+(ph/2)]
@@ -138,24 +136,58 @@ def calculate_iou(pred, label):
     iou = intersect / float(area_a + area_b - intersect)
     return iou
 
-def compute_loss(pred, label, i=0):
-    num_classes = 2
+def compute_loss(pred, label, batch_size):
 
-    pred_xywh = pred[0:4]
-    pred_conf = pred[5]
+    pred_xywh = pred[:,:,0:4]
 
-    label_xywh = label[0:4]
-    respond_bbox = label[5]
-    label_prob = label[5:]
-    print(pred_xywh, label_xywh)
+    label_xywh = label[:,0:4]
+    label_prob = label[:,5:]
+    iou = torch.zeros(batch_size, pred.shape[1])
 
     #IoU
-    iou = calculate_iou(pred_xywh, label_xywh)
+    for i in range(batch_size):
+      for j in range(pred.shape[1]):
+        iou[i][j] = calculate_iou(pred_xywh[i][j], label_xywh[i])
+    iou, best_boxes = torch.max(iou, dim=1)
 
-    #Find 
-    if iou != 0:
-      other = 1
+    best_box_conf = torch.zeros(batch_size)
+    best_box_class1 = torch.zeros(batch_size)
+    best_box_class2 = torch.zeros(batch_size)
+    best_box_w = torch.zeros(batch_size)
+    best_box_h = torch.zeros(batch_size)
+    best_box_x = torch.zeros(batch_size)
+    best_box_y = torch.zeros(batch_size)
 
-    return iou
+
+    for i in range(batch_size):
+      best_box_conf[i] = pred[i, best_boxes[i], 4]
+      best_box_class1[i] = pred[i, best_boxes[i], 5]
+      best_box_class2[i] = pred[i, best_boxes[i], 6]
+      best_box_w[i] = pred[i, best_boxes[i], 2]
+      best_box_h[i] = pred[i, best_boxes[i], 3]
+      best_box_x[i] = pred[i, best_boxes[i], 0]
+      best_box_y[i] = pred[i, best_boxes[i], 1]
+
+    ones = torch.ones(10)
+    conf_loss = torch.zeros(10)
+
+    #confidence loss
+    for box in range(len(best_boxes)):
+      conf_loss[box] = best_box_conf[box]*iou[box]
+    conf_loss = ones - conf_loss
+
+    #classification loss
+    step1 = torch.square(label_prob[:,0] - best_box_class1)
+    step2 = torch.square(label_prob[:,1] - best_box_class2)
+    class_loss = step1 + step2
+
+    #coordinate loss
+    step1 = torch.square(label[:,0] - best_box_x) + torch.square(label[:,1] - best_box_y)
+    step2 = torch.square(torch.sqrt(label[:,2]) - torch.sqrt(best_box_w)) + torch.square(torch.sqrt(label[:,3]) - torch.sqrt(best_box_h))
+    coord_loss = step1 + step2
+
+    total_loss = torch.sum(conf_loss) + torch.sum(class_loss)
+
+    return total_loss
 
         
