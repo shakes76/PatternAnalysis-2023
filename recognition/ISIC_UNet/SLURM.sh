@@ -7,9 +7,9 @@
 #SBATCH --mail-user=s.sveen@uqconnect.edu.au
 #SBATCH -o test_ass3.txt
 #SBATCH -e test_err_ass3.txt
-#SBATCH --partition=vgpu
+#SBATCH --partition=test
 #SBATCH --gres=gpu:1
 
 conda activate conda-torch
 
-python ~/train.py
+python ~/train.py       
