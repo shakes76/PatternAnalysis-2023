@@ -4,7 +4,6 @@ JACK CASHMAN - 47431748
 """
 
 import tensorflow as tf
-from tensorflow import keras
 from keras import layers, Model, metrics
 import numpy as np
 
@@ -13,15 +12,15 @@ class VQ(layers.Layer):
     """
     Vector-Quantiser later of VQ-VAE
     """
-    def __init__(self, num_enc, latent_dim, beta=0.25, name="VQ"):
+    def __init__(self, num_encoded, latent_dim, beta=0.25, name="vq"):
         super(VQ, self).__init__(name=name)
         self._latent_dim = latent_dim
-        self._num_enc = num_enc
+        self._num_encoded = num_encoded
         self._beta = beta
 
         runif_initialiser = tf.random_uniform_initializer()
-        enc_shape = self._latent_dim, self._num_enc
-        self._encoded = tf.Variable(initial_value=runif_initialiser(shape=enc_shape, dtype='float32'))
+        encoded_shape = self._latent_dim, self._num_encoded
+        self._encoded = tf.Variable(initial_value=runif_initialiser(shape=encoded_shape, dtype='float32'))
 
     def get_encoded(self):
         """
@@ -51,20 +50,20 @@ class VQ(layers.Layer):
         :return: Outputs of layer
         """
         # Flatten input + Store dimensions
-        og_shape = tf.shape(inputs)
-        flat_inp = tf.reshape(inputs, [-1, self._latent_dim])
+        original_shape = tf.shape(inputs)
+        flattened_input = tf.reshape(inputs, [-1, self._latent_dim])
 
         # Quantise
-        enc_idx = self.get_codebook_indices(flat_inp)
-        onehot_idx = tf.one_hot(enc_idx, self._num_enc)
-        qtised = tf.reshape(tf.linalg.matmul(onehot_idx, self._encoded, transpose_b=True), og_shape)
+        encoded_indices = self.get_codebook_indices(flattened_input)
+        onehot_indices = tf.one_hot(encoded_indices, self._num_encoded)
+        quantised = tf.reshape(tf.linalg.matmul(onehot_indices, self._encoded, transpose_b=True), original_shape)
 
         # Calculates VQ loss from **insert ref**
-        qtised_loss = tf.reduce_mean((qtised - tf.stop_gradient(inputs)) ** 2)
-        commitment_loss = tf.reduce_mean((tf.stop_gradient(qtised) - inputs) ** 2)
-        self.add_loss(self._beta * commitment_loss + qtised_loss)   # total loss in train loop
+        quantised_loss = tf.reduce_mean((quantised - tf.stop_gradient(inputs)) ** 2)
+        commitment_loss = tf.reduce_mean((tf.stop_gradient(quantised) - inputs) ** 2)
+        self.add_loss(self._beta * commitment_loss + quantised_loss)   # total loss in train loop
 
-        return inputs + tf.stop_gradient(qtised - inputs)
+        return inputs + tf.stop_gradient(quantised - inputs)
 
 
 class Encoder(Model):
@@ -122,13 +121,13 @@ class VQVAE(Model):
         """
         super(VQVAE, self).__init__(name=name)
         self._tr_var = tr_var
-        self._num_enc = num_encoded
+        self._num_encoded = num_encoded
         self._num_channels = num_channels
         self._latent_dim = latent_dim
         self._beta = beta
 
         self._encoder = Encoder(self._latent_dim)
-        self._vq = VQ(self._num_enc, self._latent_dim, self._beta)
+        self._vq = VQ(self._num_encoded, self._latent_dim, self._beta)
         self._decoder = Decoder(num_channels=self._num_channels)
 
         self._total_loss = metrics.Mean(name='total_loss')
@@ -169,7 +168,7 @@ class VQVAE(Model):
 
         # Log results
         return {
-            'loss': self._total_loss.result(),
+            'total_loss': self._total_loss.result(),
             'vq_loss': self._vq_loss.result(),
             'reconstruction_loss': self._reconstruction_loss.result()
         }
