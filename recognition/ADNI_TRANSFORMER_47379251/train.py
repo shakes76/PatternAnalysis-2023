@@ -31,7 +31,7 @@ parser.add_argument('--opt', default="adam")
 parser.add_argument('--net', default='CCT')
 parser.add_argument('--bs', default='32')
 parser.add_argument('--size', default="256")
-parser.add_argument('--n_epochs', type=int, default='100')
+parser.add_argument('--n_epochs', type=int, default='1000')
 parser.add_argument('--patch', default='128', type=int, help="patch for ViT")
 parser.add_argument('--dimhead', default="512", type=int)
 args = parser.parse_args()
@@ -117,7 +117,7 @@ def train_valid(epoch):
         scheduler.step()
         if epoch%1==0: 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                % (train_loss/(batch_idx+1), 100.*correct/total, correct, total))    
+                % (train_loss, 100.*correct/total, correct, total))    
     writer.add_scalar("Train Loss/Epochs", train_loss, epoch) 
     valid_loss = 0.0
     acc = 0
@@ -134,7 +134,7 @@ def train_valid(epoch):
         acc = 100.*correct_valid/total_valid
         if epoch%1==0: 
             progress_bar(batch_idx, len(trainloader), 'Loss: %.3f | Acc: %.3f%% (%d/%d)'
-                % (valid_loss/(batch_idx_valid+1), 100.*correct_valid/total_valid, correct_valid, total_valid))    
+                % (valid_loss, 100.*correct_valid/total_valid, correct_valid, total_valid))    
     if epoch==0: 
         log = "Learning Rate: " + str(args.lr) + "\nOptimizer: " + str(args.opt) + "\nModel: " + str(args.net)\
             + "\nBatch Size: " + str(args.bs) + "\nEpoch: " + str(args.n_epochs)\

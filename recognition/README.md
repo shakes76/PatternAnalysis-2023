@@ -8,13 +8,15 @@ Alzheimer's disease is a major healthcare challenge affecting millions of indivi
 
 ### About the dataset
 
-The dataset used for this report is Alzheimer's Disease Neuroimaging Initiative (ADNI) for alzheimer's disease classification [2]. There are 2 classes based on which the classifier trains and classifies, namingly Alzheimer's disease (AD) and Normal Cognitive (NC).
+The dataset used for this report is Alzheimer's Disease Neuroimaging Initiative (ADNI) for alzheimer's disease classification [2]. There are two classes based on which the classifier trains and classifies, namingly Alzheimer's disease (AD) and Normal Cognitive (NC).
 
 **AD**: This class represents individuals who have been clinically diagnosed with Alzheimer's disease <br>
 **NC**: This class includes individuals who are cognitively normal and do not exhibit signs of Alzheimer's disease
 
 The general input for this particular dataset consists of 3D images and the input is modelled in 3D, but for this
 report we consider a 2D setting.
+
+To view the dataset format used in this report refer appendix 3.
 
 ## Model Architecture
 
@@ -98,7 +100,7 @@ This model attains a test accuracy of 89%
 
 | Model      | Optimizer | Embedding Dim | Number of Layers in CNN | Accuracy
 | :---        |    :----:   | ---: |  ---: |  ---: |
-| CCT      | Adam      | 192   | 2 | 89% |
+| CCT      | Adam      | 192   | 2 | 92.52% |
 
 The optimal model contains:
 * Intial learning rate of 0.0002 (after various tuning)
@@ -108,6 +110,7 @@ The optimal model contains:
 * Normalizing the image was carried out
 * Patient level split was done
 * Image was resized to 256x256
+* Number of epochs trained - 1000
 * Number of convolution layers were 2
 * The train test and validation splits are 70%, 15% and 15% respectively (These splits were expiremented for better performance and inspired by famous papers).
 * Batch size for train was 32 (computational limitation), for test and validation is 100
@@ -172,18 +175,41 @@ Various other training were carried out (please refer appendix 1)
 
 #### Train Loss (After Transformation) + Valid Loss (No Transformation)
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/00%EF%80%BA20%EF%80%BA11_Report.png)
+![Alt text](ADNI_TRANSFORMER_47379251/assets/13%EF%80%BA15%EF%80%BA58_Report.png)
 
 * Here X-axis is the number of epochs and Y-axis is Loss.
-* The un-usual plot difference between train and validation is mainly due to the pre-processing effect.
+* The un-usual plot difference between train and validation is mainly due to the pre-processing effects
+and also depends on the number of training and validation images (since loss for a misclassification is a sum over all probabilities)[7].
 
 #### Validation Accuracy
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/00%EF%80%BA20%EF%80%BA12_Accuracy.png)
+![Alt text](ADNI_TRANSFORMER_47379251/assets/13%EF%80%BA15%EF%80%BA59_Accuracy.png)
 
 * Here X-axis is the number of epochs and Y-axis is Accuracy.
 
-#### Rangpur Performance (refer appendix 2)
+#### Confusion Matrix
+
+![Alt text](ADNI_TRANSFORMER_47379251/assets/confusion.png)
+
+#### Classification metrics (scores)
+
+**Table 3**
+
+| Sensitivity      | Specificity | Precision | NPV | F1
+| :---        |    :----:   | ---: |  ---: |  ---: |
+| 91.96%      | 93.10%      | 93.36%   | 91.66% | 92.66% |
+
+* Sensitivity -  It explains how many of the actual positive cases we were able to predict correctly with our model. Recall is a useful metric in cases where False Negative is of higher concern than False Positive.
+* F1 Score - It gives a combined idea about Precision and Recall metrics. It is maximum when Precision is equal to Recall.
+* Precision - It explains how many of the correctly predicted cases actually turned out to be positive. Precision is useful in the cases where False Positive is a higher concern than False Negatives.
+* Specificity - It measures how many observations out of all negative observations have we classified as negative.
+* NPV -  How much we trust your model when it predicts the negative class.
+
+<br>
+
+The above definitions were inspired from [8,9]
+
+### Rangpur Performance (refer appendix 2)
 
 ## Discussion
 
@@ -243,12 +269,40 @@ Format: Job(short form) - Model and Changes - Accuracy (in %)
 
 ### Appendix 2
 
-Testing took 14.813738584518433 secs or 0.2468956430753072 mins in total
+Testing took 12.090750217437744 secs or 0.2015125036239624 mins in total
 
 <br>
 
-Test Loss: 17.944203392136842 Test Accuracy: 89.01315789473684
+Test Loss: 25.257294412781675 Test Accuracy: 92.5219298245614
 
+### Appendix 3
+
+#### Data Split
+
+**Patient Level Split**
+
+* Patient_Split
+    * test
+        * AD
+            * patient id's
+                * patient images
+        * NC
+            * patient id's
+                * patient images
+    * train
+        * AD
+            * patient id's
+                * patient images
+        * NC
+            * patient id's
+                * patient images
+    * valid
+        * AD
+            * patient id's
+                * patient images
+        * NC 
+            * patient id's
+                * patient images  
 
 ## References
 1. https://www.frontiersin.org/articles/10.3389/fnagi.2019.00220/full
@@ -257,6 +311,9 @@ Test Loss: 17.944203392136842 Test Accuracy: 89.01315789473684
 4. https://arxiv.org/abs/2104.05704
 5. https://github.com/lucidrains/vit-pytorch/
 6. https://github.com/SHI-Labs/Compact-Transformers
+7. https://discuss.pytorch.org/t/cant-explain-the-difference-test-loss-vs-train-loss/73869
+8. https://neptune.ai/blog/evaluation-metrics-binary-classification#:~:text=What%20exactly%20are%20classification%20metrics,to%20classes%3A%20positive%20and%20negative.
+9. https://www.analyticsvidhya.com/blog/2021/07/metrics-to-evaluate-your-classification-model-to-take-the-right-decisions/
 * Image reference https://arxiv.org/abs/2104.05704
 
 Some parts of the code was inspired by: https://github.com/lucidrains/vit-pytorch/ and Pytorch official website

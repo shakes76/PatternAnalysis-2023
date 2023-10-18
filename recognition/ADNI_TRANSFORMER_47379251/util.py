@@ -4,7 +4,92 @@ is attached with a header comment denoting it's functionality'''
 import os
 import shutil
 
+## The below commented code block calculates the confusion matrix and the necessary classification details 
 
+# from modules import CCT
+# from dataset import testloader
+# from train import criterion
+# import os
+# import argparse
+# import csv
+# import time
+# import numpy as np
+# import pandas as pd
+# import torch
+# from sklearn.metrics import confusion_matrix
+# import seaborn as sn
+# import pandas as pd
+
+# import matplotlib.pyplot as plt
+# import torchvision
+# import torch.nn as nn
+# import torch.optim as optim
+# import torch.nn.functional as F
+# import torch.backends.cudnn as cudnn
+# import torchvision.transforms as transforms
+# import matplotlib.pyplot as plt1
+# device = torch.device("cuda")
+# model = CCT(
+#         img_size = (256, 256),
+#         embedding_dim = 192,
+#         n_conv_layers = 2,
+#         kernel_size = 7,
+#         stride = 2,
+#         padding = 3,
+#         pooling_kernel_size = 3,
+#         pooling_stride = 2,
+#         pooling_padding = 1,
+#         num_layers = 2,
+#         num_heads = 6,
+#         mlp_ratio = 3.,
+#         num_classes = 2,
+#         positional_embedding = 'learnable', # ['sine', 'learnable', 'none']
+#     )
+# model=(torch.load("/home/Student/s4737925/Project/PatternAnalysis-2023/recognition/ADNI_TRANSFORMER_47379251/model_90.pth"))
+# model.to(device)
+# model.eval()
+
+# y_pred = []
+# y_true = []
+# classes = ('AD', 'NC')
+# with torch.no_grad():
+#         test_loss = 0
+#         correct = 0
+#         total = 0
+#         for batch_idx, (inputs, targets) in enumerate(testloader):
+#             inputs, targets = inputs.to(device), targets.to(device)
+#             output = model(inputs)
+            
+#             output = (torch.max(torch.exp(output), 1)[1]).data.cpu().numpy()
+#             y_pred.extend(output) # Save Prediction
+            
+#             labels = targets.data.cpu().numpy()
+#             y_true.extend(labels) # Save Truth
+ 
+# cf_matrix = confusion_matrix(y_true, y_pred)
+# CM = cf_matrix
+# df_cm = pd.DataFrame(cf_matrix / np.sum(cf_matrix, axis=1)[:, None], index = [i for i in classes],
+#                      columns = [i for i in classes])
+# plt.figure(figsize = (12,7))
+# sn.heatmap(df_cm, annot=True)
+# plt.savefig('confusion.png')
+
+# tn=CM[0][0]
+# tp=CM[1][1]
+# fp=CM[0][1]
+# fn=CM[1][0]
+# acc=np.sum(np.diag(CM)/np.sum(CM))
+# sensitivity=tp/(tp+fn)
+# precision=tp/(tp+fp)
+        
+# print('\nTestset Accuracy(mean): %f %%' % (100 * acc))
+# print('Confusion Matirx : ')
+# print(CM)
+# print('- Sensitivity : ',(tp/(tp+fn))*100)
+# print('- Specificity : ',(tn/(tn+fp))*100)
+# print('- Precision: ',(tp/(tp+fp))*100)
+# print('- NPV: ',(tn/(tn+fn))*100)
+# print('- F1 : ',((2*sensitivity*precision)/(sensitivity+precision))*100)
 ## DATA SPLIT
 # source_directory = '/home/Student/s4737925/Project/Main/AD'
 # destination_directory = '/home/Student/s4737925/Project/Main/AD_NEW'
