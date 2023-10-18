@@ -53,8 +53,7 @@ train_loader = DataLoader(
 )
 
 model = ImprovedUNET(N_CHANNELS, N_CLASSES)
-optimizer = torch.optim.SGD(model.parameters(),lr=LEARNING_RATE,momentum=0.1,weight_decay=5e-4)
-scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
+optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
 loss_fn = nn.BCEWithLogitsLoss()
 
 model = model.to(DEVICE)
