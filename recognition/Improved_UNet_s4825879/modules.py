@@ -30,7 +30,8 @@ class Context(nn.Module):
 
     def forward(self, input):
         out = input
-        out = F.relu(self.batchNorm(self.conv(out)))
+        out = self.conv(F.relu(self.batchNorm(out)))
+        #out = F.relu(self.batchNorm(self.conv(out)))
         out = self.dropOut(out)
         out = F.relu(self.batchNorm(self.conv(out)))
         return torch.add(out, input)
@@ -39,13 +40,14 @@ class Upsampling(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(Upsampling, self).__init__()
 
+        self.upscale = nn.Upsample(scale_factor=2)
         self.batchNorm = nn.BatchNorm2d(out_channels)
         self.conv = nn.Conv2d(
            in_channels, out_channels, kernel_size=3 , padding=(1,1)
         ) 
 
     def forward(self, out):
-        out = F.interpolate(out, scale_factor=2, mode='nearest')
+        out = self.upscale(out)
         out = F.relu(self.batchNorm(self.conv(out)))
         return out
         
@@ -176,7 +178,7 @@ class ImpUNet(nn.Module):
         # localization layer. input 128 channels. output 64 channels
         out = self.localize2(out)
         # first segmentation layer
-        seg1 = F.interpolate(F.relu(self.segNorm1(self.seg1(out))), scale_factor=2, mode='nearest')
+        seg1 = self.upscale(F.relu(self.segNorm1(self.seg1(out))))
         # upsampling module. input 64 channels. output 32 channels
         out = self.upsample2(out)
         # concatinate
@@ -184,7 +186,7 @@ class ImpUNet(nn.Module):
         # localization module. input 64 channels, output 32 channels
         out = self.localize3(out)
         # second segmentation layer
-        seg2 = F.interpolate(torch.add(F.relu(self.segNorm2(self.seg2(out))), seg1), scale_factor=2, mode='nearest')
+        seg2 = self.upscale(torch.add(F.relu(self.segNorm2(self.seg2(out))), seg1))
         # upsampling module. input 32 channels. output 16 channels
         out = self.upsample3(out)
         # concatinate

@@ -15,9 +15,8 @@ from modules import ImpUNet, DiceLoss
 from dataset import train_loader, val_loader 
 
 # Macros
-LEARNING_RATE = 0.005
-NUM_EPOCH = 20 
-SPLIT_RATIO = 0.8
+LEARNING_RATE = 5e-4
+NUM_EPOCH = 60 
 
 device = ('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -27,7 +26,7 @@ total_val_step = len(val_loader)
 
 model = ImpUNet(3).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE) 
-scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50)
+#scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50)    
 loss_fcn = DiceLoss()
 
 # variable for saving the global best loss
@@ -57,7 +56,7 @@ for epoch in range(NUM_EPOCH):
         running_loss += loss.item()
 
         # print status
-        if (i + 1) % 5 == 0:
+        if (i + 1) % 15 == 0:
             print("Epoch: [{}/{}], Step: [{}/{}], Loss: {:.5f}"
                   .format(epoch+1, NUM_EPOCH, i+1, total_step, running_loss/(i+1)))
             sys.stdout.flush()
@@ -65,10 +64,10 @@ for epoch in range(NUM_EPOCH):
             # save image
             outputs = outputs.round()
             saved = torch.cat((outputs, truth), dim=0)
-            save_image(saved.view(-1, 1, 512, 512), f"data/prod_img/{epoch}_{i+1}_seg.png", nrow=5)
+            save_image(saved.view(-1, 1, 64, 64), f"data/prod_img/{epoch}_{i+1}_seg.png", nrow=5)
 
         # scheduler step
-        scheduler.step()
+        # scheduler.step()
 
     # ----------------
     #  EVALUATION    -
@@ -91,9 +90,15 @@ for epoch in range(NUM_EPOCH):
           
           # add loss to total loss
           total += loss.item()
+
+          if (i+1) % 10 == 0:
+              outputs = outputs.round()
+              saved = torch.cat((outputs, truth), dim=0)
+              save_image(saved.view(-1, 1, 64, 64), f"data/prod_img/val_{epoch+1}_{i+1}.png")
           
     # Check if new loss is better than best loss
     if total < currentBestLoss:
+        print("New best lost calculated... saving model dictionary")
         # upddate the best loss
         currentBestLoss = total
         # save model
