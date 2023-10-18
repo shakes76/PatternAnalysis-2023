@@ -112,7 +112,7 @@ def context_module(in_channels, out_channels):
         module = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.LeakyReLU(0.01),
-            nn.Dropout(p=0.3),  # Dropout is applied here
+            nn.Dropout(p=0.3),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.LeakyReLU(0.01)
         )

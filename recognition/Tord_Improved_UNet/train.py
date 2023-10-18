@@ -1,8 +1,7 @@
 import torch
-from torch.utils.data import DataLoader
-from dataset import load, DiceLoss
+from dataset import DiceLoss, load
 from modules import UNet3D
-import torch
+from torch.utils.data import DataLoader
 
 #training, validating, testing and saving the model
 
@@ -43,4 +42,4 @@ for epoch in range(100):
             running_loss = 0.0
     scheduler.step()
     print('Finished Training epoch ', epoch + 1)
-    torch.save(net.state_dict(), 'recognition/Tord_Improved_UNet/model.pth')
+    torch.save(net.state_dict(), '~/recognition/Tord_Improved_UNet/model.pth')
