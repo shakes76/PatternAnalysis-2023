@@ -109,10 +109,12 @@ def load_dataset(
 
     np.random.shuffle(train)
 
+    minimum_length = min(len(train_AD), len(train_NC))
+
     classify_train = np.column_stack(
         (
-            np.concatenate((train_AD, train_NC)),
-            np.concatenate((np.zeros(len(train_AD)), np.ones(len(train_NC)))),
+            np.concatenate((train_AD[:minimum_length], train_NC[:minimum_length])),
+            np.concatenate((np.zeros(minimum_length), np.ones(minimum_length))),
         )
     )
     np.random.shuffle(classify_train)
@@ -123,14 +125,18 @@ def load_dataset(
         test_NC, test_NC, 0
     )
 
-    test_mixed = create_pairs(test_AD, test_NC, 1)
+    test_mixed_AD, test_mixed_NC = create_pairs(test_AD, test_NC, 1), create_pairs(
+        test_NC, test_AD, 1
+    )
 
-    test = np.concatenate((test_both_AD, test_both_NC, test_mixed))
+    test = np.concatenate((test_both_AD, test_both_NC, test_mixed_AD, test_mixed_NC))
+
+    minimum_length = min(len(test_AD), len(test_NC))
 
     classify_test = np.column_stack(
         (
-            np.concatenate((test_AD, test_NC)),
-            np.concatenate((np.zeros(len(test_AD)), np.ones(len(test_NC)))),
+            np.concatenate((test_AD[:minimum_length], test_NC[:minimum_length])),
+            np.concatenate((np.zeros(minimum_length), np.ones(minimum_length))),
         )
     )
 
