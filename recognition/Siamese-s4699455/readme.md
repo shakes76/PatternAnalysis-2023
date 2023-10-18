@@ -88,7 +88,7 @@ Conda configuration environment
 
 **Training:** The Siamese network uses pairs of input data during training, including similar sample pairs and dissimilar sample pairs. The parameters of the network are trained via backpropagation and gradient descent to minimize the loss function.
 
-**Inference:** Once the Siamese network is trained, new samples can be mapped to the embedding space and the distance between them calculated to determine their similarity.
+Inference: Once the Siamese network is trained, new samples can be mapped to the embedding space and the distance between them calculated to determine their similarity.
 
 # Training Processes
 
@@ -116,9 +116,9 @@ The ADNI dataset provides a pair of brain images, one from an AD patient and one
 
 ## Outputs
 
-![](C:\Users\47647\OneDrive\Documents\WeChat Files\wxid_d2ktwuhr1vnk12\FileStorage\Temp\1697606067684.png)
+![recognition/Siamese-s4699455/out__[0.012563883326947689].png](Z:\UQ-3710\PatternAnalysis-2023\recognition\Siamese-s4699455\out__[0.012563883326947689].png)
 
-![](C:\Users\47647\AppData\Roaming\Typora\typora-user-images\image-20231018163412336.png)
+<img src="C:\Users\47647\AppData\Roaming\Typora\typora-user-images\image-20231018163412336.png" />
 
  Accuracy: 0.91
 
