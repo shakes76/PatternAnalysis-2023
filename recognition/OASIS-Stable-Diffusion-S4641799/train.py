@@ -17,7 +17,7 @@ def train_fn(
     critic.train()
     mapping_network.train() # Set model to train
     loop = tqdm(loader, leave=True)
-    for batch_idx, (real, _) in enumerate(loop):
+    for batch_idx, real in enumerate(loop):
         real = real.to(utils.DEVICE)
         cur_batch_size = real.shape[0]
 
@@ -75,7 +75,7 @@ def eval_fn(
     total_loss = 0
     samples_validated = 0
 
-    for real, _ in loader:
+    for real in loader:
         real = real.to(utils.DEVICE)
         cur_batch_size = real.shape[0]
 
@@ -112,7 +112,7 @@ opt_mapping_network = optim.Adam(mapping_network.parameters(), lr=utils.LEARNING
 losses = []
 best_loss = float('inf')
 best_model_state_dict = None
-validate_every_n_epochs = 10
+validate_every_n_epochs = 5
 start_time = time.time()
 last_epoch = start_time
 
@@ -152,7 +152,7 @@ for epoch in tqdm(range(starting_epoch, utils.epochs + 1)):
             loader_validate,
         )
 
-        utils.generate_examples(mapping_network, gen, epoch)
+        utils.generate_examples(mapping_network, gen, epoch, start_time)
 
         # Save model if better
         if average_loss < best_loss:

@@ -36,7 +36,7 @@ for epoch in tqdm(range(starting_epoch, utils.epochs + 1)):
         optimizer.zero_grad()
 
         t = torch.randint(0, utils.T, (utils.BATCH_SIZE,), device=device).long()
-        loss = utils.get_loss(model, batch[0], t, device)
+        loss = utils.get_loss(model, batch, t, device)
         loss.backward()
         optimizer.step() 
 
@@ -57,7 +57,7 @@ for epoch in tqdm(range(starting_epoch, utils.epochs + 1)):
         with torch.no_grad():
             for step, batch in enumerate(dataset.create_data_loader("validate")):
                 t = torch.randint(0, utils.T, (utils.BATCH_SIZE,), device=device).long()
-                validation_loss = utils.get_loss(model, batch[0], t, device)
+                validation_loss = utils.get_loss(model, batch, t, device)
                 total_loss += validation_loss.item() * utils.BATCH_SIZE
                 samples_validated += utils.BATCH_SIZE
 

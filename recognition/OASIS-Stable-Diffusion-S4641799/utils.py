@@ -174,15 +174,15 @@ def get_noise(batch_size):
 
         return noise
         
-def generate_examples(mapping_network, gen, epoch, n=100):
+def generate_examples(mapping_network, gen, epoch, start_time, n=100):
     gen.eval()
     for i in range(n):
         with torch.no_grad():
             w     = get_w(mapping_network, 1)
             noise = get_noise(1)
             img = gen(w, noise)
-            if not os.path.exists(f'saved_examples/epoch{epoch}'):
-                os.makedirs(f'saved_examples/epoch{epoch}')
-            save_image(img*0.5+0.5, f"saved_examples/epoch{epoch}/img_{i}.png")
+            if not os.path.exists(f'saved_examples/{start_time}_epoch{epoch}'):
+                os.makedirs(f'saved_examples/{start_time}_epoch{epoch}')
+            save_image(img*0.5+0.5, f"saved_examples/{start_time}_epoch{epoch}/img_{i}.png")
 
     gen.train()
