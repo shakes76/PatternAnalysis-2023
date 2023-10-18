@@ -1,8 +1,8 @@
 from tensorflow.keras.models import load_model
-from dataset import load_classify_data
+# from dataset import load_classify_data
 import tensorflow as tf
 
-CLASSIFIER_PATH = 'C://Users//Danita//OneDrive//Desktop//UQ//sem3//PatterRecognision//Project3//ADNI_AD_NC_2D//Classifier.h5'
+CLASSIFIER_PATH = '/content/Classifier.h5'
 
 def predict():
     """ 
