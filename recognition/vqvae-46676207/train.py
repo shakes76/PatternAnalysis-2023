@@ -24,8 +24,16 @@ H_DIM = 1600        # dimension of Hidden Layer
 NUM_EPOCHS = 20     # number of epoch
 LR_RATE = 3e-4      # learning rate
 
-def train(epoch, loader: DataLoader, model: VQVAE, optimizer, scheduler, device):
-    """ Train the given VQVAE model """
+def train(epoch, loader: DataLoader, model: VQVAE, optimizer, device):
+    """
+    Train the given VQVAE model
+    
+    Args:
+        loader: a dataloader of training dataset
+        model: the VQVAE model to train
+        optimizer: the optimizer to use in training
+        device: the device (cpu/gpu) to use for training
+    """
     criterion = nn.MSELoss()    # loss function
 
     latent_loss_weight = 0.25   # weight of latent loss
@@ -45,9 +53,6 @@ def train(epoch, loader: DataLoader, model: VQVAE, optimizer, scheduler, device)
         latent_loss = latent_loss.mean()    # get average latent loss
         loss = recon_loss + latent_loss_weight * latent_loss    # get loss
         loss.backward()                     # backward
-
-        if scheduler is not None:           # currently not in use
-            scheduler.step()
         optimizer.step()
 
         mse_sum = recon_loss.item() * imgs.shape[0] # keep tracking mse
@@ -55,8 +60,7 @@ def train(epoch, loader: DataLoader, model: VQVAE, optimizer, scheduler, device)
 
         lr = optimizer.param_groups[0]["lr"]    # learning rate
 
-        if i % 100 == 0:
-            # Give training status
+        if i % 100 == 0:                    # Give training status
             print(f"epoch: {epoch + 1}; mse: {recon_loss.item():.5f}; ")
             print(f"latent: {latent_loss.item():.3f}; avg mse: {mse_sum / mse_n:.5f}; ")
             print(f"lr: {lr:.5f}")
@@ -88,21 +92,20 @@ def main(args):
     model = VQVAE().to(device)                                      # use gpu when available
 
     optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)    # adam is good enough
-    scheduler = None                                                # not required for this task
 
     print("Training Model...")
     for i in range(args.epoch):
-        train(i, trainloader, model, optimizer, scheduler, device)  # train the model
+        train(i, trainloader, model, optimizer, device)             # train the model
 
         torch.save(model.state_dict(), f"{CHECKPOINT_PATH}vqvae_{str(i + 1).zfill(3)}.pt")  # save model snapshot
 
-    print("Execution Time: %.2f min" % ((time.time() - start_time) / 60))
+    print("Execution Time: %.2f min" % ((time.time() - start_time) / 60))   # print execution time (loading time + training time)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--size", type=int, default=256)    # Depends on your machine
-    parser.add_argument("--epoch", type=int, default=400)   # can be larger (>500) for a better quality
+    parser.add_argument("--size", type=int, default=256)    # Batch size, depends on your machine
+    parser.add_argument("--epoch", type=int, default=400)   # Epoch, can be larger (>500) for a better quality
     parser.add_argument("--lr", type=float, default=3e-4)   # learning rate
 
     args = parser.parse_args()

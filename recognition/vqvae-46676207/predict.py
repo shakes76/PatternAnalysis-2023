@@ -13,14 +13,23 @@ from dataset import load_data
 from modules import VQVAE
 
 # IO Paths
-GENERATED_IMG_PATH = 'predict/'
-MODEL_PATH = './vqvae2.pt'         # trained model
+GENERATED_IMG_PATH = 'predict/'     # path to save the generated images
+MODEL_PATH = './vqvae2.pt'          # trained model
 
 # Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # use gpu when cuda is available
 
 def inference(model: VQVAE, loader: DataLoader, device, sample_size=10, verbose=False):
-    """ Test the model and visualize the output """
+    """
+    Test the given VQVAE model: visualize the output and print SSIM
+    
+    Args:
+        model: the trained VQVAE model for image generating
+        loader: a dataloader of testing dataset
+        device: the device (cpu/gpu) to use for inference
+        sample_size: number of images to generate
+        verbose: print details for each image or not
+    """
     print("Generating...")
 
     for _, (image, _) in enumerate(loader): # i, (image, label)
@@ -49,8 +58,8 @@ def inference(model: VQVAE, loader: DataLoader, device, sample_size=10, verbose=
         out = np.squeeze(out.cpu().numpy())         # convert to numpy array
         sample = np.squeeze(sample.cpu().numpy())   # convert to numpy array
         for o, s in zip(out, sample):
-            ssim_values.append(ssim(o, s, data_range=np.ptp(s,axis=(0,1))))     # get ssim
-            if verbose: print("Range out: %.4f  Range sample: %s  SSIM: %.4f" %             # print info of each img
+            ssim_values.append(ssim(o, s, data_range=np.ptp(s,axis=(0,1))))         # get ssim
+            if verbose: print("Range out: %.4f  Range sample: %s  SSIM: %.4f" %     # print info of each img
                             (np.ptp(o,axis=(0,1)), np.ptp(s,axis=(0,1)), ssim_values[-1]))  
         print(f"SSIM: {sum(ssim_values)/sample_size}") # print average ssim
 
@@ -66,12 +75,12 @@ def main(args):
     testloader = load_data(batch_size=args.sample_size, test=True)  # get dataloader
 
     # Model
-    model = VQVAE().to(device)
+    model = VQVAE().to(device)                      # send to gpu if available
     model.load_state_dict(torch.load(MODEL_PATH))   # load the given model
     
     # Test & visualize
-    inference(model, testloader, device, sample_size=args.sample_size, verbose=args.verbose)
-    print("Execution Time: %.2f min" % ((time.time() - start_time) / 60))
+    inference(model, testloader, device, sample_size=args.sample_size, verbose=args.verbose)    # inference start
+    print("Execution Time: %.2f min" % ((time.time() - start_time) / 60))   # print execution time
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
