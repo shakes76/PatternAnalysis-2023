@@ -2,6 +2,7 @@
 
 This repository contains the code for training a custom made Visual-Transformer based model used to identify Alzheimer's disease in 2D sliced MRI brain scans. The model was trained on the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu) dataset which contains a number of sliced MRI brain scan images separated into Cognitive Normal (NC) and Alzheimer's (AD) classifications. The model is centered around the Vision Transformer (ViT) first introduced in the paper "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale" [1] which works by dividing an image into fixed-size patches and leveraging self-attention mechanisms for feature extraction and pattern recognition.
 
+
 ## The Visual Transformer Algorithm
 
 ViT is a groundbreaking deep learning architecture originally designed for image recognition, inspired by the "An Image Is Worth 16x16 Words" paper by Dosovitskiy et al. [1]. The algorithm processes images by breaking them down into patches, treating each patch as a token, and leveraging transformer layers to capture global image relationships. ViT's efficiency and scalability make it an invaluable tool in computer vision tasks, offering the ability to extract complex patterns and relationships within images effectively.
@@ -9,6 +10,8 @@ ViT is a groundbreaking deep learning architecture originally designed for image
 ### Why ViT in Our Use Case?
 
 In our Alzheimer's Disease Classifier project, ViT plays a pivotal role in the accurate diagnosis of Alzheimer's disease from brain scan images. ViT's adaptability to image data, strong performance in classification tasks, and scalability align perfectly with our goals. By integrating ViT, we empower medical professionals and researchers with an advanced tool to help identify potential Alzheimer's in a patient's brain.
+
+
 
 ## Dependencies
 
@@ -30,6 +33,8 @@ pip install -r requirements.txt
 Please note that this code base was developed and used on an ARM64 architecture making use of the mps api within the pytorch library. The machine used for testing having 64 GB of RAM and an M1 Max Chip.
 
 If you do wish to replicate these results I suggest either using an ARM based system or if using a Windows based system alter the code base to make use of the CUDA GPU Acceleration.
+
+
 
 ## Dataset
 
@@ -58,6 +63,8 @@ This preprocessing pipeline ensures that the dataset is appropriately formatted 
 
 **_Please Note:_** The ADNI dataset contains image splits per patient including 20 slices per patient's brain scan meaning the dataset can be elevated to create a 3D model. To maintain simplicity within the model separate 2D slices are utilized with testing of 3D models yielding poor results suspectedly due to a poor relationship mapping that occurs when trying to elevate the 2D data to a 3D dimension.
 
+
+
 ## Model Architecture
 
 The model's architecture is largely based on the originally introduced paper as seen in the below image;
@@ -72,6 +79,8 @@ Key components of the ViT model include:
 -   **Positional Encoding**: To provide spatial information to the model, positional encodings are added to the patch embeddings.
 -   **Transformer Encoder**: The heart of the model, where self-attention mechanisms are applied to capture global and local dependencies among patches.
 -   **Classification Head**: A fully connected layer that produces class predictions based on the encoded features.
+
+
 
 ## Usage
 
@@ -112,7 +121,7 @@ Predictions are saved as images and a text file in the output folder. The text f
 
 Ensure your dataset matches the specified folder structure as seen below;
 
-'''
+```
 user_data/
 ├── AD/
 │ ├── image1.jpg
@@ -121,7 +130,9 @@ user_data/
 ├── NC/
 ├── image1.jpg
 └── image2.jpg
-'''
+```
+
+
 
 ## Results
 
@@ -150,13 +161,15 @@ Both results indicate the model is fitting well with the data and pulling the re
 
 Please see below for some of the outputs for the prediction script;
 
-<div style="display: flex; justify-content: space-between;">
+<div style="display: flex; justify-content: space-between; padding-bottom: 10px;">
     <img src="images/batch83_image1.png" alt="Scan 1" width="30%">
     <img src="images/batch22_image1.png" alt="Scan 2" width="30%">
     <img src="images/batch83_image1.png" alt="Scan 3" width="30%">
 </div>
 
 Whilst this model performed well it's worth noting that there is always room for improvement. Future work on this architecture could explore the integration of additional models, such as Convolutional Neural Networks (CNNs), to enhance feature extraction capabilities. A recent study in this direction [5] suggests that combining ViTs with CNNs can lead to even more robust and accurate results for medical image analysis. By leveraging the strengths of both architectures, we can further advance the accuracy and reliability of Alzheimer's disease classification systems.
+
+
 
 ## Acknowledgements
 
