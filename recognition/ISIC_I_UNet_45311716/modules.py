@@ -74,14 +74,3 @@ class ImprovedUNet(nn.Module):
         # return single channel output
         return self.last_conv(x)
     
-def main():
-    x = torch.randn((3, 3, 512, 512))
-    model = ImprovedUNet(3,1)
-    print(model)
-    result = model(x)
-    print("-----------------------------------------")
-    print(x.shape)
-    print(result.shape)
-    
-if __name__ == "__main__":
-    main()
