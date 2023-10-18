@@ -7,7 +7,7 @@ This implementation is a Sub-Pixel CNN-based approach for single image super-res
 The chosen algorithm for this is the ESPCN (Efficient Sub-Pixel CNN), found at [this link](https://keras.io/examples/vision/super_resolution_sub_pixel/), which achieves the upscaling effect using sub-pixel convolution.
 
 ## How It Works
-The input is down-sampled by a factor of 4 and then using PyTorch as PixelShuffle' it increases the resolution, achieving a 4x upscaling effect. This should produce a "clearer" image. 
+The input is down-sampled by a factor of 4 and then using PyTorch's 'PixelShuffle' it increases the resolution, achieving a 4x upscaling effect. This should produce a "clearer" image. 
 The model learns the transformation through a series of convolutional layers. The loss fucntion calculates the mean squared error (implemented in PyTorch as torch.nn.MSELoss) between the model's output and the target input. The loss is then used to perform backpropagation and optimize the model. The Adam optimizer algorithm adjusts the learning rate for each model parameter during training.
 
 To use this solution:
