@@ -4,27 +4,16 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from torchvision import datasets,transforms
-from torch.utils.data import DataLoader,ConcatDataset,Dataset,TensorDataset
-from torchdata.datapipes.map import SequenceWrapper
+from torch.utils.data import DataLoader,ConcatDataset,Dataset,TensorDataset, Subset
+
 import random
 
 # Load and return normalized data
-def normalise_data(path, size):
+def normalise_data(path, transform = None):
 
-    transform = transforms.Compose([
-        transforms.Grayscale(num_output_channels=1),  # Convert to grayscale with one channel
-        transforms.Resize(size),  # img_size should be a tuple like (128, 128) actual img(256x240)
-        transforms.ToTensor(),
-        # You can add more transformations if needed
-    ])
-
-    
     # raw_dataset = datasets.ImageFolder(root=path)
     dataset = datasets.ImageFolder(root=path, transform=transform)
-    
-
-
-    # Return the data set of Img, Label
+# Return the data set of Img, Label
     return dataset
 
 def load_data(dataset,batch_size, num_worker = 0, shuffle=True):
@@ -60,7 +49,7 @@ def filter_labels(dataset):
 
 #     postive_pair1 = ConcatDataset([dataset1,dataset2])
 
-
+# Pairs up dataset
 class PairDataset(Dataset):
     def __init__(self,dataset1,dataset2, label):
         self.dataset1 = dataset1
@@ -77,13 +66,14 @@ class PairDataset(Dataset):
         return img1, img2, self.label
 
 
-# def make_pair(dataset1, dataset2):
+# Makes pairs of dataset
+def make_pair(dataset1, dataset2):
 
-#     positive_pair1 = PairDataset(dataset1,dataset1,0)
-#     positive_pair2 = PairDataset(dataset2,dataset2,0)
-#     negative_pair1 = PairDataset(dataset1,dataset2,1)
-#     negative_pair2 = PairDataset(dataset2,dataset1,1)
-#     return positive_pair1,positive_pair2,negative_pair1,negative_pair2
+    positive_pair1 = PairDataset(dataset1,dataset1,0)
+    positive_pair2 = PairDataset(dataset2,dataset2,0)
+    negative_pair1 = PairDataset(dataset1,dataset2,1)
+    negative_pair2 = PairDataset(dataset2,dataset1,1)
+    return positive_pair1,positive_pair2,negative_pair1,negative_pair2
 
 
 def test_pair(test_dataset1, train_dataset1, test_dataset2, train_dataset2):
@@ -99,7 +89,8 @@ def shuffle(pos_pair1, pos_pair2, neg_pair1, neg_pair2):
     return concatenated_dataset
 
 
-def split_dataset(dataset, val_size, train_size):
+# Gets dataset  with val size and train size Outputs the shuffle split train_set and val_set
+def split_dataset(dataset, train_size, val_size):
     train_set, val_set = torch.utils.data.random_split(dataset, [train_size,val_size])
     return  train_set,val_set 
 
@@ -136,27 +127,119 @@ def visualise_1(dataset):
     plt.title(lab)
     plt.imshow(img)
     plt.axis('off')
+    plt.savefig("visualise_1")
     plt.show()
 
     
 def visualise_batch(dataloader):
-    LABELS = ['AD','ND']
+    LABELS = ['POS','NEG']
 
     example_batch = iter(dataloader)
-    images,labels = next(example_batch)
+    images1,images2,labels = next(example_batch)
 
-    plt.figure(figsize=(8,2)) # width x height
-    batch_size = dataloader.batch_size
+    plt.figure(figsize=(16,4)) # width x height
+    batch_size = dataloader.batchsize
     for idx in range(batch_size):
 
-        image = transforms.ToPILImage()(images[idx])
-        label = LABELS[labels[idx].item()]
+        image1 = transforms.ToPILImage()(images1[idx])
+        image2 = transforms.ToPILImage()(images2[idx])
+        label = LABELS[int(labels[idx].item())]
 
-        plt.subplot(2,8,idx+1)
+        plt.subplot(2,batch_size,idx+1)
         
-        plt.imshow(image)
+        plt.imshow(image1,cmap='gray')
+        plt.axis('off')
+
+        plt.subplot(2,batch_size,idx+1+batch_size)
+        plt.imshow(image2,cmap='gray')
         plt.title(label)
         plt.axis('off')
 
+    plt.savefig("visualise_batch")
+    plt.show()
 
 
+def split_dataset_by_class(dataset):
+    """
+    Split a dataset into separate datasets for each class using PyTorch's Subset.
+
+    Args:
+    - dataset: The dataset to split.
+
+    Returns:
+    - dict of Subsets, where keys are class labels and values are the Subsets for that class.
+    """
+
+    class_datasets = {}
+
+    # Get the class-to-index mapping from the dataset
+    class_to_idx = dataset.class_to_idx
+
+    for class_label, class_idx in class_to_idx.items():
+        # Get the indices of samples for the current class
+        indices = [i for i, (_, label) in enumerate(dataset) if label == class_idx]
+
+        # Create a Subset for the current class
+        class_subset = Subset(dataset, indices)
+        class_datasets[class_label] = class_subset
+
+    return class_datasets
+
+
+
+class SiameseDataset(Dataset):
+    def __init__(self, data, transform=None):
+        self.data = data
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, idx):
+        # Fetching a pair of data samples and a label indicating if they are similar or not
+        img1, img2, label = self.data[idx]
+
+        if self.transform:
+            img1 = self.transform(img1)
+            img2 = self.transform(img2)
+
+        return img1, img2, torch.tensor(label, dtype=torch.float32)
+
+class SiameseNetworkDataset1(Dataset):
+    def __init__(self,imageFolderDataset,transform=None):
+        self.imageFolderDataset = imageFolderDataset
+        self.transform = transform
+
+    def __getitem__(self,index):
+        img0_tuple = random.choice(self.imageFolderDataset.imgs)
+
+        #We need to approximately 50% of images to be in the same class
+        should_get_same_class = random.randint(0,1)
+        if should_get_same_class:
+            while True:
+                #Look untill the same class image is found
+                img1_tuple = random.choice(self.imageFolderDataset.imgs)
+                if img0_tuple[1] == img1_tuple[1]:
+                    break
+        else:
+
+            while True:
+                #Look untill a different class image is found
+                img1_tuple = random.choice(self.imageFolderDataset.imgs)
+                if img0_tuple[1] != img1_tuple[1]:
+                    break
+
+        img0 = Image.open(img0_tuple[0])
+        img1 = Image.open(img1_tuple[0])
+
+        img0 = img0.convert("L")
+        img1 = img1.convert("L")
+
+        if self.transform is not None:
+            img0 = self.transform(img0)
+            img1 = self.transform(img1)
+
+        return img0, img1, torch.from_numpy(np.array([int(img1_tuple[1] != img0_tuple[1])], dtype=np.float32))
+
+    def __len__(self):
+        return len(self.imageFolderDataset.imgs)
