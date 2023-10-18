@@ -6,3 +6,4 @@ recognition/s4627382_SiameseNetwork/SiameseNet.pth
 test/dataset.py
 test/modules.py
 test/train.py
+recognition/s4627382_SiameseNetwork/knn.pkl

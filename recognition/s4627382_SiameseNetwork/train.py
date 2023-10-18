@@ -3,7 +3,6 @@ import torch
 import torch.optim as optim
 import matplotlib.pyplot as plt
 from sklearn.manifold import TSNE
-from sklearn.neighbors import KNeighborsClassifier
 
 device = torch.device('cuda')
 
@@ -14,8 +13,8 @@ train_nc_path = "D:/Study/MLDataSet/AD_NC/train/NC"
 test_ad_path = "D:/Study/MLDataSet/AD_NC/test/AD"
 test_nc_path = "D:/Study/MLDataSet/AD_NC/test/NC"
 
-margin = 0.3
-epoches = 16
+margin = 1
+epoches = 10
 
 # create data loader
 train_loader, validation_loader, test_loader = dataset.load_data(
@@ -148,17 +147,21 @@ def visualize_embeddings(loader, model, num_samples=300):
 
     plt.figure(figsize=(10, 7))
     plt.scatter(tsne_results[:, 0], tsne_results[:, 1], c=color_labels, s=50, alpha=0.6)
-    plt.title("t-SNE visualization of embeddings")
+    plt.title("Embedding visualization")
     plt.show()
 
-def main():
-    
-    # hyperparameters
 
+def main():
     mode = 0
     if mode == 0:
         print("Training")
         train(train_loader, epoches)
+        modules.knn(train_loader, validation_loader, model, n_neighbors=5)
+
+    if mode == 1:
+        print("Train classifier")
+        model.load_state_dict(torch.load("D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/s4627382_SiameseNetwork/SiameseNet.pth"))
+        modules.knn(train_loader, validation_loader, model, n_neighbors=5)
 
     elif mode == 1:
         print("Testing")

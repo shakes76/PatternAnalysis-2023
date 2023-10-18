@@ -1,9 +1,11 @@
-  # containing the source code of the components of your model.
+# containing the source code of the components of your model.
 # Each component must be implementated as a class or a function
 
 import torch
 import torch.nn as nn
+import pickle
 from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score
 device = torch.device('cuda')
 
 # Build CNN network and get its embedding vector
@@ -15,16 +17,21 @@ class Embedding(nn.Module):
             nn.Conv2d(1, 32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=2, stride=2), # size: 256*240 -> 128*120
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1), # size: 256*240 -> 128*120
 
             nn.Conv2d(32, 64, kernel_size=3, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(kernel_size=3, stride=2), # size: 128*120 -> 63*59
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1), # size: 128*120 -> 64*60
+
+            nn.Conv2d(64, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(kernel_size=3, stride=2, padding=1), # size: 64*60 -> 32*30
             )
 
         self.fc = nn.Sequential(
-            nn.Linear(64*63*59, 512),
+            nn.Linear(64*32*30, 512),
             nn.ReLU(inplace=True),
 
             nn.Linear(512, 256),
@@ -57,6 +64,29 @@ class ContrastiveLoss(nn.Module):
         return loss.mean()
 
 
+# get the trained embedding network
+def extract_embeddings(loader, model):
+    model.eval()
+    embeddings = []
+    labels_list = []
+
+    with torch.no_grad():
+        for img1, img2, labels in loader:
+            img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
+            
+            emb1 = model.get_embedding(img1)
+            emb2 = model.get_embedding(img2)
+            
+            embeddings.append(emb1.cpu())
+            embeddings.append(emb2.cpu())
+            
+            labels_list.extend(labels.cpu().numpy())
+            labels_list.extend(labels.cpu().numpy())
+
+    embeddings = torch.cat(embeddings, dim=0)
+    return embeddings, labels_list
+
+
 # construct the siamese network
 class SiameseNet(nn.Module):
     def __init__(self, embedding):
@@ -71,3 +101,26 @@ class SiameseNet(nn.Module):
     def get_embedding(self, x):
         return self.embedding(x)
 
+
+# use embedding net to train knn clasifier
+def knn(train_loader, val_loader, model, n_neighbors=5):
+    
+    # Extract embeddings from the train set
+    train_embeddings, train_labels = extract_embeddings(train_loader, model)
+    
+    # Train a KNN classifier
+    knn = KNeighborsClassifier(n_neighbors=n_neighbors)
+    knn.fit(train_embeddings, train_labels)
+    
+    # Extract embeddings from the validation set
+    val_embeddings, val_labels = extract_embeddings(val_loader, model)
+    
+    # Predict the labels of the validation set
+    test_preds = knn.predict(val_embeddings)
+    
+    # Calculate the accuracy
+    accuracy = accuracy_score(val_labels, test_preds)
+    print(f"KNN Accuracy: {accuracy:.4f}")
+    with open ("D:/Study/GitHubDTClone/COMP3710A3/PatternAnalysis-2023/recognition/s4627382_SiameseNetwork/knn.pkl", "wb") as f:
+        pickle.dump(knn, f)
+    return accuracy
