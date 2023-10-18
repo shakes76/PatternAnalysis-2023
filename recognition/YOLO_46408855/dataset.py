@@ -7,7 +7,7 @@ import os
 import cv2
 import numpy as np
 
-class ISICDatset(Dataset):
+class ISICDataset(Dataset):
     """Dataset for YOLO model."""
 
     def __init__(self, image_dir, mask_dir, labels, image_size):

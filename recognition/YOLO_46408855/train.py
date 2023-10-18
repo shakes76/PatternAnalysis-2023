@@ -22,7 +22,7 @@ batch_size = 10
 mask_dir = '/content/drive/MyDrive/Uni/COMP3710/ISIC-2017_Training_Part1_GroundTruth/'
 image_dir = '/content/drive/MyDrive/Uni/COMP3710/ISIC-2017_Training_Data/'
 labels = '/content/drive/MyDrive/Uni/COMP3710/ISIC-2017_Training_Part3_GroundTruth.csv'
-dataset = ISICDatset(image_dir, mask_dir, labels, image_size)
+dataset = ISICDataset(image_dir, mask_dir, labels, image_size)
 dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
 #Model
