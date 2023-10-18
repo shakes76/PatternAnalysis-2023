@@ -3,15 +3,14 @@ import torch.nn as nn
 
 """
 Base Line Model
-(treat depth dimension as channels)
 """
 
 
-class Baseline(nn.Module):
+class Baseline_Contrastive(nn.Module):
     def __init__(self):
-        super(Baseline, self).__init__()
+        super(Baseline_Contrastive, self).__init__()
         self.conv = nn.Sequential(
-            nn.Conv2d(20, 64, 10),  # 64@231x247 # nn.Conv2d(1, 64, 10)
+            nn.Conv2d(1, 64, 10),  # 64@231x247
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2),  # 64@115x123
             nn.Conv2d(64, 128, 7),  # 128@109x117
@@ -23,8 +22,7 @@ class Baseline(nn.Module):
             nn.Conv2d(128, 256, 4),  # 256@22x24
             nn.ReLU(inplace=True),
         )
-        self.liner = nn.Sequential(nn.Linear(135168, 4096), nn.Sigmoid()) # nn.Linear(9216, 4096)
-        self.out = nn.Linear(4096, 1)
+        self.liner = nn.Sequential(nn.Linear(135168, 4096), nn.Sigmoid())  # nn.Linear(9216, 4096)
 
     def sub_forward(self, x):
         x = self.conv(x)
@@ -37,12 +35,15 @@ class Baseline(nn.Module):
         x2 = self.sub_forward(x2)
         return x1, x2
 
-"""
+
+class Baseline_Triplet(nn.Module):
+    pass
+
+
 # test if the model works properly
 if __name__ == '__main__':
-    model = Baseline()
-    test_tensor = torch.ones(3, 20, 240, 256)
+    model = Baseline_Contrastive()
+    test_tensor = torch.ones(3, 1, 240, 256)
     output = model(test_tensor, test_tensor)
     print(output[0].shape)
     print(output[1].shape)
-"""
