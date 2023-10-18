@@ -12,8 +12,8 @@ from dataset import SkinDataset, get_loaders
 # Hyperparameters
 learning_rate = 1e-4
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 2
-num_epochs = 30
+batch_size = 16
+num_epochs = 64
 num_workers = 4
 image_height = 96
 image_width = 128
@@ -30,7 +30,7 @@ def train(loader, val_loader, test_loader, model, optimizer, criterion, num_epoc
 
         for data, mask in loader:
             data = data.to(device)
-            mask = mask.to(device=device)
+            mask = mask.to(device)
 
             # Forward
             predictions = model(data)
@@ -44,18 +44,18 @@ def train(loader, val_loader, test_loader, model, optimizer, criterion, num_epoc
             total_loss += loss.item()
 
         avg_loss = total_loss / len(loader)
+
+        img = next(iter(test_loader))
+        img = img.to(device)
+        img = model(img)
+        torchvision.utils.save_image(img, f"Epoch_{epoch}.png")
+
         print(f"Epoch [{epoch + 1}/{num_epochs}] - Loss: {avg_loss:.4f}")
 
-        if epoch % 5 == 0:
-                img = next(iter(test_loader))
-                img = img.to(device)
-                img = model(img)
-                torchvision.utils.save_image(img, f"Epoch_{epoch}.png")
-
-        check_accuracy(val_loader, model, device=device)
+        check_accuracy(val_loader, model, epoch, device=device)
 
 
-def check_accuracy(loader, model, device="cuda"):
+def check_accuracy(loader, model, epoch, device="cuda"):
     dice_score = 0
 
     model.eval()

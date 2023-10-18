@@ -4,158 +4,167 @@ import torchvision.transforms.functional as TF
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels=3, out_channels=2, base_features=8):
+    def __init__(self, in_channels=3, out_channels=1, base_features=16):
         super(UNet, self).__init__()
 
-        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
-        self.lrelu = nn.LeakyReLU()
+        self.sigmoid = nn.Sigmoid()
 
+        self.x1 = nn.Conv2d(in_channels, base_features, 3, 1, 1)
+        self.x2 = nn.InstanceNorm2d(base_features)
+        self.x3 = nn.LeakyReLU()
+        self.x4 = self.ContexModule(base_features, base_features)
 
-        # Down 0
-        self.initial = nn.Conv2d(in_channels, base_features, kernel_size=3, padding=1, bias=False)
-        self.cm0 = self.ContexModule(base_features, base_features)
+        self.x6 = nn.Conv2d(base_features, base_features*2, 3, stride=2, padding=1)
+        self.x7 = nn.InstanceNorm2d(base_features*2)
+        self.x8 = nn.LeakyReLU()
+        self.x9 = self.ContexModule(base_features*2, base_features*2)
 
-        # Down 1
-        self.conv1 = nn.Conv2d(base_features, base_features*2, kernel_size=3, stride=2, padding=1, bias=False)
-        self.cm1 = self.ContexModule(base_features*2, base_features*2)
+        self.x11 = nn.Conv2d(base_features*2, base_features*4, 3, stride=2, padding=1)
+        self.x12 = nn.InstanceNorm2d(base_features*4)
+        self.x13 = nn.LeakyReLU()
+        self.x14 = self.ContexModule(base_features*4, base_features*4)
 
-        # Down 2
-        self.conv2 = nn.Conv2d(base_features*2, base_features*4, kernel_size=3, stride=2, padding=1, bias=False)
-        self.cm2 = self.ContexModule(base_features*4, base_features*4)
+        self.x16 = nn.Conv2d(base_features*4, base_features*8, 3, stride=2, padding=1)
+        self.x17 = nn.InstanceNorm2d(base_features*8)
+        self.x18 = nn.LeakyReLU()
+        self.x19 = self.ContexModule(base_features*8, base_features*8)
 
-        # Down 3
-        self.conv3 = nn.Conv2d(base_features*4, base_features*8, kernel_size=3, stride=2, padding=1, bias=False)
-        self.cm3 = self.ContexModule(base_features*8, base_features*8)
+        self.x21 = nn.Conv2d(base_features*8, base_features*16, 3, stride=2, padding=1)
+        self.x22 = nn.InstanceNorm2d(base_features*16)
+        self.x23 = nn.LeakyReLU()
+        self.x24 = self.ContexModule(base_features*16, base_features*16)
+        self.x26 = self.UpsampleModule(base_features*16, base_features*8)
 
-        # Down 4
-        self.conv4 = nn.Conv2d(base_features*8, base_features*16, kernel_size=3, stride=2, padding=1, bias=False)
-        self.cm4 = self.ContexModule(base_features*16, base_features*16)
+        self.x28 = self.LocalizationModule(base_features*16, base_features*8)
+        self.x29 = self.UpsampleModule(base_features*8, base_features*4)
 
-        # Up 0
-        self.um0 = nn.ConvTranspose2d(base_features*16, base_features*8, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.x31 = self.LocalizationModule(base_features*8, base_features*4)
+        self.x32 = self.UpsampleModule(base_features*4, base_features*2)     
 
-        # Up 1
-        self.lm1 = self.LocalizationModule(base_features*16, base_features*8)
-        self.um1 =  nn.ConvTranspose2d(base_features*8, base_features*4, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.x34 = self.LocalizationModule(base_features*4, base_features*2)
+        self.x35 = self.UpsampleModule(base_features*2, base_features) 
 
-        # Up 2
-        self.lm2 = self.LocalizationModule(base_features*8, base_features*4)
-        self.segl2 = nn.Conv2d(base_features*4, out_channels, kernel_size=3, padding="same")
-        self.um2 =  nn.ConvTranspose2d(base_features*4, base_features*2, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.x37 = nn.Conv2d(base_features*2, base_features*2, kernel_size=1)    
+        self.x38 = nn.InstanceNorm2d(base_features*2)
+        self.x39 = nn.LeakyReLU()
 
-        # Up 3
-        self.lm3 = self.LocalizationModule(base_features*4, base_features*2)
-        self.segl3 = nn.Conv2d(base_features*2, out_channels, kernel_size=3, padding="same")
-        self.um3 =  nn.ConvTranspose2d(base_features*2, base_features, kernel_size=3, stride=2, padding=1, output_padding=1)
+        self.u1 = self.UpsampleModule(base_features*4, base_features*2)
 
-        # Up 4
-        self.final_cov = nn.Conv2d(base_features*2, out_channels, kernel_size=3, stride=1, padding=1)
-        self.soft_max = nn.Softmax(dim=1)
+        self.u2 = self.UpsampleModule(base_features*2, base_features*2)
 
+        self.output = nn.Conv2d(base_features*2, out_channels, 1)
 
     def ContexModule(self, in_channels, out_channels):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 3, 1, 1),
+            nn.InstanceNorm2d(out_channels),
             nn.LeakyReLU(),
-            nn.BatchNorm2d(out_channels),
             nn.Dropout2d(0.3),
             nn.Conv2d(out_channels, out_channels, 3, 1, 1),
+            nn.InstanceNorm2d(out_channels),
             nn.LeakyReLU(),
         )
     
+    def UpsampleModule(self, in_channels, out_channels):
+    	return nn.Sequential(
+            nn.Upsample(scale_factor=2, mode='nearest'),
+			nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False),
+			nn.InstanceNorm2d(out_channels),
+			nn.LeakyReLU(),
+        )
     
     def LocalizationModule(self, in_channels, out_channels):
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1, bias=False),
+            nn.InstanceNorm2d(out_channels),
             nn.LeakyReLU(),
-            nn.BatchNorm2d(out_channels),
             nn.Conv2d(out_channels, out_channels, kernel_size=1, stride=1, padding=0, bias=False),
+            nn.InstanceNorm2d(out_channels),
             nn.LeakyReLU(),
         )
-    
-    
-    
-
-
     
 
     def forward(self, x):
 
-        # Down 0
-        out = self.initial(x)
+        out = self.x1(x)
         residual = out
-        out = self.cm0(out)
+        out = self.x2(out)
+        out = self.x3(out)
+        out = self.x4(out)
         out += residual
-        concat_0 = out
+        hold_over_0 = out
 
-        # Down 1
-        out = self.conv1(out)
+        out = self.x6(out)
+        out = self.x7(out)
+        out = self.x8(out)
         residual = out
-        self.lrelu(out)
-        out = self.cm1(out)
+        out = self.x9(out)
         out += residual
-        concat_1 = out
+        hold_over_1 = out
 
-        # Down 2
-        out = self.conv2(out)
+        out = self.x11(out)
+        out = self.x12(out)
+        out = self.x13(out)
         residual = out
-        self.lrelu(out)
-        out = self.cm2(out)
+        out = self.x14(out)
         out += residual
-        concat_2 = out
+        hold_over_2 = out
 
-        # Down 3
-        out = self.conv3(out)
+        out = self.x16(out)
+        out = self.x17(out)
+        out = self.x18(out)
         residual = out
-        self.lrelu(out)
-        out = self.cm3(out)
+        out = self.x19(out)
         out += residual
-        concat_3 = out
+        hold_over_3 = out
 
-        # Down 4
-        out = self.conv4(out)
+        out = self.x21(out)
+        out = self.x22(out)
+        out = self.x23(out)
         residual = out
-        self.lrelu(out)
-        out = self.cm4(out)
-        out += residual
+        out = self.x24(out)
+        out += residual  
+        out = self.x26(out)     
 
-        # Up 0
-        out = self.um0(out)
+        out = torch.cat([hold_over_3, out], dim=1)
+        out = self.x28(out)
+        out = self.x29(out)
 
-        # Up 1
-        out = torch.cat([out, concat_3], dim=1)
-        out = self.lm1(out)
-        out = self.um1(out)
+        out = torch.cat([hold_over_2, out], dim=1)
+        out = self.x31(out)
+        segment1 = out
+        out = self.x32(out)
 
-        # Up 2
-        out = torch.cat([out, concat_2], dim=1)
-        out = self.lm2(out)
-        seg_2 = self.segl2(out)
-        seg_2 = self.upsample(seg_2)
-        out = self.um2(out)
+        out = torch.cat([hold_over_1, out], dim=1)
+        out = self.x34(out)
+        segment2 = out
+        out = self.x35(out)
 
-        # Up 3
-        out = torch.cat([out, concat_1], dim=1)
-        out = self.lm3(out)
-        seg_3 = self.segl3(out)
-        out = self.um3(out)
+        out = torch.cat([hold_over_0, out], dim=1)
+        out = self.x37(out)
+        out = self.x38(out) 
+        out = self.x39(out)
 
-        # Up 4
-        out = torch.cat([out, concat_0], dim=1)
-        out = self.final_cov(out)
-        self.lrelu(out)
+        seg1 = self.u1(segment1)
+        seg2 = segment2
+        seg2 += seg1
+        seg2 = self.u2(seg2)
+        seg3 = out
+        seg3 += seg2
 
-        seg_2_add_seg_3 = seg_2+seg_3
-        seg_2_add_seg_3 = self.upsample(seg_2_add_seg_3)
-
-        out += seg_2_add_seg_3
+        output = self.output(seg3)
+        return self.sigmoid(output)
 
 
-        return self.soft_max(out)
+
+
+
+    
+        
     
 def test():
-    x =  torch.randn((3, 1, 96, 128))
-    model = UNet(in_channels=1, out_channels=1)
+    x =  torch.randn((1, 3, 96, 128))
+    model = UNet(in_channels=3, out_channels=1)
     preds = model(x)
 
     print(x.shape)
