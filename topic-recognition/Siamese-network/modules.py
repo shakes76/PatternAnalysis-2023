@@ -8,8 +8,6 @@ from keras.models import Model
 
 def euclidean_distance(feature1, feature2):
 
-    ### Reference: https://keras.io/examples/vision/siamese_contrastive/
-
     # compute the sum of squared distances between the vectors
     sum_square = tf.math.reduce_sum(tf.math.square(feature1 - feature2), axis=1, keepdims=True)
     # return the euclidean distance between the vectors
@@ -17,6 +15,7 @@ def euclidean_distance(feature1, feature2):
 
 
 def contrastive_loss(y, y_pred):
+     ### Reference: https://keras.io/examples/vision/siamese_contrastive/ 
     """Calculates the contrastive loss.
 
         Arguments:
@@ -29,8 +28,6 @@ def contrastive_loss(y, y_pred):
             
     """
 
-    ### Reference: https://keras.io/examples/vision/siamese_contrastive/ 
-
     square_pred = tf.math.square(y_pred)
     margin = tf.math.square(tf.math.maximum(1 - (y_pred) , 0))
     return tf.math.reduce_mean((1 - y) * square_pred + (y) * margin)
@@ -38,20 +35,20 @@ def contrastive_loss(y, y_pred):
 
 def siamese_network(height, width):
 
-    # Reference: https://keras.io/examples/vision/siamese_contrastive/ 
-
     # CNN model
     cnn = k.Sequential(layers=[
-            kl.Conv2D(32, (3, 3), activation='relu', input_shape=(height, width, 1)),
-            kl.MaxPooling2D((2, 2)),
-            kl.Conv2D(64, (3, 3), activation='relu'),
-            kl.MaxPooling2D((2, 2)),
-            kl.Conv2D(128, (3, 3), activation='relu'),
+            kl.Conv2D(32, (10, 10), activation='relu', input_shape=(height, width, 1), kernel_regularizer=tf.keras.regularizers.l2(1e-3)),
+            kl.MaxPooling2D(),
+            kl.Conv2D(64, (7, 7), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)),
+            kl.MaxPooling2D(),
+            kl.Conv2D(64, (4, 4), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)),
+            kl.MaxPooling2D(),
+            kl.BatchNormalization(),
+            kl.Conv2D(128, (4, 4), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)),
             kl.Flatten(),
-            kl.Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
-            kl.Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
-            ], name='cnn'
-    )
+            kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
+            kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
+    ], name='cnn')
 
     image1 = tf.keras.Input((height, width, 1))
     image2 = tf.keras.Input((height, width, 1))
@@ -74,16 +71,18 @@ def siamese_network(height, width):
 
 def cnn (height, width):
     cnn = k.Sequential(layers=[
-            kl.Conv2D(32, (3, 3), activation='relu', input_shape=(height, width, 1)),
-            kl.MaxPooling2D((2, 2)),
-            kl.Conv2D(64, (3, 3), activation='relu'),
-            kl.MaxPooling2D((2, 2)),
-            kl.Conv2D(128, (3, 3), activation='relu'),
+            kl.Conv2D(32, (10, 10), activation='relu', input_shape=(height, width, 1), kernel_regularizer=tf.keras.regularizers.l2(1e-3)),
+            kl.MaxPooling2D(),
+            kl.Conv2D(64, (7, 7), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)),
+            kl.MaxPooling2D(),
+            kl.Conv2D(64, (4, 4), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)),
+            kl.MaxPooling2D(),
+            kl.BatchNormalization(),
+            kl.Conv2D(128, (4, 4), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)),
             kl.Flatten(),
-            kl.Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
-            kl.Dense(1024, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
-            ], name='cnn'
-    )
+            kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
+            kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
+    ], name='cnn')
 
 
 def classification_model (cnn) :
