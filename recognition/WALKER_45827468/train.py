@@ -31,10 +31,10 @@ train_loader = DataLoader(train, batch_size=BATCH_SIZE)
 VALID_DATA_PATH = "./ISIC-2017_Validation_Data"
 VALID_MASK_PATH = "./ISIC-2017_Validation_Part1_GroundTruth"
 
-# valid = ISICDataset(TRAIN_DATA_PATH, TRAIN_MASK_PATH, transform=transforms.ToTensor())
-# valid_loader = DataLoader(valid, batch_size=BATCH_SIZE)
+valid = ISICDataset(TRAIN_DATA_PATH, TRAIN_MASK_PATH, transform=transforms.ToTensor())
+valid_loader = DataLoader(valid, batch_size=BATCH_SIZE)
 
-# print(calc_mean_std(train_loader))
+print(calc_mean_std(train_loader))
 
 ImpUNET = ImprovedUNet()
 ImpUNET.to(device)
@@ -50,17 +50,19 @@ loss_valid = []
 
 for epoch in range(NUM_EPOCH):
 
+    total_loss = 0
     # iterate through training set
     for im,mask in train_loader:
         
         im = im.to(device)
         mask = mask.to(device)
         
+        
+        opt.zero_grad()
         pred = ImpUNET(im)
         loss = lossFunc(pred, mask)
-
-        opt.zero_grad()
         loss.backward()
         opt.step()
+        total_loss += float(loss)
 
 torch.save(ImpUNET, "impUNetMODEL.pth")

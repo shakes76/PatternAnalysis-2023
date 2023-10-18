@@ -29,7 +29,7 @@ class ISICDataset(Dataset):
         
         if self.transform:
             im = self.transform(im)
-            mask = transforms.ToTensor(mask)
+            mask = transforms.ToTensor()(mask)
             
         return im, mask
     
