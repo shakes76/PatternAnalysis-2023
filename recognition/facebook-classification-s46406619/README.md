@@ -36,7 +36,7 @@ We can clearly see that the vertices of this dataset are highly clustered, and t
 * `matplotlib` 3.5.3
 * `sklearn` 1.1.2
 
-Please note that `numpy.random.seed(42)` is set when performing the train/test split in `dataset.py`, and we set `random_state=1` when using the `TSNE` function from `sklearn.manifold`.
+Please note that `numpy.random.seed(42)` is set when performing the train/test split in `dataset.py`, and we set `random_state=1` when using the `TSNE` function from `sklearn.manifold`. Additionally, the `run.py` file is a simple test driver script that calls `train.py` and `predict.py` sequentially.
 
 ## References 
 
