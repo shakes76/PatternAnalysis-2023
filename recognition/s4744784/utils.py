@@ -12,6 +12,7 @@ upscale_factor = 4
 num_epochs = 100
 learning_rate = 0.001
 channels = 1
+dropout_probability = 0.3
 
 image_width = 256
 image_height = 240
