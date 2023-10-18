@@ -1,6 +1,7 @@
 import os
 import torch
 from torch.utils.data import Dataset
+import torchvision.transforms as transforms
 from PIL import Image
 
 '''
@@ -28,7 +29,7 @@ class ISICDataset(Dataset):
         
         if self.transform:
             im = self.transform(im)
-            # mask = self.transform(mask)
+            mask = transforms.ToTensor(mask)
             
         return im, mask
     

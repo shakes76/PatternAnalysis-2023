@@ -6,7 +6,7 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, TensorDataset
 
-BATCH_SIZE = 10
+BATCH_SIZE = 1
 NUM_EPOCH = 10
 LEARNING_RATE = 1e-4
 
