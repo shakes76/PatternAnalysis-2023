@@ -30,7 +30,7 @@ for epoch in range(epochs):
             print(f"Epoch {epoch+1}, Iteration {step+1}, Loss: {loss.item()}")
 
 # Save the trained model
-torch.save(model.state_dict(), f"diffusion_network{epoch}.pth")
+torch.save(model.state_dict(), f"diffusion_network{epochs}.pth")
 
 # Plotting loss
 plt.plot(losses)

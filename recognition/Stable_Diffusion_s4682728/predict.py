@@ -2,9 +2,10 @@ from imports import *
 from dataset import *
 from modules import *
 from utils import *
+from train import epochs
 
 # Load trained model
-model_path = "diffusion_network51.pth"
+model_path = f"diffusion_network{epochs}.pth"
 model = DiffusionNetwork()
 model.load_state_dict(torch.load(model_path))
 model.to(device)
@@ -57,3 +58,4 @@ def reverse_diffusion(model, shape=(1, 1, 256, 256)):
     save_dir = os.path.expanduser("~/demo_eiji/sd/images")
     full_path = os.path.join(save_dir, "image_visualization.png")
     plt.savefig(full_path)
+

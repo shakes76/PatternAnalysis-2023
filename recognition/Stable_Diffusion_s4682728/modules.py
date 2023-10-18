@@ -35,22 +35,22 @@ class ResNetBlock(nn.Module):
     def forward(self, x, t):
         residual = self.shortcut(x)
         
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
         
         time_emb = self.time_mlp(t)
         time_emb = self.relu(time_emb)
         time_emb = time_emb[(..., ) + (None,) * 2]
-        out = out + time_emb
+        x = x + time_emb
         
-        out = self.conv2(out)
-        out = self.bn2(out)
+        x = self.conv2(x)
+        x = self.bn2(x)
         
-        out += residual
-        out = self.relu(out)
+        x += residual
+        x = self.relu(x)
         
-        return out
+        return x
 
 class EncoderBlock(nn.Module):
     def __init__(self, in_c, out_c, num_blocks=2, time_emb=32):
