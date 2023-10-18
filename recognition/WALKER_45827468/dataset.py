@@ -3,6 +3,7 @@ import torch
 from torch.utils.data import Dataset
 import torchvision.transforms as transforms
 from PIL import Image
+import PIL
 
 '''
     custom dataset for ISIC 17/18 Melanoma
@@ -27,8 +28,8 @@ class ISICDataset(Dataset):
         mask_path = os.path.join(self.mask_dir, self.mask_files[idx])
         mask = Image.open(mask_path)
         
-        im.thumbnail([512, 384], Image.ANTIALIAS)
-        mask.thumbnail([512, 384], Image.ANTIALIAS)
+        im.thumbnail([512, 384], PIL.Image.ANTIALIAS)
+        mask.thumbnail([512, 384], PIL.Image.ANTIALIAS)
         if self.transform:
             im = self.transform(im)
             mask = transforms.ToTensor()(mask)
