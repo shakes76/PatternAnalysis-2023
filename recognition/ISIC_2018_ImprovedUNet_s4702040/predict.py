@@ -1,5 +1,9 @@
 """
+This file is to be used after train.py has been run since it relies on loading a trained model
 
+NOTES:
+- Loads a single image and so will output a single segmentation mask prediction
+- Must have modules.py within the same folder as predict.py or else loading the model will fail
 """
 
 import torch
@@ -17,29 +21,29 @@ imageTransform_test = transforms.Compose([transforms.ToTensor(),
                                            transforms.Resize((672, 1024))])
 
 # File path for loading model
-filepath = "filepath\\ImprovedUNet.pt"
+filepath = "C:\\Users\\JRSan\\OneDrive\\Desktop\\vs_code\\COMP3710_project\\ImprovedUNet0.pt"
 
-loadedModel = torch.load(filepath)
+loadedModel = torch.load(filepath) #load model from file path
 
 # Predict mask
 print("> Predicting")
-loadedModel.eval()
+loadedModel.eval() #set model to evaluation mode
 with torch.no_grad():
-    # Path to image to be predicted
-    testImagePath = "filepath\\imageName.jpg"
-    testImage = Image.open(testImagePath).convert('RGB')
+    # Path to image which will have its segmentation mask predicted
+    testImagePath = "C:\\Users\\JRSan\\Downloads\\ISIC2018\\ISIC2018_Task1-2_Test_Input\\ISIC_0016911.jpg"
+    testImage = Image.open(testImagePath).convert('RGB') #convert image to RGB values
 
-    testImage = imageTransform_test(testImage)
+    testImage = imageTransform_test(testImage) #apply transform to image
 
-    testImage = testImage.to(device)
+    testImage = testImage.to(device) #send image to GPU
 
-    # Convert 3D tensor of [c, w, h] to 4D tensor of [n, c, w, h]
+    # Convert 3D tensor of [c, h, w] to 4D tensor of [n, c, h, w]
     testImage = testImage.unsqueeze(0)
 
     # Predict mask based in image input
     output = loadedModel(testImage)
 
-    # Convert 4D tensor of [n, c, w, h] to 2D tensor of [w, h]
+    # Convert 4D tensor of [n, c, h, w] to 2D tensor of [h, w]
     output = output.view(672, 1024)
 
     # Verify dimensions of tensor
@@ -48,5 +52,5 @@ with torch.no_grad():
     # Load tensor back into cpu and turn into numpy array
     output = output.cpu().numpy()
 
-    # Save predicted mask as png greyscale
-    plt.imsave("imageName_PredMask.png", output, cmap="gray")
+    # Save predicted mask as png greyscale in folder where predict.py is located
+    plt.imsave("ISIC_0016911_PredMaskUNet20.png", output, cmap="gray")
