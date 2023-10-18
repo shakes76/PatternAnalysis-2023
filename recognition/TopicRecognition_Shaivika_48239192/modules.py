@@ -84,10 +84,7 @@ data_augmentation = keras.Sequential(
     name="data_augmentation",
 )
 data_augmentation.layers[0].adapt(x_train)
-
 image_shape = (128, 128, 3)
-
-
 def create_classifier():
     inputs = layers.Input(shape=image_shape)
     augmented = data_augmentation(inputs)

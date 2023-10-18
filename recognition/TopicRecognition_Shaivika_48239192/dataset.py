@@ -13,7 +13,6 @@ label_mapping = {
     'CN': 1,
 }
 
-
 def load_images(dir_path=data_directory, label_mapping=label_mapping):
     Images = []
     Labels = []

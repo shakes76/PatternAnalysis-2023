@@ -50,7 +50,6 @@ plt.xlabel("Predicted")
 plt.ylabel("True")
 plt.show()
 
-
 with open('test_accuracy.txt', 'r') as file:
     accuracy = float(file.read())
 

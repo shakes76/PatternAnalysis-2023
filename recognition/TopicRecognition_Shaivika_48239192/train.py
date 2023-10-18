@@ -35,7 +35,6 @@ loss, accuracy = model.evaluate(x_test, y_test)
 print(f"Test loss: {round(loss, 2)}")
 print(f"Test accuracy: {round(accuracy * 100, 2)} %")
 
-
 # Save the trained model
 model.save('/content/drive/MyDrive/Colab Notebooks/ADNI/model.h5')
 

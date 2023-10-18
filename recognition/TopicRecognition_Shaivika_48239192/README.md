@@ -109,7 +109,7 @@ Key results and highlights:
 ![Actual vs Predicted image loading..][recognition/TopicRecognition_Shaivika_48239192/output_images/actual_vs_prediction.png]
 
 ### Data Preprocessing
-The data preprocessing involves loading and preprocessing the ADNI dataset. It includes resizing images, normalizing pixel values. 
+The data preprocessing phase involves the handling of the ADNI dataset, which comprises tasks such as image resizing and normalization. Within the normalization process, mean and variance values are computed individually for each image. 
 
 ### Validation Evidence
 Validation of the model's performance is a critical aspect of this project. Here's how validation evidence is obtained:
