@@ -20,16 +20,19 @@ import random
 # TRAINIMAGEPATH = '../ADNI/AD_NC/train'
 
 # Local Locations
-TESTIMAGEPATH = '..\\ADNI\\AD_NC\\test'
-TRAINIMAGEPATH = '..\\ADNI\\AD_NC\\train'
+# TESTIMAGEPATH = '..\\ADNI\\AD_NC\\test'
+# TRAINIMAGEPATH = '..\\ADNI\\AD_NC\\train'
+
+TESTIMAGEPATH = '../ADNI/AD_NC/test'
+TRAINIMAGEPATH = '../ADNI/AD_NC/train'
 #TRAINIMAGEPATH = '..\\ADNI\\AD_NC\\train_big'
 
 # Creating Lists of Directories
-train_dirs_AD = os.listdir(TRAINIMAGEPATH + '\\AD')
-train_dirs_NC = os.listdir(TRAINIMAGEPATH + '\\NC')
+train_dirs_AD = sorted(os.listdir(TRAINIMAGEPATH + '/AD'))
+train_dirs_NC = sorted(os.listdir(TRAINIMAGEPATH + '/NC'))
 
-test_dirs_AD = os.listdir(TESTIMAGEPATH + '\\AD')
-test_dirs_NC = os.listdir(TESTIMAGEPATH + '\\NC')
+test_dirs_AD = sorted(os.listdir(TESTIMAGEPATH + '/AD'))
+test_dirs_NC = sorted(os.listdir(TESTIMAGEPATH + '/NC'))
 
 # Storage for Full Paths.
 train_dirs_full = []
@@ -69,7 +72,6 @@ for i in os.listdir(TRAINIMAGEPATH):
         train_dirs_full.extend(train_dirs_full_NC)
         valid_dirs_full.extend(valid_dirs_full_NC)
 
-
 for i in os.listdir(TESTIMAGEPATH):
     if i == 'AD':
         for j in test_dirs_AD:
@@ -89,31 +91,30 @@ test_brain_sets_AD = len(test_dirs_AD)/20
 test_brain_sets_NC = len(test_dirs_NC)/20
 
 # Appending full brain paths.
-for i in os.listdir(TRAINIMAGEPATH):
-    if i == 'AD':
-        for s in range(int(train_brain_sets_AD)):
-            temp_full_paths = []
-            for j in train_dirs_AD[20*s:20*s + 20]:
-                temp_full_paths.append(os.path.join(TRAINIMAGEPATH, 'AD', j))
-            temp_AD_full_brain.append(temp_full_paths)
-        # Separate train dirs into train and valid.
-        train_len = int(round(0.8 * len(temp_AD_full_brain)))
-        train_dirs_full_brain = temp_AD_full_brain[:train_len]
-        valid_dirs_full_brain = temp_AD_full_brain[train_len:]
-    else:
-        for s in range(int(train_brain_sets_NC)):
-            temp_full_paths = []
-            for j in train_dirs_NC[20*s:20*s + 20]:
-                temp_full_paths.append(os.path.join(TRAINIMAGEPATH, 'NC', j))
-            temp_NC_full_brain.append(temp_full_paths)
-        # Separate train dirs into train and valid.
-        train_len = int(round(0.8 * len(temp_NC_full_brain)))
-        train_dirs_full_NC_brain = temp_NC_full_brain[:train_len]
-        valid_dirs_full_NC_brain = temp_NC_full_brain[train_len:]
 
-        # Extend Train and Valid directories with the NC directories.
-        train_dirs_full_brain.extend(train_dirs_full_NC_brain)
-        valid_dirs_full_brain.extend(valid_dirs_full_NC_brain)
+for s in range(int(train_brain_sets_AD)):
+    temp_full_paths = []
+    for j in train_dirs_AD[20*s:20*s + 20]:
+        temp_full_paths.append(os.path.join(TRAINIMAGEPATH, 'AD', j))
+    temp_AD_full_brain.append(temp_full_paths)
+# Separate train dirs into train and valid.
+train_len = int(round(0.8 * len(temp_AD_full_brain)))
+train_dirs_full_brain = temp_AD_full_brain[:train_len]
+valid_dirs_full_brain = temp_AD_full_brain[train_len:]
+
+for s in range(int(train_brain_sets_NC)):
+    temp_full_paths = []
+    for j in train_dirs_NC[20*s:20*s + 20]:
+        temp_full_paths.append(os.path.join(TRAINIMAGEPATH, 'NC', j))
+    temp_NC_full_brain.append(temp_full_paths)
+# Separate train dirs into train and valid.
+train_len = int(round(0.8 * len(temp_NC_full_brain)))
+train_dirs_full_NC_brain = temp_NC_full_brain[:train_len]
+valid_dirs_full_NC_brain = temp_NC_full_brain[train_len:]
+
+# Extend Train and Valid directories with the NC directories.
+train_dirs_full_brain.extend(train_dirs_full_NC_brain)
+valid_dirs_full_brain.extend(valid_dirs_full_NC_brain)
 
 
 for i in os.listdir(TESTIMAGEPATH):
@@ -159,7 +160,7 @@ class ImageDataset(Dataset):
         self.train = train
 
         # Create list of image labels.
-        self.label_list = [image.split('\\')[-2] for image in self.images]
+        self.label_list = [image.split('/')[-2] for image in self.images]
 
         self.transform = transform
 
@@ -170,7 +171,7 @@ class ImageDataset(Dataset):
         img_path = self.images[idx]
         # Read image and extract anchor label.
         anchor_data = cv2.imread(img_path)
-        anchor_label = img_path.split('\\')[-2]
+        anchor_label = img_path.split('/')[-2]
 
         # If training, use triplet.
         if self.train:
@@ -226,7 +227,6 @@ class ImageDataset3D(Dataset):
 
         # Create list of image labels.
         self.label_list = [image[0].split('\\')[-2] for image in self.image_segs]
-
         self.transform = transform
 
     def __len__(self):
@@ -303,13 +303,6 @@ class ImageDataset3D(Dataset):
 
 
 def get_dataset(train=0, clas=0, valid=0):
-    # if train == 1 and clas == 0:
-    #     return ImageDataset(train_dirs_full, transform=transform, train=1)
-    # elif train == 1 and clas == 1:
-    #     return ImageDataset(train_dirs_full, transform=transform, train=0)
-    # else:
-    #     return ImageDataset(test_dirs_full, transform=transform, train=0)
-
     if train == 1 and clas == 0:
         return ImageDataset3D(train_dirs_full_brain, transform=transform, clas=0)
     elif train == 1 and clas == 1:
