@@ -5,9 +5,10 @@ from tqdm.auto import tqdm
 from utils import Config
 from torch.utils.tensorboard import SummaryWriter
 
-from modules import Baseline
-from dataset import ContrastiveDataset
-from torch.utils.data import DataLoader, random_split
+from modules import Baseline_Contrastive
+from dataset import ContrastiveDataset, discover_directory, patient_level_split
+from torch.utils.data import DataLoader
+
 
 def main(model, train_loader, val_loader, criterion, optimizer, epochs):
     print('---------Train on: ' + Config.DEVICE + '----------')
@@ -55,7 +56,7 @@ def train(model, train_loader, optimizer, criterion, epoch, epochs):
     total_negative_pairs = 0
 
     for batch in tqdm(train_loader):
-        vols_1, vols_2, labels = batch['volume1'], batch['volume2'], batch['label']
+        vols_1, vols_2, labels = batch
         vols_1, vols_2, labels = vols_1.to(Config.DEVICE), vols_2.to(Config.DEVICE), labels.to(Config.DEVICE)
 
         optimizer.zero_grad()
@@ -73,7 +74,7 @@ def train(model, train_loader, optimizer, criterion, epoch, epochs):
         # Use the criterion's margin as the threshold for predictions
         threshold = criterion.margin
         predictions = (dists < threshold).float()
-        correct_predictions += (predictions == labels.float()).sum().item()
+        correct_predictions += (predictions == labels.squeeze().float()).sum().item()
         total_samples += labels.size(0)
 
         # Update the count of negative pairs below the margin
@@ -81,6 +82,7 @@ def train(model, train_loader, optimizer, criterion, epoch, epochs):
         total_negative_pairs += negative_pair_mask.sum().item()
         negative_dists_below_margin = (dists < criterion.margin).float() * negative_pair_mask
         negative_pairs_below_margin += negative_dists_below_margin.sum().item()
+
 
     train_loss = sum(train_loss_lis) / len(train_loss_lis)
     accuracy = correct_predictions / total_samples
@@ -104,7 +106,7 @@ def validate(model, val_loader, criterion, epoch, epochs):
 
     with torch.no_grad():
         for batch in tqdm(val_loader):
-            vols_1, vols_2, labels = batch['volume1'], batch['volume2'], batch['label']
+            vols_1, vols_2, labels = batch
             vols_1, vols_2, labels = vols_1.to(Config.DEVICE), vols_2.to(Config.DEVICE), labels.to(Config.DEVICE)
             embedding_1, embedding_2 = model(vols_1, vols_2)
             loss = criterion(embedding_1, embedding_2, labels)
@@ -115,7 +117,7 @@ def validate(model, val_loader, criterion, epoch, epochs):
             dists = F.pairwise_distance(embedding_1, embedding_2)
             threshold = criterion.margin
             predictions = (dists < threshold).float()
-            correct_predictions += (predictions == labels.float()).sum().item()
+            correct_predictions += (predictions == labels.squeeze().float()).sum().item()
             total_samples += labels.size(0)
 
     average_loss = total_loss / len(val_loader)
@@ -139,9 +141,9 @@ class ContrastiveLoss(torch.nn.Module):
                                       label * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
         return loss_contrastive
 
-
+"""
 if __name__ == '__main__':
-    model = Baseline()
+    model = Baseline_Contrastive()
 
     full_train_dataset = ContrastiveDataset(Config.TRAIN_DIR)
     # Split the full training dataset into train and val sets
@@ -173,46 +175,43 @@ if __name__ == '__main__':
     epochs = 50
 
     main(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
-
-
-
-
 """
+
+
+
+
 # test
 if __name__ == '__main__':
-    model = Baseline()
+    model = Baseline_Contrastive()
 
+    full_train_data = discover_directory(Config.TRAIN_DIR)
+    train_data, val_data = patient_level_split(full_train_data)  # patient-level split
 
-    def generate_random_tensors(channels, height, width):
-        return torch.rand(channels, height, width)
+    train_dataset = ContrastiveDataset(train_data)
+    val_dataset = ContrastiveDataset(val_data)
 
-    # Generate random tensors with the desired shape
-    random_batch_size = 3
-    random_channels = 20
-    random_height = 256
-    random_width = 240
-    random_input1 = generate_random_tensors(random_channels, random_height, random_width)
-    random_input2 = generate_random_tensors(random_channels, random_height, random_width)
-    random_labels = torch.randint(0, 2, (3, 1))
-
-    random_dataset = [{'volume1': random_input1,
-                       'volume2': random_input2,
-                       'label': label} for label in random_labels]
-    dataloader = DataLoader(
-        dataset=random_dataset,
+    dataloader_tr = DataLoader(
+        dataset=train_dataset,
         shuffle=True,
         batch_size=3,
         num_workers=1,
         drop_last=True
     )
-    
+    dataloader_val = DataLoader(
+        dataset=val_dataset,
+        shuffle=True,
+        batch_size=3,
+        num_workers=1,
+        drop_last=True
+    )
+
     criterion = ContrastiveLoss()
 
     lr = 0.005
     weight_decay = 1e-5
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
-    epochs = 5
+    epochs = 100
 
-    main(model, dataloader, dataloader, criterion, optimizer, epochs)
-"""
+    main(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
+
