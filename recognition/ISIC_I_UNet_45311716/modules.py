@@ -24,11 +24,9 @@ class DoubleConv(nn.Module):
 class ImprovedUNet(nn.Module):
     def __init__(self, in_channels=3, out_channels=1, features=[64, 128, 256, 512]):
         super(ImprovedUNet, self).__init__()
-        self.down_samples = nn.ModuleList() # list of down sampling modules
-        self.up_samples = nn.ModuleList() # list of up sampling modules
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2) # max pool 
 
         # Get list of down sampled layers (Enocder components)
+        self.down_samples = nn.ModuleList() # list of down sampling modules
         channel_in = in_channels
         for feature in features:
             self.down_samples.append(DoubleConv(channel_in, feature))
@@ -38,12 +36,16 @@ class ImprovedUNet(nn.Module):
         self.bottleneck = DoubleConv(features[-1], features[-1]*2)
 
         # Get list of up sampled layers (Decoder components)
+        self.up_samples = nn.ModuleList() # list of up sampling modules
         for feature in reversed(features):
             self.up_samples.append(nn.ConvTranspose2d(feature*2, feature, kernel_size=2, stride=2)) # transposed convolution to upsample
             self.up_samples.append(DoubleConv(feature*2, feature))
 
         # Last convolution layer (get single out channel)
         self.last_conv = nn.Conv2d(features[0], out_channels, kernel_size=1)
+
+        # max pool module
+        self.pool = nn.MaxPool2d(kernel_size=2, stride=2) 
 
     # Perform processing of sample 'x'
     def forward(self, x):
@@ -72,14 +74,14 @@ class ImprovedUNet(nn.Module):
         # return single channel output
         return self.last_conv(x)
     
-# def main():
-#     x = torch.randn((3, 3, 512, 512))
-#     model = DoubleConv(3,1)
-#     print(model)
-#     result = model(x)
-#     print("-----------------------------------------")
-#     print(x.shape)
-#     print(result.shape)
+def main():
+    x = torch.randn((3, 3, 512, 512))
+    model = ImprovedUNet(3,1)
+    print(model)
+    result = model(x)
+    print("-----------------------------------------")
+    print(x.shape)
+    print(result.shape)
     
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
