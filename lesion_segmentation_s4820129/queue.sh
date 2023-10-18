@@ -12,4 +12,4 @@
 
 conda activate cluster_env
 
-python3 ~/lesion_segmentation_s4820129/train.py
+python3 ~/PatternAnalysis-2023/lesion_segmentation_s4820129/train.py
