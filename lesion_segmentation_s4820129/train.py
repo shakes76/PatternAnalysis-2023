@@ -30,7 +30,7 @@ criterion = DiceLoss()
 optimizer = Adam(model.parameters(), lr=0.001)
 
 # Training Loop
-num_epochs = 50
+num_epochs = 1
 for epoch in range(num_epochs):
     model.train()
     epoch_loss = 0
