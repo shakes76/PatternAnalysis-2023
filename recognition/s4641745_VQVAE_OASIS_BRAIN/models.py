@@ -133,3 +133,54 @@ class Decoder(nn.Module):
 """
 VQVAE Vector Quantizer
 """
+class VectorQuantizer(nn.Module):
+    def __init__(self, num_embeddings, embedding_dim, beta):
+        super(VectorQuantizer, self).__init__()
+        self.num_embeddings = num_embeddings
+        self.embedding_dim = embedding_dim
+        self.beta = beta
+
+        self.embedding = nn.Embedding(self.num_embeddings, self.embedding_dim)
+        self.embedding.weight.data.uniform_(-1.0 / self.num_embeddings, 1.0 / self.num_embeddings)
+
+    def forward(self, z):
+        # reshape BCHW -> BHWC
+        z = z.permute(0, 2, 3, 1).contiguous()
+        z_flattened = z.view(-1, self.embedding_dim)
+
+        # quantization objective, move the embedding vectors towards the encoder outputs
+        # (z - e)^2 = z^2 + e^2 - 2 e * z
+        obj = (t.sum(z_flattened ** 2, dim=1, keepdim=True)
+            + t.sum(self.embedding.weight**2, dim=1)
+            - 2 * t.matmul(z_flattened, self.embedding.weight.t()))
+
+        # find closest encodings
+        min_encoding_indices_training = t.argmin(obj, dim=1)
+        min_encoding_indices = t.argmin(obj, dim=1).unsqueeze(1)
+        min_encodings = t.zeros(min_encoding_indices.shape[0], self.num_embeddings, device=z.device)
+        min_encodings.scatter_(1, min_encoding_indices, 1)
+
+        # get quantized latent vectors
+        z_quantized = t.matmul(min_encodings, self.embedding.weight).view(z.shape)
+
+        # compute loss for embedding
+        loss = (F.mse_loss(z_quantized.detach(), z)
+               + self.beta * F.mse_loss(z_quantized, z.detach()))
+
+        # preserve gradients
+        z_quantized = z + (z_quantized - z).detach()
+
+        # reshape back to original BHWC -> BCHW
+        z_quantized = z_quantized.permute(0, 3, 1, 2).contiguous()
+
+        return loss, z_quantized, min_encodings, min_encoding_indices_training
+
+    def quantize(self, z):
+        # find closest encoding
+        encoding_indices = z.unsqueeze(1)
+        encodings = t.zeros(encoding_indices.shape[0], self.num_embeddings, device=z.device)
+        encodings.scatter_(1, encoding_indices, 1)
+        # get quantized latent vector
+        quantized = t.matmul(encodings, self.embedding.weight).view(1, 64, 64, 64)
+        # reshape BHWC -> BCHW
+        return quantized.permute(0, 3, 1, 2).contiguous()
