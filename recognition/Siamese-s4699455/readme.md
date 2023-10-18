@@ -80,22 +80,15 @@ Conda configuration environment
 
 ![](C:\Users\47647\OneDrive\Documents\WeChat Files\wxid_d2ktwuhr1vnk12\FileStorage\Temp\09f78597018ebc121ab86ae46ef4135.png)
 
+**Architecture:** Siamese networks usually consist of two identical subnetworks (twin networks) that share parameters and weights. Each subnetwork accepts an input sample and maps it to a fixed-length vector (often called an embedding vector). These two sub-networks process two input samples respectively and generate their embedding vectors.
 
+**Shared weights:** The two sub-networks in the Siamese network have the same structure and parameters, which means they perform the same feature extraction operation.
 
-# Model Architecture
+**Loss function:** The goal of the Siamese network is to make the distance between similar samples in the embedding space smaller, while the distance between dissimilar samples in the embedding space is larger. To achieve this goal, a contrastive loss function is often used, such as cosine cosine loss (contrastive loss). These loss functions encourage the distance between embedding vectors to meet specific conditions in order to better distinguish between similar and dissimilar samples.
 
-Siamese Network architecture usually includes the following main components:
-**Input layer:** Accepts two input examples, such as images, text, or other data. These inputs are passed to two identical sub-networks, often called "twin networks".
+**Training:** The Siamese network uses pairs of input data during training, including similar sample pairs and dissimilar sample pairs. The parameters of the network are trained via backpropagation and gradient descent to minimize the loss function.
 
-**Siamese network:** This is the core of the Siamese network and consists of two sub-networks that are structurally identical and share the same weights. Each sub-network maps the input data into a low-dimensional feature space to extract key feature representations.
-
-**Feature extraction:** In each sub-network, input features are extracted through neural network layers such as convolutional layers, pooling layers, and fully connected layers. These feature vectors usually have lower dimensions.
-
-**Distance measure:** Calculates the similarity or difference of two feature vectors between the outputs of the Siamese network. It is usually measured using distance measures such as Euclidean distance, Manhattan distance or cosine similarity.
-
-**Loss function:** Define a loss function, usually triplet loss or contrastive loss, to guide model training. The goal of this loss function is to make the similarity score of positive sample pairs higher than the similarity score of negative sample pairs.
-
-**Training:** The model is trained through backpropagation and gradient descent algorithms by providing pairs of training data, which include positive and negative sample pairs. The goal of the model is to learn how to better distinguish between positive and negative sample pairs in the feature space.
+**Inference:** Once the Siamese network is trained, new samples can be mapped to the embedding space and the distance between them calculated to determine their similarity.
 
 # Training Processes
 
@@ -148,3 +141,5 @@ NumPy 1.24
 PyTorch 2.0
 
 # References
+
+G. Koch, R. Zemel, R. Salakhutdinov et al., “Siamese neural networks for one-shot image recognition,” in ICML deep learning workshop, vol. 2. Lille, 2015, p. 0
