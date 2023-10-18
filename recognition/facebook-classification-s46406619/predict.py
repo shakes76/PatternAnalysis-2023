@@ -2,8 +2,8 @@ import torch
 import matplotlib.pyplot as plt
 import sys
 import os
-from dataset import *
 from sklearn.manifold import TSNE
+from dataset import *
 
 # load dataset and trained model
 os.chdir(sys.path[0])

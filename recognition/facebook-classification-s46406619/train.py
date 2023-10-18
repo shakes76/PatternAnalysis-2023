@@ -39,8 +39,7 @@ def run_training(lr, num_epochs):
             print(f'Epoch {epoch + 1:>3} | Loss: {loss:.2f} | Acc: {accuracy*100:.2f}%')
 
     end = time.time()
-    print('time consumed:', end - start)
-    time.sleep(10)
+    print('time spent training:', end - start)
     torch.save(model, 'model.pth')
 
     # plot accuracy
