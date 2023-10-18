@@ -13,37 +13,45 @@
 
 
 ### Installation
-
-- Prerequisites: 
-python=3.10.12
-torch=2.01
-cuda=11.7
-
-
-- Installation steps: 
+- Prerequisites: python=3.10.12 && cuda=11.7
 ```
 git clone git@github.com:larsmoan/PatternAnalysis-2023.git
-git submodule init
+git submodule init 
 git submodule update
+pip install -r requirements.txt
 ```
 
-The last two commands are nedded as yolov7 is installed as a git submodule.
+## Dataset
 
-### Dataset
-https://challenge.isic-archive.com/data/#2017
-- Description of the dataset.
-The original dataset consist of 2000 training images of skin lesions with corresponding labels and segmentation files for the specific part of the picture that is the lesion.
-The validation set consist of 600 images with corresponding labels and the test set consists of 150 images with labels.
+**Source**: [ISIC 2017 Dataset](https://challenge.isic-archive.com/data/#2017)
+
+### Overview
+Each image comes with corresponding label and segmentation file highlighting the lesion.
+- **Training Set**: 
+  - 2000 images.
+  
+- **Validation Set**: 
+  - 600 images.
+  
+- **Test Set**: 
+  - 150 images.
+
+**Lesion Classes**:
+- `Melanoma`
+- `Seborrheic Keratosis`
+- `Nevi / Uknown`: Technically known as a benign skin lesion. Commonly referred to as a mole.
 
 
-The different classes that are present in the dataset is: Melanoma, Nevi, and Seborrheic Keratosis. Where Nevi (Unknown) is the technical term for a benign skin lesion, often referred to as a mole.
+### Preprocessing
+Given that the dataset provides segmentation files, there's a need for preprocessing to convert these labels into YOLO bounding box labels. 
 
-- Preprocessing steps (if any).
-Since the dataset comes with segmentation files preprocessing is needed to convert these lables into yolo bbox labels with the corresponding class.
+Steps include:
+1. Identify the maximum and minimum coordinates within the segmentation area.
+2. Fit a bounding box around this region.
+3. Assign the class based on the label provided in the associated CSV file.
 
-This consist of mainly finding the max and min pixels of the segmentation area and fitting a bounding box to this area. The class is then determined by the label given in the csv file.
 
-The dataset itself also needs to be refactored a bit to work with yolov7, therefore the structure is changed to the following:
+The dataset itself also needs to be refactored a bit to work with YOLOV7, therefore the structure is changed to the following:
 ```
 dataset/
 │
