@@ -2,12 +2,6 @@
 
 This project showcases the application of a Siamese Network in the context of Alzheimer's Disease detection, employing deep learning techniques. The Siamese Network is specifically crafted to compare pairs of medical images and determine whether they pertain to the same category, such as Alzheimer's Disease or Cognitive Normal. The primary objective remains achieving an accuracy of around 0.8 on the test dataset. This README document offers a concise outline of the project's structure, instructions for utilization, and insights into the functionalities of each project component.
 
-# Table of Contents
-
-[TOC]
-
-
-
 # Dependencies
 
 To run the code，you need the following dependencies:
@@ -91,7 +85,9 @@ Other related tools
 ## log
 
 pth --- model file
+
 log --- log file
+
 loss --- tensorbord format training file
 
 # How It Works
@@ -124,7 +120,7 @@ The ADNI dataset provides a pair of brain images, one from an AD patient and one
 
 ## Plots
 
-![](https://raw.githubusercontent.com/SKY-YY88/PatternAnalysis-2023/Siamese-network/recognition/Siamese-s4699455/log/loss/epoch_loss.png)
+![https://raw.githubusercontent.com/SKY-YY88/PatternAnalysis-2023/Siamese-network/recognition/Siamese-s4699455/log/epoch_loss.png](https://raw.githubusercontent.com/SKY-YY88/PatternAnalysis-2023/Siamese-network/recognition/Siamese-s4699455/log/epoch_loss.png)
 
 # References
 
@@ -132,7 +128,7 @@ G. Koch, R. Zemel, R. Salakhutdinov et al., “Siamese neural networks for one-s
 
 # Author
 
-[Qianchen Zhao]: https://github.com/SKY-YY88
+Qianchen Zhao
 
 # License
 
