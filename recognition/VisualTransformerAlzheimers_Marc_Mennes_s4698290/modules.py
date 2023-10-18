@@ -1,7 +1,13 @@
+"""
+ViT model code
+"""
 import torch
 
 #terminology and design choices as per "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale" https://arxiv.org/abs/2010.11929
+#dropout was added after multihead attention as well as other minor things in accordance with pytorch's ViT implementation 
+#https://github.com/pytorch/vision/blob/main/torchvision/models/vision_transformer.py
 
+#transformer encoder block
 class Encoder(torch.nn.Module):
 
     def __init__(self, patchSize, attentionHeads, attentionDropout, networkStructure):
@@ -14,6 +20,8 @@ class Encoder(torch.nn.Module):
 
         network = [torch.nn.Linear(patchSize*patchSize, networkStructure[0]), torch.nn.GELU()]
 
+        #construct a MLP module inside the transformer encoder with hidden layers
+        #according to networkStructure
         for i, layer in enumerate(networkStructure):
             if i != len(networkStructure) - 1:
                 network.append(torch.nn.Linear(layer, networkStructure[i + 1]))
@@ -37,7 +45,7 @@ class Encoder(torch.nn.Module):
 
         return y
 
-
+#The full visual transformer model
 class ADNITransformer(torch.nn.Module):
 
     def __init__(self, nPatches, patchSize, attentionHeads, attentionDropout, classifierHiddenLayers, encoderDenseNetworks, flatten = True):
@@ -48,19 +56,18 @@ class ADNITransformer(torch.nn.Module):
         self.flatten = flatten
         self.classToken = torch.nn.Parameter(torch.rand(1, 1, patchSize*patchSize))
 
-        #build the encoder block
+        #build the encoder blocks
         encoders = []
         for network in encoderDenseNetworks:
             encoders.append(Encoder(patchSize, attentionHeads, attentionDropout, network))
-        #this network takes in the embedded image data and runs it through an encoder multiple times
+        #this network takes in the embedded image patches and runs it through an encoder multiple times
         self.encoderBlock = torch.nn.Sequential(*encoders)
 
-        #build the mlp head that works on the encoder output
+        #build the classification mlp head that works on the encoder output
         classifiernetwork = [torch.nn.Linear(patchSize*patchSize, classifierHiddenLayers[0]), torch.nn.GELU()]
         for i, layer in enumerate(classifierHiddenLayers):
             if i != len(classifierHiddenLayers) - 1:
                 classifiernetwork.append(torch.nn.Linear(layer, classifierHiddenLayers[i + 1]))
-                #classifiernetwork.append(torch.nn.GELU())
             else:
                 classifiernetwork.append(torch.nn.Linear(layer, 1))
                 classifiernetwork.append(torch.nn.Sigmoid())
@@ -94,20 +101,25 @@ class ADNITransformer(torch.nn.Module):
 
         return classPrediction
 
+#Experimental, downsamples the image with convolution before running through the transformer
+#could not get it to not overfit to the validation set, moreso than the standard ViT
 class ADNIConvTransformer(torch.nn.Module):
     
     def __init__(self, attentionDropout, classifierHiddenLayers, encoderDenseNetwork):
         super().__init__()
 
+        #expects an image of size 240x240, downsamples to 16x16
         self.downSample = torch.nn.Sequential(torch.nn.Conv2d(1,32,3), torch.nn.BatchNorm2d(32), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2),
                                               torch.nn.Conv2d(32,32,3, padding=3), torch.nn.BatchNorm2d(32), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2),
                                               torch.nn.Conv2d(32,32,3, stride=2, padding=2), torch.nn.BatchNorm2d(32), torch.nn.ReLU(inplace=True), torch.nn.MaxPool2d(2,2))
 
+        #transformer network, treating each convolution channel as a patch
         self.transformerBlock = ADNITransformer(32, 16, 16, attentionDropout, classifierHiddenLayers, encoderDenseNetwork, flatten=False)
 
     def forward(self, image):
 
         downSampledImage = self.downSample(image)
+        #flattens the downsampled image from 16x16 -> 256
         downSampledImage = torch.flatten(downSampledImage, start_dim=2)
         return self.transformerBlock(downSampledImage)
 

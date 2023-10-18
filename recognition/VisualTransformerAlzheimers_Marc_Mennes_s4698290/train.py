@@ -1,3 +1,7 @@
+"""
+Training code for the visual transformer
+All hyperparameters are set to those used to achieve the results in README.md
+"""
 import dataset
 import modules
 import torchvision
@@ -6,8 +10,7 @@ import torch
 import time
 
 CROPSIZE = 240
-#PATHTODATASET = "/home/marc/Documents/PatternAnalysisReport/PatternAnalysis-2023/recognition/VisualTransformerAlzheimers_Marc_Mennes_s4698290/ADNI_AD_NC_2D"
-PATHTODATASET = "/home/Student/s4698290/report/ADNI"
+PATHTODATASET = "ADNI_AD_NC_2D" #replace with wherever your data set is
 ENCODERDENSELAYERS = [[512, 512, 512]]*3
 LR = 0.00001
 BATCHSIZE = 128
@@ -19,31 +22,49 @@ print(torch.version.cuda)
 print('cuda' if torch.cuda.is_available() else 'cpu')
 
 #dataset mean: 31.5226 dataset std: 58.8811
+
+#transformations for the training set
 trainTransform = torchvision.transforms.Compose(
     [torchvision.transforms.CenterCrop(CROPSIZE),
      torchvision.transforms.RandAugment(num_ops=4), #augment the data with random transforms
-     torchvision.transforms.Lambda(lambda x: x/255),
-     #torchvision.transforms.Normalize(31.5226/255, 58.8811/255), #normalize the image (values determined from function in dataset.py)
-     torchvision.transforms.Lambda(lambda x: x.unfold(1,CROPSIZE//4, CROPSIZE//4).unfold(2,CROPSIZE//4, CROPSIZE//4)),#split the image into 9 patches
+     torchvision.transforms.Lambda(lambda x: x/255), #bring image data between 1 and 0
+     torchvision.transforms.Lambda(lambda x: x.unfold(1,CROPSIZE//4, CROPSIZE//4).unfold(2,CROPSIZE//4, CROPSIZE//4)),#split the image into 4 patches
      torchvision.transforms.Lambda(lambda x: x[0])#removes the color channel dimension as this is greyscale
     ]
 )
+
+#transformations for the validation set
 valTransform = torchvision.transforms.Compose(
     [torchvision.transforms.CenterCrop(CROPSIZE),
-     torchvision.transforms.Lambda(lambda x: x/255),
-     #torchvision.transforms.Normalize(31.5226/255, 58.8811/255), #normalize the image (values determined from function in dataset.py)
-     torchvision.transforms.Lambda(lambda x: x.unfold(1,CROPSIZE//4, CROPSIZE//4).unfold(2,CROPSIZE//4, CROPSIZE//4)),#split the image into 9 patches
+     torchvision.transforms.Lambda(lambda x: x/255), #bring image data between 1 and 0
+     torchvision.transforms.Lambda(lambda x: x.unfold(1,CROPSIZE//4, CROPSIZE//4).unfold(2,CROPSIZE//4, CROPSIZE//4)),#split the image into 4 patches
      torchvision.transforms.Lambda(lambda x: x[0])#removes the color channel dimension as this is greyscale
     ]
 )
+
+#load the datasets and torch data loaders
 trainData = dataset.ADNI(PATHTODATASET, transform=trainTransform)
 validationData = dataset.ADNI(PATHTODATASET, transform=valTransform, validation=True)
 trainLoader = DataLoader(trainData, batch_size=BATCHSIZE, shuffle=True)
 validationLoader = DataLoader(validationData, batch_size=BATCHSIZE, shuffle=True)
 
-#transformer = modules.ADNITransformer(16, 60, 4, 0.2, [512], ENCODERDENSELAYERS).to(device)
+transformer = modules.ADNITransformer(16, 60, 4, 0.2, [512], ENCODERDENSELAYERS).to(device)
+
+#other options for models:
+
+#convolution transformer: 
 #transformer = modules.ADNIConvTransformer(0.2, [512], ENCODERDENSELAYERS).to(device)
-transformer = torch.load("transformer_model")
+
+#experimental, got good validation accuracy but even less carry over to the test set than
+#the standard ViT. If you want to use it you must comment out:
+
+#torchvision.transforms.Lambda(lambda x: x.unfold(1,CROPSIZE//4, CROPSIZE//4).unfold(2,CROPSIZE//4, CROPSIZE//4)),
+#torchvision.transforms.Lambda(lambda x: x[0])
+
+#in both transforms above
+
+#For continuing training on a previously trained model:
+#transformer = torch.load("transformer_model")
 
 loss = torch.nn.BCELoss()
 optimizer = torch.optim.Adam(transformer.parameters(), lr=LR)
@@ -54,6 +75,7 @@ trainAccuracies = []
 valAccuracies = []
 valLoss = []
 trainLoss = []
+
 startTime = time.time()
 print("training...")
 #train the model
@@ -88,7 +110,7 @@ for epoch in range(EPOCHS):
     transformer.eval()
     batchAccuracies = []
     batchLoss = []
-    #run through validation set
+    #run through validation set, gather statistics, then put model back in train mode
     for batch in validationLoader:
         images, labels = batch[0].to(device), batch[1].to(device)
 
@@ -114,25 +136,9 @@ torch.save(torch.FloatTensor(trainAccuracies), "./trainaccdata")
 torch.save(torch.FloatTensor(valAccuracies), "./valaccdata")
 torch.save(torch.FloatTensor(trainLoss), "./trainlossdata")
 torch.save(torch.FloatTensor(valLoss), "./vallossdata")
+
 print("done.")
 endTime = time.time()
 print("took", (endTime-startTime), "seconds")
 
-
 torch.save(transformer, "transformer_model")
-"""
-torch.no_grad()
-transformer.eval()
-
-print("testing...")
-testAccuracies = []
-for batch in testLoader:
-
-    images, labels = batch[0].to(device), batch[1].to(device)
-
-    predictions = torch.round(transformer(images)[:, 0]).to(torch.uint8)
-    testAccuracy = torch.sum(predictions == labels)/(labels.size()[0])
-    testAccuracies.append(testAccuracy)
-    
-
-print(sum(testAccuracies)/len(testAccuracies))"""
