@@ -20,18 +20,18 @@ print('beep boop')
 TRAIN_DATA_PATH = "./ISIC-2017_Training_Data"
 TRAIN_MASK_PATH = "./ISIC-2017_Training_Part1_GroundTruth"
 
-# transform = transforms.Compose([
-#     transforms.ToTensor(),
-#     transforms.Normalize()
-# ])
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize([0.7079, 0.5915, 0.5469], [0.1543, 0.1629, 0.1780])
+])
 
-train = ISICDataset(TRAIN_DATA_PATH, TRAIN_MASK_PATH, transform=transforms.ToTensor())
+train = ISICDataset(TRAIN_DATA_PATH, TRAIN_MASK_PATH, transform=transform)
 train_loader = DataLoader(train, batch_size=BATCH_SIZE)
 
 VALID_DATA_PATH = "./ISIC-2017_Validation_Data"
 VALID_MASK_PATH = "./ISIC-2017_Validation_Part1_GroundTruth"
 
-valid = ISICDataset(TRAIN_DATA_PATH, TRAIN_MASK_PATH, transform=transforms.ToTensor())
+valid = ISICDataset(TRAIN_DATA_PATH, TRAIN_MASK_PATH, transform=transform)
 valid_loader = DataLoader(valid, batch_size=BATCH_SIZE)
 
 mean,std = calc_mean_std(train_loader)
