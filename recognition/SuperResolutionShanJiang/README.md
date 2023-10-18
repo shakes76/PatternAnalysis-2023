@@ -8,9 +8,8 @@ pip install -r requirements.txt
 The dataset used for training(and validation) and testing is loaded in dataset.py.The images are cropped into specified size. 20% of the training dataset is reserved for validation. Pixel values of traning and validation images are rescales to range of 0 to 1. A list of path for each test path is also created for later use.        
 Then we produce paired high resolution correspong loss resolution images from the training and validation dataset. To get high resolution images,we convert images from the RGB color space to the YUV colour space and only keeps Y channel. To get low recolution version, we convert images from the RGB color space to the YUV colour space,only keeps Y channel and resize down sample them to specified size. Each pair is put into a tuple for traning purpose.
 To run dataset.py, follow following steps:
-
+1. Define directory containing training dataset(directly contains image files) at line ?? by changeing the variale data_dir
        
-     - 
-   
+
      
     
