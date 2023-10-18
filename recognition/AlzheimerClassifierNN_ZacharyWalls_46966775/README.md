@@ -1,6 +1,8 @@
 # AlzViT
 
-This repository contains the code for training a custom made Visual-Transformer based model used to identify Alzheimer's disease in brain scans. The model was trained on the ADNI dataset for Alzheimer's disease with PyTorch utilised in the development and structuring of the model.
+This repository contains the code for training a custom made Visual-Transformer based model used to identify Alzheimer's disease in 2D sliced brain scans. The model was trained on the ADNI dataset which contains a number of sliced brain scan images separated into Normal (NC) and Alzheimer's classifications
+
+for Alzheimer's disease with PyTorch utilised in the development and structuring of the model.
 
 ## Dependencies
 

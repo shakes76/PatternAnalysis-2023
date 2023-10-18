@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from dataset import get_data_loaders
+from dataset import get_train_val_loaders
 from modules import ViT
 import matplotlib.pyplot as plt
 
@@ -15,43 +15,30 @@ device = torch.device(
 if __name__ == "__main__":
     # Load Data
     print(f"\nFETCHING DATA LOADERS\n{'='*25}\n")
-    train_loader, test_loader = get_data_loaders()
+    train_loader, val_loader = get_train_val_loaders()
 
     # Initialize Model
     print(f"\nINITIALIZING MODEL\n{'='*25}\n")
     print("Assigning model instance...")
-    dim = 1536
     model = ViT(
-        image_size=240,
-        image_patch_size=10,
-        frames=20,
-        frame_patch_size=10,
-        num_classes=2,
-        dim=dim,
+        in_channels=3,
+        patch_size=16,
+        emb_size=768,
+        img_size=224,
         depth=12,
-        heads=16,
-        mlp_dim=dim * 4,
-        pool="cls",
-        channels=1,
-        dim_head=96,
-        dropout=0.1,
-        emb_dropout=0.1,
+        n_classes=2,
     ).to(device)
     print("Model ready.")
 
     # Define Loss, Optimizer and Scheduler
-    lr = 0.000001
-    wd = 0.1
-    beta1 = 0.9
-    beta2 = 0.999
+    lr = 0.00001
+    wd = 0
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(
-        model.parameters(), lr=lr, weight_decay=wd, betas=(beta1, beta2)
-    )
+    optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=wd, amsgrad=True)
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
 
     # Training and Validation Loop
-    num_epochs = 40
+    num_epochs = 25
     best_val_accuracy = 0
 
     # Used for Graphing after Training
@@ -99,13 +86,13 @@ if __name__ == "__main__":
 
         # Validation Loop
         model.eval()
-        total_loss, total_correct, total_samples = 0, 0, len(test_loader.dataset)
+        total_loss, total_correct, total_samples = 0, 0, len(val_loader.dataset)
 
         # Counters for True Positives (TP), True Negatives (TN), False Positives (FP), and False Negatives (FN)
         TP, TN, FP, FN = 0, 0, 0, 0
 
         with torch.no_grad():
-            for images, labels in test_loader:
+            for images, labels in val_loader:
                 images, labels = images.to(device), labels.to(device)
                 logits = model(images)
                 loss = criterion(logits, labels)
@@ -129,15 +116,6 @@ if __name__ == "__main__":
         val_losses.append(avg_val_loss)
         val_accuracies.append(val_accuracy)
 
-        # Print the counters in a table format
-        print("Validation Statistics:")
-        print("-----------------------")
-        print(f"|{'True AD (TP)':<25}|{TP:>5}|")
-        print(f"|{'True NC (TN)':<25}|{TN:>5}|")
-        print(f"|{'False AD (FP)':<25}|{FP:>5}|")
-        print(f"|{'False NC (FN)':<25}|{FN:>5}|")
-        print("-----------------------\n")
-
         # Step the scheduler
         scheduler.step()
 
@@ -146,6 +124,23 @@ if __name__ == "__main__":
             best_val_accuracy = val_accuracy
             torch.save(model.state_dict(), "trained_model_weights.pth")
             print(f"Best Model Saved at Epoch {epoch}\n")
+
+        # ======================================
+        #   Plotting of Confusion Matrix
+        # ======================================
+
+        # Print the counters in a table format per Epoch Val
+        print("Validation Statistics:")
+        print("-----------------------")
+        print(f"|{'True AD (TP)':<25}|{TP:>5}|")
+        print(f"|{'True NC (TN)':<25}|{TN:>5}|")
+        print(f"|{'False AD (FP)':<25}|{FP:>5}|")
+        print(f"|{'False NC (FN)':<25}|{FN:>5}|")
+        print("-----------------------\n")
+
+    # ======================================
+    #   Plotting of Training Performance
+    # ======================================
 
     # Plotting Validation Loss
     plt.figure(figsize=(12, 6))

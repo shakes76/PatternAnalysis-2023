@@ -1,269 +1,271 @@
 import torch
+import torch.nn.functional as F
+
 from torch import nn
+from torch import Tensor
 from einops import rearrange, repeat
-from einops.layers.torch import Rearrange
+from einops.layers.torch import Rearrange, Reduce
+
+# Modules
 
 
-# Helper function to handle tuples
-def pair(t):
-    """
-    Helper function to handle tuples.
+class ResidualAdd(nn.Module):
+    def __init__(self, fn):
+        """
+        Initialize a residual addition block.
 
-    Parameters:
-        t (int or tuple): Input which can be a single integer or a tuple.
+        Args:
+            fn (nn.Module): The function to apply.
+        """
+        super().__init__()
+        self.fn = fn
 
-    Returns:
-        tuple: A tuple containing two values.
-    """
-    return t if isinstance(t, tuple) else (t, t)
+    def forward(self, x, **kwargs):
+        """
+        Forward pass of the residual addition block.
+
+        Args:
+            x (Tensor): Input tensor.
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            Tensor: Output tensor.
+        """
+        res = x
+        x = self.fn(x, **kwargs)
+        x += res
+        return x
 
 
-# Feed Forward Neural Network
+class PatchEmbedding(nn.Module):
+    def __init__(
+        self,
+        in_channels: int = 3,
+        patch_size: int = 16,
+        emb_size: int = 768,
+        img_size: int = 240,
+    ):
+        """
+        Initialize the patch embedding layer.
+
+        Args:
+            in_channels (int): Number of input channels.
+            patch_size (int): Patch size.
+            emb_size (int): Embedding size.
+            img_size (int): Image size.
+        """
+        self.patch_size = patch_size
+        super().__init__()
+        self.projection = nn.Sequential(
+            # using a conv layer instead of a linear one -> performance gains
+            nn.Conv2d(in_channels, emb_size, kernel_size=patch_size, stride=patch_size),
+            Rearrange("b e (h) (w) -> b (h w) e"),
+        )
+        self.cls_token = nn.Parameter(torch.randn(1, 1, emb_size, dtype=torch.float32))
+        self.positions = nn.Parameter(
+            torch.randn(
+                (img_size // patch_size) ** 2 + 1, emb_size, dtype=torch.float32
+            )
+        )
+
+    def forward(self, x: Tensor) -> Tensor:
+        """
+        Forward pass of the patch embedding layer.
+
+        Args:
+            x (Tensor): Input tensor.
+
+        Returns:
+            Tensor: Output tensor.
+        """
+        b, _, _, _ = x.shape
+        x = self.projection(x)
+        cls_tokens = repeat(self.cls_token, "() n e -> b n e", b=b)
+        # prepend the cls token to the input
+        x = torch.cat([cls_tokens, x], dim=1)
+        # add position embedding
+        x += self.positions
+        return x
+
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, emb_size: int = 768, num_heads: int = 8, dropout: float = 0.1):
+        """
+        Initialize the multi-head attention layer.
+
+        Args:
+            emb_size (int): Embedding size.
+            num_heads (int): Number of attention heads.
+            dropout (float): Dropout rate.
+        """
+        super().__init__()
+        self.emb_size = emb_size
+        self.num_heads = num_heads
+        # fuse the queries, keys and values in one matrix
+        self.qkv = nn.Linear(emb_size, emb_size * 3)
+        self.att_drop = nn.Dropout(dropout)
+        self.projection = nn.Linear(emb_size, emb_size)
+
+    def forward(self, x: Tensor, mask: Tensor = None) -> Tensor:
+        """
+        Forward pass of the multi-head attention layer.
+
+        Args:
+            x (Tensor): Input tensor.
+            mask (Tensor, optional): Attention mask tensor.
+
+        Returns:
+            Tensor: Output tensor.
+        """
+        # split keys, queries and values in num_heads
+        qkv = rearrange(
+            self.qkv(x), "b n (h d qkv) -> (qkv) b h n d", h=self.num_heads, qkv=3
+        )
+        queries, keys, values = qkv[0], qkv[1], qkv[2]
+        # sum up over the last axis
+        energy = torch.einsum(
+            "bhqd, bhkd -> bhqk", queries, keys
+        )  # batch, num_heads, query_len, key_len
+        if mask is not None:
+            fill_value = torch.finfo(torch.float32).min
+            energy.mask_fill(~mask, fill_value)
+
+        scaling = self.emb_size ** (1 / 2)
+        att = F.softmax(energy, dim=-1) / scaling
+        att = self.att_drop(att)
+        # sum up over the third axis
+        out = torch.einsum("bhal, bhlv -> bhav ", att, values)
+        out = rearrange(out, "b h n d -> b n (h d)")
+        out = self.projection(out)
+        return out
+
+
+# Modified compared to paper
 class FeedForward(nn.Module):
-    """
-    Feed Forward Neural Network.
+    def __init__(self, dim, expansion=4, drop_p=0.1):
+        """
+        Initialize the feedforward layer.
 
-    Parameters:
-        dim (int): Dimension of the input.
-        hidden_dim (int): Dimension of the hidden layer.
-        dropout (float, optional): Dropout rate. Defaults to 0.0.
-    """
-
-    def __init__(self, dim, hidden_dim, dropout=0.0):
+        Args:
+            dim (int): Input dimension.
+            expansion (int): Expansion factor.
+            drop_p (float): Dropout rate.
+        """
         super().__init__()
         self.net = nn.Sequential(
             nn.LayerNorm(dim),
-            nn.Linear(dim, hidden_dim),
+            nn.Linear(dim, dim * expansion),
             nn.GELU(),
-            nn.Dropout(dropout),
-            nn.Linear(hidden_dim, dim),
-            nn.Dropout(dropout),
+            nn.Dropout(drop_p),
+            nn.Linear(dim * expansion, dim),
+            nn.Dropout(drop_p),
         )
 
     def forward(self, x):
         """
-        Forward pass of the Feed Forward Network.
+        Forward pass of the feedforward layer.
 
-        Parameters:
-            x (torch.Tensor): Input tensor.
+        Args:
+            x (Tensor): Input tensor.
 
         Returns:
-            torch.Tensor: Output tensor.
+            Tensor: Output tensor.
         """
         return self.net(x)
 
 
-# Multi-head Attention Mechanism
-class Attention(nn.Module):
-    """
-    Multi-head Attention Mechanism.
-
-    Parameters:
-        dim (int): Dimension of the input.
-        heads (int, optional): Number of attention heads. Defaults to 8.
-        dim_head (int, optional): Dimension of each attention head. Defaults to 64.
-        dropout (float, optional): Dropout rate. Defaults to 0.0.
-    """
-
-    def __init__(self, dim, heads=8, dim_head=64, dropout=0.0):
-        super().__init__()
-        inner_dim = dim_head * heads
-        project_out = not (heads == 1 and dim_head == dim)
-
-        self.heads = heads
-        self.scale = dim_head**-0.5
-
-        self.norm = nn.LayerNorm(dim)
-        self.attend = nn.Softmax(dim=-1)
-        self.dropout = nn.Dropout(dropout)
-
-        self.to_qkv = nn.Linear(dim, inner_dim * 3, bias=False)
-
-        self.to_out = (
-            nn.Sequential(nn.Linear(inner_dim, dim), nn.Dropout(dropout))
-            if project_out
-            else nn.Identity()
-        )
-
-    def forward(self, x):
-        """
-        Forward pass of the Attention mechanism.
-
-        Parameters:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            torch.Tensor: Output tensor.
-        """
-        x = self.norm(x)
-        qkv = self.to_qkv(x).chunk(3, dim=-1)
-        q, k, v = map(lambda t: rearrange(t, "b n (h d) -> b h n d", h=self.heads), qkv)
-
-        dots = torch.matmul(q, k.transpose(-1, -2)) * self.scale
-
-        attn = self.attend(dots)
-        attn = self.dropout(attn)
-
-        out = torch.matmul(attn, v)
-        out = rearrange(out, "b h n d -> b n (h d)")
-        return self.to_out(out)
-
-
-# Transformer (comprising multiple layers of multi-head attention and feed-forward networks)
-class Transformer(nn.Module):
-    """
-    Transformer comprising multiple layers of multi-head attention and feed-forward networks.
-
-    Parameters:
-        dim (int): Dimension of the input.
-        depth (int): Number of layers in the transformer.
-        heads (int): Number of attention heads.
-        dim_head (int): Dimension of each attention head.
-        mlp_dim (int): Dimension of the hidden layer in the feed forward network.
-        dropout (float, optional): Dropout rate. Defaults to 0.0.
-    """
-
-    def __init__(self, dim, depth, heads, dim_head, mlp_dim, dropout=0.0):
-        super().__init__()
-        self.layers = nn.ModuleList([])
-        for _ in range(depth):
-            self.layers.append(
-                nn.ModuleList(
-                    [
-                        Attention(dim, heads=heads, dim_head=dim_head, dropout=dropout),
-                        FeedForward(dim, mlp_dim, dropout=dropout),
-                    ]
-                )
-            )
-
-    def forward(self, x):
-        """
-        Forward pass of the Transformer.
-
-        Parameters:
-            x (torch.Tensor): Input tensor.
-
-        Returns:
-            torch.Tensor: Output tensor.
-        """
-        for attn, ff in self.layers:
-            x = attn(x) + x
-            x = ff(x) + x
-        return x
-
-
-class ViT(nn.Module):
-    """
-    Vision Transformer (ViT) model.
-
-    Parameters:
-        image_size (int or tuple): Size of the input image.
-        image_patch_size (int or tuple): Size of each image patch.
-        frames (int): Number of frames.
-        frame_patch_size (int): Size of each frame patch.
-        num_classes (int): Number of target classes.
-        dim (int): Dimension of the input.
-        depth (int): Number of layers in the transformer.
-        heads (int): Number of attention heads.
-        mlp_dim (int): Dimension of the hidden layer in the feed forward network.
-        pool (str, optional): Pooling type, either "cls" for cls token or "mean" for mean pooling. Defaults to "cls".
-        channels (int, optional): Number of channels in the input image. Defaults to 3.
-        dim_head (int, optional): Dimension of each attention head. Defaults to 64.
-        dropout (float, optional): Dropout rate. Defaults to 0.0.
-        emb_dropout (float, optional): Dropout rate for embeddings. Defaults to 0.0.
-    """
-
+class TransformerEncoderBlock(nn.Sequential):
     def __init__(
         self,
-        *,
-        image_size,
-        image_patch_size,
-        frames,
-        frame_patch_size,
-        num_classes,
-        dim,
-        depth,
-        heads,
-        mlp_dim,
-        pool="cls",
-        channels=3,
-        dim_head=64,
-        dropout=0.0,
-        emb_dropout=0.0
+        emb_size: int = 768,
+        drop_p: float = 0.1,
+        forward_expansion: int = 4,
+        forward_drop_p: float = 0.0,
+        **kwargs
     ):
-        super().__init__()
-        image_height, image_width = pair(image_size)
-        patch_height, patch_width = pair(image_patch_size)
+        """
+        Initialize a transformer encoder block.
 
-        assert (
-            image_height % patch_height == 0 and image_width % patch_width == 0
-        ), "Image dimensions must be divisible by the patch size."
-        assert (
-            frames % frame_patch_size == 0
-        ), "Frames must be divisible by frame patch size"
-
-        num_patches = (
-            (image_height // patch_height)
-            * (image_width // patch_width)
-            * (frames // frame_patch_size)
-        )
-        patch_dim = channels * patch_height * patch_width * frame_patch_size
-
-        assert pool in {
-            "cls",
-            "mean",
-        }, "pool type must be either cls (cls token) or mean (mean pooling)"
-
-        self.to_patch_embedding = nn.Sequential(
-            Rearrange(
-                "b c (f pf) (h p1) (w p2) -> b (f h w) (p1 p2 pf c)",
-                p1=patch_height,
-                p2=patch_width,
-                pf=frame_patch_size,
+        Args:
+            emb_size (int): Embedding size.
+            drop_p (float): Dropout rate.
+            forward_expansion (int): Feedforward expansion factor.
+            forward_drop_p (float): Feedforward dropout rate.
+        """
+        super().__init__(
+            ResidualAdd(
+                nn.Sequential(
+                    nn.LayerNorm(emb_size),
+                    MultiHeadAttention(emb_size, **kwargs),
+                    nn.Dropout(drop_p),
+                )
             ),
-            nn.LayerNorm(patch_dim),
-            nn.Linear(patch_dim, dim),
-            nn.LayerNorm(dim),
+            ResidualAdd(
+                nn.Sequential(
+                    nn.LayerNorm(emb_size),
+                    FeedForward(
+                        emb_size, expansion=forward_expansion, drop_p=forward_drop_p
+                    ),
+                    nn.Dropout(drop_p),
+                )
+            ),
         )
 
-        self.pos_embedding = nn.Parameter(torch.randn(1, num_patches + 1, dim))
-        self.cls_token = nn.Parameter(torch.randn(1, 1, dim))
-        self.dropout = nn.Dropout(emb_dropout)
 
-        self.transformer = Transformer(dim, depth, heads, dim_head, mlp_dim, dropout)
+class TransformerEncoder(nn.Sequential):
+    def __init__(self, depth: int = 12, **kwargs):
+        """
+        Initialize the transformer encoder.
 
-        self.pool = pool
-        self.to_latent = nn.Identity()
+        Args:
+            depth (int): Number of transformer blocks.
+            **kwargs: Additional keyword arguments for transformer blocks.
+        """
+        super().__init__(*[TransformerEncoderBlock(**kwargs) for _ in range(depth)])
 
-        self.mlp_head = nn.Sequential(nn.LayerNorm(dim), nn.Linear(dim, num_classes))
 
-        # Initialize linear layers and LayerNorm in your model
-        for module in self.modules():
-            if isinstance(module, nn.Linear):
-                nn.init.xavier_uniform_(
-                    module.weight
-                )  # Use Xavier initialization for linear layers
-                if module.bias is not None:
-                    nn.init.constant_(module.bias, 0)  # Initialize biases to zeros
+class ClassificationHead(nn.Sequential):
+    def __init__(self, emb_size: int = 768, n_classes: int = 2):
+        """
+        Initialize the classification head.
 
-            elif isinstance(module, nn.LayerNorm):
-                nn.init.constant_(module.weight, 1)  # Initialize LayerNorm weights to 1
-                nn.init.constant_(
-                    module.bias, 0
-                )  # Initialize LayerNorm biases to zeros
+        Args:
+            emb_size (int): Embedding size.
+            n_classes (int): Number of output classes.
+        """
+        super().__init__(
+            Reduce("b n e -> b e", reduction="mean"),  # Mean reduction applied
+            nn.Identity(),  # To Latent
+            nn.Sequential(
+                nn.LayerNorm(emb_size), nn.Linear(emb_size, n_classes)
+            ),  # MLP Head
+        )
 
-    def forward(self, image):
-        x = self.to_patch_embedding(image)
-        b, n, _ = x.shape
 
-        cls_tokens = repeat(self.cls_token, "1 1 d -> b 1 d", b=b)
-        x = torch.cat((cls_tokens, x), dim=1)
-        x += self.pos_embedding[:, : (n + 1)]
-        x = self.dropout(x)
+class ViT(nn.Sequential):
+    def __init__(
+        self,
+        in_channels: int = 3,
+        patch_size: int = 16,
+        emb_size: int = 768,
+        img_size: int = 224,
+        depth: int = 12,
+        n_classes: int = 2,
+        **kwargs
+    ):
+        """
+        Initialize the Vision Transformer model.
 
-        x = self.transformer(x)
-
-        x = x.mean(dim=1) if self.pool == "mean" else x[:, 0]
-
-        x = self.to_latent(x)
-        return self.mlp_head(x)
+        Args:
+            in_channels (int): Number of input channels.
+            patch_size (int): Patch size.
+            emb_size (int): Embedding size.
+            img_size (int): Image size.
+            depth (int): Number of transformer blocks.
+            n_classes (int): Number of output classes.
+        """
+        super().__init__(
+            PatchEmbedding(in_channels, patch_size, emb_size, img_size),
+            TransformerEncoder(depth=depth, emb_size=emb_size, **kwargs),
+            ClassificationHead(emb_size, n_classes),
+        )

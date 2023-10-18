@@ -1,5 +1,11 @@
 import matplotlib as plt
 import torch
+import torch
+from torchvision import datasets, transforms
+from torch.utils.data import Dataset
+import os
+from collections import defaultdict
+from PIL import Image
 
 
 def display_images(images, labels, predictions):
@@ -35,19 +41,59 @@ def backward_hook(module, grad_input, grad_output):
     return grad_input
 
 
-# We use this function to generate a normalization value for the dataset
+# This function was used for the normalization calculations of the dataset
 def compute_mean_std(loader):
     """
-    Compute the mean and standard deviation of the dataset.
+    Compute the mean and standard deviation of the dataset for all RGB channels.
     """
-    mean = 0.0
-    squared_mean = 0.0
-    std = 0.0
+    mean = torch.zeros(3)  # Initialize mean for each RGB channel
+    squared_mean = torch.zeros(3)  # Initialize squared mean for each RGB channel
     for images, _ in loader:
-        mean += images.mean()
-        squared_mean += (images**2).mean()
+        # Calculate mean and squared mean for each channel separately
+        mean += images.mean(dim=(0, 2, 3))
+        squared_mean += (images**2).mean(dim=(0, 2, 3))
 
     mean /= len(loader)
     squared_mean /= len(loader)
+
+    # Calculate standard deviation for each channel
     std = (squared_mean - mean**2) ** 0.5
-    return mean.item(), std.item()
+    return mean.tolist(), std.tolist()
+
+
+# If you wish to transpose the data into 3D scans this can be applied for the data loading
+class BrainScan3DDataset(Dataset):
+    def __init__(self, root_dir, transform=None, label=None):
+        self.root_dir = root_dir
+        self.transform = transform
+        self.patient_data = self._load_data()
+        self.uuids = list(self.patient_data.keys())
+        self.label = label
+
+    def _load_data(self):
+        patient_data = defaultdict(list)
+        for filename in os.listdir(self.root_dir):
+            if filename.endswith(".jpeg"):
+                uuid = "_".join(filename.split("_")[:-1])
+                patient_data[uuid].append(os.path.join(self.root_dir, filename))
+
+        # Sort the data based on the image number
+        for uuid, slices in patient_data.items():
+            slices.sort(key=lambda x: int(x.split("_")[-1].split(".")[0]))
+
+        return patient_data
+
+    def __len__(self):
+        return len(self.uuids)
+
+    def __getitem__(self, idx):
+        patient_uuid = self.uuids[idx]
+        image_paths = self.patient_data[patient_uuid]
+        # Loading and transforming each slice
+        slices = [
+            self.transform(Image.open(p).convert("L")) for p in image_paths
+        ]  # Convert to grayscale
+        # Stacking along the depth dimension
+        tensors = torch.stack(slices, dim=1)  # (channels, depth, height, width)
+        label = torch.tensor(self.label, dtype=torch.long)
+        return tensors, label
