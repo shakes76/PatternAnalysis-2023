@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+import torch.nn.functional as F
 
 class ImprovedUNET(nn.Module):
   def __init__(self, n_channels, n_classes):
@@ -120,3 +121,17 @@ class ImprovedUNET(nn.Module):
     x = self.softmax(x)
 
     return x
+
+class DiceLoss(nn.Module):
+  def __init__(self, smooth = 1.0):
+    super(DiceLoss, self).__init__()
+    self.smooth = smooth
+
+  def forward(self, pred, truth):
+    pred = F.sigmoid(pred)
+    pred_f = pred.view(-1)
+    truth_f = truth.view(-1)
+
+    overlap = (pred_f*truth_f).sum()
+    dice = (2*overlap+self.smooth)/(pred_f.sum()+truth_f.sum()+self.smooth)
+    return 1-dice

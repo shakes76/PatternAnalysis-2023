@@ -1,4 +1,4 @@
-from modules import ImprovedUNET
+from modules import ImprovedUNET, DiceLoss
 from dataset import ISICdataset
 from utilities import get_data_from_url, train, DSC, accuracy
 import albumentations as A
@@ -56,7 +56,7 @@ train_loader = DataLoader(
 
 model = ImprovedUNET(N_CHANNELS, N_CLASSES)
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
-loss_fn = nn.BCEWithLogitsLoss()
+loss_fn = DiceLoss()
 
 model = model.to(DEVICE)
 print(model)

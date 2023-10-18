@@ -31,8 +31,6 @@ def train(model, loader, optimizer, criterion, DEVICE):
     loss.backward()
 
     optimizer.step()
-  
-  return preds[0], masks[0]
 
 def DSC(predictions, masks):
   return (2 * predictions * masks).sum() / (predictions + masks).sum() + 1e-8
