@@ -3,6 +3,7 @@ from dataset import *
 from modules import *
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import Precision
+from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, ReduceLROnPlateau, TensorBoard
 
 
 def dice_coef(y_true, y_pred):
@@ -21,12 +22,16 @@ if __name__ == "__main__":
     else:
         print("Warning: No GPU found, using CPU")
 
+    model_path = "files/model.h5"
+    csv_path = "files/data.csv"
+
     dataset_path = r"C:\Users\raulm\Desktop\Uni\Sem2.2023\Patterns\ISIC-2017_Training_Data"
+    
     (train_x, train_y), (valid_x, valid_y), (test_x, test_y) = load_data(dataset_path)
 
     batch_size = 4
     lr = 1e-4
-    num_epoch = 20
+    num_epoch = 25
     
     train_dataset = tf_dataset(train_x, train_y, batch_size)
     valid_dataset = tf_dataset(valid_x, valid_y, batch_size)
@@ -38,12 +43,19 @@ if __name__ == "__main__":
     metrics = [dice_coef, Precision()]
     model.compile(loss="binary_crossentropy", optimizer=Adam(lr), metrics=metrics)
     # model.summary()
-    
+    callbacks = [
+        # Save model at best val_dice_ceof
+        ModelCheckpoint(model_path, monitor='val_dice_coef', verbose=1, save_best_only=True, mode='max'),
+        ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, min_lr=1e-7, verbose=1),
+        CSVLogger(csv_path),
+        TensorBoard()
+    ]
     # Start training the model
     model.fit(
         train_dataset,
         epochs=num_epoch,
         validation_data=valid_dataset,
         steps_per_epoch=train_steps,
-        validation_steps=valid_steps
+        validation_steps=valid_steps,
+        callbacks=callbacks
     )
