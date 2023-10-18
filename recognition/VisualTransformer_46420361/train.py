@@ -54,17 +54,17 @@ def evaluate_model(model, root, image_size, batch_size):
     
     with torch.no_grad():
         correct, total = 0, 0
-        test_loss = 0.0
-        for batch in tqdm(validation_dataloader, desc="Testing"):
+        validation_loss = 0.0
+        for batch in tqdm(validation_dataloader, desc="Validation"):
             x, y = batch
             x, y = x.to(device), y.to(device)
             y_hat = model(x)
             loss = criterion(y_hat, y)
-            test_loss += loss.detach().cpu().item() / len(validation_dataloader)
+            validation_loss += loss.detach().cpu().item() / len(validation_dataloader)
 
             correct += torch.sum(torch.argmax(y_hat, dim=1) == y).detach().cpu().item()
             total += len(x)
-        print(f"Test loss: {test_loss:.2f}")
+        print(f"Test loss: {validation_loss:.2f}")
         print(f"Test accuracy: {correct / total * 100:.2f}%")
     return
 
@@ -72,12 +72,23 @@ def test_model():
     
     return
 
-def save_model(model, file):
+def load_model(model_name):
+    """loads saved model
+
+    Args:
+        model_name (string): name of the model to be loaded (.pth)
+
+    Returns:
+        <class 'modules.ViT'>: the loaded model
+    """
+    return torch.load(model_name)
+
+def save_model(model, model_name):
     """saves model to current working directory
 
     Args:
         model (<class 'modules.ViT'>): the vision transformer model to be saved
         file (string): file name of the model to be saved (needs .pth)
     """
-    torch.save(model, file)
+    torch.save(model, model_name)
         
