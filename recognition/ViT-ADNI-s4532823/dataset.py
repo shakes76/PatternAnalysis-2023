@@ -21,14 +21,15 @@ if sys.platform == 'win32':
 
 # Centre crop all images to 224x224
 TRAIN_TRANSFORM = transforms.Compose([
-    transforms.CenterCrop(224),
+    transforms.RandomCrop(224),
     transforms.RandomHorizontalFlip(),
+    transforms.RandomVerticalFlip(),
     transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
 ])
 
 TEST_TRANSFORM = transforms.Compose([
-    transforms.CenterCrop(224),
+    transforms.RandomCrop(224),
     transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
 ])

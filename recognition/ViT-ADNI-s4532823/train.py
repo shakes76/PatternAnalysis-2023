@@ -17,7 +17,7 @@ if not torch.cuda.is_available():
 
 # Hyper parameters
 BATCH_SIZE = 64
-EPOCHS = 4
+EPOCHS = 10
 LR = 1e-5
 
 # Initialise data loaders
@@ -32,7 +32,6 @@ criterion = torch.nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=LR)
 
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, 0.5)
-#earlystop = 
 
 # Training and validation
 train_losses = []
@@ -103,11 +102,13 @@ for epoch in range(EPOCHS):
 
     scheduler.step()
 
-    # Stop training early if validation accuracy decreases from one epoch to the next
-    if epoch > 0 and val_accs[-2] > val_accs[-1]:
-        stopping_epoch = epoch
-        torch.save(model, "adni_vit.pt")
+    # Stop training early if validation accuracy decreases for two epochs in a row
+    if epoch+1 > 1 and val_accs[-3] > val_accs[-2] > val_accs[-1]:
+        stopping_epoch = epoch+1
         break
+    if val_accs[-1] == max(val_accs):
+        # save best model
+        torch.save(model, "adni_vit.pt")
     
 end = time.time()
 elapsed = end - start
@@ -120,9 +121,12 @@ plt.plot(range(1, stopping_epoch+1), train_accs, label='Training accuracy')
 plt.plot(range(1, stopping_epoch+1), val_accs, label='Validation accuracy', color='orange')
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
+plt.legend()
+plt.title("Training accuracy vs validation accuracy")
 
 # Show the figure with both subplots
 plt.show()
+plt.savefig(f"Training vs validation accuracy {time.strftime(time.time())}")
 
 # Do testing
 test_correct = 0
