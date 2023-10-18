@@ -6,22 +6,30 @@ This project is an implementation of a Vision Transformer (ViT) for image classi
 ## Table of Contents
 - [ADNI Dataset](#adni-dataset)
 - [Project Structure](#project-structure)
+  - [Vision](#vision)
   - [Files](#files)
-- [Vision Transformer (ViT) Model Design](#vision-transformer-vit-model-design)
-  - [Introduction](#introduction)
-  - [Model Architecture](#model-architecture)
-  - [Hyperparameters](#hyperparameters)
-  - [Training](#training)
-  - [Results](#results)
-- [Data Preprocessing](#data-preprocessing)
+    - [Transformer (ViT) Model Design Introduction](#transformer-vit-model-design-introduction)
+    - [Model Architecture](#model-architecture)
+    - [Hyperparameters](#hyperparameters)
+    - [Training](#training)
+    - [Results](#results)
+      - [Resizing image](#resizing-image)
+      - [Dividing images into Patches](#dividing-images-into-patches)
+      - [Model loss graph](#model-loss-graph)
+      - [Model accuracy graph](#model-accuracy-graph)
+      - [Heatmap](#heatmap)
+      - [Accuracy](#accuracy)
+      - [Actual vs Predicted image analysis](#actual-vs-predicted-image-analysis)
+  - [Data Preprocessing](#data-preprocessing)
+- [Data](#data)
 - [Validation Evidence](#validation-evidence)
 - [Discussion](#discussion)
 - [Usage](#usage)
 - [Requirements](#requirements)
--[References](#references)
+- [References](#references)
 
 ## ADNI Dataset
-The Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset is a valuable and widely used collection of medical imaging and clinical data aimed at advancing our understanding of Alzheimer's disease. Comprising a comprehensive range of neuroimaging modalities, including MRI and PET scans, as well as clinical and cognitive assessments, the ADNI dataset has played a pivotal role in enhancing research related to neurodegenerative diseases. This dataset not only facilitates the identification of biomarkers associated with Alzheimer's disease but also promotes the development of innovative diagnostic and prognostic tools. Researchers employ the ADNI dataset for various tasks, such as disease prediction, progression tracking, and the evaluation of treatment interventions, ultimately contributing to advancements in Alzheimer's disease research and patient care.
+The Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset is a valuable and widely used collection of medical imaging and clinical data aimed at advancing our understanding of Alzheimer's disease. Comprising a comprehensive range of neuroimaging modalities, including MRI and PET scans, as well as clinical and cognitive assessments, the ADNI dataset has played a pivotal role in enhancing research related to neurodegenerative diseases. This dataset not only facilitates the identification of biomarkers associated with Alzheimer's disease but also promotes the development of innovative diagnostic and prognostic tools. When we first open the dataset, we are able to see 2 sets of different folders named ‘ AD’ and ‘CN’. Upon further exploration we see the images in it.
 
 ## Project Structure
 ### Files
@@ -80,12 +88,12 @@ Key results and highlights:
 4. **Visual Representation**: The script not only provides numerical results but also offers a visual representation of model predictions. A set of random test images, along with their actual and predicted labels, allows for a qualitative assessment of the model's performance.
 
 ### Data Preprocessing
-The data preprocessing involves loading and preprocessing the ADNI dataset. It includes resizing images, normalizing pixel values, and converting labels to categorical form. The dataset is also split into training and testing sets.
+The data preprocessing involves loading and preprocessing the ADNI dataset. It includes resizing images, normalizing pixel values. 
 
 ### Validation Evidence
 Validation of the model's performance is a critical aspect of this project. Here's how validation evidence is obtained:
 
-1. **Data Splitting**: The ADNI dataset is split into training and testing sets. A common split ratio is used, e.g., 80% for training and 20% for testing.
+1. **Data Splitting**: The ADNI dataset is split into training and validation sets. A common split ratio is used, e.g., 80% for training and 20% for validation.
 
 2. **Model Training**: The ViT model is trained on the training set with specific hyperparameters, such as learning rate, batch size, and number of transformer layers.
 
@@ -93,12 +101,12 @@ Validation of the model's performance is a critical aspect of this project. Here
 
 4. **Confusion Matrix**: A confusion matrix is generated to assess the model's classification performance, providing insights into true positives, true negatives, false positives, and false negatives.
 
-5. **Accuracy Recording**: The test accuracy is recorded and saved in a text file for reference.
+5. **Accuracy Recording**: The test accuracy is recorded and saved in a png file for reference.
 
 ### Discussion
 The validation results indicate that the ViT model performs well in distinguishing between Alzheimer's disease (AD) and normal control (CN) subjects. The model demonstrates a high accuracy on the ADNI dataset, surpassing the specified accuracy threshold. The confusion matrix and individual image predictions provide a detailed understanding of the model's classification effectiveness.
 
-The accuracy of the model is [94]% as recorded in the text file 'test_accuracy.png'.
+The accuracy of the model is [94]% as recorded in the png file 'accuracy.png'.
 
 The visual representation of sample images and their actual/predicted labels demonstrates the model's capability to make accurate predictions. This performance highlights the significance of the ViT model in the early diagnosis and classification of Alzheimer's disease based on medical images.
 
@@ -134,6 +142,6 @@ You can further customize and extend the `predict.py` script to suit your specif
 - https://www.kaggle.com/datasets/katalniraj/adni-extracted-axial
 - https://medium.com/data-and-beyond/vision-transformers-vit-a-very-basic-introduction-6cd29a7e56f3
 - https://paperswithcode.com/method/vision-transformer
-- https://viso.ai/deep-learning/vision-transformer-vit/#:~:text=Vision%20Transformers%20(ViT)%20is%20an,     and%20a%20feed%2Dforward%20layer.
+- https://viso.ai/deep-learning/vision-transformer-vit/#:~:text=Vision%20Transformers%20(ViT)%20is%20an  and%20a%20feed%2Dforward%20layer.
 - https://towardsdatascience.com/understand-and-implement-vision-transformer-with-tensorflow-2-0-f5435769093
 - https://machinelearningmastery.com/the-vision-transformer-model/
