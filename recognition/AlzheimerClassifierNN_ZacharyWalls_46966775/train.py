@@ -1,9 +1,9 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import matplotlib.pyplot as plt
 from dataset import get_train_val_loaders
 from modules import ViT
-import matplotlib.pyplot as plt
 
 device = torch.device(
     "mps"
