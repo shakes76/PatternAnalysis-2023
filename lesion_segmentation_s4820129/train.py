@@ -6,7 +6,9 @@ from albumentations.pytorch import ToTensorV2
 from torch.utils.data import Dataset, DataLoader
 import torch
 from torch import nn
+import wandb
 
+wandb.init(project="Lesion_detection", name="UNET")
 
 print('got here')
 #get_data_from_url('ISIC_data', '1vxd1KBIYa3zCAVONkacdclsWUAxhWLho')
@@ -41,7 +43,7 @@ N_CHANNELS = 3
 N_CLASSES = 1
 BATCH_SIZE = 16
 LEARNING_RATE = 0.01
-EPOCHS = 3
+EPOCHS = 6
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 train_loader = DataLoader(
@@ -62,6 +64,7 @@ print(DEVICE)
 
 for epoch in range(EPOCHS):
     train(model, train_loader, optimizer, loss_fn, DEVICE)
-    accuracy(model, train_loader, DEVICE)
-    break
+    acc, dice = accuracy(model, train_loader, DEVICE)
+    wandb.log({'Epoch': epoch, 'Accuracy': acc, 'Dice Similarity': dice})
+    
 
