@@ -53,7 +53,7 @@ class ISICDataset(Dataset):
 
 # transforms to be put on the images
 transform = transforms.Compose([transforms.ToTensor(),
-                                transforms.Resize((64, 64), antialias=True)])
+                                transforms.Resize((512, 512), antialias=True)])
 
 # create datasets
 train_data = ISICDataset(img_dir="data/train_data", truth_dir="data/train_truth", transform=transform, train=True)
