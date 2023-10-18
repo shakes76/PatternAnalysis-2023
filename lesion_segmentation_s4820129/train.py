@@ -8,9 +8,9 @@ import torch
 from torch import nn
 
 print('got here')
-get_data_from_url('ISIC_data', '1vxd1KBIYa3zCAVONkacdclsWUAxhWLho')
-TRAIN_DIR = 'ISIC_data/train'
-TRUTH_DIR = 'ISIC_data/ground_truth'
+#get_data_from_url('ISIC_data', '1vxd1KBIYa3zCAVONkacdclsWUAxhWLho')
+TRAIN_DIR = '/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2'
+TRUTH_DIR = 'ISIC_data/ground_truth/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2'
 
 
 train_transform = A.Compose(
