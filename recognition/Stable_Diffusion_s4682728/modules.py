@@ -1,62 +1,51 @@
 from imports import *
 
-class DiffusionProcess(nn.Module):
-    def __init__(self, betas, num_steps):
-        super(DiffusionProcess, self).__init__()
-        self.betas = betas  
-        self.num_steps = num_steps
+class SinusoidalPositionEmbeddings(nn.Module):
+    '''
+    Taken from https://huggingface.co/blog/annotated-diffusion
+    '''
+    def __init__(self, dim):
+        super().__init__()
+        self.dim = dim
 
-    def forward(self, x):
-        for step in range(self.num_steps):
-            beta = self.betas[step].clone().detach()
-            noise = torch.randn_like(x) * torch.sqrt(beta)
-            x = x + noise
-        return x
-
-class ChannelAttention(nn.Module):
-    def __init__(self, in_channels, reduction_ratio=16):
-        super(ChannelAttention, self).__init__()
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
-        self.fc = nn.Sequential(
-            nn.Linear(in_channels, in_channels // reduction_ratio, bias=False),
-            nn.ReLU(inplace=True),
-            nn.Linear(in_channels // reduction_ratio, in_channels, bias=False),
-            nn.Sigmoid()
-        )
-
-    def forward(self, x):
-        b, c, _, _ = x.size()
-        y = self.avg_pool(x).view(b, c)
-        y = self.fc(y).view(b, c, 1, 1)
-        return x * y.expand_as(x)
+    def forward(self, time):
+        device = time.device
+        half_dim = self.dim // 2
+        embeddings = math.log(10000) / (half_dim - 1)
+        embeddings = torch.exp(torch.arange(half_dim, device=device) * -embeddings)
+        embeddings = time[:, None] * embeddings[None, :]
+        embeddings = torch.cat((embeddings.sin(), embeddings.cos()), dim=-1)
+        return embeddings
 
 class ResNetBlock(nn.Module):
-    def __init__(self, in_channels, out_channels, dropout=0.0):
+    def __init__(self, in_channels, out_channels, time_emb=32):
         super(ResNetBlock, self).__init__()
+        self.time_mlp =  nn.Linear(time_emb, out_channels)
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
         self.bn1 = nn.BatchNorm2d(out_channels)
         self.bn2 = nn.BatchNorm2d(out_channels)
         self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(dropout)
-        self.attention = ChannelAttention(out_channels)
         
         self.shortcut = nn.Sequential()
         if in_channels != out_channels:
             self.shortcut.add_module('conv_shortcut', nn.Conv2d(in_channels, out_channels, kernel_size=1, padding=0))
             self.shortcut.add_module('bn_shortcut', nn.BatchNorm2d(out_channels))
 
-    def forward(self, x):
+    def forward(self, x, t):
         residual = self.shortcut(x)
         
         out = self.conv1(x)
         out = self.bn1(out)
         out = self.relu(out)
-        out = self.dropout(out)
+        
+        time_emb = self.time_mlp(t)
+        time_emb = self.relu(time_emb)
+        time_emb = time_emb[(..., ) + (None,) * 2]
+        out = out + time_emb
         
         out = self.conv2(out)
         out = self.bn2(out)
-        out = self.attention(out)
         
         out += residual
         out = self.relu(out)
@@ -64,14 +53,14 @@ class ResNetBlock(nn.Module):
         return out
 
 class EncoderBlock(nn.Module):
-    def __init__(self, in_c, out_c, num_blocks=2):
+    def __init__(self, in_c, out_c, num_blocks=2, time_emb=32):
         super().__init__()
         self.blocks = nn.ModuleList([ResNetBlock(in_c if i == 0 else out_c, out_c) for i in range(num_blocks)])
         self.pool = nn.MaxPool2d(2)
 
-    def forward(self, x):
+    def forward(self, x, t):
         for block in self.blocks:
-            x = block(x)
+            x = block(x, t)
         skip = x.clone()
         x = self.pool(x)
         return x, skip
@@ -82,11 +71,11 @@ class DecoderBlock(nn.Module):
         self.up = nn.ConvTranspose2d(num_in, num_out, kernel_size=2, stride=2, padding=0)
         self.blocks = nn.ModuleList([ResNetBlock(num_out * 2 if i == 0 else num_out, num_out) for i in range(num_blocks)])
 
-    def forward(self, x, skip):
+    def forward(self, x, t, skip):
         x = self.up(x)
         x = torch.cat([x, skip], axis=1)
         for block in self.blocks:
-            x = block(x)
+            x = block(x, t)
         return x
 
 class DiffusionNetwork(nn.Module):
@@ -107,28 +96,37 @@ class DiffusionNetwork(nn.Module):
         
         self.norm_out = nn.BatchNorm2d(64) 
         self.out = nn.Conv2d(64, 1, kernel_size=1, padding=0)
+        
+        time_dim = 32
+        self.time_mlp = nn.Sequential(
+            SinusoidalPositionEmbeddings(time_dim),
+            nn.Linear(time_dim, time_dim),
+            nn.ReLU(),
+        )
 
-    def forward(self, x):
+    def forward(self, x, t):
+        t = self.time_mlp(t)
+        
         residuals = []
         
-        x, skip1 = self.down1(x)
+        x, skip1 = self.down1(x, t)
         residuals.append(skip1)
         
-        x, skip2 = self.down2(x)
+        x, skip2 = self.down2(x, t)
         residuals.append(skip2)
         
-        x, skip3 = self.down3(x)
+        x, skip3 = self.down3(x, t)
         residuals.append(skip3)
         
-        x, skip4 = self.down4(x)
+        x, skip4 = self.down4(x, t)
         residuals.append(skip4)
         
-        x = self.bottle_neck(x)
+        x = self.bottle_neck(x, t)
         
-        x = self.up1(x, residuals.pop())
-        x = self.up2(x, residuals.pop())
-        x = self.up3(x, residuals.pop())
-        x = self.up4(x, residuals.pop())
+        x = self.up1(x, t, residuals.pop())
+        x = self.up2(x, t, residuals.pop())
+        x = self.up3(x, t, residuals.pop())
+        x = self.up4(x, t, residuals.pop())
         
         x = self.norm_out(x)
         
