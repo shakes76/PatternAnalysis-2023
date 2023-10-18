@@ -44,6 +44,7 @@ To create patches of an even size, the input image must be square. Therefore, th
 Since the mri image is grey, pytorch must treat it as if it is such. To do so, the image must be grayscaled so pytorch knows it only has one channel.
 ## Results
 ### Data Splitting
+The current dataset is split into train and test with AD and NC subfolders. For the purposes of this investigation, a validation dataset is also needed. The base dataset has an approximate split of 70% training and 30% testing. Since training data is crucial for the models learning and success, the validation data will be will be taken from the test dataset, at a 1:1 ratio.
 
 ### Reproducing results
 Create environment using conda
@@ -60,6 +61,8 @@ Run the main.py file with the same variables and hyperparameters:
 https://www.akshaymakes.com/blogs/vision-transformer?fbclid=IwAR2Wmo7_nlLg2EILO6vsKAYucaTl-AXK7NSGY_LBYTP3aPvU_uWW7iF4dVc
 
 https://medium.com/mlearning-ai/vision-transformers-from-scratch-pytorch-a-step-by-step-guide-96c3313c2e0c
+
+https://medium.com/@faheemrustamy/vision-transformers-vs-convolutional-neural-networks-5fe8f9e18efc
 
 ### Images
 https://www.google.com/url?sa=i&url=https%3A%2F%2Fwww.researchgate.net%2Ffigure%2FVision-Transformer-architecture-main-blocks-First-image-is-split-into-fixed-size_fig1_357885173&psig=AOvVaw3naQkwUnuyAVqHPmSygFE2&ust=1697694028496000&source=images&cd=vfe&opi=89978449&ved=0CA4QjRxqFwoTCKiBwKPx_oEDFQAAAAAdAAAAABAD
