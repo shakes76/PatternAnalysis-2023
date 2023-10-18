@@ -8,7 +8,8 @@ The purpose of this recognition task is to create a super resolution network mod
 
 ## Model Architecture
 
-![Untitled](Efficient%20Sub-Pixel%20CNN%20d4516f88f9b9489cac53ecc919ad528c/Untitled.png)
+![Untitled](https://github.com/nleek0/PatternAnalysis-2023/assets/109025848/830e7447-ad2b-46a3-9631-47fa5e09766f)
+
 
 As shown in the image above, the Efficient Sub-Pixel CNN contains 5 layers.
 
@@ -38,7 +39,8 @@ For the validation set, since the goal of the model is to upscale the image, the
 
 Using a GTX 1060 for 100 epochs, the time training took approximately 56 minutes. 
 
-![Untitled](Efficient%20Sub-Pixel%20CNN%20d4516f88f9b9489cac53ecc919ad528c/Untitled%201.png)
+![Untitled 1](https://github.com/nleek0/PatternAnalysis-2023/assets/109025848/52a8bc61-0431-4bd5-8e06-89230dc62303)
+
 
 It can be seen in the graph above that the loss plateaus relatively quickly as few as 5 epochs, the loss drops significantly, then at around 25, it starts to plateau at a loss of around 0.0023. This suggests that this is the limit of the model.
 
@@ -52,7 +54,8 @@ The loss function used was the mean squared error loss(MSELoss). The running los
 
 ## Example
 
-![Untitled](Efficient%20Sub-Pixel%20CNN%20d4516f88f9b9489cac53ecc919ad528c/Untitled%202.png)
+![Untitled 2](https://github.com/nleek0/PatternAnalysis-2023/assets/109025848/aeee65f3-80cf-4dde-b6bd-ff2ce1aa7cc3)
+
 
 In the images above, the top row contains the original image, the middle row contains the down sampled image, and the last row contains the upscaled image by the model. As seen in the images, while there is still a loss in detail from the images produced by the model compared to the original images, it is still reasonably clear.
 
