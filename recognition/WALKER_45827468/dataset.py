@@ -27,11 +27,12 @@ class ISICDataset(Dataset):
         mask_path = os.path.join(self.mask_dir, self.mask_files[idx])
         mask = Image.open(mask_path)
         
-        im = im.resize([512, 512], Image.LANCZOS)
-        mask = mask.resize([512, 512], Image.LANCZOS)
         if self.transform:
             im = self.transform(im)
             mask = transforms.ToTensor()(mask)
+            
+        im = im.resize([512, 512], Image.LANCZOS)
+        mask = mask.resize([512, 512], Image.LANCZOS)
             
         return im, mask
     
