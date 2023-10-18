@@ -1,13 +1,14 @@
-from modules import siamese
-from modules import classification_model
-from modules import contrastive_loss
-from dataset import load_siamese_data
-from dataset import load_classify_data
+# from modules import siamese
+# from modules import classification_model
+# from modules import contrastive_loss
+# from dataset import load_siamese_data
+# from dataset import load_classify_data
 from tensorflow.keras.models import load_model
 import matplotlib.pyplot as plt
 
-SNN_PATH = 'C://Users//Danita//OneDrive//Desktop//UQ//sem3//PatterRecognision//Project3//ADNI_AD_NC_2D//SNN.h5'
-CLASSIFIER_PATH = 'C://Users//Danita//OneDrive//Desktop//UQ//sem3//PatterRecognision//Project3//ADNI_AD_NC_2D//Classifier.h5'
+SNN_PATH = '/content/SNN.h5'
+CLASSIFIER_PATH = '/content/Classifier.h5'
+
 
 def train():
     """ 
@@ -26,7 +27,7 @@ def train():
     plt.show()
 
 
-def trainSNN(epochs=20):
+def trainSNN(epochs=30):
     """ Train the SNN
 
     Args:
