@@ -25,6 +25,8 @@ Show predict.py
 ## Example Inputs/Outputs/Plots
 Input/Output
 Training/Validation Loss Plot:
+![Training and Validation Loss Plot](training_and_validation_loss.png)
+
 
 ## Pre-processing
 The images were resized to a height and width of 1024 by 672 in order to standardise the pixel dimensions of the data set.
