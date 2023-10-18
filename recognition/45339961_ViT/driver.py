@@ -74,6 +74,7 @@ def main():
     # Initialise loss function and optimiser
     optimizer = Adam(model.parameters(), 
                 lr=config.learning_rate)
+    
     criterion = torch.nn.CrossEntropyLoss()
 
     if config.will_train:
@@ -91,7 +92,11 @@ def main():
                                 valid_accuracies, 
                                 train_losses,
                                 valid_losses,
-                                results_path=config.results_path)
+                                save_path=config.results_path)
+
+    # Save the model
+    if config.will_save:
+        torch.save(model, config.save_path)
 
     # Test the model
     if config.will_test:
@@ -99,10 +104,6 @@ def main():
             test_loader=test_loader,
             criterion=criterion,
             device=device)
-
-    # Save the model
-    if config.will_save:
-        torch.save(model, config.save_path)
 
     # Predict a random subset of test images
     predict(model=model, 

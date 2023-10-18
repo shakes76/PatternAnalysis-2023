@@ -1,13 +1,11 @@
 """ Customisable configuration for ViT model. """
 
 # General user preferences
-will_save = False
-will_load = True
+will_save = True
+will_load = False
 show_model_summary = False
-will_train = False
-will_test = False
-
-results_path = "recognition/45339961_ViT/results"
+will_train = True
+will_test = True
 
 # Dataloader specific parameters
 data_path = "C:/Users/Jacqu/Downloads/AD_NC"
@@ -15,14 +13,16 @@ batch_size = 64
 n_channels = 1
 image_size = 224
 n_classes = 2
+data_split = 0.8
+
+# Change this at user risk
 train_mean = 0.1155
 train_std = 0.2224
 test_mean = 0.1167
 test_std = 0.2228
-data_split = 0.8
 
 # Training specific parameters
-n_epochs = 10
+n_epochs = 20
 learning_rate = 0.0005
 
 # Transformer model specific parameters
@@ -38,3 +38,4 @@ embedding_dropout = 0.1
 # Model storage specific parameters
 load_path = "C:/Users/Jacqu/Downloads/model.pth"
 save_path = "C:/Users/Jacqu/Downloads/model.pth"
+results_path = "recognition/45339961_ViT/results"
