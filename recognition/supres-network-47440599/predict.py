@@ -1,8 +1,6 @@
 import torch
 import torchvision
 import torchvision.utils as vutils
-import torchvision.transforms as transforms
-from  torch.nn.modules.upsampling import Upsample
 from modules import SubPixel
 from dataset import *
 from utils import *

@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import numpy as np
 
 class SubPixel(nn.Module):
     def __init__(self, upscale_factor=4, channels=1):

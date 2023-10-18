@@ -1,7 +1,6 @@
 import torch
 import torch.optim as optim
 import torch.nn
-import torchvision.transforms as transforms
 from dataset import *
 from modules import *
 from utils import *
