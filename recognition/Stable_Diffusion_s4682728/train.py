@@ -3,10 +3,6 @@ from dataset import *
 from modules import *
 from utils import *
 
-# Set device
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-print(device)
-
 model = DiffusionNetwork().to(device)
 optimizer = optim.Adam(model.parameters(), lr=1e-3)
 

@@ -1,5 +1,8 @@
 from imports import *
 
+# Set device
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 '''
 Taken from https://huggingface.co/blog/annotated-diffusion
 '''
