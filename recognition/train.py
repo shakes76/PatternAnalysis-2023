@@ -48,13 +48,10 @@ for epoch in range(EPOCHS):
         inputs, labels = data
         inputs = inputs.to(device)
         labels = labels.to(device)
-
         # zero the parameter gradients
         optimiser.zero_grad()
-
         # forward + backward + optimize
         outputs = perceiver(inputs)
-
         loss = loss_function(outputs, labels) #try this with the bce loss function, f.cross_entrpy()
         loss.backward()
         optimiser.step()

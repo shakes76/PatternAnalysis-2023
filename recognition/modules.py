@@ -88,7 +88,7 @@ class Classifier(nn.Module):
 
     def forward(self, latent):
         result = self.linear_layer1(latent)
-        #result = result.mean(dim=0)
+        result = result.mean(dim=0) #Needed to reduce tensor to 1d from 2d
         return self.linear_layer2(result)
 
 class Perceiver(nn.Module):
@@ -109,7 +109,7 @@ class Perceiver(nn.Module):
         
     def forward(self, kv):
         latent = self.latent.expand(-1, kv.size()[0], -1)
-        kv = kv.view(1800, 5, 32)
+        kv = kv.view(1800, 5, 32) # Restructures the kv input to have batch size and embedded dimensions
         for block in self.perceiver_block_array:
             latent = block(latent, kv)
         latent = self.classifier(latent)
