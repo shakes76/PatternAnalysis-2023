@@ -28,7 +28,7 @@ This project uses a VGG16 with only one dense layer for the left and right Siame
 In the project, after the VGG, a dense layer and a distance layer are used, which calculates the L1 norm. At the end, a dense layer decides how similar the two images are. The fully connected layer from the VGG16 at the end and the fully connected layer of the whole network use a sigmoid activation function.
 
 The image below shows the structure of the network:
-![Model](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/Model.png)
+![Model](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/Model.PNG)
 
 
 ## Training of the model
@@ -36,7 +36,7 @@ The image below shows the structure of the network:
 For the training of the model, a maximum of 50 epochs are trained. However, callbacks are used, which allows us to get the best validation loss. In addition, the callback function stops the training if the validation loss is no longer improved. For the loss function, contrastive loss or triplet loss can be used. In this project, contrastive loss is used. For the optimizer, Adam is used with a learning rate of 0.00001. The training of the neural network is done with Google Colab Pro. The V100 is used as a GPU.
 The training of the model is shown below:
 
-![Training](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/Training.png)
+![Training](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/Training.PNG)
 
 The image shows how fast the accuracy increases and the loss function decreases per epoch. This can also be shown as graphs. The figures below show the graphs of the training accuracy, training loss, validation accuracy, and validation loss.
 
@@ -54,11 +54,11 @@ From these graphs, it can be assumed that the Siamese neural network has a great
 For the testing of the neural network, two functions are used. The first function is the evaluation function from TensorFlow. The model reaches an accuracy of around 0.6 with the test dataset. The test dataset is created with the validation generator function, generates the image pairs with the matching label, and uses the test images.
 The figure below shows the result.
 
-![Test1](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/Test1.png)
+![Test1](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/Test1.PNG)
 
 The other test uses my own created test loop. This function first loads 32 images from the AD and NC test data. Creates 128 image test pairs and makes a prediction with the prediction function. Afterwards, the prediction is evaluated, and if the value is smaller than 0.5, the prediction label is 0. In addition, if the value is bigger than 0.5, the prediction label is 1. These prediction labels are compared with the actual labels and count how often the model is correct or incorrect. In the end, the accuracy is calculated, and some image pairs with the prediction are plotted as an example. The image below shows the accuracy of the test function is 0.6.
 
-![Test2](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/Test2.png)
+![Test2](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/Test2.PNG)
 
 The plotted image pair result shows a correctly predicted image pair and an incorrectly predicted image pair.
 
