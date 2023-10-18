@@ -101,7 +101,7 @@ class ImprovedUNET(nn.Module):
     x = torch.cat([x,r3],dim=1)
     s1 = self.c2_to_64_u(x)
     x = self._64_to_32_u(s1)
-    
+
     s1 = self.segmentation1(s1)
     s1 = self.scale1(s1)
 
@@ -117,5 +117,6 @@ class ImprovedUNET(nn.Module):
     x = self.c4_to_32_u(x)
     
     x = s2 + self.segmentation3(x)
+    x = self.softmax(x)
 
     return x
