@@ -1,19 +1,53 @@
+"""
+dataset.py: Functions to load the dataset
+"""
 import numpy as np
 import tensorflow as tf
 
 
 @tf.function
-def load_jpeg(path: str):
+def load_jpeg(path: str) -> tf.Tensor:
+    """
+    Loads a JPEG image from the given path and converts it to a tensor.
+
+    The image is also standardised using `tf.image.per_image_standardization`.
+
+    Args:
+        path (str): The path to the JPEG image.
+
+    Returns:
+        tf.Tensor: The JPEG image as a tensor.
+    """
     return tf.image.per_image_standardization(
         tf.cast(tf.io.decode_jpeg(tf.io.read_file(path), channels=1), dtype=tf.float32)
     )
 
 
 def get_jpegs(path: str) -> list[str]:
+    """
+    Finds all the JPEG images in the given path.
+
+    Args:
+        path (str): The path to search for JPEG images.
+
+    Returns:
+        list[str]: A list of paths to JPEG images.
+    """
     return tf.io.gfile.glob(f"{path}/*.jpeg")
 
 
-def create_pairs(x1, x2, label: int) -> np.ndarray:
+def create_pairs(x1: list, x2: list, label: int) -> np.ndarray:
+    """
+    Creates pairs of images from the given lists of images.
+
+    Args:
+        x1 (list[str]): The first list of images.
+        x2 (list[str]): The second list of images.
+        label (int): The label to assign to the pairs.
+
+    Returns:
+        np.ndarray: An array of pairs of images, combined with the given label.
+    """
     np.random.shuffle(x1)
     np.random.shuffle(x2)
 
@@ -21,7 +55,20 @@ def create_pairs(x1, x2, label: int) -> np.ndarray:
 
 
 @tf.function
-def map_ds_to_images(x1, x2, y):
+def map_ds_to_images(
+    x1: tf.Tensor, x2: tf.Tensor, y: tf.Tensor
+) -> tuple[tf.Tensor, tf.Tensor, tf.Tensor]:
+    """
+    Maps the given paths (as Tensors) to JPEG images.
+
+    Args:
+        x1 (tf.Tensor): The first path to map.
+        x2 (tf.Tensor): The second path to map.
+        y (tf.Tensor): The label to map.
+
+    Returns:
+        tuple[tf.Tensor, tf.Tensor, tf.Tensor]: The first and second JPEG images, and the label.
+    """
     return (load_jpeg(x1), load_jpeg(x2)), y
 
 
@@ -35,6 +82,15 @@ def load_dataset(
     tf.data.Dataset,
     tf.data.Dataset,
 ]:
+    """
+    Loads the dataset from the given path.
+
+    Args:
+        path (str): The path to the dataset.
+
+    Returns:
+        tuple[tf.data.Dataset, tf.data.Dataset, tf.data.Dataset, tf.data.Dataset, tf.data.Dataset, tf.data.Dataset]: The training, validation, and testing datasets for the SNN, and the training, validation, and testing datasets for the classifier.
+    """
     print("Loading dataset")
 
     train_AD, train_NC = get_jpegs(f"{path}/train/AD"), get_jpegs(f"{path}/train/NC")
@@ -83,6 +139,8 @@ def load_dataset(
 
     classify_validate = classify_train[: len(classify_train) // 5]
     classify_train = classify_train[len(classify_train) // 5 :]
+
+    # Load the dataset into tf.data.Dataset objects, map the paths to JPEG images, and batch them
 
     train_ds = (
         tf.data.Dataset.zip(

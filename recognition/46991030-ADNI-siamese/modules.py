@@ -1,20 +1,55 @@
+"""
+modules.py: Functions to create the SNN and classifier models
+
+This file contains functions to create the SNN and classifier models.
+
+This file also contains the contrastive loss function and the custom distance layer.
+"""
 import tensorflow as tf
 
 import constants
 
 
 @tf.function
-def loss(y_true, y_pred):
+def loss(y_true: tf.Tensor, y_pred: tf.Tensor) -> tf.Tensor:
+    """
+    Contrastive loss function.
+
+    Args:
+        y_true (tf.Tensor): The true labels.
+        y_pred (tf.Tensor): The predicted labels.
+
+    Returns:
+        tf.Tensor: The contrastive loss.
+    """
     square_pred = tf.math.square(y_pred)
     margin_square = tf.math.square(tf.math.maximum(1 - y_pred, 0))
     return tf.math.reduce_mean((1 - y_true) * square_pred + y_true * margin_square)
 
 
 class DistanceLayer(tf.keras.layers.Layer):
+    """
+    Custom distance layer.
+
+    This layer calculates the distance between the two encoded images.
+    """
+
     def __init__(self, **kwargs):
+        """
+        Initializes the layer.
+        """
         super(DistanceLayer, self).__init__(**kwargs)
 
     def call(self, inputs):
+        """
+        Calculates the distance between the two encoded images.
+
+        Args:
+            inputs (tuple[tf.Tensor, tf.Tensor]): The two encoded images.
+
+        Returns:
+            tf.Tensor: The distance between the two encoded images.
+        """
         return tf.math.sqrt(
             tf.math.maximum(
                 tf.math.reduce_sum(
@@ -26,6 +61,12 @@ class DistanceLayer(tf.keras.layers.Layer):
 
 
 def snn():
+    """
+    Creates the SNN model.
+
+    Returns:
+        tf.keras.Model: The SNN model.
+    """
     input_1 = tf.keras.layers.Input(shape=constants.IMAGE_INPUT_SHAPE)
     input_2 = tf.keras.layers.Input(shape=constants.IMAGE_INPUT_SHAPE)
 
@@ -86,6 +127,15 @@ def snn():
 
 
 def snn_classifier(model: tf.keras.Model):
+    """
+    Creates the classifier model.
+
+    Args:
+        model (tf.keras.Model): The embedded network from the Siamese Network.
+
+    Returns:
+        tf.keras.Model: The classifier model.
+    """
     input = tf.keras.layers.Input(shape=constants.IMAGE_INPUT_SHAPE)
     classifier = tf.keras.models.Sequential(
         [

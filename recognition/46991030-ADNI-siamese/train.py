@@ -1,3 +1,10 @@
+"""
+train.py: Train the SNN and classifier models
+
+Creates and trains the SNN and classifier models. The SNN model is trained first, then the classifier model is trained.
+
+The training/validation accuracy and loss are plotted and saved to the graphs/ directory.
+"""
 import tensorflow as tf
 
 import constants
@@ -13,6 +20,8 @@ from utils import plot_training_history
     class_validate_ds,
     class_test_ds,
 ) = dataset.load_dataset(constants.DATASET_PATH)
+
+# Siamese Network training
 
 print("Creating SNN model")
 model = modules.snn()
@@ -37,6 +46,8 @@ model.evaluate(test_ds, verbose=1)
 
 print("Saving SNN model")
 model.save("models/snn", save_format="tf")
+
+# Classifier Training
 
 twin = model.get_layer("sequential")
 twin.trainable = False
