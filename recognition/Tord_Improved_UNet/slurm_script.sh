@@ -11,4 +11,4 @@
 #SBATCH --gres=gpu:1
 
 conda activate env1
-~/miniconda3/envs/env1/bin/python ~/recognition/Tord_Improved_UNet/train.py
+~/miniconda3/envs/env1/bin/python ~/Patternanalysis-2023/recognition/Tord_Improved_UNet/train.py
