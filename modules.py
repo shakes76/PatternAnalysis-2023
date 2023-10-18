@@ -1,48 +1,47 @@
-# modules.py
 import torch
 import torch.nn as nn
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, depth=4, base_filters=64, dropout_prob=0.3):
         super(UNet, self).__init__()
-        
-        # Contracting path
-        self.enc1 = self.conv_block(in_channels, 64)
-        self.enc2 = self.conv_block(64, 128)
-        self.enc3 = self.conv_block(128, 256)
-        self.enc4 = self.conv_block(256, 512)
 
+        self.encoders = nn.ModuleList()
+        self.decoders = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2)
-        self.upconv3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.upconv2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.upconv1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
+        self.dropout = nn.Dropout(dropout_prob)
+
+        # Contracting path
+        for i in range(depth):
+            in_ch = in_channels if i == 0 else base_filters * 2**i
+            out_ch = base_filters * 2**(i+1)
+            self.encoders.append(self.conv_block(in_ch, out_ch))
 
         # Expanding path
-        self.dec3 = self.conv_block(512, 256)
-        self.dec2 = self.conv_block(256, 128)
-        self.dec1 = self.conv_block(128, 64)
-        
-        self.out_conv = nn.Conv2d(64, out_channels, kernel_size=1)
-        
+        for i in range(depth-1, 0, -1):
+            in_ch = base_filters * 2**(i+1)  # After concatenation
+            out_ch = base_filters * 2**i
+            self.decoders.append(self.conv_block(in_ch, out_ch))
+            self.decoders.append(nn.ConvTranspose2d(out_ch, out_ch//2, kernel_size=2, stride=2))
+
+        self.decoders.append(self.conv_block(base_filters * 2, base_filters))
+        self.out_conv = nn.Conv2d(base_filters, out_channels, kernel_size=1)
+        self.sigmoid = nn.Sigmoid()
+
     def forward(self, x):
-        enc1 = self.enc1(x)
-        enc2 = self.enc2(self.pool(enc1))
-        enc3 = self.enc3(self.pool(enc2))
-        enc4 = self.enc4(self.pool(enc3))
-        
-        dec3 = self.upconv3(enc4)
-        dec3 = torch.cat((dec3, enc3), dim=1)
-        dec3 = self.dec3(dec3)
-        
-        dec2 = self.upconv2(dec3)
-        dec2 = torch.cat((dec2, enc2), dim=1)
-        dec2 = self.dec2(dec2)
-        
-        dec1 = self.upconv1(dec2)
-        dec1 = torch.cat((dec1, enc1), dim=1)
-        dec1 = self.dec1(dec1)
-        
-        return self.out_conv(dec1)
+        skips = []
+        for enc in self.encoders:
+            x = enc(x)
+            skips.append(x)
+            x = self.pool(x)
+
+        rev_skips = reversed(skips[:-1])
+        for skip, dec in zip(rev_skips, self.decoders[::2]):
+            x = self.dropout(dec[1](x))
+            x = torch.cat((x, skip), dim=1)
+            x = dec[0](x)
+
+        x = self.out_conv(x)
+        return self.sigmoid(x)
 
     def conv_block(self, in_channels, out_channels):
         return nn.Sequential(
@@ -56,4 +55,3 @@ class UNet(nn.Module):
 
 model = UNet(in_channels=3, out_channels=1)  # Assuming input is RGB and output is a binary mask
 print(model)
-
