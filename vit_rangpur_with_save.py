@@ -22,12 +22,12 @@ num_layers = 12  # Number of Transformer encoder layers
 mlp_size = 3072  # Number of hidden units between each linear layer
 dropout_size = 0.1
 num_classes = 2  # Number of different classes to classify (i.e. AD and NC)
-num_epochs = 5
+num_epochs = 7
 
 # Create the dataset
 working_directory = Path.cwd()
-train_dataroot = "AD_NC/train"
-test_dataroot = "AD_NC/test"
+train_dataroot = working_directory.parent.parent / "groups" / "comp3710" / "ADNI" / "AD_NC" / "train"
+test_dataroot = working_directory.parent.parent / "groups" / "comp3710" / "ADNI" / "AD_NC" / "test"
 train_dataset = dset.ImageFolder(root=train_dataroot,
                             transform=transforms.Compose([
                             transforms.Resize((image_size, image_size)),

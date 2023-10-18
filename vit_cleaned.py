@@ -7,9 +7,10 @@ import torchvision
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
-from pathlib import Path
+import time
 
 batch_size = 128
+workers = 1
 
 # Images are 256 by 240 pixels. Resize them to 224 by 224; must be divisible by 16
 image_size = 224  # Resized 2D image input
@@ -22,10 +23,9 @@ num_layers = 12  # Number of Transformer encoder layers
 mlp_size = 3072  # Number of hidden units between each linear layer
 dropout_size = 0.1
 num_classes = 2  # Number of different classes to classify (i.e. AD and NC)
-num_epochs = 5
+num_epochs = 3
 
 # Create the dataset
-working_directory = Path.cwd()
 train_dataroot = "AD_NC/train"
 test_dataroot = "AD_NC/test"
 train_dataset = dset.ImageFolder(root=train_dataroot,
@@ -41,21 +41,16 @@ test_dataset = dset.ImageFolder(root=test_dataroot,
                         ]))
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
-                                        shuffle=True)
+                                        shuffle=True, num_workers=workers)
 
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,
-                                        shuffle=False)
+                                        shuffle=False, num_workers=workers)
 
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning CUDA not found. Using CPU")
-
-print(f"Device count: {torch.cuda.device_count()}")
-print(f"Current device: {torch.cuda.current_device()}")
-print(f"Device: {torch.cuda.device(0)}")
-print(f"Device name: {torch.cuda.get_device_name()}")
 
 # ------------------------------------------------------------------
 # Patch Embedding
@@ -67,8 +62,9 @@ class PatchEmbedding(nn.Module):
     N is the number of patches, 
     and P is the dimension of each patch; P^2 represents a flattened patch.
     """
-    def __init__(self):
+    def __init__(self, ngpu):
         super(PatchEmbedding, self).__init__()
+        self.ngpu = ngpu
         # Puts image through Conv2D layer with kernel_size = stride to ensure no patches overlap.
         # This will split image into fixed-sized patches; each patch has the same dimensions
         # Then, each patch is flattened, including all channels for each patch.
@@ -91,8 +87,10 @@ class TransformerEncoder(nn.Module):
     One transformer encoder layer consists of layer normalisation, multi-head self attention layer, 
     a residual connection, another layer normalisation, an mlp block, and another residual connection.
     """
-    def __init__(self):
+    def __init__(self, ngpu):
         super(TransformerEncoder, self).__init__()
+        self.ngpu = ngpu
+
         self.transformer_encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim,
                                                                     nhead=num_heads,
                                                                     dim_feedforward=mlp_size,
@@ -104,8 +102,8 @@ class TransformerEncoder(nn.Module):
                                                                     )
         
         self.full_transformer_encoder = nn.TransformerEncoder(encoder_layer=self.transformer_encoder_layer,
-                                                                num_layers=num_layers,
-                                                                enable_nested_tensor=False)
+                                                                num_layers=num_layers)
+        
     
     def forward(self, input):
         return self.full_transformer_encoder(input)
@@ -116,8 +114,10 @@ class MLPHead(nn.Module):
     """Creates an MLP head.
     Consists of a layer normalisation and a linear layer.
     """
-    def __init__(self):
+    def __init__(self, ngpu):
         super(MLPHead, self).__init__()
+        self.ngpu = ngpu
+
         self.main = nn.Sequential(nn.LayerNorm(normalized_shape=embed_dim),
                                     nn.Linear(in_features=embed_dim,
                                                 out_features=num_classes)
@@ -126,44 +126,19 @@ class MLPHead(nn.Module):
     def forward(self, input):
         return self.main(input)
 
-# ------------------------------------------------------------------
-# Multi-head Attnetion
-class MultiheadSelfAttention(nn.Module):
-    """Creates a multi-head self attention block.
-    For an input sequence z, which contains all the feature maps, computes a weighted sum for all values in z.
-    These attention weights between 2 elements are based on how similar their query representation and key 
-    representation are.
-    This is calculated by softmax((key_m * query_n) / sqrt(dim(key_m)))*V_m
-
-    This block uses a Multi-head self attention structure, which contains multiple different projection layers
-    of self attention.
-    """
-    def __init__(self):
-        super(MultiheadSelfAttention, self).__init__()
-        self.norm = nn.LayerNorm(normalized_shape=embed_dim)
-        self.msa = nn.MultiheadAttention(embed_dim=embed_dim,
-                                        num_heads=num_heads,
-                                        batch_first=True)
-        
-    def forward(self, input):
-        input = self.norm(input)
-        attention, _ = self.msa(query=input,
-                            key=input,
-                            value=input,
-                            need_weights=False)
-        return attention
-    
 
 class ViT(nn.Module):
     """Creates a vision transformer model."""
-    def __init__(self):
+    def __init__(self, ngpu):
         super(ViT, self).__init__()
-        self.patch_embedding = PatchEmbedding()
+        self.ngpu = ngpu
+
+        self.patch_embedding = PatchEmbedding(workers)
         self.prepend_embed_token = nn.Parameter(torch.randn(1, 1, embed_dim), requires_grad=True)
         self.position_embed_token = nn.Parameter(torch.randn(1, num_patches + 1, embed_dim), requires_grad=True)
         self.embedding_dropout = nn.Dropout(p=dropout_size)  # Apply dropout after positional embedding as well
-        self.transformer_encoder = TransformerEncoder()
-        self.mlp_head = MLPHead()
+        self.transformer_encoder = TransformerEncoder(workers)
+        self.mlp_head = MLPHead(workers)
 
     def forward(self, input):
         current_batch_size = input.size(0)
@@ -178,7 +153,8 @@ class ViT(nn.Module):
 
 
 def main():
-    visual_transformer = ViT().to(device)
+    visual_transformer = ViT(workers).to(device)
+    torch.save(visual_transformer.state_dict(), "visual_transformer")
     
     # ----------------------------------------
     # Loss Function and Optimiser
@@ -188,7 +164,6 @@ def main():
     # ----------------------------------------
     # Training loop
     visual_transformer.train()
-    import time
     start_time = time.time()
     print("Starting training loop")
     
@@ -205,14 +180,13 @@ def main():
             optimiser.step()
 
             running_loss += loss.item()
-            if (index+1) % 50 == 0:
+            if (index+1) % 2 == 0:
                 running_time = time.time()
                 print("Epoch [{}/{}], Loss: {:.5f}".format(epoch+1, num_epochs, loss.item()))
                 print(f"Timer: {running_time - start_time}")
                 running_loss = 0.0
 
     print(f"Finished Training")
-    torch.save(visual_transformer.state_dict(), "visual_transformer")
 
     # ----------------------------------------
     # Testing loop
