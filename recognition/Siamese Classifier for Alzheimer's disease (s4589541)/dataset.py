@@ -1,5 +1,6 @@
 # loading and preprocessing of data
 import random
+import time
 import torch
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
@@ -32,6 +33,7 @@ class TripletDataset(datasets.ImageFolder):
         # first, get the anchor image 
         path, target = self.samples[index]
         anchor = self.loader(path)
+        print(f"Anchor: {path}")
 
         # now get the positive and negative images randomly
         found_p = False
@@ -45,9 +47,11 @@ class TripletDataset(datasets.ImageFolder):
             if not found_p and new_target == target:
                 positive = self.loader(new_path)
                 found_p = True
+                print(f"Positive: {new_path}")
             elif not found_n and new_target != target:
                 negative = self.loader(new_path)
                 found_n = True
+                print(f"Negative: {new_path}")
 
         if self.transform is not None:
             anchor = self.transform(anchor)
@@ -65,14 +69,14 @@ transform = transforms.Compose([
 ])
 
 # set up the datasets
-# train_set = datasets.ImageFolder(root="data/train", transform=transform)
+train_set = TripletDataset(root="data/train", transform=transform)
 valid_set = TripletDataset(root="data/valid", transform=transform)
-# test_set = datasets.ImageFolder(root="data/test", transform=transform)
+test_set = TripletDataset(root="data/test", transform=transform)
 
 # set up the dataloaders
-# train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-# valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-# test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
 
 
@@ -85,10 +89,10 @@ if __name__ == '__main__':
     # transformed = transforms.ToTensor(data)
     # print(transformed)
 
-    data = valid_set[0]
-    print(data)
-    print(len(valid_set))
-    print(data[0].size())
+    # data = valid_set[0]
+    # print(data)
+    # print(len(valid_set))
+    # print(data[0].size())
     # for channel in data[0]:
         # print(channel)
         # print(len(channel))
@@ -99,8 +103,9 @@ if __name__ == '__main__':
 
     # print(data)
     # show_image(data)
-
-    # data_iterator = iter(train_loader)
-    # data = next(data_iterator)
-    # print(data)
+    time.sleep(5)
+    data_iterator = iter(train_loader)
+    data = next(data_iterator)
+    print(len(data))
+    print(data)
     # show_image(data)

@@ -25,6 +25,8 @@ def show_image(data: tuple):
 
 
 def train_valid_split(data_path="AD_NC/", new_path="data/", verbose=False):
+    if verbose:
+        print("Performing train-validation split...")
     test_data_original = glob.glob("*/*.jpeg", root_dir=data_path + "train/")
 
     # group the data by patient id
@@ -71,6 +73,3 @@ def train_valid_split(data_path="AD_NC/", new_path="data/", verbose=False):
     if verbose:
         print("Copied test data...")
         
-
-
-train_valid_split()
