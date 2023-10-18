@@ -3,8 +3,10 @@ from train import *
 
 def main():
     # data variables
+    model_name = 'revert_to_crop.pth'
     root = '/home/callum/AD_NC/'
     image_size = 256
+    crop_size = 192
     batch_size = 64
     patch_size = image_size // 8
     channels = 1
@@ -14,8 +16,8 @@ def main():
     num_classes = 2
     
     # hyperparameters
-    epochs = 5
-    learning_rate = 0.002
+    epochs = 1
+    learning_rate = 0.001
     weight_decay = 0.0001
 
     model = create_model(image_size=image_size,
@@ -25,17 +27,23 @@ def main():
                          num_heads=num_heads,
                          num_classes=num_classes,
                          patches=patches)
+    
     train_model(model=model,
                 root=root,
                 image_size=image_size,
                 batch_size=batch_size,
+                crop_size=crop_size,
                 learning_rate=learning_rate,
                 weight_decay=weight_decay,
                 epochs=epochs)
+    
     evaluate_model(model=model,
                    root=root,
                    image_size=image_size,
+                   crop_size=crop_size,
                    batch_size=batch_size)
+    
+    save_model(model, model_name)
 
         
 if __name__ == '__main__':
