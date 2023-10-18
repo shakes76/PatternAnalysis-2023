@@ -6,24 +6,38 @@ import modules
 
 transform = TSNE
 
-# Placeholder for now
+
 PATH = "model.pt"
 
 data = dataset.dataset
-print("data retrieved")
 
 
-model = torch.load(PATH)
-print("model loaded")
-model.eval()
+# show untrained nodes
+model_new = modules.GCN(in_channels=128, num_classes=4)
+model_new.eval()
+out = model_new(data.x, data.edge_index)
 
-out = model(data.x, data.edge_index)
-print("computed out")
-z = TSNE(n_components=2).fit_transform(out.detach().cpu().numpy())
-print("computed z")
+z_untrained = TSNE(n_components=2).fit_transform(out.detach().cpu().numpy())
+print("computed untrained")
 
-plt.xticks([])
-plt.yticks([])
-# s changes the size of the markers
-plt.scatter(z[:,0], z[:, 1], s=35, c=data.y, marker=".",cmap="Set2")
+# show trained nodes
+model_load = torch.load(PATH)
+
+model_load.eval()
+
+out = model_load(data.x, data.edge_index)
+
+z_trained = TSNE(n_components=2).fit_transform(out.detach().cpu().numpy())
+print("computed trained")
+
+figure, axis = plt.subplots(1,2)
+
+axis[0].scatter(z_untrained[:,0], z_untrained[:, 1], s=60, c=data.y, marker=".",cmap="Set2", alpha=0.5)
+axis[0].set_title("Untrained GCN")
+
+axis[1].scatter(z_trained[:,0], z_trained[:, 1], s=60, c=data.y, marker=".",cmap="Set2", alpha=0.5)
+axis[1].set_title("Trained GCN")
+
+plt.setp(plt.gcf().get_axes(), xticks=[], yticks=[])
+
 plt.show()

@@ -14,3 +14,12 @@ look at https://www.datatechnotes.com/2020/11/tsne-visualization-example-in-pyth
 paths i took
 results
 what i did
+
+
+what to run to create the environmet
+- install pytorch
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+- intall pytorcch geometric
+conda install pyg -c pyg
+- install matplotlib
+conda install matplotlib

@@ -20,11 +20,9 @@ model = model.to(device)
 # get dataset
 data = dataset.dataset
 
-
 print('starting test')
 
-# need to train and then save to be able to use her for the predict file
-# Set optimizer and riterion
+# Set optimizer and criterion
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
 criterion = torch.nn.CrossEntropyLoss()
 
@@ -32,7 +30,6 @@ criterion = torch.nn.CrossEntropyLoss()
 model.train()
 start = time.time()
 for epoch in range(NUM_EPOCHS):
-    #Might want to change to batches instead
     optimizer.zero_grad()
     out = model(data.x, data.edge_index)
     loss = criterion(out[data.train_mask], data.y[data.train_mask])
@@ -57,7 +54,7 @@ test_correct = (pred[data.test_mask] == data.y[data.test_mask]).sum()
 test_acc = int(test_correct) / int(data.test_mask.sum().item()) 
 print("Test Accuracy: " + str(test_acc))
     
-# Check if this works
+# Save the model to model.pt
 torch.save(model,PATH)
 
 
