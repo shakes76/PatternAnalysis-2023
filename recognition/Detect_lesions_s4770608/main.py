@@ -3,6 +3,7 @@ from datetime import datetime
 
 import torch
 from torchvision.models.detection.anchor_utils import AnchorGenerator
+from torchvision.transforms import v2, InterpolationMode
 
 import wandb
 import torch.nn as nn
@@ -23,7 +24,7 @@ import numpy as np
 import wandb
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
 
-from  modules import  get_model_instance_segmentation,ImageClassifier
+from  modules import  get_model_instance_segmentation,ImageClassifier,get_deeplab_model
 from PIL import Image
 def get_data_loaders(target_size):
     imagenet_mean = [0.485, 0.456, 0.406]
@@ -39,51 +40,52 @@ def get_data_loaders(target_size):
 
 
         return list(images), list(targets)
-    train_transform = transforms.Compose([
-        transforms.RandomVerticalFlip(p=0.3),
-        transforms.RandomHorizontalFlip(p=0.3),
-        # transforms.RandomRotation(degrees=(0,180),p=0.3),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=imagenet_mean, std=imagenet_std)
+    train_transform_stage1_for_img_mask = transforms.Compose([
+        v2.RandomVerticalFlip(p=0.3),
+        v2.RandomHorizontalFlip(p=0.3),
+        v2.RandomRotation(degrees=(0,180)),
+        v2.Resize(size=(target_size,target_size),interpolation=InterpolationMode.NEAREST),
+        v2.ToTensor(),
     ])
 
 
-    train_mask_transform = transforms.Compose([
-        transforms.RandomVerticalFlip(p=0.3),
-        transforms.RandomHorizontalFlip(p=0.3),
-        # transforms.RandomRotation(degrees=(0,180),p=0.3),
-        transforms.ToTensor(),
+    train_transform_stage2_for_img = transforms.Compose([
+        v2.Normalize(mean=imagenet_mean, std=imagenet_std)
     ])
+
+
+
     train_data = CustomISICDataset(
         csv_file='/home/ubuntu/works/code/working_proj/2023S3Course/COMP3710/project/data/train_label.csv',
         img_dir='/home/ubuntu/works/code/working_proj/2023S3Course/COMP3710/project/data/train_imgs',
         mask_dir='/home/ubuntu/works/code/working_proj/2023S3Course/COMP3710/project/data/train_gt',
-        transform=train_transform,
-        mask_transoform=train_mask_transform,
+        transform_stage1_for_img_mask=train_transform_stage1_for_img_mask,
+        transform_stage2_for_img=train_transform_stage2_for_img,
         target_size=target_size)
-    val_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=imagenet_mean, std=imagenet_std)
+    val_transform_stage1_for_img_mask = transforms.Compose([
+        v2.Resize(size=(target_size, target_size), interpolation=InterpolationMode.NEAREST),
+        v2.ToTensor(),
 
     ])
-    val_mask_transform = transforms.Compose([
-        transforms.ToTensor(),
+    val_transform_stage2_for_img = transforms.Compose([
+        v2.Normalize(mean=imagenet_mean, std=imagenet_std)
     ])
     val_data = CustomISICDataset(
         csv_file='/home/ubuntu/works/code/working_proj/2023S3Course/COMP3710/project/data/val_label.csv',
         img_dir='/home/ubuntu/works/code/working_proj/2023S3Course/COMP3710/project/data/val_imgs',
         mask_dir='/home/ubuntu/works/code/working_proj/2023S3Course/COMP3710/project/data/val_gt',
-        transform=val_transform,
-        mask_transoform=val_mask_transform,
+        transform_stage1_for_img_mask=val_transform_stage1_for_img_mask,
+        transform_stage2_for_img=val_transform_stage2_for_img,
         target_size=target_size)
 
-    test_data = CustomISICDataset(csv_file='/home/ubuntu/works/code/working_proj/2023S3Course/COMP3710/project/data/test_label.csv',
+    test_data = CustomISICDataset\
+        (csv_file='/home/ubuntu/works/code/working_proj/2023S3Course/COMP3710/project/data/test_label.csv',
                                   img_dir='/home/ubuntu/works/code/working_proj/2023S3Course/COMP3710/project/data/test_imgs',
                                   mask_dir='/home/ubuntu/works/code/working_proj/2023S3Course/COMP3710/project/data/test_gt',
-                                  transform=val_transform,
-                                  mask_transoform=val_mask_transform,
+                                  transform_stage1_for_img_mask=val_transform_stage1_for_img_mask,
+                                  transform_stage2_for_img=val_transform_stage2_for_img,
                                   target_size=target_size)
-    train_data_loader = DataLoader(train_data, batch_size=12, shuffle=True,collate_fn=collate_fn)
+    train_data_loader = DataLoader(train_data, batch_size=8, shuffle=True,collate_fn=collate_fn)
     val_data_loader = DataLoader(val_data, batch_size=1, shuffle=False,collate_fn=collate_fn)
     test_data_loader = DataLoader(test_data, batch_size=1, shuffle=False,collate_fn=collate_fn)
     print(f'Training data: {len(train_data_loader.dataset)} samples, '
@@ -200,74 +202,159 @@ def log_predictions_to_wandb(images, predictions, targets,predicted_label):
 
 
 #
+# def main():
+#     # Define your transformations
+#     max_epoch =50
+#
+#     target_size = 384
+#     train_data_loader,val_data_loader,test_data_loader = get_data_loaders(target_size)
+#     # wandb.init(project='ISIC',name='maskrcnnv2 all requires_grad and classifier 384')  # Please set your project and entity name
+#     now = datetime.now()
+#     timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
+#     output_folder = os.path.join('save_weights', timestamp)
+#     os.makedirs(output_folder,exist_ok=True)
+#
+#     maskrcnn_model = get_model_instance_segmentation(4)
+#     deeplabModel = get_deeplab_model(2)
+#
+#     backbone = maskrcnn_model.backbone.body
+#
+#     # 创建图片分类器
+#     image_classifier = ImageClassifier(backbone, num_classes=3)  # a
+#     maskrcnn_model.cuda()
+#     image_classifier.cuda()
+#     image_classifier_loss = torch.nn.CrossEntropyLoss()
+#     params = [p for p in maskrcnn_model.parameters() if p.requires_grad]
+#     params.extend([p  for p in image_classifier.parameters() if p.requires_grad])
+#     optimizer = optim.AdamW(params, lr=0.0005)
+#     lr_sheduler = CosineAnnealingWarmRestarts(optimizer,T_0=3,T_mult=1,eta_min=2e-7)
+#     # for cur_e in pbar:
+#     pbar = tqdm.tqdm(range(max_epoch))
+#
+#     max_iou = 0
+#     for epoch in pbar:
+#         maskrcnn_model.train()
+#         image_classifier.train()
+#         epoch_loss = 0
+#         if epoch == 0:
+#             train_data_loader = tqdm.tqdm(train_data_loader)
+#         else:
+#             pass
+#         for images, targets in train_data_loader:
+#             loss_dict = maskrcnn_model(images, targets)
+#             classify_logits = image_classifier(torch.stack(images))
+#             labels = torch.tensor([t['labels'] - 1 for t in targets]).cuda()
+#             classify_loss = image_classifier_loss(classify_logits,labels)
+#             loss_dict['new_loss_classifier'] = classify_loss
+#             losses = sum(loss for loss in loss_dict.values())
+#             optimizer.zero_grad()
+#             losses.backward()
+#             optimizer.step()
+#             epoch_loss += losses.item()
+#             # break
+#
+#         # wandb.log({"new_loss_classifier": loss_dict['new_loss_classifier'].item()},step=epoch)
+#
+#
+#         wandb.log({"loss_classifier": loss_dict['loss_classifier'].item(),
+#             "loss_box_reg": loss_dict['loss_box_reg'].item(),
+#            'new_loss_classifier':loss_dict['loss_classifier'].item(),
+#             "loss_mask": loss_dict['loss_mask'].item(),
+#             "loss_objectness": loss_dict['loss_objectness'].item(),
+#             "loss_rpn_box_reg": loss_dict['loss_rpn_box_reg'].item()
+#         }, step=epoch)
+#         # wandb.log({ "loss_box_reg": loss_dict['loss_box_reg'].item(),
+#         #            'new_loss_classifier':loss_dict['loss_classifier'].item(),
+#         #     "loss_mask": loss_dict['loss_mask'].item(),
+#         #     "loss_objectness": loss_dict['loss_objectness'].item(),
+#         #     "loss_rpn_box_reg": loss_dict['loss_rpn_box_reg'].item(),
+#         #     'lr':lr_sheduler.get_lr()
+#         # }, step=epoch)
+#         maskrcnn_model.eval()
+#         image_classifier.eval()
+#
+#         all_ious = []
+#         all_accuracies = []
+#         with torch.no_grad():
+#             pbar_val = tqdm.tqdm(val_data_loader, desc=f'Epoch {epoch + 1} VAL', leave=False)
+#             wandb_images= []
+#             for i,(images, targets) in enumerate(pbar_val):
+#                 predictions = maskrcnn_model(images)
+#                 if  len(predictions[0]['boxes']) ==0:
+#                     all_ious.append(0)
+#                     all_accuracies.append(0)
+#                     print('zero prediction occurs')
+#                     continue
+#                 predictions = select_best_prediction(predictions)
+#                 iou = calculate_iou_bbox(predictions[0]["boxes"].cpu().numpy()[0], targets[0]["boxes"].cpu().numpy()[0])
+#                 all_ious.append(iou)
+#                 classify_result = image_classifier(torch.stack(images)).argmax(1)
+#                 labels = torch.tensor([t['labels'] - 1 for t in targets]).cuda()
+#                 accuracy = compute_accuracy(classify_result, labels)
+#                 print( classify_result, labels)
+#                 all_accuracies.append(accuracy)
+#                 if 20<i< 50:  # Log images every 10 epochs
+#                     wandb_images.append(log_predictions_to_wandb(images,predictions,targets=targets,predicted_label=classify_result))
+#             wandb.log({"predicted_and_true_boxes_masks": wandb_images},step=epoch)
+#             mean_iou = sum(all_ious) / len(all_ious)
+#             mean_accuracy = sum(all_accuracies) / len(all_accuracies)
+#             torch.save(maskrcnn_model.state_dict(), os.path.join(output_folder, f'epoch{epoch}.pt'))
+#             if mean_iou > max_iou:
+#                 torch.save(maskrcnn_model.state_dict(),os.path.join(output_folder,'best_iou_model.pt'))
+#         lr_sheduler.step()
+#         wandb.log({"Val Mean IoU": mean_iou, "Val Mean Accuracy": mean_accuracy}, step=epoch)
+#
 def main():
     # Define your transformations
     max_epoch =50
 
-    target_size = 224
+    target_size = 384
     train_data_loader,val_data_loader,test_data_loader = get_data_loaders(target_size)
-    wandb.init(project='ISIC',name='only masker maskrcnnv2 ')  # Please set your project and entity name
+    wandb.init(project='ISIC',name='deeplabv3 full ')  # Please set your project and entity name
     now = datetime.now()
     timestamp = now.strftime("%Y-%m-%d_%H-%M-%S")
     output_folder = os.path.join('save_weights', timestamp)
     os.makedirs(output_folder,exist_ok=True)
 
-    maskrcnn_model = get_model_instance_segmentation(4)
-    backbone = maskrcnn_model.backbone.body
+    deeplabModel = get_deeplab_model(2)
+
+    ce_loss = torch.nn.CrossEntropyLoss()
 
     # 创建图片分类器
-    image_classifier = ImageClassifier(backbone, num_classes=3)  # a
-    maskrcnn_model.cuda()
-    image_classifier.cuda()
-    image_classifier_loss = torch.nn.CrossEntropyLoss()
-    params = [p for p in maskrcnn_model.parameters() if p.requires_grad]
-    params.extend([p  for p in image_classifier.parameters() if p.requires_grad])
+    params = [p for p in deeplabModel.parameters() if p.requires_grad]
     optimizer = optim.AdamW(params, lr=0.0005)
     lr_sheduler = CosineAnnealingWarmRestarts(optimizer,T_0=3,T_mult=1,eta_min=2e-7)
-    # for cur_e in pbar:
     pbar = tqdm.tqdm(range(max_epoch))
-
+    deeplabModel.cuda()
     max_iou = 0
     for epoch in pbar:
-        maskrcnn_model.train()
-        image_classifier.train()
+        deeplabModel.train()
         epoch_loss = 0
         if epoch == 0:
             train_data_loader = tqdm.tqdm(train_data_loader)
         else:
             pass
+        loss_dict=  {'segmentation loss':0,'classification loss':0}
         for images, targets in train_data_loader:
-            loss_dict = maskrcnn_model(images, targets)
-            classify_logits = image_classifier(torch.stack(images))
+            mask_logits,classify_logits = deeplabModel(torch.stack(images).cuda())
+            masks = torch.stack([t['masks']  for t in targets]).cuda()
+            segmentation_loss = ce_loss(mask_logits,masks.squeeze(1).long())
+            loss_dict['segmentation loss'] += segmentation_loss.item()
             labels = torch.tensor([t['labels'] - 1 for t in targets]).cuda()
-            # classify_loss = image_classifier_loss(classify_logits,labels)
-            # loss_dict['new_loss_classifier'] = classify_loss
-            losses = sum(loss for loss in loss_dict.values())
+            classification_loss = ce_loss(classify_logits, labels)
+            loss_dict['classification loss']  += classification_loss.item()
+            total_loss = segmentation_loss+ classification_loss
+
             optimizer.zero_grad()
-            losses.backward()
+            total_loss.backward()
             optimizer.step()
-            epoch_loss += losses.item()
-            # break
-
-        # wandb.log({"new_loss_classifier": loss_dict['new_loss_classifier'].item()},step=epoch)
 
 
-        # wandb.log({"loss_classifier": loss_dict['loss_classifier'].item(),
-        #     "loss_box_reg": loss_dict['loss_box_reg'].item(),
-        #    'new_loss_classifier':loss_dict['loss_classifier'].item(),
-        #     "loss_mask": loss_dict['loss_mask'].item(),
-        #     "loss_objectness": loss_dict['loss_objectness'].item(),
-        #     "loss_rpn_box_reg": loss_dict['loss_rpn_box_reg'].item()
-        # }, step=epoch)
-        wandb.log({ "loss_box_reg": loss_dict['loss_box_reg'].item(),
-                   'new_loss_classifier':loss_dict['loss_classifier'].item(),
-            "loss_mask": loss_dict['loss_mask'].item(),
-            "loss_objectness": loss_dict['loss_objectness'].item(),
-            "loss_rpn_box_reg": loss_dict['loss_rpn_box_reg'].item(),
-            'lr':lr_sheduler.get_lr()
-        }, step=epoch)
-        maskrcnn_model.eval()
-        image_classifier.eval()
+        for t in loss_dict:
+            loss_dict[t] = loss_dict[t]/2000
+        wandb.log(loss_dict, step=epoch)
+
+        deeplabModel.eval()
 
         all_ious = []
         all_accuracies = []
@@ -275,28 +362,27 @@ def main():
             pbar_val = tqdm.tqdm(val_data_loader, desc=f'Epoch {epoch + 1} VAL', leave=False)
             wandb_images= []
             for i,(images, targets) in enumerate(pbar_val):
-                predictions = maskrcnn_model(images)
-                if  len(predictions[0]['boxes']) ==0:
-                    all_ious.append(0)
-                    all_accuracies.append(0)
-                    print('zero prediction occurs')
+                predictions= dict()
+                mask_logits, classify_logits = deeplabModel(torch.stack(images).cuda())
+                predictions['masks'] = mask_logits.argmax(1).unsqueeze(0)
+                if predictions['masks'].min() == predictions['masks'].max():
                     continue
-                predictions = select_best_prediction(predictions)
-                iou = calculate_iou_bbox(predictions[0]["boxes"].cpu().numpy()[0], targets[0]["boxes"].cpu().numpy()[0])
+                predictions['boxes'] =  torchvision.ops.masks_to_boxes(predictions['masks'][0])
+                iou = calculate_iou_bbox(predictions["boxes"].cpu().numpy()[0], targets[0]["boxes"].cpu().numpy()[0])
                 all_ious.append(iou)
-                classify_result = image_classifier(torch.stack(images)).argmax(1)
+                classify_result = classify_logits.argmax(1)
                 labels = torch.tensor([t['labels'] - 1 for t in targets]).cuda()
                 accuracy = compute_accuracy(classify_result, labels)
-                print( classify_result, labels)
                 all_accuracies.append(accuracy)
                 if 20<i< 50:  # Log images every 10 epochs
+                    predictions=[predictions]
                     wandb_images.append(log_predictions_to_wandb(images,predictions,targets=targets,predicted_label=classify_result))
             wandb.log({"predicted_and_true_boxes_masks": wandb_images},step=epoch)
             mean_iou = sum(all_ious) / len(all_ious)
             mean_accuracy = sum(all_accuracies) / len(all_accuracies)
-            torch.save(maskrcnn_model.state_dict(), os.path.join(output_folder, f'epoch{epoch}.pt'))
+            torch.save(deeplabModel.state_dict(), os.path.join(output_folder, f'epoch{epoch}.pt'))
             if mean_iou > max_iou:
-                torch.save(maskrcnn_model.state_dict(),os.path.join(output_folder,'best_iou_model.pt'))
+                torch.save(deeplabModel.state_dict(),os.path.join(output_folder,'best_iou_model.pt'))
         lr_sheduler.step()
         wandb.log({"Val Mean IoU": mean_iou, "Val Mean Accuracy": mean_accuracy}, step=epoch)
 

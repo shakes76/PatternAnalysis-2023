@@ -44,13 +44,13 @@ def get_targets_from_mask(mask, label):
 
 
 class CustomISICDataset(Dataset):
-    def __init__(self, csv_file, img_dir, mask_dir, transform=None,mask_transoform = None, target_size=224):
+    def __init__(self, csv_file, img_dir, mask_dir, transform_stage1_for_img_mask=None,transform_stage2_for_img = None, target_size=224):
         self.labels = pd.read_csv(csv_file)
         self.img_dir = img_dir
         self.mask_dir = mask_dir
-        self.transform = transform
+        self.transform_stage1_for_img_mask = transform_stage1_for_img_mask
         self.target_size = target_size
-        self.mask_transoform=mask_transoform
+        self.transform_stage2_for_img=transform_stage2_for_img
         self._check_dataset_integrity()
 
     def _check_dataset_integrity(self):
@@ -79,10 +79,10 @@ class CustomISICDataset(Dataset):
 
         image = Image.open(img_path).convert("RGB")
         mask = Image.open(mask_path).convert("L")  # assuming mask is 1 channel
-        if self.transform:
-            image = self.transform(image)
-        if self.mask_transoform:
-            mask = self.mask_transoform(mask)
+        if self.transform_stage1_for_img_mask:
+            image,mask = self.transform_stage1_for_img_mask([image,mask])
+        if self.transform_stage2_for_img:
+            image,mask = self.transform_stage2_for_img([image,mask])
         # Your class labels
         melanoma = int(self.labels.iloc[idx, 1])
         seborrheic_keratosis = int(self.labels.iloc[idx, 2])
@@ -97,10 +97,6 @@ class CustomISICDataset(Dataset):
         else:
             raise ValueError("Invalid label found!")
         # Resize image and mask
-        image = F.resize(image, (self.target_size, self.target_size))  # Example size, adjust as needed
-        mask = F.resize(mask, (self.target_size, self.target_size),interpolation=InterpolationMode.NEAREST)
-        mask = torch.from_numpy(np.array(mask))
-
         bbox = torchvision.ops.masks_to_boxes(mask)
         target = {
             "boxes": bbox,
