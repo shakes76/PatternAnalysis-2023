@@ -15,8 +15,10 @@ Transformer models are models which uses an 'attention mechanism' to 'remember' 
 The Patch Embedding Layer involves taking an input image and splitting into equal sized patches. The patches are then converted to a sequence of learnable embedding vectors. A classification token embeding vector is linearly projected with the learnable embedding vector, which later becomes the embeddings label. Finally, a positional embedding is added to the learnable embedding vectors, so the model knows the origin of each patch within the image and the class.
 
 ### Multi Head Self Attention Block
-This layer uses an attention mechanism
+This layer uses an attention mechanism to add weights to the input sequence within parallel to the other heads. This allows the model to 'pay attention' to specific features of interest which positively affect the model. The multiple heads allows the model to pay attention to multiple features.
+
 ### Machine Learning Perceptron Block
+
 
 ### Transformer Block
 
