@@ -51,8 +51,11 @@ def accuracy(model, loader, device):
       correct += (preds==masks).sum()
       pixels += torch.numel(preds)
       dice_score += DSC(preds, masks)
+      break
   
+  dice_score = dice_score/len(loader)
+  accuracy = correct / pixels*100
   print(
-    f'Accuracy: {correct / pixels*100:.2f}, Dice Similarity Coefficient: {dice_score:.2f}, Loss: {1-dice_score:.2f}'
+    f'Accuracy: {accuracy:.2f}, Dice Similarity Coefficient: {dice_score:.2f}, Loss: {1-dice_score:.2f}'
   )
 
