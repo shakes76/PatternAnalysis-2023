@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F  
 import matplotlib.pyplot as plt
-from dataset import ISIC2017
+from dataset import ISICDataLoader
 from modules import ImprovedUNET
 import numpy as np
 

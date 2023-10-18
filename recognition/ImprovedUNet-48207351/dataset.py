@@ -3,32 +3,27 @@ from torchvision import transforms
 from torch.utils.data import Dataset
 from PIL import Image
 import numpy as np
-
-
-# Define the dataset root directory and transformation for data preprocessing.
-data_root = '/ISIC-2017_Training_Data'
-
-def transform_image():
-    transform = transforms.Compose([
-        transforms.Resize((128, 128)),  # Resize the images to 128x128.
-        transforms.ToTensor(),  # Convert to a PyTorch tensor.
-    ])
-    return transform
+import random
 
 # Loading the data (source: https://github.com/aladdinpersson/Machine-Learning-Collection/blob/master/ML/Pytorch/image_segmentation/semantic_segmentation_unet/dataset.py)
 class ISICDataLoader(Dataset):
-    def __init__(self, image_dir, mask_dir, transform=None):
+    def __init__(self, image_dir, mask_dir, split=(0.8, 0.1, 0.1), transform=None):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
-        self.transform = transform
         self.images = os.listdir(image_dir)
+        self.split = split
+
+        self.split_dataset()
 
     def __len__(self):
+        # denotes the total number of samples in the dataset
         return len(self.images)
+
 
     def __getitem__(self, index):
         img_path = os.path.join(self.image_dir, self.images[index])
         mask_path = os.path.join(self.mask_dir, self.images[index].replace(".png", "_mask.gif"))
+
         image = np.array(Image.open(img_path).convert("RGB"))
         mask = np.array(Image.open(mask_path).convert("L"), dtype=np.float32)
         mask[mask == 255.0] = 1.0
@@ -39,5 +34,27 @@ class ISICDataLoader(Dataset):
             mask = augmentations["mask"]
 
         return image, mask
+    
+    transform = transforms.Compose([
+        transforms.ToPILImage(),
+        transforms.Resize(128, 128),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
+        transforms.ToTensor()]
+    )
+
+    def split_dataset(self):
+        random.shuffle(self.images)
+        total_samples = len(self.images)
+        split_idx = [int(total_samples * self.split[0]),
+                     int(total_samples * (self.split[0] + self.split[1]))]
+
+        train_images = self.images[:split_idx[0]]
+        val_images = self.images[split_idx[0]:split_idx[1]]
+        test_images = self.images[split_idx[1]:]
+
+        self.dataset = [(img, 0) for img in train_images] + [(img, 1) for img in val_images] + [(img, 2) for img in test_images]
+
+
 
 
