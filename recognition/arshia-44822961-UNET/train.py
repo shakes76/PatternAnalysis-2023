@@ -12,11 +12,11 @@ from modules import ImprovedUnet
 # paths to data. 
 TRAIN_DATA_PATH  = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
 TRAIN_MASK_PATH = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
-VALID_DATA_PATH = "~/report1/ISIC2018_Validation_Data"
-VALID_MASK_PATH = "~/report1/ISIC2018_Task1_Validation_GroundTruth"
+VALID_DATA_PATH = "/home/Student/s4482296/report1/ISIC2018_Validation_Data"
+VALID_MASK_PATH = "/home/Student/s4482296/report1/ISIC2018_Task1_Validation_GroundTruth"
 
 # path to store loss graph and metric output file. 
-OUTPUT_DIR_PATH = "~/report1"
+OUTPUT_DIR_PATH = "/home/Student/s4482296/report1"
 
 # Global constants
 BATCH_SIZE = 8 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
     # create improvised unet. 
-    model = ImprovedUnet()  # Replace with the actual U-Net model class
+    model = ImprovedUnet()  
 
     # set up data transform for data 
     data_transform = transforms.Compose([
