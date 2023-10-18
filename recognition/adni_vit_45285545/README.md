@@ -1,6 +1,6 @@
 # Vision Transformer for Alzheimer's Disease Classification
 
-This project applies the Vision Transformer architecture to the task of classifying MRI brain images as either Cognitive Normal (CN) or representative of Alzheimer's disease (AD). The ViT is trained and tested on patient-level splits of the dataset from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu). A test accuracy of 75.02% is achieved.
+This project applies the Vision Transformer architecture to the task of classifying MRI brain images as either Cognitive Normal (CN) or representative of Alzheimer's disease (AD). The ViT is trained and tested on patient-level splits of the dataset from the [Alzheimer's Disease Neuroimaging Initiative (ADNI)](http://adni.loni.usc.edu). A patient-level test accuracy of 75.11% is achieved using transfer learning techniques.
 
 ## Model Architecture
 
@@ -44,28 +44,30 @@ Validation and testing images are simply centre-cropped to 224x224 then converte
 
 ### Model Training
 
-This solution uses the [`vit_b_16`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) model provided by PyTorch. The classification head is replaced with a fully-connected layer with 2 outputs rather than 10. The solution leverages transfer learning using the [`IMAGENET1K_V1`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) weights, also from PyTorch. Transfer learning avoids retraining the more general, lower-level feature extractors of the ViT, which have been trained to high efficiency on the larger ImageNet dataset. Only the higher-level feature extractors and fully-connected classification head need to be retrained to be specific to the ADNI dataset.
+This solution implements a vanilla ViT-B/16 architecture introduced by [2], with 12 encoder layers and a patch size of 16. The classification head is replaced with a fully-connected layer having 2 outputs rather than 10.
 
-The model is trained for 16 epochs or until validation loss does not improve for five consecutive epochs, at which point early stopping triggers and the model is reverted to the state following the epoch with the lowest validation loss. The training also uses the [`ReduceLROnPlateau`](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html) scheduler to decrease the learning rate by a factor of 10 if the validation loss does not improve for two consecutive epochs.
+The solution leverages transfer learning using the [`IMAGENET1K_V1`](https://pytorch.org/vision/main/models/generated/torchvision.models.vit_b_16.html) weights from PyTorch. Transfer learning avoids retraining the more general, lower-level feature extractors of the ViT, which have been trained to high efficiency on the larger ImageNet dataset. Only the higher-level feature extractors and fully-connected classification head need to be retrained to be specific to the ADNI dataset. This improves training efficiency significantly. The model is fine-tuned by freezing all layers but the classification head for 1 epoch, then unfreezing and training the full number of epochs.
+
+The model is trained for 16 epochs (unfrozen) or until validation loss does not improve for five consecutive epochs, at which point early stopping triggers and the model is reverted to the state following the epoch with the lowest validation loss. The training also uses the [`ReduceLROnPlateau`](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html) scheduler to decrease the learning rate by a factor of 10 if the validation loss does not improve for two consecutive epochs.
 
 The following figure presents example model training and validation metrics.
 
-![Sample training metrics](static/adni-vit-metrics-1697362188.png)
+![Sample training metrics](static/adni-vit-metrics-1697592651.png)
 
 ### Model Testing
 
-There are two ways to test the model. The simpler method, and the default for `train.py` and `predict.py`, runs inference on the test split of the ADNI dataset and returns the percentage of images correctly predicted. This is the typical approach when test images are independent. Using this method, the model trained above achieves 75.02% on the test split of the ADNI dataset.
+There are two ways to test the model. The simpler method, and the default for `train.py` and `predict.py`, runs inference on the test split of the ADNI dataset and returns the percentage of images correctly predicted. This is the typical approach when test images are independent. Using this method, the model trained above achieves 74.28% on the test split of the ADNI dataset.
 
 ```
 100%|███████████████████████████| 141/141 [01:51<00:00,  1.26it/s]
-Test accuracy: 75.02% (00:01:53.86790)
+Test accuracy: 74.28% (00:01:53.86790)
 ```
 
-The second method recognises that images are not independent, but in fact come in sets of 20 images per patient. Therefore, when running inference, it is possible to keep a running tally for each patient of the number of `AD` predictions versus `NC`. At the end, each patient (rather than each image) is assigned an overall prediction based on which of `AD` or `NC` was more frequently predicted for the patient's set of 20 images. Using this approach, the model trained above achieves 75.78% on the test split of the ADNI dataset.
+The second method recognises that images are not independent, but in fact come in sets of 20 images per patient. Therefore, when running inference, it is possible to keep a running tally for each patient of the number of `AD` predictions versus `NC`. At the end, each patient (rather than each image) is assigned an overall prediction based on which of `AD` or `NC` was more frequently predicted for the patient's set of 20 images. Using this approach, the model trained above achieves 75.11% on the test split of the ADNI dataset.
 
 ```
 100%|███████████████████████████| 141/141 [01:51<00:00,  1.27it/s]
-Test accuracy (agg.): 75.78% (00:01:51.01899)
+Test accuracy (agg.): 75.11% (00:01:51.01899)
 ```
 
 The results are unexpectedly similar. This suggests that for each patient, the trained model generally produces the same prediction for all 20 images - whether correctly or incorrectly. The benefit of the aggregation is therefore minimal.

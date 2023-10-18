@@ -3,13 +3,13 @@ Training, validation, testing and saving of ViT model on ADNI dataset.
 '''
 import argparse
 import time
-from typing import Any
+from typing import Any, Iterable, Tuple
 
 import pandas as pd
+import tqdm
+
 import torch
 from torchvision.models.vision_transformer import ViT_B_16_Weights
-
-from tqdm import tqdm
 
 from dataset import create_train_dataloader, create_test_dataloader
 from modules import ViT
@@ -28,6 +28,7 @@ def load_model(timestamp: int) -> Any:
 
 class EarlyStopping:
     '''Stop training when a monitored metric has stopped improving.'''
+
     def __init__(self, mdl: Any, mode: str = 'min', min_delta: float = 0.0,
                  patience: int = 0) -> None:
         self.mdl = mdl
@@ -40,6 +41,7 @@ class EarlyStopping:
 
     def stop_training(self, metric: float) -> bool:
         '''Returns true once the monitored metric has stopped improving.'''
+
         if self.mode == 'min':
             improved = metric < (self.metric_best - self.min_delta)
         elif self.mode == 'max':
@@ -58,11 +60,60 @@ class EarlyStopping:
 
 ### TRAINING ###################################################################
 
+def train_epoch(
+    mdl: Any,
+    device: torch.device,
+    train_loader: Iterable,
+    valid_loader: Iterable,
+    criterion: Any,
+    optimizer: torch.optim.Optimizer,
+    pg: bool = False,
+) -> Tuple[float, float, float, float]:
+    '''Train the model for one epoch then run validation. Returns metrics.'''
+
+    # Show tqdm progress bar or not
+    irange = tqdm.trange if pg else range
+
+    # Training loop
+    losses = []; total = 0; correct = 0
+    for images, labels, _ in irange(train_loader):
+        images = images.to(device)
+        labels = labels.to(device)
+        optimizer.zero_grad()
+        # Forward pass
+        outputs = mdl(images)
+        loss = criterion(outputs, labels)
+        # Record training metrics
+        losses.append(loss.item())
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+        # Backward and optimize
+        loss.backward()
+        optimizer.step()
+    train_loss = sum(losses) / len(losses)
+    train_acc = correct / total
+
+    # Validation loop
+    losses = []; total = 0; correct = 0
+    with torch.no_grad():
+        for images, labels, _ in irange(valid_loader):
+            images = images.to(device)
+            labels = labels.to(device)
+            # Forward pass
+            outputs = mdl(images)
+            # Record validation metrics
+            losses.append(criterion(outputs, labels).item())
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    val_loss = sum(losses) / len(losses)
+    val_acc = correct / total
+
+    return train_loss, train_acc, val_loss, val_acc
+
 def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -> None:
-    '''
-    Train the given model on a pre-processsed ADNI training dataset.
-    '''
-    wrapiter = (lambda iter: tqdm(iter)) if pg else (lambda iter: iter)
+    '''Train the given model on a pre-processsed ADNI training dataset.'''
 
     train_loader, valid_loader = create_train_dataloader(val_pct=0.2)
     criterion = torch.nn.CrossEntropyLoss()
@@ -77,44 +128,35 @@ def train_model(mdl: Any, epochs: int, device: torch.device, pg: bool = False) -
     mdl.train()
     time_start = time.time()
 
+    # Freeze non-head layers
+    for param in mdl.parameters():
+        param.requires_grad = False
+    for param in mdl.heads.parameters():
+        param.requires_grad = True
+
+    # Train for 1 epoch with non-head layers frozen
+    metrics = train_epoch(
+        mdl, device, train_loader, valid_loader, criterion, optimizer, pg)
+
+    train_losses.append(metrics[0]); train_acc.append(metrics[1])
+    valid_losses.append(metrics[2]); valid_acc.append(metrics[3])
+
+    # Training report
+    time_elapsed = time.time() - time_start
+    print(f'Epoch [00/{epochs:02}]  Val Loss: {valid_losses[-1]:.5f}  ',
+            f'Val Acc: {valid_acc[-1]:.5f}  ({strftime(time_elapsed)})')
+
+    # Un-freeze all layers
+    for param in mdl.parameters():
+        param.requires_grad = True
+
+    # Train for requested number of epochs with all layers unfrozen
     for epoch in range(epochs):
-        # Training loop
-        losses = []; total = 0; correct = 0
-        for images, labels, _ in wrapiter(train_loader):
-            images = images.to(device)
-            labels = labels.to(device)
-            optimizer.zero_grad()
-            # Forward pass
-            outputs = mdl(images)
-            loss = criterion(outputs, labels)
-            # Record training metrics
-            losses.append(loss.item())
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-            # Backward and optimize
-            loss.backward()
-            optimizer.step()
+        metrics = train_epoch(
+            mdl, device, train_loader, valid_loader, criterion, optimizer, pg)
 
-        train_losses.append(sum(losses) / len(losses))
-        train_acc.append(correct / total)
-
-        # Validation loop
-        losses = []; total = 0; correct = 0
-        with torch.no_grad():
-            for images, labels, _ in wrapiter(valid_loader):
-                images = images.to(device)
-                labels = labels.to(device)
-                # Forward pass
-                outputs = mdl(images)
-                # Record validation metrics
-                losses.append(criterion(outputs, labels).item())
-                _, predicted = torch.max(outputs.data, 1)
-                total += labels.size(0)
-                correct += (predicted == labels).sum().item()
-
-        valid_losses.append(sum(losses) / len(losses))
-        valid_acc.append(correct / total)
+        train_losses.append(metrics[0]); train_acc.append(metrics[1])
+        valid_losses.append(metrics[2]); valid_acc.append(metrics[3])
 
         scheduler.step(valid_losses[-1])
 
@@ -148,7 +190,8 @@ def test_model_noagg(mdl: Any, device: torch.device, pg: bool = False) -> None:
     Test the given model on the ADNI test dataset, treating each image as
     independent and not aggregating per patient.
     '''
-    wrapiter = (lambda iter: tqdm(iter)) if pg else (lambda iter: iter)
+    # Show tqdm progress bar or not
+    wrapiter = (lambda iter: tqdm.tqdm(iter)) if pg else (lambda iter: iter)
 
     test_loader = create_test_dataloader()
     mdl.eval()
@@ -175,7 +218,8 @@ def test_model_agg(mdl: Any, device: torch.device, pg: bool = False) -> None:
     Test the given model on the ADNI test dataset, aggregating predictions
     per patient before making a final prediction.
     '''
-    wrapiter = (lambda iter: tqdm(iter)) if pg else (lambda iter: iter)
+    # Show tqdm progress bar or not
+    wrapiter = (lambda iter: tqdm.tqdm(iter)) if pg else (lambda iter: iter)
 
     # Mapping of patient ID to prediction tallies
     prediction = {}; actual = {}
