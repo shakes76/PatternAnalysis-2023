@@ -43,10 +43,12 @@ def load_dataset(
         train_NC, train_NC, 0
     )
 
-    train_mixed = create_pairs(train_AD, train_NC, 1)
+    train_mixed_AD, train_mixed_NC = create_pairs(train_AD, train_NC, 1), create_pairs(
+        train_NC, train_AD, 1
+    )
 
     train = np.concatenate(
-        (train_both_AD, train_both_NC, train_mixed),
+        (train_both_AD, train_both_NC, train_mixed_AD, train_mixed_NC)
     )
 
     np.random.shuffle(train)
