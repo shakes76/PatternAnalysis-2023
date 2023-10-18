@@ -13,13 +13,10 @@ class GCN(nn.Module):
         self.out = nn.Linear(256, num_classes)
     
     def forward(self, x, edge_index):
+        # Use relu as the activation function
         z = self.layer1(x, edge_index)
         z = z.relu()
         z = self.layer2(z, edge_index)
         z = z.relu()
         z = self.out(z)
         return z
-        
-
-        
-
