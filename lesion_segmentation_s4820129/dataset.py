@@ -3,6 +3,7 @@ import os
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
+import numpy as np
 
 class ISICdataset(Dataset):
     def __init__(self, image_dir, truth_dir, transform=None, target_size=(256, 256)):

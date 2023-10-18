@@ -7,6 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 import torch
 from torch import nn
 
+
 print('got here')
 #get_data_from_url('ISIC_data', '1vxd1KBIYa3zCAVONkacdclsWUAxhWLho')
 TRAIN_DIR = '/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2'
