@@ -92,7 +92,7 @@ def plot_confidence_scores(probabilities, predicted_class, save_path):
         yval = bar.get_height()
         plt.annotate(f'{yval:.2f}%',
                      xy=(bar.get_x() + bar.get_width() / 2, yval),
-                     xytext=(0, 1),  # 3 points vertical offset
+                     xytext=(0, 1), 
                      textcoords="offset points",
                      ha='center', va='bottom')
 

@@ -3,16 +3,23 @@ dataset.py: Defines a custom dataset class for AD and NC image data,
 along with associated transformations and dataloaders for training and testing.
 """
 
-
 #Importing all the required libraries
 import os
 from torchvision import transforms
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
 
-# Define AlzheimerDataset class that extends torch's Dataset
 class AlzheimerDataset(Dataset):
-    # Constructor for the AlzheimerDataset class
+    """
+    Class to load AD and NC image data.
+    
+    Parameters:
+    - root_dir: Path to the directory containing AD and NC image folders.
+    - transform: Image transformations to be applied.
+    - num_AD: Limit on the number of AD images to use from the dataset.
+    - num_NC: Limit on the number of NC images to use from the dataset.
+    """
+    
     def __init__(self, root_dir, transform=None, num_AD=0, num_NC=0):
         self.root_dir = root_dir
         self.transform = transform
@@ -31,16 +38,26 @@ class AlzheimerDataset(Dataset):
         # Limit the number of AD and NC images if specified
         self.AD_files = self.AD_files[:num_AD]
         self.NC_files = self.NC_files[:num_NC]   
-
-
         self.all_files = self.AD_files + self.NC_files
 
-    # Get the total number of images in the dataset
     def __len__(self):
-        return len(self.all_files)
-    
-    # Fetch an image and its label by index
+        """
+        Returns:
+        - The total number of images in the dataset.
+        """
+        return len(self.all_files)    
+
     def __getitem__(self, idx):
+        """
+        Fetches an image and its label by index.
+        
+        Parameters:
+        - idx: The index of the image to fetch.
+        
+        Returns:
+        - image: The image tensor.
+        - label: The label of the image (1 for AD, 0 for NC).
+        """
         image_path = self.all_files[idx]
         image = Image.open(image_path).convert('RGB')
         

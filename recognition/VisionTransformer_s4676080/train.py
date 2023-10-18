@@ -4,6 +4,7 @@ and NC image data. After training, the model is saved as well. It also provides 
 and testing metrics.
 """
 
+# importing libraries
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -46,6 +47,7 @@ def train_one_epoch(model, criterion, optimizer, train_loader):
     - correct_train: Number of correctly classified instances.
     - total_train: Total instances in the dataset.
     """
+    # used chatgpt to get help in writing the training loop (basically for gradient clipping)
     model.train()
     running_loss, correct_train, total_train = 0.0, 0, 0
     for images, labels in train_loader:
@@ -126,7 +128,7 @@ def plot_metrics(train_losses, test_losses, train_accuracies, test_accuracies):
     plt.savefig('/content/drive/MyDrive/accuracies_plot.png')
     plt.show()
 
-
+# main function
 if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     
@@ -138,9 +140,7 @@ if __name__ == "__main__":
     train_losses, train_accuracies, test_losses, test_accuracies = [], [], [], []
     patience = 5
     best_test_loss = float('inf')
-    counter = 0
-
-    
+    counter = 0    
     #print("Training started!")
     for epoch in range(1, num_epochs + 1):  # Changed the range to fix the numbering issue
         train_loss, correct_train, total_train = train_one_epoch(model, criterion, optimizer, train_loader)
@@ -149,8 +149,7 @@ if __name__ == "__main__":
         train_losses.append(train_loss / len(train_loader.dataset))
         train_accuracies.append(100 * correct_train / total_train)
         test_losses.append(test_loss / len(test_loader.dataset))
-        test_accuracies.append(100 * correct_test / total_test)
-        
+        test_accuracies.append(100 * correct_test / total_test)        
         print(f"Epoch {epoch}/{num_epochs} - Train Loss: {train_losses[-1]:.4f}, Train Acc: {train_accuracies[-1]:.2f}%, Test Loss: {test_losses[-1]:.4f}, Test Acc: {test_accuracies[-1]:.2f}%")
         
         scheduler.step(test_losses[-1])
