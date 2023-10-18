@@ -66,4 +66,3 @@ def ADNIDataLoader(root, mode='train'):
         return train_loader, valid_loader
     else:
         return DataLoader(dataset, batch_size=batch_size, shuffle=False)
-    
