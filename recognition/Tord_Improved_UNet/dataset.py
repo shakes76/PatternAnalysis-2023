@@ -5,6 +5,8 @@ from torchvision.datasets.vision import VisionDataset
 from PIL import Image
 import torch.nn as nn
 
+
+#dataset
 class TrainingDataset(VisionDataset):
     def __init__(self, root, data_transform=None, target_transform=None):
         super(TrainingDataset, self).__init__(root, transforms=None, transform=data_transform, target_transform=target_transform)
@@ -15,9 +17,9 @@ class TrainingDataset(VisionDataset):
         
         
         
-        if(os.path.exists('recognition/Tord_Improved_UNet/tensorsets/images.pt')):
-            self.images = torch.load('recognition/Tord_Improved_UNet/tensorsets/images.pt')
-            self.masks = torch.load('recognition/Tord_Improved_UNet/tensorsets/masks.pt')
+        if(os.path.exists('~/Patternanalysis-2023/recognition/Tord_Improved_UNet/tensorsets/images.pt')):
+            self.images = torch.load('~/Patternanalysis-2023/recognition/Tord_Improved_UNet/tensorsets/images.pt')
+            self.masks = torch.load('~/Patternanalysis-2023/recognition/Tord_Improved_UNet/tensorsets/masks.pt')
             return
         
         data_folder = os.path.join(root, 'ISIC2018_Task1-2_Training_Input_x2')
@@ -27,13 +29,16 @@ class TrainingDataset(VisionDataset):
             i+=1
             mask_name = image_name.replace('.jpg', '_segmentation.png')  # Assumes naming conventions for masks
             image = Image.open(os.path.join(data_folder, image_name))
+            
+            image2 = transforms.ToTensor()(image)
+            
             mask = Image.open(os.path.join(mask_folder, mask_name))
             image = self.data_transform(image)
             mask = self.target_transform(mask)
             self.images.append(image)
             self.masks.append(mask)
-        torch.save(self.images, 'recognition/Tord_Improved_UNet/tensorsets/images.pt')
-        torch.save(self.masks, 'recognition/Tord_Improved_UNet/tensorsets/masks.pt')
+        torch.save(self.images, '~/Patternanalysis-2023/recognition/Tord_Improved_UNet/tensorsets/images.pt')
+        torch.save(self.masks, '~/Patternanalysis-2023/recognition/Tord_Improved_UNet/tensorsets/masks.pt')
             
     def __len__(self):
         return len(self.images)
@@ -57,7 +62,7 @@ target_transform = transforms.Compose([
 
 @staticmethod
 def load():
-    return TrainingDataset(root='recognition/Tord_Improved_UNet/data', data_transform=data_transform, target_transform=target_transform)
+    return TrainingDataset(root='~/Patternanalysis-2023/recognition/Tord_Improved_UNet/data', data_transform=data_transform, target_transform=target_transform)
 
 class DiceLoss(nn.Module):
     def __init__(self, smooth=1.0):
