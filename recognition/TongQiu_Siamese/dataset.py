@@ -1,73 +1,87 @@
 import torch
 from torch.utils.data import Dataset
-from torchvision.io import read_image
+from torchvision.io import read_image, ImageReadMode
 import random
 import os
 
 from utils import Config
 
 
+def discover_directory(root_dir):
+    classes = ['AD', 'NC']
+    data = []
+    for cls in classes:
+        class_path = os.path.join(root_dir, cls)
+        for img_name in sorted(os.listdir(class_path)):
+            img_path = os.path.join(class_path, img_name)
+            patient_id = img_name.split('_')[0]
+            data.append((img_path, cls, patient_id))
+    return data
+
+
+def patient_level_split(full_data, ratio_train=0.8):
+    unique_patients = list(set(patient_id for _, _, patient_id in full_data))
+    random.shuffle(unique_patients)
+    split_idx = int(ratio_train * len(unique_patients))
+
+    train_patients = unique_patients[:split_idx]
+    val_patients = unique_patients[split_idx:]
+
+    train_data = [(img, label, patient_id) for img, label, patient_id in full_data if patient_id in train_patients]
+    val_data = [(img, label, patient_id) for img, label, patient_id in full_data if patient_id in val_patients]
+
+    return train_data, val_data
+
+
 class ContrastiveDataset(Dataset):
-    def __init__(self, root_dir, transform=None):
-        self.root_dir = root_dir
+    def __init__(self, data_lst, transform=None):
+        self.data_lst = data_lst
         self.transform = transform
         self.classes = ['AD', 'NC']
 
-        self.patient_volumes = {'AD': {}, 'NC': {}}
-        for cls in self.classes:
-            class_path = os.path.join(root_dir, cls)
-            for img_name in sorted(os.listdir(class_path)):  # Sorting ensures slices are in order
-                patient_id = img_name.split('_')[0]
-                if patient_id not in self.patient_volumes[cls]:
-                    self.patient_volumes[cls][patient_id] = []
-                slice_img = os.path.join(class_path, img_name)
-                self.patient_volumes[cls][patient_id].append(slice_img)
-
     def __len__(self):
-        return sum([len(patients) for patients in self.patient_volumes.values()])
+        return len(self.data_lst)
 
     def __getitem__(self, idx):
-        all_patients = [(cls, patient_id) for cls, patients in self.patient_volumes.items() for patient_id in
-                        patients.keys()]
-        cls, patient_id = all_patients[idx]
-        volume1 = self.patient_volumes[cls][patient_id]
-
+        img_path, cls, patient_id = self.data_lst[idx]
         same_class = random.random() > 0.5
         if same_class:
-            # different patient from the same class
-            other_patients = [p for c, p in all_patients if c == cls and p != patient_id]
-            other_patient_id = random.choice(other_patients)
-            volume2 = self.patient_volumes[cls][other_patient_id]
+            other_patients = [(i, c, p) for i, c, p in self.data_lst if c == cls and p != patient_id]
+            other_img_path, _, other_patient_id = random.choice(other_patients)
         else:
-            # different patient from the different class
             other_cls = 'NC' if cls == 'AD' else 'AD'
-            other_patients = list(self.patient_volumes[other_cls].keys())
-            other_patient_id = random.choice(other_patients)
-            volume2 = self.patient_volumes[other_cls][other_patient_id]
+            other_patients = [(i, c, p) for i, c, p in self.data_lst if c == other_cls and p != patient_id]
+            other_img_path, _, other_patient_id = random.choice(other_patients)
 
-        # Read slices for volume1 and convert to 3D tensor
-        slices1 = [read_image(slice_path).float() for slice_path in volume1]
+        # Read images
+        img1 = read_image(img_path, ImageReadMode.GRAY).float()
+        img2 = read_image(other_img_path, ImageReadMode.GRAY).float()
         if self.transform:
-            slices1 = [self.transform(s) for s in slices1]
-        volume1 = torch.stack(slices1, dim=0).squeeze()
-
-        # Read slices for volume2 and convert to 3D tensor
-        slices2 = [read_image(slice_path).float() for slice_path in volume2]
-        if self.transform:
-            slices2 = [self.transform(s) for s in slices2]
-        volume2 = torch.stack(slices2, dim=0).squeeze()
-
+            img1 = self.transform(img1)
+            img2 = self.transform(img2)
         label = torch.tensor([1 if same_class else 0], dtype=torch.float32)
 
-        return {"volume1": volume1,
-                "volume2": volume2,
-                "label": label}
+        return img1, img2, label
+
+
+class TripletDataset(Dataset):
+    pass
+
 
 """
 from torch.utils.data import DataLoader
 if __name__ == '__main__':
+
+    # patient-level split
+    full_train_data = discover_directory(Config.TRAIN_DIR)
+    train_data, val_data = patient_level_split(full_train_data)
+
+    train_dataset = ContrastiveDataset(train_data)
+    val_dataset = ContrastiveDataset(val_data)
+
+
     dataloader = DataLoader(
-        dataset=ContrastiveDataset(Config.TRAIN_DIR),
+        dataset=train_dataset,
         shuffle=True,
         batch_size=3,
         num_workers=1,
@@ -75,9 +89,9 @@ if __name__ == '__main__':
     )
     for batch in dataloader:
         print("Batch:")
-        print("volume1 shape:", batch["volume1"].shape)
-        print("volume2 shape:", batch["volume2"].shape)
-        print("label:", batch["label"].shape)
+        print("volume1 shape:", batch[0].shape)
+        print("volume2 shape:", batch[1].shape)
+        print("label:", batch[2].shape)
         print()
         break
 """
