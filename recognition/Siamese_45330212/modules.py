@@ -18,7 +18,7 @@ from torch.autograd import Variable
 import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
-import pandas as pd 
+import pandas as pd
 import random
 
 # Device configuration
@@ -29,46 +29,50 @@ else:
     print("Using CUDA.")
 
 class Config():
-    training_dir = "../AD_NC/train"
-    testing_dir = "../AD_NC/test"
-    train_batch_size = 8
+    training_dir = '/content/drive/MyDrive/Colab Notebooks/AD_NC/train'
+    testing_dir = '/content/drive/MyDrive/Colab Notebooks/AD_NC/test'
+    train_batch_size = 32
     train_number_epochs = 20
 
 class SiameseNetwork(nn.Module):
     def __init__(self):
         super(SiameseNetwork, self).__init__()
-        
+
         # Setting up the Sequential of CNN Layers
         self.cnn1 = nn.Sequential(
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(3, 64, kernel_size=3),
+            nn.Conv2d(3, 96, kernel_size=11,stride=1),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(64),
-            nn.Dropout2d(p=.2),
-            
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(64, 64, kernel_size=3),
-            nn.ReLU(inplace=True),
-            nn.BatchNorm2d(64),
-            nn.Dropout2d(p=.2),
+            nn.LocalResponseNorm(5,alpha=0.0001,beta=0.75,k=2),
+            nn.MaxPool2d(3, stride=2),
 
-            nn.ReflectionPad2d(1),
-            nn.Conv2d(64, 32, kernel_size=3),
+            nn.Conv2d(96, 256, kernel_size=5,stride=2,padding=2),
             nn.ReLU(inplace=True),
-            nn.BatchNorm2d(32),
-            nn.Dropout2d(p=.2),
+            nn.LocalResponseNorm(5,alpha=0.0001,beta=0.75,k=2),
+            nn.MaxPool2d(3, stride=2),
+            nn.Dropout(p=0.3),
+
+            nn.Conv2d(256,384 , kernel_size=3,stride=2,padding=1),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(384,256 , kernel_size=3,stride=1,padding=1),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(3, stride=2),
+            nn.Dropout(p=0.3),
         )
-        
+
         # Defining the fully connected layers
         self.fc1 = nn.Sequential(
-            nn.Linear(1966080, 500),
-            #self.fc1 = nn.Linear(2*1000, 500)
-            nn.Linear(500, 500),
-            nn.Linear(500, 2)
+            nn.Linear(10752, 1024),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=0.5),
+
+            nn.Linear(1024, 128),
+            nn.ReLU(inplace=True),
+
+            nn.Linear(128,2)
         )
-         
+
     def forward_once(self, x):
-        # Forward pass 
+        # Forward pass
         output = self.cnn1(x)
         output = output.view(output.size()[0], -1)
         output = self.fc1(output)
@@ -80,7 +84,7 @@ class SiameseNetwork(nn.Module):
         # forward pass of input 2
         output2 = self.forward_once(input2)
         return output1, output2
-    
+
 class CustomSiameseNetworkDataset(Dataset):
     def __init__(self, root_dir, transform=None):
         self.root_dir = root_dir
@@ -111,7 +115,7 @@ class CustomSiameseNetworkDataset(Dataset):
                     if c % 1000 == 0:
                         print("Count:", c)
                     img2 = random.choice(folder2_images)
-                    while img1 == img2:
+                    while img1 == img2 and i == j:
                         print("FOUND SAME IMAGE - SHOULDN'T HAPPEN OFTEN")
                         img2 = random.choice(folder2_images)
 
@@ -120,7 +124,7 @@ class CustomSiameseNetworkDataset(Dataset):
 
                     self.image_paths.append((img1_path, img2_path))
                     self.labels.append(label)
-                        
+
         print("< Finished creating image paths. #Images:", len(self.image_paths))
 
     def __len__(self):
@@ -136,9 +140,9 @@ class CustomSiameseNetworkDataset(Dataset):
             img2 = self.transform(img2)
 
         label = torch.tensor(self.labels[index], dtype=torch.float32)
-        
+
         return img1, img2, label
-    
+
 class ContrastiveLoss(torch.nn.Module):
     """
     Contrastive loss function.
@@ -154,16 +158,15 @@ class ContrastiveLoss(torch.nn.Module):
         loss_contrastive = torch.mean((1-label) * torch.pow(euclidean_distance, 2) +
                                       (label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
         return loss_contrastive
-    
+
 transform_train = transforms.Compose([
     transforms.ToTensor(),
 ])
-    
-# trainset = datasets.ImageFolder('C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\AD_NC\\train', transform=transform_train)
-trainset = CustomSiameseNetworkDataset(root_dir='C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\AD_NC\\train', transform=transform_train)
+
+trainset = CustomSiameseNetworkDataset(root_dir=Config.training_dir, transform=transform_train)
 train_loader = torch.utils.data.DataLoader(trainset, batch_size=Config.train_batch_size, shuffle=True)
 
-testset = datasets.ImageFolder('C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\AD_NC\\test', transform=transform_train)
+testset = CustomSiameseNetworkDataset(root_dir=Config.testing_dir, transform=transform_train)
 test_loader = torch.utils.data.DataLoader(testset, batch_size=Config.train_batch_size, shuffle=True)
 
 model = SiameseNetwork()
@@ -171,16 +174,18 @@ model = model.to(device)
 
 # Decalre Loss Function
 criterion = ContrastiveLoss()
-optimizer = optim.RMSprop(model.parameters(), lr=1e-4, alpha=0.99, eps=1e-8, weight_decay=0.0005, momentum=0.9)
+# optimizer = optim.RMSprop(model.parameters(), lr=1e-4, alpha=0.99, eps=1e-8, weight_decay=0.0005, momentum=0.9)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.1, momentum=0.9, weight_decay=5e-4)
+
+#Maybe add scheduler
 
 def train():
     # counter = []
     # loss_history = [] 
     # iteration_number= 0
-    
+    print(sum(p.numel() for p in model.parameters() if p.requires_grad))
     for epoch in range(0,Config.train_number_epochs):
         print(enumerate(train_loader,0).__sizeof__(), Config.train_batch_size)
-        print(enumerate(train_loader,0))
         for i, data in enumerate(train_loader,0):
             #Produce two sets of images with the label as 0 if they're from the same file or 1 if they're different
             print("i:", i, "/", int(43040 / Config.train_batch_size))
