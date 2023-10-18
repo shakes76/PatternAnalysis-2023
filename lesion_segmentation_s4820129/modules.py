@@ -36,9 +36,9 @@ class ImprovedUNET(nn.Module):
     ##segmentation
     self.segmentation1 = nn.Conv2d(64, 32, kernel_size=3, padding=1)
     self.segmentation2 = nn.Conv2d(32, 16, kernel_size=3, padding=1)
-    self.segmentation3 = nn.Conv2d(16, 1, kernel_size=3, padding=1)
-    self.scale1 = nn.Upsample(scale_factor=2, mode='nearest')
-    self.scale2 = nn.Upsample(scale_factor=2, mode='nearest')
+    self.segmentation3 = nn.Conv2d(32, 1, kernel_size=3, padding=1)
+    self.scale1 = self.upsampling_block(32, 16,2)
+    self.scale2 = self.upsampling_block(16,1,2,1,0)
 
 
   def context_block(self, in_channels, out_channels):
@@ -68,10 +68,10 @@ class ImprovedUNET(nn.Module):
         nn.LeakyReLU(negative_slope=0.01, inplace=True),
     )
 
-  def upsampling_block(self, in_channels, out_channels):
+  def upsampling_block(self, in_channels, out_channels, scale_factor=2,kernel_size=3,padding=1):
     return nn.Sequential(
-        nn.Upsample(scale_factor=2, mode='nearest'),
-        nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        nn.Upsample(scale_factor=scale_factor, mode='nearest'),
+        nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
     )
 
   
@@ -98,22 +98,24 @@ class ImprovedUNET(nn.Module):
     x = torch.cat([x,r4],dim=1) #c1
     x = self.c1_to_128_u(x)
     x = self._128_to_64_u(x)
-
     x = torch.cat([x,r3],dim=1)
     s1 = self.c2_to_64_u(x)
-    s1 = self.segmentation1(s1)
-    s1 = self.scale1(s1)
     x = self._64_to_32_u(s1)
     
+    s1 = self.segmentation1(s1)
+    s1 = self.scale1(s1)
+
     x = torch.cat([x,r2],dim=1)
     s2 = self.c3_to_32_u(x)
-    s2 = self.segmentation2(s2)
     x = self._32_to_16_u(s2)
+
+    s2 = self.segmentation2(s2)
+    s2 += s1
+    s2 = self.scale2(s2)
 
     x = torch.cat([x,r1],dim=1)
     x = self.c4_to_32_u(x)
-
-    #segmentation
-    x = self.scale2(s1 + s2) + self.segmentation3(x)
+    
+    x = s2 + self.segmentation3(x)
 
     return x
