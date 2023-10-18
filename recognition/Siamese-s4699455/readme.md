@@ -116,7 +116,9 @@ The ADNI dataset provides a pair of brain images, one from an AD patient and one
 
 ## Outputs
 
-![https://photos.google.com/photo/AF1QipOmYvImGSAMiW9ZEt_rKQdATs46Nfsv9nFjk3t0]()
+![https://github.com/SKY-YY88/PatternAnalysis-2023/blob/Siamese-network/recognition/Siamese-s4699455/out__%5B0.012563883326947689%5D.png]()
+
+![](https://raw.githubusercontent.com/SKY-YY88/PatternAnalysis-2023/Siamese-network/recognition/Siamese-s4699455/out__%5B0.012563883326947689%5D.png)
 
  Accuracy: 0.91
 
