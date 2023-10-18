@@ -67,7 +67,7 @@ def train_fn(critic, gen, loader, dataset, step, alpha, opt_critic, opt_gen):
         critic_real = critic(real, alpha, step)
         critic_fake = critic(fake.detach(), alpha, step)
         gp = gradient_penalty(critic, real, fake, alpha, step, DEVICE)
-        # enhanced version of the discriminator loss
+        # enhanced version of the WGAN discriminator loss
         loss_critic = (
             -(torch.mean(critic_real) - torch.mean(critic_fake))
             + LAMBDA_GP * gp
