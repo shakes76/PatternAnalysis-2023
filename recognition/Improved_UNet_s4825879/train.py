@@ -64,7 +64,7 @@ for epoch in range(NUM_EPOCH):
             # save image
             outputs = outputs.round()
             saved = torch.cat((outputs, truth), dim=0)
-            save_image(saved.view(-1, 1, 512, 512), f"data/prod_img/{epoch}_{i+1}_seg.png", nrow=5)
+            save_image(saved.view(-1, 1, 64, 64), f"data/prod_img/{epoch}_{i+1}_seg.png", nrow=5)
 
         # scheduler step
         # scheduler.step()
@@ -94,7 +94,7 @@ for epoch in range(NUM_EPOCH):
           if (i+1) % 10 == 0:
               outputs = outputs.round()
               saved = torch.cat((outputs, truth), dim=0)
-              save_image(saved.view(-1, 1, 512, 512), f"data/prod_img/val_{epoch+1}_{i+1}.png")
+              save_image(saved.view(-1, 1, 64, 64), f"data/prod_img/val_{epoch+1}_{i+1}.png")
           
     # Check if new loss is better than best loss
     if total < currentBestLoss:

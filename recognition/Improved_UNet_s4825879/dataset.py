@@ -2,6 +2,7 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from PIL import Image
+from utils import DataTransform
 import os
 
 BATCH_SIZE = 10
@@ -10,6 +11,8 @@ BATCH_SIZE = 10
 class ISICDataset(Dataset):
     def __init__(self, img_dir, transform, truth_dir='', split_ratio=0.8, train=True):
         super(ISICDataset, self).__init__()
+        self.train = train
+        
         self.img_dir = img_dir
         self.image_files = sorted(os.listdir(img_dir))
 
@@ -46,18 +49,23 @@ class ISICDataset(Dataset):
         truth = Image.open(truth_path)
 
         if self.transform:
-            image = self.transform(image)
-            truth = self.transform(truth)
-    
+            if self.train:
+                (image, truth) = self.transform((image, truth))
+            else:
+                image = self.transform(image)
+                truth = self.transform(truth)
+
         return image, truth
 
 # transforms to be put on the images
-transform = transforms.Compose([transforms.ToTensor(),
-                                transforms.Resize((512, 512), antialias=True)])
+transform_train = DataTransform(size=(64,64))
+transform_val = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Resize((64, 64))])
+
 
 # create datasets
-train_data = ISICDataset(img_dir="data/train_data", truth_dir="data/train_truth", transform=transform, train=True)
-val_data = ISICDataset(img_dir="data/train_data", truth_dir="data/train_truth", transform=transform, train=False)
+train_data = ISICDataset(img_dir="data/train_data", truth_dir="data/train_truth", transform=transform_train, train=True)
+val_data = ISICDataset(img_dir="data/train_data", truth_dir="data/train_truth", transform=transform_val, train=False)
 
 # create dataloaders
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
