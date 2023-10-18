@@ -10,9 +10,11 @@
 #SBATCH --partition=test
 #SBATCH --gres=gpu:1
 
-conda activate gpu-env
+conda activate torch-gpu
 
 module load cuda
 nvidia-smi
 
-python check_torch.py
+python dataset_utils.py
+
+

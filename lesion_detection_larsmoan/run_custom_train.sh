@@ -11,6 +11,7 @@
 #SBATCH --gres=gpu:1
 
 # Activate Python environment (optional)
-conda activate gpu_fix
+conda activate torch-gpu
+module load cuda
 
-python3 yolov7/train.py  --device 0 --workers 8  --batch-size 2 --data data/ISIC_2017_downsampled/isic.yaml --img 256 256 --cfg yolov7_isic_cfg.yaml --weights '' --name yolov7 --hyp hyp.scratch.p5.yaml
+python3 yolov7/train.py  --device 0 --workers 8  --batch-size 2 --data data/ISIC_2017_0.5/isic.yaml --img 1024 1024 --cfg yolov7_isic_cfg.yaml --weights 'yolov7_training.pt' --name yolov7_downsampled_rangpur --hyp hyp.scratch.p5.yaml

@@ -74,6 +74,11 @@ dataset/
     └── img_n.txt
 ```
 
+The prepocessed dataset can be downloaded from this link:
+https://drive.google.com/uc?id=1YI3pwanX35i7NCIxKnfXBozXiyQZcGbL
+
+Which also happens to be the default argument to downloand_and_unzip() from the file dataset_utils.py
+
 
 ### Usage
 

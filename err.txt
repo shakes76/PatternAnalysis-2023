@@ -1,6 +1,0 @@
-
-EnvironmentNameNotFound: Could not find conda environment: pytorch
-You can list all discoverable environments with `conda info --envs`.
-
-
-python3: can't open file '/home/Student/s4827064/PatternAnalysis-2023/yolov7/train.py': [Errno 2] No such file or directory
