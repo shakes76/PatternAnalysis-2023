@@ -39,21 +39,23 @@ class CropBrainScan:
         
         return cropped_image
     
-def calc_std_and_mean(root):
+def calc_std_and_mean(root, batch_size):
     train_path = root + 'train'
     train_dataset = ImageFolder(train_path)
+    dataloader = DataLoader(train_dataset, batch_size)
     
     mean = 0.
     std = 0.
-    total_samples = 0
     
-    for image, _ in train_dataset:
-        mean += image.mean()
-        std += image.std()
-        total_samples += 1
+    for images, _ in dataloader:
+        batch_samples = images.size(0)
+        images = images.view(batch_samples, images.size(1), -1)
+        mean += images.mean(2).sum(0)
+        std += images.std(2).sum(0)
         
-    mean /= total_samples
-    std /= total_samples
+    mean /= len(dataloader.dataset)
+    std /= len(dataloader.dataset)
+    
     return mean, std
 
 def get_train_transform(image_size, crop_size, mean, std):
@@ -80,7 +82,7 @@ def get_test_transform(image_size, crop_size, mean, std):
     return transform
 
 
-def split_test_data(root, image_size, crop_size, test_val_ratio=0.5):
+def split_test_data(root, image_size, crop_size, batch_size, test_val_ratio=0.5):
     test_dir = os.path.join(root, "test")
 
     # Load the test data without applying transforms
@@ -99,7 +101,7 @@ def split_test_data(root, image_size, crop_size, test_val_ratio=0.5):
     validation_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] in validation_patients]
     test_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] in test_patients]
     
-    mean, std = calc_std_and_mean(root)
+    mean, std = calc_std_and_mean(root, batch_size)
     
     train_transform = get_train_transform(image_size, crop_size, mean, std)
     test_transform = get_test_transform(image_size, crop_size, mean, std)
@@ -116,13 +118,13 @@ def split_test_data(root, image_size, crop_size, test_val_ratio=0.5):
 
 
 def load_dataloaders(root, image_size, crop_size, batch_size): 
-    mean, std = calc_std_and_mean(root)
+    mean, std = calc_std_and_mean(root, batch_size)
     # transform    
     train_transform = get_train_transform(image_size, crop_size, mean, std)
 
     # create datasets
     train_dataset = ImageFolder(root + 'train', transform=train_transform)
-    validation_dataset, test_dataset = split_test_data(root, image_size, crop_size, test_val_ratio=0.5)
+    validation_dataset, test_dataset = split_test_data(root, image_size, crop_size, batch_size, test_val_ratio=0.5)
     
     # create dataloaders
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
