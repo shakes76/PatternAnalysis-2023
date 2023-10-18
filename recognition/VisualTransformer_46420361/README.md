@@ -32,11 +32,16 @@ In comparison to convolutional neural networks (CNNs), Vision Transformers are a
 
 ## Preprocessing
 ### Normalization
+Finding the mean and standard deviation (std) of the images allows to model to be more effective when training. The mean and std were calculated as ____ and ____ respectively.
 
 ### Cropping
+As most of the image of the brain scan is black, wasted space, cropping can be added to improve model training. A crop size of 192 was found to be the most effective.
+
+### Resizing
+To create patches of an even size, the input image must be square. Therefore, the image must be resized. A size of 256 was found to be the most effective.
 
 ### Gray Scale
-
+Since the mri image is grey, pytorch must treat it as if it is such. To do so, the image must be grayscaled so pytorch knows it only has one channel.
 ## Results
 ### Data Splitting
 
