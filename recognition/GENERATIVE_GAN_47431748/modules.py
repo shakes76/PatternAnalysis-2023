@@ -100,7 +100,7 @@ class Decoder(Model):
         self._num_channels = num_channels
         self.conv_t1 = layers.Conv2DTranspose(64, 3, activation='relu', strides=2, padding='same')
         self.conv_t2 = layers.Conv2DTranspose(32, 3, activation='relu', strides=2, padding='same')
-        self.conv_t3 = layers.Conv2DTranspose(1, 3, padding='same')
+        self.conv_t3 = layers.Conv2DTranspose(self._num_channels, 3, padding='same')
 
     def call(self, inputs):
         """
