@@ -1,5 +1,6 @@
 import tensorflow as tf
 import keras.api._v2.keras as keras # Required as, though it violates Python conventions, my TF cannot load Keras properly
+
 from keras.layers import *
 from keras.models import Sequential, Model
 
@@ -34,4 +35,5 @@ dense = Dense(384, activation='sigmoid')(feature_vectors)
 output = Dense(1, activation='sigmoid')(dense)
 
 model = Model(inputs=[input_A, input_B], outputs = output)
+
 model.summary()
