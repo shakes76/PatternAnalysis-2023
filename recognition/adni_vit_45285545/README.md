@@ -28,6 +28,12 @@ The test split contains 9000 images:
 
 All subsets contain exactly 20 images per patient and there are no common patients between the sets. The training set is additionally 80/20 patient-level split into training and validation sets. Again, there are no common patients between the sets.
 
+The data loading script (`dataset.py`) looks for the data in different locations depending on the operating system.
+- On windows, it looks for `.\ADNI\AD_NC`
+- On Linux, it looks for `/home/groups/comp3710/ADNI/AD_NC`
+
+In both cases, the data inside `AD_NC` is expected to be organised identically to the dataset on the COMP3710 course page.
+
 ### Preprocessing
 
 Preprocessing of the training data consists of data augmentation and type conversion:
