@@ -15,13 +15,12 @@ def mask_to_bp(img_path):
     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_NONE)
     polygons = []
-
     for obj in contours:
-        
+
 
         for point in obj:
-            polygons.append(str(int(point[0][0])/img.shape[0]))
-            polygons.append(str(int(point[0][1])/img.shape[1]))
+            polygons.append(str(int(point[0][0])/img.shape[1]))
+            polygons.append(str(int(point[0][1])/img.shape[0]))
         
         
 
