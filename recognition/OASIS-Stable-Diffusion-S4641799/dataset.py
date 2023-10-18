@@ -7,7 +7,7 @@ from PIL import Image
 transform = transforms.Compose([
     transforms.Resize((utils.IMAGE_SIZE, utils.IMAGE_SIZE)),
     transforms.RandomHorizontalFlip(),
-    #transforms.Grayscale(3),
+    transforms.Grayscale(3),
     transforms.ToTensor(),
     transforms.Normalize(mean=[0.5], std=[0.5])
 ])
@@ -45,16 +45,16 @@ class FolderLoader(dataset.Dataset):
         if self.transform:
             image = self.transform(image)
 
-        """seg_image_path = image_path.replace(subfolder, subfolder+folder_suffix)
+        seg_image_path = image_path.replace('data/' + subfolder, 'data/' + subfolder+folder_suffix)
+        seg_image_path = seg_image_path.replace('case_', 'seg_')
         seg_image = Image.open(seg_image_path)
 
         if self.transform:
-            seg_image = self.transform(seg_image)"""
-        return image#, seg_image
+            seg_image = self.transform(seg_image)
+        return image, seg_image
 
 def create_data_loader(dataset_type):
     assert dataset_type in folder_type
     dataset = FolderLoader(root=data_dir+subfolder+dataset_type, transform=transform)
     loader = DataLoader(dataset, batch_size=utils.BATCH_SIZE, shuffle=True)
-    len(loader.dataset)
     return loader
