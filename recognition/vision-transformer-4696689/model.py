@@ -55,7 +55,6 @@ class VisionTransformer(nn.Module):
         self.proj = nn.Linear(self.P, embed)
         self.clstoken = nn.Parameter(torch.zeros(1, 1, embed))
         self.posembed = self.embedding(self.Np+1, embed)
-        self.posembed = self.posembed.repeat(self.N, 1, 1)
         self.transformer = nn.Sequential(
             *((TransBlock(heads, embed, int(fflscale*embed)),)*nblocks)
         )
@@ -77,9 +76,9 @@ class VisionTransformer(nn.Module):
     def forward(self, imgs): #assume size checking done by createPatches
         """Linear Projection and Positional Embedding"""
         tokens = self.proj(imgs) #perform linear projection
-        clstoken = self.clstoken.repeat(self.N, 1, 1)
+        clstoken = self.clstoken.repeat(imgs.shape[0], 1, 1)
         tokens = torch.cat([clstoken, tokens], dim=1) #concat the class token
-        x = tokens + self.posembed #add positional encoding
+        x = tokens + self.posembed.repeat(imgs.shape[0], 1, 1) #add positional encoding
         """Transformer"""
         x = self.transformer(x)
         """Classification"""

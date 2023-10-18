@@ -56,6 +56,7 @@ def getImages(trainDIRs, testDIRS):
             tensor = transform(img).float()
             tensor.require_grad = True
             px.append(tensor/255)
+            j = (j+1) % 20
             if j == 0:
                 xtest.append(torch.stack(px))
                 px = []
@@ -105,8 +106,8 @@ trainDIRs = ['../../../AD_NC/train/AD/', '../../../AD_NC/train/NC']
 testDIRs = ['../../../AD_NC/test/AD/', '../../../AD_NC/test/NC']
 xtrain, ytrain, xtest, ytest = getImages(trainDIRs, testDIRs)
 ytrain, ytest = ytrain.type(torch.LongTensor), ytest.type(torch.LongTensor)
-xtrain = flattenPatches(createPatches(xtrain, (16,16)))
-xtest = flattenPatches(createPatches(xtest, (16,16)))
+xtrain = flattenPatches(createPatches(xtrain, (24,32)))
+xtest = flattenPatches(createPatches(xtest, (24,32)))
 
 def trainloader(batchsize=16):
     return DataLoader(DatasetWrapper(xtrain, ytrain), batch_size=batchsize, shuffle=True)
