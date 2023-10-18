@@ -33,7 +33,7 @@ print("Testing SNN model")
 model.evaluate(test_ds, verbose=1)
 
 print("Saving SNN model")
-model.save("snn.keras")
+model.save("models/snn", save_format="tf")
 
 twin = model.get_layer("sequential")
 twin.trainable = False
@@ -54,4 +54,4 @@ classifier.fit(
 
 classifier.evaluate(class_test_ds, verbose=1)
 
-classifier.save("classifier.keras")
+classifier.save("models/classifier", save_format="tf")
