@@ -45,7 +45,7 @@ def accuracy(model, loader, device):
   with torch.no_grad(): 
     for _,(preds, masks) in enumerate(loader):
       preds = preds.to(device)
-      masks = masks.to(device).unsqueeze(0)
+      masks = masks.to(device).unsqueeze(1)
       preds = torch.sigmoid(preds)
       preds = (preds > 0.5).float()
       correct += (preds==masks).sum()
