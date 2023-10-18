@@ -16,7 +16,7 @@ def main():
     num_classes = 2
     
     # hyperparameters
-    epochs = 1
+    epochs = 10
     learning_rate = 0.001
     weight_decay = 0.0001
 
