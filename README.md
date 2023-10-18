@@ -36,8 +36,9 @@ The Dice Similarity Coefficient (DSC) was used to evaluate the model. DSC is a s
 ### Training DSC and Loss Plots over Epochs:
 ![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/6ad6ed69-5483-4f55-89ce-1cad501deb80)
 
+### Visual PLot:
+![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/c86cf3c5-f823-4d6d-a033-f3da4214a490)
 
-Average Dice Similarity Coefficient: 0.7197  
 
 ### Dependencies 
 torch 2.1.0  
