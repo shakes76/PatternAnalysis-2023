@@ -182,7 +182,9 @@ class Generator(nn.Module):
         return torch.tanh(alpha * generated + (1-alpha ) * upscaled)
 
     def forward(self, noise, alpha, steps):
+        #print(noise)
         w = self.map(noise)
+        #print(w)
         x = self.initial_adain1(self.initial_noise1(self.starting_cte),w) # first inject noise, then embed style
         x = self.initial_conv(x) #
         out = self.initial_adain2(self.leaky(self.initial_noise2(x)), w)
