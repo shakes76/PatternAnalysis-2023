@@ -3,6 +3,7 @@ import numpy as np
 import keras.api._v2.keras as keras # Required as, though it violates Python conventions, my TF cannot load Keras properly
 from keras.layers import *
 from keras.models import Sequential, Model
+from keras.optimizers import Adam
 
 import modules
 import dataset
@@ -15,10 +16,14 @@ model = modules.get_model()
 # Extract X and y from the train dataset
 X_train = [X for X, _ in train]
 y_train = [y for _, y in train]
+X_train = np.array(X_train)
+y_train = np.array(y_train)
 
 # Do the same in test
 X_test = [X for X, _ in test]
 y_test = [y for _, y in test]
+X_test = np.array(X_test)
+y_test = np.array(y_test)
 
 def create_pairs(X, y):
     X_pairs, ys = [], []
@@ -38,3 +43,11 @@ def create_pairs(X, y):
     ys = np.array(ys)
 
     return X_pairs, ys
+
+X_train_pairs, ys_train = create_pairs(X_train, y_train)
+X_test_pairs, ys_test = create_pairs(X_test, y_test)
+
+model.compile(loss='binary_crossentropy', # As we are using Sigmoid activation
+              optimizer=Adam(learning_rate=0.001),
+              metrics=['accuracy'])
+model.fit(x=[X_train_pairs[:, 0, :, :], X_train_pairs[:, 1, :, :]])
