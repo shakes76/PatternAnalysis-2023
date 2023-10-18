@@ -7,6 +7,7 @@ from torch.utils.data import Dataset, DataLoader
 import torch
 from torch import nn
 
+print('got here')
 get_data_from_url('ISIC_data', '1vxd1KBIYa3zCAVONkacdclsWUAxhWLho')
 TRAIN_DIR = 'ISIC_data/train'
 TRUTH_DIR = 'ISIC_data/ground_truth'
@@ -56,6 +57,8 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=200)
 loss_fn = nn.BCEWithLogitsLoss()
 
 model = model.to(DEVICE)
+print(model)
+print(DEVICE)
 
 for epoch in range(EPOCHS):
     train(model, train_loader, optimizer, loss_fn, DEVICE)
