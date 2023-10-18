@@ -13,7 +13,7 @@ batch_size = 64
 n_channels = 1
 image_size = 224
 n_classes = 2
-data_split = 0.8
+data_split = 0.7
 
 # Change this at user risk
 train_mean = 0.1155
@@ -22,7 +22,7 @@ test_mean = 0.1167
 test_std = 0.2228
 
 # Training specific parameters
-n_epochs = 20
+n_epochs = 15
 learning_rate = 0.0005
 
 # Transformer model specific parameters

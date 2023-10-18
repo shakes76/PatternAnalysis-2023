@@ -2,7 +2,12 @@
 This project explored the use of a Vision Transformer for the classification of Alzheimer's disease in the ADNI brain dataset.
 
 # Contents
-
+1. [Introduction](#1-introduction)
+2. [Vision Transformer Background](#2-vision-transformer-background)
+3. [Dependencies & Requirements](#3-dependencies--requirements)
+4. [Results](#4-results)
+5. [Recommendations](#5-recommendations)
+6. [References](#6-references)
 
 # 1. Introduction
 The Alzheimer's Disease Neuroimaging Initiative (ADNI) is designed to provide researchers with study data to assist in defining the progression of Alzheimer's disease. The aim of this project was to classify Alzheimer's disease (normal and AD) of the ADNI brain data using a Vision Transformer, based on the architecture presented by the paper [An Image Is Worth 16x16 Words](https://arxiv.org/pdf/2010.11929.pdf) [1].
@@ -24,12 +29,12 @@ AD_NC
 This means that there is ~70% of the total data in the training set, with the test set containing ~30%. Note that all images are formatted as ```{Patient ID}_{Slice Number}.jpeg```.
 
 # 2. Vision Transformer Background
-## 2.1 ViT Architecture Overview
+## 2.1. ViT Architecture Overview
 | Vision Transformer (ViT) | Transformer Encoder |
 | :---: | :---: |
 | <img src="misc/vit.gif" width="550" height="400"/> | <img src="misc/encoderblock.png" width="175" height="400"/> |
 
-## 2.2 How it works
+## 2.2. How it works
 The Vision Transformer architecture is comprised of a several stages:
 
 1. **Patch and Position Embeddding (Inputs)**:
@@ -48,11 +53,12 @@ The Vision Transformer architecture is comprised of a several stages:
 7. **MLP Head**:
     - This is the output layer of the architecture. It converts the learned features of an input to a class output. Since this is a classification problem, this would be called the "classifier head".
 
-## 2.3 Problem It Solves
-While the base Transformer architecture has become the standard for natural language processing (NLP) tasks, its applications to computer vision is limited. In vision, attention is either applied in conjunction with convolutional networks, or used to replace certain components of convolutional networks while keeping their overall structure in place. The paper demonstrates that a Transformer designed for vision (where an image is converted to a sequence of patches then continued as usual) can have comparable or even superior performance on image classification tasks when compared to convolutional networks.
+## 2.3. Problem It Solves
+The base transformer architecture has become the standard for natural language processing (NLP) tasks due to their computation efficiency and scalability. However, its applications in computer vision (CV) is limited. In CV, convolutional neural networks (CNN) have remained dominant, but there have been several attempts to apply attention mechanisms to CV tasks. These attempts have either applied attention in conjunction with CNNs, or replaced certain components of CNNs while keeping their overall structure in place. The viT paper [1] explores how a transformer can be applied to CV tasks by converting an image into a sequence of patches, then continuing as usual. It was found that on mid-sized datasets, the ViT model had modest accuracy compared to CNNs. However, on large datasets, the ViT model had comparable or even superior performance to CNNs. 
 
-The benefit of using Vision Transformers is that they are not as sensitive to data augmentation as convolutional networks. This means that they can train on smaller datsets. On top of this, Vision Transformers can learn gloabl features of images. This is due to them being able to attend to any part of the image, regardless of its location. This is especially useful for tasks such as object detection.
+The benefit of using Vision Transformers is that, once pretrained on large amounts of data, they can outperform modern convolutional networks in multiple benchmarks while requiring fewer computational resources to train. Furthermore, ViTs offer advantages in scenarios where global dependencies and contextual understanding are crucial, such as object detection.
 
+This project's implementation attempts to solve the problem of binary classification of Alzheimer's on the ADNI dataset.
 
 # 3. Dependencies & Requirements
 To run all the files within this repository, a conda environment can be created using the provided
@@ -68,7 +74,7 @@ PyTorch ver 2.0.1
 Matplotlib ver 3.7.1
 ```
 
-## 3.1 Repository Structure
+## 3.1. Repository Structure
 The structure of the repository is:
 ```
 config.py:          Configure user parameters
@@ -82,7 +88,7 @@ environment.yml:    Contains conda environment
 misc:               Contains images for the README
 ```
 
-## 3.2 How to use the model
+## 3.2. How to use the model
 To use the model, the ```config.py``` file can be adjusted based on user preferences, then ```driver.py``` can be run either directly in an IDE or through terminal by calling:
 ```
 >>> python driver.py
@@ -131,29 +137,34 @@ results_path:       Folder to store images of results
 ```
 
 # 4. Results
-## 4.1 Data Preprocessing
+## 4.1. Data Preprocessing
+The dataset contains only a training and test folder, so a validation set was made by splitting the training data based on the patient ID. This was done to ensure no data leakage occurred, in that the model would not be tested on patient data that it had already seen during training. After this data split was completed (using a standard 80/20 split [6]), the datasets were shaped like:
+- Train data: 17,200 images     (~56% of total data)
+- Validation data: 4,320 images (~14% of total data)
+- Test data: 9,000 images       (~30% of total data)
+
 The model created for this project requires square images as input, so that square patches can be created. Each image in the ADNI dataset is 240x256, so the image was initially just resized to 224x224 (this was the size used in the ViT paper).
 
-An example of a patched image using 16x16 patches on the basic preprocessed data can be seen below:
+An example of a patched image using a 16x16 patch size on the basic preprocessed data can be seen below:
 
-<img src="misc\patched_example.png" width="400" height="400"/>
+<img src="misc\patched_example.png" width="400" height=""/>
 
-It is clear to see that for an essentially unprocessed image, many of the patches do not contain useful information.
+It is clear to see that for an essentially unprocessed image, many of the patches do not contain useful information. Thus, further preprocessing needed to be completed.
 
-Thus, further preprocessing needed to be completed.
-
-### 4.1.1 Varying Image Preprocessing
+### 4.1.1. Varying Image Preprocessing
 Several data augmentation processes were introduced to improve model accuracy. These are outlined below.
 - Normalisation:
     - The mean and std devation of the train and test data were calculated separately and applied to the images during transformation for the dataloaders.
+    - After performing this normalisation, the accuracy of the model increased by ~5% (from 61% to 66% on the same model, unfortunately a record was not kept of the model details, only the accuracies).
 - Random cropping:
 
+// TODO
 
-## 4.2 Experimentation
-
-### 4.2.1 Basic Model
+## 4.2. Experimentation
+### 4.2.1. Basic Model
 The model was first trained and tested using the parameters specified by the Vision Transformer paper for the Base version (viT-Base):
 ```
+img_size = 192          # Reduced from 224 to 192 to allow training completion.
 patch_size = 16         # From paper
 n_heads = 12            # Table 1 from [1]
 n_layers = 12           # Table 1 from [1]
@@ -165,55 +176,85 @@ embedding_dropout = 0.1 # Table 3 from [1]
 learning_rate = 0.003   # Table 3 from [1]
 ```
 
-### 4.2.2 Hyperparameter Tuning
-The following parameters were kept the same throughout testing:
+Due to the computational resources required to train the model, it was only trained for 5 epochs to demonstrate that a model of this size (85,367,042 parameters based on model summary) would have difficulty training on a dataset as small as ADNI. The results of this training can be seen below:
+
+<img src="misc\past_results\base_losses_accuracies.png" width="500" height=""/>
+
+The model performed poorly, as was expected, with a test loss of 0.69 and an accuracy of 49.58%. Further research needed to be completed.
+
+### 4.2.2. Research to improve model
+Based on the test accuracy of the ViT-Base model, the knowledge that ViTs introduced by the paper [1] work on large datasets and the fact that the ADNI dataset is relatively small, it was decided that further research into improving performance of ViTs on small datasets needed to be completed. Based on the information found in the paper [How to Train Vision Transformer on Small-scale Datasets?](https://arxiv.org/pdf/2210.07240.pdf) [2] and the article [5 Tips for Creating Lightweight Vision Transformers](https://wandb.ai/dtamkus/posts/reports/5-Tips-for-Creating-Lightweight-Vision-Transformers--Vmlldzo0MjQyMzg0) [3], the following changes were identified that needed to be made:
+- Use more patches per image to allow the model to learn more features.
+- Use a low number of transformer layers so that the model doesn't overfit the training data.
+- Have a deep MLP to allow the model to learn more complex features.
+- Use a low embedding dimension to reduce the number of parameters in the model.
+
+Applying this to the model:
 ```
-LIST OF HYPERPARAMETERS
+patch_size = 8 (increases number of patches per image)
+n_heads = 8 (reduces number of heads to reduce number of parameters)
+n_layers = 2 (reduces number of layers to reduce number of parameters)
+embedding_dim = 24 (reduces number of parameters)
+mlp_size = 768 (decreases size of MLP to reduce parameters, but deep enough to capture complex features)
 ```
-| Learning Rate | Accuracy |
-|-|-|
-| 0.01   | X% |
-| 0.001  | X% |
-| 0.0001 | X% |
 
-| Data Split | Accuracy |
-|-|-|
-| 0.01   | X% |
-| 0.001  | X% |
-| 0.0001 | X% |
+The model size has been greatly decreased, with only 87,014 parameters (based on model summary). Furthermore, making these changes this drastically improved test accuracy to 61.73% (loss of 0.91), but the model would still begin to overfit the training data after ~15-20 epochs, as seen below:
 
-| Test | Change | Accuracy |
-|------|--------|----------|
-| Data Split | 0.6, 0.7, 0.9 | X%, X%, X% |
-| Learning Rate | 0.1, 0.01, 0.001 | X%, X%, X% |
+<img src="misc\past_results\example_accuracy_plot.png" width="250" height=""/> <img src="misc\past_results\example_loss_plot.png" width="250" height=""/>
 
-### Visualisations
-The image below is an example plot of accuracies and losses of training and validation data during model training:
+Furthermore, for the purposes of this project, the model didn't need to be trained for more than 15-20 epochs to get performance (this is bad practice in real life, please refer to Section 5 for more information).
 
-<img src="misc\past_results\example_losses_accuracies.png" width="" height=""/>
+### 4.2.3. Hyperparameter Tuning
+The following parameters were kept the same throughout testing (unless specified in the table below):
+```
+img_size = 224
+patch_size = 8
+n_heads = 6
+n_layers = 2
+mlp_size = 768
+embedding_dim = 24
+mlp_dropout = 0.1
+attn_dropout = 0.0
+embedding_dropout = 0.1
+learning_rate = 0.0005
+loss function = Cross Entropy Loss
+optimiser = Adam
+n_epochs = 15
+```
 
-The image below is an example set of predictions of a trained model on a random sample of test images:
+| Test Type     | Change            | Accuracy   |
+|---------------|-------------------|------------|
+| Data Split    | 0.6, 0.7, 0.9     | 66.56%, X%, X% |
+| Learning Rate | 0.1, 0.01, 0.001  | X%, X%, X% |
+| Loss Function | CELoss, BCELoss   | X%, X%     |
+| Optimiser     | Adam, AdamW, SGD  | X%, X%, X% |
+| Patch Size    | 8, 16, 32         | X%, X%, X% |
+|Augmentation   |RandomCrop, RandomRotate, Both| X%, X% |
 
-<img src="misc\past_results\example_predictions.png" width="600" height="400"/>
 
-## 4.3 Reproducibility of Results
-- Due to the dynamic nature of the training and validation data split (the )
-- discussion of overall effectiveness as well?
+## 4.3. Reproducibility of Results
+The results produced by the ViT can be reproduced consistently, where the only source of randomness that affects the model is the shuffling of the training data during training at each epoch. This is considered a crucial step so that the model can escape local minima and converge to a global minimum. Random seeds are also used to ensure that the model can be reproduced consistently. Lastly, it should be mentioned that the ```predict.py``` file uses a random subset of the test data for the model to predict on.
 
-# 5. Future Direction
-For future training and testing, it is recommended that the PyTorch tool 
+## 4.4. Example Usage
+The model can be used to predict the class of a random subset of images based on a given dataloader, which can be found in the ```predict.py``` file as the method ```predict()```. An example usage of this function can be seen below:
+
+<img src="misc\past_results\example_usage.png" width="" height=""/>
+
+# 5. Recommendations
+For future training and testing, it is recommended that the PyTorch EarlyStopping handler so that the model can be saved at the epoch with the best validation accuracy. This will allow the model to be trained for long enough to reach its best performance, but not overfit the training data. Furthermore, using a larger dataset or even augmenting the data in such a way that more of it can be used as features (potentially converting to RGB or HSV) would prove beneficial due to the nature of ViTs. In conjunction with this, pretraining the model on similar data would result in fair better results compared to the 'from scratch' method used in this project.
 
 # 6. References
-https://arxiv.org/pdf/2010.11929.pdf
+[1] Dosovitskiy A, Beyer L, Kolesnikov A, Weissenborn D, Zhai X, Unterthiner T, et al. An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale [Internet]. 2020. Available from: https://arxiv.org/pdf/2010.11929.pdf
 
-https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
+[2] Cao J, Yang Y, Xu M, Huang L. Evo-ViT: Searching for Evolutionary Vision Transformer [Internet]. 2022. Available from: https://arxiv.org/pdf/2210.07240.pdf
 
-https://arxiv.org/pdf/2106.10270.pdf
+[3] Tamkus D. 5 Tips for Creating Lightweight Vision Transformers [Internet]. Weights & Biases; 2023. Available from: https://wandb.ai/dtamkus/posts/reports/5-Tips-for-Creating-Lightweight-Vision-Transformers--Vmlldzo0MjQyMzg0
 
-https://arxiv.org/pdf/2210.07240.pdf
+[4] [No author]. Flattening the patch embedding with torch.nn.Flatten [Internet]. Learn PyTorch; 2023. Available from: https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
 
-https://www.v7labs.com/blog/vision-transformer-guide#h2
+[5] Wu Y, He K. ConViT: Improving Vision Transformers by Soft Distillation [Internet]. 2021. Available from: https://arxiv.org/pdf/2106.10270.pdf
 
-https://www.learnpytorch.io/05_pytorch_going_modular/#4-creating-train_step-and-test_step-functions-and-train-to-combine-them
+[6] [No author]. Vision Transformer: A step by step guide [Internet]. V7 Labs; 2023. Available from: https://www.v7labs.com/blog/vision-transformer-guide#h2
 
-https://wandb.ai/dtamkus/posts/reports/5-Tips-for-Creating-Lightweight-Vision-Transformers--Vmlldzo0MjQyMzg0
+[7] [No author]. Creating train_step and test_step functions and train to combine them [Internet]. Learn PyTorch; 2023. Available from: https://www.learnpytorch.io/05_pytorch_going_modular/#4-creating-train_step-and-test_step-functions-and-train-to-combine-them
+
