@@ -8,7 +8,7 @@ import random
 
 #%%
 #define the function to read all the image names from folder 
-#und count the image number
+#and count the image number
 def image_list(path_folder_images):
     list_image = sorted(os.listdir(path_folder_images))
     image_count = len(list_image)
@@ -32,28 +32,10 @@ def split_data(list_image, split_ratio):
     return train_data, valid_data, number_train, number_valid
 
 
-
-#%%
-# define the function to load the images
-def load_images(path_folder_images, list_images, number_images, height, width):
-    image_array = []
-    a = 0
-    for a in range(0, number_images):
-        path_image = path_folder_images + list_images[a] # create the path of the image
-        img = tf.keras.utils.load_img(path_image, target_size=(height, width), color_mode="grayscale") # load the image
-        img = tf.keras.utils.img_to_array(img) # convert the image into an array
-        img = img / 255 #normalize the image
-        image_array.append(img) # append the array image to the list
-
-    image_array = np.array(image_array) # create a numpy array
-    return image_array
-
-
 #%%
 # define the function to load the images
 def load_images(path_folder_images, chunk_images, height, width):
     image_array = []
-    a = 0
     for a in chunk_images:
         path_image = path_folder_images + a # create the path of the image
         img = tf.keras.utils.load_img(path_image, target_size=(height, width), color_mode="grayscale") # load the image
@@ -64,10 +46,7 @@ def load_images(path_folder_images, chunk_images, height, width):
     image_array = np.array(image_array) # create a numpy array
     return image_array
 # %%
-#data generator image list 
-            
-
-# define the fucntion to load the images
+#data generator training images
 def load_images_train_generator(path_folder_images1, path_folder_images2,  list_images1, list_images2, number_images1, number_images2, height, width, batch_size):
     while True:
         #list_images
@@ -114,7 +93,8 @@ def load_images_train_generator(path_folder_images1, path_folder_images2,  list_
                 nc2_data = tf.keras.utils.img_to_array(nc2_data)
                 nc2_data = nc2_data / 255.0 #normalize the image
                 #creates four pairs of images
-                #AD and AD with label 1, AD and NC with label 0, NC and NC with label 1, NC and AD with label 0
+                #AD and AD with label 1, AD and NC with label 0, 
+                #NC and NC with label 1, NC and AD with label 0
                 image1_list.append(ad1_data)
                 image2_list.append(ad2_data)
                 label_list.append(1)
@@ -140,6 +120,8 @@ def load_images_train_generator(path_folder_images1, path_folder_images2,  list_
             yield [image1_array, image2_array], label_array
 
 #%%
+# create a list of number and shuffle the list
+# the shuffled list is the order of the validation images
 def valid_order(valid_data):
     data_order = []
     data_order = list(range(0,len(valid_data)))
@@ -148,7 +130,7 @@ def valid_order(valid_data):
     print(data_order)
     return data_order
 # %%
-
+#data generator validation images
 def load_images_valid_generator(path_folder_images1, path_folder_images2,  list_images1, list_images2, number_images1, number_images2, shuffel_list1, shuffel_list2, height, width, batch_size):
     while True:
         for i in range(0, len(list_images1), batch_size): #takes the frist images and loads them into the chunk variable
@@ -174,8 +156,6 @@ def load_images_valid_generator(path_folder_images1, path_folder_images2,  list_
                 imgNC = imgNC / 255.0 #normalize the image
                 image_array_NC.append(imgNC)
             image_array_NC = np.array(image_array_NC) # create a numpy array
-
-          
             image1_list = []
             image2_list = []
             label_list= []
@@ -184,15 +164,17 @@ def load_images_valid_generator(path_folder_images1, path_folder_images2,  list_
                 ad2 = list_images1[AD_index]
                 ad2 = path_folder_images1 + ad2 # create the path of the image
                 ad2_data = tf.keras.utils.load_img(ad2, target_size=(height, width), color_mode="grayscale") # load the image
-                ad2_data = tf.keras.utils.img_to_array(ad2_data)
+                ad2_data = tf.keras.utils.img_to_array(ad2_data)# convert the image into an array
                 ad2_data = ad2_data / 255.0 #normalize the image
 
                 nc2 = list_images2[NC_index]
                 nc2 = path_folder_images2 + nc2 # create the path of the image
                 nc2_data = tf.keras.utils.load_img(nc2, target_size=(height, width), color_mode="grayscale") # load the image
-                nc2_data = tf.keras.utils.img_to_array(nc2_data)
+                nc2_data = tf.keras.utils.img_to_array(nc2_data)# convert the image into an array
                 nc2_data = nc2_data / 255.0 #normalize the image
-
+                #creates four pairs of images
+                #AD and AD with label 1, AD and NC with label 0, 
+                #NC and NC with label 1, NC and AD with label 0
                 image1_list.append(ad1_data)
                 image2_list.append(ad2_data)
                 label_list.append(1)
@@ -206,7 +188,7 @@ def load_images_valid_generator(path_folder_images1, path_folder_images2,  list_
                 image2_list.append(ad2_data)
                 label_list.append(0)
 
-            # convert to np array
+            # convert lists to np array
             image1_array = np.array(image1_list)
             image2_array = np.array(image2_list)
             label_array = np.array(label_list)

@@ -5,7 +5,7 @@ from tensorflow.keras import layers
 #Source from the website [Image similarity estimation using a Siamese Network with a contrastive loss]
 #https://keras.io/examples/vision/siamese_contrastive/
 def contrastive_loss(y_true_label, y_pred_label, margin=1.0):
-    y_true_label = tf.cast(y_true_label, dtype=tf.float32)  # Cast y_true to float32
+    y_true_label = tf.cast(y_true_label, dtype=tf.float32)  # Cast y_true_label to float32
     sq_pred = tf.square(y_pred_label)
     margin_square = tf.square(tf.maximum(margin - y_pred_label, 0))
     return tf.reduce_mean((1-y_true_label) * sq_pred + y_true_label * margin_square)
@@ -13,7 +13,7 @@ def contrastive_loss(y_true_label, y_pred_label, margin=1.0):
 
 def siamese_network(height,width,dimension):
 
-    #deifne input of siamese network
+    #define input of siamese network
     input_shape = (height, width, dimension)
     left_input = layers.Input(input_shape)
     right_input = layers.Input(input_shape)
@@ -42,7 +42,7 @@ def siamese_network(height,width,dimension):
                                 layers.MaxPool2D(pool_size =2, strides =2, padding ='same'),
 
                                 layers.Flatten(),
-                                layers.Dense(512, activation='sigmoid'), #60 precent 1024 vgg16 128 128
+                                layers.Dense(512, activation='sigmoid'),
                                 ])
 
     #save the features from the left and right network in two variables
@@ -50,7 +50,7 @@ def siamese_network(height,width,dimension):
     feature_vector_right_output = vgg16(right_input)
 
     # distance layer, which calculates the distance between both networks
-    distance_layer = layers.Lambda(lambda features: tf.abs(features[0] - features[1]))([feature_vector_left_output, feature_vector_left_output])
+    distance_layer = layers.Lambda(lambda features: tf.abs(features[0] - features[1]))([feature_vector_left_output, feature_vector_right_output])
 
 
     #fully connected layers
@@ -62,7 +62,7 @@ def siamese_network(height,width,dimension):
     
     #Configurates the loss funciton, optimizer type and metrics of the model for training.
     model.compile(loss=contrastive_loss,
-            optimizer=tf.keras.optimizers.Adam(learning_rate=1e-3),
+            optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
             metrics=['accuracy'])
     
     return model

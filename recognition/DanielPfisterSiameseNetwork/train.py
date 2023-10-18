@@ -12,11 +12,12 @@ from dataset import load_images_valid_generator
 import random
 from modules import siamese_network 
 import matplotlib.pyplot as plt
+import tensorflow.keras.backend as K
 
 #%%
 #define varibles
-height = 32
-width = 32
+height = 128
+width = 128
 dimension = 1
 batch_size = 32
 
@@ -37,6 +38,7 @@ list_test_NC, number_test_NC = image_list(path_test_images_NC)
 
 
 # %%
+#split data into training and validation dataset
 split_ratio_training = 0.8
 train_data_AD, valid_data_AD, number_train_AD, number_valid_AD = split_data(list_train_AD, split_ratio_training)
 train_data_NC, valid_data_NC, number_train_NC, number_valid_NC = split_data(list_train_NC, split_ratio_training)
@@ -46,9 +48,9 @@ valid_data_order_AD = valid_order(valid_data_AD)
 valid_data_order_NC = valid_order(valid_data_NC)
 
 #%%
-
 #load all the images from the folder
-#define empty list
+
+#define list
 train_images_AD = []
 train_images_NC = []
 
@@ -57,17 +59,19 @@ train_images = load_images_train_generator(path_train_images_AD, path_train_imag
 valid_images = load_images_valid_generator(path_train_images_AD, path_train_images_NC, valid_data_AD, valid_data_NC, number_valid_AD, number_valid_NC, valid_data_order_AD, valid_data_order_NC, height, width, batch_size)
 
 #%%
-
+#define callbacks
+callback = tf.keras.callbacks.EarlyStopping(monitor="val_loss",min_delta=0,patience=6,verbose=0,mode="auto",baseline=None,restore_best_weights=True,start_from_epoch=5)
+#define model
 model = siamese_network(height,width,dimension)
+#training of the neural network
 history = model.fit(x=train_images,
                             validation_data = valid_images,
                             steps_per_epoch = len(train_data_AD)//batch_size,
                             validation_steps = len(valid_data_AD)//batch_size,
-                            shuffle = False, epochs=20)
+                            shuffle = False, epochs=50, callbacks=[callback])
 
 
 # %%
-
 # Plot training and validation accuracy per epoch
 acc = history.history['accuracy']
 val_acc = history.history['val_accuracy']
@@ -98,22 +102,21 @@ plt.show()
 
 # %%
 #saves the model
-model.save('C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5')
+siamese_network.save('C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5')
 
 #%%
 #load the trained weights of the neural network
-model = tf.keras.saving.load_model("C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5")
+siamese_network = tf.keras.saving.load_model("C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5")
 
 # %%
 
 # validate the model with the validate dataset
-metrics_valid = model.evaluate(valid_images,steps = len(train_data_AD)//batch_size)
+metrics_valid = siamese_network.evaluate(valid_images,steps = len(train_data_AD)//batch_size)
 print('Loss of {} and Accuracy is {} %'.format(metrics_valid[0], metrics_valid[1] * 100))
 
 
 # %%
 # Test model with the test dataset
-
 #define the order of the test images
 test_data_order_AD = valid_order(list_test_AD)
 test_data_order_NC = valid_order(list_test_NC)
@@ -122,6 +125,8 @@ test_data_order_NC = valid_order(list_test_NC)
 test_images = load_images_valid_generator(path_test_images_AD, path_test_images_NC, list_test_AD, list_test_NC, number_test_AD, number_test_NC,test_data_order_AD, test_data_order_NC,height, width, batch_size= batch_size)
 
 #test the model with test images
-metrics_test = model.evaluate(test_images,steps = len(list_test_AD)//batch_size)
+metrics_test = siamese_network.evaluate(test_images,steps = len(list_test_AD)//batch_size)
 print('Loss of {} and Accuracy is {} %'.format(metrics_test[0], metrics_test[1] * 100))
 
+
+# %%

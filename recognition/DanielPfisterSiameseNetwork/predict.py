@@ -9,7 +9,6 @@ import matplotlib.pyplot as plt
 import tensorflow.keras.backend as K
 
 
-
 #define varibles
 height = 128
 width = 128
@@ -18,7 +17,7 @@ batch_size = 32
 # %%
 
 #load the trained weights of the neural network
-siamese_model = tf.keras.saving.load_model("C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5")
+siamese_network = tf.keras.saving.load_model("C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/SiameseNeuralNetworkFinal.h5")
 
 # %%
 #define path test images
@@ -93,7 +92,7 @@ for a in range(0, number_test_AD//batch_size*batch_size, batch_size):
   #3 make prediction
   test_pair = [testimage1_list_array, testimage2_list_array]
   float_formatter = "{:.2f}".format
-  prediction = siamese_model.predict(test_pair, steps = 1)
+  prediction = siamese_network.predict(test_pair, steps = 1)
   print(np.round(prediction[:,0],3),(label_array))
   #4 defines the classification of the image pair depending on the score
   prediction_label = []
