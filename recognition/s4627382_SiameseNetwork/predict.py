@@ -59,4 +59,4 @@ def display_image(image_path):
 image_path = "D:/Study/MLDataSet/AD_NC/test/AD/388206_78.jpeg"
 predicted_label = predict_image(image_path)
 display_image(image_path)
-print(f"Predicted label: {predicted_label}, Ture label: AD")
+print(f"Predicted label: {predicted_label}, Ture label: ad")
