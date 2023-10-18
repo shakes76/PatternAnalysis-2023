@@ -40,9 +40,10 @@ def main():
     # Setup dataloaders
     root_dir = config.data_path
     train_loader, valid_loader, test_loader = create_dataloaders(root_dir, 
-                                                                train_transform, 
-                                                                test_transform, 
-                                                                batch_size=config.batch_size, 
+                                                                train_transform,
+                                                                valid_transform,
+                                                                test_transform,
+                                                                batch_size=config.batch_size,
                                                                 datasplit=config.data_split)
 
     # Initialise model
@@ -107,10 +108,11 @@ def main():
             device=device)
 
     # Predict a random subset of test images
-    predict(model=model, 
-        dataloader=test_loader, 
-        device=device,
-        save_path=config.results_path)
+    if config.will_predict:
+        predict(model=model, 
+            dataloader=test_loader, 
+            device=device,
+            save_path=config.results_path)
 
 if __name__ == "__main__":
     main()

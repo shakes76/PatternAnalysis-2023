@@ -6,12 +6,13 @@ from torch.utils.data import DataLoader
 
 NUM_WORKERS = os.cpu_count()
 
-def create_datasets(root_dir, train_transform, test_transform, datasplit):
+def create_datasets(root_dir, train_transform, valid_transform, test_transform, datasplit):
     """ Create train, validation and test datasets.
 
     Args:
         root_dir (string): Directory with all the images.
         train_transform (Transform): Transform to be performed on training data
+        valid_transform (Transform): Transform to be performed on validation data
         test_transform (Transform): Transform to be performed on test data
         datasplit (float): Split ratio for train and validation data
 
@@ -39,7 +40,7 @@ def create_datasets(root_dir, train_transform, test_transform, datasplit):
 
     # Create datasets
     train_data = ImageFolder(root=train_dir, transform=train_transform)
-    valid_data = ImageFolder(root=train_dir, transform=train_transform)
+    valid_data = ImageFolder(root=train_dir, transform=valid_transform)
 
     # Overwrite samples
     train_data.samples = train_samples
@@ -47,12 +48,19 @@ def create_datasets(root_dir, train_transform, test_transform, datasplit):
 
     return train_data, valid_data, test_data
 
-def create_dataloaders(root_dir, train_transform, test_transform, batch_size, datasplit, num_workers=NUM_WORKERS):
+def create_dataloaders(root_dir,
+                        train_transform,
+                        valid_transform, 
+                        test_transform, 
+                        batch_size, 
+                        datasplit, 
+                        num_workers=NUM_WORKERS):
     """ Create train, validation and test dataloaders.
 
     Args:
         root_dir (string): Directory with all the images.
         train_transform (Transform): Transform to perform on training data
+        valid_transform (Transform): Transform to perform on validation data
         test_transform (Transform): Transform to perform on test data
         batch_size (int): Batch size for dataloaders
         datasplit (float): Split ratio for train and validation data
@@ -63,6 +71,7 @@ def create_dataloaders(root_dir, train_transform, test_transform, batch_size, da
 
     # Get datasets
     train_data, valid_data, test_data = create_datasets(root_dir=root_dir,
+                                                        valid_transform=valid_transform,
                                                         train_transform=train_transform,
                                                         test_transform=test_transform,
                                                         datasplit=datasplit)

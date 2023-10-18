@@ -136,6 +136,8 @@ save_path:          Path to save model to
 results_path:       Folder to store images of results
 ```
 
+Note that, if the user wishes to show any plots, then one must close these plots so the model can continue. Furthermore, the test accuracy will be printed once the model has finished testing.
+
 # 4. Results
 ## 4.1. Data Preprocessing
 The dataset contains only a training and test folder, so a validation set was made by splitting the training data based on the patient ID. This was done to ensure no data leakage occurred, in that the model would not be tested on patient data that it had already seen during training. After this data split was completed (using a standard 80/20 split [6]), the datasets were shaped like:
@@ -156,7 +158,8 @@ Several data augmentation processes were introduced to improve model accuracy. T
 - Normalisation:
     - The mean and std devation of the train and test data were calculated separately and applied to the images during transformation for the dataloaders.
     - After performing this normalisation, the accuracy of the model increased by ~5% (from 61% to 66% on the same model, unfortunately a record was not kept of the model details, only the accuracies).
-- Random cropping:
+- Reshaping:
+    - Each image in the dataset was reshaped in the fact that
 
 // TODO
 
@@ -178,7 +181,7 @@ learning_rate = 0.003   # Table 3 from [1]
 
 Due to the computational resources required to train the model, it was only trained for 5 epochs to demonstrate that a model of this size (85,367,042 parameters based on model summary) would have difficulty training on a dataset as small as ADNI. The results of this training can be seen below:
 
-<img src="misc\past_results\base_losses_accuracies.png" width="500" height=""/>
+<img src="misc\past_results\base_losses_accuracies.png" width="600" height=""/>
 
 The model performed poorly, as was expected, with a test loss of 0.69 and an accuracy of 49.58%. Further research needed to be completed.
 
@@ -200,7 +203,7 @@ mlp_size = 768 (decreases size of MLP to reduce parameters, but deep enough to c
 
 The model size has been greatly decreased, with only 87,014 parameters (based on model summary). Furthermore, making these changes this drastically improved test accuracy to 61.73% (loss of 0.91), but the model would still begin to overfit the training data after ~15-20 epochs, as seen below:
 
-<img src="misc\past_results\example_accuracy_plot.png" width="250" height=""/> <img src="misc\past_results\example_loss_plot.png" width="250" height=""/>
+<img src="misc\past_results\example_accuracy_plot.png" width="300" height=""/> <img src="misc\past_results\example_loss_plot.png" width="300" height=""/>
 
 Furthermore, for the purposes of this project, the model didn't need to be trained for more than 15-20 epochs to get performance (this is bad practice in real life, please refer to Section 5 for more information).
 
@@ -224,12 +227,12 @@ n_epochs = 15
 
 | Test Type     | Change            | Accuracy   |
 |---------------|-------------------|------------|
-| Data Split    | 0.6, 0.7, 0.9     | 66.56%, X%, X% |
-| Learning Rate | 0.1, 0.01, 0.001  | X%, X%, X% |
+| Data Split    | 0.6, 0.7, 0.9     | 66.56%, 65.29%, 61.49% |
+| Learning Rate | 0.1, 0.01, 0.001  | 50.44%, X%, X% |
 | Loss Function | CELoss, BCELoss   | X%, X%     |
 | Optimiser     | Adam, AdamW, SGD  | X%, X%, X% |
 | Patch Size    | 8, 16, 32         | X%, X%, X% |
-|Augmentation   |RandomCrop, RandomRotate, Both| X%, X% |
+| Augmentation  |RandomCrop, RandomRotate, Both| X%, X% |
 
 
 ## 4.3. Reproducibility of Results
@@ -238,7 +241,7 @@ The results produced by the ViT can be reproduced consistently, where the only s
 ## 4.4. Example Usage
 The model can be used to predict the class of a random subset of images based on a given dataloader, which can be found in the ```predict.py``` file as the method ```predict()```. An example usage of this function can be seen below:
 
-<img src="misc\past_results\example_usage.png" width="" height=""/>
+<img src="misc\past_results\example_usage.png" width="600" height=""/>
 
 # 5. Recommendations
 For future training and testing, it is recommended that the PyTorch EarlyStopping handler so that the model can be saved at the epoch with the best validation accuracy. This will allow the model to be trained for long enough to reach its best performance, but not overfit the training data. Furthermore, using a larger dataset or even augmenting the data in such a way that more of it can be used as features (potentially converting to RGB or HSV) would prove beneficial due to the nature of ViTs. In conjunction with this, pretraining the model on similar data would result in fair better results compared to the 'from scratch' method used in this project.

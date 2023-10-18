@@ -1,8 +1,10 @@
 """ Utility functions for generic use. """
 
+import torch
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from torchvision import transforms
+import torch.nn.functional as TF
 
 def plot_losses_accuracies(train_accuracies,
             valid_accuracies,
@@ -112,8 +114,9 @@ def get_transform(data_type, data_mean, data_std, image_size):
         return transforms.Compose([
             transforms.Resize((image_size, image_size)),
             transforms.Grayscale(num_output_channels=1),
-            transforms.RandomHorizontalFlip(),
+            # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
+            # transforms.Lambda(centre_transform),
             transforms.Normalize(mean=data_mean, std=data_std)
         ])
     elif data_type == "test":
@@ -130,3 +133,45 @@ def get_transform(data_type, data_mean, data_std, image_size):
             transforms.ToTensor(),
             transforms.Normalize(mean=data_mean, std=data_std)
         ])
+
+# This code was generated using ChatGPT and modified to work with existing code
+def centre_of_mass(img_tensor, threshold=0.5):
+    """ Compute the centre of mass of an image. """
+    height, width = img_tensor.shape[-2:]
+
+    # Threshold the image tensor
+    img_tensor = img_tensor.clone()
+    img_tensor[img_tensor < threshold] = 0
+
+    x = torch.arange(width)
+    y = torch.arange(height)
+
+    X, Y = torch.meshgrid(x, y)
+
+    x_com = torch.sum(img_tensor * X) / torch.sum(img_tensor)
+    y_com = torch.sum(img_tensor * Y) / torch.sum(img_tensor)
+
+    return x_com, y_com
+
+# This code was generated using ChatGPT and modified to work with existing code
+def centre_transform(img_tensor):
+    """ Create a transform to centre an image based on centre of mass (pixel intensity). """
+    # Get centre of mass
+    x_com, y_com = centre_of_mass(img_tensor)
+
+    # Compute translations
+    x_trans = img_tensor.shape[-1] // 2 - x_com
+    y_trans = img_tensor.shape[-2] // 2 - y_com
+
+    print(f"x_trans: {x_trans}, y_trans: {y_trans}")
+
+    # Create affine transform matrix for translation
+    theta = torch.tensor([
+        [1, 0, x_trans],
+        [0, 1, y_trans]
+    ], dtype=torch.float)
+
+    grid = TF.affine_grid(theta.unsqueeze(0), img_tensor.unsqueeze(0).size())
+    centred_tensor = TF.grid_sample(img_tensor.unsqueeze(0), grid).squeeze(0)
+
+    return centred_tensor

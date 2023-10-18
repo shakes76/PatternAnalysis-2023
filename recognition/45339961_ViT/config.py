@@ -6,6 +6,7 @@ will_load = False
 show_model_summary = False
 will_train = True
 will_test = True
+will_predict = False
 
 # Dataloader specific parameters
 data_path = "C:/Users/Jacqu/Downloads/AD_NC"
@@ -13,7 +14,7 @@ batch_size = 64
 n_channels = 1
 image_size = 224
 n_classes = 2
-data_split = 0.7
+data_split = 0.6
 
 # Change this at user risk
 train_mean = 0.1155
@@ -23,7 +24,7 @@ test_std = 0.2228
 
 # Training specific parameters
 n_epochs = 15
-learning_rate = 0.0005
+learning_rate = 0.1
 
 # Transformer model specific parameters
 patch_size = 8
