@@ -1,8 +1,12 @@
 """
-This is an implementation of the Improved UNet architecture described in the following paper:
+This file implements an Improved UNet model to be used in train.py
 
-
-
+NOTES:
+- Dropout layers are not reused and instead defined separately for each layer that uses it
+    - This is because of the concern that reusing the same layer may result in the same tensors
+        being dropped across different layers
+        - This has not been tested
+- Instance normalisation and LeakyRelu was used instead of batch normalisation and relu as described in the paper
 """
 
 import torch
@@ -18,12 +22,12 @@ class ImprovedUNet(nn.Module):
         self.out_channels = out_channels
         self.base_n_filter = base_n_filter
 
-        self.upscale = nn.Upsample(scale_factor=2, mode='nearest')
+        self.upscale = nn.Upsample(scale_factor=2, mode='nearest') #to be reused in forward pass
 
-        # Level 1 context layer
+        # Level 1 context Layer
         self.conv3E11 = nn.Conv2d(self.in_channels, self.base_n_filter, kernel_size=3, stride=1, padding=1, bias=False)
 
-        # Level 1 Context Module
+        #Context Module
         self.conv3d2 = nn.Conv2d(self.base_n_filter, self.base_n_filter, kernel_size=3, stride=1, padding=1, bias=False)
         self.dropoutE1 = nn.Dropout2d(0.5)
         self.conv3d3 = nn.Conv2d(self.base_n_filter, self.base_n_filter, kernel_size=3, stride=1, padding=1, bias=False)
@@ -32,6 +36,8 @@ class ImprovedUNet(nn.Module):
         # Level 2 context
         self.conv3E21 = nn.Conv2d(self.base_n_filter, self.base_n_filter*2, kernel_size=3, stride=2, padding=1, bias=False)
         self.inorm3E21 = nn.InstanceNorm2d(self.base_n_filter*2)
+
+        ##Context Module
         self.conv3E22 = nn.Conv2d(self.base_n_filter*2, self.base_n_filter*2, kernel_size=3, stride=1, padding=1, bias=False)
         self.dropoutE2 = nn.Dropout2d(0.5)
         self.inorm3E22 = nn.InstanceNorm2d(self.base_n_filter*2)
@@ -41,6 +47,8 @@ class ImprovedUNet(nn.Module):
         # Level 3 context
         self.conv3E31 = nn.Conv2d(self.base_n_filter*2, self.base_n_filter*4, kernel_size=3, stride=2, padding=1, bias=False)
         self.inorm3E31 = nn.InstanceNorm2d(self.base_n_filter*4)
+
+        #Context Module
         self.conv3E32 = nn.Conv2d(self.base_n_filter*4, self.base_n_filter*4, kernel_size=3, stride=1, padding=1, bias=False)
         self.dropoutE3 = nn.Dropout2d(0.5)
         self.inorm3E32 = nn.InstanceNorm2d(self.base_n_filter*4)
@@ -50,6 +58,8 @@ class ImprovedUNet(nn.Module):
         # Level 4 context
         self.conv3E41 = nn.Conv2d(self.base_n_filter*4, self.base_n_filter*8, kernel_size=3, stride=2, padding=1, bias=False)
         self.inorm3E41 = nn.InstanceNorm2d(self.base_n_filter*8)
+
+        #Context Module
         self.conv3E42 = nn.Conv2d(self.base_n_filter*8, self.base_n_filter*8, kernel_size=3, stride=1, padding=1, bias=False)
         self.dropoutE4 = nn.Dropout2d(0.5)
         self.inorm3E42 = nn.InstanceNorm2d(self.base_n_filter*8)
@@ -59,6 +69,8 @@ class ImprovedUNet(nn.Module):
         # Level 5 context
         self.conv3E51 = nn.Conv2d(self.base_n_filter*8, self.base_n_filter*16, kernel_size=3, stride=2, padding=1, bias=False)
         self.inorm3E51 = nn.InstanceNorm2d(self.base_n_filter*16)
+
+        #Context Module
         self.conv3E52 = nn.Conv2d(self.base_n_filter*16, self.base_n_filter*16, kernel_size=3, stride=1, padding=1, bias=False)
         self.dropoutE5 = nn.Dropout2d(0.5)
         self.inorm3E52 = nn.InstanceNorm2d(self.base_n_filter*16)
@@ -68,46 +80,44 @@ class ImprovedUNet(nn.Module):
         # Level 0 local
         self.convD01 = nn.Conv2d(self.base_n_filter*16, self.base_n_filter*8, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3D01 = nn.InstanceNorm2d(self.base_n_filter*8)
-        #self.convD02 = nn.Conv2d(base_n_filter*16, base_n_filter*8, kernel_size=1, stride=1, padding=0, bias=False)
-        #self.inorm3D02 = nn.InstanceNorm2d(self.base_n_filter*8)
 
         # Level 1 local
-        #local mod
+        #Localisation Module
         self.convD11 = nn.Conv2d(self.base_n_filter*16, self.base_n_filter*16, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3D11 = nn.InstanceNorm2d(self.base_n_filter*16)
         self.convD12 = nn.Conv2d(self.base_n_filter*16, self.base_n_filter*8, kernel_size=1, stride=1, padding=0, bias=False)
         self.inorm3D12 = nn.InstanceNorm2d(self.base_n_filter*8)
 
-        #upsample mod
+        #Upsample Module
         self.convD13 = nn.Conv2d(self.base_n_filter*8, self.base_n_filter*4, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3D13 = nn.InstanceNorm2d(self.base_n_filter*4)
 
         # Level 2 local
-        #local mod
+        #Localisation Module
         self.convD21 = nn.Conv2d(self.base_n_filter*8, self.base_n_filter*4, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3D21 = nn.InstanceNorm2d(self.base_n_filter*4)
         self.convD22 = nn.Conv2d(self.base_n_filter*4, self.base_n_filter*4, kernel_size=1, stride=1, padding=0, bias=False)
         self.inorm3D22 = nn.InstanceNorm2d(self.base_n_filter*4)
 
-        #upsample mod
+        #Upsample Module
         self.convD23 = nn.Conv2d(self.base_n_filter*4, self.base_n_filter*2, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3D23 = nn.InstanceNorm2d(self.base_n_filter*2)
 
-        #segmentation layer
+        #Segmentation layer
         self.seg2 = nn.Conv2d(self.base_n_filter*4, 1, kernel_size=3, stride=1, padding=1, bias=False)
 
         # Level 3 local
-        #local mod
+        #Localisation Module
         self.convD31 = nn.Conv2d(self.base_n_filter*4, self.base_n_filter*2, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3D31 = nn.InstanceNorm2d(self.base_n_filter*2)
         self.convD32 = nn.Conv2d(self.base_n_filter*2, self.base_n_filter*2, kernel_size=1, stride=1, padding=0, bias=False)
         self.inorm3D32 = nn.InstanceNorm2d(self.base_n_filter*2)
 
-        #upsample mod
+        #Upsample Module
         self.convD33 = nn.Conv2d(self.base_n_filter*2, self.base_n_filter, kernel_size=3, stride=1, padding=1, bias=False)
         self.inorm3D33 = nn.InstanceNorm2d(self.base_n_filter)
 
-        #segmentation layer
+        #Segmentation layer
         self.seg3 = nn.Conv2d(self.base_n_filter*2, 1, kernel_size=3, stride=1, padding=1, bias=False)
 
         # Level 4 localization layer
@@ -133,7 +143,6 @@ class ImprovedUNet(nn.Module):
         out = F.leaky_relu(out)
 
         # Level 2 context pathway
-        #"""
         out = self.conv3E21(out)
         sum2 = out
         out = self.inorm3E21(out)
@@ -147,10 +156,8 @@ class ImprovedUNet(nn.Module):
         skip2 = F.leaky_relu(out)
         out = self.inorm3E23(out)
         out = F.leaky_relu(out)
-        #"""
 
         # Level 3 context pathway
-        #"""
         out = self.conv3E31(out)
         sum3 = out
         out = self.inorm3E31(out)
@@ -164,10 +171,8 @@ class ImprovedUNet(nn.Module):
         skip3 = F.leaky_relu(out)
         out = self.inorm3E33(out)
         out = F.leaky_relu(out)
-        #"""
 
         # Level 4 context pathway
-        #"""
         out = self.conv3E41(out)
         sum4 = out
         out = self.inorm3E41(out)
@@ -181,10 +186,8 @@ class ImprovedUNet(nn.Module):
         skip4 = F.leaky_relu(out)
         out = self.inorm3E43(out)
         out = F.leaky_relu(out)
-        #"""
 
-        # Level 5 context pathway and level 0 local
-        #"""
+        # Level 5 context pathway
         out = self.conv3E51(out)
         sum5 = out
         out = self.inorm3E51(out)
@@ -198,14 +201,11 @@ class ImprovedUNet(nn.Module):
         out = self.inorm3E53(out)
         out = F.leaky_relu(out)
 
+        # Level 0 local
         out = self.upscale(out)
         out = self.convD01(out)
         out = self.inorm3D01(out)
         out = F.leaky_relu(out)
-        #out = self.convD02(out)
-        #out = self.inorm3D02(out)
-        #out = F.leaky_relu(out)
-        #"""
 
         # Level 1 local
         out = torch.cat([out, skip4], dim=1)
@@ -235,6 +235,7 @@ class ImprovedUNet(nn.Module):
         out = torch.cat([out, skip1], dim=1)
         out = F.leaky_relu(self.inorm3D4(self.conv3D41(out)))
 
+        # Segmentation layers
         segementResult = torch.add(segment2, segment3)
         segementResult = self.upscale(segementResult)
 
@@ -242,4 +243,5 @@ class ImprovedUNet(nn.Module):
         out = self.convOut(out)
         out = torch.add(out, segementResult)
         out = self.sigmoid(out)
+        
         return out
