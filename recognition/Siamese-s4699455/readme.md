@@ -78,7 +78,7 @@ Conda configuration environment
 
 # How It Works
 
-![](C:\Users\47647\OneDrive\Documents\WeChat Files\wxid_d2ktwuhr1vnk12\FileStorage\Temp\09f78597018ebc121ab86ae46ef4135.png)
+![](https://miro.medium.com/v2/resize:fit:720/format:webp/1*23mikUF3HBJGUqrX7tMKQQ.png)
 
 **Architecture:** Siamese networks usually consist of two identical subnetworks (twin networks) that share parameters and weights. Each subnetwork accepts an input sample and maps it to a fixed-length vector (often called an embedding vector). These two sub-networks process two input samples respectively and generate their embedding vectors.
 
@@ -88,7 +88,7 @@ Conda configuration environment
 
 **Training:** The Siamese network uses pairs of input data during training, including similar sample pairs and dissimilar sample pairs. The parameters of the network are trained via backpropagation and gradient descent to minimize the loss function.
 
-Inference: Once the Siamese network is trained, new samples can be mapped to the embedding space and the distance between them calculated to determine their similarity.
+**Inference:** Once the Siamese network is trained, new samples can be mapped to the embedding space and the distance between them calculated to determine their similarity.
 
 # Training Processes
 
@@ -116,7 +116,7 @@ The ADNI dataset provides a pair of brain images, one from an AD patient and one
 
 ## Outputs
 
-![https://github.com/SKY-YY88/PatternAnalysis-2023/blob/Siamese-network/recognition/Siamese-s4699455/out__%5B0.012563883326947689%5D.png]()
+![](https://raw.githubusercontent.com/SKY-YY88/PatternAnalysis-2023/Siamese-network/recognition/Siamese-s4699455/out__%5B0.9096765518188477%5D.png)
 
 ![](https://raw.githubusercontent.com/SKY-YY88/PatternAnalysis-2023/Siamese-network/recognition/Siamese-s4699455/out__%5B0.012563883326947689%5D.png)
 
@@ -124,7 +124,7 @@ The ADNI dataset provides a pair of brain images, one from an AD patient and one
 
 ## Plots
 
-![](C:\Users\47647\AppData\Roaming\Typora\typora-user-images\image-20231018163807680.png)
+![](https://raw.githubusercontent.com/SKY-YY88/PatternAnalysis-2023/Siamese-network/recognition/Siamese-s4699455/log/loss/epoch_loss.png)
 
 # Dependencies
 
