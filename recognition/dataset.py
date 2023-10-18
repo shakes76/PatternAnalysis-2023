@@ -1,66 +1,108 @@
 import torch
-import torch.nn as nn
+import matplotlib.pyplot as plt
+import numpy as np
+from torch.utils.data import DataLoader
+from dataset import ISICDataset, get_transform, get_mask_transform  # Import the necessary functions
+from modules import ImprovedUNet
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(f"Modules: {torch.cuda.is_available()}")
+print(f"Predict: {torch.cuda.is_available()}")
+
+def imshow(inp, title=None, gray=False, ax=None):
+    """Imshow for Tensor."""
+    # Convert tensor to numpy if it's a tensor
+    if isinstance(inp, torch.Tensor):
+        inp = inp.numpy()
+    if inp.shape[0] == 1:
+        inp = np.squeeze(inp, axis=0)
+    if gray:
+        cmap = 'gray'
+    else:
+        cmap = None
+    if len(inp.shape) == 3:
+        inp = inp.transpose((1, 2, 0))
+        mean = np.array([0.5, 0.5, 0.5])
+        std = np.array([0.5, 0.5, 0.5])
+        inp = std * inp + mean
+        inp = np.clip(inp, 0, 1)
+    if ax is None:
+        plt.imshow(inp, cmap=cmap)
+        if title is not None:
+            plt.title(title)
+    else:
+        ax.imshow(inp, cmap=cmap)
+        ax.set_title(title)
+    plt.pause(0.001)
 
 
-class DoubleConv(nn.Module):
-    def __init__(self, in_channels, out_channels, middle_channels=None):
-        super().__init__()
-        if not middle_channels:
-            middle_channels = out_channels
 
-        self.double_conv = nn.Sequential(
-            nn.Conv2d(in_channels, middle_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(middle_channels),
-            nn.ReLU(inplace=True),
-            nn.Conv2d(middle_channels, out_channels, kernel_size=3, padding=1),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
-        )
+# Custom collate function to handle None masks
+def my_collate(batch):
+    # Filter out entries where the mask is None
+    new_batch = list(filter(lambda x: x[1] is not None, batch))
 
-    def forward(self, x):
-        return self.double_conv(x)
+    # Check if there are any valid samples in the batch
+    if len(new_batch) == 0:  # if all masks were None, we skip this batch
+        print("Warning: Empty batch encountered. All masks were None.")
+        return None  # You might want to return an identifiable value here for easier handling later.
+
+    # If there's at least one valid sample, we create a batch for processing
+    return torch.utils.data.dataloader.default_collate(new_batch)
 
 
-class ImprovedUNet(nn.Module):
-    def __init__(self, in_channels=3, out_channels=1):
-        super(ImprovedUNet, self).__init__()
 
-        # Encoder
-        self.enc1 = DoubleConv(in_channels, 64)
-        self.enc2 = DoubleConv(64, 128)
-        self.enc3 = DoubleConv(128, 256)
-        self.enc4 = DoubleConv(256, 512)
+def predict():
+    img_transform = get_transform()
+    mask_transform = get_mask_transform()
 
-        self.pool = nn.MaxPool2d(2)
+    test_dataset = ISICDataset(image_dir="ISIC2018_Task1-2_Training_Input_x2",
+                               mask_dir="ISIC2018_Task1_Training_GroundTruth_x2",
+                               img_transform=img_transform,
+                               mask_transform=mask_transform,
+                               img_size=(1024, 1024))
 
-        # Channel reducer (Bridge)
-        self.bridge = nn.Conv2d(512, 256, kernel_size=1)
+    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, collate_fn=my_collate)
 
-        # Decoder
-        self.dec1 = DoubleConv(512, 256, 384)
-        self.dec2 = DoubleConv(384, 128, 192)
-        self.dec3 = DoubleConv(128, 64)
-        self.out_conv = nn.Conv2d(64, out_channels, 1)
+    model = ImprovedUNet().to(device)
+    model.load_state_dict(torch.load("plot_checkpoint.pth"))
+    model.eval()
 
-        self.up = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=True)
+    num_images_to_display = 5
 
-    def forward(self, x):
-        # Encoder
-        e1 = self.enc1(x)
-        e2 = self.enc2(self.pool(e1))
-        e3 = self.enc3(self.pool(e2))
-        e4 = self.enc4(self.pool(e3))
+    data_iter = iter(test_loader)
 
-        # Reduce channels of e4 to match e3
-        e4_reduced = self.bridge(self.up(e4))
+    for _ in range(num_images_to_display):
+        try:
+            batch = next(data_iter)
+            if batch is None:
+                print("Empty batch encountered; all masks were None for this iteration.")
+                continue  # Skip this loop iteration if the batch is empty
 
-        # Decoder
-        d1 = self.dec1(torch.cat([e4_reduced, e3], 1))
-        d2 = self.dec2(torch.cat([self.up(d1), e2], 1))
-        d3 = self.dec3(self.up(d2))
-        out = self.out_conv(d3)
+            images, true_masks = batch  # Unpack your non-empty batch here
+        except StopIteration:
+            break
 
-        return out
+        images = images.to(device)
+        true_masks = true_masks.to(device)
+
+        with torch.no_grad():
+            outputs = model(images)
+
+        predicted_masks = outputs.data.cpu().numpy()
+        true_masks = true_masks.cpu().numpy()
+        images = images.cpu()
+
+        for image, pred_mask, true_mask in zip(images, predicted_masks, true_masks):
+            plt.subplot(1, 3, 1)
+            imshow(image, title='Original Image')
+
+            plt.subplot(1, 3, 2)
+            imshow(np.squeeze(pred_mask), title='Predicted Mask', gray=True)
+
+            plt.subplot(1, 3, 3)
+            imshow(np.squeeze(true_mask), title='True Mask', gray=True)
+
+# Main block
+if __name__ == "__main__":
+    predict()
+    plt.show(block=True)
