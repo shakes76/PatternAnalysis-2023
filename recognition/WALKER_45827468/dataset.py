@@ -39,15 +39,14 @@ class ISICDataset(Dataset):
 def calc_mean_std(loader):
     mean = 0.0
     std = 0.0
+    n = 0
 
-    # for im, _ in loader:
-    #     mean += im.sum(axis=[0,2,3])
-    #     std += (im**2).sum(axis=[0,2,3])
+    for im, _ in loader:
+        mean += im.sum(axis=[0,2,3])
+        std += (im**2).sum(axis=[0,2,3])
+        n += im.size(0)
 
-    # print("got through loop")
-    # n = len(loader)
-    # print(n)
-    # mean = mean/n
-    # std = torch.sqrt(std / n - (mean**2))
+    mean = mean/n
+    std = torch.sqrt(std / n - (mean**2))
 
     return mean, std

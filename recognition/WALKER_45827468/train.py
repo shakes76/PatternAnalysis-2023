@@ -42,27 +42,25 @@ ImpUNET.to(device)
 lossFunc = nn.BCELoss()
 opt = torch.optim.Adam(ImpUNET.parameters(), lr=LEARNING_RATE)
 
-print("HIIII")
+ImpUNET.train()
 
-# for epoch in range(NUM_EPOCH):
-    
-#     ImpUNET.train()
+# losses
+loss_train = []
+loss_valid = []
 
-#     # initialise losses
-#     trainLoss = 0
+for epoch in range(NUM_EPOCH):
 
-#     # iterate through training set
-#     for im,mask in train_loader:
-#         im = im.to(device)
-#         mask = mask.to(device)
+    # iterate through training set
+    for im,mask in train_loader:
+        
+        im = im.to(device)
+        mask = mask.to(device)
+        
+        pred = ImpUNET(im)
+        loss = lossFunc(pred, mask)
 
-#         pred = ImpUNET(im)
-#         loss = lossFunc(pred, mask)
+        opt.zero_grad()
+        loss.backward()
+        opt.step()
 
-#         opt.zero_grad()
-#         loss.backward()
-#         opt.step()
-
-#         trainLoss += loss
-
-#     print(trainLoss)
+torch.save(ImpUNET, "impUNetMODEL.pth")
