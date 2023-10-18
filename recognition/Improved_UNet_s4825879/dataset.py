@@ -1,6 +1,10 @@
+from torchvision import transforms
+from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from PIL import Image
 import os
+
+BATCH_SIZE = 10
 
 # custom dataset
 class ISICDataset(Dataset):
@@ -46,3 +50,16 @@ class ISICDataset(Dataset):
             truth = self.transform(truth)
     
         return image, truth
+
+# transforms to be put on the images
+transform = transforms.Compose([transforms.ToTensor(),
+                                transforms.Resize((512, 512), antialias=True)])
+
+# create datasets
+train_data = ISICDataset(img_dir="data/train_data", truth_dir="data/train_truth", transform=transform, train=True)
+val_data = ISICDataset(img_dir="data/train_data", truth_dir="data/train_truth", transform=transform, train=False)
+
+# create dataloaders
+train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
+val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=False)
+
