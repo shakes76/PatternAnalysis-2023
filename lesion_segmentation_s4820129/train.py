@@ -59,5 +59,6 @@ model = model.to(DEVICE)
 
 for epoch in range(EPOCHS):
     train(model, train_loader, optimizer, loss_fn, DEVICE)
+    accuracy(model, train_loader, DEVICE)
     break
 

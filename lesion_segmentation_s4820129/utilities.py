@@ -30,7 +30,6 @@ def train(model, loader, optimizer, criterion, DEVICE):
     print(loss.item())
     loss.backward()
 
-    acc = accuracy(preds, masks)
     optimizer.step()
   
   return preds[0], masks[0]
