@@ -3,6 +3,7 @@ import tensorflow as tf
 import constants
 import dataset
 import modules
+from utils import plot_training_history
 
 (
     train_ds,
@@ -17,7 +18,7 @@ print("Creating SNN model")
 model = modules.snn()
 
 print("Training SNN model")
-model.fit(
+history = model.fit(
     train_ds,
     epochs=10,
     validation_data=validate_ds,
@@ -28,6 +29,8 @@ model.fit(
         )
     ],
 )
+
+plot_training_history(history, "snn")
 
 print("Testing SNN model")
 model.evaluate(test_ds, verbose=1)
@@ -40,7 +43,7 @@ twin.trainable = False
 
 classifier = modules.snn_classifier(twin)
 
-classifier.fit(
+history = classifier.fit(
     class_train_ds,
     epochs=30,
     validation_data=class_validate_ds,
@@ -51,6 +54,8 @@ classifier.fit(
         )
     ],
 )
+
+plot_training_history(history, "classifier")
 
 classifier.evaluate(class_test_ds, verbose=1)
 
