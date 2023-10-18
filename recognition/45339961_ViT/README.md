@@ -72,6 +72,7 @@ The main packages used in this repository are:
 Python ver 3.11
 PyTorch ver 2.0.1
 Matplotlib ver 3.7.1
+SciPy ver 1.11.1
 ```
 
 ## 3.1. Repository Structure
@@ -157,11 +158,10 @@ It is clear to see that for an essentially unprocessed image, many of the patche
 Several data augmentation processes were introduced to improve model accuracy. These are outlined below.
 - Normalisation:
     - The mean and std devation of the train and test data were calculated separately and applied to the images during transformation for the dataloaders.
-    - After performing this normalisation, the accuracy of the model increased by ~5% (from 61% to 66% on the same model, unfortunately a record was not kept of the model details, only the accuracies).
-- Reshaping:
-    - Each image in the dataset was reshaped in the fact that
-
-// TODO
+- RandomHorizontalFlip:
+    - This was added to allow for variation in the training data, so the model could learn more features.
+- Recentering:
+    - Recentering the image based on the brain segment was also explored, although unfortunately was not able to be extensively tested. In theory, this would allow the model to better understand the features of the MRI due to all the images being in the same location each time. This was done by finding the center of the brain segment in the image, then translating that center to the center of the image. Please refer to Section 5 for future improvements.
 
 ## 4.2. Experimentation
 ### 4.2.1. Basic Model
@@ -228,12 +228,12 @@ n_epochs = 15
 | Test Type     | Change            | Accuracy   |
 |---------------|-------------------|------------|
 | Data Split    | 0.6, 0.7, 0.9     | 66.56%, 65.29%, 61.49% |
-| Learning Rate | 0.1, 0.01, 0.001  | 50.44%, X%, X% |
-| Loss Function | CELoss, BCELoss   | X%, X%     |
+| Learning Rate | 0.1, 0.01, 0.001  | 50.44%, 55.86%, 62.81% |
 | Optimiser     | Adam, AdamW, SGD  | X%, X%, X% |
-| Patch Size    | 8, 16, 32         | X%, X%, X% |
-| Augmentation  |RandomCrop, RandomRotate, Both| X%, X% |
+| Patch Size    | 16, 32, 64        | 60.27%, 57.38%, X% |
+| Augmentation  | Image Recentering | X% |
 
+Overall, SOMETHING ABOUT THE RESULTS
 
 ## 4.3. Reproducibility of Results
 The results produced by the ViT can be reproduced consistently, where the only source of randomness that affects the model is the shuffling of the training data during training at each epoch. This is considered a crucial step so that the model can escape local minima and converge to a global minimum. Random seeds are also used to ensure that the model can be reproduced consistently. Lastly, it should be mentioned that the ```predict.py``` file uses a random subset of the test data for the model to predict on.
@@ -244,7 +244,7 @@ The model can be used to predict the class of a random subset of images based on
 <img src="misc\past_results\example_usage.png" width="600" height=""/>
 
 # 5. Recommendations
-For future training and testing, it is recommended that the PyTorch EarlyStopping handler so that the model can be saved at the epoch with the best validation accuracy. This will allow the model to be trained for long enough to reach its best performance, but not overfit the training data. Furthermore, using a larger dataset or even augmenting the data in such a way that more of it can be used as features (potentially converting to RGB or HSV) would prove beneficial due to the nature of ViTs. In conjunction with this, pretraining the model on similar data would result in fair better results compared to the 'from scratch' method used in this project.
+For future training and testing, it is recommended that the PyTorch EarlyStopping handler so that the model can be saved at the epoch with the best validation accuracy. This will allow the model to be trained for long enough to reach its best performance, but not overfit the training data. Furthermore, using a larger dataset or even augmenting the data in such a way that more of it can be used as features (potentially converting to RGB or HSV) would prove beneficial due to the nature of ViTs. In conjunction with this, pretraining the model on similar data would result in fair better results compared to the 'from scratch' method used in this project. Lastly, an emphasis needs to be made that if the data is preprocessed well (e.g. cropping the image to remove black, then resizing to have only the brain segments), this would be a significant benefit to the proficiency of the model, as with the current methods almost have the image sequence would contain just black patches.
 
 # 6. References
 [1] Dosovitskiy A, Beyer L, Kolesnikov A, Weissenborn D, Zhai X, Unterthiner T, et al. An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale [Internet]. 2020. Available from: https://arxiv.org/pdf/2010.11929.pdf

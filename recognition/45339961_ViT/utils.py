@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import torch.nn.functional as TF
+from scipy.ndimage import center_of_mass
 
 def plot_losses_accuracies(train_accuracies,
             valid_accuracies,
@@ -116,8 +117,8 @@ def get_transform(data_type, data_mean, data_std, image_size):
             transforms.Grayscale(num_output_channels=1),
             # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            # transforms.Lambda(centre_transform),
-            # transforms.Normalize(mean=data_mean, std=data_std)
+            transforms.Lambda(centre_transform),
+            transforms.Normalize(mean=data_mean, std=data_std)
         ])
     elif data_type == "test":
         return transforms.Compose([
@@ -135,18 +136,15 @@ def get_transform(data_type, data_mean, data_std, image_size):
         ])
 
 # This code was generated using ChatGPT and modified to work with existing code
-def centre_of_mass(img_tensor, threshold=0.5):
-    """ Compute the centre of mass of an image. """
-    height, width = img_tensor.shape[-2:]
-
-    x = torch.arange(width)
-    y = torch.arange(height)
-
-    X, Y = torch.meshgrid(x, y)
-
-    x_com = torch.sum(img_tensor * X) / torch.sum(img_tensor)
-    y_com = torch.sum(img_tensor * Y) / torch.sum(img_tensor)
-
+def centre_of_mass(img_tensor):
+    """ Compute the centre of mass of an image using scipy's center_of_mass. """
+    # Convert the tensor to a numpy array
+    img_np = img_tensor.cpu().numpy()
+    
+    # Compute the center of mass using scipy's function
+    centres = center_of_mass(img_np.squeeze())
+    y_com, x_com = centres[0], centres[1]
+    
     return x_com, y_com
 
 # This code was generated using ChatGPT and modified to work with existing code
@@ -159,19 +157,6 @@ def centre_transform(img_tensor):
     x_trans = img_tensor.shape[-1] // 2 - x_com
     y_trans = img_tensor.shape[-2] // 2 - y_com
 
-    print(f"x_trans: {x_trans}, y_trans: {y_trans}")
+    translated_tensor = torch.roll(img_tensor, shifts=(int(y_trans), int(x_trans)), dims=(-2, -1))
 
-    # Compute normalized translations
-    x_trans_normalized = 2 * x_trans / (img_tensor.shape[-1] - 1) - 1
-    y_trans_normalized = 2 * y_trans / (img_tensor.shape[-2] - 1) - 1
-
-    # Create affine transform matrix with normalized translations
-    theta = torch.tensor([
-        [1, 0, x_trans_normalized],
-        [0, 1, y_trans_normalized]
-    ], dtype=torch.float)
-
-    grid = TF.affine_grid(theta.unsqueeze(0), img_tensor.unsqueeze(0).size())
-    centred_tensor = TF.grid_sample(img_tensor.unsqueeze(0), grid, padding_mode='border').squeeze(0)
-
-    return centred_tensor, x_trans, y_trans
+    return translated_tensor
