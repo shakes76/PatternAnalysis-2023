@@ -116,9 +116,7 @@ The ADNI dataset provides a pair of brain images, one from an AD patient and one
 
 ## Outputs
 
-![https://drive.google.com/drive/my-drive]()
-
-![https://drive.google.com/file/d/1LELKolRRNQJx_ldJQAClNmEU_KLnJUjM/view?usp=sharing]()
+![https://photos.google.com/photo/AF1QipOmYvImGSAMiW9ZEt_rKQdATs46Nfsv9nFjk3t0]()
 
  Accuracy: 0.91
 
