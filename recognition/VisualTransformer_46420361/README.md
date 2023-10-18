@@ -53,7 +53,34 @@ conda env create -n <environment_name> -f environment.yml
 ```
 Run the main.py file with the same variables and hyperparameters:
 ```
+# data variables
+model_name = 'revert_to_crop.pth'
+root = '/home/callum/AD_NC/'
+image_size = 256
+crop_size = 192
+batch_size = 64
+patch_size = image_size // 8
+channels = 1
+embedding_dims = channels * patch_size**2
+patches = (image_size // patch_size)**2
+num_heads = embedding_dims // 64
+num_classes = 2
 
+# hyperparameters
+epochs = 5
+learning_rate = 0.001
+weight_decay = 0.00005
+```
+
+### Loss and Accuracy
+
+## Dependencies
+All the dependencies are stored within the `environment.yml` file, however these are the core dependencies and their respective versions
+```
+pytorch 2.0.1
+numpy 1.25.2
+matplotlib 3.7.2
+opencv-python-headless 4.8.1.78
 ```
 
 ## References
