@@ -90,7 +90,7 @@ The Siamese Network employs the computed similarity scores to make a classificat
 
 In certain scenarios, a threshold may be applied to the similarity scores to make a binary decision. If the similarity score with either reference image surpasses a predefined threshold, the test image is classified accordingly.
 
-### Result
+## Result
 
 The Siamese Network outputs the final classification of the test image as either "Has Alzheimer Disease" or "Is Cognitive Normal."
 
@@ -99,6 +99,19 @@ This classification process enables the model to effectively categorize test ima
 The trained Siamese Network achieved the following results:
 
 - Test Accuracy: >= 84%
+
+### Ouput Images
+![training loss][output_images/trainingloss.png]
+
+### Accuracy
+![Accuracy][output_images/accuracy.png]
+
+### Test image
+![test image][output_images/testimage.png]
+
+### Dissimilarity
+![Output][output_images/dissimilarity1.png]
+
 
 ## Dependencies
 
@@ -133,29 +146,3 @@ Here are some of the references and resources that were instrumental in the deve
 5. **Contrastive Loss Function for Siamese Network**  
     Stack Overflow discussion on applying contrastive loss to Siamese Networks. [Read more](https://stackoverflow.com/questions/54091571/contrastive-loss-function-apply-on-siamese-network-and-something-wrong-with-opti)
 
-
-af Network for Alzheimer's Disease Detection
-
-Data Pre-processing
-
-Training and Validation Evidencea
-
-Project Structure
-
-How to Use
-
-References
-Dependencies
-
-Thresholding
-
-Classification Decision
-Classification Process
-
-Feature Extraction
-
-Pairwise Comparison
-
-Feature Similaritya
-
-Classification Decision
