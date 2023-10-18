@@ -3,7 +3,18 @@ from dataset import *
 from modules import *
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import Precision
-from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, ReduceLROnPlateau, TensorBoard
+from tensorflow.keras.callbacks import Callback, ModelCheckpoint, CSVLogger, ReduceLROnPlateau, TensorBoard
+
+class DiceThresholdStop(Callback):
+    def __init__(self, threshold):
+        super(DiceThresholdStop, self).__init__()
+        self.threshold = threshold
+
+    def on_epoch_end(self, epoch, logs=None):
+        current_dice = logs.get("val_dice_coef")
+        if current_dice is not None and current_dice >= self.threshold:
+            print(f"\nReached dice coefficient threshold {self.threshold} training stoped")
+            self.model.stop_training = True
 
 
 def dice_coef(y_true, y_pred):
@@ -48,7 +59,8 @@ if __name__ == "__main__":
         ModelCheckpoint(model_path, monitor='val_dice_coef', verbose=1, save_best_only=True, mode='max'),
         ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, min_lr=1e-7, verbose=1),
         CSVLogger(csv_path),
-        TensorBoard()
+        TensorBoard(),
+        DiceThresholdStop(threshold=0.8)
     ]
     # Start training the model
     model.fit(
