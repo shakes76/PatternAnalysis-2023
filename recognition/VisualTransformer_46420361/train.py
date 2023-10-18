@@ -18,19 +18,18 @@ def get_device():
         print("WARNING: CUDA not found, using CPU")
     return device
 
-def create_model(image_size, in_channels, patch_size, embedding_dims, num_heads, num_classes, patches):
-    return ViT(img_size=image_size, 
-               in_channels=in_channels,
-               patch_size=patch_size,
-               embedding_dims=embedding_dims,
-               num_heads=num_heads,
-               num_classes=num_classes,
-               patches=patches)
+def create_model(image_size, channels, patch_size, embedding_dims, num_heads, device):
+    model = ViT(
+    img_size=image_size,
+    in_channels=channels,
+    patch_size=patch_size,
+    embedding_dims=embedding_dims,
+    num_heads=num_heads
+    ).to(device)
+    return model
 
-def train_model(model, root, image_size, batch_size, crop_size, learning_rate, weight_decay, epochs):
-    device = get_device()
-    train_loader, test_loader = load_dataloaders(root, image_size, crop_size, batch_size)
-    model = model.to(device)
+def train_model(model, root, learning_rate, weight_decay, epochs, device):
+    train_loader, test_loader = load_dataloaders(root)
     optimizer = Adam(model.parameters(), lr=learning_rate)
     criterion = CrossEntropyLoss()
     model.train()
@@ -49,24 +48,24 @@ def train_model(model, root, image_size, batch_size, crop_size, learning_rate, w
             loss.backward()
             optimizer.step()
 
-        print(f"Epoch {epoch + 1}/{epochs} loss: {train_loss:.2f}")
+    print(f"Epoch {epoch + 1}/{epochs} loss: {train_loss:.2f}")
         
-    model.eval()
-    
+    model.eval() # evaluation mode
+    # Test loop
     with torch.no_grad():
         correct, total = 0, 0
-        validation_loss = 0.0
-        for batch in tqdm(test_loader, desc="Validation"):
+        test_loss = 0.0
+        for batch in tqdm(test_loader, desc="Testing"):
             x, y = batch
             x, y = x.to(device), y.to(device)
             y_hat = model(x)
             loss = criterion(y_hat, y)
-            validation_loss += loss.detach().cpu().item() / len(test_loader)
+            test_loss += loss.detach().cpu().item() / len(test_loader)
 
             correct += torch.sum(torch.argmax(y_hat, dim=1) == y).detach().cpu().item()
             total += len(x)
-        print(f"Validation loss: {validation_loss:.2f}")
-        print(f"Validation accuracy: {correct / total * 100:.2f}%")
+        print(f"Test loss: {test_loss:.2f}")
+        print(f"Test accuracy: {correct / total * 100:.2f}%")
     
 
 def predict(model, dataloader, num_samples=5):

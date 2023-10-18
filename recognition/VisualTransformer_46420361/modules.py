@@ -1,10 +1,18 @@
 """Blocks and layers that make up the ViT model"""
 import torch
 from torch import nn
+from dataset import image_size, batch_size, crop_size
 
+patch_size = image_size // 8
+channels = 1
+embedding_dims = channels * patch_size**2
+patches = (image_size // patch_size)**2
+num_heads = embedding_dims // 64
+
+assert image_size % patch_size == 0, print('Image size not divisible by patch size')
 
 class PatchEmbeddingLayer(nn.Module):
-    def __init__(self, in_channels, patch_size, embedding_dim, batch_size, patches, embedding_dims):
+    def __init__(self, in_channels, patch_size, embedding_dim,):
         super().__init__()
         self.patch_size = patch_size
         self.embedding_dim = embedding_dim
@@ -95,22 +103,17 @@ class ViT(nn.Module):
                in_channels = 1,
                patch_size = 32,
                embedding_dims = 1024,
-               num_transformer_layers = 12,
+               num_transformer_layers = 12, # from table 1 above
                mlp_dropout = 0.1,
                attn_dropout = 0.0,
                mlp_size = 3072,
-               num_heads = 12,
-               num_classes = 2,
-               batch_size = 64,
-               patches = 64):
+               num_heads = 16,
+               num_classes = 2):
     super().__init__()
 
     self.patch_embedding_layer = PatchEmbeddingLayer(in_channels = in_channels,
                                                      patch_size=patch_size,
-                                                     embedding_dim = embedding_dims,
-                                                     batch_size=batch_size,
-                                                     patches=patches,
-                                                     embedding_dims=embedding_dims)
+                                                     embedding_dim = embedding_dims)
 
     self.transformer_encoder = nn.Sequential(*[TransformerBlock(embedding_dims = embedding_dims,
                                               mlp_dropout = mlp_dropout,
