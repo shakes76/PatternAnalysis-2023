@@ -1,0 +1,58 @@
+import os
+
+import torch as t
+import torch.nn as nn
+import torch.utils.data
+import torchvision as tv
+import torchvision.transforms as transforms
+import torch.nn.functional as F
+from torch.autograd import Variable
+
+from dataset import vqvae_test_loader, vqvae_train_loader
+from models import VQVAE
+
+device = t.device('cuda' if t.cuda.is_available() else 'cpu')
+if not t.cuda.is_available():
+    print("Warning CUDA not found. Using CPU")
+
+# VQVAE Hyper params
+LR_VQVAE = 1e-3
+BATCH_SIZE_VQVAE = 32
+MAX_EPOCHS_VQVAE = 4
+NUM_HIDDENS = 128
+RESIDUAL_INTER = 32
+NUM_EMBEDDINGS = 512
+EMBEDDING_DIM = 64
+BETA = 0.25
+DATA_VARIANCE = 0.0338
+
+# create VQVAE model
+model = VQVAE(NUM_HIDDENS, RESIDUAL_INTER, NUM_EMBEDDINGS, EMBEDDING_DIM, BETA)
+model.to(device)
+
+# Init optimizer
+optimizer = torch.optim.Adam(model.parameters(), lr=LR_VQVAE)
+train_recon_loss = []
+
+# train VQVAE
+for i in range(MAX_EPOCHS_VQVAE):
+    print(f"EPOCH [{i+1}/{MAX_EPOCHS_VQVAE}]")
+
+    size = len(vqvae_train_loader.dataset)
+    batch_losses = []
+    for batch, (X, _) in enumerate(vqvae_train_loader):
+        X = X.to(device)
+
+        optimizer.zero_grad()
+        vq_loss, data_recon = model(X)
+
+        recon_error = F.mse_loss(data_recon, X) / DATA_VARIANCE
+        loss = recon_error + vq_loss
+        loss.backward()
+        optimizer.step()
+        batch_losses.append(recon_error.item())
+
+    loss = sum(batch_losses) / len(batch_losses)
+
+    train_recon_loss.append(loss)
+    print(f"Reconstruction loss: {loss}")
