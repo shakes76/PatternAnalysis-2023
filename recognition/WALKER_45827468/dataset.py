@@ -35,19 +35,25 @@ class ISICDataset(Dataset):
     
 '''
     calculate mean and standard deviation
-    modified from PyTorch documentation
+    modified from Binary Study - How to Normalize tutorial
 '''
 def calc_mean_std(loader):
-    mean = 0.0
-    std = 0.0
-    n = 0
+    cnt = 0
+    mom1 = torch.empty(3)
+    mom2 = torch.empty(3)
 
     for im, _ in loader:
-        mean += im.sum(axis=[0,2,3])
-        std += (im**2).sum(axis=[0,2,3])
-        n += im.size(0)
+        b, c, h, w = im.shape
+        num_pix = b * h * w
+        
+        sums = torch.sum(im, axis=[0,2,3])
+        sumsq = torch.sum(im**2, axis=[0,2,3])
+        
+        mom1 = (cnt * mom1 + sums)/(cnt + num_pix)
+        mom2 = (cnt * mom2 +sumsq)/(cnt + num_pix)
+        cnt += num_pix
 
-    mean = mean/n
-    std = torch.sqrt(std / n - (mean**2))
+    mean = mom1
+    std = torch.sqrt(mom2 - mom1**2)
 
     return mean, std
