@@ -11,7 +11,7 @@ from PIL import Image
 
 
 root = '/home/groups/comp3710/ADNI/AD_NC/'
-root = '/home/callum/AD_NC/'
+# root = '/home/callum/AD_NC/'
 image_size = 256
 batch_size = 64
 image_crop = 210
@@ -34,7 +34,7 @@ train_transform = transforms.Compose([
     transforms.Resize((image_size, image_size)),
     transforms.Grayscale(),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485], std=[0.229]) # ImageNet constants
+    transforms.Normalize(mean=[0.1155], std=[0.2224]) # ImageNet constants
 ])
     
 test_transform = transforms.Compose([
@@ -42,7 +42,7 @@ test_transform = transforms.Compose([
     transforms.Resize((image_size, image_size)),
     transforms.Grayscale(),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485], std=[0.229]) # ImageNet constants
+    transforms.Normalize(mean=[0.1167], std=[0.2228]) # ImageNet constants
 ])
 
 train_dataset = ImageFolder(root + 'train', transform=train_transform)
