@@ -36,4 +36,7 @@ output = Dense(1, activation='sigmoid')(dense)
 
 model = Model(inputs=[input_A, input_B], outputs = output)
 
-model.summary()
+# model.summary()
+
+def get_model():
+    return model
