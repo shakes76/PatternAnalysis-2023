@@ -16,14 +16,14 @@ model = modules.get_model()
 # Extract X and y from the train dataset
 X_train = [X for X, _ in train]
 y_train = [y for _, y in train]
-X_train = np.array(X_train)
-y_train = np.array(y_train)
+X_train = np.array(X_train[0:20])
+y_train = np.array(y_train[0:20])
 
 # Do the same in test
 X_test = [X for X, _ in test]
 y_test = [y for _, y in test]
-X_test = np.array(X_test)
-y_test = np.array(y_test)
+X_test = np.array(X_test[0:20])
+y_test = np.array(y_test[0:20])
 
 def create_pairs(X, y):
     X_pairs, ys = [], []
@@ -50,4 +50,8 @@ X_test_pairs, ys_test = create_pairs(X_test, y_test)
 model.compile(loss='binary_crossentropy', # As we are using Sigmoid activation
               optimizer=Adam(learning_rate=0.001),
               metrics=['accuracy'])
-model.fit(x=[X_train_pairs[:, 0, :, :], X_train_pairs[:, 1, :, :]])
+model.fit(x=[X_train_pairs[:, 0, :, :], X_train_pairs[:, 1, :, :]],
+          y=ys_train,
+          validation_data=([X_train_pairs[:, 0, :, :], X_train_pairs[:, 1, :, :]], ys_test),
+          epochs=200,
+          batch_size=32)
