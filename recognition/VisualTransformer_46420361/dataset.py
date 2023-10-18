@@ -37,27 +37,44 @@ class CropBrainScan:
         cropped_image = Image.fromarray(cropped_image)
         
         return cropped_image
+    
+def calc_std_and_mean(root):
+    train_path = root + 'train'
+    train_dataset = ImageFolder(train_path)
+    
+    mean = 0.
+    std = 0.
+    total_samples = 0
+    
+    for image, _ in train_dataset:
+        mean += image.mean()
+        std += image.std()
+        total_samples += 1
+        
+    mean /= total_samples
+    std /= total_samples
+    return mean, std
 
-def get_train_transform(image_size, crop_size):
+def get_train_transform(image_size, crop_size, mean, std):
     transform = transforms.Compose([
         # CropBrainScan(),
         transforms.CenterCrop((crop_size, crop_size)),
         transforms.Resize((image_size, image_size)),
         transforms.Grayscale(),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485], std=[0.229]) # ImageNet constants
+        transforms.Normalize(mean=[mean], std=[std]) # ImageNet constants
     ])
     return transform
 
 
-def get_test_transform(image_size, crop_size):
+def get_test_transform(image_size, crop_size, mean, std):
     transform = transforms.Compose([
         # CropBrainScan(),
         transforms.CenterCrop((crop_size, crop_size)),
         transforms.Resize((image_size, image_size)),
         transforms.Grayscale(),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485], std=[0.229]) # ImageNet constants
+        transforms.Normalize(mean=[mean], std=[std]) # ImageNet constants
     ])
     return transform
 
@@ -81,8 +98,10 @@ def split_test_data(root, image_size, crop_size, test_val_ratio=0.5):
     validation_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] in validation_patients]
     test_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] in test_patients]
     
-    train_transform = get_train_transform(image_size, crop_size)
-    test_transform = get_test_transform(image_size, crop_size)
+    mean, std = calc_std_and_mean(root)
+    
+    train_transform = get_train_transform(image_size, crop_size, mean, std)
+    test_transform = get_test_transform(image_size, crop_size, mean, std)
 
     # Create validation and test datasets
     validation_dataset = ImageFolder(root=test_dir, transform=train_transform)
@@ -96,8 +115,9 @@ def split_test_data(root, image_size, crop_size, test_val_ratio=0.5):
 
 
 def load_dataloaders(root, image_size, crop_size, batch_size): 
+    mean, std = calc_std_and_mean(root)
     # transform    
-    train_transform = get_train_transform(image_size, crop_size)
+    train_transform = get_train_transform(image_size, crop_size, mean, std)
 
     # create datasets
     train_dataset = ImageFolder(root + 'train', transform=train_transform)
