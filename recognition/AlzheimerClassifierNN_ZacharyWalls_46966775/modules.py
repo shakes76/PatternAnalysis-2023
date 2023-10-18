@@ -6,6 +6,9 @@ from torch import Tensor
 from einops import rearrange, repeat
 from einops.layers.torch import Rearrange, Reduce
 
+# Model Architecture is largely based on the original paper
+# A. Dosovitsky et al., "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale"
+
 # Modules
 
 

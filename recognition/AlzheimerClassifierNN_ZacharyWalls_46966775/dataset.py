@@ -9,15 +9,17 @@ from typing import Tuple
 # Images are converted to this size x size
 _size = 224
 
+# Use the computed mean and std for normalization in transformations
+# Please see utils for the method use for this calculation
 _train_transform = transforms.Compose(
     [
         transforms.RandomResizedCrop(_size),
         transforms.RandomHorizontalFlip(),
-        transforms.RandomAdjustSharpness(sharpness_factor=0.8, p=0.3),
+        transforms.RandomAdjustSharpness(sharpness_factor=0.9, p=0.1),
         transforms.ToTensor(),
         transforms.Normalize(
-            (0.5, 0.5, 0.5),
-            (0.5, 0.5, 0.5),
+            mean=[0.14147302508354187, 0.14147302508354187, 0.14147302508354187],
+            std=[0.2420143187046051, 0.2420143187046051, 0.2420143187046051],
         ),
     ]
 )
@@ -25,10 +27,11 @@ _train_transform = transforms.Compose(
 _test_transform = transforms.Compose(
     [
         transforms.Resize(_size),
+        transforms.CenterCrop(_size),
         transforms.ToTensor(),
         transforms.Normalize(
-            (0.5, 0.5, 0.5),
-            (0.5, 0.5, 0.5),
+            mean=[0.14147302508354187, 0.14147302508354187, 0.14147302508354187],
+            std=[0.2420143187046051, 0.2420143187046051, 0.2420143187046051],
         ),
     ]
 )
@@ -77,7 +80,7 @@ def get_test_loader() -> DataLoader:
     test_dataset = datasets.ImageFolder(root="data/test", transform=_test_transform)
     print(f"Testing data loaded with {len(test_dataset)} samples.")
 
-    test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False, num_workers=6)
+    test_loader = DataLoader(test_dataset, batch_size=64, shuffle=True, num_workers=6)
     print(f"Testing loader ready.\n")
 
     return test_loader

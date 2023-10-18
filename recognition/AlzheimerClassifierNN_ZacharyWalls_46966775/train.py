@@ -22,10 +22,10 @@ if __name__ == "__main__":
     print("Assigning model instance...")
     model = ViT(
         in_channels=3,
-        patch_size=16,
+        patch_size=14,
         emb_size=768,
         img_size=224,
-        depth=12,
+        depth=14,
         n_classes=2,
     ).to(device)
     print("Model ready.")
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.9)
 
     # Training and Validation Loop
-    num_epochs = 25
+    num_epochs = 50
     best_val_accuracy = 0
 
     # Used for Graphing after Training

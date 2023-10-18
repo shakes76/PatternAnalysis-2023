@@ -5,7 +5,6 @@ import torch
 from dataset import get_test_loader, get_user_data_loader
 from modules import ViT
 from sklearn.metrics import confusion_matrix, accuracy_score
-from torchvision.transforms.functional import to_pil_image
 
 
 # Define command-line arguments
@@ -63,10 +62,10 @@ if __name__ == "__main__":
     # Load the model
     model = ViT(
         in_channels=3,
-        patch_size=16,
+        patch_size=14,
         emb_size=768,
         img_size=224,
-        depth=12,
+        depth=14,
         n_classes=2,
     ).to(device)
 
@@ -123,19 +122,15 @@ if __name__ == "__main__":
         all_true_labels.extend(labels_np)
         all_predicted_labels.extend(preds_np)
 
-        # Visualize images with labels
-        for i in range(len(images)):
-            # Convert the image tensor to a PIL Image
-            pil_image = to_pil_image(images[i])
-
-            plt.imshow(pil_image)
-            plt.title(
-                f"Actual: {class_labels[labels_np[i]]}, Predicted: {class_labels[preds_np[i]]}"
-            )
-            image_filename = f"batch{batch_idx}_image{i+1}.png"
-            image_filepath = os.path.join(images_output_dir, image_filename)
-            plt.savefig(image_filepath)
-            plt.close()
+        # Visualize first image with labels
+        plt.imshow(images_np[0].transpose((1, 2, 0)))
+        plt.title(
+            f"Actual: {class_labels[labels_np[0]]}, Predicted: {class_labels[preds_np[0]]}"
+        )
+        image_filename = f"batch{batch_idx}_image{1}.png"
+        image_filepath = os.path.join(images_output_dir, image_filename)
+        plt.savefig(image_filepath)
+        plt.close()
 
     # Compute the confusion matrix
     conf_matrix = confusion_matrix(all_true_labels, all_predicted_labels)

@@ -163,3 +163,5 @@ cython_debug/
 data/
 **/.DS_Store
 .vscode
+.gitignore
+prediction*/
