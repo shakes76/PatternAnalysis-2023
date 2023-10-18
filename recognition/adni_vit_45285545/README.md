@@ -4,13 +4,13 @@ This project applies the Vision Transformer architecture to the task of classify
 
 ## Model Architecture
 
-The Vision Transformer (ViT) is a self-attention-based architecture which has consistently demonstrated state-of-the-art performance on various image recognition benchmarks while requiring substantially fewer computational resources to train than convolutional neural networks (CNNs), which are now superseded as the ubiquitous architecture for computer vision tasks [1].
+The Vision Transformer (ViT) is a self-attention-based architecture which has consistently demonstrated state-of-the-art performance on various image recognition benchmarks while requiring substantially fewer computational resources to train than convolutional neural networks (CNNs), which are now superseded as the ubiquitous architecture for computer vision tasks [2].
 
-ViTs extend the Transformer architecture introduced by Vaswani et al. [4] for natural language processing tasks [1]. The following figure presents a graphic representation of the model architecture from Dosovitsky et al. [1].
+ViTs extend the Transformer architecture introduced by Vaswani et al. [5] for natural language processing tasks [2]. The following figure presents a graphic representation of the model architecture from Bazi et al. [1].
 
-![Vision Transformer architecture from [2]](static/vit-model-architecture.png)
+![Vision Transformer architecture from [1]](static/vit_model_architecture.png)
 
-Transformers rely on attention, which calculates the pairwise inner product for every pair of tokens in a set [2]. This method has less inductive bias than other architectures, enabling better generalisation and hence better performance given enough training data [2]. However, as a quadratic operation, attention is too expensive to apply to each individual pixel in an image [2]. Images are therefore divided into patches, which are vectorised and linearly projected using an embedding matrix [2]. The projected patches are combined with positional embeddings, which inform the relative positions of the patches [2]. These _embedded patches_ can then be input into a regular Transformer. An extra learnable class embedding is input alongside the embedded patches, whose trained output feeds into the final fully-connected classification layers to yield a prediction.
+Transformers rely on attention, which calculates the pairwise inner product for every pair of tokens in a set [3]. This method has less inductive bias than other architectures, enabling better generalisation and hence better performance given enough training data [3]. However, as a quadratic operation, attention is too expensive to apply to each individual pixel in an image [3]. Images are therefore divided into patches, which are vectorised and linearly projected using an embedding matrix [3]. The projected patches are combined with positional embeddings, which inform the relative positions of the patches [3]. These _embedded patches_ can then be input into a regular Transformer. An extra learnable class embedding is input alongside the embedded patches, whose trained output feeds into the final fully-connected classification layers to yield a prediction.
 
 ## Data and Preprocessing
 
@@ -111,10 +111,12 @@ _NOTE: while the GUI accepts any image, samples from the ADNI dataset are useful
 
 ## References
 
-[1] A. Dosovitsky et al., "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale", arXiv: 2010.11929 [cs.CV], 2021.
+[1] Y. Bazi et al., "Vision Transformers for Remote Sensing Image Classification," _Remote Sens._, vol. 13, pp. 516-535, Feb. 2021, doi: 10.3390/rs13030516.
 
-[2] Yannic Kilcher. An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale (Paper Explained). (Oct. 4, 2020). Accessed: Oct. 11, 2023. [Online video]. Available: https://www.youtube.com/watch?v=TrdevFK_am4
+[2] A. Dosovitsky et al., "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale", arXiv: 2010.11929 [cs.CV], 2021.
 
-[3] K. S. Krishnan and K. S. Krishnan, "Vision Transformer based COVID-19 Detection using Chest X-rays," 2021 6th International Conference on Signal Processing, Computing and Control (ISPCC), Solan, India, 2021, pp. 644-648, doi: 10.1109/ISPCC53510.2021.9609375.
+[3] Yannic Kilcher. An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale (Paper Explained). (Oct. 4, 2020). Accessed: Oct. 11, 2023. [Online video]. Available: https://www.youtube.com/watch?v=TrdevFK_am4
 
-[4] A. Vaswani et al., "Attention Is All You Need", arXiv: 1706.03762 [cs.CL], 2017.
+[4] K. S. Krishnan and K. S. Krishnan, "Vision Transformer based COVID-19 Detection using Chest X-rays," 2021 6th International Conference on Signal Processing, Computing and Control (ISPCC), Solan, India, 2021, pp. 644-648, doi: 10.1109/ISPCC53510.2021.9609375.
+
+[5] A. Vaswani et al., "Attention Is All You Need", arXiv: 1706.03762 [cs.CL], 2017.
