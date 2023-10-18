@@ -1,15 +1,17 @@
 import torch
 from torch.utils.data import DataLoader, random_split
 import torch.optim as optim
-from dataset import ISICDataset
 from modules import ImprovedUNet, device
 from torchvision import transforms
 import matplotlib.pyplot as plt
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 import torch.nn.functional as F
+from predict import predict
+from dataset import ISICDataset, get_transform, get_mask_transform
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(torch.cuda.is_available())
+print(f"Train: {torch.cuda.is_available()}")
 
 
 def dice_loss(pred, target, smooth=1.):
@@ -21,10 +23,10 @@ def dice_loss(pred, target, smooth=1.):
     return 1 - dice
 
 
-def combined_loss(pred, target):
+def combined_loss(pred, target, alpha=0.5):
     bce = F.binary_cross_entropy_with_logits(pred, target)
     dice = dice_loss(pred, target)
-    return bce + dice
+    return alpha * bce + (1 - alpha) * dice
 
 
 def evaluate_dsc(loader, model):
@@ -40,16 +42,31 @@ def evaluate_dsc(loader, model):
     return all_dscs
 
 
-def train():
-    # Define transformations
-    image_transform = transforms.Compose([
+def get_transform():
+    return transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
-    mask_transform = transforms.ToTensor()
+
+
+def get_mask_transform():
+    return transforms.Compose([
+        transforms.ToTensor()
+    ])
+
+
+def train():
+    img_transform = get_transform()
+    mask_transform = get_mask_transform()
 
     # Load dataset
-    full_dataset = ISICDataset("ISIC2018_Task1-2_Training_Input_x2", "ISIC2018_Task1_Training_GroundTruth_x2", image_transform, mask_transform)
+    full_dataset = ISICDataset(
+        image_dir="ISIC2018_Task1-2_Training_Input_x2",
+        mask_dir="ISIC2018_Task1_Training_GroundTruth_x2",
+        img_transform=img_transform,
+        mask_transform=mask_transform,
+        img_size=(384, 512)
+    )
 
     # Split dataset
     train_size = int(0.85 * len(full_dataset))
@@ -57,8 +74,8 @@ def train():
     train_dataset, test_dataset = random_split(full_dataset, [train_size, test_size])
 
     # Create data loaders
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
-    val_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
+    train_loader = DataLoader(full_dataset, batch_size=8, shuffle=True)
+    val_loader = DataLoader(test_dataset, batch_size=2, shuffle=False)
 
     model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-5)
@@ -71,14 +88,17 @@ def train():
     train_losses, val_losses = [], []
     avg_train_dscs, avg_val_dscs = [], []
 
+    accumulation_steps = 4
+    optimizer.zero_grad()
+
     # Training loop
     for epoch in range(num_epochs):
-        print(f"Epoch {epoch + 1}/{num_epochs}")  
+        print(f"Epoch {epoch + 1}/{num_epochs}")
         model.train()
         running_loss, running_dsc = 0.0, 0.0
 
         # Training step
-        for inputs, labels in train_loader:
+        for i, (inputs, labels) in enumerate(train_loader):
             inputs, labels = inputs.to(device), labels.to(device)
             optimizer.zero_grad()
             outputs = model(inputs)
@@ -89,6 +109,11 @@ def train():
             dsc = 1 - dice_loss(outputs, labels).item()
             running_dsc += dsc
             running_loss += loss.item()
+
+            # Perform the optimization step
+            if (i + 1) % accumulation_steps == 0:
+                optimizer.step()
+                optimizer.zero_grad()
 
         avg_train_loss = running_loss / len(train_loader)
         avg_train_dsc = running_dsc / len(train_loader)
@@ -149,11 +174,17 @@ def train():
     plt.legend()
 
     plt.tight_layout()
-    plt.show()
+    plt.draw()
+    # Pause to allow the user to see the graph
+    plt.pause(0.001)
 
     # Save the model after all epochs
-    torch.save(model.state_dict(), "model_checkpoint.pth")
+    torch.save(model.state_dict(), "plot_checkpoint.pth")
+    plt.ioff()
+    plt.show(block=True)
 
 
 if __name__ == "__main__":
     train()
+    print("Training completed. Starting prediction phase...")
+    predict()
