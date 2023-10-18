@@ -63,7 +63,7 @@ for epoch in range(NUM_EPOCH):
         loss = lossFunc(pred, mask)
         loss.backward()
         opt.step()
-        total_loss += float(loss)
+        total_loss += loss.item()
     print("EPOCH", epoch, ":")
     print("     TRAINING LOSS:", total_loss/len(train_loader))
     loss_train.append(total_loss/len(train_loader))
@@ -78,7 +78,7 @@ for epoch in range(NUM_EPOCH):
             pred = ImpUNET(im)
             loss = lossFunc(pred, mask)
             
-            total_loss += float(loss)
+            total_loss += loss.item()
     print("     VALIDATION LOSS:", total_loss/len(valid_loader))
     loss_valid.append(total_loss/len(valid_loader))
     
