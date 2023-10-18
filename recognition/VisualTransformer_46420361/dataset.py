@@ -38,26 +38,31 @@ class CropBrainScan:
         
         return cropped_image
 
-def get_train_transform(image_size):
+def get_train_transform(image_size, crop_size):
     transform = transforms.Compose([
-        CropBrainScan(),
+        # CropBrainScan(),
+        transforms.CenterCrop((crop_size, crop_size)),
         transforms.Resize((image_size, image_size)),
         transforms.Grayscale(),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485], std=[0.229]) # ImageNet constants
     ])
     return transform
 
 
-def get_test_transform(image_size):
+def get_test_transform(image_size, crop_size):
     transform = transforms.Compose([
+        # CropBrainScan(),
+        transforms.CenterCrop((crop_size, crop_size)),
         transforms.Resize((image_size, image_size)),
         transforms.Grayscale(),
         transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485], std=[0.229]) # ImageNet constants
     ])
     return transform
 
 
-def split_test_data(root, image_size, test_val_ratio=0.5):
+def split_test_data(root, image_size, crop_size, test_val_ratio=0.5):
     test_dir = os.path.join(root, "test")
 
     # Load the test data without applying transforms
@@ -74,10 +79,10 @@ def split_test_data(root, image_size, test_val_ratio=0.5):
     
     # Split test dataset based on patient IDs
     validation_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] in validation_patients]
-    test_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] not in test_patients]
+    test_samples = [(path, label) for path, label in test_data.samples if os.path.basename(path).split('_')[0] in test_patients]
     
-    train_transform = get_train_transform(image_size)
-    test_transform = get_test_transform(image_size)
+    train_transform = get_train_transform(image_size, crop_size)
+    test_transform = get_test_transform(image_size, crop_size)
 
     # Create validation and test datasets
     validation_dataset = ImageFolder(root=test_dir, transform=train_transform)
@@ -90,13 +95,13 @@ def split_test_data(root, image_size, test_val_ratio=0.5):
     return validation_dataset, test_dataset
 
 
-def load_dataloaders(root, image_size, batch_size): 
+def load_dataloaders(root, image_size, crop_size, batch_size): 
     # transform    
-    train_transform = get_train_transform(image_size)
+    train_transform = get_train_transform(image_size, crop_size)
 
     # create datasets
     train_dataset = ImageFolder(root + 'train', transform=train_transform)
-    validation_dataset, test_dataset = split_test_data(root, image_size, test_val_ratio=0.5)
+    validation_dataset, test_dataset = split_test_data(root, image_size, crop_size, test_val_ratio=0.5)
     
     # create dataloaders
     train_dataloader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
