@@ -9,7 +9,7 @@ from torchvision.utils import save_image
 # Path to data images
 root_path = 'data/keras_png_slices_data'
 
-IMAGE_SIZE = 128
+IMAGE_SIZE = 512
 BATCH_SIZE = 32
 
 #Modules utils
@@ -28,7 +28,7 @@ def get_index_from_list(values, t, x_shape):
     out = values.gather(-1, t.cpu())
     return out.reshape(batch_size, *((1,) * (len(x_shape) - 1))).to(t.device)
 
-T = 300
+T = 30
 betas = quadratic_beta_schedule(timesteps=T)
 
 # Pre-calculate terms for closed form equation
@@ -46,7 +46,7 @@ posterior_variance = betas * (1. - alphas_cumprod_prev) / (1. - alphas_cumprod)
 output_dir = './generated_images'
 
 # Number of Epochs for training
-epochs = 300
+epochs = T
 
 # Loss function
 def get_loss(model, x_0, t, device):
@@ -125,7 +125,7 @@ def sample_save_image(model, epoch, output_dir, device, start_time):
 
 DEVICE                  = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE           = 1e-3
-LOG_RESOLUTION          = 7 #for 128*128
+LOG_RESOLUTION          = 9 #for 512*512
 Z_DIM                   = 256
 W_DIM                   = 256
 LAMBDA_GP               = 10

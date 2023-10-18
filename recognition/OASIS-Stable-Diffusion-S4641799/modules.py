@@ -265,7 +265,7 @@ class DiscriminatorBlock(nn.Module):
 
 class Discriminator(nn.Module):
 
-    def __init__(self, log_resolution, n_features = 64, max_features = 256):
+    def __init__(self, log_resolution, n_features = 32, max_features = 256):
 
         super().__init__()
 
