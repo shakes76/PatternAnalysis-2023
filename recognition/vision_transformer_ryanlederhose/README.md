@@ -53,7 +53,7 @@ The architecture above describes the general flow of a vision transformer; howev
 * Learning rate scheduler
 * Weight decay 
 
-## Training
+## Training and Hyperparameter Tuning
 The hyperparameters of an initial training run were:
  * Patch size = 16
  * Number of encoders = 6
@@ -94,5 +94,30 @@ The plots show the model is not overfitting to the same extent (this is evident 
 
 ![alt text](images/test_accuracy5.png)
 
+## Final Model Design and Test Accuracy
 
-## Test Dataset Accuracy
+```python
+'''
+HyperParameters
+
+This class stores all the hyperparameters for the vision transformer
+'''
+class HyperParameters(object):
+    def __init__(self) -> None:
+        self.patch_size = 8             # image patch size
+        self.mlp_dim = 128              # dimension of mlp in transformer encoder
+        self.head_dim = 1024            # dimension of mlp head
+        self.n_channels = 3             # number of channels for convultional layer
+        self.num_encoders = 4           # number of transformer encoders
+        self.num_heads = 4              # number of attention heads
+        self.dropout = 0.0              # dropout regularisation
+        self.num_classes = 2            # number of classes
+        self.epochs = 60                # max number of epochs
+        self.lr = 1e-3                  # learning rate
+        self.weight_decay = 0.00        # weight decay regularisation
+        self.batch_size = 32            # batch size
+        self.hidden_size = 64           # size of convolutional layer
+```
+
+## Example Use of Model
+```predict.py``` shows an example use of the trained model by taking a random batch of the test dataset, showing this batch, and then predicting the classes to test accuracy.
