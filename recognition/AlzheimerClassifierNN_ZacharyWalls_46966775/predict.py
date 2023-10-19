@@ -23,7 +23,7 @@ parser.add_argument(
 parser.add_argument(
     "--batch_size",
     type=int,
-    default=64,
+    default=16,
     help="Batch size for making predictions (if --image_folder is provided)",
 )
 args = parser.parse_args()
@@ -63,9 +63,9 @@ if __name__ == "__main__":
     model = ViT(
         in_channels=3,
         patch_size=14,
-        emb_size=768,
+        emb_size=1536,
         img_size=224,
-        depth=14,
+        depth=10,
         n_classes=2,
     ).to(device)
 

@@ -43,10 +43,10 @@ class ResidualAdd(nn.Module):
 class PatchEmbedding(nn.Module):
     def __init__(
         self,
-        in_channels: int = 3,
-        patch_size: int = 16,
-        emb_size: int = 768,
-        img_size: int = 240,
+        in_channels: int = 1,
+        patch_size: int = 14,
+        emb_size: int = 1536,
+        img_size: int = 224,
     ):
         """
         Initialize the patch embedding layer.
@@ -92,7 +92,7 @@ class PatchEmbedding(nn.Module):
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, emb_size: int = 768, num_heads: int = 8, dropout: float = 0.1):
+    def __init__(self, emb_size: int = 1536, num_heads: int = 12, dropout: float = 0.1):
         """
         Initialize the multi-head attention layer.
 
@@ -180,10 +180,10 @@ class FeedForward(nn.Module):
 class TransformerEncoderBlock(nn.Sequential):
     def __init__(
         self,
-        emb_size: int = 768,
+        emb_size: int = 1536,
         drop_p: float = 0.1,
         forward_expansion: int = 4,
-        forward_drop_p: float = 0.0,
+        forward_drop_p: float = 0.05,
         **kwargs
     ):
         """
@@ -216,7 +216,7 @@ class TransformerEncoderBlock(nn.Sequential):
 
 
 class TransformerEncoder(nn.Sequential):
-    def __init__(self, depth: int = 12, **kwargs):
+    def __init__(self, depth: int = 10, **kwargs):
         """
         Initialize the transformer encoder.
 
@@ -228,7 +228,7 @@ class TransformerEncoder(nn.Sequential):
 
 
 class ClassificationHead(nn.Sequential):
-    def __init__(self, emb_size: int = 768, n_classes: int = 2):
+    def __init__(self, emb_size: int = 1536, n_classes: int = 2):
         """
         Initialize the classification head.
 
@@ -248,11 +248,11 @@ class ClassificationHead(nn.Sequential):
 class ViT(nn.Sequential):
     def __init__(
         self,
-        in_channels: int = 3,
-        patch_size: int = 16,
-        emb_size: int = 768,
+        in_channels: int = 1,
+        patch_size: int = 14,
+        emb_size: int = 1536,
         img_size: int = 224,
-        depth: int = 12,
+        depth: int = 10,
         n_classes: int = 2,
         **kwargs
     ):

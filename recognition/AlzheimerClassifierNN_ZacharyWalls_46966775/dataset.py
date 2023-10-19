@@ -16,10 +16,11 @@ _train_transform = transforms.Compose(
         transforms.RandomResizedCrop(_size),
         transforms.RandomHorizontalFlip(),
         transforms.RandomAdjustSharpness(sharpness_factor=0.9, p=0.1),
+        transforms.Grayscale(num_output_channels=1),  # Converts to grayscale
         transforms.ToTensor(),
         transforms.Normalize(
-            mean=[0.14147302508354187, 0.14147302508354187, 0.14147302508354187],
-            std=[0.2420143187046051, 0.2420143187046051, 0.2420143187046051],
+            mean=0.14147302508354187,
+            std=0.2420143187046051,
         ),
     ]
 )
@@ -28,10 +29,11 @@ _test_transform = transforms.Compose(
     [
         transforms.Resize(_size),
         transforms.CenterCrop(_size),
+        transforms.Grayscale(num_output_channels=1),  # Converts to grayscale
         transforms.ToTensor(),
         transforms.Normalize(
-            mean=[0.14147302508354187, 0.14147302508354187, 0.14147302508354187],
-            std=[0.2420143187046051, 0.2420143187046051, 0.2420143187046051],
+            mean=0.14147302508354187,
+            std=0.2420143187046051,
         ),
     ]
 )
@@ -51,14 +53,14 @@ def get_train_val_loaders() -> Tuple[DataLoader, DataLoader]:
     train_dataset = datasets.ImageFolder(root="data/train", transform=_train_transform)
     print(f"training data loaded with {len(train_dataset)} samples.")
 
-    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True, num_workers=6)
+    train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True, num_workers=6)
     print(f"Training loader ready.\n")
 
     print("Loading validation data...")
     val_dataset = datasets.ImageFolder(root="data/val", transform=_test_transform)
     print(f"training data loaded with {len(val_dataset)} samples.")
 
-    val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False, num_workers=6)
+    val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False, num_workers=6)
     print(f"Validation loader ready.\n")
 
     print("Training and validation loaders ready.")
@@ -80,7 +82,7 @@ def get_test_loader() -> DataLoader:
     test_dataset = datasets.ImageFolder(root="data/test", transform=_test_transform)
     print(f"Testing data loaded with {len(test_dataset)} samples.")
 
-    test_loader = DataLoader(test_dataset, batch_size=64, shuffle=True, num_workers=6)
+    test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False, num_workers=6)
     print(f"Testing loader ready.\n")
 
     return test_loader

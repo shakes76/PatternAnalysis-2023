@@ -21,17 +21,17 @@ if __name__ == "__main__":
     print(f"\nINITIALIZING MODEL\n{'='*25}\n")
     print("Assigning model instance...")
     model = ViT(
-        in_channels=3,
+        in_channels=1,
         patch_size=14,
-        emb_size=768,
+        emb_size=1536,
         img_size=224,
-        depth=14,
+        depth=10,
         n_classes=2,
     ).to(device)
     print("Model ready.")
 
     # Define Loss, Optimizer and Scheduler
-    lr = 0.00001
+    lr = 0.000001
     wd = 0
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=wd, amsgrad=True)
