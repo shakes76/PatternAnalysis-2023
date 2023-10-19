@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from modules import improved_unet
 from dataset import process_images, create_ds, img_height, img_width
-from train import dice_sim_coef, dice_sim_coef_loss, initialise_model
+from train import dice_sim_coef, initialise_model
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.utils import plot_model
 
