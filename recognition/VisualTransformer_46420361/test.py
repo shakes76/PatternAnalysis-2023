@@ -242,7 +242,7 @@ for epoch in trange(epochs, desc="Training"):
         loss.backward()
         optimizer.step()
 
-    print(f"Epoch {epoch + 1}/{epochs} loss: {train_loss:.2f}")
+print(f"Epoch {epoch + 1}/{epochs} loss: {train_loss:.2f}")
 
 model.eval() # evaluation mode
 # Test loop
