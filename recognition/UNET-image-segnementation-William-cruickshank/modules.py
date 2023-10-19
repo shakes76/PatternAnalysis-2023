@@ -3,13 +3,17 @@ import torch.nn as nn
 import torchvision.transforms.functional as TF
 
 
-class ContextModule(nn.Module):
+class MainSteps(nn.Module):
     def __init__(self, in_channels, out_channels):
-        super(ContextModule, self).__init__()
-        self.conv = nn.Sequential(
+        super(MainSteps, self).__init__()
+        
+        self.initial_conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 3, 2, 1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
+        )
+        
+        self.ContextModule = nn.Sequential(
             nn.Conv2d(out_channels, out_channels, 3, 1, 1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
@@ -21,4 +25,8 @@ class ContextModule(nn.Module):
         )
 
     def forward(self, x):
-        return self.conv(x)
+        intermediate = self.initial_conv(x)
+        out = self.ContextModule(intermediate)
+        
+        summed_output = intermediate + out
+        return summed_output
