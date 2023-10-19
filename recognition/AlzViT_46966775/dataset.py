@@ -1,6 +1,8 @@
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
 from typing import Tuple
+from torch import Tensor
+from PIL import Image
 
 # For training and testing the ADNI dataset for Alzheimer's disease was utilised which can be found here; https://adni.loni.usc.edu/
 # Go to DOWNLOAD -> ImageCollections -> Advanced Search area to download the data
@@ -88,30 +90,28 @@ def get_test_loader() -> DataLoader:
     return test_loader
 
 
-def get_user_data_loader(root_dir: str, batch_size: int) -> DataLoader:
+def get_user_image(image_dir: str) -> Tensor:
     """
-    Load and preprocess test data and create data loader.
+    Load and preprocess user image and create tensor.
 
     Args:
-        root_dir (str): the directory to the user's folder containing the images they wish to classify
-        batch_size (int): the batch size the user wishes the testing predictions to occur
+        image_dir (str): the directory to the user's image they wish to have the predictions on.
 
     Returns:
-        DataLoader: testing data loader.
+        Tensor: user image tensor.
     """
-    print("Loading user data...")
-    user_dataset = datasets.ImageFolder(root=root_dir, transform=_test_transform)
-    print(f"User data loaded with {len(user_dataset)} samples.")
+    print("Loading user image...")
+    user_image = Image.open(image_dir)
+    print(f"User image loaded.")
 
-    user_loader = DataLoader(
-        user_dataset, batch_size=batch_size, shuffle=False, num_workers=6
-    )
+    user_image_tensor = _test_transform(user_image).unsqueeze(0)
     print(f"User loader ready.\n")
 
-    return user_loader
+    return user_image_tensor
 
 
 # Please note within the development environment the data was loaded in the following structure
+# This structure will have to be replicated to make use of the ImageFolder function
 # None of the folders contain any of the same data - was manually separated
 
 # data/

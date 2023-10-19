@@ -13,11 +13,12 @@ In our Alzheimer's Disease Classifier project, ViT plays a pivotal role in the a
 ## Dependencies
 
 -   Python 3.x
--   torch==1.10.0
--   torchvision==0.11.1
--   Pillow==8.2.0
--   scikit-learn==0.24.2
--   matplotlib==3.4.2
+-   torch>=1.10.0
+-   torchvision>=0.11.1
+-   Pillow>=8.2.0
+-   scikit-learn>=0.24.2
+-   matplotlib>=3.4.2
+-   PIL>=7.2.0
 
 To install the required packages, run the following command:
 
@@ -98,29 +99,19 @@ For the model used within the results the model was trained for 50 Epochs.
 3. Predict Disease:
 
 ```
-python predict.py --model_path /path/to/model_weights.pth
+python predict.py --model_path /path/to/model_weights.pth --image_path /path/to/image.png
 ```
 
 You can customize predictions using the following optional arguments:
 
--   `--image_folder`: Path to a folder with images for prediction (default is None).
--   `--output_folder`: Path for saving prediction results (default is './predictions').
--   `--batch_size`: Set batch size for predictions (default is 16).
+-   `--image_path`: Path to a a image for prediction.
+-   `--output_folder`: Path for saving prediction results (default is current directory).
 
 4. Review Results
 
-Predictions are saved as images and a text file in the output folder. The text file includes a confusion matrix and accuracy.
+Predictions are saved as images to the output folder, see below for an example output.
 
-### Note
-
-Ensure your dataset matches the specified folder structure as seen below;
-
-```
-user_data/
-├─ image1.jpg
-├─ image2.jpg
-└── ...
-```
+![Example_Prediction](images/predicted_887923_89.jpeg)
 
 ## Results
 
@@ -147,7 +138,7 @@ When putting the testing data set through the trained model the following confus
 
 The resulting outputs yielded an accuracy of 83.06% with a higher percentage of false predictions being false Alzheimer's predictions which considering the application and overall risk is a better weighting to have as it is better to miss diagnose Alzheimer's as apposed to not diagnosing it at all. Within future iterations of this model it is suggested to place a class weighting to add further weighting to the model if it misclassifies Alzheimer's as False.
 
-Please see below for some of the outputs for the prediction script;
+Please see below for some of the predictions on the test data.
 
 <div style="display: flex; justify-content: space-between; padding-bottom: 10px;">
     <img src="images/batch83_image1.png" alt="Scan 1" width="30%">
