@@ -62,8 +62,8 @@ for epoch in range(num_epochs):
         best_accuracy = accuracy
         best_model = model.state_dict()
 
-
-    print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {total_loss:.4f}")
+    if (epoch % 25 == 0):
+        print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {total_loss:.4f}")
 
 # ----- Testing -----
 print("--- Testing ---")
