@@ -12,10 +12,10 @@ from torchvision.utils import save_image
 from modules import ImpUNet, DiceLoss
 
 # import dataloaders
-from dataset import train_loader, val_loader 
+from dataset import train_loader, val_loader, IMAGE_SIZE 
 
 # Macros
-LEARNING_RATE = 5e-4
+LEARNING_RATE = 0.0005
 NUM_EPOCH = 60 
 
 device = ('cuda' if torch.cuda.is_available() else 'cpu')
@@ -37,12 +37,12 @@ currentBestLoss = float("inf")
 # ----------
 
 for epoch in range(NUM_EPOCH):
-    print(f"epoc : {epoch} of {NUM_EPOCH}")
-    model.train()
+    print(f"epoch : {epoch} of {NUM_EPOCH}")
     running_loss = 0.0
-    for i, images in enumerate(train_loader):
-        img = images[0].to(device)
-        truth = images[1].to(device)
+    model.train()
+    for i, (img, truth) in enumerate(train_loader):
+        img = img.to(device)
+        truth = truth.to(device)
 
         # forward pass
         outputs = model(img).to(device)
@@ -58,13 +58,13 @@ for epoch in range(NUM_EPOCH):
         # print status
         if (i + 1) % 15 == 0:
             print("Epoch: [{}/{}], Step: [{}/{}], Loss: {:.5f}"
-                  .format(epoch+1, NUM_EPOCH, i+1, total_step, running_loss/(i+1)))
+                  .format(epoch+1, NUM_EPOCH, i+1, total_step, running_loss/((i+1))))
             sys.stdout.flush()
             
             # save image
             outputs = outputs.round()
             saved = torch.cat((outputs, truth), dim=0)
-            save_image(saved.view(-1, 1, 64, 64), f"data/prod_img/{epoch}_{i+1}_seg.png", nrow=5)
+            save_image(saved.view(-1, 1, IMAGE_SIZE, IMAGE_SIZE), f"data/prod_img/{epoch}_{i+1}_seg.png", nrow=5)
 
         # scheduler step
         # scheduler.step()
@@ -94,7 +94,8 @@ for epoch in range(NUM_EPOCH):
           if (i+1) % 10 == 0:
               outputs = outputs.round()
               saved = torch.cat((outputs, truth), dim=0)
-              save_image(saved.view(-1, 1, 64, 64), f"data/prod_img/val_{epoch+1}_{i+1}.png")
+              save_image(saved.view(-1, 1, IMAGE_SIZE, IMAGE_SIZE), f"data/prod_img/val_{epoch+1}_{i+1}.png", nrow=5)
+                  
           
     # Check if new loss is better than best loss
     if total < currentBestLoss:
@@ -109,3 +110,6 @@ for epoch in range(NUM_EPOCH):
     print("epoch: {}, Loss: {}".format(epoch+1, total/total_val_step))
 
 
+#----------
+# TESTING -
+#----------
