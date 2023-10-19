@@ -62,6 +62,7 @@ As the name suggests, the final model architechure is a simple multi-layer perce
 ![Diagram of the network architecture of the classifier](assets/Classifier_diagram.png)
 <sub>The network architecture of the classifier</sub>
 
+&nbsp;
 # The Dataset and Preprocessing
 The project uses the Alzheimer’s Disease Neuroimaging Initiative (ADNI) brain dataset, which consists of brain scans of people suffering from Alzheimer's disease and brain scans of cognitive normal people. Images contain 3 channels and are of 256 pixels wide by 240 pixels high. The dataloading functionality of the project is implemented in `dataset.py`.
 
@@ -73,8 +74,10 @@ The project uses the Alzheimer’s Disease Neuroimaging Initiative (ADNI) brain 
 The ADNI dataset is provided in two subfolders: `train` (21520 images) and `test` (9000 images). 
 The images in the `test` folder form the project's testing set. 
 The images in the `train` folder are split on the patient level to form the project's training and validation sets. 
+By default, the images of 80% of the unique patients in the `train` folder are assigned to the project's training set, and the images of the remaining 20% of the unique patients are assigned to the project's validation set. 
 
-By default, the images of 80% of the unique patients in the `train` folder are assigned to the project's training set, and the images of the remaining 20% of the unique patients are assigned to the project's validation set. The proportion of the training and validation split is adjustable by passing a parameter to the `load_data` method in `dataset.py`.
+> [!NOTE]
+>The proportion of the training and validation split is adjustable by passing a parameter to the `load_data` method in `dataset.py`.
 
 ## Transforms
 Different transforms were applied to the datasets depending on their category. 
@@ -98,9 +101,10 @@ The function `test_visualise_data_MLP` allows for the visualisation of the data 
 The function `test_visualise_data_Siamese` allows for the visualisation of the data used to train/validate/test the Siamese network. A sample output is provided below. 
 Note that the visualisation includes the last 15 characters of each image's filepath (excluding file extension). This was added to check that the same/different labels are applied correctly.
 
-![Sample batch containing 9 paired images that are used to train the Siamese network with labels presented in human-readable form](assets/data_for_Siamese.png)
+![Sample batch containing 9 paired images that are used to train the Siamese network with labels presented in human-readable form](assets/data_for_siamese.png)
 <sub>Sample batch containing 9 paired images that are used to train the Siamese network with labels presented in human-readable form (note the presence of translation transforms)</sub>
 
+&nbsp;
 # Training and Validating the Models
 The training and validation of the models are implemented in `train.py`. Two different training workflows are implemented. These are:
 * A sequential training workflow where the Siamese network is trained for a specified number of epochs, then the embedding network at the last epoch is used to train the classifier
@@ -127,7 +131,7 @@ This is despite the fact that the Siamese network appears to overfit the trainin
 ![Training and validation loss plot for the overall Siamese network, showing validation loss diverging from training loss from around epochs 8 to 10](assets/Siamese_loss_after_15_epochs.png)
 <sub>Training and validation loss plot for the overall Siamese network</sub>
 
-
+&nbsp;
 ## Training for the Classification Network
 ### Loss Function
 As the classifier is performing a binary classification task, binary cross-entropy loss was used.
@@ -146,7 +150,8 @@ The classifier's accuracy for both the validation set and the test set is shown 
 ![Plot of the classifier's accuracy on the validation and test datasets, showing both accuracies to remain relatively stable throughout all 20 epochs](assets/Classifier_Accuracy_after_20_epochs.png)
 <sub>Plot of the classifier's accuracy on the validation and test datasets</sub>
 
-# Discussion of Results 
+&nbsp;
+## Discussion
 
 # Using the Models for Classification
 put some images here
