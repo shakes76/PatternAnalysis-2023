@@ -12,15 +12,13 @@ batch = 32
 
 img_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
 seg_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
-train_dataset = d.ISICDataset(img_dir, seg_dir, d.transform('train'), d.transform('seg'))
-train_loader = DataLoader(train_dataset, batch, shuffle=True)
+test_dataset = d.ISICDataset(img_dir, seg_dir, d.transform('train'), d.transform('seg'))
+test_loader = DataLoader(test_dataset, batch, shuffle=False)
 model = m.ModifiedUNet(3, 1).to(device)
 
 model.load_state_dict(torch.load('model_weights.pth'))
 
-random_indices = [1,30, 45, 60, 17]
-for i in random_indices:
-    input = train_loader[i]
+
 
 # if i == 1:
             #     test_image = images.cpu()[0].squeeze(0).numpy()

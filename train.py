@@ -27,7 +27,7 @@ def main():
     seg_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
 
     # Preparing the data
-    train_dataset = d.ISICDataset(img_dir, seg_dir, d.transform('train'), d.transform('seg'))
+    train_dataset = d.CustomISICDataset(img_dir, seg_dir, d.transform('train'), d.transform('seg'))
     train_loader = DataLoader(train_dataset, batch, shuffle=True)
 
     # We will use the ADAM optimizer
@@ -37,7 +37,6 @@ def main():
     for epoch in range(epochs):
         losslist = []
         runningloss_val = []
-        # dicelist = []
         runningloss = 0.0
 
         # Begin the training phase. 
@@ -88,7 +87,7 @@ def main():
                     # Putting the tensors in the formatting necessary for matplotlib.pyplot
                     image = input[0].cpu()[row].permute(1,2,0).numpy()
                     ground_truth = input[1].cpu()[row][0].numpy()
-                    modelled_image = model(input[0]).cpu()[row][0][0].numpy()
+                    modelled_image = model(input[0].to(device)).cpu()[row][0][0].numpy()
 
                     axis[row][0].imshow(image)
                     axis[row][0].xaxis.set_visible(False)
