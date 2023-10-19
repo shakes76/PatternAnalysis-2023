@@ -8,6 +8,7 @@ from torch.nn import BCELoss, CrossEntropyLoss
 from tqdm import tqdm, trange
 import numpy as np
 from PIL import Image
+import cv2
 
 
 root = '/home/groups/comp3710/ADNI/AD_NC/'
@@ -29,8 +30,39 @@ image_crop = 210
 #     def __len__(self):
 #         return len(self.data)
 
+class CropBrainScan:
+    def __call__(self, image):
+        # Convert the image to a NumPy array if it's not already
+        if not isinstance(image, np.ndarray):
+            image = np.array(image)
+
+        # Ensure the image is in the CV_8UC1 format
+        if image.ndim > 2:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        # Apply thresholding to separate the brain scan from the background
+        _, thresholded = cv2.threshold(image, 1, 255, cv2.THRESH_BINARY)
+        
+        # Find contours in the thresholded image
+        contours, _ = cv2.findContours(thresholded, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        
+        # Find the largest contour (the brain scan region)
+        largest_contour = max(contours, key=cv2.contourArea)
+        
+        # Get the coordinates of the bounding box around the largest contour
+        x, y, w, h = cv2.boundingRect(largest_contour)
+        
+        # Crop the image to keep only the brain scan region
+        cropped_image = image[y:y + h, x:x + w]
+
+        # Convert the NumPy array back to a PIL image
+        cropped_image = Image.fromarray(cropped_image)
+        
+        return cropped_image
+
 train_transform = transforms.Compose([
-    transforms.CenterCrop((image_crop, image_crop)),
+    # transforms.CenterCrop((image_crop, image_crop)),
+    CropBrainScan(),
     transforms.Resize((image_size, image_size)),
     transforms.Grayscale(),
     transforms.ToTensor(),
@@ -38,7 +70,8 @@ train_transform = transforms.Compose([
 ])
     
 test_transform = transforms.Compose([
-    transforms.CenterCrop((image_crop, image_crop)),
+    # transforms.CenterCrop((image_crop, image_crop)),
+    CropBrainScan(),
     transforms.Resize((image_size, image_size)),
     transforms.Grayscale(),
     transforms.ToTensor(),
