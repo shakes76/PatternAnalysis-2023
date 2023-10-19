@@ -1,4 +1,4 @@
-import modules, os, torch
+import modules, os, torch, math
 import torch.nn.functional as F
 import torchvision.transforms as transforms
 import numpy as np
@@ -9,7 +9,7 @@ from torchvision.utils import save_image
 # Path to data images
 root_path = 'data/keras_png_slices_data'
 
-IMAGE_SIZE = 256
+IMAGE_SIZE = 256 # Power of 2
 BATCH_SIZE = 32
 
 #Modules utils
@@ -125,9 +125,9 @@ def sample_save_image(model, epoch, output_dir, device, start_time):
 
 DEVICE                  = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE           = 1e-3
-LOG_RESOLUTION          = 8 #for 256*256
-Z_DIM                   = 256
-W_DIM                   = 256
+LOG_RESOLUTION          = math.log2(IMAGE_SIZE)
+Z_DIM                   = IMAGE_SIZE
+W_DIM                   = IMAGE_SIZE
 LAMBDA_GP               = 10
 
 def gradient_penalty(critic, real, fake,device="cpu"):
@@ -175,14 +175,17 @@ def get_noise(batch_size):
         return noise
         
 def generate_examples(mapping_network, gen, epoch, start_time, n=100):
-    gen.eval()
     for i in range(n):
-        with torch.no_grad():
-            w     = get_w(mapping_network, 1)
-            noise = get_noise(1)
-            img = gen(w, noise)
-            if not os.path.exists(f'saved_examples/{start_time}_epoch{epoch}'):
-                os.makedirs(f'saved_examples/{start_time}_epoch{epoch}')
-            save_image(img*0.5+0.5, f"saved_examples/{start_time}_epoch{epoch}/img_{i}.png")
+        img = generate_images(mapping_network, gen)
+        if not os.path.exists(f'saved_examples/{start_time}_epoch{epoch}'):
+            os.makedirs(f'saved_examples/{start_time}_epoch{epoch}')
+        save_image(img, f"saved_examples/{start_time}_epoch{epoch}/img_{i}.png")
 
+def generate_images(mapping_network, gen, n=1):
+    gen.eval()
+    with torch.no_grad():
+        w     = get_w(mapping_network, n)
+        noise = get_noise(n)
+        img   = gen(w, noise)
     gen.train()
+    return img*0.5+0.5

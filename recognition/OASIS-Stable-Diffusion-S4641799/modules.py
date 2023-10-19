@@ -205,7 +205,7 @@ class GeneratorBlock(nn.Module):
 
 class Generator(nn.Module):
 
-    def __init__(self, log_resolution, W_DIM, n_features = 32, max_features = 256):
+    def __init__(self, log_resolution, W_DIM, n_features = 32, max_features = utils.IMAGE_SIZE):
 
         super().__init__()
 
@@ -265,7 +265,7 @@ class DiscriminatorBlock(nn.Module):
 
 class Discriminator(nn.Module):
 
-    def __init__(self, log_resolution, n_features = 32, max_features = 256):
+    def __init__(self, log_resolution, n_features = 32, max_features = utils.IMAGE_SIZE):
 
         super().__init__()
 
