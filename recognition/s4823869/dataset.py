@@ -1,14 +1,18 @@
-from glob import glob
-import matplotlib.pyplot as plt
+import glob
+import os
 import numpy as np
-from numpy import array, reshape
+import torch
+from torchvision import transforms
+from torch.utils.data import Dataset, DataLoader
 from PIL import Image
+import matplotlib.pyplot as plt
 
-NMALISE = 255.0
+NORMALISE = 255.0
 CENTRE = 0.5
 IMAGE_DIM = 80
-ENC_IN_SHAPE = (80, 80, 1)
-GREYSCALE = "gray"  # Use "gray" for grayscale images
+ENC_IN_SHAPE = (1, 80, 80)
+
+GREYSCALE = "L"  # Grayscale mode in PyTorch
 
 SPLITS = 3
 BASE = "keras_png_slices_data/keras_png_slices_"
@@ -16,62 +20,74 @@ TRAINING = BASE + "train/*"
 TESTING = BASE + "test/*"
 VALIDATION = BASE + "validate/*"
 
-def get_ttv():
+def normalise(data):
+    """
+    Normalize the input data.
 
+    data - Input data to be normalized
+
+    Returns normalized data
+    """
+    # Normalize the data by dividing by the normalization factor
+    data = data / NORMALISE
+    return data
+
+class CustomDataset(Dataset):
+    def __init__(self, data_paths, transform=None):
+        self.data_paths = data_paths
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.data_paths)
+
+    def __getitem__(self, idx):
+        img = Image.open(self.data_paths[idx])
+        if self.transform:
+            img = self.transform(img)
+        return img
+
+def get_ttv():
     """
     Read in the training/testing/validation datasets from local files.
-    Mostly repurposed from demo 2
+    Mostly repurposed from the original demo.
 
-    return	- the training, testing, and validation datasets
+    return    - the training, testing, and validation datasets
     """
+    train_data = glob.glob(TRAINING)
+    test_data = glob.glob(TESTING)
+    val_data = glob.glob(VALIDATION)
 
-    srcs = (glob(TRAINING), glob(TESTING), glob(VALIDATION))
-    dsets = ([[]] * SPLITS)
+    # Check if the directories exist and contain files
+    if not train_data or not test_data or not val_data:
+        raise FileNotFoundError("No image files found in the specified directories. Check file paths.")
 
-    for i, src in enumerate(srcs):
-        for path in src:
-            base = Image.open(path)
-            scale = base.resize((IMAGE_DIM, IMAGE_DIM))
-            npify = reshape(scale, ENC_IN_SHAPE)
-            dsets[i].append(npify)
+    transform = transforms.Compose([transforms.Grayscale(num_output_channels=1),
+                                    transforms.Resize((IMAGE_DIM, IMAGE_DIM)),
+                                    transforms.ToTensor()])
 
-    as_arrs = tuple([array(d) for d in dsets])
-    train_dset, test_dset, val_dset = as_arrs
+    train_dataset = CustomDataset(data_paths=train_data, transform=transform)
+    test_dataset = CustomDataset(data_paths=test_data, transform=transform)
+    val_dataset = CustomDataset(data_paths=val_data, transform=transform)
 
-    return (train_dset, test_dset, val_dset)
+    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+    test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
+    val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
 
-def normalise(dset):
-    """Scale and center a dataset to have all values within [-0.5, 0.5]"""
-    return dset / NMALISE - CENTRE
+    return train_loader, test_loader, val_loader
 
 def preview(dataset, n):
-
     """
     Show the first n^2 images of the dataset in an n x n grid
 
-    dataset	- training / testing / validation dataset to preview
-    n		- length of the preview square grid
+    dataset    - training / testing / validation dataset to preview
+    n        - length of the preview square grid
     """
-
+    fig, axes = plt.subplots(n, n, figsize=(8, 8))
     for i in range(n):
         for j in range(n):
-            ind = (n * i) + j + 1
-            if ind <= len(dataset):
-                plt.subplot(n, n, ind)
-                plt.axis("off")
-                plt.imshow(dataset[ind - 1], cmap=GREYSCALE)
+            ind = (n * i) + j
+            img = dataset.dataset[ind].numpy().squeeze()
+            axes[i, j].imshow(img, cmap=GREYSCALE)
+            axes[i, j].axis('off')
 
     plt.show()
-
-if __name__ == "__main__":
-
-    # Load the training/testing/validation datasets
-    train_dset, test_dset, val_dset = get_ttv()
-
-    # Normalize the datasets
-    train_dset = normalise(train_dset)
-    test_dset = normalise(test_dset)
-    val_dset = normalise(val_dset)
-
-    # Preview the training dataset
-    preview(train_dset, 4)
