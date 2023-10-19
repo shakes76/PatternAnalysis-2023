@@ -12,7 +12,9 @@ import torch.nn.functional as F
 import math
 
 class PatchLayer(nn.Module):
-   
+    """
+    Layer for shifting inputted images and transforming images into patches.
+    """
     def __init__(self, image_size, patch_size, num_patches, projection_dim):
         super(PatchLayer, self).__init__()
         self.image_size = image_size
@@ -43,3 +45,18 @@ class PatchLayer(nn.Module):
         tokens = self.projection(tokens)
 
         return (tokens, patches)
+
+class EmbedPatch(nn.Module):
+    """
+    Layer for projecting patches into a vector. Also adds a learnable position embedding to the projected vector.
+    """
+    def __init__(self, num_patches, projection_dim):
+        super(EmbedPatch, self).__init__()
+        self.num_patches = num_patches
+        self.projection_dim = projection_dim
+        self.position_embedding = nn.Parameter(torch.randn(1, self.num_patches, self.projection_dim))
+
+    def forward(self, patches):
+        positions = torch.arange(self.num_patches, device=patches.device).unsqueeze(0)
+        position_embedding = self.position_embedding
+        return patches + position_embedding
