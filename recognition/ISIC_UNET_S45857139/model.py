@@ -3,6 +3,16 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 def adjust_residual(x, residual):
+    """
+    Adjust the channel size of the residual tensor to match that of x, and add them together.
+    
+    Args:
+    - x (torch.Tensor): The main tensor.
+    - residual (torch.Tensor): The residual tensor to be adjusted and added to x.
+
+    Returns:
+    - torch.Tensor: The resultant tensor after adding x and the adjusted residual.
+    """
     x_channels = x.shape[1]
     residual_channels = residual.shape[1]
 
@@ -13,6 +23,10 @@ def adjust_residual(x, residual):
     return x + residual
 
 class ResidualBlock(nn.Module):
+    """
+    A block that applies two convolutions followed by leaky ReLU activations, dropout, 
+    and instance normalization, then adds the input as a residual.
+    """
     def __init__(self, in_channels, out_channels):
         super(ResidualBlock,self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
@@ -21,6 +35,15 @@ class ResidualBlock(nn.Module):
         self.instancenorm = nn.InstanceNorm2d(out_channels)
 
     def forward(self, x):
+        """
+        Forward pass for the Residual Block.
+
+        Args:
+        - x (torch.Tensor): Input tensor.
+
+        Returns:
+        - torch.Tensor: Output tensor.
+        """
         residual = x
         x = F.leaky_relu(self.instancenorm(self.conv1(x)), negative_slope=1e-2)
         x = self.dropout(x)
@@ -29,17 +52,32 @@ class ResidualBlock(nn.Module):
         return x
     
 class LocalizationModule(nn.Module):
+    """
+    A module that applies two convolutions followed by leaky ReLU activations.
+    """
     def __init__(self, in_channels, out_channels):
         super(LocalizationModule, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(out_channels, out_channels // 2, kernel_size=1)
 
     def forward(self, x):
+        """
+        Forward pass for the Localization Module.
+
+        Args:
+        - x (torch.Tensor): Input tensor.
+
+        Returns:
+        - torch.Tensor: Output tensor.
+        """
         x = F.leaky_relu(self.conv1(x), negative_slope= 1e-2)
         x = F.leaky_relu(self.conv2(x), negative_slope = 1e-2)
         return x
 
 class UNETImproved(nn.Module):
+    """
+    An improved U-Net architecture for semantic segmentation.
+    """
     def __init__(self, n_classes):
         super(UNETImproved, self).__init__()
 
@@ -56,10 +94,19 @@ class UNETImproved(nn.Module):
         self.decode3 = LocalizationModule(128 + 64, 64)
         self.decode4 = LocalizationModule(64 + 32, 32)
 
-        # # Output
+        # Output
         self.final_conv = nn.Conv2d(16, 1, kernel_size=1)
 
     def forward(self, x):
+        """
+        Forward pass for the improved U-Net.
+
+        Args:
+        - x (torch.Tensor): Input tensor.
+
+        Returns:
+        - torch.Tensor: Output tensor.
+        """
 
         # Encode
         e1 = self.encode1(x)
@@ -88,5 +135,3 @@ class UNETImproved(nn.Module):
         # Output
         out = self.final_conv(d4)
         return torch.sigmoid(out)
-    
-
