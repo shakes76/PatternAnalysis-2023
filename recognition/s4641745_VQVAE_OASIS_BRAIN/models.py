@@ -28,7 +28,7 @@ class Residual(nn.Module):
             nn.ReLU(),
             nn.Conv2d(ch_in, ch_out_inter, 3, 1, 1, bias=False),
             nn.ReLU(),
-            nn.Conv2d(ch_out_inter, ch_out_final, 1, 1, False)
+            nn.Conv2d(ch_out_inter, ch_out_final, 1, 1, bias=False)
         )
 
     def forward(self, x):

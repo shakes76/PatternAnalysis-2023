@@ -7,8 +7,9 @@ import torchvision as tv
 import torchvision.transforms as transforms
 import torch.nn.functional as F
 from torch.autograd import Variable
+import numpy as np
 
-from dataset import vqvae_test_loader, vqvae_train_loader
+from dataset import vqvae_test_loader, vqvae_train_loader, MODEL_PATH
 from models import VQVAE
 from utils import save_image
 
@@ -41,6 +42,7 @@ for i in range(MAX_EPOCHS_VQVAE):
 
     size = len(vqvae_train_loader.dataset)
     batch_losses = []
+    i = 0
     for batch, (X, _) in enumerate(vqvae_train_loader):
         X = X.to(device)
 
@@ -53,13 +55,17 @@ for i in range(MAX_EPOCHS_VQVAE):
         optimizer.step()
         batch_losses.append(recon_error.item())
 
+        if (i+1) % 100 == 0:
+            print(f"Step {i} -  recon_error: {np.mean(batch_losses[-100:])}")
+        i += 1
+
     loss = sum(batch_losses) / len(batch_losses)
 
     train_recon_loss.append(loss)
     print(f"Reconstruction loss: {loss}")
 
 # Save model
-t.save(model, "./assets/models" + "vqvae.txt")
+t.save(model, os.path.join(MODEL_PATH, "vqvae.txt"))
 
 # save samples of real and test data
 real_imgs = next(iter(vqvae_test_loader)) # load some from test dl
