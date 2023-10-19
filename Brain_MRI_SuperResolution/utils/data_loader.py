@@ -8,11 +8,13 @@ import numpy as np
 from PIL import Image, ImageOps
 from PIL import ImageEnhance
 
+# Constants for file extensions and padding color
 FILE_EXTENSIONS = ['.jpeg']
 PADDING_COLOR = "white"  # Easily change padding color if needed
 
 
 def sharpen_image(img, factor=2.0):
+    """Enhance the sharpness of the image."""
     enhancer = ImageEnhance.Sharpness(img)
     return enhancer.enhance(factor)
 
@@ -27,17 +29,21 @@ def pad_image(img, desired_size):
 
 
 def downsample_image(img, factor=4):
+    """Downsample the image by the given factor."""
     return img.resize((img.width // factor, img.height // factor), Image.LANCZOS)
 
 
 def process_images(input_folder, output_folder, factor=4, display_sample=True):
+    """Process and downsample the images in the given input folder and save them to the output folder."""
     print(f"Processing images in folder: {input_folder}")
 
+    # Create output directory if not exists
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
     processed_files = 0
 
+    # Iterate through each image in the folder and process it
     for root, _, files in os.walk(input_folder):
         for file in files:
             if any(file.endswith(ext) for ext in FILE_EXTENSIONS):
@@ -54,6 +60,7 @@ def process_images(input_folder, output_folder, factor=4, display_sample=True):
                     processed_files += 1
                     print(f"Processed {processed_files}")
 
+                    # Display the first processed image as a sample
                     if processed_files == 1 and display_sample:
                         img_resized.show()
                 except Exception as e:
