@@ -141,14 +141,14 @@ class UNet(nn.Module):
         out=torch.cat((out,cat2),dim=1)
         out=self.local2(out)
         segm1=self.segm1(out)
-        segm1=F.interpolate(segm1,scale_factor=2,mode='nearest')
+        segm1=F.interpolate(segm1,scale_factor=2,mode='bilinear')
 
         out=self.up3(out)
         out=torch.cat((out,cat3),dim=1)
         out=self.local3(out)
         segm2=self.segm2(out)
         segm2=torch.add(segm1,segm2)
-        segm2=F.interpolate(segm1,scale_factor=2,mode='nearest')
+        segm2=F.interpolate(segm1,scale_factor=2,mode='bilinear')
 
         out=self.up4(out)
         out=torch.cat((out,cat4),dim=1)
