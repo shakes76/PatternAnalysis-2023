@@ -69,7 +69,7 @@ As a result, the project doesn't reach the goal of 0.8 accuracy. I tried differe
 
 ## Using the code
 
-To use the code, you have to change the different folder paths of the dataset. Moreover, the model weight's saving and loading path must also be modified. The project consists of four different Python files where the model is trained with the train.py. The Python files predict.py allow us to test the model. The Python files dataset.py and modules.py contain functions which are required in the train.py and predict.py files.
+To use the code, you have to change the different folder paths of the dataset. Moreover, the model weight's saving and loading path must also be modified. The project consists of four different Python files where the model is trained with the train.py. The Python files predict.py allow us to test the model. The Python files dataset.py and modules.py contain functions which are required in the train.py and predict.py files. The ColabSaimeseNetwork.ipynb file is used to train the model in Google Colab.
 
 ## References
 [1] G. Koch, R. Zemel, and R. Salakhutdinov, Siamese neural networks for one-shot image recognition, Jul 2015
