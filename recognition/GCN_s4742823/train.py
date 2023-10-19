@@ -67,6 +67,7 @@ def train_model(model, data):
         predicted = predicted.cpu().numpy()
         y_true = data.y[data.val_mask].cpu().numpy()
         accuracy = accuracy_score(y_true, predicted)
+        # Store the most accurate model
         if accuracy > best_accuracy:
             best_accuracy = accuracy
             best_model_state = copy.deepcopy(model.state_dict())
@@ -79,6 +80,7 @@ def train_model(model, data):
     if (best_model_state is not None):
         model.load_state_dict(best_model_state)
 
+    # Plot results
     plot_accuracy(train_accuracies, val_accuracies)
     plot_loss(train_losses, val_losses)
 
@@ -92,7 +94,7 @@ def test_model(model, data):
     model.eval()
     with torch.no_grad():
         out = model(data)
-        out_np = out.cpu().numpy()  # To be used for t-SNE
+        out_np = out.cpu().numpy()  # To be used for t-SNE.
         _, predicted = torch.max(out[data.test_mask], 1)  # Get classes with the highest probablities (note that we only use test nodes).
         predicted = predicted.cpu().numpy()
         y_true = data.y[data.test_mask].cpu().numpy()
@@ -107,8 +109,10 @@ def plot_tsne(output, y_true, data):
 
     plt.figure(figsize=(10, 8))
     for class_idx in range(NUM_CLASSES):
-        mask = data.test_mask.cpu().numpy()
-        plt.scatter(transformed[mask, 0][y_true == class_idx], transformed[mask, 1][y_true == class_idx], label=CLASSES[class_idx])
+        mask = data.test_mask.cpu().numpy()  # Use test data mask stored in GCNData object.
+        plt.scatter(transformed[mask, 0][y_true == class_idx], 
+                    transformed[mask, 1][y_true == class_idx], 
+                    label=CLASSES[class_idx])  # Plot all transformed nodes for each class.
     plt.legend()
     plt.title("t-SNE Plot")
     plt.savefig("tsne_plot.png")

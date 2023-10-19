@@ -19,12 +19,15 @@ class GCNData:
     def __init__(self, x, y, train_mask, val_mask, test_mask, adj, features):
         self.x = x
         self.y = y
+        # Masks used for splitting data.
         self.train_mask = train_mask
         self.val_mask = val_mask
         self.test_mask = test_mask
+        # Adjacency matrix for connections.
         self.adj = adj
         self.features=features
 
+    # This method allows us to move the GCNData object to GPU.
     def to(self, device):
         self.x = self.x.to(device)
         self.y = self.y.to(device)
