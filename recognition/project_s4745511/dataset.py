@@ -3,20 +3,20 @@ import tensorflow as tf
 import numpy as np
 import random
 
-AD_PATH = "/content/extracted/AD_NC/train/AD"
-NC_PATH = "/content/extracted/AD_NC/train/NC"
+AD_TRAIN_DATA = "AD_NC/train/AD"
+NC_TRAIN_DATA = "AD_NC/train/NC"
 
-AD_TEST_PATH = "/content/extracted/AD_NC/test/AD"
-NC_TEST_PATH = "/content/extracted/AD_NC/test/NC"
+AD_TEST_DATA = "AD_NC/test/AD"
+NC_TEST_DATA = "AD_NC/test/NC"
 
-def load_siamese_data(batch_size=32, train_ratio=0.8):
+def siamese_data_loader(batch_size=32, train_ratio=0.8):
     def preprocess_image(path):
         image = tf.io.read_file(path)
         image = tf.image.decode_jpeg(image, 1)
         image = tf.image.resize(image, [128, 128])  # You can adjust the size here
         return image / 255
-    custom_ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
-    custom_nc_paths = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
+    custom_ad_paths = [os.path.join(AD_TRAIN_DATA, path) for path in os.listdir(AD_TRAIN_DATA)]
+    custom_nc_paths = [os.path.join(NC_TRAIN_DATA, path) for path in os.listdir(NC_TRAIN_DATA)]
 
     # Shuffle the paths
     random.shuffle(custom_ad_paths)
@@ -53,18 +53,21 @@ def load_siamese_data(batch_size=32, train_ratio=0.8):
 
     return custom_train.batch(batch_size), custom_val.batch(batch_size)
 
-def load_classify_data(testing: bool, batch_size=32):
+def classification_data_loader(testing: bool):
     def preprocess_image(path):
           image = tf.io.read_file(path)
           image = tf.image.decode_jpeg(image, 1)
           image = tf.image.resize(image, [128, 128])  # You can adjust the size here
           return image / 255
+    
+    # batch_size=32
+
     if not testing:
-        ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
-        cn_paths = [os.path.join(NC_PATH, path) for path in os.listdir(NC_PATH)]
+        ad_paths = [os.path.join(AD_TRAIN_DATA, path) for path in os.listdir(AD_TRAIN_DATA)]
+        cn_paths = [os.path.join(NC_TRAIN_DATA, path) for path in os.listdir(NC_TRAIN_DATA)]
     else:
-        ad_paths = [os.path.join(AD_TEST_PATH, path) for path in os.listdir(AD_TEST_PATH)]
-        cn_paths = [os.path.join(NC_TEST_PATH, path) for path in os.listdir(NC_TEST_PATH)]
+        ad_paths = [os.path.join(AD_TEST_DATA, path) for path in os.listdir(AD_TEST_DATA)]
+        cn_paths = [os.path.join(NC_TEST_DATA, path) for path in os.listdir(NC_TEST_DATA)]
 
     paths = ad_paths + cn_paths
 
@@ -82,4 +85,4 @@ def load_classify_data(testing: bool, batch_size=32):
         train_num = int(round(len(dataset) * 0.7, 0))
         train = dataset.take(train_num)
         val = dataset.skip(train_num)
-        return train.batch(batch_size), val.batch(batch_size)
+        return train.batch(32), val.batch(32)
