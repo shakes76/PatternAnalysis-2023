@@ -50,7 +50,7 @@ if not os.path.exists("output_images"):
     os.makedirs("output_images")
 
 # Save the generated image grid to a file
-save_path = os.path.join("output_images", "generated_grid.png")
+save_path = os.path.join("output_images", "generated_images.png")
 plt.savefig(save_path)
 
 # Close the plot

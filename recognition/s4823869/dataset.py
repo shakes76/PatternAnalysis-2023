@@ -94,7 +94,7 @@ def check_loader():
     loader, _ = get_loader(256)
     img = next(iter(loader))
     _, ax = plt.subplots(3, 3, figsize=(8, 8))
-    plt.suptitle('Real sample images')
+    plt.suptitle('Original images')
     ind = 0
     for k in range(3):
         for kk in range(3):
