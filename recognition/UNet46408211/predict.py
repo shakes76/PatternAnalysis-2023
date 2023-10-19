@@ -1,5 +1,7 @@
-# Loads the model and runs it on the test set. Saves the predictions to a folder for visualization.
-# and calculates the dice score on the test set.
+"""
+Loads the model and runs it on the test set. Saves the predictions to a folder for visualization.
+and calculates the dice score on the test set.
+"""
 
 from dataset import ISICDataset
 import torch

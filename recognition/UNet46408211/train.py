@@ -1,4 +1,6 @@
-# This file is the main training script for the UNet model
+"""
+This file is the main training script for the Improved UNet model
+"""
 
 import torch
 import albumentations as A
@@ -60,17 +62,11 @@ def main():
         A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
         ToTensorV2()
     ])
-    test_transform = A.Compose([
-        A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
-        A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
-        ToTensorV2()
-    ])
     validation_transform = A.Compose([
         A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
         A.Normalize(mean=[0.0, 0.0, 0.0], std=[1.0, 1.0, 1.0], max_pixel_value=255.0),
         ToTensorV2()
     ])
-    
     
     # create the dataloaders 
     train_set = ISICDataset(TRAIN_IMG_DIR, TRAIN_MASK_DIR, transform=train_transform)
@@ -117,7 +113,6 @@ def main():
         val_dice_score = calc_dice_score(model, val_loader, device=device)
         val_dice_score = np.round(val_dice_score.item(), 4)
         dice_scores.append(val_dice_score)
-        print(f'DICE SCORES LIST: {dice_scores}') # DEBUG
         print(f'Validation dice score: {val_dice_score}')
             
         # Print some feedback after each epoch

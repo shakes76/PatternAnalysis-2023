@@ -1,10 +1,12 @@
-# A custom loss function based on the Dice score.
+"""
+A custom loss function based on the Dice score.
+"""
 
 import torch
 import torch.nn as nn
 
 # The below class is from https://github.com/hubutui/DiceLoss-PyTorch
-# It is a more general implementation of the Dice loss
+# It is a loss function based on the Dice score.
 class BinaryDiceLoss(nn.Module):
     """Dice loss of binary class
     Args:

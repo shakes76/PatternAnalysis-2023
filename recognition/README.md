@@ -1,5 +1,5 @@
-# Segmentation of skin lesions using UNet
-#### Author: Sam Pollard, 46408211
+# Segmentation of skin lesions using an Improved UNet
+##### Author: Sam Pollard, 46408211
 
 ### Files:
 * `dataset.py` contains the custom PyTorch data set for the ISIC 2017 data.
@@ -12,7 +12,7 @@
 * See `requirements.yaml` for dependencies.
 
 ## Introduction:
-The aim of this project is to automatically produce segmentation masks of skin lesions using a deep convolutional neural network model based on the improved UNet[^1] implemented in PyTorch.
+The aim of this project is to automatically produce segmentation masks of skin lesions from the ISIC 2017 data set using a deep convolutional neural network model based on the improved UNet[^1] implemented in PyTorch.
 
 Example visualization:
 
@@ -20,9 +20,9 @@ Example visualization:
 ![Example output](readme_images/example2.png)
 
 ## Data:
-The ISIC 2017 data set, available at https://challenge.isic-archive.com/data/#2017 consists of 2000 lesion images in JPEG format with 2000 corresponding binary masks in PNG format for the train set.
+The International Skin Imaging Collaboration (ISIC) hosts the worlds largest publicly available collection of quality controlled dermoscopic images. Including several deep learning challenge data sets, one such data set is the ISIC 2017 challenge data set. The ISIC 2017 data set, available at https://challenge.isic-archive.com/data/#2017 consists of 2000 lesion images in JPEG format with 2000 corresponding binary masks in PNG format for the train set. The provided validation and test sets were used, so there was no need for a train test split.
 
-## Data Preprocessing:
+### Data Preprocessing:
 Images where read using PIL and converted to tensors with lesion images in RGB format and masks as greyscale. All images where normalized and resized to 128x128 to reduce training time and memory consumption.
 
 ## Model:
@@ -56,6 +56,12 @@ It can be seen from figure 6 that only about 5 more epochs where needed for the 
 
 ![final test dice score](readme_images/dice_score.PNG)
 
+This dice score is satisfactory as it exceeds the goal of 0.8.
+
+See more examples from the model below:
+
+*figure 7: example images and predictions*
+![example images and predictions](readme_images/example3.png)
 
 
 

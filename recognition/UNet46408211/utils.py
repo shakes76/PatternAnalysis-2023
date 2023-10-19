@@ -1,12 +1,11 @@
-# Some helper functions for visualization, saving/loading checkpoints and calculating the dice score.
+"""
+Some helper functions for visualization, saving/loading checkpoints and calculating the dice score.
+"""
 
 import numpy as np
-import torch.nn as nn
 from PIL import Image
 import torch
 import matplotlib.pyplot as plt
-from dataset import ISICDataset
-from torch.utils.data import DataLoader
 import torchvision
 import random
 import os
@@ -31,18 +30,6 @@ def load_checkpoint(checkpoint, model, optimizer=None):
     if optimizer is not None:
         optimizer.load_state_dict(checkpoint['optimizer'])
     print('>>> Checkpoint loaded')
-
-# def create_dataloader(img_dir, mask_dir, transform, 
-#                       batch_size, num_workers, 
-#                       pin_memory, shuffle=True):
-#     """
-    
-#     """
-#     dataset = ISICDataset(img_dir, mask_dir, transform=transform)
-#     loader = DataLoader(dataset, batch_size=batch_size, 
-#                         num_workers=num_workers, 
-#                         pin_memory=pin_memory, shuffle=shuffle)
-#     return loader
 
 def calc_dice_score(model, dataloader, device='cuda', verbose=False):
     """

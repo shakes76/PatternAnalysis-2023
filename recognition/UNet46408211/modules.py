@@ -1,4 +1,6 @@
-# A CNN model based on the UNet architecture.
+"""
+A CNN model based on the Improved UNet architecture, with associated modules.
+"""
 
 import torch
 import torch.nn as nn

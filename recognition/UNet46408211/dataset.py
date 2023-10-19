@@ -1,4 +1,6 @@
-# A custom data set class for the ISIC 2017 data set. This class is used in the train.py and predict.py files.
+"""
+A custom data set class for the ISIC 2017 data set. This class is used in the train.py and predict.py files.
+"""
 
 import numpy as np
 import os
