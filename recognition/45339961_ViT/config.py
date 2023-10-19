@@ -12,7 +12,7 @@ will_predict = False
 data_path = "C:/Users/Jacqu/Downloads/AD_NC"
 batch_size = 64
 n_channels = 1
-image_size = 224
+image_size = 256
 n_classes = 2
 data_split = 0.6
 

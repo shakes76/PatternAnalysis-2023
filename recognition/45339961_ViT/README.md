@@ -137,7 +137,7 @@ save_path:          Path to save model to
 results_path:       Folder to store images of results
 ```
 
-Note that, if the user wishes to show any plots, then one must close these plots so the model can continue. Furthermore, the test accuracy will be printed once the model has finished testing.
+Note that, if the user wishes to show any plots, then one must close these plots so the model can continue. Furthermore, the test accuracy will be printed once the model has finished testing. If the user wishes to change the loss function or optimiser, further customisation would need to be done in the ```modules.py``` and ```driver.py``` files.
 
 # 4. Results
 ## 4.1. Data Preprocessing
@@ -158,7 +158,7 @@ It is clear to see that for an essentially unprocessed image, many of the patche
 Several data augmentation processes were introduced to improve model accuracy. These are outlined below.
 - Normalisation:
     - The mean and std devation of the train and test data were calculated separately and applied to the images during transformation for the dataloaders.
-- RandomHorizontalFlip:
+- RandomHorizontalFlip / RandomVerticalFlip:
     - This was added to allow for variation in the training data, so the model could learn more features.
 - Recentering:
     - Recentering the image based on the brain segment was also explored, although unfortunately was not able to be extensively tested. In theory, this would allow the model to better understand the features of the MRI due to all the images being in the same location each time. This was done by finding the center of the brain segment in the image, then translating that center to the center of the image. Please refer to Section 5 for future improvements.
@@ -224,16 +224,27 @@ loss function = Cross Entropy Loss
 optimiser = Adam
 n_epochs = 15
 ```
+The model test accuracy for the standard form was 62.31% (loss of 0.77).
+
+Unfortunately, the tests performed were limited in scope due to the computational resources required to train the model. The following table outlines the tests that were performed:
 
 | Test Type     | Change            | Accuracy   |
 |---------------|-------------------|------------|
 | Data Split    | 0.6, 0.7, 0.9     | 66.56%, 65.29%, 61.49% |
 | Learning Rate | 0.1, 0.01, 0.001  | 50.44%, 55.86%, 62.81% |
-| Optimiser     | Adam, AdamW, SGD  | X%, X%, X% |
-| Patch Size    | 16, 32, 64        | 60.27%, 57.38%, X% |
-| Augmentation  | Image Recentering | X% |
+| Optimiser     | AdamW, SGD        | 63.87%, 50.44% |
+| Patch Size    | 16, 32, 64*       | 60.27%, 57.38%, 56.87% |
+| Augmentation  | Image Recentering | 60.94% |
 
-Overall, SOMETHING ABOUT THE RESULTS
+Unexpectedly, the model perfomed worse after recentering the images. This is likely due to the images being downscaled first, then being recentered. A better method would be to locate the center of the brain segment, recenter the image, crop the image to remove the black background and resize it such that the image isn't warped (e.g. a 100x240 segment being warped to 224x224). This would need to be a future improvement to the model.
+
+Another interesting point to note is that increasing the validation data resulted in better performance, which is likely due to the model (since having a low number of transformer layers and parameters to adjust overall) being able to learn the training data features quickly, so there is more information to generalise the model on.
+
+Further experimentation would involve changing the loss functions, such as using Binary Cross Entropy Loss, as this is a standard loss function for binary classification problems. Moreover, adding a learning rate scheduler would prove more beneficial than manually changing the learning rate, as this would allow the model to train for longer and potentially reach a better minimum.
+
+*Image had to be resized to 256x256 to suit this patch size.
+
+***After further tuning and adding in these corrections, the final model test accuracy was ***
 
 ## 4.3. Reproducibility of Results
 The results produced by the ViT can be reproduced consistently, where the only source of randomness that affects the model is the shuffling of the training data during training at each epoch. This is considered a crucial step so that the model can escape local minima and converge to a global minimum. Random seeds are also used to ensure that the model can be reproduced consistently. Lastly, it should be mentioned that the ```predict.py``` file uses a random subset of the test data for the model to predict on.

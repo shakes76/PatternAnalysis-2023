@@ -115,9 +115,10 @@ def get_transform(data_type, data_mean, data_std, image_size):
         return transforms.Compose([
             transforms.Resize((image_size, image_size)),
             transforms.Grayscale(num_output_channels=1),
-            # transforms.RandomHorizontalFlip(),
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomVerticalFlip(),
             transforms.ToTensor(),
-            transforms.Lambda(centre_transform),
+            # transforms.Lambda(centre_transform),
             transforms.Normalize(mean=data_mean, std=data_std)
         ])
     elif data_type == "test":
