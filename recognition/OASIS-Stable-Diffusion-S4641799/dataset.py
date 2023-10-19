@@ -48,8 +48,11 @@ class FolderLoader(dataset.Dataset):
             image = self.transform(image)
         return image
 
-def create_data_loader(dataset_type):
+def create_data_loader(dataset_type, transform_override = None):
     assert dataset_type in folder_type
-    dataset = FolderLoader(root=data_dir+subfolder+dataset_type, transform=transform, includeSeg=True)
+    if transform_override:
+        dataset = FolderLoader(root=data_dir+subfolder+dataset_type, transform=transform_override, includeSeg=True)
+    else:
+        dataset = FolderLoader(root=data_dir+subfolder+dataset_type, transform=transform, includeSeg=True)
     loader = DataLoader(dataset, batch_size=utils.BATCH_SIZE, shuffle=True)
     return loader
