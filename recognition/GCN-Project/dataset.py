@@ -35,9 +35,8 @@ def load_data():
     train_mask[:train_nodes] = True
     test_mask = ~train_mask
 
-    labels = pt.zeros(num_nodes, dtype=pt.long)
-    labels[train_mask] = 1
+    #labels = pt.zeros(num_nodes, dtype=pt.long)
+    #labels[train_mask] = 1
+    #graph.ndata['label'] = labels
 
-    graph.ndata['label'] = labels
-
-    return graph
+    return graph, train_mask, test_mask
