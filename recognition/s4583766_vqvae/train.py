@@ -20,6 +20,7 @@ from modules import VQVAE, Decoder, Encoder
 from torch import nn
 from torch.nn import functional as F
 from torchvision.utils import make_grid, save_image
+import matplotlib.pyplot as plt
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -58,6 +59,51 @@ def gen_imgs(images, model, device):
         images = images.to(device)
         _, x_hat, _ = model(images)
         return x_hat
+    
+def gen_encodings(model: VQVAE, image):
+    with torch.no_grad():
+        z_e = model.encoder(image)
+        z_e = model.conv1(z_e)
+        _, z_q, train_indices_return = model.vector_quantizer(z_e)
+        return z_q, train_indices_return
+
+def visualise_embeddings(model: VQVAE, test_dl):
+    # load dataset
+    test_img = next(iter(test_dl))
+    # test_img = test_img
+    print(test_img.shape)
+    test_img = test_img.to(device)
+    test_img = test_img[0]
+    test_img = test_img.unsqueeze(0)
+    print(test_img.shape)
+    test_img.to(device)
+
+    z_q, embeddings = gen_encodings(model, test_img)
+    out = embeddings.view(64, 64)
+    # out = torch.LongTensor(out)
+    # out = out.to)
+    # TODO: plot codebook representation - embeddings is a tensor of size (4096)
+    ii = out.detach().cpu().numpy()
+    plt.imshow(out.detach().cpu().numpy())
+    plt.axis("off")
+    plt.savefig(RUN_IMG_OUTPUT + "codebook.png", bbox_inches="tight", pad_inches=0)
+    plt.clf()
+
+    # plot the test_img image before the encoding
+    plt.imshow(test_img[0][0].detach().cpu().numpy())
+    plt.axis("off")
+    plt.savefig(
+        RUN_IMG_OUTPUT + "codebook_comparison.png", bbox_inches="tight", pad_inches=0
+    )
+
+    # decoded
+    decoded = model.decoder(z_q)
+    print(decoded.shape)
+    plt.imshow(decoded[0][0].detach().cpu().numpy())
+    plt.axis("off")
+    plt.savefig(RUN_IMG_OUTPUT + "decoded.png", bbox_inches="tight", pad_inches=0)
+
+
 
 def train_vqvae(train_dl):
     vqvae = VQVAE(
@@ -156,6 +202,8 @@ def main():
         )
     )
     model.eval()
+
+    visualise_embeddings(model, test_dl)
 
 
 if __name__ == '__main__':
