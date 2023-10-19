@@ -1,0 +1,1 @@
+This is an implementation of the YOLOv3 model to detect and classify brain lesions within the ISIC 2018 data set. The aim is to achieve an IoU of 0.8 on a test set.
