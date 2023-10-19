@@ -23,14 +23,13 @@ The following are the figures of the Improved UNet architecture (https://arxiv.o
 - cuda 11.8 (used for GPU accelerated performance)
 
 ## Dataset and Preprocessing
-The dataset was split into training, validation and testing sets. The splits were done by the ISIC challenge and thus were downloaded directly from the website itself. The training set however was downloaded from Rangapur which was a version that was downsampled by 2. The data set is ISIC 2018 Task 1 Lesion Segmentation.
+The dataset was split into training, validation and testing sets. The training and testing splits were done by the ISIC challenge and can be downloaded directly from the website itself. Testing set was downloaded from the website. The training set however was downloaded from Rangapur which was a version that was downsampled by 2. The data set is ISIC 2018 Task 1 Lesion Segmentation.  
 
-The images and masks were resized to a width and height of 1024 by 672 in order to standardise the pixel dimensions of the data set and save memory space.
-The training and validation datasets were loaded in batches of 16 as that was the maximum the GPU could handle during training but the batch size was increased to 64 for the testing dataset.
+The training and valdiation split was done on the training set with a ratio of around 80/20. The images and masks were resized to a width and height of 1024 by 672 in order to standardise the pixel dimensions of the data set and save memory space. Data augementation was done to the training set with a transform of a random horizontal flip and vertical flip which have a p value of 0.5 each. The training and validation datasets were loaded in batches of 16 as that was the maximum the GPU could handle during training but the batch size was increased to 64 for the testing dataset.
 
 ## Running the Program
 ### Training and Validation
-The training went for a total of 20 epochs and used an adam optimizer with a learning rate of 1e-5 and a weight decay of 1e-5.
+The training went for a total of 20 epochs and used an adam optimizer with a learning rate of 1e-3 and a weight decay of 1e-5.
 The final epoch training accuracy was 78.62% which corresponds to a dice coefficient score of 0.79 and the validation accuracy was 99.06% which corresponds to a dice coefficient score of 0.99.  
 
 ![Training and Validation Loss Plot](training_and_validation_loss.png)
@@ -51,11 +50,6 @@ Below are some of the ground truth and predicted masks
 
 ### Reproducing the Process
 As stated prior, the original training set was downsampled by 2 by an external source and so depending on how you downsample the resultant transformed training set may differ from what was used for this project. The rest of the data set (validation/testing) is exactly the same as on the website. Most of the code requires no modification aside from the number of epochs and the filepaths for saving/loading the model, for loading the datasets, for saving the training/validation loss plots, and for loading an image and the output predicted segmentation mask.
-
-## Future Improvements
-While the model managed to achieve a high accuracy there is still an avenue that has not been explored when it comes to preprocessing the data set which is data augmentation. Data augmentation would allow the model to improve its generalisability without having to source new data. The possible transforms could include adding random horizontal/vertical flips and random rotations. The effect of the data augmentation would be seen the more epochs the model goes through.
-
-Another possible improvement would be to implement automatice mixed precision to speed up the training of the model. This would mean using autocast and gradscaler from the pytorch library to automatically switch between float 16 and float 32 precision for model calculations. Some types of layers are faster with float 16 like convolution but the default precision in pytorch is float 32.
 
 ## References
 - https://challenge.isic-archive.com/data/#2018 (ISIC 2018 Task 1 lesion segmentation dataset)  
