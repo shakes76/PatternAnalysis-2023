@@ -9,7 +9,7 @@ from dataset import *
 
 if __name__ == '__main__':
     
-    test_loader = load_data(test_path)
+    val_loader = load_test_data(test_path)
 
     # Load the pretrained model
     model = Network(upscale_factor=upscale_factor, channels=channels)
@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     # Get the first batch of images
     with torch.no_grad():
-        for input, label in test_loader:
+        for input, label in val_loader:
 
             down_sampled_img = down_sample(input).to(device)
             input = input.to(device)
