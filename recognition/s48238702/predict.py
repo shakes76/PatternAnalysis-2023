@@ -25,9 +25,11 @@ def predict(model, test_loader, threshold):
             
             output1, output2 = model(img1, img2)  
             
-            euclidean_distance = F.pairwise_distance(output1, output2)
+            # Calculate cosine similarity 
+            similarity = F.cosine_similarity(output1, output2)
             
-            predictions = (euclidean_distance < threshold).int()
+            # Predict label based on similarity
+            predictions = (similarity > threshold).int()
             
             correct += (predictions == labels).sum()
             total += len(labels)
