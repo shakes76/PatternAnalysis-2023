@@ -1,5 +1,4 @@
 import tensorflow as tf
-import os
 import glob
 
 def process_images(file_path, is_mask):
@@ -40,14 +39,10 @@ img_height = img_width = 256
 # Segments folders into arrays
 image_file_list = list(glob.glob('ISIC2018_Task1-2_Training_Input/*.jpg'))
 mask_file_list = list(glob.glob('ISIC2018_Task1_Training_GroundTruth/*.png'))
-# Creates a dataset that contains all the files
-#data_dir = os.getcwd() + '/datasets'
+
 files_ds = tf.data.Dataset.from_tensor_slices((image_file_list, mask_file_list))
 files_ds = files_ds.map(lambda x, y: (process_images(x, False), process_images(y, True)),
                         num_parallel_calls=tf.data.AUTOTUNE)
 
-# The dataset split percentage for the training dataset
 training_split = 0.8
-# The dataset split percentage for the validation dataset
-# (Note: The testing dataset will be the remaining dataset once the training and validation datasets have been taken)
 validation_split = 0.1

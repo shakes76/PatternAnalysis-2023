@@ -137,10 +137,6 @@ try:
     os.mkdir("Results")
 except OSError:
     print("Results sub directory already present or could not create folder")
-try:
-    os.mkdir("Saved_Model")
-except OSError:
-    print("Saved_Model sub directory already present or could not create folder")
 
 # Show original images and masks
 print("Size of Training Pictures: %d\nSize of Segmented Pictures: %d\n"
@@ -165,28 +161,20 @@ if shuffle:
 # Creates datasets of Training, Validation, and Testing data
 train_ds, val_ds, test_ds = create_ds()
 
-# Uses a saved model if specified
-if use_saved_model:
-    # Retrieve saved model
-    model = tf.keras.models.load_model('Saved_Model',
-                                       custom_objects={'dice_sim_coef': dice_sim_coef,
-                                                       'dice_sim_coef_loss': dice_sim_coef_loss})
-    # Prints a summary of the model compiled
-    model.summary()
-else:
-    # Initialise the model
-    model = initialise_model()
+
+# Initialise the model
+model = initialise_model()
     
-    # plot model 
-    # Create the UNet model and plot its architecture
+# plot model 
+# Create the UNet model
 unet_model = improved_unet(img_height, img_width, 3)
-plot_model(unet_model, to_file='model.png', show_shapes=True)
 
-# Compile the UNet model
-unet_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+# Compile the UNet model and add 'dice_sim_coef' as a monitored metric
+unet_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', dice_sim_coef])
 
-# Create an EarlyStopping callback
+# Create an EarlyStopping callback to monitor the custom metric
 callback = EarlyStopping(monitor='val_dice_sim_coef', patience=patience, mode='max', restore_best_weights=True)
+
 
 # Train the UNet model
 history = unet_model.fit(train_ds.batch(batch_size), validation_data=val_ds.batch(batch_size),
@@ -195,11 +183,6 @@ history = unet_model.fit(train_ds.batch(batch_size), validation_data=val_ds.batc
 # Plot the performance of the UNet model (Loss vs Dice Loss)
 plot_performance_model(history)
 plot_performance_loss_model(history)
-
-# Save the UNet model if specified
-if save_model:
-    unet_model.save('Saved_Model')
-
 
 # Evaluates the model
 loss, acc = model.evaluate(test_ds.batch(batch_size), verbose=2)
