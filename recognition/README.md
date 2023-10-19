@@ -1,8 +1,55 @@
 # Project Explain
 
+## Problem We solved in this project
+
+In this project, we will use the build a generative model using vq-vae and pixelCNN. The model needs to generate clear images and the SSIM should be over 0.6.
+
 
 ## Operating Process
-In this project, run the train.py model first, which will save recon images and model to the directory, then run the PixelCNN.py, this file will use the trained vq-vae model to form the code book, save the code book (model). Finally, run the predict.py. This file should have the visualisation of reconstructed images (in animation of all the reconstruction process) and the PixelCNN generated images saved under the path “./Pic/PixelCNN_generate.jpg”.
+
+1.	run the train.py model first, which will automatically save recon images and model to the directory, 
+2.	run the PixelCNN.py, this file will use the trained vq-vae model to form the code book, save the code book (model). 
+3.	Finally, run the predict.py. This file should have the visualisation of reconstructed images (in animation of all the reconstruction process) and the PixelCNN generated images saved under the path “./Pic/PixelCNN_generate.jpg”.
+
+
+## Details of data-preprocess, validation and training
+
+In this project, the dataset is preprocess using Grayscale and resize. (resize can be deleted if GPU memory is enough). 
+Inside vq-vae training part, the training loopwill run for 15000 times, mse_loss is used to track the loss; Adamw is used for optimizer; multistep learning rate is used to adjust to avoid overfitting problems.
+
+In validation part, save_image and state_dict are used to save generated images and model into the correct directory. 
+
+
+## Dependence 
+
+In this project, the dependence we used include: (they are all the latest version)
+Python3
+
+Used to transform data as follow:
+from torchvision import transforms, datasets
+from torchvision.transforms import Normalize, Compose, ToTensor
+from torch.utils.data import DataLoader 
+
+Used for training as follow:
+import torch, 
+import torch.nn as nn, 
+import torch.nn.functional as F, 
+from torch.optim import Adam
+
+Used for predicting as follow:
+import os, 
+import random, 
+import time, 
+from PIL import Image
+
+Used for training as follow:
+import matplotlib.pyplot as plt, 
+from matplotlib.animation import FuncAnimation, 
+from torch.optim.lr_scheduler import MultiStepLR, 
+from skimage.metrics import structural_similarity as compute_ssim, 
+from torchvision.utils import save_image, 
+from tqdm import tqdm
+
 
 
 ## Coding Logic
