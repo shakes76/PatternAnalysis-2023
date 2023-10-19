@@ -15,7 +15,6 @@ class ISICDataloader(Dataset):
         self.length = self.csv_df.shape[0]
         self.empty_H = mask_empty_dim[0]
         self.empty_W = mask_empty_dim[1]
-        self.index = 0
         self.transform = transform
         self.defaultTransform = v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32)])
 
@@ -46,39 +45,36 @@ class ISICDataloader(Dataset):
     
     def __getitem__(self, index):
         # Need boxes, labels and masks
-        row = self.csv_df.iloc[self.index]
+        row = self.csv_df.iloc[index]
         mask_pth = pathJoin(self.mask_dir, row['image_id'])
         img_pth = pathJoin(self.photo_dir, row['image_id'])
-        print(row['image_id'])
+        #print(row['image_id'])
         if (row['melanoma'] == 1):
-            labels = torch.tensor([1], dtype=torch.int64)
-            mask = Image.open(mask_pth + '_segmentation.png').convert('L')
-            mask = self.defaultTransform(mask).to(self.device) / 255.0
+            labels = torch.tensor([1], dtype=torch.int64).to(self.device)
+            masks = Image.open(mask_pth + '_segmentation.png').convert('L')
+            masks = self.defaultTransform(masks).to(self.device) / 255.0
             if self.transform:
-                mask = self.transform(mask)
-            masks = mask
-            boxes = self.mask_to_bbox(masks[0]).unsqueeze(0)
+                masks = self.transform(masks)
+            boxes = self.mask_to_bbox(masks[0]).unsqueeze(0).to(self.device)
         elif (row['seborrheic_keratosis'] == 1):
-            labels = torch.tensor([2], dtype=torch.int64)
-            mask = Image.open(mask_pth + '_segmentation.png').convert('L')
-            mask = self.defaultTransform(mask).to(self.device) / 255.0
+            labels = torch.tensor([2], dtype=torch.int64).to(self.device)
+            masks = Image.open(mask_pth + '_segmentation.png').convert('L')
+            masks = self.defaultTransform(masks).to(self.device) / 255.0
             if self.transform:
-                mask = self.transform(mask)
-            masks = mask
-            boxes = self.mask_to_bbox(masks[0]).unsqueeze(0)
+                masks = self.transform(masks)
+            boxes = self.mask_to_bbox(masks[0]).unsqueeze(0).to(self.device)
         else: # No images in image
-            labels = self._empty_labels()
-            masks = self._empty_masks()
-            boxes = self._empty_bbox()
+            labels = self._empty_labels().to(self.device)
+            masks = self._empty_masks().to(self.device)
+            boxes = self._empty_bbox().to(self.device)
         
-        self.index += 1
         targets = {
             'boxes': boxes,
             'labels': labels,
             'masks': masks
         }
         image = Image.open(img_pth + '.jpg').convert('RGB')
-        image = mask = self.defaultTransform(image).to(self.device) / 255.0
+        image = masks = self.defaultTransform(image).to(self.device) / 255.0
         if self.transform:
             image = self.transform(image)
 
