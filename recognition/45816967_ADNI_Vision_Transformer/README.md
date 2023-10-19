@@ -10,7 +10,12 @@ Transformers form a more generalised model compared to traditional CNNs, since t
 While transformers typically require large datasets to be able to overcome the lack of biases, augmentations can be applied to "generate" new images, and current image datasets have grown to a size which makes transformers possible to train. This project aims to apply transformers to the ADNI dataset, which is a dataset of MRI scans of patients with Alzheimer's Disease, and patients without Alzheimer's Disease.
 
 ## Architecture
-The vision transformer (ViT) is composed of a a few key components, namely - the patch embedding, position embedding, a transformer encoder layer, and a transformer decoder layer. The patch embedding layer takes in the input image and breaks it into patches of pixels, which are then flattened into a 2D matrix. This matrix is then fed into the transformer encoder layer which extracts the relationships between the patches, and the transformer decoder layer which generates the output. The output is then fed into a linear layer which outputs the classification of the image.
+The vision transformer (ViT) is composed of a a few key components, namely - the patch and position embeddings, a transformer encoder layer, and a transformer decoder layer. The patch embedding layer takes in the input image and breaks it into patches of pixels, which are then flattened into one dimensional patch embeddings. This matrix is then fed into the transformer encoder layer which extracts the relationships between the patches, and a final transformer decoder consisting of a linear layer.
+
+1. Patch Embedding - The patch embedding consists of a 2D convolutional layer which breaks the grayscale square input image into patches of pixels, and then flattens the patches into a one dimensional matrix. The output of this layer is a matrix of patch embeddings which is fed into the transformer encoder layer.
+
+
+. The output is then fed into a linear layer which outputs the classification of the image.
 ![ViT Architecture From The Original Paper](figures/vit_figure.png)
 
 ## Preprocessing
@@ -18,7 +23,7 @@ The data was first loaded into the program using a custom function which parsed 
 
 Upon reviewing the images, it was found that each image contained a lot of blank space, and the brain only made up the center section of it. This meant that if the raw image was used, the model would have to process an unnecessarily large image which would cause it to be larger and have to unnecessary relationships between the blank space and the brain. To improve the runtime and space complexity, a center crop was performed to resize the image to 192x192, however, it was later found that some brains were truncated by this crop and the image was cropped to 224x224 instead.
 
-While this was the only preprocessing performed during the first few iterations of training, it was found that the model was unable to exceed a test accuracy of 60%. To attempt to remedy this, the mean and standard deviations of the training set was calculated, and used to normalised the training, validation, and test sets.
+While this was the only preprocessing performed during the first few iterations of training, it was found that the model was unable to exceed a test accuracy of 60%. To attempt to remedy this, the mean and standard deviations of the training set was calculated, and used to normalised the training, validation, and test sets. Overall, normalisation seemed to have a great effect on the model's performance, and the model was able to achieve train accuracies > 95% and validation accuracies > 80% after 50 epochs, while struggling to reach 70% validation accuracy before normalisation.
 
 ## Training
 At first, I had tried to implement the [Medium](https://medium.com/mlearning-ai/vision-transformers-from-scratch-pytorch-a-step-by-step-guide-96c3313c2e0c) tutorial which built all the vision transformer components manually, however, upon training with the model developed in this tutorial, I found that the model was prone to overfitting (Refer to the Validation Accuracy Graph Below - validation accuracy begins to drop after 25 epochs) due to the lack of dropout layers and the model was also quite slow to train (~15 mins per epoch even on a smaller model). The best accuracy I was able to achieve with this model was 67% on the validation set, and 59% on the test set which was not very good.
