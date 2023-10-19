@@ -49,7 +49,7 @@ An upscaled MRI scan of dimensions 256x240.
 
 ### **Pre-processing and training**
 - The MRI images were first normalized to a range between -1 and 1 to ensure stability during training. 
-- use images in train folder to train
+- use images in AN_NC/train folder to train，The dataset was split into training and validation sets in an 8:2 ratio. 
   ![ret](https://github.com/a12a12a12a12/PatternAnalysis-2023/assets/90440194/2f8b9160-c949-4d0b-8cfe-ccf815a444cf)
 
 ### **Dependencies:**
