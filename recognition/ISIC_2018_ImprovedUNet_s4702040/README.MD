@@ -29,7 +29,7 @@ The training and valdiation split was done on the training set with a ratio of a
 
 ## Running the Program
 ### Training, Validation and Testing
-The training went for a total of 20 epochs and used an adam optimizer with a learning rate of 1e-3 and a weight decay of 1e-5. The validation accuracy reached the dice coefficient threshold of 0.8 at epoch 4 with a dice score of 0.81 or accuracy of 80.19%. The training accuracy was 80.14% or a dice score of 0.8. Since the validation accuracy reached the threshold at epoch 4 the model was saved but the training was left to continue until the 20 epochs. The testing accuracy for the model at epoch 4 was 78.51% or a dice score of 0.79 which is below the target dice coefficient for this task.  
+The training went for a total of 20 epochs and used an adam optimizer with a learning rate of 1e-3 and a weight decay of 1e-5. The validation accuracy reached the dice coefficient threshold of 0.80 at epoch 4 with a dice score of 0.80 or accuracy of 80.19%. The training accuracy was 80.14% or a dice score of 0.80. Since the validation accuracy reached the threshold at epoch 4 the model was saved but the training was left to continue until the 20 epochs. The testing accuracy for the model at epoch 4 was 78.51% or a dice score of 0.79 which is below the target dice coefficient for this task.  
 
 At the final epoch of 20 the training accuracy was 84.55% or a dice score of 0.85 and the validation accuracy was 83.34% or a dice score of 0.83. The testing accuracy was 78.07% or a dice score of 0.78.  
 
