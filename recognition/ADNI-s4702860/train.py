@@ -1,5 +1,5 @@
 import os
-from keras.callbacks import TensorBoard
+from keras.callbacks import TensorBoard, ModelCheckpoint
 from dataset import load_dataset, create_triplets
 from modules import SiameseModel
 import matplotlib.pyplot as plt
@@ -16,36 +16,44 @@ https://youtu.be/DGJyh5dK4hU?si=2LxFEx1aOVHJEFBu
 def train():
     model = SiameseModel().model
     train_generator, test_generator = load_dataset()
-    train_triplets, train_labels = create_triplets(train_generator, 1000)
-    test_triplets, test_labels = create_triplets(test_generator, 250)
+    train_triplets, train_labels = create_triplets(train_generator, 1200)
+    test_triplets, test_labels = create_triplets(test_generator, 300)
 
     log_dir = os.path.join('Logs')
     tb_callback = TensorBoard(log_dir=log_dir)
+
+    # Define a ModelCheckpoint callback to save the best model based on validation loss
+    checkpoint_callback = ModelCheckpoint(
+        "best_model.h5",
+        monitor='val_loss',  # Monitor validation loss
+        save_best_only=True,  # Save only the best model
+        mode='min',  # The best model has the lowest validation loss
+        verbose=1
+    )
+
     history = model.fit(
-        train_triplets, train_labels,
+        train_triplets,
+        train_labels,
         epochs=25,
         batch_size=32,
         validation_data=(test_triplets, test_labels),
-        callbacks=[tb_callback]
+        callbacks=[tb_callback, checkpoint_callback],
     )
     
-    model.save("ADNI_predictor.keras")
+    model.save("ADNI_predictor.h5")
 
-    #plt.figure(figsize=(12, 4))
-    #plt.subplot(1, 2, 1)
-    #plt.plot(history.history['loss'], label='Training Loss')
-    #plt.plot(history.history['val_loss'], label='Validation Loss')
-    #plt.xlabel('Epochs')
-    #plt.ylabel('Loss')
-    #plt.legend()
+    # Extract loss values from the training history
+    train_loss = history.history['loss']
+    val_loss = history.history['val_loss']
 
-    #plt.subplot(1, 2, 2)
-    #plt.plot(history.history['accuracy'], label='Training Accuracy')
-    #plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
-    #plt.xlabel('Epochs')
-    #plt.ylabel('Accuracy')
-    #plt.legend()
-    #plt.show()
+    # Plot the loss values
+    plt.plot(train_loss, label='Training Loss')
+    plt.plot(val_loss, label='Validation Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.title('Loss Over Epochs')
+    plt.show()
 
 def main():
     train()
@@ -54,3 +62,6 @@ def main():
 
 if __name__=="__main__":
     main()
+
+
+
