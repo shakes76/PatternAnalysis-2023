@@ -53,7 +53,7 @@ def load_train_data(path: str):
             (1, 2, 0),
         )
     )
-    plt.savefig("figures/training_images.png")
+    plt.savefig("figures/unprocessed_images.png")
 
     print("Training image picture created!")
     return train_loader
