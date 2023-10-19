@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 
 # Path to the directory containing images
 DATA_PATH = './recognition/48240983_ADNI/AD_NC/train'
+TEST_PATH = './recognition/48240983_ADNI/AD_NC/test'
 
 class Net(nn.Module):
     def __init__(self):
@@ -35,6 +36,8 @@ transform = transforms.Compose([transforms.Resize((150, 150)),
 data = datasets.ImageFolder(root=DATA_PATH, transform=transform)
 data_loader = torch.utils.data.DataLoader(data, batch_size=64, shuffle=True)
 
+test_data = datasets.ImageFolder(root=TEST_PATH, transform=transform)
+test_data_loader = torch.utils.data.DataLoader(test_data, batch_size=64, shuffle=False)
 # Create the model
 model = Net()
 
@@ -42,15 +45,14 @@ model = Net()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-# Lists to store loss and accuracy values
+# Lists to store loss values
 loss_values = []
-accuracy_values = []
-
+test_loss_values = []
+data_accuracies = []
+test_accuracies = []
 # Training the PyTorch model
 for epoch in range(10):
     running_loss = 0.0
-    correct = 0
-    total = 0
     for i, data in enumerate(data_loader, 0):
         inputs, labels = data
         optimizer.zero_grad()
@@ -59,40 +61,56 @@ for epoch in range(10):
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
-        
-        # Calculate accuracy
-        _, predicted = torch.max(outputs, 1)
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
-    
     average_loss = running_loss / len(data_loader)
-    accuracy = correct / total
-    
-    print(f'Epoch {epoch+1}, Loss: {average_loss}, Accuracy: {accuracy}')
+    print(f'Epoch {epoch+1}, Loss: {average_loss}')
     loss_values.append(average_loss)
-    accuracy_values.append(accuracy)
 
-    # If accuracy reaches 0.8, stop training
-    if accuracy >= 0.8:
-        print("Desired accuracy of 0.8 reached. Stopping training.")
-        break
+    # Evaluate the model on the test set
+    model.eval()
+    correct = 0
+    total = 0
+    running_test_loss = 0.0
+    with torch.no_grad():
+        for data in test_data_loader:
+            inputs, labels = data
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
+            running_test_loss += loss.item()
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+    
+    average_test_loss = running_test_loss / len(test_data_loader)
+    test_loss_values.append(average_test_loss)
 
+    data_accuracy = 100 * correct / total
+    data_accuracies.append(data_accuracy)
 
+    print(f'Epoch {epoch+1}, Data Loss: {average_loss:.4f}, Test Loss: {average_test_loss:.4f}, Test Accuracy: {data_accuracy:.2f}%')
 
-# Plot the loss and accuracy
-plt.figure(figsize=(12, 4))
+print('Finished Training')
+
+# Plot the training and test loss
+plt.figure(figsize=(10, 4))
 plt.subplot(1, 2, 1)
-plt.plot(range(1, len(loss_values) + 1), loss_values)
+plt.plot(range(1, 11), loss_values, label='Train')
+plt.plot(range(1, 11), test_loss_values, label='Test')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
-plt.title('Training Loss')
+plt.title('Training and Test Loss')
+plt.grid(True)
+plt.legend()
 
 plt.subplot(1, 2, 2)
-plt.plot(range(1, len(accuracy_values) + 1), accuracy_values)
+plt.plot(range(1, 11), data_accuracies)
 plt.xlabel('Epoch')
-plt.ylabel('Accuracy')
+plt.ylabel('Accuracy (%)')
 plt.title('Training Accuracy')
-
 plt.grid(True)
+
 plt.tight_layout()
+
+plt.savefig('training_testing_loss.png')
+plt.savefig('training_accuracy.png')
+
 plt.show()
