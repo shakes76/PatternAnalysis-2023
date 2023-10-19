@@ -72,3 +72,51 @@ class MultiHeadAttentionLSA(nn.MultiheadAttention):
     def forward(self, query, key, value, attn_mask=None, bias_k=None, bias_v=None):
         query = query / self.tau
         return super(MultiHeadAttentionLSA, self).forward(query, key, value, attn_mask, bias_k, bias_v)
+
+def build_vision_transformer(input_shape, image_size, patch_size, num_patches,
+        attention_heads, projection_dim, hidden_units, dropout_rate,
+        transformer_layers, mlp_head_units):
+    """
+    Builds the vision transformer model.
+    """
+    patch_layer = PatchLayer(image_size, patch_size, num_patches, projection_dim)
+    embed_patch = EmbedPatch(num_patches, projection_dim)
+
+    class VisionTransformer(nn.Module):
+        def __init__(self):
+            super(VisionTransformer, self).__init__()
+
+        def forward(self, x):
+            tokens, _ = patch_layer(x)
+            encoded_patches = embed_patch(tokens)
+
+            for _ in range(transformer_layers):
+                layer_norm_1 = nn.LayerNorm(encoded_patches.size(-1), eps=1e-6)(encoded_patches)
+                diag_attn_mask = 1 - torch.eye(num_patches, device=x.device, dtype=torch.int8)
+                attention_output = MultiHeadAttentionLSA(embed_dim=projection_dim, num_heads=attention_heads, dropout=dropout_rate)(layer_norm_1, layer_norm_1, layer_norm_1, attn_mask=diag_attn_mask)
+                skip_1 = attention_output + encoded_patches
+
+                layer_norm_2 = nn.LayerNorm(skip_1.size(-1), eps=1e-6)(skip_1)
+                mlp_layer = layer_norm_2
+                for units in hidden_units:
+                    mlp_layer = nn.Linear(mlp_layer.size(-1), units)(mlp_layer)
+                    mlp_layer = nn.GELU()(mlp_layer)
+                    mlp_layer = nn.Dropout(dropout_rate)(mlp_layer)
+
+                encoded_patches = mlp_layer + skip_1
+
+                representation = nn.LayerNorm(encoded_patches.size(-1), eps=1e-6)(encoded_patches)
+                representation = representation.view(representation.size(0), -1)
+                representation = nn.Dropout(dropout_rate)(representation)
+
+                features = representation
+                for units in mlp_head_units:
+                    features = nn.Linear(features.size(-1), units)(features)
+                    features = nn.GELU()(features)
+                    features = nn.Dropout(dropout_rate)(features)
+
+                logits = nn.Linear(features.size(-1), 1)(features)
+                return logits
+
+    model = VisionTransformer()
+    return model
