@@ -1,12 +1,12 @@
 # Siamese Network Classifier for Alzheimer's Disease Detection
 ## Description
-This repository contains a Siamese Network-based classifier designed to identify Alzheimer's disease (AD) in brain data from the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. The goal is to achieve an accuracy of approximately 0.8 on the test set by classifying brain images as either Cognitive Normal (NC) or Alzheimer’s disease (AD).
+This repository contains a Siamese Network-based classifier designed to identify MRI images from the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset as either Alzheimer's disease (AD) or Cognitive Normal (NC). The goal is to achieve an accuracy of 0.8 on the test set.
 
 ## How It Works
-This repository features a Triplet Siamese Network-based classifier for detecting Alzheimer's disease in brain data from the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset. The Triplet Siamese Network operates by taking three input images, an anchor image (which would be either AD or NC), a positive image (another image thats the same class as the anchor), and a negative image (an image that is the opposite class of the anchor). The network then computes feature embeddings for these three images. The primary objective is to minimize the distance between the anchor and positive images while maximizing the distance between the anchor and negative images. This ensures that the network learns to discriminate between AD and NC brain images effectively. The figure below illustrates the Triplet Siamese Network architecture:
+This repository features a Triplet Siamese Network-based classifier for detecting Alzheimer's disease in brain data from the ADNI dataset. The Triplet Siamese Network operates by taking three input images, an anchor image (which would be either AD or NC), a positive image (another image thats the same class as the anchor), and a negative image (an image that is the opposite class of the anchor). The network then computes feature embeddings for these three images. The primary objective is to minimize the distance between the anchor and positive images while maximizing the distance between the anchor and negative images. This ensures that the network learns to discriminate between AD and NC brain images effectively. Once the network has learnt to discriminate between AD and NC brain images effectivley, a neural network will learn to classify an image based off of the embeddings as either AD or NC. The figure below illustrates the Triplet Siamese Network architecture:
 
 ![triplet_archi-1](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/2bc9f547-7923-4b4c-b5ba-4758dae840f9)
-https://pyimagesearch.com/2023/03/06/triplet-loss-with-keras-and-tensorflow/
+**Source:** https://pyimagesearch.com/2023/03/06/triplet-loss-with-keras-and-tensorflow/
 ### Triplet Loss
 As stated earlier, the primary objective is to minimize the distance between the anchor and positive images while maximizing the distance between the anchor and negative images. This is done through triplet loss which follows these steps:
 1. Calculate the Squared Euclidean distance between the anchor and the positive
@@ -15,12 +15,12 @@ As stated earlier, the primary objective is to minimize the distance between the
 4. Add the margin to the differnce
 5. Apply a ReLU to ensure the loss is positive.
 ![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/ffbb0047-deac-4760-a5a2-6930efd2e717)
-https://towardsdatascience.com/triplet-loss-advanced-intro-49a07b7d8905
+**Source:** https://towardsdatascience.com/triplet-loss-advanced-intro-49a07b7d8905
 ## Architecture
 ### Triplet Siamese Network Architecture
 The triplet siamese network uses ResNet 18 as its backbone for creating the embeddings for the ADNI dataset. Residual Network (ResNet), is a type of convolutional neaural network commonly used for vision and image recognition. The key difference from a regular convolutional neaural network, is the use of residual blocks. A common issue with networks with high number of layers, is the vanishing gradient problem.. This is when the gradient becomes too small during backpropagation making it difficult to train networks with large number of layers. The resnet introduces the skip connection which bypasses certain layers which addresses the vanishing gradient problem. As can be seen in the figure below, ResNet 18 has 18 convolutional layers. The triplet siamese network, will take a 1 channel ADNI image (i.e grayscale) and output the image in a 128 dimension embeded space.
-![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/a1888ac3-d9e2-4558-b984-284374083703)
-https://www.researchgate.net/figure/Original-ResNet-18-Architecture_fig1_336642248
+![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/a1888ac3-d9e2-4558-b984-284374083703) <br>
+**Source:** https://www.researchgate.net/figure/Original-ResNet-18-Architecture_fig1_336642248
 
 ### Triplet Classifier Architecture
 The triplet classifier uses a basic neural network to classify between the AD and NC. The first fully connected layer has 128 input neurons and 256 output neurons followed by a `ReLu`. The second linear layer takes the 256 outputs from the previous layer and outputs 256 neurons to another `Relu`. The final layer takes the previous 256 outputs and outputs to 2 units. These 2 units represent the two classes, where the larger value between the two, is the predicted class. 
