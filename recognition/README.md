@@ -18,6 +18,9 @@ Additionally, the Perceiver Transformer utilises a variant of the transformers s
 
 This is the diagram on the overall architecture of the Perceiver Transformer.
 
+
+The ADNI dataset contains many images of the same patient. This means that the images can have similarity as the patients images can be scattered across the testing and the training datasets. This could cause potentially overfitting of the model from it learning to identify the brain of the same patient rather then detecting the Alzheimers. 
+
 # Image here
 
 # Implmentation
@@ -46,8 +49,11 @@ LEARNING_RATE = 0.0004
 
 # File Structure
 The dataset.py file contains the class ADNI which fetches and performs the augmentation and transformations on the datasets. This is used for getting both the training and testing datasets. It reads the images from the ADNI/AD_NC/ file path and goes to either the test or train subfolders. 
+
 The modules.py file contains the Perceiver Transformer model. Within this file there are any classes which build key aspects of the model. The class nomenclature is based upon its functionality within the model itself. The key classes are Perceiver which constructs the final architecture of the model. The Block class contains the cross attention and the latest transformer steps of the Perceiver Transformer model. The LatestTransformer contains the self attention functionality. 
+
 The predict.py file is where the saved model is tested against the testing dataset. The model is saved during training and used here. This file displays various statistics and graphs about the accuracy of the model on the testing dataset.
+
 The train.py file is where the training of the model occurs. The hyperparameters are set here and passed into the model for usage. The main trainging loop is here too which runs for the specified number of epochs.
 
 # Results
@@ -57,3 +63,4 @@ After training the model for 40 Epochs it achieved 51% accuracy on the testing s
 The loss during training fluctuates around 50% and does not change much during the training. 
 
 The accuracy of the model is poor being 50% and after further investigation the model appears to be always guessing that the image is an Alzheimers image. This explains why the accuracy is poor as it is always guessing the same result regardless of the image. I could not deduce the exact reason for the model to be producing such inaccurate results. I thought it may be related to there being no positional encoding of the pixel positions for the images however i tested this theory and discovered that there was no difference between having the positional embedding and not.
+
