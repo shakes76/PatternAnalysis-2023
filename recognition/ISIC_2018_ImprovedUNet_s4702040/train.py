@@ -4,7 +4,6 @@ testing the model, and saving the training/validation loss plots.
 
 NOTES:
 - Remember to add the filepaths for saving/loading model and loading the data sets
-- Data set splits were handled externally
 - Increase/decrease batch sizes depending on available GPU memory
     - Current batch sizes are configured for 8GB of GPU memory with a model of 4 base filters and the resize transform of (672, 1024)
     - Batch size for testing set can be larger than training/validation set to speed up testing phase
