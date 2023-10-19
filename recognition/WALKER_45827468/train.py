@@ -1,12 +1,12 @@
 from dataset import ISICDataset, calc_mean_std
-from modules import ImprovedUNet
+from modules import ImprovedUNet, DiceLoss
 
 import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, TensorDataset
 
-BATCH_SIZE = 1
+BATCH_SIZE = 10
 NUM_EPOCH = 10
 LEARNING_RATE = 1e-4
 
@@ -34,13 +34,13 @@ VALID_MASK_PATH = "./ISIC-2017_Validation_Part1_GroundTruth"
 valid = ISICDataset(TRAIN_DATA_PATH, TRAIN_MASK_PATH, transform=transform)
 valid_loader = DataLoader(valid, batch_size=BATCH_SIZE)
 
-mean,std = calc_mean_std(train_loader)
-print(mean,std)
+# mean,std = calc_mean_std(train_loader)
+# print(mean,std)
 
 ImpUNET = ImprovedUNet()
 ImpUNET.to(device)
 
-lossFunc = nn.BCELoss()
+lossFunc = DiceLoss()
 opt = torch.optim.Adam(ImpUNET.parameters(), lr=LEARNING_RATE)
 
 ImpUNET.train()
@@ -66,8 +66,8 @@ for epoch in range(NUM_EPOCH):
         opt.step()
         total_loss += loss.item()
     print("EPOCH", epoch, ":")
-    print("     TRAINING LOSS:", total_loss/len(train_loader))
-    loss_train.append(total_loss/len(train_loader))
+    print("     TRAINING LOSS:", total_loss)
+    loss_train.append(total_loss)
     
     ImpUNET.eval()
     total_loss = 0
@@ -80,8 +80,8 @@ for epoch in range(NUM_EPOCH):
             loss = lossFunc(pred, mask)
             
             total_loss += loss.item()
-    print("     VALIDATION LOSS:", total_loss/len(valid_loader))
-    loss_valid.append(total_loss/len(valid_loader))
+    print("     VALIDATION LOSS:", total_loss)
+    loss_valid.append(total_loss)
     
     
 
