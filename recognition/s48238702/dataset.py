@@ -6,13 +6,24 @@ import numpy as np
 from PIL import Image
 from torchvision import transforms
 
-GLOBAL_PATH = 'R:\pattern\PatternAnalysis-2023\recognition\s48238702'
+# Setting the global path for dataset.
+GLOBAL_PATH = 'C:\\Project 01 PYTORCH\\ADNI_AD_NC_2D'
 AD_PATH = os.path.join(GLOBAL_PATH, 'AD_NC', 'train', 'AD')
 CN_PATH = os.path.join(GLOBAL_PATH, 'AD_NC', 'train', 'NC')
 AD_TEST_PATH = os.path.join(GLOBAL_PATH, 'AD_NC', 'test', 'AD')
 CN_TEST_PATH = os.path.join(GLOBAL_PATH, 'AD_NC', 'test', 'NC')
 
+# custom dataset for Siamese networks.
 class SiameseDataset(Dataset):
+    """
+    Custom dataset for Siamese network training and classification.
+
+    Args:
+        path1 (list): List of file paths for the first set of images.
+        path2 (list): List of file paths for the second set of images.
+        labels (array-like): List of labels (0 or 1) indicating if the pairs are similar or dissimilar.
+        transform (callable, optional): Optional data transformations to apply to the images.
+    """
     def __init__(self, path1, path2, labels, transform=None):
         self.path1 = path1
         self.path2 = path2
@@ -20,9 +31,23 @@ class SiameseDataset(Dataset):
         self.transform = transform
 
     def __len__(self):
+        """
+        Returns the total number of samples in the dataset.
+        """
         return len(self.path1)
 
     def __getitem__(self, idx):
+        """
+        Get a single sample from the dataset.
+
+        Args:
+            idx (int): Index of the sample to retrieve.
+
+        Returns:
+            img1 (PIL.Image): First image.
+            img2 (PIL.Image): Second image.
+            label (int): Label (0 for dissimilar, 1 for similar).
+        """
         img1 = Image.open(self.path1[idx]).convert('L')
         img2 = Image.open(self.path2[idx]).convert('L')
 
@@ -33,7 +58,18 @@ class SiameseDataset(Dataset):
         label = self.labels[idx]
 
         return img1, img2, label
+
+# Function to load data for Siamese network training.
 def load_siamese_data(batch_size=32):
+    """
+    Load data for Siamese network training.
+
+    Args:
+        batch_size (int, optional): Batch size for the data loader.
+
+    Returns:
+        dataloader (DataLoader): DataLoader for Siamese network training.
+    """
     pair_base = [os.path.join(CN_PATH, path) for path in os.listdir(CN_PATH)][::2]
     pair_ad = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)][:len(pair_base)]
     pair_cn = [os.path.join(CN_PATH, path) for path in os.listdir(CN_PATH)][1::4][:len(pair_base)]
@@ -49,19 +85,19 @@ def load_siamese_data(batch_size=32):
 
     return dataloader
 
-def load_classify_data(testing: bool, batch_size=32):
-    """ Load testing image data, images with labels,
-    0 for ad, 1 for cn
+# Function to load data for classification.
+def load_classify_data(testing=False, batch_size=32):
+    """
+    Load data for classification.
 
     Args:
-        testing (bool): data for testing
-        batch_size (int): batch size for the data
+        testing (bool, optional): Set to True for loading test data, False for training data.
+        batch_size (int, optional): Batch size for the data loader.
 
     Returns:
-        (train_loader, val_loader): tuple of DataLoader for training and validation data
+        dataloader (DataLoader): DataLoader for classification.
     """
-    # Get the path to each image and mask
-    if (not testing):
+    if not testing:
         ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
         cn_paths = [os.path.join(CN_PATH, path) for path in os.listdir(CN_PATH)]
     else:
@@ -69,33 +105,13 @@ def load_classify_data(testing: bool, batch_size=32):
         cn_paths = [os.path.join(CN_TEST_PATH, path) for path in os.listdir(CN_TEST_PATH)]
 
     paths = ad_paths + cn_paths
+    labels = torch.cat((torch.ones(len(ad_paths)), torch.zeros(len(cn_paths))))
 
-    # Create dataset with 2 classes, ad and cn
-    labels = [0 if path.endswith('AD') else 1 for path in paths]
+    transform = transforms.Compose([transforms.Resize((128, 128)),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5,), (0.5,))])
 
-    dataset = []
-    for i in range(len(paths)):
-        image = Image.open(paths[i])
-        image_tensor = ImageToTensor(image)
+    classify_dataset = SiameseDataset(paths, paths, labels, transform=transform)
+    dataloader = DataLoader(classify_dataset, batch_size=batch_size, shuffle=True)
 
-        label = labels[i]
-
-        dataset.append((image_tensor, label))
-
-    train_size = int(0.8 * len(dataset))
-    val_size = len(dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-
-    return train_loader, val_loader
-
-def ImageToTensor(image):
-    image = image.convert('L')
-    image = image.resize((128, 128))
-    image = np.array(image)
-    image = image.reshape((1, 128, 128))
-    image = torch.from_numpy(image).float()
-    image = image.div(255)
-    return image
+    return dataloader
