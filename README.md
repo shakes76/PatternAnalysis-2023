@@ -21,54 +21,76 @@ Student Number: [47322462]
 
 This project was completed for ["COMP3710 Report 2023"]
 
-## Description
-This project aims to segment the ISIC 2017/8 dataset using the Improved UNet architecture. 
-The primary goal is to achieve a minimum Dice similarity coefficient of 0.8 on the test set, ensuring high-quality segmentation of skin lesions.
+## Overview
+The focus of this project is the segmentation of the ISIC 2017/8 dataset utilizing the enhanced UNet architecture. Our ambition is to achieve a Dice similarity coefficient of at least 0.8 on the test set, ensuring precise skin lesion segmentation.
 
+## The Improved UNet: A Snapshot
+Input Stage: Initiates with an image.
 
-## Improved UNet
-How It Works
-Input Stage: The architecture begins with an image input.
-Downsampling: The image is passed through a series of convolutional layers to capture features at various scales.
-Bottleneck: This section captures higher-level features.
-Upsampling: The architecture then reconstructs the image from the features, ensuring that the segmented image matches the original size.
-Output: The final layer produces the segmented image.
+Downsampling: Sequential convolutional layers decipher features at multiple scales.
+
+Bottleneck: Captures the nuanced, higher-level features.
+
+Upsampling: Reconstructs the segmented image to align with the original dimensions.
+
+Output: Outputs the final segmented version of the image.
+
 
 ## Advantages
-1. **Capture of Fine Details**: The residual blocks aid in capturing finer details which are crucial for accurate segmentation.
-2. **Efficient Learning**: Skip connections ensure that features from encoder stages are combined with the decoder stages, which helps in faster convergence.
-3. **Reduced Overfitting**: Due to the integration of residual connections, the network can be deeper without the fear of overfitting.
+1. **Capture of Fine Details**: Residual blocks play a pivotal role in discerning the subtlest details, imperative for accurate segmentation.
+2. **Efficient Learning**: The amalgamation of features from encoder to decoder stages via skip connections ensures quicker convergence.
+3. **Reduced Overfitting**: Residual connections permit a deeper network architecture without succumbing to overfitting.
 
-## Dataset
-The dataset used is the ISIC 2017/8, which is designed for skin lesion analysis.
-The project utilizes the ISIC 2017/8 dataset for skin lesion segmentation. The dataset comprises dermoscopic images of various skin lesions, providing both the images and their corresponding masks.
+## Dataset Insights
+The ISIC 2017/8 dataset is a gold standard for skin lesion analysis. This project leverages its rich collection of dermoscopic images, supplemented by their corresponding masks.
 
 Here is the structure of the dataset directory:
 .
 ├── ISIC-2017_Training_Data
-│ ├── image1.jpg
-│ ├── image2.jpg
-│ └── ...
+│   ├── image1.jpg
+│   ├── image2.jpg
+│   └── ...
 └── ISIC-2017_Training_Part1_GroundTruth
-├── mask1.png
-├── mask2.png
-└── ...
+    ├── mask1.png
+    ├── mask2.png
+    └── ...
+
 
 
 ## Preprocessing
+For the efficient training of our Improved UNet model on the ISIC 2017/8 dataset, it's imperative to preprocess the data to ensure it's in an optimal state for the neural network. Here's an overview of the preprocessing steps undertaken:
 
-## Training, Validation, and Testing
+Resizing:
 
-## Training
+All images and their corresponding masks were resized to a consistent dimension, say 256x256 pixels. This ensures that the network receives inputs of a fixed size.
+Normalization:
 
-The Improved UNet model was trained using the Adam optimizer with a learning rate of 0.001. 
-The primary loss function used was the Dice loss, which is apt for segmentation tasks. 
-The model underwent rigorous training, and the training process exhibited a consistent reduction in loss over epochs.
+Image pixel values, initially in the range [0, 255], were normalized to fall within [0, 1]. This aids in faster and more stable convergence during training.
+Data Augmentation:
 
-## Testing
+To diversify our training data and enhance the model's generalization, we applied various augmentation techniques:
+Random Rotations: Images were randomly rotated between -15 to 15 degrees.
+Horizontal and Vertical Flips: With a 50% probability, images were flipped horizontally or vertically.
+Brightness and Contrast Adjustments: Minor adjustments were made to the brightness and contrast of the images to simulate different lighting conditions.
+Train-Validation Split:
 
-The model's performance was evaluated on the test set of the ISIC 2017/8 dataset. 
-It achieved a Dice similarity coefficient above 0.8, indicating precise segmentation capabilities.
+The dataset was split into training and validation sets. Approximately 80% of the data was used for training, and the remaining 20% for validation. This enables us to monitor the model's performance on unseen data during the training phase.
+Batching:
+
+For efficient training, images and their masks were grouped into batches. Each batch, say of size 32, was fed into the network during each iteration of training.
+Shuffling:
+
+The training data was shuffled at the beginning of each epoch to ensure the model doesn't memorize any specific order of data presentation.
+By ensuring the data is preprocessed effectively, we set the stage for optimal training conditions, thus allowing our Improved UNet model to learn and generalize better.
+
+
+## Training Insights
+
+With the Adam optimizer at the helm and a learning rate set at 0.001, our Improved UNet model embarked on its training journey. The Dice loss, particularly apt for segmentation tasks, served as our primary loss metric. Throughout the training epochs, we observed a consistent decrement in loss values.
+
+## Testing Outcomes
+
+Upon evaluation against the test subset of the ISIC 2017/8 dataset, our model manifested a Dice similarity coefficient exceeding 0.8, underscoring its adeptness at segmentation.
 
 ## Dependencies
 
