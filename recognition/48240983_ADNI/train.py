@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
 
 # Path to the directory containing images
 DATA_PATH = './recognition/48240983_ADNI/AD_NC/train'
@@ -32,14 +33,17 @@ transform = transforms.Compose([transforms.Resize((150, 150)),
                                 transforms.ToTensor()])
 
 data = datasets.ImageFolder(root=DATA_PATH, transform=transform)
-data_loader = torch.utils.data.DataLoader(data, batch_size=64, shuffle=True)  # Increased batch size
+data_loader = torch.utils.data.DataLoader(data, batch_size=64, shuffle=True)
 
 # Create the model
 model = Net()
 
 # Define the loss and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=0.0001)  # Reduced learning rate
+optimizer = optim.Adam(model.parameters(), lr=0.0001)
+
+# Lists to store loss values
+loss_values = []
 
 # Training the PyTorch model
 for epoch in range(10):
@@ -52,9 +56,16 @@ for epoch in range(10):
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
-    print(f'Epoch {epoch+1}, Loss: {running_loss / len(data_loader)}')  # Calculate the average loss per batch
+    average_loss = running_loss / len(data_loader)
+    print(f'Epoch {epoch+1}, Loss: {average_loss}')
+    loss_values.append(average_loss)
 
 print('Finished Training')
 
-# Save the PyTorch model
-torch.save(model.state_dict(), 'model.pth')
+# Plot the loss
+plt.plot(range(1, 11), loss_values)
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.title('Training Loss')
+plt.grid(True)
+plt.show()
