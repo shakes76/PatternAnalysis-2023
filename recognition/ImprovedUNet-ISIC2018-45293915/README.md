@@ -17,8 +17,7 @@ The Improved U-Net is a cutting-edge neural network architecture which can be ta
 - Feature maps from the corresponding level in the downsampling pathway (or the encoder) are concatenated with the upsampled feature maps. This is the hallmark of the U-Net architecture and is referred to as a skip connection.
 - The concatenated feature maps combine the high-resolution spatial details from the encoder with the high-level contextual information from the decoder.
 
-// insert architecture.png image below
-![Architecture]
+![Improved UNet Model Architecture](architecture.png)
 
 Above is an image that showcases the localisation module in the context of processing 3 dimensional data.
 
