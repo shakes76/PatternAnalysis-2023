@@ -49,7 +49,6 @@ class CustomISICDataset(Dataset):
         self.img_dir = img_dir
         self.mask_dir = mask_dir
         self.transform_stage1_for_img_mask = transform_stage1_for_img_mask
-        self.target_size = target_size
         self.transform_stage2_for_img=transform_stage2_for_img
         self._check_dataset_integrity()
 
@@ -81,6 +80,16 @@ class CustomISICDataset(Dataset):
         mask = Image.open(mask_path).convert("L")  # assuming mask is 1 channel
         if self.transform_stage1_for_img_mask:
             image,mask = self.transform_stage1_for_img_mask([image,mask])
+        count = 0
+        while True:
+            if mask.sum()>100 :
+                break
+            if count >10:
+                return  None
+            else:
+                count+=1
+                image, mask = self.transform_stage1_for_img_mask([image, mask])
+
         if self.transform_stage2_for_img:
             image,mask = self.transform_stage2_for_img([image,mask])
         # Your class labels
