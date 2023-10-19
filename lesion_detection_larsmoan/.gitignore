@@ -2,7 +2,8 @@ data/
 __pycache__
 out.txt
 err.txt
-
+err_p6_p100.txt
+out_p6_p100.txt
 runs/
 wandb
 
