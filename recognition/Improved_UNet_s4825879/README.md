@@ -11,15 +11,25 @@ It includes 2594 images.[^2]
 
 [^2]: https://arxiv.org/abs/1909.00166
 ## Model arcitecture
-The model is employed according to [^3] with changes made to acommodate for use on the ISIC2018 dataset. \
+The classic ***UNet*** arcitecture is a deep learning arcitecture primarily used in semantic image segmentation
+which goal is to classify each pixel of a image into a class or object[^3].
+The arcitecture consists of three parts. The encoder, bottleneck and Decoder. The encoder consists of multiple
+convolutional layers and downsampling operations, and is responsible for capturing features of the image.
+The bottleneck is the bottom layer of the network, and also consist of multiple convolutional layers.
+The decoder upsamples the feature maps to generate a segmentation mask with the same dimensions as the input.
+UNet arcitectures also uses skip connections in each layer of the network to help preserve detailed information of the image. 
+The skip connections are combined together with the features learned from the encoder on each layer.
+
+This UNet model is employed according to [^4] with changes made to acommodate for use on the ISIC2018 dataset. \
 This includes changing 3d modules to 2d, and returning the output through a sigmoid function instead of softmax. \
 The model uses deep supervision wich helps mitigate the vanishing gradient problem. It does this by integrating
 intermediate loss signals into the output. This allows for more efficient flow of gradients during backpropegation. \
-As with general UNet arcitecture; skip connections are also used for their ability to improve segmentation quality. \
+As with general UNet arcitecture; skip connections are also used for their ability to improve segmentation quality. 
 
 The network takes a RGB channeled image as input, and outputs a binary segmentation map.
 
-[^3]: https://arxiv.org/abs/1802.10508v1
+[^3]: https://paperswithcode.com/task/semantic-segmentation
+[^4]: https://arxiv.org/abs/1802.10508v1
 
 ![model arcitecture](images/model_arcitecture.png)
 
@@ -32,29 +42,32 @@ The image sizes in the dataset varey. This causes problems when loading the data
 As a work around fo this issue a standard image size can be specified in the macro *IMAGE_SIZE* in ***dataset.py*** .
 The path of the dataset should be specified in the following macros in ***dataset.py***:
 ```
-TRAIN\_DATA\_PATH
-TRAIN\_TRUTH\_PATH
-TEST\_TRUTH\_PATH
-TEST\_TRAIN\_PATH
+TRAIN_DATA_PATH = "Path/to/your/dataset"
+TRAIN_TRUTH_PATH = "Path/to/your/dataset"
+TEST_TRUTH_PATH = "Path/to/your/dataset"
+TEST_TRAIN_PATH = "Path/to/your/dataset"
 ```
 
-For training on rangpur[^3] the test dataset had no corresponding groundtruth images. 
-As a work around for this The *ISICDataset* in ***dataset.py*** can be specified with a split ratio as well as a boolean train statement. 
+While training on rangpur[^3] the test dataset had no corresponding groundtruth images. 
+As a work around for this The *ISICDataset* class in ***dataset.py*** can be specified with a split ratio as well as a boolean train statement. 
 This allows the user to specify wich part of the directory he/she wishes 
 to use for both training and testing.
 
 example:
 ```
-train\_data = ISICDataset(img\_dir=TRAIN\_DATA\_PATH, truth\_dir=TRAIN\_TRUTH\_PATH ,split\_ratio=0.9, transform=transform, train=True)
-val\_data = ISICDataset(img\_dir=TRAIN\_DATA\_PATH, truth\_dir=TRAIN\_TRUTH\_PATH, split\_ratio=0.9,transform=transform, train=False)
+train_data = ISICDataset(img_dir=TRAIN_DATA_PATH, truth_dir=TRAIN_TRUTH_PATH ,split_ratio=0.9, transform=transform, train=True)
+val_data = ISICDataset(img_dir=TRAIN_DATA_PATH, truth_dir=TRAIN_TRUTH_PATH, split_ratio=0.9,transform=transform, train=False)
 ```
 
 In this example the train data will be allocated the first 90% of the directory. 
 And the valuation data will be allocated the last 10%.
 
 ## loss function
-The dice loss function is used during training on this dataset. 
-The code for this custom loss function is gotten from [Dice Loss Class](https://www.kaggle.com/code/bigironsphere/loss-function-library-keras-pytorch?fbclid=IwAR3q7bjIDoKFlc5IDGpd24TW8QhQdzbxh2TrIP6FCXb7A8FaluU_HhTqmHA).
+The dice loss function is used during training on this dataset.
+The dice loss is the inverse of the dice coefficent which checks 
+for pixel-wise agreement between a predicted segmentation and its groundtruth. 
+a small dice loss will therefore correspond with a good segmentation.
+The code for this custom loss function is gotten from [Dice Loss Class](https://www.kaggle.com/code/bigironsphere/loss-function-library-keras-pytorch?fbclid=IwAR3q7bjIDoKFlc5IDGpd24TW8QhQdzbxh2TrIP6FCXb7A8FaluU_HhTqmHA). \
 code:
 ```
 class DiceLoss(nn.Module):
