@@ -73,6 +73,8 @@ To use the code, you have to change the different folder paths of the dataset. M
 
 ## References
 [1] G. Koch, R. Zemel, and R. Salakhutdinov, Siamese neural networks for one-shot image recognition, Jul 2015
+
 [2] K. Simonyan and A. Zisserman, Very Deep Convolutional Networks for Large-Scale Image Recognition, Apr 2015
+
 [3] Image similarity estimation using a Siamese Network with a contrastive loss (https://keras.io/examples/vision/siamese_contrastive/)
 
