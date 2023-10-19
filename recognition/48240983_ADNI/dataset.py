@@ -33,23 +33,22 @@ class CustomDataset(Dataset):
 
         return image, label
 
-# Define your data directory
+
 data_dir = './recognition/48240983_ADNI/AD_NC/train'
 
-# Define data transformations
+
 transform = transforms.Compose([
     transforms.Resize((150, 150)),
     transforms.ToTensor(),
 ])
 
-# Create an instance of your custom dataset
+
 custom_dataset = CustomDataset(data_dir, transform=transform)
 
-# Create a data loader for batch processing
+
 batch_size = 16
 data_loader = DataLoader(custom_dataset, batch_size=batch_size, shuffle=True)
 
-# You can now iterate through the data_loader in your training script
 for images, labels in data_loader:
-    # Training loop here
+   
     pass
