@@ -80,5 +80,5 @@ if __name__ == '__main__':
     # split the training data into training and validation datasets
     # create new data directory
     # might only work on Windows
-    # train_valid_split()
+    train_valid_split()
     pass
