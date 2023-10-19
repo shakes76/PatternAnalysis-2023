@@ -5,30 +5,48 @@ from PIL import Image
 from utils import DataTransform
 import os
 
+# specify batch size
 BATCH_SIZE = 10
+
+# Specify vished image size
+IMAGE_SIZE = 64
+
+# Specify dataset directory path
+TRAIN_DATA_PATH = 'data/train_data'
+TRAIN_TRUTH_PATH = 'data/train_truth'
+TEST_TRUTH_PATH = TRAIN_TRUTH_PATH
+TEST_DATA_PATH = TRAIN_DATA_PATH
 
 # custom dataset
 class ISICDataset(Dataset):
-    def __init__(self, img_dir, transform, truth_dir='', split_ratio=0.8, train=True):
+    def __init__(self, 
+                 img_dir, 
+                 transform, 
+                 truth_dir='', 
+                 split_ratio=0.8, 
+                 train=True,
+                 ):
         super(ISICDataset, self).__init__()
         self.train = train
         
         self.img_dir = img_dir
         self.image_files = sorted(os.listdir(img_dir))
-
-        self.image_files.remove("ATTRIBUTION.txt")
-        self.image_files.remove("LICENSE.txt")
         
         self.truth_dir = truth_dir
         self.truth_files = sorted(os.listdir(truth_dir))
-
-        self.truth_files.remove("ATTRIBUTION.txt")
-        self.truth_files.remove("LICENSE.txt")
 
         self.transform = transform
 
         total_samples = len(self.image_files)
         split_idx = int(split_ratio * total_samples)
+
+        # remove all files that are not images from the dataset
+        for file in self.image_files:
+            if not file.endswith('.jpg'):
+                self.image_files.remove(file)
+        for file in self.truth_files:
+            if not file.endswith('.png'):
+                self.truth_files.remove(file)
 
         if train:
             self.image_files = self.image_files[:split_idx]
@@ -49,23 +67,18 @@ class ISICDataset(Dataset):
         truth = Image.open(truth_path)
 
         if self.transform:
-            if self.train:
-                (image, truth) = self.transform((image, truth))
-            else:
-                image = self.transform(image)
-                truth = self.transform(truth)
+            image = self.transform(image)
+            truth = self.transform(truth)
 
         return image, truth
 
-# transforms to be put on the images
-transform_train = DataTransform(size=(64,64))
-transform_val = transforms.Compose([transforms.ToTensor(),
-                                    transforms.Resize((64, 64))])
-
+# transforms for validation data
+transform = transforms.Compose([transforms.ToTensor(),
+                                    transforms.Resize((IMAGE_SIZE, IMAGE_SIZE), antialias=True)])
 
 # create datasets
-train_data = ISICDataset(img_dir="data/train_data", truth_dir="data/train_truth", transform=transform_train, train=True)
-val_data = ISICDataset(img_dir="data/train_data", truth_dir="data/train_truth", transform=transform_val, train=False)
+train_data = ISICDataset(img_dir=TRAIN_DATA_PATH, truth_dir=TRAIN_TRUTH_PATH ,split_ratio=0.5, transform=transform, train=True)
+val_data = ISICDataset(img_dir=TRAIN_DATA_PATH, truth_dir=TRAIN_TRUTH_PATH, split_ratio=0.9,transform=transform, train=False)
 
 # create dataloaders
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
