@@ -1,7 +1,12 @@
 #--------------
 # Train config
-num_epochs=1
-batch_size = 4
+LEARNING_RATE = 2e-5
+NUM_EPOCHS=1
+BATCH_SIZE = 16
+WEIGHT_DECAY = 0
+NUM_WORKERS = 2
+PIN_MEMORY = True
+SAVE_MODEL_FILE = "model.pytorch"
 
 #--------------
 # Data information
@@ -10,5 +15,5 @@ mask_dir = './recognition/Mask RCNN s4698053/.tmp/ISIC-2017_Training_Part1_Groun
 photo_dir = './recognition/Mask RCNN s4698053/.tmp/ISIC-2017_Training_Data/'
 train_size = 0.8
 test_size = 0.2
-image_size = (250, 175)
+image_size = (448, 448)
 torch_seed = 56
