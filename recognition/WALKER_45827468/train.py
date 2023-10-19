@@ -22,7 +22,8 @@ TRAIN_MASK_PATH = "./ISIC-2017_Training_Part1_GroundTruth"
 
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize([0.7079, 0.5915, 0.5469], [0.1543, 0.1629, 0.1780])
+    transforms.Normalize([0.7079, 0.5915, 0.5469], [0.1543, 0.1629, 0.1780]),
+    transforms.Resize((256, 256))
 ])
 
 train = ISICDataset(TRAIN_DATA_PATH, TRAIN_MASK_PATH, transform=transform)
@@ -83,8 +84,7 @@ for epoch in range(NUM_EPOCH):
     print("     VALIDATION LOSS:", total_loss)
     loss_valid.append(total_loss)
     
-    
-
+# save model and associated losses
 torch.save(ImpUNET, "impUNetMODEL.pth")
 import pandas as pd
 losses = pd.DataFrame()
