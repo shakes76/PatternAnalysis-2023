@@ -65,7 +65,7 @@ The above graph tells about the training and testing losses over the course of 5
 2.	__Test loss__: The testing loss starts at a higher point, close to 0.95. It experiences a rapid decrease in the first epoch and then continues to decline at a more gradual rate for the successive epochs. This means that initially, the model made substantial improvements in generalizing to unseen data. As epochs progressed, the rate of improvement became more controlled, showcasing that the model maintains its ability to generalize well without overfitting. It is also important to note that I got NaN as test loss in my fifth epoch. Initially, I thought this is because of exploding gradients and that is the reason why I have implemented gradient clipping. There might be some error with the test set.
 
 #### Accuracy over epoch graph
-Image link![loss graph](figures/accuracy_plot.png.png)
+Image link![accuracy plot graph](figures/accuracy_plot.png)
 
 
 The above graph tells about the training and testing accuracy over the course of 5 epochs. Following are the conclusion from the graph.
@@ -79,7 +79,7 @@ The above graph tells about the training and testing accuracy over the course of
 
 For the predict.py, I uploaded a slice of AD image and this is the following result.
 
-![loss graph](figures/model%20confidence%20score.png.png)
+![confidence score](figures/model%20confidence%20score.png)
 
 We can see that model correctly classified AD image with a confidence score of __52.14%__
 
