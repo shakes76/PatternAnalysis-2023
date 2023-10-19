@@ -1,4 +1,4 @@
-#Brain MRI Super-Resolution Network
+# Brain MRI Super-Resolution Network
 ## Abstract
 
 This project aimed to create an efficient sub-pixel neural network (or ESPCN) as proposed by Shi, 2016, to upscale low resolution images into a higher resolution version. It will use sub-pixel convolution layers to create an array of upscaling filters, which can then be used increase the resolution of our images. In the case of our project, this will be applied to brain MRI scan images - in particular, the ADNI brain dataset will be used to train our CNN. We will take existing images from the dataset, downsample them by 4x, and use these to train our network to upscale them back to the original resolution. This solves the problem of needless computational complexity that comes about from performing these operations in the high resolution space.
