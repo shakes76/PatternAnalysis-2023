@@ -117,13 +117,9 @@ Ensure your dataset matches the specified folder structure as seen below;
 
 ```
 user_data/
-├── AD/
-│ ├── image1.jpg
-│ ├── image2.jpg
-│ └── ...
-├── NC/
-├── image1.jpg
-└── image2.jpg
+├─ image1.jpg
+├─ image2.jpg
+└── ...
 ```
 
 ## Results
