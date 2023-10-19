@@ -17,6 +17,3 @@ def predict(model, input_data):
 model_path = "best_model.pth"
 model = load_model(model_path)
 
-# Replace with your input data
-input_data = ...  # Make sure it's a tensor and has the correct dimensions
-print(predict(model, input_data))
