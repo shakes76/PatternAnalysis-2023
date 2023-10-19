@@ -42,7 +42,6 @@ def train(model, train_loader, valid_loader, criterion, optimizer, device, n_epo
             correct += predicted.eq(y).sum().item()
 
         accuracy = 100 * correct / total
-        # print(f"Train loss: {train_loss / len(train_loader):.2f} - Train accuracy: {accuracy:.2f}%")
 
         train_accuracies.append(accuracy)
         train_losses.append(train_loss / len(train_loader))
