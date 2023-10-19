@@ -19,7 +19,7 @@ The images below show an example of the AD and NC. The frist image is a AD image
 ![AD](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/AD.jpeg)
 ![NC](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/NC.jpeg)
 
-In this project, a data generator is used, which creates image pairs with the matching label. There are four different image pair combinations: AD, AD with the label 1, AD, NC with the label 0, NC, NC with the label 1 and NC, AD with the label 0. The data generator which creates the training data also shuffles the data. However, the data generator which creates the validation pairs does not shuffle the data. This way the neural network can be tested with the same image pairs during the training. The data generator is created from one batch of 32 which results into 128 image pairs for on batch. Always 32(AD,AD), 32(AD,NC), 32(NC,NC) and 32(NC,AD) images.
+In this project, a data generator is used, which creates image pairs with the matching label. There are four different image pair combinations: AD, AD with the label 1, AD, NC with the label 0, NC, NC with the label 1 and NC, AD with the label 0. The data generator which creates the training data also shuffles the data. However, the data generator which creates the validation pairs does not shuffle the data. This way the neural network can be tested with the same image pairs during the training. The data generator uses a batchsize of 32 which results into 128 image pairs for on batchsize. Always 32(AD,AD), 32(AD,NC), 32(NC,NC) and 32(NC,AD) images.
 
 
 ## Siamese network model
