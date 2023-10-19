@@ -1,20 +1,33 @@
+'''
+@file   modules.py
+@brief  Contains the source code of all the components of the vision transformer model.
+        It defines the InputEmbedding object, Encoder object and ViT Object
+@date   20/10/2023
+'''
+
 import torch
 import torch.nn as nn
 
+'''
+InputEmbedding
+
+This class defines the input embedding module of the ViT. The object will take in the batch input,
+spit the images into patches using a convolutional, project these patches onto a linear plane, prepend
+the class embedded token and finally add the positional embedding tokens. The output of this model is the 
+embedding tokens to pass into the transformer encoder.
+'''
 class InputEmbedding(nn.Module):
-    '''
-    InputEmbedding
-    
-    This class defines the input embedding module of the ViT
-    '''
     def __init__(self, args) -> None:
         super(InputEmbedding, self).__init__()
         self.batch_size = args.batch_size
-        self.latent_size = args.latent_size
+        self.mlp_dim = args.mlp_dim
+        self.head_dim = args.head_dim
         self.n_channels = args.n_channels
         self.patch_size = args.patch_size
         self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         self.input_size = args.hidden_size
+
+        # Convolutional layer to patchify images
         self.conv1 = nn.Conv2d(
             in_channels=3,
             out_channels=args.hidden_size,
@@ -23,9 +36,14 @@ class InputEmbedding(nn.Module):
             padding='valid'
         )
 
-        self.positionalEmbedding = nn.Parameter(torch.randn(self.batch_size, 1, self.latent_size)).to(self.device)
-        self.classToken = nn.Parameter(torch.randn(self.batch_size, 1, self.latent_size)).to(self.device)
-        self.linearProjection = nn.Linear(self.input_size, self.latent_size)
+        # Positional embeddings
+        self.positionalEmbedding = nn.Parameter(torch.randn(self.batch_size, 1, self.mlp_dim)).to(self.device)
+
+        # Class token
+        self.classToken = nn.Parameter(torch.randn(self.batch_size, 1, self.mlp_dim)).to(self.device)
+
+        # Linear projection layer
+        self.linearProjection = nn.Linear(self.input_size, self.mlp_dim)
 
     def forward(self, input):
         input = input.to(self.device)
@@ -39,7 +57,7 @@ class InputEmbedding(nn.Module):
         linearProjection = self.linearProjection(imagePatches).to(self.device)
 
         # Define the class token
-        self.classToken = nn.Parameter(torch.randn(linearProjection.shape[0], 1, self.latent_size)).to(self.device)
+        self.classToken = nn.Parameter(torch.randn(linearProjection.shape[0], 1, self.mlp_dim)).to(self.device)
 
         # Concatenate the class token to the embedding tokens
         linearProjection = torch.cat((self.classToken, linearProjection), dim=1)
@@ -47,27 +65,33 @@ class InputEmbedding(nn.Module):
         # Add the positional embeddings to the input embeddings and class token
         linearProjection += self.positionalEmbedding[:linearProjection.shape[0], :linearProjection.shape[1] + 1, :]
         return linearProjection
+'''
+Encoder
 
+This class defines the encoder block for the ViT. It implements the transformer encoder architecture as described in the
+README.md. The encoder takes the embedding tokens as an input, and passes these through the transformer.
+'''
 class Encoder(nn.Module):
-    '''
-    Encoder
-    
-    This class defines the encoder block for the ViT
-    '''
     def __init__(self, args) -> None:
         super(Encoder, self).__init__()
-
         self.dropout = args.dropout
         self.num_heads = args.num_heads
-        self.latent_size = args.latent_size
-        self.normLayer = nn.LayerNorm(self.latent_size)
-        self.attention = nn.MultiheadAttention(self.latent_size, self.num_heads, dropout=self.dropout)
+        self.mlp_dim = args.mlp_dim
+        self.head_dim = args.head_dim
+
+        # Normalisation layer
+        self.normLayer = nn.LayerNorm(self.mlp_dim)
+
+        # Multi-head Attention Layer
+        self.attention = nn.MultiheadAttention(self.mlp_dim, self.num_heads, dropout=self.dropout)
+
+        # MLP Encoder
         self.encoderMLP = nn.Sequential(
-            nn.Linear(self.latent_size, self.latent_size),
+            nn.Linear(self.mlp_dim, self.mlp_dim),
             nn.GELU(),
             nn.Dropout(self.dropout),
 
-            nn.Linear(self.latent_size, self.latent_size),
+            nn.Linear(self.mlp_dim, self.mlp_dim),
             nn.GELU(),
             nn.Dropout(self.dropout)
         )
@@ -85,26 +109,33 @@ class Encoder(nn.Module):
         # Encoder output
         return (self.encoderMLP(normalisation) + attentionOut + embeddedPatches)
     
+'''
+ViT
+
+This class defines the vision transformer architecture. It contains the code to interface between
+the modules of the vision transformer (i.e. input embedding object to encoder objects to MLP head for 
+classification). The object takes a batch of images as the input.
+'''   
 class ViT(nn.Module):
-    '''
-    ViT
-    
-    This class defines the vision transformer architecture
-    '''
     def __init__(self, args) -> None:
         super(ViT, self).__init__()
-
         self.dropout = args.dropout
         self.num_classes = args.num_classes
         self.num_encoders = args.num_encoders
-        self.latent_size = args.latent_size
+        self.mlp_dim = args.mlp_dim
+        self.head_dim = args.head_dim
 
+        # Transformer encoder layer(s)
         self.encoders = nn.ModuleList([Encoder(args) for i in range(self.num_encoders)])
+
+        # Input embedding layers
         self.embedding = InputEmbedding(args)
+
+        # MLP head for classification
         self.MLP = nn.Sequential(
-            nn.LayerNorm(self.latent_size),
-            nn.Linear(self.latent_size, self.latent_size),
-            nn.Linear(self.latent_size, self.num_classes)
+            nn.LayerNorm(self.mlp_dim),
+            nn.Linear(self.mlp_dim, self.head_dim),
+            nn.Linear(self.head_dim, self.num_classes)
         )
 
     def forward(self, input):
@@ -116,5 +147,6 @@ class ViT(nn.Module):
             encoderOut = layer(encoderOut)
 
         # Output of MLP head is classification result
+        # out = self.MLP(encoderOut[:, 0])
         out = self.MLP(torch.mean(encoderOut, dim=1))
         return out
