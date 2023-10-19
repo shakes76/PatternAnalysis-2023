@@ -1,35 +1,43 @@
-from torch.utils.data import Dataset
-from PIL import Image
 import os
-from utils import display_images_from_directory
-
-
-directory_path = 'C:\\Users\\25060\\Desktop\\ISIC-2017_Training_Part1_GroundTruth'
-display_images_from_directory(directory_path)
+import torch
+from torch.utils.data import DataLoader, Dataset
+from torchvision.transforms import transforms
+from PIL import Image
 
 class ISICDataset(Dataset):
-    def __init__(self, root_dir, transform=None, image_exts=('.jpg', '.jpeg', '.png')):
-        self.root_dir = root_dir
+    def __init__(self, image_dir, transform=None):
+        self.image_dir = image_dir
+        self.image_files = [f for f in os.listdir(image_dir) if f.endswith('.jpg')]
         self.transform = transform
-        
-        # Filter images by extensions
-        self.image_files = [f for f in sorted(os.listdir(root_dir)) if f.endswith(image_exts)]
 
     def __len__(self):
         return len(self.image_files)
 
     def __getitem__(self, idx):
-        img_name = os.path.join(self.root_dir, self.image_files[idx])
-        image = Image.open(img_name).convert('RGB')  # Ensure RGB
+        img_path = os.path.join(self.image_dir, self.image_files[idx])
+        mask_path = os.path.join(self.image_dir, self.image_files[idx].replace('.jpg', '_superpixels.png'))
 
-        # Assuming masks are in a 'masks' subfolder and have the same names as images
-        mask_name = os.path.join(self.root_dir, 'masks', self.image_files[idx])
-        mask = Image.open(mask_name).convert('L')  # Load mask as grayscale
+        image = Image.open(img_path).convert("RGB")
+        mask = Image.open(mask_path).convert("L")
 
         if self.transform:
             image = self.transform(image)
-            # Ensure mask transform doesn't involve color jitter, normalization, etc.
-            # For simplicity, applying the same transform here, but it may need adjustments.
             mask = self.transform(mask)
 
         return image, mask
+# Set your paths
+train_image_dir = 'C:\\Users\\25060\\Desktop\\ISIC-2017_Training_Data'
+valid_image_dir = 'C:\\Users\\25060\\Desktop\\ISIC-2017_Validation_Data'
+
+transform = transforms.Compose([
+    transforms.Resize((128, 128)),
+    transforms.ToTensor()
+])
+
+train_dataset = ISICDataset(train_image_dir, transform=transform)
+valid_dataset = ISICDataset(valid_image_dir, transform=transform)
+
+train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+valid_loader = DataLoader(valid_dataset, batch_size=16, shuffle=False)
+
+
