@@ -7,7 +7,7 @@ import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, TensorDataset
 import matplotlib.pyplot as plt
 
-BATCH_SIZE = 10
+BATCH_SIZE = 1
 
 # device configuration
 device = torch.device('mps' if torch.backends.mps.is_available() else 'cpu')
@@ -18,7 +18,7 @@ print('beep boop')
 
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize([0.7079, 0.5915, 0.5469], [0.1543, 0.1629, 0.1780]),
+    # transforms.Normalize([0.7079, 0.5915, 0.5469], [0.1543, 0.1629, 0.1780]),
     transforms.Resize((256, 256))
 ])
 
@@ -51,7 +51,7 @@ with torch.no_grad():
 
 # plot example
 fig,ax = plt.subplots(1, 3, figsize=(10,10))
-ax[0].imshow(images[0])
-ax[1].imshow(masks[0])
-ax[2].imshow(pred[0])
-fig.show()
+ax[0].imshow(images[0][0].permute(1,2,0))
+ax[1].imshow(masks[0][0].squeeze())
+ax[2].imshow(prediction[0].squeeze())
+plt.show()
