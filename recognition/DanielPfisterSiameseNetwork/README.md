@@ -19,13 +19,13 @@ The images below show an example of the AD and NC. The frist image is a AD image
 ![AD](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/AD.jpeg)
 ![NC](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/NC.jpeg)
 
-In this project, a data generator is used, which creates image pairs with the matching label. There are four different image pair combinations: AD, AD with the label 1, AD, NC with the label 0, NC, NC with the label 1 and NC, AD with the label 0. The data generator which creates the training data also shuffles the data. However, the data generator which creates the validation pairs does not shuffle the data. This way the neural network can be tested constantly during the training. The data generator is created from one batch of 32 128 image pairs. Always  32 (AD,AD), 32(AD,NC), 32(NC,NC) and 32(NC,AD) images.
+In this project, a data generator is used, which creates image pairs with the matching label. There are four different image pair combinations: AD, AD with the label 1, AD, NC with the label 0, NC, NC with the label 1 and NC, AD with the label 0. The data generator which creates the training data also shuffles the data. However, the data generator which creates the validation pairs does not shuffle the data. This way the neural network can be tested with the same image pairs during the training. The data generator is created from one batch of 32 which results into 128 image pairs for on batch. Always 32(AD,AD), 32(AD,NC), 32(NC,NC) and 32(NC,AD) images.
 
 
 ## Siamese network model
 
-This project uses a VGG16 with only one dense layer for the left and right Siamese neural networks. The VGG (Visual Geometry Group) was discovered at the Department of Engineering Science, University of Oxford. The paper about this neural network introduces different sizes of the model. The VGG16, for instance, has 16 convolution layers. In addition, after two or three convolution layers, a max pooling layer is added. After the 16 convolution layers, three dense layers are used. 
-In the project, after the VGG, a dense layer and a distance layer are used, which calculates the L1 norm. At the end, a dense layer decides how similar the two images are. The fully connected layer from the VGG16 at the end and the fully connected layer of the whole network use a sigmoid activation function.
+This project uses a VGG16 with only one dense layer for the left and right side of Siamese neural networks. The VGG (Visual Geometry Group) was discovered at the Department of Engineering Science, University of Oxford. The paper about this neural network introduces different sizes of the model. The VGG16, for instance, has 16 convolution layers. In addition, after two or three convolution layers, a max pooling layer is added. After the 16 convolution layers, three dense layers are used. 
+In the project, after the VGG, a dense layer and a distance layer are used, which calculates the L1 norm. At the end, a dense layer calulates how similar the two images are. The fully connected layer from the VGG16 at the end and the fully connected layer at the end of the whole network use a sigmoid activation function.
 
 The image below shows the structure of the network:
 ![Model](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/Model.PNG)
@@ -45,9 +45,9 @@ The image shows how fast the accuracy increases and the loss function decreases 
 ![LossTrainImage](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/LossTrainImage.png)
 
 The graphs show that the model overfits because the training accuracy reaches nearly one after ten epochs. Different numbers of dropout layers or batch normalization layers are tried out to avoid this. However, I couldn't prevent that, so I finally left them out.
-The accuracy of the validation data stops heavily, increasing at around 0.7. The loss fucniton graph shows that the training loss decreases to nealy 0 and the validaiton loss settles at approximately 0.2.
+The accuracy of the validation data stops heavily increasing at around 0.7. The loss function graph shows that the training loss decreases to nealy 0 and the validaiton loss settles at approximately 0.2.
 
-From these graphs, it can be assumed that the Siamese neural network has a great performance because the validation looks also very good.
+From these graphs, it can be assumed that the Siamese neural network has a good performance because the validation looks good.
 
 ## Testing
 
@@ -64,15 +64,15 @@ The plotted image pair result shows a correctly predicted image pair and an inco
 
 ![PlotPrediciton](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/PlotPrediciton.PNG)
 
-As a result, the project doesn't reach the goal of 0.8 accuracy.
+As a result, the project doesn't reach the goal of 0.8 accuracy. I tried different learning rates and convolutional networks, such as the resnet18 however, it was impossible to achieve more than 0.6 accuracy.
 
 
 ## Using the code
 
-To use the code, you have to change the different folder paths of the dataset. Moreover, the model weight's saving and loading path must also be modified. The project consists of four different Python files where the model is trained with the train.py. The Python files predict.py allow us to test the model. The Python files dataset.py and modules.py contain the function required in the train.py and predict.py files.
+To use the code, you have to change the different folder paths of the dataset. Moreover, the model weight's saving and loading path must also be modified. The project consists of four different Python files where the model is trained with the train.py. The Python files predict.py allow us to test the model. The Python files dataset.py and modules.py contain functions which are required in the train.py and predict.py files.
 
 ## References
 [1] G. Koch, R. Zemel, and R. Salakhutdinov, Siamese neural networks for one-shot image recognition, Jul 2015
-
-[2]Image similarity estimation using a Siamese Network with a contrastive loss (https://keras.io/examples/vision/siamese_contrastive/)
+[2] K. Simonyan and A. Zisserman, Very Deep Convolutional Networks for Large-Scale Image Recognition, Apr 2015
+[3] Image similarity estimation using a Siamese Network with a contrastive loss (https://keras.io/examples/vision/siamese_contrastive/)
 
