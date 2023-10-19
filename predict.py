@@ -2,14 +2,18 @@ import torch
 from modules import ViT
 from dataset import get_dataloaders
 
-def predict():
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+if not torch.cuda.is_available():
+    print("Warning CUDA not found. Using CPU")
+
+def predict(model_dict: str):
     batch_size = 64
     workers = 4
     image_size = 224
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    model = ViT(num_channels=3, embed_dim=768, patch_size=16).to(device)
-    model.load_state_dict(torch.load('visual_transformer'))
-    _, test_loader = get_dataloaders(batch_size, workers, image_size)
+    model = ViT().to(device)
+    model.load_state_dict(torch.load(model_dict))
+    _, test_loader, _ = get_dataloaders(batch_size, workers, image_size)
     model.eval()
 
     with torch.no_grad():
@@ -26,4 +30,4 @@ def predict():
         print('Test Accuracy: {} %'.format(100 * correct / total))
 
 if __name__ == '__main__':
-    predict()
+    predict('visual_transformer')
