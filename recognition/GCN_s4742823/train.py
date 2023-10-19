@@ -36,18 +36,28 @@ model = model.to(device)
 best_model = None
 best_accuracy = 0
 
+train_losses = []
+train_accuracies = []
+val_losses = []
+val_accuracies = []
 # ----- Training -----
 print("--- Training ---")
 for epoch in range(num_epochs):
     model.train()
-    total_loss = 0
+    epoch_loss = 0
 
     out = model(data)  # Pass the whole graph in.
     loss = criterion(out[data.train_mask].to(device), data.y[data.train_mask].to(device))  # Only calculate loss with train nodes.
+    _, predicted = torch.max(out[data.train_mask], 1)
+    predicted = predicted.cpu().numpy()
+    y_true = data.y[data.train_mask].cpu().numpy()
+    accuracy = accuracy = accuracy_score(y_true, predicted)
     loss.backward()
     optimizer.step()
-    total_loss += loss.item()
+    epoch_loss += loss.item()
     optimizer.zero_grad()
+    train_losses.append(loss.item())
+    train_accuracies.append(accuracy.item())
 
     # --- Validation ---
     model.eval()
@@ -61,9 +71,11 @@ for epoch in range(num_epochs):
     if accuracy > best_accuracy:
         best_accuracy = accuracy
         best_model = model.state_dict()
+    val_losses.append(loss.item())
+    val_accuracies.append(accuracy.item())
 
     if (epoch % 25 == 0):
-        print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {total_loss:.4f}")
+        print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {epoch_loss:.4f}")
 
 # ----- Testing -----
 print("--- Testing ---")
@@ -90,3 +102,23 @@ for class_idx in range(num_classes):
 plt.legend()
 plt.title("t-SNE Plot")
 plt.savefig("tsne_plot.png")
+
+# Plotting Loss
+plt.figure(figsize=(10, 8))
+plt.plot(train_losses, label='Train Loss', color='blue')
+plt.plot(val_losses, label='Validation Loss', color='red')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend()
+plt.title('Training and Validation Losses')
+plt.savefig("loss.png")
+
+# Plottomg Accuracy
+plt.figure(figsize=(10, 8))
+plt.plot(train_accuracies, label='Train Accuracy', color='blue')
+plt.plot(val_accuracies, label='Validation Accuracy', color='red')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.title('Training and Validation Accuracies')
+plt.savefig("accuracy.png")
