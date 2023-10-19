@@ -9,13 +9,13 @@ The model uses deep supervision wich helps mitigate the vanishing gradient probl
 intermediate loss signals into the output. This allows for more efficient flow of gradients during backpropegation. \
 As with general UNet arcitecture, skip connections are also used for their ability to improve segmentation quality. \
 
-![model arcitecture](model_arcitecture.png)
+![model arcitecture](images/model_arcitecture.png)
 
 The network takes a RGB channeled image as input, and outputs a binary segmentation map.
 
 This project allows for binary image segmentation of rgb channeled mole images
 ## example segmentation
-![example of image segmentation](segmentation_example.png)
+![example of image segmentation](images/segmentation_example.png)
 
 ## dependencies
 |Name   |Version|
