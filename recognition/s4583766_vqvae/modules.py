@@ -243,32 +243,32 @@ class VQVAE(nn.Module):
 
 class Discriminator(nn.Module):
     """
-    Detect fake images from real images (encoder).
+    Detect fake images from real images (decoder).
 
     Takes a 3 x 64 x 64 image, and outputs a single number representing 
     probability of it being real or fake. 
     """
-    def __init__(self, channels_img, features_d):
+    def __init__(self):
         super(Discriminator, self).__init__()
         # Input: N x channels_img x 64 x 64
         self.net = nn.Sequential(
-            nn.Conv2d(channels_img, features_d, kernel_size=4, stride=2, padding=1), # With a stride of 2, need padding of 1 - prevents downsampling.
+            nn.Conv2d(1, 128, kernel_size=4, stride=2, padding=1), # With a stride of 2, need padding of 1 - prevents downsampling.
             nn.LeakyReLU(0.2), # Allows 0.2 of the negative
-            self._block(3, 64, 2),
-            self._block(64, 128, 2),
-            self._block(128, 256, 2),
-            self._block(256, 512, 2), 
-            nn.Conv2d(512, 1, kernel_size=4, stride=1, padding=0, bias=False),
+            self._block(128, 256),
+            self._block(256, 512),
+            self._block(512, 1024),
+            # self._block(1024, 512), 
+            nn.Conv2d(1024, 1, kernel_size=4, stride=2, padding=0, bias=False),
             nn.Flatten(),
             nn.Sigmoid() # convert to probability output [0,1]
         )
 
     # Create a discriminator block with a convolutional layer, batch normalization, and leaky ReLU activation.
-    def _block(self, in_planes, planes, stride):
+    def _block(self, in_channels, out_channels):
         # Use of strided convolution is better than downsampling - model pools itself. 
         return nn.Sequential(
-            nn.Conv2d(in_planes, planes, kernel_size=4, stride=stride, padding=1, bias=False),
-            nn.BatchNorm2d(planes),
+            nn.Conv2d(in_channels, out_channels, kernel_size=4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(out_channels),
             nn.LeakyReLU(0.2, inplace=True)
         )
 
@@ -278,32 +278,34 @@ class Discriminator(nn.Module):
 # Create the generator model.
 class Generator(nn.Module):
     """ 
-    Produce fake images sampled from the latent space (decoder).
+    Produce fake images sampled from the latent space (encoder).
 
     Needs to receive latent space vector as an input, and map to data space (image). 
         - Hence, need to create an image that's the same size as training images (3x64x64).
     Batch norm after the conv-transpose layers helps with vanishing gradient problem.
         - normalizing input to have zero mean and unit variance = deals with poor initialization. 
     """
-    def __init__(self, channels_noise, channels_img, features_g):
+    def __init__(self):
         super(Generator, self).__init__()
         # Input: N x channels_noise x 1 x 1
         self.net = nn.Sequential(
-            self._block(channels_noise, 512, 1), 
-            self._block(512, 256, 2), 
-            self._block(256, 128, 2), 
-            self._block(128, 64, 2), 
-            nn.ConvTranspose2d(64, channels_img, kernel_size=4, stride=2, padding=1), # N x channels_img x 64 x 64
+            self._block(100, 1024, 1, 0), 
+            self._block(1024, 512, 4, 1),
+            self._block(512, 256, 2, 1), 
+            self._block(256, 128, 2, 1), 
+            # self._block(128, 3, 2, 1), 
+            nn.ConvTranspose2d(128, 1, kernel_size=4, stride=2, padding=1), # N x channels_img x 64 x 64
             nn.Tanh() # convert to [-1, 1] 
         )
 
     # Create a generator block with a transposed convolutional layer, batch normalization, and ReLU activation.
-    def _block(self, in_plane, plane, stride):
+    def _block(self, in_channels, out_channels, stride, padding):
         return nn.Sequential(
-            nn.ConvTranspose2d(in_plane, plane, kernel_size=4, stride=stride, padding=1, bias=False),
-            nn.BatchNorm2d(plane),
+            nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=stride, padding=padding, bias=False),
+            nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
 
     def forward(self, x):
         return self.net(x)
+
