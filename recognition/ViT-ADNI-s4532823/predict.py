@@ -20,11 +20,10 @@ def do_prediction(model, device: torch.device, num_predictions: int = 1):
         # make prediction
         output = model(image)
         _, predicted = torch.max(output, 1)
-        pred = predicted[0]
-
-        print(f"Predicted {pred}, actually {label}")
-
-        # show prediction vs real result
+        pred = int(predicted[0].item())
+        label_strs = {0: "Cognitive normal", 1: "Alzheimer's disease"}
+        print(f"Predicted {label_strs[pred]}, actually {label_strs[label]}")
+        # show image used for prediction
         image = image.squeeze(0)
         image = transforms.ToPILImage()(image)
         image.show()

@@ -12,7 +12,7 @@ from torch.utils.data import DataLoader
 """
 Helper function to plot a given metric
 """
-def plot_metric(stopping_epoch: int, metric_type: str in ["loss", "accuracy"], train_data: list, val_data: list):
+def plot_metric(stopping_epoch: int, metric_type: str, train_data: list, val_data: list):
     plt.figure()
     plt.plot(range(1, stopping_epoch+1), train_data, label = f"Training {metric_type}")
     plt.plot(range(1, stopping_epoch+1), val_data, label=f"Validation {metric_type}", color='orange')
