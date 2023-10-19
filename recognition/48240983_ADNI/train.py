@@ -42,12 +42,15 @@ model = Net()
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
-# Lists to store loss values
+# Lists to store loss and accuracy values
 loss_values = []
+accuracy_values = []
 
 # Training the PyTorch model
 for epoch in range(10):
     running_loss = 0.0
+    correct = 0
+    total = 0
     for i, data in enumerate(data_loader, 0):
         inputs, labels = data
         optimizer.zero_grad()
@@ -56,16 +59,40 @@ for epoch in range(10):
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
+        
+        # Calculate accuracy
+        _, predicted = torch.max(outputs, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+    
     average_loss = running_loss / len(data_loader)
-    print(f'Epoch {epoch+1}, Loss: {average_loss}')
+    accuracy = correct / total
+    
+    print(f'Epoch {epoch+1}, Loss: {average_loss}, Accuracy: {accuracy}')
     loss_values.append(average_loss)
+    accuracy_values.append(accuracy)
 
-print('Finished Training')
+    # If accuracy reaches 0.8, stop training
+    if accuracy >= 0.8:
+        print("Desired accuracy of 0.8 reached. Stopping training.")
+        break
 
-# Plot the loss
-plt.plot(range(1, 11), loss_values)
+
+
+# Plot the loss and accuracy
+plt.figure(figsize=(12, 4))
+plt.subplot(1, 2, 1)
+plt.plot(range(1, len(loss_values) + 1), loss_values)
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Training Loss')
+
+plt.subplot(1, 2, 2)
+plt.plot(range(1, len(accuracy_values) + 1), accuracy_values)
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Training Accuracy')
+
 plt.grid(True)
+plt.tight_layout()
 plt.show()
