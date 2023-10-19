@@ -32,6 +32,17 @@ def show_graph(graph, model):
     plt.savefig("Model.png")
     #plt.show()
 
+'''
+evaluate(model, graph, test_mask, epoch, loss):
+Prints out the epoch, loss and accuracy of the model by 
+evaluating it against the test set.
+
+model: model being evaluated
+graph: dgl graph representing the dataset
+test_mask: numpy array stating which values are for testing
+epoch: epoch number the model is on
+loss: the loss function
+'''
 def evaluate(model, graph, test_mask, epoch, loss):
     # Evaluate the model on the test set
     model.eval()
