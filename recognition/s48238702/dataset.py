@@ -34,47 +34,20 @@ class SiameseDataset(Dataset):
 
         return img1, img2, label
 def load_siamese_data(batch_size=32):
-    ad_paths = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)]
-    cn_paths = [os.path.join(CN_PATH, path) for path in os.listdir(CN_PATH)]
-
-    pair_base = cn_paths[0::2]
-    num_pairs = len(pair_base)
-    pair_ad = ad_paths[0:(num_pairs//2)]
-    pair_cn = cn_paths[1::4][0:num_pairs]
-    
-    random.shuffle(pair_ad)
-    random.shuffle(pair_cn)
-    
+    pair_base = [os.path.join(CN_PATH, path) for path in os.listdir(CN_PATH)][::2]
+    pair_ad = [os.path.join(AD_PATH, path) for path in os.listdir(AD_PATH)][:len(pair_base)]
+    pair_cn = [os.path.join(CN_PATH, path) for path in os.listdir(CN_PATH)][1::4][:len(pair_base)]
     pair_compare = pair_cn + pair_ad
+    labels = np.concatenate([np.zeros(len(pair_base)//2), np.ones(len(pair_base)//2)])
 
-    labels = np.concatenate([np.zeros([num_pairs//2]), np.ones([num_pairs//2])])
-    labels = np.expand_dims(labels, -1)
+    transform = transforms.Compose([transforms.Resize((128, 128)),
+                                    transforms.ToTensor(),
+                                    transforms.Normalize((0.5,), (0.5,))])
 
-    pairs = []
-    for i in range(len(pair_compare)):
-        try:
-            pair_item = (pair_compare[i], pair_compare[i + 1])
-        except IndexError:
-            continue
+    siamese_dataset = SiameseDataset(pair_base, pair_compare, labels, transform=transform)
+    dataloader = DataLoader(siamese_dataset, batch_size=batch_size, shuffle=True)
 
-        pairs.append(pair_item)
-
-    transform = transforms.Compose([
-        transforms.Resize((128, 128)),
-        transforms.ToTensor()
-    ])
-
-    dataset = SiameseDataset(pairs, labels, transform)
-
-    train_size = int(0.8 * len(dataset))
-    val_size = len(dataset) - train_size
-    train_dataset, val_dataset = torch.utils.data.random_split(dataset, [train_size, val_size])
-
-    train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-
-    return train_loader, val_loader
-
+    return dataloader
 
 def load_classify_data(testing: bool, batch_size=32):
     """ Load testing image data, images with labels,
