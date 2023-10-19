@@ -33,7 +33,6 @@ train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 trainset = torchvision.datasets.ImageFolder(root=train_path, transform=train_transform)
 testset = torchvision.datasets.ImageFolder(root=test_path, transform=test_transform)
-paired_testset = dataset.SiameseDatset_test(trainset,testset)
 train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
 test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size)
 correct = 0
@@ -41,7 +40,7 @@ total = 0
 best_epoch = 0
 best_acc = 0
 
-model = torch.load(f"C:/Users/wongm/Desktop/COMP3710/project/siamese_augmented_epoch_20.pth")
+model = torch.load(f"C:/Users/wongm/Desktop/COMP3710/project/siamese_dropout_epoch_24.pth")
 model = model.to(device)
 model.eval()
 
@@ -77,8 +76,8 @@ for epoch in range(num_epoch):
         # train classifier
         classifier_optimizer.zero_grad()
         test_label = label.to(device)
-
-        output = classifier(image).squeeze()
+        embeddings = model.forward_once(image)
+        output = classifier(embeddings).squeeze()
         c_loss = classifier_loss(output, label)
         c_loss.backward()
         classifier_optimizer.step()
@@ -96,8 +95,8 @@ for epoch in range(num_epoch):
         for i, (test_image, test_label) in enumerate(test_loader):
             test_image = test_image.to(device)
             test_label = test_label.to(device)
-
-            output = classifier(test_image).squeeze()
+            embeddings = model.forward_once(test_image)
+            output = classifier(embeddings).squeeze()
             tc_loss = classifier_loss(output,test_label)
 
             _, pred = torch.max(output.data, 1)

@@ -8,7 +8,7 @@ import random
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 
-transform = transforms.Compose([
+training_transform = transforms.Compose([
     transforms.Grayscale(num_output_channels=1),
     transforms.Resize((128, 128)),
     transforms.RandomCrop(128, 16),
@@ -17,16 +17,23 @@ transform = transforms.Compose([
     transforms.Normalize(0.5, 0.5),
 ])
 
+testing_transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
+    transforms.Resize((128, 128)),
+    transforms.ToTensor(),
+    transforms.Normalize(0.5, 0.5),
+])
+
 batch_size = 16
 def load_data2(train_path, test_path):
-    dataset = torchvision.datasets.ImageFolder(root=train_path, transform=transform)
-    testset = torchvision.datasets.ImageFolder(root=test_path, transform=transform)
+    dataset = torchvision.datasets.ImageFolder(root=train_path, transform=training_transform)
+    testset = torchvision.datasets.ImageFolder(root=test_path, transform=testing_transform)
 
-    val_size = int(0.2 * len(dataset))
-    train_size = len(dataset) - val_size
-    trainset, validation_set = torch.utils.data.random_split(dataset, [train_size, val_size])
+    val_size = int(0.4 * len(testset))
+    test_size = len(testset) - val_size
+    t, validation_set = torch.utils.data.random_split(testset, [test_size, val_size])
 
-    paired_trainset = SiameseDatset_contrastive(trainset)
+    paired_trainset = SiameseDatset_contrastive(dataset)
     paired_validationset = SiameseDatset_contrastive(validation_set)
     paired_testset = SiameseDatset_contrastive(testset)
     train_loader = torch.utils.data.DataLoader(paired_trainset, batch_size=batch_size, shuffle=True)

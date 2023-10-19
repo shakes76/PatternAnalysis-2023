@@ -114,8 +114,8 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning VUDA not Found. Using CPU")
 # hyperparameters
-num_epoch = 20
-learning_rate = 0.001
+num_epoch = 90
+learning_rate = 0.0001
 
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
@@ -123,9 +123,10 @@ test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 # load_data2() for BCELoss or contrastive loss load_data3() for tripletLoss
 train_loader, validation_loader, test_loader = dataset.load_data2(train_path, test_path)
 model = modules.Siamese()
+#model = modules.ResNet18()
 model = model.to(device)
-from pytorch_metric_learning import losses, miners
-miner = miners.MultiSimilarityMiner()
+# from pytorch_metric_learning import losses, miners
+# miner = miners.MultiSimilarityMiner()
 # criterion = losses.TripletMarginLoss()
 criterion = ContrastiveLoss(1.0)
 
@@ -162,6 +163,7 @@ for epoch in range(num_epoch):
         loss = criterion(x, y, labela.float())
         loss.backward()
         optimizer.step()
+        total_loss_this_epoch.append(loss.item())
 
         optimizer.zero_grad()
         images1 = images1.to(device)
@@ -186,7 +188,7 @@ for epoch in range(num_epoch):
         total_loss_this_epoch.append(loss.item())
         if (i + 1) % 100 == 0:
                 print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} "
-                      .format(epoch + 1, num_epoch, i + 1, total_steps, loss.item()))
+                      .format(epoch + 1, num_epoch, i + 1, total_steps,sum(total_loss_this_epoch)/len(total_loss_this_epoch)))
 
 
     training_loss.append(sum(total_loss_this_epoch)/len(total_loss_this_epoch))
@@ -194,13 +196,13 @@ for epoch in range(num_epoch):
 
 
     train_embeddings_cl, train_labels_cl = extract_embeddings(train_loader, model)
-    plot_embeddings(train_embeddings_cl, train_labels_cl,epoch,"training")
+    plot_embeddings(train_embeddings_cl, train_labels_cl,epoch,"resnet_training")
 
     train_embeddings_cl, train_labels_cl = extract_embeddings(validation_loader, model)
-    plot_embeddings(train_embeddings_cl, train_labels_cl, epoch, "validation")
+    plot_embeddings(train_embeddings_cl, train_labels_cl, epoch, "resnet_validation")
 
     test_embeddings_cl, test_labels_cl = extract_embeddings(test_loader, model)
-    plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "test")
+    plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "resnet_test")
 
 
     # contrastive loss validation
@@ -219,6 +221,13 @@ for epoch in range(num_epoch):
             val_loss = criterion(x,y, labela.float())
             total_val_loss_this_epoch.append(val_loss.item())
 
+            images1 = images1.to(device)
+            images3 = images3.to(device)
+            labelb = labelb.to(device)
+            x, y = model(images1, images3)
+            val_loss = criterion(x, y, labelb.float())
+            total_val_loss_this_epoch.append(val_loss.item())
+
             # images1 = images1.to(device)
             # test_label = test_label.to(device)
             # embeddings = model.forward_once(images1)
@@ -226,12 +235,12 @@ for epoch in range(num_epoch):
             # total_val_loss_this_epoch.append(val_loss.item())
 
     print(
-        f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {loss.item():.4f}, validation_loss: {val_loss.item():.4f}"
+        f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {sum(total_loss_this_epoch)/len(total_loss_this_epoch):.4f}, validation_loss: {sum(total_val_loss_this_epoch)/len(total_val_loss_this_epoch):.4f}"
     )
 
     validation_loss.append(sum(total_val_loss_this_epoch)/len(total_val_loss_this_epoch))
 
-    torch.save(model,f"C:\\Users\\wongm\\Desktop\\COMP3710\\project\\siamese_augmented_epoch_{epoch+1}.pth")
+    torch.save(model,f"C:\\Users\\wongm\\Desktop\\COMP3710\\project\\siamese_dropout_epoch_{epoch+1}.pth")
 
 
 epochs = list(range(1, num_epoch + 1))
