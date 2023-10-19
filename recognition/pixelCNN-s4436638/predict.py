@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import torch
 import torchvision.transforms as T
@@ -8,6 +9,14 @@ from dataset import GetADNITest
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error as mse
+
+### We will use this to store the images to
+if not os.path.exists("test_images/recon"):
+    os.makedirs("test_images/recon")
+if not os.path.exists("test_images/downscale"):
+    os.makedirs("test_images/downscale")
+if not os.path.exists("test_images/ground_truth"):
+    os.makedirs("test_images/ground_truth")
 
 # Get device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
