@@ -3,6 +3,7 @@ import torch
 import scipy.sparse as sp
 from utils import SEED
 
+# Set seed for reproducibility.
 np.random.seed(SEED)
 
 # Directory for data
