@@ -14,7 +14,7 @@ class OneChannel:
     """Custom transform class to discard extra image channels."""
     @staticmethod
     def __call__(img_tensor):
-        return img_tensor[0]
+        return torch.unsqueeze(img_tensor[0], dim=0)
 
 
 class TripletDataset(datasets.ImageFolder):
@@ -33,7 +33,7 @@ class TripletDataset(datasets.ImageFolder):
         # first, get the anchor image 
         path, target = self.samples[index]
         anchor = self.loader(path)
-        print(f"Anchor: {path}")
+        # print(f"Anchor: {path}")
 
         # now get the positive and negative images randomly
         found_p = False
@@ -47,11 +47,11 @@ class TripletDataset(datasets.ImageFolder):
             if not found_p and new_target == target:
                 positive = self.loader(new_path)
                 found_p = True
-                print(f"Positive: {new_path}")
+                # print(f"Positive: {new_path}")
             elif not found_n and new_target != target:
                 negative = self.loader(new_path)
                 found_n = True
-                print(f"Negative: {new_path}")
+                # print(f"Negative: {new_path}")
 
         if self.transform is not None:
             anchor = self.transform(anchor)
@@ -61,26 +61,23 @@ class TripletDataset(datasets.ImageFolder):
         return anchor, target, positive, negative
 
 
-# setup the transforms for the images
-transform = transforms.Compose([
-    transforms.Resize((256, 240)),
-    transforms.ToTensor(),
-    OneChannel()
-])
-
-# set up the datasets
-train_set = TripletDataset(root="data/train", transform=transform)
-valid_set = TripletDataset(root="data/valid", transform=transform)
-test_set = TripletDataset(root="data/test", transform=transform)
-
-# set up the dataloaders
-train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-
-
-
 if __name__ == '__main__':
+    # setup the transforms for the images
+    transform = transforms.Compose([
+        transforms.Resize((256, 240)),
+        transforms.ToTensor(),
+        OneChannel()
+    ])
+    # set up the datasets
+    train_set = TripletDataset(root="data/train", transform=transform)
+    valid_set = TripletDataset(root="data/valid", transform=transform)
+    test_set = TripletDataset(root="data/test", transform=transform)
+
+    # set up the dataloaders
+    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+    valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+    
     # train_valid_split()
     # data = train_set[0]
     # print(data)
@@ -103,9 +100,11 @@ if __name__ == '__main__':
 
     # print(data)
     # show_image(data)
-    time.sleep(5)
     data_iterator = iter(train_loader)
     data = next(data_iterator)
     print(len(data))
-    print(data)
+    # print(data)
+    for d in data:
+        # print(type(d))
+        print(d.size())
     # show_image(data)

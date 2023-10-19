@@ -6,8 +6,6 @@ from pathlib import Path
 import os
 import matplotlib.pyplot as plt
 import numpy as np
-from PIL import Image
-import PIL.ImageOps
 
 def show_image(data: tuple):
     """Shows the image of a sample from a dataset
