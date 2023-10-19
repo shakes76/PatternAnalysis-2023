@@ -1,8 +1,8 @@
 # Source code for training, validating, testing and saving the model
 # Thomas Bennion s4696627
-import torch.optim as optim
 import torch as pt
 import numpy as np
+import predict
 import dgl
 
 '''
@@ -83,7 +83,7 @@ learning_rate: learning rate of the model
 def train_model(graph, train_mask, test_mask, model, epochs, learning_rate):
     # Define loss function and optimizer
     criterion = pt.nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    optimizer = pt.optim.Adam(model.parameters(), lr=learning_rate)
     
     # Training loop
     for epoch in range(epochs):
@@ -101,5 +101,6 @@ def train_model(graph, train_mask, test_mask, model, epochs, learning_rate):
             predictions = logits.argmax(1)
             accuracy = ((predictions[test_mask] == graph.ndata['Target'][test_mask]).float()).mean()
 
-        print(f'Epoch {epoch}: Loss {loss.item()}, Test Accuracy {accuracy.item()}')
-        
+        #print(f'Epoch {epoch}: Loss {loss.item()}, Test Accuracy {accuracy.item()}')
+    
+    predict.show_graph(graph, model)
