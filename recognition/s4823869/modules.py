@@ -1,128 +1,260 @@
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn, optim
 
-FLAT = -1
-STRIDES = 2
-PCNN_STRIDES = 1
-KERN_SIZE = 3
-CONV1_KERN_SIZE = 1
-CONV_W_FACTOR = 32
-FILTER_FACTOR = 2
-KERN_FACTOR = 2
-NO_FILTERS = 128
-PCNN_IN_KERN_SIZE = 7
-PCNN_OUT_KERN_SIZE = 1
-PCNN_MID_KERN_SIZE = 1
-KERN_INIT = 1.0
-RESIDUAL_BLOCKS = 2
-ENC_IN_SHAPE = (1, 80, 80)
-NO_RESID_BLOCKS = 2
-NO_PCNN_LAYERS = 4
+# scaling factors
+factors = [1, 1, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32]
 
-class VectorQuantizer(nn.Module):
-    def __init__(self, n_embeds, embed_dim, beta):
-        super(VectorQuantizer, self).__init__()
-        self.embed_dim = embed_dim
-        self.n_embeds = n_embeds
-        self.beta = beta
 
-        self.embeddings = nn.Embedding(n_embeds, embed_dim)
+# Weight-scaled linear layer -> training stablization
+class WSLinear(nn.Module):
+    def __init__(self, in_features, out_features):
+        super(WSLinear, self).__init__()
+        self.linear = nn.Linear(in_features, out_features)
+        self.scale = (2 / in_features) ** 0.5  # sd closed to 1
+        self.bias = self.linear.bias
+        self.linear.bias = None
+
+        nn.init.normal_(self.linear.weight)  # normalized weights
+        nn.init.zeros_(self.bias)  # zero biases
 
     def forward(self, x):
-        in_shape = x.shape
-        x = x.view(FLAT, self.embed_dim)
-        distances = torch.sum(x**2, dim=1, keepdim=True) + torch.sum(self.embeddings.weight**2, dim=1) - 2 * torch.matmul(x, self.embeddings.weight.t())
-        encoding_indices = torch.argmin(distances, dim=1)
-        quantized = self.embeddings(encoding_indices).view(in_shape)
-        commitment_loss = self.beta * torch.mean((quantized.detach() - x) ** 2)
-        quantized = x + (quantized - x).detach()
+        return self.linear(x * self.scale) + self.bias
 
-        return quantized, commitment_loss
+    # Pixel-wise feature vector normalization -> generator training normalization
 
-class Encoder(nn.Module):
-    def __init__(self, lat_dim):
-        super(Encoder, self).__init()
-        self.conv1 = nn.Conv2d(1, CONV_W_FACTOR, KERN_SIZE, stride=STRIDES, padding=1)
-        self.conv2 = nn.Conv2d(CONV_W_FACTOR, 2 * CONV_W_FACTOR, KERN_SIZE, stride=STRIDES, padding=1)
-        self.conv3 = nn.Conv2d(2 * CONV_W_FACTOR, 4 * CONV_W_FACTOR, KERN_SIZE, stride=STRIDES, padding=1)
-        self.conv4 = nn.Conv2d(4 * CONV_W_FACTOR, lat_dim, 1, padding=1)
+
+class PixenNorm(nn.Module):
+    def __init__(self):
+        super(PixenNorm, self).__init__()
+        self.epsilon = 1e-8
 
     def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = F.relu(self.conv3(x))
-        x = self.conv4(x)
+        return x / torch.sqrt(torch.mean(x ** 2, dim=1, keepdim=True) + self.epsilon)
 
+
+# Untangled data distribution for easier generator training
+# Z -> style factor W
+class MappingNetwork(nn.Module):
+    def __init__(self, z_dim, w_dim):
+        super().__init__()
+        #  8 FC layers
+        self.mapping = nn.Sequential(
+            PixenNorm(),
+            WSLinear(z_dim, w_dim),
+            nn.ReLU(),
+            WSLinear(w_dim, w_dim),
+            nn.ReLU(),
+            WSLinear(w_dim, w_dim),
+            nn.ReLU(),
+            WSLinear(w_dim, w_dim),
+            nn.ReLU(),
+            WSLinear(w_dim, w_dim),
+            nn.ReLU(),
+            WSLinear(w_dim, w_dim),
+            nn.ReLU(),
+            WSLinear(w_dim, w_dim),
+            nn.ReLU(),
+            WSLinear(w_dim, w_dim),
+        )
+
+    def forward(self, x):
+        return self.mapping(x)
+
+
+# Adaptive Instance Normalization
+# Embed style factor W into the layers of generator
+# Global feature control
+class AdaIN(nn.Module):
+    def __init__(self, channels, w_dim):
+        super().__init__()
+        self.instance_norm = nn.InstanceNorm2d(channels)
+        self.style_scale = WSLinear(w_dim, channels)
+        self.style_bias = WSLinear(w_dim, channels)
+
+    def forward(self, x, w):
+        x = self.instance_norm(x)
+        style_scale = self.style_scale(w).unsqueeze(2).unsqueeze(3)
+        style_bias = self.style_bias(w).unsqueeze(2).unsqueeze(3)
+        return style_scale * x + style_bias
+
+
+# Gaussian noise added into each conv layer
+# Fine details control by noise that are specifically scaled for each block of conv layers (with different resolutions)
+class injectNoise(nn.Module):
+    def __init__(self, channels):
+        super().__init__()
+        self.weight = nn.Parameter(torch.zeros(1, channels, 1, 1))  # specific resolution
+
+    def forward(self, x):
+        noise = torch.randn((x.shape[0], 1, x.shape[2], x.shape[3]), device=x.device)  # Gaussian distribution
+        return x + self.weight + noise
+
+
+# Weight-scaled conv layer
+class WSConv2d(nn.Module):
+    def __init__(
+            self, in_channels, out_channels, kernel_size=3, stride=1, padding=1
+    ):
+        super(WSConv2d, self).__init__()
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
+        self.scale = (2 / (in_channels * (kernel_size ** 2))) ** 0.5
+        self.bias = self.conv.bias
+        self.conv.bias = None
+
+        # initialize conv layer
+        nn.init.normal_(self.conv.weight)  # weights are initialized from normal distribution
+        nn.init.zeros_(self.bias)
+
+    def forward(self, x):
+        return self.conv(x * self.scale) + self.bias.view(1, self.bias.shape[0], 1, 1)
+
+
+# Generator block with style factor and specific noise
+class GenBlock(nn.Module):
+    def __init__(self, in_channel, out_channel, w_dim):
+        super(GenBlock, self).__init__()
+        self.conv1 = WSConv2d(in_channel, out_channel)
+        self.conv2 = WSConv2d(out_channel, out_channel)
+        self.leaky = nn.LeakyReLU(0.2, inplace=True)
+        self.inject_noise1 = injectNoise(out_channel)
+        self.inject_noise2 = injectNoise(out_channel)
+        self.adain1 = AdaIN(out_channel, w_dim)
+        self.adain2 = AdaIN(out_channel, w_dim)
+
+    def forward(self, x, w):
+        x = self.adain1(self.leaky(self.inject_noise1(self.conv1(x))), w)  # style factor embedded & noise injected
+        x = self.adain2(self.leaky(self.inject_noise2(self.conv2(x))), w)
         return x
 
-class Decoder(nn.Module):
-    def __init__(self, lat_dim):
-        super(Decoder, self).__init()
-        self.conv1 = nn.ConvTranspose2d(lat_dim, 4 * CONV_W_FACTOR, KERN_SIZE, stride=STRIDES, padding=1)
-        self.conv2 = nn.ConvTranspose2d(4 * CONV_W_FACTOR, 2 * CONV_W_FACTOR, KERN_SIZE, stride=STRIDES, padding=1)
-        self.conv3 = nn.ConvTranspose2d(2 * CONV_W_FACTOR, 1, KERN_SIZE, padding=1)
+
+# Regular conv block for discriminator
+class ConvBlock(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(ConvBlock, self).__init__()
+        self.conv1 = WSConv2d(in_channels, out_channels)
+        self.conv2 = WSConv2d(out_channels, out_channels)
+        self.leaky = nn.LeakyReLU(0.2)
 
     def forward(self, x):
-        x = F.relu(self.conv1(x))
-        x = F.relu(self.conv2(x))
-        x = self.conv3(x)
-
+        x = self.leaky(self.conv1(x))
+        x = self.leaky(self.conv2(x))
         return x
 
-class VQVAE(nn.Module):
-    def __init__(self, lat_dim, embeds, beta):
-        super(VQVAE, self).__init__()
-        self.encoder = Encoder(lat_dim)
-        self.vector_quantizer = VectorQuantizer(embeds, lat_dim, beta)
-        self.decoder = Decoder(lat_dim)
 
-    def forward(self, x):
-        encoded = self.encoder(x)
-        quantized, commitment_loss = self.vector_quantizer(encoded)
-        reconstructed = self.decoder(quantized)
+class Generator(nn.Module):
+    def __init__(self, z_dim, w_dim, in_channels, img_channels=3):
+        super().__init__()
+        self.starting_cte = nn.Parameter(torch.ones(1, in_channels, 4,
+                                                    4))  # constant tensor as starting point, influenced by w and noise when training
+        self.map = MappingNetwork(z_dim, w_dim)
+        self.initial_adain1 = AdaIN(in_channels, w_dim)
+        self.initial_adain2 = AdaIN(in_channels, w_dim)
+        self.initial_noise1 = injectNoise(in_channels)
+        self.initial_noise2 = injectNoise(in_channels)
+        self.initial_conv = nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1)
+        self.leaky = nn.LeakyReLU(0.2, inplace=True)
 
-        return reconstructed, commitment_loss
+        self.initial_rgb = WSConv2d(
+            in_channels, img_channels, kernel_size=1, stride=1, padding=0
+        )
+        self.prog_blocks, self.rgb_layers = (
+            nn.ModuleList([]),  # progressive training blocks
+            nn.ModuleList([self.initial_rgb])  # to generate RGB images
+        )
 
-class Trainer(nn.Module):
-    def __init__(self, train_vnce, lat_dim, n_embeds, beta):
-        super(Trainer, self).__init__()
-        self.train_vnce = train_vnce
-        self.vqvae = VQVAE(lat_dim, n_embeds, beta)
-        self.tot_loss = nn.MSELoss()
-        self.recon_loss = nn.MSELoss()
-        self.vq_loss = nn.MSELoss()
+        for i in range(len(factors) - 1):
+            conv_in_c = int(in_channels * factors[i])
+            conv_out_c = int(in_channels * factors[i + 1])
+            self.prog_blocks.append(GenBlock(conv_in_c, conv_out_c, w_dim))
+            self.rgb_layers.append(WSConv2d(conv_out_c, img_channels, kernel_size=1, stride=1, padding=0))
 
-    def forward(self, x):
-        recons, commitment_loss = self.vqvae(x)
-        recon_loss = self.recon_loss(x, recons)
-        total_loss = recon_loss + commitment_loss
+    # upscaled: the output from last layer of current resolution
+    # generated: the output from next layer of new resoultion
+    def fade_in(self, alpha, upscaled, generated):
+        return torch.tanh(alpha * generated + (1 - alpha) * upscaled)
 
-        return total_loss
+    def forward(self, noise, alpha, steps):
+        # print(noise)
+        w = self.map(noise)
+        # print(w)
+        x = self.initial_adain1(self.initial_noise1(self.starting_cte), w)  # first inject noise, then embed style
+        x = self.initial_conv(x)  #
+        out = self.initial_adain2(self.leaky(self.initial_noise2(x)), w)
 
-def build_vqvae(lat_dim, embeds, beta):
-    vqvae = VQVAE(lat_dim, embeds, beta)
-    return vqvae
+        # early termination
+        if steps == 0:  # when the generater is at initial stage, i.e. lowest resolution
+            return self.initial_rgb(x)  # x -> initial_rgb() -> image
 
-class PCNN(nn.Module):
-    def __init__(self, vqvae):
-        super(PCNN, self).__init__()
-        self.vqvae = vqvae
-        # Define your PCNN layers here
-        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.fc1 = nn.Linear(64 * 20 * 20, 128)
-        self.fc2 = nn.Linear(128, 10)  # Modify this based on your classification task
+        for step in range(steps):
+            upscaled = F.interpolate(out, scale_factor=2, mode='bilinear')  # Upsampling by 2
+            out = self.prog_blocks[step](upscaled, w)
 
-    def forward(self, x):
-        x = self.vqvae.encoder(x)
-        x = self.conv1(x)
-        x = self.conv2(x)
-        x = x.view(x.size(0), -1)  # Flatten
-        x = self.fc1(x)
-        x = self.fc2(x)
-        return x
+        final_upscaled = self.rgb_layers[steps - 1](upscaled)
+        final_out = self.rgb_layers[steps](out)
 
-def build_pcnn(vqvae):
-    pcnn = PCNN(vqvae)
-    return pcnn
+        return self.fade_in(alpha, final_upscaled, final_out)
+
+
+class Discriminator(nn.Module):
+    def __init__(self, in_channels, img_channels=3):
+        super(Discriminator, self).__init__()
+        self.prog_blocks, self.rgb_layers = nn.ModuleList([]), nn.ModuleList([])
+        self.leaky = nn.LeakyReLU(0.2)
+
+        for i in range(len(factors) - 1, 0, -1):
+            conv_in = int(in_channels * factors[i])
+            conv_out = int(in_channels * factors[i - 1])
+            self.prog_blocks.append(ConvBlock(conv_in, conv_out))
+            self.rgb_layers.append(
+                WSConv2d(img_channels, conv_in, kernel_size=1, stride=1, padding=0)
+            )
+
+        # perhaps confusing name "initial_rgb" this is just the RGB layer for 4x4 input size
+        # did this to "mirror" the generator initial_rgb
+        self.initial_rgb = WSConv2d(
+            img_channels, in_channels, kernel_size=1, stride=1, padding=0
+        )
+        self.rgb_layers.append(self.initial_rgb)
+        self.avg_pool = nn.AvgPool2d(kernel_size=2, stride=2)  # downsampling by avg pool
+
+        # this is the block for 4x4 input size
+        self.final_block = nn.Sequential(
+            # +1 to in_channels because we concatenate from MiniBatch std
+            WSConv2d(in_channels + 1, in_channels, kernel_size=3, padding=1),
+            nn.LeakyReLU(0.2),
+            WSConv2d(in_channels, in_channels, kernel_size=4, padding=0, stride=1),
+            nn.LeakyReLU(0.2),
+            WSConv2d(in_channels, 1, kernel_size=1, padding=0, stride=1),  # we use this instead of linear layer
+        )
+
+    def fade_in(self, alpha, downscaled, out):
+
+        return alpha * out + (1 - alpha) * downscaled
+
+    def minibatch_std(self, x):
+        batch_statistics = (torch.std(x, dim=0).mean().repeat(x.shape[0], 1, x.shape[2], x.shape[3]))
+
+        return torch.cat([x, batch_statistics], dim=1)
+
+    def forward(self, x, alpha, steps):
+
+        cur_step = len(self.prog_blocks) - steps
+
+        out = self.leaky(self.rgb_layers[cur_step](x))
+
+        if steps == 0:
+            out = self.minibatch_std(out)
+            return self.final_block(out).view(out.shape[0], -1)
+
+        downscaled = self.leaky(self.rgb_layers[cur_step + 1](self.avg_pool(x)))
+        out = self.avg_pool(self.prog_blocks[cur_step](out))
+
+        out = self.fade_in(alpha, downscaled, out)
+
+        for step in range(cur_step + 1, len(self.prog_blocks)):
+            out = self.prog_blocks[step](out)
+            out = self.avg_pool(out)
+
+        out = self.minibatch_std(out)
+        return self.final_block(out).view(out.shape[0], -1)
