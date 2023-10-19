@@ -19,7 +19,11 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Load the model that trained from train.py
 model = ESPCN().to(DEVICE)
-model.load_state_dict(torch.load('best_model.pth'))
+try:
+    model.load_state_dict(torch.load('best_model1.pth'))
+except FileNotFoundError:
+    print("Not find model! Please use train.py to produce one!")
+    exit(1)
 model.eval()
 
 # Create test dataset
