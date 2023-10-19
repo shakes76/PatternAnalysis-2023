@@ -1,26 +1,34 @@
 from tensorflow.keras.models import load_model
-# from dataset import load_classify_data
-import tensorflow as tf
+from dataset import classification_data_loader
 
+# Define the path to the saved classifier model
 CLASSIFIER_PATH = '/content/Classifier.h5'
 
-def predict():
-    """ 
-    Use the classification model to make predictions
-    """
-    # Evaluate
+def prediction():
+    # Load the trained classifier model
     classifier = load_model(CLASSIFIER_PATH)
-    classify_test_data = load_classify_data(testing=True)
 
-    # Evaluate the classifier
-    classifier.evaluate(classify_test_data)
+    # Load the test data for classification
+    classify_test_data = classification_data_loader(testing=True)
 
-    # Show predictions for one batch (32 predictions)
+    # Evaluate the classifier on the test data
+    evaluation_results = classifier.evaluate(classify_test_data)
+
+    # Display evaluation results
+    print("Evaluation Results:")
+    print("Loss:", evaluation_results[0])
+    print("Accuracy:", evaluation_results[1])
+
     for pair, label in classify_test_data:
-        pred = classifier.predict(pair)
-        for i in range(len(pred)):
-            print("Prediction: ", pred[i])
-            print("Actual: ", label[i])
-        break 
+        # Make predictions using the classifier
+        predictions = classifier.predict(pair)
 
-predict()
+        # Display predicted values and actual labels for the first batch
+        for i in range(len(predictions)):
+            print("Prediction:", predictions[i])
+            print("Actual Label:", label[i])
+
+        break  # Stop after the first batch of predictions
+
+# Run the prediction function
+prediction()
