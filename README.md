@@ -94,12 +94,10 @@ out = model(data.x, data.edge_index) # Predict model
 | 128-64        | 0.9362483311081442   |
 | 128-16        | 0.9224521584334668   |
 
-The table above shows how the model was trained and how the layers was choosen. The highest accuracy
-occurs when 128-64-16 layers are used. Adding an extra layer leads to slightly lower acccuracy, possibly
-due to overfitting and the model is unable to adapt to new unseen data. Using less layers also results in
-lower accuracy. Further reducing number of hidden units leads to a lower accuracy. This is due to underfitting
+The table above shows how the model was trained and how the layers was chosen. The highest accuracy occurs when 128-64-16 layers are used. 
+Adding an extra layer leads to slightly lower accuracy, possibly due to overfitting and the model is unable to adapt to new unseen data. 
+Using less layers also results in lower accuracy. Further reducing number of hidden units leads to a lower accuracy. This is due to underfitting 
 where the model is unable to capture the relationship between the features and labels accurately.
-
 
 [^1]: https://ojs.aaai.org/index.php/AAAI/article/view/17211/17018
 [^2]: https://snap.stanford.edu/data/facebook-large-page-page-network.html
