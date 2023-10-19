@@ -1,36 +1,25 @@
-import os
 import tensorflow as tf
 
-class AlzheimerDataModule(tf.Module):
+# Example data loading and preprocessing logic
+# Replace this with your actual data loading and preprocessing logic
+def load_data():
+    (x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
+    # Normalize the data and perform any necessary preprocessing
+    x_train = x_train / 255.0
+    x_test = x_test / 255.0
+    return (x_train, y_train), (x_test, y_test)
 
-  def __init__(self, root_dir, preprocess_fn=None, num_ad=0, num_nc=0):
-    
-    self.root_dir = root_dir
-    self.preprocess_fn = preprocess_fn
-    
-    ad_paths = self.get_image_paths("AD")
-    nc_paths = self.get_image_paths("NC")
-    
-    self.ad_paths = ad_paths[:num_ad]
-    self.nc_paths = nc_paths[:num_nc] 
-    self.paths = self.ad_paths + self.nc_paths
+if __name__ == "__main__":
+    # Data loading
+    (x_train, y_train), (x_test, y_test) = load_data()
+    train_dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    train_dataset = train_dataset.shuffle(buffer_size=1024).batch(32)
+    test_dataset = tf.data.Dataset.from_tensor_slices((x_test, y_test)).batch(32)
 
-  def get_image_paths(self, folder):
-    path = os.path.join(self.root_dir, folder)
-    files = [os.path.join(path, f) for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
-    return files
+    # Rest of your code here
+    # ...
 
-  def make_dataset(self):
-    dataset = tf.data.Dataset.from_tensor_slices(self.paths)
-    return dataset.map(self.load_image_and_label)
-
-  def load_image_and_label(self, path):
-    
-    image = tf.io.read_file(path)
-    image = tf.image.decode_jpeg(image)
-    
-    if self.preprocess_fn:
-      image = self.preprocess_fn(image)
-      
-    label = tf.cast(tf.strings.equal(os.path.basename(os.path.dirname(path)), 'AD'), tf.int32)
-    return image, label
+    # Example usage of the data
+    for (x, y) in train_dataset:
+        # Do something with the data batches
+        print(f"X shape: {x.shape}, Y shape: {y.shape}")
