@@ -41,13 +41,14 @@ def load_train_data(path: str):
 
     # Plot some training images
     real_batch = next(iter(train_loader))
+    num_images = 32
     plt.figure(figsize=(16, 16)) 
     plt.axis("off")
     plt.title("Training Images", fontsize=24)
     plt.imshow(
         np.transpose(
             vutils.make_grid(
-                real_batch[0][0].to(device)[:16], nrow=4, padding=2, normalize=True 
+                real_batch[0][:num_images], nrow=4, padding=2, normalize=True 
             ).cpu(),
             (1, 2, 0),
         )
@@ -56,6 +57,7 @@ def load_train_data(path: str):
 
     print("Training image picture created!")
     return train_loader
+
 
 
 def load_test_data(path: str):
