@@ -1,18 +1,15 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
-# from torchinfo import summary
+from torch.utils.data import DataLoader
 from tqdm import tqdm
 import matplotlib.pyplot as plt
+import argparse
+from modules import ViT
+from dataset import generate_adni_datasets
 
 
 def train(model, train_loader, val_loader, criterion=nn.CrossEntropyLoss(), n_epochs=50, lr=0.000025, version_prefix="vit0", gen_plots=True):
-	# summary(model=model, 
-	# 			input_size=(128, 1, 224, 224),
-	# 			col_names=["input_size", "output_size", "num_params", "trainable"],
-	# 			col_width=20,
-	# 			row_settings=["var_names"]
-	# )
 	
 	# Defining model and training options
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -113,3 +110,71 @@ def train(model, train_loader, val_loader, criterion=nn.CrossEntropyLoss(), n_ep
 		plt.show()
 	return train_losses, val_losses, train_accs, val_accs
 
+
+def main():
+    # Parse commandline arguments
+	parser = argparse.ArgumentParser()
+	parser.add_argument("img_size")
+	parser.add_argument("patch_size")
+	parser.add_argument("num_layers")
+	parser.add_argument("embed_dim")
+	parser.add_argument("mlp_size")
+	parser.add_argument("num_heads")
+	parser.add_argument("n_epochs")
+	parser.add_argument("batch_size")
+	args = parser.parse_args()
+	if args.img_size:
+		img_size = args.img_size
+	else:
+		img_size = 224
+  
+	if args.patch_size:
+		patch_size = args.patch_size
+	else:
+		patch_size = 16
+  
+	if args.num_layers:
+		num_layers = args.num_layers
+	else:
+		num_layers = 12
+  
+	if args.embed_dim:
+		embed_dim = args.embed_dim
+	else:
+		embed_dim = 256
+  
+	if args.mlp_size:
+		mlp_size = args.mlp_size
+	else:
+		mlp_size = 256
+  
+	if args.num_heads:
+		num_heads = args.num_heads
+	else:
+		num_heads = 16
+  
+	if args.n_epochs:
+		n_epochs = args.n_epochs
+	else:
+		n_epochs = 50
+  
+	if args.batch_size:
+		batch_size = args.batch_size
+	else:
+		batch_size = 64
+  
+	train_set, val_set, test_set = generate_adni_datasets(datasplit=0.1)
+
+	train_loader = DataLoader(train_set, shuffle=True, batch_size=batch_size)
+  
+	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+	model = ViT(img_size=img_size, patch_size=patch_size, num_transformer_layers=num_layers, embedding_dim=embed_dim, mlp_size=mlp_size, num_heads=num_heads).to(device)
+	train(model, train_loader=train_loader, n_epochs=n_epochs, version_prefix="vit")
+ 
+	
+ 
+ 
+    
+    
+if __name__ == "__main__":
+	main()

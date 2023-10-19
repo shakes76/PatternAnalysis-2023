@@ -12,17 +12,27 @@ While transformers typically require large datasets to be able to overcome the l
 ## Architecture
 The vision transformer (ViT) is composed of a a few key components, namely - the patch and position embeddings, a transformer encoder layer, and a transformer decoder layer. The patch embedding layer takes in the input image and breaks it into patches of pixels, which are then flattened into one dimensional patch embeddings. This matrix is then fed into the transformer encoder layer which extracts the relationships between the patches, and a final transformer decoder consisting of a linear layer.
 
-1. Patch Embedding - The patch embedding consists of a 2D convolutional layer which breaks the grayscale square input image into patches of pixels, and then flattens the patches into a one dimensional matrix. The output of this layer is a matrix of patch embeddings which is fed into the transformer encoder layer.
+1. Patch Embedding - The patch embedding consists of a 2D convolutional layer which breaks the grayscale square input image into patches of pixels, and then flattens the patches into a one dimensional matrix. The output of this layer is a matrix of patch embeddings which is fed into the transformer encoder layer and each patch serves as a "token" in the traditional sense of a natural language processing (NLP) transformer. Increasing the number of patches increases the number of tokens which the model can learn from - and hence derive more intricate spatial relationhips, however, this also increases the number of parameters in the model, and thus increases the training time and space complexity of the model. A class token is also typically appended to the patches at this stage which allows the model to extract the overall output of the data at the end of the transformer.
 
+2. Transformer Encoder - The transformer encoder layer commonly known as a backbone consists of a set of transformer encoder blocks, which again are each made of a layer normalisation (LN) layer followed by a multi-head self-attention layer, another layer normalisation layer, and then a feed forward layer.
 
-. The output is then fed into a linear layer which outputs the classification of the image.
+    2.1. Layer normalisation (LN) - Layer normalisation is a normalisation technique which normalises the output of the previous layer to have a set mean and standard deviation. This is done to prevent the output of the previous layer from being too large or too small, and thus causing the model to be unable to learn from the results of backpropagation.
+
+    2.2. Multi-head Self-Attention (MHSA) - The Multi-Head Self-Attention layer is a layer which calculates the attention between each token in the input. The input is first split into a number of heads, and each head is then fed into a scaled dot product attention layer which calculates the attention between each token in the head. The output of each head is then concatenated together and fed into a linear layer which outputs the attention between each token in the input.
+
+    2.3. Feed Forward Layer (MLP) - The feed forward layer is a linear layer which calculates the relationships between each token in the input. The output of this layer is then fed into another layer normalisation layer. Increasing the dimension of the feed forward layer increases the model's ability to learn more complex relationships in the data at the cost of training time and space. 
+3. Transformer Decoder - The transformer decoder block commonly known as the "Head" can be thought of as a layer which tries to make a conclusion out of the attention and relationships extracted from the transformer encoder layer. While this head can have many different forms depending on the task, the most common form is a linear layer which outputs the classification of the image.
+
+The architecture of the ViT is shown in the figure below.
 ![ViT Architecture From The Original Paper](figures/vit_figure.png)
 
 ## Preprocessing
-The data was first loaded into the program using a custom function which parsed all images in a list of directories, labeled based on directory, and split the training directories into a train and validation set with an 80:20 split. The test directories were also parsed with the same function. These loaded images and labels were then loaded into a custom torch dataset which performed the specified preprocessing to the data, before finally being put into a dataloader to be used in the future.
+The data was first loaded into the program using a custom function which parsed all images in a list of directories, labeled based on directory, and split the training directories into a train and validation set with an 90:10 split. This split was chosen since it is known that vision transformers require alot of data to train, and I thus gave more data to the train set. The set split was conducted on a per subject and per group basis - hence there would be approximately the same number of AD and CN subjects in the train and validation sets. The test directories were also parsed with the same function. These loaded images and labels were then loaded into a custom torch dataset which performed the specified preprocessing to the data, before finally being put into a dataloader to be used in the future.
 
+### Center Cropping
 Upon reviewing the images, it was found that each image contained a lot of blank space, and the brain only made up the center section of it. This meant that if the raw image was used, the model would have to process an unnecessarily large image which would cause it to be larger and have to unnecessary relationships between the blank space and the brain. To improve the runtime and space complexity, a center crop was performed to resize the image to 192x192, however, it was later found that some brains were truncated by this crop and the image was cropped to 224x224 instead.
 
+### Normalisation
 While this was the only preprocessing performed during the first few iterations of training, it was found that the model was unable to exceed a test accuracy of 60%. To attempt to remedy this, the mean and standard deviations of the training set was calculated, and used to normalised the training, validation, and test sets. Overall, normalisation seemed to have a great effect on the model's performance, and the model was able to achieve train accuracies > 95% and validation accuracies > 80% after 50 epochs, while struggling to reach 70% validation accuracy before normalisation.
 
 ## Training
@@ -30,25 +40,53 @@ At first, I had tried to implement the [Medium](https://medium.com/mlearning-ai/
 
 ![Validation Accuracy Graph](figures/vit7_valacc.png)
 
-The validation accuracy graph above also showed that the learning rate of the training was too high as the model was oscillating and struggling to converge. I thus decided to use the [LearnPytorch](https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten) tutorial which again implemented the model's layers from scratch, however, I made improvements on the model by using the torch.nn.TransformerEncoderLayer instead of the custom model used in the tutorial - this improved the efficiency of the model and increased the training speed by almost 10x compared to the Medium tutorial for the same model size. This model had the added benefit of having dropout layers which reduced the overfitting. The best accuracy I was able to achieve with this model was 73% on the validation set, and 61% on the test set which was a slight improvement over the Medium tutorial.
+The validation accuracy graph above also showed that the learning rate of the training was too high as the model was oscillating and struggling to converge. I thus decided to use the [LearnPytorch](https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten) tutorial which again implemented the model's layers from scratch, however, I made improvements on the model by using the torch.nn.TransformerEncoderLayer instead of the custom model used in the tutorial - this improved the efficiency of the model and increased the training speed by almost 10x compared to the Medium tutorial (reducing the training time from 20 mins to 2 mins per epoch) for the same model size. This model had the added benefit of having dropout layers which reduced the overfitting. The best accuracy I was able to achieve with this model was 82% on the validation set, and 64.43% on the test set which was a slight improvement over the Medium tutorial.
 
-### Parameters
+### Test performance
+To evaluate the test performance of each selection of parameters, I chose the saved model with the highest validation accuracy and used it to predict the test set. A rough parameter search was performed to determine the best parameters for the model, and the results of this parameter search can be seen in the results section below.
 
 
 ## Results
-Below are graphs for the training and validation loss of the initial model 
+Below are graphs for the training and validation loss of the initial model developed following the medium tutorial:
+<p float="middle">
+  <img src="figures/vit7_trainloss.png" width="400" />
+  <img src="figures/vit7_valloss.png" width="400" /> 
+</p>
+<p float="middle">
+  <img src="figures/vit7_valacc.png" width="400" /> 
+</p>
 
-![Training Loss Graph](figures/vit7_trainloss.png)
-![Validation Loss Graph](figures/vit7_valloss.png)
-![Validation Accuracy Graph](figures/vit7_valacc.png)
 
-This model achieved a test accuracy of
+The saved model with the highest validation accuracy was used to determine the test accuracy of the model.This model achieved a test accuracy of 59% and can be seen to be 
 
 After performing a parameter search, I arrived on my best model
 
+<p float="middle">
+  <img src="figures/vit7_trainloss.png" width="400" />
+  <img src="figures/vit7_valloss.png" width="400" /> 
+</p>
+<p float="middle">
+  <img src="figures/vit7_valacc.png" width="400" /> 
+</p>
 
+
+
+<p float="middle">
+  <img src="figures/vit7_trainloss.png" width="400" />
+  <img src="figures/vit7_valloss.png" width="400" /> 
+</p>
+<p float="middle">
+  <img src="figures/vit7_trainacc.png" width="400" /> 
+  <img src="figures/vit7_valacc.png" width="400" /> 
+</p>
 
 ## Running the code
 
 
 ### Dependencies
+
+## Reproducibility of results
+
+While the results of the ViT training seem quite non-deterministic, training the same model with the same parameters seemed to produce roughly the same performance. It is suspected that using a seed at the start of the training script might help with the reproducibility of the results, however, this was not wanted while I was training the model as I was simply trying to obtain the best model possible. 
+
+## Future Work
