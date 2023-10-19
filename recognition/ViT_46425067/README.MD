@@ -5,7 +5,11 @@ This project aims to classify Alzheimer's disease of the ADNI brain data set usi
 ## Model Description
 #### Model Architecture:
 The vision transformer utilises the transform encoder from the transformer architecture to take advantage of the self-attention properties adapted for image recognition. Below is a description of all the main components of the vision transformer and how they interact with each other and their purpose (Figure 1). 
+<p align="center">
+    <img width="650" src="Images/ViT_Architect.png">
+</p>
 ![Alt text](Images/ViT_Architect.png)
+
 1. Image Patching + Linear Embedding: Takes an image and split them into smaller patches and then transforming each patch into a their respective 1D vector representation. This is to convert the image as a suitable input for the transform encoder. Which requires the input to be in the form of a token, in this case we use a smaller patch of the images as the token representations.
 2. Positional Encoding: Encodes spatial information, allowing the model to understand where each patch belongs on the input image. This is added to the input after image patching and linear embedding.
 3. Class Token: Append a learnable class token to the input, which represents the class that the image belongs to. This is what is used to determine what the image class is at the end of the model.
@@ -62,9 +66,12 @@ Below are the methods to reproduce the hyperparameter tuning or training and tes
 ## Results
 #### Hyperparameter Tuning Results
 Figure 2 shows the results of the hyperparameter tuning using Wandb parameter sweep. The best model has a validation accuracy of 62% and test accuracy of 60%. Figures 3, 4, shows the training and validation loss of the best model and the table below shows its parameters.
-![Alt text](Images/Wandb_Sweep.png)
-![Alt text](Images/TrainValLoss.png)
-![Alt text](Images/TrainValAcc.png) 
+
+<p align="center">
+    <img width="650" src="Images/Wandb_Sweep.png">
+    <img width="650" src="Images/TrainValLoss.png">
+    <img width="650" src="Images/TrainValAcc.png">
+</p>
 
 From Figure 3 we can see that the training is progressing well by the downwards trend of the loss. However on the validation test set it doesnt perform well. Indicating that the model is not generalising well. This is further seen in Figure 4 where there is a large gap between the accuracy curves, suggesting overfitting of the model to the training data.
 
