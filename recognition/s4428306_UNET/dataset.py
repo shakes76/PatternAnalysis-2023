@@ -6,11 +6,7 @@ from PIL import Image
 
 #TODO: Clean up debugging notes/code.
 #      Make sure references are in order. Note use of tensorflow documentation.
-#      Change rates for adam optimizer.
-#      Rewrite train.py to be functional/non-script.
-#      Rewrite slurm script to us train.py instead of test_train.py
-#      Write prediction functions/script.
-#      Write README.
+#      Write README. Note where all files are saved in README.
 #      Make pull request.
 
 #NOTE: Expecting 2595 images in the training folders (-1 for license file) (should also be -1 for attribution file).
@@ -35,33 +31,34 @@ def loadDataFrom(directory, channels, size=128):
         data = np.zeros((numberOfImages, size, size))
     data_shape = (numberOfImages, size, size, channels)
     #data = np.zeros(data_shape)
-    for i, imageName in enumerate(os.listdir(directory)):
+    for i, imageName in enumerate(sorted(os.listdir(directory))):
         #Make sure not to load in the license file.
         if imageName != "LICENSE.txt" and imageName != "ATTRIBUTION.txt":
             imagePath = os.path.join(directory, imageName)
-            image = Image.open(imagePath)
+            #image = Image.open(imagePath)
+            #NOTE: Mention in the readme that doing this leaves some images as only skin cancer, and some as none.
+            #      If cropping isn't used mention squashed aspect ratios.
             #Center crop then resize to maintain aspect ratio.
             #Center crop algorithm from:
             #https://stackoverflow.com/questions/16646183/crop-an-image-in-the-centre-using-pil
-            crop_size = 256
-            width, height = image.size
-            left = (width - crop_size) // 2
-            top = (height - crop_size) // 2
-            right = left + crop_size
-            bottom = top + crop_size
-            image = image.crop((left, top, right, bottom)).resize((size, size))
+            #crop_size = 256
+            #width, height = image.size
+            #left = (width - crop_size) // 2
+            #top = (height - crop_size) // 2
+            #right = left + crop_size
+            #bottom = top + crop_size
+            #image = image.crop((left, top, right, bottom)).resize((size, size))
             #NOTE: Unsure if resizing should be done in this function.
             if channels > 1:
-                #data[i, :, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
-                data[i, :, :, :] = np.asarray(image)
+                data[i, :, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
+                #data[i, :, :, :] = np.asarray(image)
             else:
-                #data[i, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
-                data[i, :, :] = np.asarray(image)
+                data[i, :, :] = np.asarray(Image.open(imagePath).resize((size, size)))
+                #data[i, :, :] = np.asarray(image)
                 #data[i, :, :, :] = np.reshape(np.asarray(Image.open(imagePath).resize((size, size))), data_shape)
     #Need the extra dimension for image manipulation.
     if channels == 1:
         data = np.reshape(data, data_shape)
-    #return tf.data.Dataset.from_tensor_slices((data,))
     return tf.data.Dataset.from_tensor_slices(data)
 
 #The following is modified code from:
@@ -96,9 +93,9 @@ def normalize(image, mask):
     #image = tf.squeeze(image)
     #mask = tf.squeeze(mask)
     #Convert mask to one hot encoding.
-    #mask = tf.cast(mask, tf.int8)
-    #mask = tf.one_hot(mask, 2)
-    #mask = tf.squeeze(mask)
+    mask = tf.cast(mask, tf.int8)
+    mask = tf.one_hot(mask, 2)
+    mask = tf.squeeze(mask)
     return image, mask
 
 #Based on code from:
