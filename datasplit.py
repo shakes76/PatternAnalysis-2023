@@ -13,11 +13,16 @@ from torch.utils.data import DataLoader
 
 from parameter import DATA_LOAD_PATH, IMAGE_SIZE, BATCH_SIZE
 
-
 def load_data():
     """
     Loads the dataset that will be used into PyTorch datasets.
+
+    Returns:
+    - train_loader: DataLoader for the training dataset
+    - validation_loader: DataLoader for the validation dataset
+    - test_loader: DataLoader for the test dataset
     """
+    # Define data transformations for preprocessing
     data_transforms = transforms.Compose([
         transforms.RandomHorizontalFlip(),
         transforms.RandomRotation(2),
@@ -27,11 +32,13 @@ def load_data():
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ])
 
+    # Load the training dataset
     train_dataset = datasets.ImageFolder(
         os.path.join(DATA_LOAD_PATH, 'train'),
         transform=data_transforms
     )
 
+    # Load the test dataset
     test_dataset = datasets.ImageFolder(
         os.path.join(DATA_LOAD_PATH, 'test'),
         transform=data_transforms
@@ -45,6 +52,7 @@ def load_data():
         test_dataset, [split_index, num_test_images - split_index]
     )
 
+    # Create DataLoaders for training, validation, and test sets
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     validation_loader = DataLoader(validation_dataset, batch_size=BATCH_SIZE, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
