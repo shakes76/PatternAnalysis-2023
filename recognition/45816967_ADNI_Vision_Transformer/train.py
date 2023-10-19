@@ -104,11 +104,12 @@ def train(model, train_loader, val_loader, criterion=nn.CrossEntropyLoss(), n_ep
 		
 		plt.plot(train_accs, label="Train accuracy")
 		# label the plot
-		plt.title("Validation accuracy")
+		plt.title("Train accuracy")
 		plt.xlabel("Epoch")
 		plt.ylabel("Accuracy (%)")
 		plt.legend()
 		# save figure
 		plt.savefig(f"{version_prefix}_trainacc.png")
 		plt.show()
+	return train_losses, val_losses, train_accs, val_accs
 

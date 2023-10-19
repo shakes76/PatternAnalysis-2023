@@ -27,6 +27,9 @@ At first, I had tried to implement the [Medium](https://medium.com/mlearning-ai/
 
 The validation accuracy graph above also showed that the learning rate of the training was too high as the model was oscillating and struggling to converge. I thus decided to use the [LearnPytorch](https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten) tutorial which again implemented the model's layers from scratch, however, I made improvements on the model by using the torch.nn.TransformerEncoderLayer instead of the custom model used in the tutorial - this improved the efficiency of the model and increased the training speed by almost 10x compared to the Medium tutorial for the same model size. This model had the added benefit of having dropout layers which reduced the overfitting. The best accuracy I was able to achieve with this model was 73% on the validation set, and 61% on the test set which was a slight improvement over the Medium tutorial.
 
+### Parameters
+
+
 ## Results
 Below are graphs for the training and validation loss of the initial model 
 
@@ -36,8 +39,11 @@ Below are graphs for the training and validation loss of the initial model
 
 This model achieved a test accuracy of
 
+After performing a parameter search, I arrived on my best model
+
 
 
 ## Running the code
 
 
+### Dependencies
