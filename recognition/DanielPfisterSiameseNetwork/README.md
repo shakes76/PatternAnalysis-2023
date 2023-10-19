@@ -64,7 +64,7 @@ The plotted image pair result shows a correctly predicted image pair and an inco
 
 ![PlotPrediciton](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/PlotPrediciton.PNG)
 
-As a result, the project doesn't reach the goal of 0.8 accuracy. I tried different learning rates and convolutional networks, such as the resnet18 however, it was impossible to achieve more than 0.6 accuracy.
+As a result, the project doesn't reach the goal of 0.8 accuracy. I tried different learning rates and convolutional networks, such as the resnet18 however, it was impossible to achieve more than 0.6 accuracy. I think it has to do something with the overfitting of the training.
 
 
 ## Using the code
@@ -77,4 +77,3 @@ To use the code, you have to change the different folder paths of the dataset. M
 [2] K. Simonyan and A. Zisserman, Very Deep Convolutional Networks for Large-Scale Image Recognition, Apr 2015
 
 [3] Image similarity estimation using a Siamese Network with a contrastive loss (https://keras.io/examples/vision/siamese_contrastive/)
-
