@@ -57,3 +57,31 @@ class SiameseNetwork(nn.Module):
         output1 = self.forward_one(input1)
         output2 = self.forward_one(input2)
         return output1, output2
+
+class ContrastiveLoss(nn.Module):
+    """
+    Contrastive Loss for Siamese Network training.
+
+    Args:
+        margin (float, optional): Margin value for the contrastive loss. Default is 2.0.
+    """
+    def __init__(self, margin=2.0):
+        super(ContrastiveLoss, self).__init__()
+        self.margin = margin
+
+    def forward(self, output1, output2, label):
+        """
+        Calculate the contrastive loss.
+
+        Args:
+            output1 (Tensor): Embedding for the first image.
+            output2 (Tensor): Embedding for the second image.
+            label (Tensor): Label (0 for dissimilar, 1 for similar).
+
+        Returns:
+            Tensor: Contrastive loss value.
+        """
+        euclidean_distance = F.pairwise_distance(output1, output2)
+        loss_contrastive = torch.mean((1 - label) * torch.pow(euclidean_distance, 2) +
+                                      (label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
+        return loss_contrastive
