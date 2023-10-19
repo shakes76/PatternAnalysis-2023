@@ -9,7 +9,7 @@ from torchvision.utils import save_image
 # Path to data images
 root_path = 'data/keras_png_slices_data'
 
-IMAGE_SIZE = 512
+IMAGE_SIZE = 256
 BATCH_SIZE = 32
 
 #Modules utils
@@ -125,7 +125,7 @@ def sample_save_image(model, epoch, output_dir, device, start_time):
 
 DEVICE                  = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE           = 1e-3
-LOG_RESOLUTION          = 9 #for 512*512
+LOG_RESOLUTION          = 8 #for 256*256
 Z_DIM                   = 256
 W_DIM                   = 256
 LAMBDA_GP               = 10
