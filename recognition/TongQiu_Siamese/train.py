@@ -1,9 +1,11 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+import torchvision.transforms as tf
 from tqdm.auto import tqdm
 from utils import Config
 from torch.utils.tensorboard import SummaryWriter
+import random
 
 from modules import Baseline_Contrastive
 from dataset import ContrastiveDataset, discover_directory, patient_level_split
@@ -182,13 +184,23 @@ if __name__ == '__main__':
 
 # test
 if __name__ == '__main__':
+    random.seed(2023)
     model = Baseline_Contrastive()
 
     full_train_data = discover_directory(Config.TRAIN_DIR)
     train_data, val_data = patient_level_split(full_train_data)  # patient-level split
 
-    train_dataset = ContrastiveDataset(train_data)
-    val_dataset = ContrastiveDataset(val_data)
+    tr_transform = tf.Compose([
+        tf.Normalize((0.1160,), (0.2261,)),
+        tf.RandomRotation(10)
+    ])
+    val_transform = tf.Compose([
+        tf.Normalize((0.1160,), (0.2261,)),
+        tf.RandomRotation(10)
+    ])
+
+    train_dataset = ContrastiveDataset(train_data, transform=tr_transform)
+    val_dataset = ContrastiveDataset(val_data, transform=val_transform)
 
     dataloader_tr = DataLoader(
         dataset=train_dataset,
