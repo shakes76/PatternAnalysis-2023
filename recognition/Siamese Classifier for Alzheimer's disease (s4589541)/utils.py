@@ -6,6 +6,7 @@ from pathlib import Path
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import datetime
 
 def show_image(data: tuple):
     """Shows the image of a sample from a dataset
@@ -70,4 +71,17 @@ def train_valid_split(data_path="AD_NC/", new_path="data/", verbose=False):
     shutil.copytree(f"{data_path}test/", new_path + "test/", dirs_exist_ok=True)
     if verbose:
         print("Copied test data...")
-        
+
+def plot_losses(train_losses, valid_losses):
+    fig, ax = plt.subplots(nrows=2)
+    ax[0].plot(range(1, len(train_losses) + 1), train_losses, label="Training Loss")
+    ax[1].plot(range(1, len(valid_losses) + 1), valid_losses, label="Validation Loss")
+    ax[0].set_xlabel("Epochs")
+    ax[1].set_xlabel("Epochs")
+    ax[0].set_ylabel("Triplet Loss")
+    ax[1].set_ylabel("Triplet Loss")
+    ax[0].legend()
+    ax[1].legend()
+    
+    plt.tight_layout()
+    plt.savefig(f"./results/losses_{datetime.datetime.now().strftime('%H-%M-%S')}")

@@ -1,6 +1,5 @@
 # loading and preprocessing of data
 import random
-import time
 import torch
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
@@ -40,7 +39,7 @@ class TripletDataset(datasets.ImageFolder):
         found_n = False
         num_samples = len(self.samples)
         while not (found_p and found_n):
-            rand_idx = random.randint(0, num_samples)
+            rand_idx = random.randint(0, num_samples-1)
             if rand_idx == index:
                 continue
             new_path, new_target = self.samples[rand_idx]
@@ -63,48 +62,23 @@ class TripletDataset(datasets.ImageFolder):
 
 if __name__ == '__main__':
     # setup the transforms for the images
-    transform = transforms.Compose([
-        transforms.Resize((256, 240)),
-        transforms.ToTensor(),
-        OneChannel()
-    ])
+    # transform = transforms.Compose([
+    #     transforms.Resize((256, 240)),
+    #     transforms.ToTensor(),
+    #     OneChannel()
+    # ])
     # set up the datasets
-    train_set = TripletDataset(root="data/train", transform=transform)
-    valid_set = TripletDataset(root="data/valid", transform=transform)
-    test_set = TripletDataset(root="data/test", transform=transform)
+    # train_set = TripletDataset(root="data/train", transform=transform)
+    # valid_set = TripletDataset(root="data/valid", transform=transform)
+    # test_set = TripletDataset(root="data/test", transform=transform)
 
     # set up the dataloaders
-    train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-    valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+    # train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+    # valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+    # test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
     
+    # split the training data into training and validation datasets
+    # create new data directory
+    # might only work on Windows
     # train_valid_split()
-    # data = train_set[0]
-    # print(data)
-    # print(len(train_set))
-    # show_image(data)
-    # transformed = transforms.ToTensor(data)
-    # print(transformed)
-
-    # data = valid_set[0]
-    # print(data)
-    # print(len(valid_set))
-    # print(data[0].size())
-    # for channel in data[0]:
-        # print(channel)
-        # print(len(channel))
-        # print(torch.max(channel))
-    # show_image(data)
-    # transformed = transforms.ToTensor()(data[0])
-    # print(transformed)
-
-    # print(data)
-    # show_image(data)
-    data_iterator = iter(train_loader)
-    data = next(data_iterator)
-    print(len(data))
-    # print(data)
-    for d in data:
-        # print(type(d))
-        print(d.size())
-    # show_image(data)
+    pass
