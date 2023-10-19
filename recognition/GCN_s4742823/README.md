@@ -71,7 +71,7 @@ The model's average accuracy is around 90-92%. This fits with the above t-SNE pl
 
 Note that the `SEEDS` constant in utils.py can be used to guarantee reproducibility. 
 
-To train and test the model, and then plot the results, run `train.py`. To test an already existing model, run `test.py`.
+To train and test the model, and then plot the results, run `train.py`. To test an already existing model, run `predict.py`.
 
 Note that by default, `dataset.py` expects to read from a file `facebook.npz` in the `data` directory. `train.py` expects to load a model called `Facebook_GCN.pth`
 
