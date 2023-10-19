@@ -135,65 +135,51 @@ def calculate_iou(pred, label):
     iou = torch.reshape(iou, (776, 3))
     return iou
 
-def compute_loss(pred, label, batch_size):
+class YOLO_loss(nn.Module):
+    """
+    Given one batch at a time, the loss of the predictions is calculated
+    """
+    def __init__(self):
+      super(YOLO_loss, self).__init__()
 
-    pred_xywh = pred[:,:,0:4]
+    def forward(pred, label):
+        #Constants
+        box_accuracy = 5 #Puts more emphasis on coordinate loss
+        no_object = 0.5 #Puts less emphasis on loss from boxes with no object
+        #Rearrange predictions to have one box shape on each line
+        boxes = torch.reshape(pred, (776, 3))
 
-    label_xywh = label[:,0:4]
-    label_prob = label[:,5:]
-    iou = torch.zeros(batch_size, pred.shape[1])
+        #IoU
+        iou = calculate_iou(pred, label)
+        iou, best_boxes = torch.max(iou, dim=1)
 
-    #IoU
-    for i in range(batch_size):
-      for j in range(pred.shape[1]):
-        iou[i][j] = calculate_iou(pred_xywh[i][j], label_xywh[i])
-    iou, best_boxes = torch.max(iou, dim=1)
-
-    best_box_conf = torch.zeros(batch_size)
-    best_box_class1 = torch.zeros(batch_size)
-    best_box_class2 = torch.zeros(batch_size)
-    best_box_w = torch.zeros(batch_size)
-    best_box_h = torch.zeros(batch_size)
-    best_box_x = torch.zeros(batch_size)
-    best_box_y = torch.zeros(batch_size)
-
-
-    for i in range(batch_size):
-      best_box_conf[i] = pred[i, best_boxes[i], 4]
-      best_box_class1[i] = pred[i, best_boxes[i], 5]
-      best_box_class2[i] = pred[i, best_boxes[i], 6]
-      best_box_w[i] = pred[i, best_boxes[i], 2]
-      best_box_h[i] = pred[i, best_boxes[i], 3]
-      best_box_x[i] = pred[i, best_boxes[i], 0]
-      best_box_y[i] = pred[i, best_boxes[i], 1]
-
-    ones = torch.ones(10)
-    conf_loss = torch.zeros(10)
-
-    #confidence loss
-    for box in range(len(best_boxes)):
-      conf_loss[box] = best_box_conf[box]*iou[box]
-    conf_loss = ones - conf_loss
-
-    best_box_class1 = best_box_class1.to(device)
-    best_box_class2 = best_box_class2.to(device)
-    best_box_w = best_box_w.to(device)
-    best_box_h = best_box_h.to(device)
-    best_box_x = best_box_x.to(device)
-    best_box_y = best_box_y.to(device)
-
-    #classification loss
-    step1 = torch.square(label_prob[:,0] - best_box_class1)
-    step2 = torch.square(label_prob[:,1] - best_box_class2)
-    class_loss = step1 + step2
-
-    #coordinate loss
-    step1 = torch.square(label[:,0] - best_box_x) + torch.square(label[:,1] - best_box_y)
-    step2 = torch.square(torch.sqrt(label[:,2]) - torch.sqrt(best_box_w)) + torch.square(torch.sqrt(label[:,3]) - torch.sqrt(best_box_h))
-    coord_loss = step1 + step2
-
-    total_loss = torch.sum(conf_loss) + torch.sum(class_loss)
-
-    return total_loss
-
+        #Loss set up
+        class_loss = torch.zeros(776)
+        coord_loss = torch.zeros(776)
+        conf_loss = torch.zeros(776)
         
+        #Calculate loss
+        i = 0
+        for idx in best_boxes:
+            box = boxes[i][idx]
+            #coordinate loss
+            xy_loss = (label[0]-box[0])**2 + (label[1]-box[1])**2
+            wh_loss = ((label[0])**(1/2)-(box[0])**(1/2))**2 + ((label[1])**(1/2)-(box[1])**(1/2))**2
+            coord_loss[i] = box_accuracy*(xy_loss + wh_loss)
+            #Check if there was a detection
+            if box[4] > 0.8: #There was
+                #classification loss
+                class_loss[i] = (label[5] - box[5])**2 + (label[6] - box[6])**2
+                #confidence loss
+                conf_loss[i] = (label[4] - box[4])**2
+            else: #There wasn't
+                conf_loss[i] = no_object*((label[4] - box[4])**2)
+            i += 1
+        
+        #Final count
+        total_loss = 0
+        total_loss += torch.sum(coord_loss) 
+        total_loss += torch.sum(class_loss)
+        total_loss += torch.sum(conf_loss)
+
+        return total_loss
