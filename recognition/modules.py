@@ -2,6 +2,16 @@ from tensorflow.keras.layers import Conv2D, BatchNormalization, Activation, MaxP
 from tensorflow.keras.models import Model
 
 def encoder_block(inputs, num_filters):
+    """
+    Create an encoder block in the U-Net.
+
+    Parameters:
+    inputs (Tensor): The input tensor.
+    num_filters (int): The number of filters for the convolutional layers.
+
+    Returns:
+    Tuple: Output tensor after the encoder block and the pooled features.
+    """
     # Conv layer
     x = Conv2D(num_filters, 3, padding="same")(inputs)
     x = BatchNormalization()(x)
@@ -15,6 +25,17 @@ def encoder_block(inputs, num_filters):
     return x, p
 
 def decoder_block(inputs, skip_features, num_filters):
+    """
+    Create a decoder block in the U-Net.
+
+    Paramters:
+    inputs (Tensor): The input tensor.
+    skip_features (Tensor): The features from the encoder block.
+    num_filters (int): The number of filters for the convolutional layers.
+
+    Returns:
+    Tensor: Output tensor after the decoder block.
+    """
     # Transposed convolution layer
     x = Conv2DTranspose(num_filters, (2, 2), strides=2, padding="same")(inputs)
     x = Concatenate()([x, skip_features])
@@ -30,6 +51,15 @@ def decoder_block(inputs, skip_features, num_filters):
     return x
 
 def Unet(input_shape):
+    """
+    Create the U-Net.
+
+    Paramters:
+    input_shape (tuple): The shape of the input data.
+
+    Returns:
+    Model: The U-Net model.
+    """
     inputs = Input(input_shape)
     # Encoder Blocks
     s1, p1 = encoder_block(inputs, 64)
