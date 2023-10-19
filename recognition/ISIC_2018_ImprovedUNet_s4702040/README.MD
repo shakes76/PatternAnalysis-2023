@@ -25,7 +25,7 @@ The following are the figures of the Improved UNet architecture (https://arxiv.o
 ## Dataset and Preprocessing
 The dataset was split into training, validation and testing sets. The training and testing splits were done by the ISIC challenge and can be downloaded directly from the website itself. Testing set was downloaded from the website. The training set however was downloaded from Rangapur which was a version that was downsampled by 2. The data set is ISIC 2018 Task 1 Lesion Segmentation.  
 
-The training and valdiation split was done on the training set with a ratio of around 80/20. The images and masks were resized to a width and height of 1024 by 672 in order to standardise the pixel dimensions of the data set and save memory space. Data augementation was done to the training set with a transform of a random horizontal flip and vertical flip which have a p value of 0.5 each. The training and validation datasets were loaded in batches of 16 as that was the maximum the GPU could handle during training but the batch size was increased to 64 for the testing dataset.
+The training and valdiation split was done on the training set with a ratio of around 80/20. The images and masks were resized to a width and height of 1024 by 672 in order to standardise the pixel dimensions of the data set and save memory space. The training and validation datasets were loaded in batches of 16 as that was the maximum the GPU could handle during training but the batch size was increased to 64 for the testing dataset.
 
 ## Running the Program
 ### Training, Validation and Testing
