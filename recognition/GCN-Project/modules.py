@@ -1,12 +1,14 @@
 # Source code of the component for the model
+# Thomas Bennion s4696627
 import dataset
 import train
 import dgl
 
-graph, train_mask, test_mask = dataset.load_data()
+#Load and preprocess the data
+graph, train_mask, test_mask, num_features = dataset.load_data()
 
-train.train_model(graph, 128, 22470, train_mask, test_mask)
+# Initialize the GCN model
+model = train.GCN(input_feats=128, hidden_size=64, num_classes=num_features, num_layers=2)
 
-#print("Training info: ", train_set)
-#print("Validation info: ", val_set)
-#print("Testing info: ", test_set)
+#Train the model
+train.train_model(graph, train_mask, test_mask, model, 100, 0.01)
