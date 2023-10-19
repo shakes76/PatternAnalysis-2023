@@ -1,7 +1,7 @@
 #Brain MRI Super-Resolution Network
 ## Abstract
 
-This project aimed to create an efficient sub-pixel neural network (or ESPCN) as proposed by Shi, 2016, to upscale low resolution images into a higher resolution version. It will use sub-pixel convolution layers to create an array of upscaling filters, which can then be used increase the resolution of our images. In the case of our project, this will be applied to brain MRI scan images - in particular, the ADNI brain dataset will be used to train our CNN. We will take existing images from the dataset, downsample them by 4x, and use these to train our network to upscale them back to the original resolution. 
+This project aimed to create an efficient sub-pixel neural network (or ESPCN) as proposed by Shi, 2016, to upscale low resolution images into a higher resolution version. It will use sub-pixel convolution layers to create an array of upscaling filters, which can then be used increase the resolution of our images. In the case of our project, this will be applied to brain MRI scan images - in particular, the ADNI brain dataset will be used to train our CNN. We will take existing images from the dataset, downsample them by 4x, and use these to train our network to upscale them back to the original resolution. This solves the problem of needless computational complexity that comes about from performing these operations in the high resolution space.
 
 ## Model Architecture
 
@@ -15,19 +15,35 @@ According to the diagram, the low-resolution image undergoes a process of genera
 
 The dataset utilised was the ADNI brain dataset, consisting of brain MRI images sized at 240x256 pixels. As we want to use different images for training and validation, this dataset was split into 2 arrays, with 90% of the image dataset being used for training and the other 10% for validation. These images also had to be downsampled using the Resize function by our upsampling factor of 4, making them 60x64 when being used in the CNN.
 
-## Training
+## Training and results
 
 The trainer loads in the original ground truth images in batches of 10, at 240x256, to avoid storing the whole dataset in RAM. An example ground truth image:
 
 ![image](https://github.com/CharlieGore/PatternAnalysis-2023/assets/141538622/e906d64c-de25-4f03-82ff-7f629b931fa6)
 
-
+Through the use of the Resize function, these are downsampled by our upsampling factor of 4:
 
 ![image](https://github.com/CharlieGore/PatternAnalysis-2023/assets/141538622/5aea520e-f313-4a36-ba7d-471ba140d947)
 
-
+We then feed this into the model to get our prediction of the reconstructed upsampled image:
 
 ![image](https://github.com/CharlieGore/PatternAnalysis-2023/assets/141538622/26954310-bd30-4172-a936-47e245f2a281)
+
+Then at the end of each epoch, we can run this through our optimiser. Other optimisers did not yield as good results as Adam did, so the example by the Keras implementation was followed and Adam utilised with the same learning rate of 0.001. Again, the shown literature showed the most success with the particular loss function of Mean Squared Error (MSE). MSE produced good results, so no other loss functions were tested. 
+
+Examples of each of the ground truth input, downsampled input and reconstructed image output can be observed above at the validation stage (post training), with numerous epochs run. It was observed from these that the model effectively upscaled the low resolution image, particularly in comparison to the low res image - however, there is still notable problems, such as branches in the coral-like structure in the top left being lost. A graph of the performance of both the validation and training sets can be observed below:
+
+![image](https://github.com/CharlieGore/PatternAnalysis-2023/assets/141538622/05827b6f-b1bc-4b6c-8ee9-1e800d8a56f7)
+
+A concern that can arise in models like these is the model overfitting to the training data, which can be observed by  the plateau of the validation loss being significantly higher than that of the training loss, or worse, by arching back up. However, it can be observed that this does not occur in the validation set.
+
+
+
+
+
+
+
+
 
 
 
