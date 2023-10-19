@@ -22,7 +22,13 @@ a [UMAP](https://umap-learn.readthedocs.io/en/latest/plotting.html) embeddings p
 
 From this model, we can see that the data tends to cluster closely together. Especially the lower (such as the blue and purple datapoints) and higher values (such as the green and yellow datapoints) tend to cluser together with very minimal variance. There are a few outliers in this graph (especially for higher values such as the green and yellow datapoints), but overall is fairly consistent. There also seems to be a sort of "snaking" effect happening on the graph, suggesting that there might be a sequential nature to the dataset (although it might also be due to the high amounts of overlapping).
 
-# Libraries used
+## Files used
+dataset.py: data loader for loading and preprocessing the data
+modules.py: Source code of the component for the model
+train.py: Source code for training, validating, testing and saving the model
+predict.py: shows example use of the trained model, prints out any results
+
+# Dependencies
 numpy == 1.23.5
 dgl == 1.1.2
 torch == 2.0.1
