@@ -132,7 +132,6 @@ class ImprovedUNet(nn.Module):
          
     def forward(self, input):
         # layer 1
-        print(input.size())
         out = self.in1(self.conv1(input))
 
         out = self.context1(out)
