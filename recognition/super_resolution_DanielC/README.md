@@ -42,7 +42,7 @@ This can be adjusted alongside hyper-parameters in utils.py
 
 ## 4. Example inputs & outputs
 Given an input of a low resolution MRI image, should return an upscaled version of the image as shown in the figure.
-![image of example input and output](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/ExampleFigure.PNG)
+![image of example input and output](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/newExampleFigure.PNG)
 
 
 ## 5. Training & minimizing loss
@@ -72,12 +72,10 @@ As shown above leaky relu was the best activation function thus it was chosen.
 Batch size had a significant effect as lowering it increased accuracy and computational resources which was expected. 
 To balance out the two aforementioned factors, a size of 30 is set as default.
 
-Furthermore, graphing the losses per iterations is shown as below.
-![graph of loss per iteration](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/lossgraph.PNG)
+Furthermore, graphing the total training loss per epoch is shown as below.
+![graph of loss per iteration](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/newerExampleFigure.PNG)
 
-After approximately 300 iterations, the network does not seem to improve drastically, therefore if a lower training time is desired, the ``num_epochs`` can be reduced from the default of 100.
-A value of 100 was chosen for ``num_epochs`` as per the article's recommendation [here](https://keras.io/examples/vision/super_resolution_sub_pixel/).
-However, after running multiple training cycles and analysing the graph it can be noted that around 20,000 to 30,000 iterations, the loss does not decrease further thus for efficient solving, epoch is now reduced to 40 from 100.
+As shown in the graph, the rate at which the total loss decreases drastically slows down between 10-15 epochs thus, if a user desired for time effective tranining which yielded acceptable results, stopping at 10-15 epochs would result in similar predictions as 15+ epochs. However to minimize loss and retain practicality, I have chosen to go with a middle ground of 40 epochs.
 
 ## 6. Appendix
 1. Where to download the dataset: [ADNI dataset for Alzheimer's disease](https://adni.loni.usc.edu/)
