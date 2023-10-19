@@ -29,7 +29,6 @@ img_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
 seg_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
 test_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Test_Input"
 train_dataset = d.ISICDataset(img_dir, seg_dir, d.transform('train'), d.transform('seg'))
-test_dataset = d.ISICDataset(test_dir, seg_dir)
 train_loader = DataLoader(train_dataset, batch, shuffle=True)
 test_loader = DataLoader(test_dataset, batch)
 
@@ -48,31 +47,23 @@ for epoch in range(epochs):
     model.train()
 
     for i, input in enumerate(train_loader):
-        if i <= 10000:
+        if i <= 1500:
             image, segment = input[0].to(device), input[1].to(device)
 
             ADAMoptimizer.zero_grad()
 
             modelled_image = model(image)[0]
-            if i == 1:
-                # test_image = image.cpu()[0].numpy()
-                test_segment = segment.squeeze().squeeze(0).cpu()
-                # test_modelled_image = modelled_image.cpu()
-                plt.imshow(test_segment)
-                # plt.imshow(test_segment.numpy())
-                # plt.imshow(test_modelled_image.numpy())
-                plt.savefig("/home/Student/s4742286/PatternAnalysis-2023/outputs/test.jpg")
-                exit()
+            
             loss = m.dice_loss(modelled_image, segment)
             loss.backward()
             ADAMoptimizer.step()
             runningloss += loss.item()
             losslist.append(loss.item())
-            # if i % 1000 == 0:
-            print(f"Training: Epoch {epoch}/{epochs}, Images {i}/10000")
+            if i % 10 == 0:
+                print(f"Training: Epoch {epoch}/{epochs}, Images {i}/10000")
             if i > 300:
                 exit()
-        elif i in range(10001, 14001):
+        elif i in range(1501, 2200):
             if i == 10001:
                 print("Validating.")
             with torch.no_grad():
@@ -85,7 +76,7 @@ for epoch in range(epochs):
             if i % 100 == 0:
                 print(f"Validating: Epoch {epoch}/{epochs}, Images {i - 10000}/4000")
         else:
-            break
+            continue
 
     if epoch in [1, 3, 5]:
         plt.plot(losslist)
@@ -105,7 +96,7 @@ for epoch in range(epochs):
 with torch.no_grad():  
     model.eval()
     for i, input in enumerate(train_loader):
-        if i < 14000:
+        if i < 2201:
             continue
         else:
             images, segments = input[0].to(device), input[1].to(device)
@@ -113,11 +104,11 @@ with torch.no_grad():
             dice_score = 1 - m.dice_loss(modelled_images, segments)
             test_set_dice_list.append(dice_score.item())
 
-
+print(test_set_dice_list)
 
 test_dice_score = np.mean(test_set_dice_list)
 print(f"Testing finished. Time taken was {time.time() - starttime}. Overall, the dice score that the model was able to provide was {test_dice_score}")  
-
+torch.save(model.state_dict(), "model_weights.pth")
 
     
 

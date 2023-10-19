@@ -1,15 +1,7 @@
-# Pattern Analysis
-Pattern Analysis of various datasets by COMP3710 students at the University of Queensland.
+# Improved UNet with the ISIC Dataset
+## Daniel Kasumagic - s4742286
 
-We create pattern recognition and image processing library for Tensorflow (TF), PyTorch or JAX.
-
-This library is created and maintained by The University of Queensland [COMP3710](https://my.uq.edu.au/programs-courses/course.html?course_code=comp3710) students.
-
-The library includes the following implemented in Tensorflow:
-* fractals 
-* recognition problems
-
-In the recognition folder, you will find many recognition problems solved including:
-* OASIS brain segmentation
-* Classification
-etc.
+##  Description
+### Design Task
+The convolutional neural network developed for Task 1 is the Improved UNet, which for the duration of the report is called IUNet. This specific implementation was designed both for RGB images of 256x256 pixels and binary masks images of the same size. IUNet contextualises the images with 2D convolutions and downsamples to 32x32 images, then localization and construction of the segmentation masks begin. 
+This implementation was fitted specially for the ISIC2018 Dataset, which depicts lesions on the skin.
