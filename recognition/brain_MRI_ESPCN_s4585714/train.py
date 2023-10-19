@@ -126,8 +126,8 @@ with torch.no_grad():
         downscaled = np.array(downscaled)
         orig = toPil(orig[0])
         orig = np.array(orig)
-        output = toPil(output[0])
-        output = np.array(output)
+        output = toPil(output.squeeze())
+        output = np.asarray(output)
         
         psnr_downscaled = peak_signal_noise_ratio(orig, downscaled)
         psnr_pred = peak_signal_noise_ratio(orig, output)

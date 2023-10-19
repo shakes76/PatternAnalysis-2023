@@ -5,11 +5,14 @@ Shows example usage of trained model
 
 import torch
 import matplotlib.pyplot as plt
+import numpy as np
 import modules
 import dataset
 from torchvision import transforms
 
+
 root = '/home/groups/comp3710/ADNI/AD_NC'
+
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
@@ -25,28 +28,29 @@ toPil = transforms.ToPILImage()
 
 with torch.no_grad():
     model.eval()
-    fig, axes = plt.subplots(nrows=3, ncols=5, figsize=(15, 9))
+    fig, axes = plt.subplots(nrows=3, ncols=2, figsize=(15, 9))
     for i, (downscaled, orig) in enumerate(test_loader):
-        if (i < 5):
+        if (i < 2):
             downscaled = downscaled.to(device)
             orig = orig.to(device)
     
             output = model(downscaled)
             
-            downscaled = toPil(downscaled[0])
+            downscaled = toPil(downscaled.squeeze())
             downscaled = downscaled.resize((256, 240))
-            orig = toPil(orig[0])
-            output = toPil(output[0])
+            orig = toPil(orig.squeeze())
+            output_im = toPil(output.squeeze().cpu().detach())
+            output_im.show()
             
-            axes[0, i].imshow(downscaled, cmap='gray')
+            axes[0, i].imshow(np.asarray(downscaled), cmap='gray')
             axes[0, i].set_title('lowres')
             axes[0, i].axis('off')
             
-            axes[1, i].imshow(orig, cmap='gray')
+            axes[1, i].imshow(np.asarray(orig), cmap='gray')
             axes[1, i].set_title('highres')
             axes[1, i].axis('off')
             
-            axes[2, i].imshow(output, cmap='gray')
+            axes[2, i].imshow(np.asarray(output.squeeze()), cmap='gray')
             axes[2, i].set_title('reconstruct')
             axes[2, i].axis('off')
     
