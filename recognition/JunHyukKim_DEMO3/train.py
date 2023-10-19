@@ -69,7 +69,7 @@ def main():
 
 
 
-    model = train.UNet(3,1,[64,128,256,512]) 
+    model = modules.UNet(3,1,[64,128,256,512]) 
     model = model.to(DEVICE)
     criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=LEARNING_RATE, 

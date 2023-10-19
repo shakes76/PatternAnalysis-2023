@@ -88,7 +88,7 @@ class UNet(nn.Module):
         
         self.first_up = Upsampling(512*2,512)
         self.second_up = Upsampling(512,256)
-        self.thrid_up = Upsampling(256,128)
+        self.third_up = Upsampling(256,128)
         self.fourth_up = Upsampling(128,64)
 
         self.first_local = Localization(512*2,512)
@@ -99,8 +99,7 @@ class UNet(nn.Module):
         self.segment_layer2 = nn.Conv2d(128, 1, 1,stride=1)
         self.segment_layer3 = nn.Conv2d(128, 1, 1,stride=1)
 
-        self.bottleneck = ContextLayer(features[-1],features[-1]*2)
-        self.final_conv = nn.Conv2d(128,128,kernel_size=1)
+        self.final_conv = nn.Conv2d(128,128,kernel_size=3,padding=1)
         self.final_segmentIDK = nn.Conv2d(128,1,kernel_size=1)
         self.final_activiation = nn.Sigmoid()    
     
@@ -129,72 +128,36 @@ class UNet(nn.Module):
         context4 = self.fourth_context(x)
         x.add(context4)        
         skip_connection4 = x
-        print("HERE WE GO4")
-        print(x.shape)
-        print(self.segment_upscale(x).shape)
-        print(skip_connection4.shape)
 
         #LAYER 5
         x = self.fourth_down(x)
         context5 = self.fifth_context(x)
         x.add(context5)        
-
-        print("HERE WE GO5")
-        print(x.shape)
-        print(self.segment_upscale(x).shape)
-        print(skip_connection4.shape)
-
-        #LAYER 5 AFTER
         x = self.first_up(x)
-        #x = self.segment_upscale(x)
-        print("HERE WE GO5 UPSCALE")
-        print(x.shape)
-        print(self.segment_upscale(x).shape)
-        print(skip_connection4.shape)
         
-        #LAYER 4   
+        #LAYER -4   
         x = torch.cat((skip_connection4, x), dim=1)
-        print("LAYER4",x.shape)
         x = self.first_local(x)
-        print(x.shape)
         x = self.second_up(x)
-        print("HERE WE -GO4")
-        print(x.shape)
-        print(self.segment_upscale(x).shape)
-        print(skip_connection3.shape)
 
-        #LAYER 3   
+        #LAYER -3   
         x = torch.cat((skip_connection3, x), dim=1)
         x = self.second_local(x)
         segment1 = self.segment_layer1(x)
         segment1 = self.segment_upscale(segment1)
-        x = self.thrid_up(x)
-        print("HERE WE -GO3")
-        print(x.shape)
-        print(self.segment_upscale(x).shape)
-        print(skip_connection2.shape)
-        print(segment1.shape)
+        x = self.third_up(x)
 
-        #LAYER 2   
+        #LAYER -2   
         x = torch.cat((skip_connection2, x), dim=1)
         x = self.third_local(x)
         segment2 = self.segment_layer2(x)   
         segment2.add(segment1)
         segment2 = self.segment_upscale(segment2)
         x = self.fourth_up(x)
-        print("HERE WE -GO2")
-        print(x.shape)
-        print(self.segment_upscale(x).shape)
-        print(skip_connection1.shape)
-        print(segment2.shape)
 
-        #LAYER 1
-
+        #LAYER -1
         concat_skip = torch.cat((skip_connection1, x), dim=1)
         x = self.final_conv(concat_skip)
-        segment3 = self.segment_layer3(x)
-        print(segment3.shape[2:])
-        segment3 = TF.resize(segment3, size=torch.Size([224, 224]))  
-        print(segment2.shape[2:])  
+        segment3 = self.segment_layer3(x) 
         segment3.add(segment2)
         return self.final_activiation(segment3)

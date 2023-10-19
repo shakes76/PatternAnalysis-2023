@@ -54,12 +54,8 @@ def save_predictions_as_imgs(loader, model, folder="saved_images/", device="cuda
         images, masks = images.cuda(), masks.cuda() 
         with torch.no_grad():
             preds = model(images)
-            print("1",preds.max())
-            print("1",masks.max())
             preds = torch.round(preds)
             masks = torch.round(masks)
-            print("2",preds.max())
-            print("2",masks.max())
         torchvision.utils.save_image(
             preds, f"{folder}/pred_{idx}.png"
         )
