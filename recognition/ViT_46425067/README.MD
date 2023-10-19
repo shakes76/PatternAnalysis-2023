@@ -1,4 +1,4 @@
-Name, Date, Student number, project
+
 # Classifying Alzheimer’s Disease with Vision Transformers
 This project aims to classify Alzheimer's disease of the ADNI brain data set using a vision transformer, trying to achieve a minimum accuracy of 80%. However, end results of this project only achieve 62% accuracy on the test set after various hyperparameter tuning and model modifications. 
 
@@ -16,11 +16,11 @@ The vision transformer utilises the transform encoder from the transformer archi
 4. Transform Encoder: Input is finally passed into multiple layers of transform encoders learning features of the image through a global context instead of a local area like convolutional networks. The main part of the encoder is the self-attention mechanisms where it Learns a correlation matrix between image patches, which corresponds to looking at each image patch at a global context.
 5. Classification Head: simple linear layer that takes the class token at the start of the output of the encoder layers and classifiers an image based on the token
 
----
+
 ## Training
 #### Preprocessing 
 A patient level split of the 20000 training images into a 70/30 split for a validation set which comprises of 3000 AD class and 3000 normal class brain images *(see folder structure below)*. Images are then greyscaled to reduce the channels to 1 as images are black and white. This should improve computation time since the number of channels has been reduce from 3 to 1. Data augmentation use are random vertical, horizontal flip and random rotation up to 30 degrees. This is to expand the small dataset to improve the generalisation of the trained model.
-##### Folder Structure
+#### Folder Structure
     .
     ├── AD_NC                   
     │   ├── train              
@@ -62,7 +62,7 @@ Below are the methods to reproduce the hyperparameter tuning or training and tes
 5. Modify line 14 in predict.py, `MODEL_NAME` to the Wandb run name
 5. Run predict.py to generate final test accuracy of trained model
 
----
+
 ## Results
 #### Hyperparameter Tuning Results
 Figure 2 shows the results of the hyperparameter tuning using Wandb parameter sweep. The best model has a validation accuracy of 62% and test accuracy of 60%. Figures 3, 4, shows the training and validation loss of the best model and the table below shows its parameters.
@@ -83,7 +83,7 @@ This could be attributed to multiple problems with the model and data processing
 
 Therefore for future improvements would to be to gather a larger dataset to train on and then include more hyperparameters to the tuning process. And further experimentations on different types of ViT models could see improvements to the low 60% accuracy of the current model.   
 
----
+
 ## Requirements
     Python 3.10
     Pytorch 2.0.1
