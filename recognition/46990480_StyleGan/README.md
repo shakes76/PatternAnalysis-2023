@@ -60,13 +60,14 @@ StyleGAN2 replaced the progressive growing
 ## Dataset
 The dataset utilised for training the model is the [OASIS brains](https://www.oasis-brains.org/). You can find a download link for the data [here](). After downloading the data you will notice that it has the following directory structure -
 
-├── keras_png_slices_data  
-│   ├── keras_png_slices_seg_test  
-│   ├── keras_png_slices_seg_train    
-│   ├── keras_png_slices_seg_validate    
-│   ├── keras_png_slices_test  
-│   ├── keras_png_slices_train  
-│   ├── keras_png_slices_validate  
+    ├── keras_png_slices_data 
+    │   ├── keras_png_slices_seg_test  
+    │   ├── keras_png_slices_seg_train  
+    │   ├── keras_png_slices_seg_validate    
+    │   ├── keras_png_slices_test  
+    │   ├── keras_png_slices_train  
+    │   ├── keras_png_slices_validate  
+
 
 Where the images are located within each of the sub-folders respectively. 
 
@@ -74,14 +75,19 @@ In order to  utilise this dataset with this project, we must slightly modify the
 
 To do this move all of the images within each directory into an additional sub-folder called data. After you do this, your dataset file hierachy should look like this -
 
-├── keras_png_slices_data  
-│   ├── keras_png_slices_seg_test    
-|   |   ├── data  
-│   ├── keras_png_slices_seg_train    
-│   ├── keras_png_slices_seg_validate    
-│   ├── keras_png_slices_test  
-│   ├── keras_png_slices_train  
-│   ├── keras_png_slices_validate 
+    ├── keras_png_slices_data 
+    │   ├── keras_png_slices_seg_test  
+    |   |   |── data
+    │   ├── keras_png_slices_seg_train  
+    |   |   |── data
+    │   ├── keras_png_slices_seg_validate    
+    |   |   |── data
+    │   ├── keras_png_slices_test  
+    |   |   |── data
+    │   ├── keras_png_slices_train  
+    |   |   |── data
+    │   ├── keras_png_slices_validate  
+    |   |   |── data
 
 The data is now ready for use with the dataloader within this project.
 
