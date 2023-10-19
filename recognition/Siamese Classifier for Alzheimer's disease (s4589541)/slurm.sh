@@ -1,12 +1,12 @@
 #!/bin/bash
-time=0-00:15:00
+time=0-00:00:10
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --gres=gpu:1
 #SBATCH --partition=vgpu
 #SBATCH --job-name="siamese"
 #SBATCH --account=s4589541
-#SBATCH --mail-user=m.gardiner@uqconnect.edu.au
+#SBATCH --mail-user=s4589541@student.uq.edu.au
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
