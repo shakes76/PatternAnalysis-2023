@@ -172,3 +172,40 @@ for epoch in range(MAX_EPOCHS_GAN):
             print("Epoch [%d/%d], Step[%d/%d], D(x): %.2f, D(G(z)): %.2f" % (
                 epoch, MAX_EPOCHS_GAN, i + 1, total_batch, real_score.data.mean(),
                 fake_score.data.mean()))
+
+# save models
+t.save(G, os.path.join(MODEL_PATH, "generator.txt"))
+t.save(D, os.path.join(MODEL_PATH, "discriminator.txt"))
+
+# save generated codebook indices
+x = torch.randn(1, 100, 1, 1).to(device)
+with torch.no_grad():
+    f1 = G(x)
+gen_codebook_idx = f1[0][0]
+save_image(gen_codebook_idx, 'generated-codebook-single-sample.png')
+
+# save generated embeddings
+gen_codebook_idx = torch.flatten(gen_codebook_idx)
+unique_vals = [134, 418]
+input_min = torch.min(gen_codebook_idx)
+input_max = torch.max(gen_codebook_idx)
+num_intervals = len(unique_vals)
+interval_size = (input_max - input_min) / num_intervals
+
+for i in range(0, num_intervals):
+    MIN = input_min + i * interval_size
+    gen_codebook_idx[
+        torch.logical_and(
+            MIN <= gen_codebook_idx,
+            gen_codebook_idx <= (MIN + interval_size))] = unique_vals[i]
+
+gen_embedding = gen_codebook_idx.view(64, 64)
+save_image(gen_embedding, 'generated-embedding-single-sample.png')
+
+gen_codebook_idx = gen_codebook_idx.long()
+gen_output = model.vq.quantize(gen_codebook_idx)
+gen_output = model.decoder(gen_output)
+gen_decoded = gen_output[0][0]
+save_image(gen_decoded, 'generated-decoded-single-sample.png')
+
+
