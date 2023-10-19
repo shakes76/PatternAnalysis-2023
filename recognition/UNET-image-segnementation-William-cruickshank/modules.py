@@ -146,6 +146,7 @@ class UNET(nn.Module):
         self.final_conv3 = nn.Conv2d(features[1], out_channels, kernel_size=1)
         self.final_conv2 = nn.Conv2d(features[1], out_channels, kernel_size=1)
         self.final_conv1 = nn.Conv2d(features[2], out_channels, kernel_size=1)
+        self.final_conv = nn.Conv2d(features[1], out_channels, kernel_size=1)
 
     def forward(self, x):
         skip_connections = []
@@ -183,6 +184,6 @@ class UNET(nn.Module):
         final_conv_out2 = F.interpolate(final_conv_out2, scale_factor=2, mode='nearest')
         final_conv_out3 = self.final_conv3(x)
         if final_conv_out2.shape != final_conv_out3.shape:
-                    final_conv_out2 = TF.resize(x, final_conv_out3.shape[2:])
+            final_conv_out2 = TF.resize(x, final_conv_out3.shape[2:])
         final_conv_out3 = final_conv_out3 + final_conv_out2
-        return final_conv_out3
+        return self.final_conv(final_conv_out3)

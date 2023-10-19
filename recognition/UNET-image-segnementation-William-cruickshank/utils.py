@@ -57,8 +57,6 @@ def check_accuracy(loader, model, device="cuda"):
     num_pixels = 0
     dice_score = 0
     model.eval()
-    numer = 0
-    denom = 0
 
     with torch.no_grad():
         for x, y in loader:
@@ -66,16 +64,22 @@ def check_accuracy(loader, model, device="cuda"):
             y = y.to(device).unsqueeze(1)
             preds = torch.sigmoid(model(x))
             preds = (preds > 0.5).float()
+            
+            # Accuracy calculation
             num_correct += (preds == y).sum()
             num_pixels += torch.numel(preds)
-            numer += (2 * (preds * y).sum())
-            denom += (preds + y).sum() + 1e-8
-        dice_score = numer / denom
+            
+            # Dice score calculation
+            TP = (preds * y).sum()
+            FP = ((preds == 1) & (y == 0)).sum()
+            FN = ((preds == 0) & (y == 1)).sum()
+            
+            dice_score += 2 * TP / (2 * TP + FP + FN)
 
     print(
         f"Got {num_correct}/{num_pixels} with acc {num_correct/num_pixels*100:.2f}"
     )
-    print(f"Dice score: {dice_score/len(loader)}")
+    print(f"Dice score: {dice_score/len(loader):.4f}")
     model.train()
 
 def save_predictions_as_imgs(

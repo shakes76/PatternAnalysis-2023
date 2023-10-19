@@ -18,17 +18,17 @@ from utils import (
 # Hyperparameters etc.
 LEARNING_RATE = 3e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 32
+BATCH_SIZE = 8
 NUM_EPOCHS = 20
 NUM_WORKERS = 2
-IMAGE_HEIGHT = 192
-IMAGE_WIDTH = 255
+IMAGE_HEIGHT = 384
+IMAGE_WIDTH = 511
 PIN_MEMORY = True
 LOAD_MODEL = False
-TRAIN_IMG_DIR = "data/train_images/"
-TRAIN_MASK_DIR = "data/train_masks/"
-VAL_IMG_DIR = "data/val_images/"
-VAL_MASK_DIR = "data/val_masks/"
+TRAIN_IMG_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/train_images"
+TRAIN_MASK_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/train_masks/"
+VAL_IMG_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/val_images/"
+VAL_MASK_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/val_masks/"
 
 def train_fn(loader, model, optimizer, loss_fn, scaler):
     loop = tqdm(loader)
