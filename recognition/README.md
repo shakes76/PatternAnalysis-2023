@@ -19,6 +19,9 @@ Example visualization:
 *Figure 1: example output with ground truth and original image*.
 ![Example output](readme_images/example2.png)
 
+### Usage:
+To create predictions and evaluate the model, simply set the `TRAIN_IMG_DIR, TRAIN_MASK_DIR, TEST_IMG_DIR, TEST_MASK_DIR, VAL_IMG_DIR, VAL_MASK_DIR` variables in the `global_params.py` file to the directories of the corresponding images/masks, run the `train.py` script to train the model if no pre-trained checkpoint is available. set the `CHECKPOINT_DIR` variable in `predict.py` to the directory of the pre-trained checkpoint, optionally change the number of examples to be displayed, and run `predict.py`.
+
 ## Data:
 The International Skin Imaging Collaboration (ISIC) hosts the worlds largest publicly available collection of quality controlled dermoscopic images. Including several deep learning challenge data sets, one such data set is the ISIC 2017 challenge data set. The ISIC 2017 data set, available at https://challenge.isic-archive.com/data/#2017 consists of 2000 lesion images in JPEG format with 2000 corresponding binary masks in PNG format for the train set. The provided validation and test sets were used, so there was no need for a train test split.
 
@@ -61,6 +64,7 @@ This dice score is satisfactory as it exceeds the goal of 0.8.
 See more examples from the model below:
 
 *figure 7: example images and predictions*
+
 ![example images and predictions](readme_images/example3.png)
 
 
