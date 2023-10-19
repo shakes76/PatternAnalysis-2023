@@ -1,16 +1,26 @@
 import numpy as np
 import tensorflow as tf
-import matplotlib.pyplot as plt
 
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from models.sub_pixel_cnn import sub_pixel_cnn
 from utils.data_loader import load_images_from_category
 
+
 tf.config.run_functions_eagerly(True)
 
 base_dir = 'AD_NC'
 
+
+def psnr_metric(y_true, y_pred):
+    return tf.image.psnr(y_true, y_pred, max_val=1.0)
+
+def subset_data(x, y, fraction=0.1):
+    """
+    Get a subset of the dataset
+    """
+    subset_size = int(len(x) * fraction)
+    return x[:subset_size], y[:subset_size]
 
 def train_model():
     print("Initializing model...")
@@ -34,7 +44,8 @@ def train_model():
 
     print("Compiling model...")
     optimizer = Adam(learning_rate=0.001)
-    model.compile(optimizer=optimizer, loss='mean_squared_error', run_eagerly=True)
+
+    model.compile(optimizer=optimizer, loss='mean_squared_error', metrics=[psnr_metric], run_eagerly=True)
 
     print("Setting up checkpoints and early stopping...")
     checkpoint = ModelCheckpoint('saved_models/sub_pixel_cnn_best_model.h5', save_best_only=True, monitor='val_loss',
@@ -42,11 +53,11 @@ def train_model():
     early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 
     print("Training model...")
-    history = model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=1,
+    history = model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=15,
                         callbacks=[checkpoint, early_stopping])
 
     print("Saving trained model...")
-    model.save('saved_models/sub_pixel_cnn_model.keras')
+    model.save('saved_models/sub_pixel_cnn_model.h5')
     return history, model
 
 
@@ -55,10 +66,12 @@ if __name__ == "__main__":
     print("Loading AD images for training...")
     x_train_AD = load_images_from_category(base_dir, 'train', 'AD', target_size=(100, 100))
     y_train_AD = load_images_from_category(base_dir, 'train', 'AD', target_size=(400, 400))
+    x_train_AD, y_train_AD = subset_data(x_train_AD, y_train_AD, fraction=1)  # Use only 10% of AD images
 
     print("Loading NC images for training...")
     x_train_NC = load_images_from_category(base_dir, 'train', 'NC', target_size=(100, 100))
     y_train_NC = load_images_from_category(base_dir, 'train', 'NC', target_size=(400, 400))
+    x_train_NC, y_train_NC = subset_data(x_train_NC, y_train_NC, fraction=1)  # Use only 10% of NC images
 
     print("x_train_AD shape:", np.shape(x_train_AD))
     print("y_train_AD shape:", np.shape(y_train_AD))
@@ -78,9 +91,14 @@ if __name__ == "__main__":
     y_train = y_train[:split_index]
 
     print("Starting training process...")
-    history, trained_model = train_model()
 
+    history, trained_model = train_model()
+    print(history.history)
+
+    import matplotlib.pyplot as plt
     print("Plotting training results...")
+    plt.ylim(0, 0.05)  # adjust as needed based on your loss range
+
     plt.figure(figsize=(12, 6))
     plt.plot(history.history['loss'], label='Training Loss', color='blue')
     plt.plot(history.history['val_loss'], label='Validation Loss', color='red')
@@ -88,4 +106,16 @@ if __name__ == "__main__":
     plt.xlabel('Epochs')
     plt.ylabel('Loss Value')
     plt.legend()
-    plt.show()
+    plt.savefig("training_plot.png")
+
+    plt.subplot(1, 2, 2)
+    plt.plot(history.history['psnr_metric'], label='Training PSNR', color='blue')
+    plt.plot(history.history['val_psnr_metric'], label='Validation PSNR', color='red')
+    plt.title('Training vs Validation PSNR')
+    plt.xlabel('Epochs')
+    plt.ylabel('PSNR Value')
+    plt.legend()
+    plt.savefig("PSNR.png")
+
+plt.tight_layout()
+plt.show()
