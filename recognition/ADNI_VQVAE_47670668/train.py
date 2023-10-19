@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pytorch_msssim import ssim
 
-from dataset import train_dataloader, val_dataloader
+from dataset import train_dataloader, val_dataloader, test_loader
 from modules import *
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -150,3 +150,26 @@ for epoch in range(num_epochs):  # Added epoch loop
           f"recon_error: {np.mean(val_recon_errors):.3f}," )
 
     model.train()  # Switch back to training mode
+
+
+# Evaluate ssim on test set
+model.eval()  # Set the model to evaluation mode
+average_ssim = 0
+with torch.no_grad():
+    for inputs, _ in test_loader:  
+        inputs = inputs.to(device)  
+
+        # Forward pass
+        output_dict = model(inputs)
+
+        # Extract the reconstructed images tensor
+        reconstructed_images = output_dict['x_recon']  
+
+        # Calculate SSIM
+        current_ssim = ssim(reconstructed_images, inputs, data_range=1.0)
+        average_ssim += current_ssim.item()
+
+# Average the SSIM over all batches
+average_ssim = average_ssim / len(test_loader)
+
+print(f"Average SSIM on test set: {average_ssim:.4f}")

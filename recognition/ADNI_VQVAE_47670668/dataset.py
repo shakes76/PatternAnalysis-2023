@@ -48,3 +48,4 @@ imshow(grid)
 
 train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 val_dataloader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
