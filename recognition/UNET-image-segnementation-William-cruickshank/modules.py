@@ -147,6 +147,7 @@ class UNET(nn.Module):
         self.final_conv2 = nn.Conv2d(features[1], out_channels, kernel_size=1)
         self.final_conv1 = nn.Conv2d(features[2], out_channels, kernel_size=1)
         self.final_conv = nn.Conv2d(features[1], out_channels, kernel_size=1)
+        self.final_norm = nn.BatchNorm2d(out_channels)
 
     def forward(self, x):
         skip_connections = []
@@ -186,4 +187,4 @@ class UNET(nn.Module):
         if final_conv_out2.shape != final_conv_out3.shape:
             final_conv_out2 = TF.resize(x, final_conv_out3.shape[2:])
         final_conv_out3 = final_conv_out3 + final_conv_out2
-        return self.final_conv(final_conv_out3)
+        return self.final_norm(self.final_conv(final_conv_out3))
