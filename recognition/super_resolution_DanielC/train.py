@@ -82,7 +82,7 @@ for epoch in range(num_epochs):
                     .format(epoch+1, num_epochs, i+1, 
                             total_step, loss.item()), flush=True)
             
-    loss_values.append(loss_val / total_step)
+    loss_values.append(loss_val)
             
 
 end = time.time()
@@ -94,8 +94,8 @@ print("Training took " + str(elapsed) + " secs or "
 plt.figure()
 
 plt.plot(epochs, loss_values)
-plt.title("Average loss per epoch")
-plt.xlabel("Iteration")
+plt.title("Total loss per Epoch")
+plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.grid(True)
 plt.show()
