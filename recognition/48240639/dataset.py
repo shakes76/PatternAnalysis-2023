@@ -11,45 +11,54 @@ functions to get train and test datasets from a specified data path.
 
 """
 import os
-import torch
-from PIL import Image
-from torch.utils.data import Dataset
-from torchvision import transforms
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
 
-class ADNIDataset(Dataset):
-    def __init__(self, data_path):
-        super(ADNIDataset, self).__init()
+class ADNIDataset(keras.utils.Sequence):
+    def __init__(self, data_path, batch_size=32, shuffle=True, mode='train'):
+        self.data_path = data_path
+        self.batch_size = batch_size
+        self.shuffle = shuffle
+        self.mode = mode
 
-        self.transform = transforms.ToTensor()
+        self.transform = ImageDataGenerator(rescale=1.0/255.0)
 
         self.ad_path = os.path.join(data_path, 'AD')
         self.nc_path = os.path.join(data_path, 'NC')
 
-        self.ad_images = [self.transform(Image.open(os.path.join(self.ad_path, img))) for img in os.listdir(self.ad_path)]
-        self.nc_images = [self.transform(Image.open(os.path.join(self.nc_path, img))) for img in os.listdir(self.nc_path)]
+        self.ad_images = [os.path.join(self.ad_path, img) for img in os.listdir(self.ad_path)]
+        self.nc_images = [os.path.join(self.nc_path, img) for img in os.listdir(self.nc_path)]
 
-        self.ad_images = torch.stack(self.ad_images)
-        self.nc_images = torch.stack(self.nc_images)
+        self.indexes = list(range(len(self.ad_images) if mode == 'AD' else len(self.nc_images)))
+
+        if shuffle:
+            random.shuffle(self.indexes)
 
     def __len__(self):
-        return min(len(self.ad_images), len(self.nc_images))
+        return len(self.indexes) // self.batch_size
 
     def __getitem__(self, index):
-        if index % 2 == 0:
-            img1 = self.ad_images[index % len(self.ad_images)]
-            img2 = self.ad_images[(index + 1) % len(self.ad_images)]
-            label = torch.tensor(1, dtype=torch.float)
+        batch_indexes = self.indexes[index * self.batch_size:(index + 1) * self.batch_size]
+
+        if self.mode == 'AD':
+            batch_images = [tf.keras.preprocessing.image.load_img(self.ad_images[i], target_size=(224, 224)) for i in batch_indexes]
+            labels = [1] * len(batch_images)
         else:
-            img1 = self.ad_images[index % len(self.ad_images)]
-            img2 = self.nc_images[index % len(self.nc_images)]
-            label = torch.tensor(0, dtype=torch.float)
+            batch_images = [tf.keras.preprocessing.image.load_img(self.nc_images[i], target_size=(224, 224)) for i in batch_indexes]
+            labels = [0] * len(batch_images)
 
-        return img1, img2, label
+        batch_images = [self.transform.img_to_array(img) for img in batch_images]
+        batch_images = tf.convert_to_tensor(batch_images)
+        labels = tf.convert_to_tensor(labels, dtype=tf.float32)
 
-def get_train_dataset(data_path):
-    train_dataset = ADNIDataset(os.path.join(data_path, 'train'))
+        return batch_images, labels
+
+def get_train_dataset(data_path, batch_size=32):
+    train_dataset = ADNIDataset(os.path.join(data_path, 'train'), batch_size=batch_size, mode='train')
     return train_dataset
 
-def get_test_dataset(data_path):
-    test_dataset = ADNIDataset(os.path.join(data_path, 'test'))
+def get_test_dataset(data_path, batch_size=32):
+    test_dataset = ADNIDataset(os.path.join(data_path, 'test'), batch_size=batch_size, mode='test')
     return test_dataset
