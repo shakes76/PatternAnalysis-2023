@@ -6,11 +6,16 @@ The Alzheimer’s Disease Neuroimaging Initiative (ADNI) dataset for Alzheimer's
 The Siamese Network aims to classify images based on its similarity to a range "query" images which each represent different classes. 
 
 It does this by passing these test images and query images through the __same__ convolutional neural network (CNN), all with the __same__ weights, to extract the features of the images into single feature vectors. 
+
 <img src="./images/Embedder.PNG" width="500">
+
 We then take the distance (some metric, i.e. euclidean distance) between an image embedding and all query embeddings. The image is classified as the class of the query image with the shortest distance.
+
 <img src="./images/oneshotprediction.PNG" width="500">
+
 The network is trained on triplets of images - (Anchor, Positive, Negative) where positive has the same class as the anchor and negative has a different class to the anchor.
 The ultimate goal is to adjust the CNN weights so that it provides a feature vector that minimizes the distance between the anchor and positive embeddings and maximizes the distance between the anchor and negative embeddings.
+
 <img src="./images/feature_space.PNG" width="300">
 
 
@@ -22,8 +27,10 @@ Training was done using functions from the PyTorch metric learning library [2]. 
 The triplets are formed within the batch by the loss function. To get better training, a mutli-similarity miner was used to find "hard pairs" in the batch - negative pairs that are close together and positive pairs that are far apart. The results were passed to the loss function.
 
 Example Triplets:
-<img src="./images/NCNCAD.PNG" width="350">
-<img src="./images/ADADNC.PNG" width="350">
+
+<img src="./images/NCNCAD.png" width="350">
+
+<img src="./images/ADADNC.png" width="350">
 
 In training, I used SGD as the optimizer with 1e-5 weight decay and a one-cycle learning rate scheduler with a max learning rate of 0.1.
 
@@ -40,9 +47,12 @@ Example Inputs:
 ## Results
 ### Training
 The following plot shows the (epoch average) loss for the training and validation set across 35 epochs.
-![Loss](./images/Loss.png)
+
+![Loss](./images/loss.png)
+
 The following plot shows the validation accuracy across 35 epochs.
-![Loss](./images/Acc.png)
+
+![Loss](./images/acc.png)
 
 We can see that the model reaches good validation accuracy at around 17 epochs and then fluctuates, reaching over 0.8 accuracy a couple of times. At 35 epochs, the model has decent validation performance. When evaluating the test set, we get slightly worse performance but not quite 80% as seen below:
 
