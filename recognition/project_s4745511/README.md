@@ -9,6 +9,7 @@ The dataset used for this project was obtained from a particular URL: "<https://
 
 I then did som preprocessing to understand the dataset:
 The following are the example images under the two categories as given below (from the training set):
+![image](https://github.com/danitaanubhuti/PatternAnalysis-2023/assets/52007397/5ed9e1cd-57d5-4bb5-aa89-b54fb18c553f)
 
 The code for data collection and preprocessing is mentioned in utils.py
 ### 2.1 Data Pairing
@@ -29,9 +30,8 @@ The SNN plays an essential role in learning and representing the similarity betw
 ##### 3.1.1 Architecture:
 In the Siamese Network both neural network branches share the same set of neural network weights.  Each branch processes one input image and learns a common representation for both inputs.
 
-The architecture of my Siamese Network consists of the following components:
-
-![image](https://github.com/me50/s-prak/assets/116443738/6408942b-56d5-4614-b070-3d25c65af433)
+The architecture of Siamese Network can be explained with the following diagram:
+![image](https://github.com/danitaanubhuti/PatternAnalysis-2023/assets/52007397/484ba153-e239-4e72-8dea-e5475ece5233)
 
 **Convolutional and Pooling Layers:** Extracting meaningful features from the image samples of each network is done by these layers. To capture patterns and details in the input images, they apply filters. This results in a set of feature maps that represent the images.
 
@@ -39,19 +39,18 @@ The architecture of my Siamese Network consists of the following components:
 
 **Comparison Function:** To produce a prediction that determines how similar or different the two data samples (input images) are, the Siamese Network uses a comparison function. In my code, I use this comparison function to calculate the similarity score, which indicates the degree of similarity between the input images.
 
-Ultimately, the output of my Siamese Network is a similarity score. For various tasks, such as determining whether two images belong to the same category or classifying whether they are similar or dissimilar, this score can be used. It provides a way to measure the likeness between images. 
-
 ### 3.2 Loss, Distance Metric and Optimizer
-Contrastive loss is a common choice for training Siamese networks, in particular, when the goal is to learn embeddings or representations for similarity-based tasks. Similar pairs of data points are encouraged to be closer to each other by the loss in the embedding space while pushing dissimilar pairs farther apart.
-This loss function drives the Siamese network to learn embeddings that are useful for distinguishing between similar and dissimilar pairs of data. By minimizing the contrastive loss, the network learns to create embeddings in which similar data points are clustered together and dissimilar data points are pushed apart. 
+Contrastive loss is a common choice for training Siamese networks, in particular, when the goal is to learn embeddings or representations for similarity-based tasks. Similar pairs of data points are encouraged to be closer to each other by the loss in the embedding space while pushing dissimilar pairs farther apart. This loss function drives the Siamese network to learn embeddings that are useful for distinguishing between similar and dissimilar pairs of data. By minimizing the contrastive loss, the network learns to create embeddings in which similar data points are clustered together and dissimilar data points are pushed apart. 
 
 I used the Euclidean distance as the distance metric for my model, between two input vectors, represented by tensors. It computes the squared differences, summing them, and taking the square root. This distance measurement is a floating-point value, ensuring accurate vector dissimilarity assessment.
 
-(insert the euclidian distance code)
+![image](https://github.com/danitaanubhuti/PatternAnalysis-2023/assets/52007397/7eef47e6-de82-492c-a847-435310d7313e)
+
 
 **Loss Calculation:** The Siamese network generates embeddings for both data points for each pair of data points. The Euclidean distance between these embeddings is calculated by the loss function. The similarity or dissimilarity between the two data points are in the embedding space is quantified by this distance. Using this distance the contrastive loss is computed. If the distance between similar data points is too large or if the distance between dissimilar data points is too small, it penalizes the model. In specific, the loss term for a pair of similar data points is proportional to the square of the distance between their embeddings, aiming to minimize this distance. In contrast, the loss term for a pair of dissimilar data points is proportional to the square of the maximum difference between a specified margin and the distance between their embeddings.
 
-(insert image for loss calculation in the code)
+![image](https://github.com/danitaanubhuti/PatternAnalysis-2023/assets/52007397/edce74dc-eabc-4096-bf08-2d3178dbb381)
+
 
 Lastly, for the optimizer I use the Adam Optimizer as the optimizer for my model. The learning_rate parameter specifies the step size at which the optimizer updates the model's parameters during training. In this case, you've set it to 0.0001. A smaller learning rate means smaller steps, which can help the optimizer converge more stably but may require more training epochs. The choice of the learning rate depends on the specific problem, and it often requires experimentation to find the optimal value. A common range for learning rates is between 0.1 and 0.0001.
 
@@ -71,8 +70,6 @@ In summary, the SNN's ability to learn image representations that emphasize the 
 ### 4.1 Model Architecture
 **The network is designed with two identical sub-networks, each processing a different input sample with the same weights. The name “Siamese” comes from this fact.** In order to generate a prediction, the outputs from these two sub-networks are then compared in the final layer.
 
-![image](https://github.com/me50/s-prak/assets/116443738/283b3975-f830-4327-8355-0ddb76c3e65a)
-
 For tasks such as image similarity and classification, The Siamese Neural Network (SNN) implemented in this project is a powerfully designed architecture. The network core consists of three main components: a subnetwork, a distance layer, and a classification layer. The subnetwork is constructed using Convolutional Neural Network (CNN) layers and acts as the feature extractor for input images. It comprises three convolutional layers, each of which is followed by max-pooling operations, creating an effective hierarchy for feature extraction. Two fully connected (dense) layers with Rectified Linear Unit (ReLU) activation functions and L2 kernel regularization are added to prevent overfitting and ensure robustness. The subnetwork serves as the foundation for the network's feature representation and contributes significantly to the overall model's performance.
 
 The Euclidean difference between feature vectors extracted by the sub network for two input images is calculated by the distance layer. This difference, is an essential component of the network's design as it represents the similarity or dissimilarity between the images. The network utilizes a contrastive loss function to enhance training and classification accuracy, which factors in the difference between predicted and ground truth labels. The classification layer incorporates the subnetwork's output and also leverages batch normalization for normalization purposes. It concludes the network's architecture with a dense layer using sigmoid activation which facilitates binary classification. The modified Siamese network excels in tasks where similarity and classification of images are paramount and overall it showcases a sophisticated yet intuitive architecture.
@@ -81,7 +78,10 @@ The Euclidean difference between feature vectors extracted by the sub network fo
 The first subnetwork takes an image (A) as input and passes through convolutional layers and fully connected layers, after which we get a vector representation of the image. Again the second image(B) is passed through a network that is exactly the same with the same weights and parameters. Two encodings E(A) and E(B) from the respective images are obtained, we can compare these two to know how similar the two images are. If the encodings are similar then the images will also be quite similar. The distance between these two vectors will be measured. If the distance between these is small then the vectors are of the same classes or **similar** and if the distance between is larger then the vectors are **different** from one another, based on the score.
 
 The diagrammatic representation can be shown as:
-![image](https://github.com/me50/s-prak/assets/116443738/80c3d6aa-201d-47df-91e0-c74f1fb2daf8)
+![image](https://github.com/danitaanubhuti/PatternAnalysis-2023/assets/52007397/1435dcc6-e722-4397-afd4-5dfbd3291695)
+
+
+Ultimately, the output of my Siamese Network is a similarity score. For various tasks, such as determining whether two images belong to the same category or classifying whether they are similar or dissimilar, this score can be used. It provides a way to measure the likeness between images. 
 
 ## 5.Project Content
 The following are the python files used :
