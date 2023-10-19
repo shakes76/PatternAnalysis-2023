@@ -47,8 +47,28 @@ The following libraries and respective versions have been utilised in this proje
 - Python : 3.11.0
 - Matplotlib : 3.7.1
 
+## Usage
 
+For easy of reproduction of results, accessibility has been added. A parser has been added such that to run the model, one must in a terminal type 'python train.py --data_path "path/to/training/images"' where path/to/training/image is the folder where you have saved the training ADNI image dataset. The same would then by done for predict, using 'python predict.py --data_path "path/to/test/images"', pointing to the test image dataset. Upon running, the ground truths, downscaled images and upsampled reconstructions are saved in the test_images folder which will be created if it does not exist locally. The PSNR  loss, SSIM loss and MSE loss are also saved in .csv files locally.
 
+Usage (predict):
+```bash
+python predict.py --data_path "path/to/folder/with/test/images/"
+```
+Usage (train):
+```bash
+python train.py --data_path "path/to/folder/with/train/images/"
+```
+
+The ADNI dataset is structured as follows:
+|--AD_NC
+|  |--test
+|     |--AD
+|     |--NC
+|--|train
+      |--AD
+      |--NC
+Where AD and NC folders each contain .jpeg images.
 
 
 
