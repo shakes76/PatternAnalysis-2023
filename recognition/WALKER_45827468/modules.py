@@ -35,8 +35,8 @@ class UpSampling(nn.Module):
     def __init__(self, size):
         super(UpSampling, self).__init__()
         self.upsamp = nn.Upsample(scale_factor=2)
-        self.instNorm = nn.InstanceNorm2d(size // 2)
-        self.conv = nn.Conv2d(size // 2, size // 2, kernel_size=3, padding=1)
+        self.instNorm = nn.InstanceNorm2d(size)
+        self.conv = nn.Conv2d(size, size // 2, kernel_size=3, padding=1)
         
     def forward(self, input):
         out = self.instNorm(self.upsamp(input))
@@ -58,11 +58,12 @@ class Localisation(nn.Module):
         self.relu1 = nn.LeakyReLU(size)
         
         self.conv2 = nn.Conv2d(size, size // 2, kernel_size=1)
+        self.instNorm2 = nn.InstanceNorm2d(size // 2)
         self.relu2 = nn.LeakyReLU(size // 2)
         
     def forward(self, input):
         out = self.relu1(self.instNorm(self.conv1(input)))
-        out = self.relu2(self.instNorm(self.conv2(out)))
+        out = self.relu2(self.instNorm2(self.conv2(out)))
         
         return out
     
