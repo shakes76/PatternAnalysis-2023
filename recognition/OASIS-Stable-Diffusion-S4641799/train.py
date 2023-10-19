@@ -195,5 +195,11 @@ for epoch in tqdm(range(starting_epoch, utils.epochs + 1)):
         #print(f"Time Running: {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
         last_epoch = time.time()
     except KeyboardInterrupt:
-        print ("\n\nUser cancelled training")
+        print ("\n\nUser cancelled training: saving progress")
+        #save progress
+        torch.save(gen.state_dict(), f'latest_gen_{start_time}.pth')
+        torch.save(critic.state_dict(), f'latest_critic_{start_time}.pth')
+        torch.save(mapping_network.state_dict(), f'latest_map_{start_time}.pth')
+        with open(f'latest_checkpoint_{start_time}.pickle', 'wb') as handle:
+            pickle.dump([epoch, losses, best_loss], handle, protocol=pickle.HIGHEST_PROTOCOL)
         break
