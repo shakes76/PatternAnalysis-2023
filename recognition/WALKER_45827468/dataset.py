@@ -20,11 +20,15 @@ class ISICDataset(Dataset):
     def __len__(self):
         return len(self.img_files)
     
+    def find_mask(self, im):
+        im_num = im.split('.')[0]
+        mask = im_num + "_segmentation.png"
+    
     def __getitem__(self, idx):
         im_path = os.path.join(self.img_dir, self.img_files[idx])
         im = Image.open(im_path)
         
-        mask_path = os.path.join(self.mask_dir, self.mask_files[idx])
+        mask_path = os.path.join(self.mask_dir, self.find_mask(img_files[idx]))
         mask = Image.open(mask_path)
         
         if self.transform:
