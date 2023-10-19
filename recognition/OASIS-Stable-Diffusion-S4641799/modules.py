@@ -1,7 +1,9 @@
-import utils, torch, math, utils
+import utils, torch, math
 import torch.nn.functional as F
 import numpy as np
 from torch import nn
+
+IMAGE_SIZE = 256
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -205,7 +207,7 @@ class GeneratorBlock(nn.Module):
 
 class Generator(nn.Module):
 
-    def __init__(self, log_resolution, W_DIM, n_features = 32, max_features = utils.IMAGE_SIZE):
+    def __init__(self, log_resolution, W_DIM, n_features = 32, max_features = IMAGE_SIZE):
 
         super().__init__()
 
@@ -265,7 +267,7 @@ class DiscriminatorBlock(nn.Module):
 
 class Discriminator(nn.Module):
 
-    def __init__(self, log_resolution, n_features = 32, max_features = utils.IMAGE_SIZE):
+    def __init__(self, log_resolution, n_features = 32, max_features = IMAGE_SIZE):
 
         super().__init__()
 

@@ -28,7 +28,7 @@ def get_index_from_list(values, t, x_shape):
     out = values.gather(-1, t.cpu())
     return out.reshape(batch_size, *((1,) * (len(x_shape) - 1))).to(t.device)
 
-T = 30
+T = 100
 betas = quadratic_beta_schedule(timesteps=T)
 
 # Pre-calculate terms for closed form equation
@@ -125,7 +125,7 @@ def sample_save_image(model, epoch, output_dir, device, start_time):
 
 DEVICE                  = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE           = 1e-3
-LOG_RESOLUTION          = math.log2(IMAGE_SIZE)
+LOG_RESOLUTION          = int(math.log2(IMAGE_SIZE))
 Z_DIM                   = IMAGE_SIZE
 W_DIM                   = IMAGE_SIZE
 LAMBDA_GP               = 10
