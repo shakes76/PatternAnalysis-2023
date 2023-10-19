@@ -11,7 +11,7 @@ import os.path
 import CONSTANTS
 
 # global variables
-batch_size = 32
+batch_size = 16
 workers = 0
 
 # TODO: deterministic pairing for validation set
@@ -206,7 +206,7 @@ def load_test_data(Siamese:bool, random_seed=None) -> torch.utils.data.DataLoade
         torch.random.manual_seed(random_seed)
 
     source = dset.ImageFolder(root=test_path, transform=test_transforms)
-    print('Loading training data')
+    print('Loading testing data')
     print(f'dataset has classes {source.class_to_idx} and {len(source)} images')
 
     if Siamese:

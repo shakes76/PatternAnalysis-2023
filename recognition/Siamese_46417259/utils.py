@@ -11,7 +11,7 @@ def load_from_checkpoint(filename:str, model:nn.Module, optimizer:optim.Optimize
     starting_epoch = checkpoint['epoch']
     training_loss = checkpoint['loss_train']
     eval_loss = checkpoint['loss_eval']
-    print(f"Resuming {model.__class__.__name__} training from epoch {str(starting_epoch)}")
+    print(f"Loading {model.__class__.__name__}. Last trained epoch: {str(starting_epoch)}")
     return starting_epoch, model, optimizer, training_loss, eval_loss
 
 def save_checkpoint(epoch:int, model:nn.Module, optimizer:optim.Optimizer, training_loss:list, eval_loss:list):

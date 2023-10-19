@@ -2,6 +2,7 @@ import torch
 import matplotlib.pyplot as plt
 import numpy as np
 import time
+import os
 
 import CONSTANTS
 from dataset import load_test_data
@@ -20,7 +21,6 @@ def load_backbone(filename:str):
     backbone = siamese.get_backbone()
 
     print(f"Trained backbone loaded successfully from {CONSTANTS.MODEL_PATH + filename}")
-    print(f"Backbone was trained for {start_epoch - 1} epochs")
     print(backbone)
 
     return backbone, device
@@ -36,7 +36,6 @@ def load_trained_classifier(filename:str):
     start_epoch, classifier, optimiser, training_losses, eval_losses = load_from_checkpoint(filename, classifier, optimiser)
 
     print(f"Trained classifier loaded successfully from {CONSTANTS.MODEL_PATH + filename}")
-    print(f"Classifier was trained for {start_epoch - 1} epochs")
     print(classifier)
 
     return classifier, device
@@ -128,6 +127,8 @@ def visualise_sample_predictions(classifier, backbone, device, random_seed=None,
         print(f"Visualisations for sample predictions saved to {CONSTANTS.RESULTS_PATH + save_name}")
 
 if __name__ == "__main__":
+    os.environ["CUBLAS_WORKSPACE_CONFIG"]=":4096:8"
+
     backbone, device = load_backbone("SiameseNeuralNet_checkpoint.tar")
     classifier, device = load_trained_classifier("SimpleMLP_checkpoint.tar")
     make_predictions(classifier, backbone, device, random_seed=64)
