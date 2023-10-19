@@ -421,8 +421,8 @@ The generated image was compared using this metric to the entire testset, to com
 
 | **Metric** | **Value** |
 |---|---|
-| Average | 0.0 |
-| Maximum | 0.0 |
+| Average | 0.6239095408766524 |
+| Maximum | 0.6728032407980924 |
 
 The SSIM index defines 1.0 as identical, and a value of 0 as having no correlation. Hence, it can be stated that the model has adequate performance. 
 
