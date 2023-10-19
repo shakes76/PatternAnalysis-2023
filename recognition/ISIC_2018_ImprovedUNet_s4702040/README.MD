@@ -28,28 +28,26 @@ The dataset was split into training, validation and testing sets. The training a
 The training and valdiation split was done on the training set with a ratio of around 80/20. The images and masks were resized to a width and height of 1024 by 672 in order to standardise the pixel dimensions of the data set and save memory space. Data augementation was done to the training set with a transform of a random horizontal flip and vertical flip which have a p value of 0.5 each. The training and validation datasets were loaded in batches of 16 as that was the maximum the GPU could handle during training but the batch size was increased to 64 for the testing dataset.
 
 ## Running the Program
-### Training and Validation
-The training went for a total of 20 epochs and used an adam optimizer with a learning rate of 1e-3 and a weight decay of 1e-5.
-The final epoch training accuracy was 78.62% which corresponds to a dice coefficient score of 0.79 and the validation accuracy was 99.06% which corresponds to a dice coefficient score of 0.99.  
+### Training, Validation and Testing
+The training went for a total of 20 epochs and used an adam optimizer with a learning rate of 1e-3 and a weight decay of 1e-5. The validation accuracy reached the dice coefficient threshold of 0.8 at epoch 4 with a dice score of 0.81 or accuracy of 80.19%. The training accuracy was 80.14% or a dice score of 0.8. Since the validation accuracy reached the threshold at epoch 4 the model was saved but the training was left to continue until the 20 epochs. The testing accuracy for the model at epoch 4 was 78.51% or a dice score of 0.79 which is below the target dice coefficient for this task.  
 
-![Training and Validation Loss Plot](training_and_validation_loss.png)
+At the final epoch of 20 the training accuracy was 84.55% or a dice score of 0.85 and the validation accuracy was 83.34% or a dice score of 0.83. The testing accuracy was 78.07% or a dice score of 0.78.  
 
-### Testing
-The testing accuracy was 94.27% which corresponds to a dice coefficient score of 0.94 which is above the target score of 0.8.
-Below are some of the ground truth and predicted masks
-#### ISIC_0016911
-##### Ground Truth
+![Training and Validation Loss Plot](training_loss_plot.png)  
+
+Below are some of the ground truth and predicted masks from the model of epoch 4 using the predict.py file.
+### ISIC_0016911 Ground Truth and Prediction
 ![Ground Truth ISIC_0016911](ISIC_0016911_segmentation.png)
-##### Prediction
-![Predicted Mask ISIC_0016911](ISIC_0016911_PredMaskUNet20.png)
-#### ISIC_0018507
-##### Ground Truth
+![Predicted Mask ISIC_0016911](ISIC_0016911_PredMask.png)
+### ISIC_0018507 Ground Truth and Prediction
 ![Ground Truth ISIC_0018507](ISIC_0018507_segmentation.png)
-##### Prediction
-![Predicted Mask ISIC_0018507](ISIC_0018507_PredMaskUNet20.png)
+![Predicted Mask ISIC_0018507](ISIC_0018507_PredMask.png)
+### ISIC_0023474 Ground Truth and Prediction
+![Ground Truth ISIC_0018507](ISIC_0023474_segmentation.png)
+![Predicted Mask ISIC_0018507](ISIC_0023474_PredMask.png)
 
 ### Reproducing the Process
-As stated prior, the original training set was downsampled by 2 by an external source and so depending on how you downsample the resultant transformed training set may differ from what was used for this project. The rest of the data set (validation/testing) is exactly the same as on the website. Most of the code requires no modification aside from the number of epochs and the filepaths for saving/loading the model, for loading the datasets, for saving the training/validation loss plots, and for loading an image and the output predicted segmentation mask.
+As stated prior, the original training set was downsampled by 2 by an external source and so depending on how you downsample the transformed training set may differ from what was used for this project. This also includes the validation set as it is split from the training set. The test data set is exactly the same as on the website. Most of the code requires no modification aside from the filepaths for saving/loading the model, for loading the datasets, for saving the training/validation loss plots, and for loading an image and the output predicted segmentation mask.
 
 ## References
 - https://challenge.isic-archive.com/data/#2018 (ISIC 2018 Task 1 lesion segmentation dataset)  
