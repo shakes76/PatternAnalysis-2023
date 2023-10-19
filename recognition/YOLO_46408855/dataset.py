@@ -26,20 +26,25 @@ class ISICDataset(Dataset):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.labels = pd.read_csv(labels)
+        self.samples = []
+        for i in range(len(self.images)):
+          sample = self.load_samples(i)
+          self.samples.append(sample)
 
     def __len__(self):
         return len(self.images)
 
     def __getitem__(self, idx):
+        return self.samples[idx]
+
+    def load_samples(self, idx):
         if torch.is_tensor(idx):
             idx = idx.tolist()
 
-        #Load image
         img_filename = self.images[idx]
         img_name = os.path.join(self.image_dir, img_filename)
         image = cv2.imread(img_name)
 
-        #Load mask
         mk_filename = img_filename.replace('.jpg', '_segmentation.png')
         mk_name = os.path.join(self.mask_dir, mk_filename)
         mask = cv2.imread(mk_name)
@@ -63,7 +68,7 @@ class ISICDataset(Dataset):
         #Putting together answer vector
         vector = np.array([x + (w/2), y + (h/2), w, h, prob, label1, label2], dtype=int)
 
-        #Convert image to tensor and normalise
+        #Convert image to tensor
         image = image.transpose((2, 0, 1)).astype(np.float32)
         image = image/255
         sample = (torch.from_numpy(image), torch.from_numpy(vector))
