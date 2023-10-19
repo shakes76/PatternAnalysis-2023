@@ -79,7 +79,7 @@ class ViT(nn.Module):
     Contains patch embedding, position embedding, transformer encoder layers, and MLP head for classification.
     Can initiate with default values for ADNI dataset.
     """
-    def __init__(self, num_channels: int = 1, embed_dim: int = 768, patch_size: int = 16, num_heads: int = 12, 
+    def __init__(self, num_channels: int = 1, embed_dim: int = 256, patch_size: int = 16, num_heads: int = 12, 
                     mlp_size: int = 3072, dropout_size: float = 0.1, num_layers: int = 12, num_classes: int = 2,
                     image_size: int = 224):
         super(ViT, self).__init__()

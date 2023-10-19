@@ -6,13 +6,15 @@ import matplotlib.pyplot as plt
 from modules import ViT
 from dataset import get_dataloaders
 from datetime import datetime
+import math
 
-def train(batch_size: int, workers: int, image_resize: int, dataroot: str, 
-            num_epochs: int, device: str = 'cuda'):
+def train(batch_size: int = 8, workers: int = 4, image_resize: int = 224, dataroot: str = "AD_NC", 
+            num_epochs: int = 10, device: str = 'cuda'):
     train_loader, test_dataloader, validation_loader = get_dataloaders(batch_size=batch_size, 
                                                                        workers=workers, 
                                                                        image_resize=image_resize,
-                                                                       dataroot=dataroot)
+                                                                       dataroot=dataroot,
+                                                                       rgb=False)
     visual_transformer = ViT()
     visual_transformer.to(device)
     visual_transformer.train()
@@ -20,7 +22,7 @@ def train(batch_size: int, workers: int, image_resize: int, dataroot: str,
     # ----------------------------------------
     # Loss Function and Optimiser
     criterion = nn.CrossEntropyLoss()
-    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=(1e-3)/(4096 // batch_size), weight_decay=0.03)
+    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=5e-5, weight_decay=0.0005)
 
     # ----------------------------------------
     # Training loop
@@ -29,10 +31,12 @@ def train(batch_size: int, workers: int, image_resize: int, dataroot: str,
     start_time = time.time()
     print("Starting training loop") 
     
-    running_loss = 0.
+    batch_loss = 0.
+    
     last_loss = 0.
     best_vloss = float('inf')
     for epoch in range(num_epochs):
+        running_loss = 0.
         for index, (inputs, labels) in enumerate(train_loader):
             inputs, labels = inputs.to(device), labels.to(device)
             
@@ -44,15 +48,19 @@ def train(batch_size: int, workers: int, image_resize: int, dataroot: str,
             optimiser.step()
 
             running_loss += loss.item()
+            batch_loss += loss.item()
             if (index) % batch_size == batch_size - 1:
                 running_time = time.time()
-                last_loss = running_loss / batch_size
+                last_loss = batch_loss / float(batch_size)
+                if math.isnan(last_loss):
+                    print(f"Batch loss: {batch_loss}, Batch size: {batch_size}")
                 print("Epoch [{}/{}], Batch {} Loss: {:.5f}".format(epoch+1, num_epochs, index+1, last_loss))
                 print(f"Timer: {running_time - start_time}")
-                running_loss = 0.
+                batch_loss = 0.
 
-        train_loss_values.append(last_loss)
-        print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {last_loss}")
+        average_loss = running_loss / len(train_loader)
+        train_loss_values.append(average_loss)
+        print(f"Epoch {epoch + 1}/{num_epochs}, Average Loss: {average_loss}")
 
         # -----------------
         # Validation Loop
@@ -119,3 +127,9 @@ def train(batch_size: int, workers: int, image_resize: int, dataroot: str,
         print('Test Accuracy: {} %'.format(100 * correct / total))
     end = time.time()
     print(f"Testing took: {end - start}")
+
+def main():
+    train()
+
+if __name__ == '__main__':
+    main()
