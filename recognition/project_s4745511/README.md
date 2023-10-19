@@ -9,6 +9,8 @@ The dataset used for this project was obtained from a particular URL: "<https://
 
 I then did som preprocessing to understand the dataset:
 The following are the example images under the two categories as given below (from the training set):
+
+
 ![image](https://github.com/danitaanubhuti/PatternAnalysis-2023/assets/52007397/5ed9e1cd-57d5-4bb5-aa89-b54fb18c553f)
 
 The code for data collection and preprocessing is mentioned in utils.py
@@ -25,10 +27,7 @@ The function deliberately randomizes the order of images within each class to el
 Two interconnected models are used to classify images as either 0 - "normal" or 1 - "Alzheimer's disease" by using. These are the Siamese Neural Network (SNN) and a classification model. Here's how these components work together to achieve this task:
 
 ### 3.1 Siamese Neural Network (SNN):
-The SNN plays an essential role in learning and representing the similarity between pairs of images. It comprises of a network that processes individual images and computes feature vectors for them. The SNN architecture is designed to generate feature vectors. These feature vectors effectively capture the essential characteristics of the input images. The SNN's subnetwork learns to differentiate between image pairs belonging to different classes (0 or 1) by producing distinct feature vectors for them, for this binary classification problem. To quantify their similarity, the distance between these feature vectors is computed using a Euclidean distance layer. Smaller distances indicate more similar images whereas larger distances represent dissimilar pairs.
-
-##### 3.1.1 Architecture:
-In the Siamese Network both neural network branches share the same set of neural network weights.  Each branch processes one input image and learns a common representation for both inputs.
+The SNN plays an essential role in learning and representing the similarity between pairs of images. It comprises of a network that processes individual images and computes feature vectors for them. The SNN architecture is designed to generate feature vectors. These feature vectors effectively capture the essential characteristics of the input images. The SNN's subnetwork learns to differentiate between image pairs belonging to different classes (0 or 1) by producing distinct feature vectors for them, for this binary classification problem. To quantify their similarity, the distance between these feature vectors is computed using a Euclidean distance layer. Smaller distances indicate more similar images whereas larger distances represent dissimilar pairs.sIn the Siamese Network both neural network branches share the same set of neural network weights.  Each branch processes one input image and learns a common representation for both inputs.
 
 The architecture of Siamese Network can be explained with the following diagram:
 ![image](https://github.com/danitaanubhuti/PatternAnalysis-2023/assets/52007397/484ba153-e239-4e72-8dea-e5475ece5233)
@@ -75,7 +74,7 @@ For tasks such as image similarity and classification, The Siamese Neural Networ
 The Euclidean difference between feature vectors extracted by the sub network for two input images is calculated by the distance layer. This difference, is an essential component of the network's design as it represents the similarity or dissimilarity between the images. The network utilizes a contrastive loss function to enhance training and classification accuracy, which factors in the difference between predicted and ground truth labels. The classification layer incorporates the subnetwork's output and also leverages batch normalization for normalization purposes. It concludes the network's architecture with a dense layer using sigmoid activation which facilitates binary classification. The modified Siamese network excels in tasks where similarity and classification of images are paramount and overall it showcases a sophisticated yet intuitive architecture.
 
 ### 4.2 Step by Step working
-The first subnetwork takes an image (A) as input and passes through convolutional layers and fully connected layers, after which we get a vector representation of the image. Again the second image(B) is passed through a network that is exactly the same with the same weights and parameters. Two encodings E(A) and E(B) from the respective images are obtained, we can compare these two to know how similar the two images are. If the encodings are similar then the images will also be quite similar. The distance between these two vectors will be measured. If the distance between these is small then the vectors are of the same classes or **similar** and if the distance between is larger then the vectors are **different** from one another, based on the score.
+The first subnetwork takes an image (input1) as input and passes through convolutional layers and fully connected layers, after which we get a vector representation of the image. Again the second image (input2) is passed through a network that is exactly the same with the same weights and parameters. Two encodings output_vector1 and output_vector2 from the respective images are obtained, we can compare these two to know how similar the two images are. If the encodings are similar then the images will also be quite similar. The distance between these two vectors will be measured. If the distance between these is small then the vectors are of the same classes or **similar** and if the distance between is larger then the vectors are **different** from one another, based on the score.
 
 The diagrammatic representation can be shown as:
 ![image](https://github.com/danitaanubhuti/PatternAnalysis-2023/assets/52007397/1435dcc6-e722-4397-afd4-5dfbd3291695)
@@ -107,7 +106,7 @@ To make predictions, I use the predict function to load the trained Classificati
 
 This code was developed using Python with TensorFlow and Keras.With this readme file, users can understand the purpose of the code, follow a clear set of instructions for training and using the models, and learn how to visualize training history. It also mentions the essential libraries required to run the code.
 
-## Results (Training and Testing)
+## 6. Results (Training and Testing)
 In the training process, the Siamese Network (SNN) underwent 40 epochs, while the Classification Model was trained for 20 epochs. For the SNN, it started with a loss of 5.0073 and an accuracy of 52.55%, gradually improving with each epoch to achieve a final loss of 0.2049 and an accuracy of 65.87%. The Validation loss improved from 2.0056 to 0.1979, and the Validation accuracy increased from 59.28% to 66.25%. Similarly, the Classification Model started with a loss of 0.4172 and an accuracy of 81.55%, reaching a final loss of 0.0753 and an accuracy of 98.57%. The Validation loss decreased from 0.4413 to 0.1039, and the Validation accuracy increased from 87.92% to 97.29%. These results indicate successful training, with both models improving their performance significantly.
 
 ![image](https://github.com/danitaanubhuti/PatternAnalysis-2023/assets/52007397/cd43d515-fc7c-4ef7-a896-f656e40bafb1)
