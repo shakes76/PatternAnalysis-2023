@@ -1,0 +1,1 @@
+This is an implementation of the improved unet model to segment brain lesions within the ISIC 2018 data set. The aim is to achieve an Dice score of 0.8 on a test set.
