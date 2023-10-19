@@ -54,7 +54,7 @@ The architecture above describes the general flow of a vision transformer; howev
 ## Training
 The hyperparameters of an initial training run were:
  * Patch size = 16
- * Number of encoders = 3
+ * Number of encoders = 6
  * Number of attention heads = 4
  * Dropout regularisation = 0.1
  * Number of epochs = 60
@@ -64,6 +64,8 @@ The hyperparameters of an initial training run were:
  * Optimiser = Adam
  * Loss Criterion = Cross entropy loss
  * Learning rate scheduler = ReduceLROnPlateau
+ * Weight decay = 0.0
+
 The plot below shows the cross entropy loss of the training at each epoch:
 
 ![alt text](images/losses1.png)
