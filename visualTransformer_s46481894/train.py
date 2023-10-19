@@ -33,8 +33,8 @@ def run_model(model):
     # reduce learning rate as model progresses
     reduce_lr = keras.callbacks.ReduceLROnPlateau(
         monitor="accuracy",  # reduces learning rate based on accuracy
-        factor=0.3,  # new_lr = lr * factor
-        patience=5  # only reduce if plateaus for 5 straight epochs
+        factor=0.2,  # new_lr = lr * factor
+        patience=3  # only reduce if plateaus for 5 straight epochs
     )
     # train model
     history = model.fit(

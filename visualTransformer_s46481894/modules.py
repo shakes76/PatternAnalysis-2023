@@ -10,10 +10,10 @@ img_size = 128
 batch_size = 128
 patch_size = 16
 num_patches = (img_size // patch_size) ** 2
-projection_dim = 64
+projection_dim = 96
 num_heads = 4
 transformer_units = [projection_dim * 2, projection_dim, ]
-transformer_layers = 4
+transformer_layers = 5
 mlp_head_units = [2048, 1024]
 
 input_shape = (128, 128, 3)  # may need to change size

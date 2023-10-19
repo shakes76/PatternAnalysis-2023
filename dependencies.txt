@@ -1,6 +1,7 @@
 ##### Dependencies for project #####
 
 ### Libraries ###
+python ------- 3.10.4
 numpy -------- 1.24.1
 tensorflow --- 2.13.0
 keras -------- 2.13.1
