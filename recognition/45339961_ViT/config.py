@@ -23,7 +23,7 @@ test_mean = 0.1167
 test_std = 0.2228
 
 # Training specific parameters
-n_epochs = 15
+n_epochs = 20
 learning_rate = 0.0005
 
 # Transformer model specific parameters
