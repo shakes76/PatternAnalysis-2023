@@ -6,8 +6,9 @@ from torch.utils.data import DataLoader
 from torch.optim import Adam
 from tqdm import tqdm
 import torch
+from utilities import accuracy
 
-wandb.init(project="Lesion_detection", name="UNET")
+wandb.init(project="Lesion_detection", name="UNET_2")
 
 
 # Initialize Dataset and Dataloader
@@ -51,11 +52,16 @@ for epoch in range(num_epochs):
         # Backpropagation
         loss.backward()
         optimizer.step()
-        
+
+        acc, dice_score = accuracy(model, criterion, pred, truth)
+        acc = acc/len(train_dataloader)
+        dice_score = dice_score/len(train_dataloader)
         epoch_loss += loss.item()
+        
         progress_bar.set_description(f'Epoch {epoch+1}, Loss {loss.item()}')
+        wandb.log({'Running loss': loss.item(), 'Acc': acc})
     scheduler.step()
-    wandb.log({'loss': epoch_loss}) 
+    wandb.log({'Epoch_loss': epoch_loss}) 
     print(f'Epoch {epoch+1}, Avg Loss {epoch_loss/len(train_dataloader)}')
 
 
