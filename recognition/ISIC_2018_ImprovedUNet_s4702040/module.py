@@ -13,7 +13,8 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-#Model
+# Model
+# uses as reference https://github.com/pykao/Modified-3D-UNet-Pytorch
 class ImprovedUNet(nn.Module):
     def __init__(self, in_channels, out_channels, base_n_filter = 4):
         super(ImprovedUNet, self).__init__()
