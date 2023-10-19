@@ -57,7 +57,7 @@ SequentialLR Scheduler (`scheduler`):
 * `schedulers`: A list of learning rate schedulers to apply sequentially. In your case, you're applying `sched_linear_1` followed by `sched_linear_3`.
 * `milestones`: A list of iteration milestones that trigger the transition between different learning rate schedulers. The transition between `sched_linear_1` and `sched_linear_3` occurs at iteration 30.
 
-After this the TripletNet was trained for 100 epochs with the torch SGD optimiser with a learning rate set to 0.001.
+After this the TripletNet was trained for 100 epochs with the torch `SGD` optimiser with a learning rate set to 0.001.
 
 The TripleNetClassifier was trained on the ADAM optimiser with a learning rate set to 0.001 for 50 epochs.
 
@@ -74,8 +74,11 @@ The output of the classifier is a binary classification result, indicating wheth
 The following plots can be generated:
 
 Training Loss and Accuracy: A plot of training loss and accuracy over epochs to visualize the training progress.
-##### TripleNet Loss first 35 epochs with the `scheduler`
+##### TripleNet Loss 35 epochs with the `scheduler`
 ![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/38d0e0db-1b62-4517-a7da-a1b4883a88f3)
+##### TripleNet Loss 100 epochs with `SGD` optimiser with a lr = 0.001
+![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/0c906e37-583e-4d50-a830-7585b603891e)
+
 
 ##### TripleClassifier Loss
 ![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/18068dd2-98fd-4ade-b95e-45995860ee10)
@@ -97,6 +100,10 @@ After training the TripletClassifier, with the previously seen 80% accurate mode
 This was an example of 40 randomly selected images from the test split with its corresponding classifcations and the tripleClssifer predictions
 * y_test_batch = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
 * y_test_batch = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0]
+
+#### Test Data TSNE Embedding
+The embeddings can be graphed when using a dimensionality reduction alorithm. For this example, we are using TSNE to represent the original 128 dimension embedding to a 2 dimensional embedding. Due to the large dimensionality reduction, we are loosing a fair bit of information, thus the data seems to have a large overlap. Although some overlap, the general pattern can be seen where the AD in red stay on the left side while the NC in blue stay on the right side.
+![tsne](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/09877421-962c-48af-b839-3934fecc3d51)
 
 ## Pre-processing 
 
