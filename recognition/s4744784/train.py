@@ -77,13 +77,6 @@ def train(epochs: int):
 
     return epoch_train_losses, epoch_val_losses, epoch_train_psnrs, epoch_val_psnrs
 
-def compute_psnr(mse, max_pixel_val=1.0):
-    mse_tensor = torch.tensor(mse).to(device)
-    if mse == 0:
-        return float('inf')
-    return 10 * torch.log10(max_pixel_val**2 / mse_tensor)
-
-
 if __name__ == '__main__':
     start_time = time.time()
     print("Starting training...")

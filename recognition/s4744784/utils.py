@@ -35,3 +35,9 @@ trained_path = os.path.abspath('./models/Trained_Model_Epoch_100.pth')
 
 down_sample = transforms.Compose([transforms.Resize((new_height, new_width))])
 up_sample = Upsample(scale_factor=upscale_factor)
+
+def compute_psnr(mse, max_pixel_val=1.0):
+    mse_tensor = torch.tensor(mse).to(device)
+    if mse == 0:
+        return float('inf')
+    return 10 * torch.log10(max_pixel_val**2 / mse_tensor)
