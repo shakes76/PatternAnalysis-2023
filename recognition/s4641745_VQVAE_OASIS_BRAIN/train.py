@@ -10,6 +10,7 @@ from torch.autograd import Variable
 
 from dataset import vqvae_test_loader, vqvae_train_loader
 from models import VQVAE
+from utils import save_image
 
 device = t.device('cuda' if t.cuda.is_available() else 'cpu')
 if not t.cuda.is_available():
@@ -56,3 +57,14 @@ for i in range(MAX_EPOCHS_VQVAE):
 
     train_recon_loss.append(loss)
     print(f"Reconstruction loss: {loss}")
+
+# Save model
+t.save(model, "./assets/models" + "vqvae.txt")
+
+# save samples of real and test data
+real_imgs = next(iter(vqvae_test_loader)) # load some from test dl
+real = real_imgs[0]
+real = real.to(device)
+_, test_recon = model.forward(real) # forward pass through vqvae to create reconstruction
+save_image(real, 'real-sample.png')
+save_image(test_recon, 'recon-sample.png')
