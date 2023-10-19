@@ -24,7 +24,7 @@ model = torch.load(model_path)
 
 model.eval()
 
-train_loader = generate_train_loader()
+test_loader = generate_test_loader()
 
 column_labels = ["Original Image", "Downsampled Image", "Model Prediction"]
 
@@ -38,7 +38,7 @@ print("> Generating predictions for first 3 images")
 
 # Turn off gradient computation
 with torch.no_grad():
-    for i, (images, _) in enumerate(train_loader):
+    for i, (images, _) in enumerate(test_loader):
 
         original_1 = images[0][0].cpu().detach().numpy()
         original_2 = images[1][0].cpu().detach().numpy()
