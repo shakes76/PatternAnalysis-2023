@@ -21,7 +21,7 @@ imageTransform_test = transforms.Compose([transforms.ToTensor(),
                                            transforms.Resize((672, 1024))])
 
 # File path for loading model
-filepath = "C:\\Users\\JRSan\\OneDrive\\Desktop\\vs_code\\COMP3710_project\\ImprovedUNet0.pt"
+filepath = "path to file\\ImprovedUNet.pt"
 
 loadedModel = torch.load(filepath) #load model from file path
 
@@ -30,7 +30,7 @@ print("> Predicting")
 loadedModel.eval() #set model to evaluation mode
 with torch.no_grad():
     # Path to image which will have its segmentation mask predicted
-    testImagePath = "C:\\Users\\JRSan\\Downloads\\ISIC2018\\ISIC2018_Task1-2_Test_Input\\ISIC_0016911.jpg"
+    testImagePath = "path to file\\ISIC2018\\ISIC2018_Task1-2_Test_Input\\ISIC_0016911.jpg"
     testImage = Image.open(testImagePath).convert('RGB') #convert image to RGB values
 
     testImage = imageTransform_test(testImage) #apply transform to image
@@ -53,4 +53,4 @@ with torch.no_grad():
     output = output.cpu().numpy()
 
     # Save predicted mask as png greyscale in folder where predict.py is located
-    plt.imsave("ISIC_0016911_PredMaskUNet20.png", output, cmap="gray")
+    plt.imsave("ISIC_0016911_PredMask.png", output, cmap="gray")
