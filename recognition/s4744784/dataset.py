@@ -34,7 +34,7 @@ def load_train_data(path: str):
         shuffle=True
     )
 
-    if os.path.exists("training_images.png"):
+    if os.path.exists("figures/training_images.png"):
         print("Overwriting existing training image picture!")
     else:
         print("Creating training image picture!")
@@ -53,7 +53,7 @@ def load_train_data(path: str):
             (1, 2, 0),
         )
     )
-    plt.savefig("training_images.png")
+    plt.savefig("figures/training_images.png")
 
     print("Training image picture created!")
     return train_loader

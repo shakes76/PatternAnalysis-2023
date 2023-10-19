@@ -1,6 +1,5 @@
 from utils import *
 from modules import Network
-from dataset import load_data
 import torchvision.utils as vutils
 import torch
 import torchvision

@@ -100,7 +100,7 @@ if __name__ == '__main__':
     plt.ylabel('Loss')
     plt.title('Training and Validation Loss over Time')
     plt.legend()
-    plt.savefig('losses.png')
+    plt.savefig('figures/losses.png')
     plt.figure()
     plt.plot(range(1, num_epochs + 1), epoch_train_psnrs, label='Training PSNR')
     plt.plot(range(1, num_epochs + 1), epoch_val_psnrs, label='Validation PSNR')
@@ -108,4 +108,5 @@ if __name__ == '__main__':
     plt.ylabel('PSNR')
     plt.title('Training and Validation PSNR over Time')
     plt.legend()
-    plt.savefig('psnrs.png')
+    plt.savefig('figures/psnrs.png')
+

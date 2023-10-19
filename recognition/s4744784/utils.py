@@ -31,7 +31,7 @@ directory = os.path.abspath('./data/AD_NC')
 train_path = os.path.join(directory, 'train')
 test_path = os.path.join(directory, 'test')
 
-trained_path = os.path.abspath('./Trained_Model_Epoch_100.pth')
+trained_path = os.path.abspath('./models/Trained_Model_Epoch_100.pth')
 
 down_sample = transforms.Compose([transforms.Resize((new_height, new_width))])
 up_sample = Upsample(scale_factor=upscale_factor)
