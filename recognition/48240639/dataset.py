@@ -10,52 +10,61 @@ functions to get train and test datasets from a specified data path.
 @ID: s4824063
 
 """
+
+
 import os
 import torch
 from PIL import Image
-from torchvision import transforms
 from torch.utils.data import Dataset
+from torchvision import transforms
+
 
 class SiameseADNIDataset(Dataset):
-    def __init__(self, data_path, dataset_type):
-        super(SiameseADNIDataset, self).__init()
+    def __init__(self, data_path):
+        super(SiameseADNIDataset, self).__init__()
 
-        self.transform = transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))  
-        ])
+        self.transform = transforms.ToTensor()
 
-        ad_directory = os.path.join(data_path, dataset_type, 'AD')
-        nc_directory = os.path.join(data_path, dataset_type, 'NC')
+        # Load AD and NC images
+        self.ad_path = os.path.join(data_path, 'AD')
+        self.nc_path = os.path.join(data_path, 'NC')
 
-        self.ad_images = [self.load_and_transform_image(os.path.join(ad_directory, img)) for img in os.listdir(ad_directory)]
-        self.nc_images = [self.load_and_transform_image(os.path.join(nc_directory, img)) for img in os.listdir(nc_directory)]
+        # Load images
+        self.ad_images = [self.transform(Image.open(os.path.join(self.ad_path, img))) for img in
+                          os.listdir(self.ad_path)]
+        self.nc_images = [self.transform(Image.open(os.path.join(self.nc_path, img))) for img in
+                          os.listdir(self.nc_path)]
 
+        # Stack images into tensors
         self.ad_images = torch.stack(self.ad_images)
         self.nc_images = torch.stack(self.nc_images)
 
     def __len__(self):
+        # Return the length of the smaller dataset
         return min(len(self.ad_images), len(self.nc_images))
 
     def __getitem__(self, index):
-        img1, img2, label = self.get_random_pair(index)
-        return img1, img2, label
-
-    def get_random_pair(self, index):
-        img1 = self.ad_images[index % len(self.ad_images)]
         if index % 2 == 0:
-            img2 = self.ad_images[(index + 1) % len(self.ad_images)]
-            label = torch.tensor(1, dtype=torch.float)
+            # Positive example (both images are AD)
+            img1 = self.ad_images[index % len(self.ad_images)] # Get the image at the current index
+            img2 = self.ad_images[(index + 1) % len(self.ad_images)] # Get the next image
+            label = torch.tensor(1, dtype=torch.float) # Set the label to 1
         else:
-            img2 = self.nc_images[index % len(self.nc_images)]
-            label = torch.tensor(0, dtype=torch.float)
+            # Negative example (one image is AD, the other is NC)
+            img1 = self.ad_images[index % len(self.ad_images)] # Get the image of ad at the current index
+            img2 = self.nc_images[index % len(self.nc_images)] # Get the image of nc at the current index
+            label = torch.tensor(0, dtype=torch.float) # Set the label to 0
 
         return img1, img2, label
 
-    def load_and_transform_image(self, img_path):
-        img = Image.open(img_path)
-        return self.transform(img)
 
-def create_dataset(data_path, dataset_type):
-    dataset = SiameseADNIDataset(data_path, dataset_type)
-    return dataset
+def get_training(data_path):
+    # Get the training dataset
+    train_dataset = SiameseADNIDataset(os.path.join(data_path, 'train'))
+    return train_dataset
+
+
+def get_testing(data_path):
+    # Get the test dataset
+    test_dataset = SiameseADNIDataset(os.path.join(data_path, 'test'))
+    return test_dataset
