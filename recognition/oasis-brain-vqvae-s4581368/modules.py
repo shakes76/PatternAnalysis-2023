@@ -228,6 +228,59 @@ class VQVAE(nn.Module):
         x_reconstructed = self.decoder(x_quantized)
         return embedding_loss, x_reconstructed, x_quantized
 
+class MaskedConv2d(nn.Conv2d):
+    def __init__(self, mask_class, in_channels, out_channels, kernel_size, padding):
+        super(MaskedConv2d, self).__init__(in_channels, out_channels, kernel_size, padding=padding, stride=1)
+        self.mask_class = mask_class
+        self.mask = torch.ones(out_channels, in_channels, kernel_size, kernel_size)
+        if self.mask_class == "A":
+            self.mask[:, :, kernel_size // 2, kernel_size // 2:] = 0
+        else:
+            self.mask[:, :, kernel_size // 2, kernel_size // 2 + 1:] = 0
+        self.mask[:, :, kernel_size // 2 + 1:] = 0
+
+    def forward(self, x):
+        self.weight.data *= self.mask
+        return super(MaskedConv2d, self).forward(x)
+
+class MaskedResidual(nn.Module):
+    def __init__(self, in_channels):
+        super().__init__()
+
+        self.res_layers = nn.Sequential(
+            MaskedConv2d('B', in_channels, in_channels // 2, 1, 0),
+            nn.ReLU(True),
+            MaskedConv2d('B', in_channels // 2, in_channels // 2, 7, 3),
+            nn.ReLU(True),
+            MaskedConv2d('B', in_channels // 2, in_channels, 1, 0),
+        )
+
+    def forward(self, x):
+        return x + self.res_layers(x)
+            
+
+class PixelCNN(nn.Module):
+    def __init__(self, in_channels, layers, out_channels):
+        self.in_channels = in_channels
+        self.embedded_layers = layers
+        self.out_channels = out_channels
+        self.model = nn.Sequential(
+            MaskedConv2d('A', self.in_channels, self.embedded_layers, 7, 3),
+            nn.ReLU(True),
+            MaskedResidual(self.embedded_layers),
+            nn.ReLU(),
+            nn.BatchNorm2d(self.embedded_layers),
+            MaskedResidual(self.embedded_layers),
+            nn.ReLU(),
+            nn.BatchNorm2d(self.embedded_layers),
+            MaskedResidual(self.embedded_layers),
+            nn.ReLU(),
+            nn.BatchNorm2d(self.embedded_layers),
+            MaskedConv2d("B", self.embedded_layer, self.out_channels, 1, 0)
+        )
+
+    def forward(self, x):
+        return self.model(x)
 
 
 
