@@ -1,7 +1,6 @@
 """ Source of the components of model. """
 
-# Acknowledgement: This code is adapted from the following source:
-# https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
+# Acknowledgement: This code is adapted from the source found in reference [6]
 
 import torch
 from torch import nn
@@ -26,7 +25,7 @@ class PatchEmbedding(nn.Module):
                                 padding=0)
 
         # Create a layer to flatten the patch feature maps into a single dimension
-        self.flattened = nn.Flatten(start_dim=2, # only flatten the feature map dimensions into a single vector
+        self.flattened = nn.Flatten(start_dim=2,
                                     end_dim=3)
 
     def forward(self, x):
@@ -41,7 +40,7 @@ class MSABlock(nn.Module):
     """ Creates a multi-head self-attention block. """
     def __init__(self,
                 embedding_dim,  # Hidden size D
-                num_heads,      # HNumber of heads
+                num_heads,      # Number of heads
                 attn_dropout): 
         super().__init__()
 
@@ -75,12 +74,10 @@ class MLPBlock(nn.Module):
 
         # Create the MLP layer
         self.mlp = nn.Sequential(
-            nn.Linear(in_features=embedding_dim,
-                    out_features=mlp_size),
+            nn.Linear(in_features=embedding_dim, out_features=mlp_size),
             nn.GELU(),
             nn.Dropout(p=dropout),
-            nn.Linear(in_features=mlp_size,
-                    out_features=embedding_dim),
+            nn.Linear(in_features=mlp_size, out_features=embedding_dim),
             nn.Dropout(p=dropout) 
         )
 
@@ -154,7 +151,6 @@ class ViT(nn.Module):
                                             embedding_dim=embedding_dim)
         
         # Create Transformer Encoder block
-        # Note: The "*" means "all"
         self.transformer_encoder = nn.Sequential(*[TransformerEncoderBlock(embedding_dim=embedding_dim,
                                                                             num_heads=num_heads,
                                                                             mlp_size=mlp_size,
@@ -173,16 +169,16 @@ class ViT(nn.Module):
         # Get batch size
         batch_size = x.shape[0]
 
-        # Create class token embedding and expand it to match the batch size (equation 1)
+        # Create class token embedding and expand it to match the batch size
         class_token = self.class_embedding.expand(batch_size, -1, -1)
 
-        # Create patch embedding (equation 1)
+        # Create patch embedding
         x = self.patch_embedding(x)
 
-        # Concat class embedding and patch embedding (equation 1)
+        # Concat class embedding and patch embedding
         x = torch.cat((class_token, x), dim=1)
 
-        # Add position embedding to patch embedding (equation 1) 
+        # Add position embedding to patch embedding
         x = self.position_embedding + x
 
         # Run embedding dropout (Appendix B.1)
@@ -191,7 +187,7 @@ class ViT(nn.Module):
         # Pass patch, position and class embedding through transformer encoder layers (equations 2 & 3)
         x = self.transformer_encoder(x)
 
-        # Put 0 index logit through classifier (equation 4)
-        x = self.classifier(x[:, 0]) # run on each sample in a batch at 0 index
+        # Put 0 index logit through classifier
+        x = self.classifier(x[:, 0])
 
         return x

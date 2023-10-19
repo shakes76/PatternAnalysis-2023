@@ -1,5 +1,5 @@
 # Vision Transformer for ADNI
-This project explored the use of a Vision Transformer for the classification of Alzheimer's disease in the ADNI brain dataset.
+This project explored the use of a Vision Transformer for the classification of Alzheimer's disease in the ADNI brain dataset. The model is based on the architecture presented in the paper [An Image Is Worth 16x16 Words](https://arxiv.org/pdf/2010.11929.pdf) [1], with special thanks to Daniel Bourke's guide [4] on implementing this architecture in PyTorch.
 
 # Contents
 1. [Introduction](#1-introduction)
@@ -10,7 +10,7 @@ This project explored the use of a Vision Transformer for the classification of 
 6. [References](#6-references)
 
 # 1. Introduction
-The Alzheimer's Disease Neuroimaging Initiative (ADNI) is designed to provide researchers with study data to assist in defining the progression of Alzheimer's disease. The aim of this project was to classify Alzheimer's disease (normal and AD) of the ADNI brain data using a Vision Transformer, based on the architecture presented by the paper [An Image Is Worth 16x16 Words](https://arxiv.org/pdf/2010.11929.pdf) [1].
+The Alzheimer's Disease Neuroimaging Initiative (ADNI) is designed to provide researchers with study data to assist in defining the progression of Alzheimer's disease. The aim of this project was to classify Alzheimer's disease (normal and AD) of the ADNI brain data using a Vision Transformer, based on the architecture presented by the ViT paper [1].
 
 This project used the dataset that contained 2D slices of MRI data for a patient, with the folder structure:
 ```
@@ -183,7 +183,7 @@ Due to the computational resources required to train the model, it was only trai
 
 <img src="misc\past_results\base_losses_accuracies.png" width="600" height=""/>
 
-The model performed poorly, as was expected, with a test loss of 0.69 and an accuracy of 49.58%. Further research needed to be completed.
+As was expected, using a comparatively large model on a small dataset resulted in the model overfitting the training data, which led to the validation data having negligible improvements in accuracy, while the loss did decrease. In turn, the test loss was 0.69 and the accuracy was 49.58%. Further research needed to be completed.
 
 ### 4.2.2. Research to improve model
 Based on the test accuracy of the ViT-Base model, the knowledge that ViTs introduced by the paper [1] work on large datasets and the fact that the ADNI dataset is relatively small, it was decided that further research into improving performance of ViTs on small datasets needed to be completed. Based on the information found in the paper [How to Train Vision Transformer on Small-scale Datasets?](https://arxiv.org/pdf/2210.07240.pdf) [2] and the article [5 Tips for Creating Lightweight Vision Transformers](https://wandb.ai/dtamkus/posts/reports/5-Tips-for-Creating-Lightweight-Vision-Transformers--Vmlldzo0MjQyMzg0) [3], the following changes were identified that needed to be made:
@@ -201,11 +201,12 @@ embedding_dim = 24 (reduces number of parameters)
 mlp_size = 768 (decreases size of MLP to reduce parameters, but deep enough to capture complex features)
 ```
 
-The model size has been greatly decreased, with only 87,014 parameters (based on model summary). Furthermore, making these changes this drastically improved test accuracy to 61.73% (loss of 0.91), but the model would still begin to overfit the training data after ~15-20 epochs, as seen below:
+The model size has been greatly decreased, with only 87,014 parameters (based on model summary). Furthermore, making these changes drastically improved test accuracy to 61.73% (loss of 0.91). However, the model began 
+to overfit the training data after ~15-20 epochs (as can be seen below). This is due to the model beginning to memorise the dataset, rather than learning the features of the dataset, which is also a problem prevalent for small datasets when trained for long periods.
 
 <img src="misc\past_results\example_accuracy_plot.png" width="300" height=""/> <img src="misc\past_results\example_loss_plot.png" width="300" height=""/>
 
-Furthermore, for the purposes of this project, the model didn't need to be trained for more than 15-20 epochs to get performance (this is bad practice in real life, please refer to Section 5 for more information).
+Thus, for the purposes of this project, the model didn't need to be trained for more than 15-20 epochs to get performance (this is bad practice in real life, please refer to Section 5 for more information).
 
 ### 4.2.3. Hyperparameter Tuning
 The following parameters were kept the same throughout testing (unless specified in the table below):
@@ -240,11 +241,11 @@ Unexpectedly, the model perfomed worse after recentering the images. This is lik
 
 Another interesting point to note is that increasing the validation data resulted in better performance, which is likely due to the model (since having a low number of transformer layers and parameters to adjust overall) being able to learn the training data features quickly, so there is more information to generalise the model on.
 
+Incoroporating these corrections, the final model's test loss was 0.65, and test accuracy was 67.14%. Unfortunately, although better than all previous versions, this model still does not meet the requirements of the project to have 80% test accuracy.
+
 Further experimentation would involve changing the loss functions, such as using Binary Cross Entropy Loss, as this is a standard loss function for binary classification problems. Moreover, adding a learning rate scheduler would prove more beneficial than manually changing the learning rate, as this would allow the model to train for longer and potentially reach a better minimum.
 
 *Image had to be resized to 256x256 to suit this patch size.
-
-***After further tuning and adding in these corrections, the final model test accuracy was ***
 
 ## 4.3. Reproducibility of Results
 The results produced by the ViT can be reproduced consistently, where the only source of randomness that affects the model is the shuffling of the training data during training at each epoch. This is considered a crucial step so that the model can escape local minima and converge to a global minimum. Random seeds are also used to ensure that the model can be reproduced consistently. Lastly, it should be mentioned that the ```predict.py``` file uses a random subset of the test data for the model to predict on.
@@ -264,7 +265,7 @@ For future training and testing, it is recommended that the PyTorch EarlyStoppin
 
 [3] Tamkus D. 5 Tips for Creating Lightweight Vision Transformers [Internet]. Weights & Biases; 2023. Available from: https://wandb.ai/dtamkus/posts/reports/5-Tips-for-Creating-Lightweight-Vision-Transformers--Vmlldzo0MjQyMzg0
 
-[4] [No author]. Flattening the patch embedding with torch.nn.Flatten [Internet]. Learn PyTorch; 2023. Available from: https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
+[4] [Burke D]. Flattening the patch embedding with torch.nn.Flatten [Internet]. Learn PyTorch; 2023. Available from: https://www.learnpytorch.io/08_pytorch_paper_replicating/#44-flattening-the-patch-embedding-with-torchnnflatten
 
 [5] Wu Y, He K. ConViT: Improving Vision Transformers by Soft Distillation [Internet]. 2021. Available from: https://arxiv.org/pdf/2106.10270.pdf
 

@@ -118,7 +118,6 @@ def get_transform(data_type, data_mean, data_std, image_size):
             transforms.RandomHorizontalFlip(),
             transforms.RandomVerticalFlip(),
             transforms.ToTensor(),
-            # transforms.Lambda(centre_transform),
             transforms.Normalize(mean=data_mean, std=data_std)
         ])
     elif data_type == "test":
@@ -158,6 +157,7 @@ def centre_transform(img_tensor):
     x_trans = img_tensor.shape[-1] // 2 - x_com
     y_trans = img_tensor.shape[-2] // 2 - y_com
 
+    # Apply translation
     translated_tensor = torch.roll(img_tensor, shifts=(int(y_trans), int(x_trans)), dims=(-2, -1))
 
     return translated_tensor
