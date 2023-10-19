@@ -4,6 +4,7 @@ import torch
 from sklearn.metrics import accuracy_score
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
+from utils import SEED
 
 print("PyTorch Version:", torch.__version__)
 
@@ -11,6 +12,11 @@ print("PyTorch Version:", torch.__version__)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Using", str(device))
 
+# Set seed for reproducability.
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+
+# test / validation split
 test_size = 0.1
 val_size = 0.1
 

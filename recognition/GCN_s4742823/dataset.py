@@ -1,6 +1,9 @@
 import numpy as np
 import torch
 import scipy.sparse as sp
+from utils import SEED
+
+np.random.seed(SEED)
 
 # Directory for data
 data_dir = 'data/'
