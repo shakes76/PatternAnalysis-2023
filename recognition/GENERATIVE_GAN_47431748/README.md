@@ -73,9 +73,7 @@ original paper utilise a traditional PixelCNN instead of either a Row LSTM or a 
 pixel the PCNN utilises a mask to 'zero-out' the required pixels. Two types of mask are used in my implementation. 
 Namely, 
 
-$$
-\text{Mask A} = \begin{pmatrix} 1 & 1 & 1 \\ 1 & 1 & 0 \\ 0 & 0 & 0 \end{pmatrix}, \quad \text{Mask B} = \begin{pmatrix} 1 & 1 & 1 \\ 1 & 0 & 0 \\ 0 & 0 & 0 \end{pmatrix}
-$$
+![Masks](Images/marks.png)
 
 Mask A zeros out all previous pixels, including the current pixel, wheras Mask B zeros out all of the previous pixels
 excluding the current pixel. Type A masks are used only in the first layer, and Type B masks are used in all ensuing
@@ -83,7 +81,7 @@ layers.
 
 <br/>
 
-## ADNI Brain Dataset
+## 2.0 ADNI Brain Dataset + Preprocessing
 The [Alzheimer's Disease Neuroimaging initiative](https://adni.loni.usc.edu/) dataset consists of 256 x 256 pixel 2D
 slices of neuroimaging data of people with Alzheimers Disease. Data was sourced from [here](https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI),
 and downloaded for usage. In `dataset.py`, the image is processed using `tensorflow`'s `image_dataset_from_directory`
@@ -99,7 +97,7 @@ of the trained model.
 <br/>
 
 
-## Training / Validation Performance
+## 3.0 Training / Validation Performance
 
 The model was trained over 7 epochs with the hyper-parameters that are defined in `modules.py`. The loss
 metrics on both the training and validation sets are seen in the figures below. The graphs were produced
@@ -119,13 +117,23 @@ on the validation set. In total the Mean SSIM on the VQ-VAE test was 1.28696
 
 <br/>
 
-## Reconstruction
-Once the model was has been trained, 5 randomly selected images will be tested ... 
-TODO
+## 4.0 Reconstruction
+Once the model was has been trained, 5 arbitrary images were passed through the VQVAE and the initial
+image, the codebook representation, and then the reconstructed image were plot on the same graph.
+
+
+![arb1](Images/arb1.png)
+![arb2](Images/arb2.png)
+![arb3](Images/arb3.png)
+![arb4](Images/arb4.png)
+![arb5](Images/arb5.png)
+
+All in all, I am very happy with the results. These plots really just provide visual evidence for
+the SSIM values which were reported in section 3.0
 
 <br/>
 
-## Usage Instructions
+## 5.0 Usage Instructions
 
 Provided that the required dependencies are installed, one must first alter `FILE_PATH` in `train.py` so that the 
 path directs to the `AD_NC` root directory of the ADNI Brain data (see ADNI Brain Dataset section). That is, the 
@@ -140,16 +148,18 @@ ignored. I.e. the model is trained on both Alzheimers disease (AD), and Cognitiv
 For hyper-parameter tuning resort to lines 39-48 in `train.py`. Furthermore, `modules.py` details source code
 for the mode
 
-### Dependencies
+### 5. 1 Dependencies
 * Tensorflow >= 2.10.0
 * Tensorflow-probability >= 0.14.0
 * numpy >= 1.26.0
 * matplotlib >= 3.7.2
 * pandas >= 2.0.3
 
-## References
+## 6.0 References
 
 
 [1] VQ-VAE Paper - https://arxiv.org/abs/1711.00937
 
 [2] PixelCNN Paper -https://arxiv.org/abs/1601.06759v3
+
+[3] Vector-Quantized Variational Autoencoder - https://keras.io/examples/generative/vq_vae/
