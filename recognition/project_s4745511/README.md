@@ -108,6 +108,11 @@ To make predictions, I use the predict function to load the trained Classificati
 This code was developed using Python with TensorFlow and Keras.With this readme file, users can understand the purpose of the code, follow a clear set of instructions for training and using the models, and learn how to visualize training history. It also mentions the essential libraries required to run the code.
 
 ## Results (Training and Testing)
+In the training process, the Siamese Network (SNN) underwent 40 epochs, while the Classification Model was trained for 20 epochs. For the SNN, it started with a loss of 5.0073 and an accuracy of 52.55%, gradually improving with each epoch to achieve a final loss of 0.2049 and an accuracy of 65.87%. The Validation loss improved from 2.0056 to 0.1979, and the Validation accuracy increased from 59.28% to 66.25%. Similarly, the Classification Model started with a loss of 0.4172 and an accuracy of 81.55%, reaching a final loss of 0.0753 and an accuracy of 98.57%. The Validation loss decreased from 0.4413 to 0.1039, and the Validation accuracy increased from 87.92% to 97.29%. These results indicate successful training, with both models improving their performance significantly.
+
+![image](https://github.com/danitaanubhuti/PatternAnalysis-2023/assets/52007397/cd43d515-fc7c-4ef7-a896-f656e40bafb1)
+
+In the evaluation results, the model achieved a loss of approximately 1.97 and an accuracy of about 66.36% (the accuracy fluctuates between 58 - 66 when multiple training and predictions are done). The subsequent predictions and actual labels show the model's performance on individual data points. The model predicted the likelihood of a binary outcome (0 or 1) for each data point, and the actual labels indicate the true values. The predictions are continuous values between 0 and 1, representing the model's confidence in its predictions. For example, a prediction close to 0 indicates low confidence in a positive outcome, while a prediction close to 1 indicates high confidence in a positive outcome. The model's performance is evaluated based on its ability to accurately classify data points into the correct categories.
 
 
 ## References
