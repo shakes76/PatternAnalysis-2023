@@ -1,4 +1,4 @@
-
+*Rodger Xiang s4642506*
 # Classifying Alzheimer’s Disease with Vision Transformers
 This project aims to classify Alzheimer's disease of the ADNI brain data set using a vision transformer, trying to achieve a minimum accuracy of 80%. However, end results of this project only achieve 62% accuracy on the test set after various hyperparameter tuning and model modifications. 
 
