@@ -37,18 +37,6 @@ factors = [1, 1, 1, 1, 1/2, 1/4, 1/8, 1/16, 1/32]
 
 
 
-def generate_examples(gen, steps, n=100):
-    gen.eval()
-    alpha = 1.0
-    for i in range(n):
-        with torch.no_grad():
-            noise = torch.randn(1, Z_DIM).to(DEVICE)
-            img = gen(noise, alpha, steps)
-            if not os.path.exists(f"{EXPORT_PATH}/step{steps}"):
-                os.makedirs(f"{EXPORT_PATH}/step{steps}")
-            save_image(img*0.5+0.5, f"{EXPORT_PATH}/step{steps}/img_{i}.png")
-    gen.train()
-
 def save_generator(gen, steps):
     if not os.path.exists(f"{EXPORT_PATH}/step{steps}"):
         os.makedirs(f"{EXPORT_PATH}/step{steps}")
@@ -181,7 +169,7 @@ for num_epochs in PROGRESSIVE_EPOCHS[step:]:
             opt_gen
         )
 
-    generate_examples(gen, step)
+    gen.train()
     save_generator(gen, step)
     step += 1  # progress to the next img size
 
