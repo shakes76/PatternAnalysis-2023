@@ -217,8 +217,9 @@ def download_and_unzip(dataset_folder, download_url="https://drive.google.com/uc
         print(f"Folder {dataset_folder} already exists.")
 
 if __name__ == "__main__":
-    download_and_unzip("/home/Student/s4827064/PatternAnalysis-2023/lesion_detection_larsmoan/data/")
+    #download_and_unzip("/home/Student/s4827064/PatternAnalysis-2023/lesion_detection_larsmoan/data/")
     weights_url = "https://drive.google.com/uc?id=1mAu29ZlOTn3csjnZ5fmro10kY3XxAddC"
-    weights_out = "yolov7_training.pt"
-    gdown.download(weights_url, weights_out, quiet=False)
+    yolov7_weights_out = "yolov7_training.pt"
+    #gdown.download(weights_url, yolov7_weights_out, quiet=False)
+   
     

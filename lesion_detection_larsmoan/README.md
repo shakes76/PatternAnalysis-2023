@@ -81,23 +81,28 @@ dataset/
 ```
 
 The prepocessed dataset can be downloaded from this link:
-https://drive.google.com/uc?id=1YI3pwanX35i7NCIxKnfXBozXiyQZcGbL
+https://drive.google.com/uc?id=1YI3pwanX35i7NCIxKnfXBozXiyQZcGbL or from [dataset_utils.py](./dataset_utils.py)
 
-Which also happens to be the default argument to downloand_and_unzip() from the file dataset_utils.py
 
 
 ### Usage
-
-- How to use the code/model.
-- Example commands:
-  ```bash
-  python your_script_name.py --arg1 value1 --arg2 value2
+- Download the dataset and pretrained yolov7 weights:
+  ```
+  python dataset_utils.py
+  ```
+- Train the model:
+  Using rangpur cluster:
+  ```
+  bash run_custom_train.sh
+  ```
+  Using Google Colab GPU:
+  [isic_train.ipynb](./isic_train.ipynb)
+- Run inference on testset
+  ```
+  bash 
   ```
 
-### Model Architecture
-The model and architecture used in this project is the open source yolov7 model:
-https://github.com/WongKinYiu/yolov7
-
+### Model Architecture: open source [YOLOV7 Model](https://github.com/WongKinYiu/yolov7)
 
 ### Training
 Training the yolov7 model on the dataset can be done in two different ways:
