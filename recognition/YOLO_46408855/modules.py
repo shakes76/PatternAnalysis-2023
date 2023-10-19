@@ -112,28 +112,27 @@ class YOLO(nn.Module):
 
 
 def calculate_iou(pred, label):
-    px, py, pw, ph = pred[0], pred[1], pred[2], pred[3]
+    px, py, pw, ph = pred[:,0], pred[:,1], pred[:,2], pred[:,3]
     lx, ly, lw, lh = label[0], label[1], label[2], label[3]
     box_a = [px-(pw/2), py-(ph/2), px+(pw/2), py+(ph/2)]
     box_b = [lx-(lw/2), ly-(lh/2), lx+(lw/2), ly+(lh/2)]
 
-    # determine the (x, y) of the corners of intersection area 
-    ax = max(box_a[0], box_b[0])
-    ay = max(box_a[1], box_b[1])
-    bx = min(box_a[2], box_b[2])
-    by = min(box_a[3], box_b[3])
+    # determine the (x, y) of the corners of intersection area
+    ax = torch.clamp(box_a[0], min=box_b[0])
+    ay = torch.clamp(box_a[1], min=box_b[1])
+    bx = torch.clamp(box_a[2], max=box_b[2]) 
+    by = torch.clamp(box_a[3], max=box_b[3]) 
 
     # compute the area of intersection
-    intersect = abs(max((bx - ax, 0)) * max((by - ay), 0))
-    if intersect == 0:
-      return 0
+    intersect = torch.abs(torch.clamp((bx - ax), min=0) * torch.clamp((by - ay), min=0))
 
     # compute the area of both the prediction and ground-truth
-    area_a = abs((box_a[2] - box_a[0]) * (box_a[3] - box_a[1]))
-    area_b = abs((box_b[2] - box_b[0]) * (box_b[3] - box_b[1]))
+    area_a = torch.abs((box_a[2] - box_a[0]) * (box_a[3] - box_a[1]))
+    area_b = torch.abs((box_b[2] - box_b[0]) * (box_b[3] - box_b[1]))
 
     # compute the iou
-    iou = intersect / float(area_a + area_b - intersect)
+    iou = intersect / (area_a + area_b - intersect)
+    iou = torch.reshape(iou, (776, 3))
     return iou
 
 def compute_loss(pred, label, batch_size):
