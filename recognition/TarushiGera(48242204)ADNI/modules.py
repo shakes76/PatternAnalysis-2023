@@ -10,6 +10,7 @@ Swin Transformer Model Architecture for Alzheimer's Disease Classification
 Name: Tarushi Gera
 Student ID: 48242204
 Swin Transformer Architecture adapted from https://arxiv.org/abs/2103.14030
+Use '!pip install timm' and '!pip install torch' to install necessary dependencies
 """
 
 import torch
