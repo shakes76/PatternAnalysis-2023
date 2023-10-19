@@ -97,9 +97,9 @@ After training the TripletClassifier, with the previously seen 80% accurate mode
   * NC Accuracy: 81.6%
 
 #### Batch Example
-This was an example of 40 randomly selected images from the test split with its corresponding classifcations and the tripleClssifer predictions
+This was an example of 40 randomly selected images from the test split with its corresponding classifcations and the tripleClssifer predictions:
 * y_test_batch = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-* y_test_batch = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0]
+* y_predict = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0]
 
 #### Test Data TSNE Embedding
 The embeddings can be graphed when using a dimensionality reduction alorithm. For this example, we are using TSNE to represent the original 128 dimension embedding to a 2 dimensional embedding. Due to the large dimensionality reduction, we are loosing a fair bit of information, thus the data seems to have a large overlap. Although some overlap, the general pattern can be seen where the AD in red stay on the left side while the NC in blue stay on the right side.
