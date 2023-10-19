@@ -188,3 +188,14 @@ class ImprovedUNet(nn.Module):
         out = self.softmax(out)
         
         return out
+    
+class DiceLoss(nn.Module):
+    def __init__(self):
+        super(DiceLoss, self).__init__()
+        
+    def forward(self, pred, mask):
+        union = torch.sum(pred) + torch.sum(mask) 
+        intersect = torch.sum(pred * mask)
+        # calculate dice coefficient, add 1 to avoid dividing by 0
+        dice = (2.0 * intersect + 1.0) / (union + 1.0)
+        return 1 - dice
