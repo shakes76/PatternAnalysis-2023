@@ -1,8 +1,10 @@
 # Source code of the component for the model
 import dataset
+import dgl
 
-x, y, z = dataset.load_data()
+graph = dataset.load_data()
 
-print("Edges info: ", x.shape)
-print("Features info: ", y.shape)
-print("Target info: ", z.shape)
+print("Hello:")
+#print("Training info: ", train_set)
+#print("Validation info: ", val_set)
+#print("Testing info: ", test_set)
