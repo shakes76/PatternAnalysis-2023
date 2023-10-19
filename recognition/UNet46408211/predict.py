@@ -8,6 +8,7 @@ import torch
 from utils import *
 from modules import ImprovedUNet
 from dataset import ISICDataset
+from torch.utils.data import DataLoader
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from global_params import *
