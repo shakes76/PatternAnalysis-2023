@@ -25,19 +25,3 @@ class ISICDataset(Dataset):
             mask = self.transform(mask)
 
         return image, mask
-# Set your paths
-train_image_dir = 'C:\\Users\\25060\\Desktop\\ISIC-2017_Training_Data'
-valid_image_dir = 'C:\\Users\\25060\\Desktop\\ISIC-2017_Validation_Data'
-
-transform = transforms.Compose([
-    transforms.Resize((128, 128)),
-    transforms.ToTensor()
-])
-
-train_dataset = ISICDataset(train_image_dir, transform=transform)
-valid_dataset = ISICDataset(valid_image_dir, transform=transform)
-
-train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
-valid_loader = DataLoader(valid_dataset, batch_size=16, shuffle=False)
-
-
