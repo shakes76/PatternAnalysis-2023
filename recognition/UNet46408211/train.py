@@ -1,33 +1,37 @@
 # This file is the main training script for the UNet model
 
 import torch
-import torch.nn as nn
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-import torchvision.transforms as transforms
 import numpy as np
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from tqdm import tqdm
-from modules import UNet, ImprovedUNet, DiceLossLogits
+from modules import ImprovedUNet
 from dataset import ISICDataset
 import time
 from utils import *
 from global_params import * # Hyperparameters and other global variables
-from dice_loss import DiceLossLogits, BinaryDiceLoss
+from dice_loss import BinaryDiceLoss
 
-#----------------------------------------------------------------------
 # set the device to cuda if available
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# if not torch.cuda.is_available():
-#     print('No GPU detected. Using CPU instead.')
-# print('Using device:', device)
-#----------------------------------------------------------------------
 
 LOAD_MODEL = False
 SAVE_EPOCH_DATA = False#True
 
 def train_epoch(loader, model, optimizer, loss_fn, scaler, losses, train_dice_scores):
+    """Trains the model for one epoch
+
+    Args:
+        loader (DataLoader): The data loader
+        model (nn.Module): The model
+        optimizer (torch.optim): The optimizer
+        loss_fn (nn.Module): The loss function
+        scaler (torch.cuda.amp.GradScaler): The gradient scaler
+        losses (list): The list to store the losses
+        train_dice_scores (list): The list to store the training dice scores
+    """
     loop = tqdm(loader)
     # loop = loader
     for batch_idx, (data, targets) in enumerate(loop):
@@ -76,14 +80,10 @@ def main():
     val_loader = DataLoader(validation_set, batch_size=1, shuffle=False, num_workers=NUM_WORKERS)
     
     # 3 channels in for RGB images, 1 channel out for binary mask
-    # model = UNet(in_channels=3, out_channels=1).to(device)
     model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
-    # loss_fn = nn.BCELoss() # Binary Cross Entropy Loss
-    
-    # loss_fn = nn.BCEWithLogitsLoss() # Binary Cross Entropy Loss with Logits
-    # loss_fn = DiceLossLogits()
     loss_fn = BinaryDiceLoss() # Binary Dice Loss from https://github.com/hubutui/DiceLoss-PyTorch see dice_loss.py
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE) # Adam optimizer
+    # This learning rate scheduler reduces the learning rate by a factor of 0.1 if the mean epoch loss plateaus
     scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, patience=2, verbose=True)
     
     # load model if LOAD_MODEL is True
@@ -92,7 +92,7 @@ def main():
     
     scaler = torch.cuda.amp.GradScaler()
     
-    losses = [] # for plotting
+    losses = [] # all training losses
     dice_scores = [] # for plotting
     train_dice_scores = [] # for plotting
     epoch_losses = [] # average loss for each epoch
@@ -143,9 +143,7 @@ def main():
         'optimizer': optimizer.state_dict()
     }
     save_checkpoint(checkpoint)
-    
-    # epoch_losses = [1 - dice for dice in dice_scores] # dice loss is 1 - dice score
-    
+        
     # Plot the losses
     plt.figure(figsize=(20, 10))
     plt.plot(losses, label='Loss')

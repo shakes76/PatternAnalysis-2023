@@ -15,6 +15,7 @@
 The aim of this project is to automatically produce segmentation masks of skin lesions using a deep convolutional neural network model based on the improved UNet[^1] implemented in PyTorch.
 
 Example visualization:
+
 *Figure 1: example output with ground truth and original image*.
 ![Example output](readme_images/example2.png)
 
@@ -22,10 +23,11 @@ Example visualization:
 The ISIC 2017 data set, available at https://challenge.isic-archive.com/data/#2017 consists of 2000 lesion images in JPEG format with 2000 corresponding binary masks in PNG format for the train set.
 
 ## Data Preprocessing:
-Images where read using PIL and converted to tensors with lesion images in RGB format and masks as greyscale. All images where resized to 128x128 to reduce training time and memory consumption.
+Images where read using PIL and converted to tensors with lesion images in RGB format and masks as greyscale. All images where normalized and resized to 128x128 to reduce training time and memory consumption.
 
 ## Model:
 The Improved UNet uses the architecture shown in the diagram below:
+
 *figure 2: improved UNet model architecture[^1]*
 ![Improved UNet network architecture](readme_images/improved_unet_architecture.PNG)
 Much like the original UNet, the improved UNet architecture consists of an encoder and a decoder, joined by skip connections. The encoder uses stride 2 convolution to reduce the spatial dimensions of the data and extract features and the decoder upscales the input while reducing the number of feature maps to produce the binary segmentation mask. The features extracted from the encoder encode high level information like which parts of the image contain a mole, while the skip connections add spatial information to the layers in the decoder, allowing it to produce a more detailed segmentation mask.
@@ -37,7 +39,8 @@ Context modules are used in the encoder after convolutional layers. Each context
 Localization modules consist of a 3x3 convolution layer followed by a 1x1 convolution layer that halves the number of feature maps. Localization modules are used with upsampling modules in the decoder to increase the spatial resolution of the information in the feature maps.
 
 ## Training:
-The model was initially trained for 30 epochs but showed evidence of continued improvement, so the model was loaded and fine tunned for an additional 40 epochs, making a total of 70 epochs. The dice similarity coefficient[^2] was used as the main evaluation metric with a goal of archiving a dice score greater then 0.8. The loss function used is based on the dice similarity coefficient, will loss equalling 1 - dice score, credit for this loss function goes to GitHub user hubutui[^3].
+The model was initially trained for 30 epochs but showed evidence of continued improvement, so the model was loaded and fine tuned for an additional 40 epochs, making a total of 70 epochs. The dice similarity coefficient[^2] was used as the main evaluation metric with a goal of achieving a dice score greater then 0.8. The loss function used is based on the dice similarity coefficient, with loss equalling 1 - dice score, credit for this loss function goes to GitHub user hubutui[^3]. The Adim optimizer was used with an initial learning rate of 1e-4, the reduce learning rate on plateau (ReduceLROnPlateau) learning rate scheduler was used with patience=2, meaning if the average training loss did not decrease over 2 epochs, the learning rate would be reduced by a factor of 10.
+See training metrics below:
 
 *figure 3: average training losses per epoch (first 30 epochs)*
 ![average training losses per epoch, first 30 epochs](readme_images/epoch_losses_t2.png)
@@ -50,6 +53,7 @@ The model was initially trained for 30 epochs but showed evidence of continued i
 ![validation dice score per epoch (last 40 epochs)](readme_images/dice_scores_t3.png)
 
 It can be seen from figure 6 that only about 5 more epochs where needed for the model to reach its peak performance. The final dice similarity coefficient on the test set was 0.8258.
+
 ![final test dice score](readme_images/dice_score.PNG)
 
 

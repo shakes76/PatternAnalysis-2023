@@ -2,32 +2,19 @@
 # and calculates the dice score on the test set.
 
 from dataset import ISICDataset
-import matplotlib.pyplot as plt
-import numpy as np
 import torch
-import os
-import time
 from utils import *
-from modules import UNet, ImprovedUNet, DiceLossLogits
+from modules import ImprovedUNet
 from dataset import ISICDataset
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 from global_params import *
 
-#----------------------------------------------------------------------
 # set the device to cuda if available
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-# if not torch.cuda.is_available():
-#     print('No GPU detected. Using CPU instead.')
-# print('Using device:', device)
-#----------------------------------------------------------------------
 
-
-# IMAGE_HEIGHT = 512
-# IMAGE_WIDTH = 512
 BATCH_SIZE = 1 # We want to test one image at a time
 NUM_WORKERS = 1
-# CHECKPOINT_DIR = 'old/epoch_data1/epoch_19/checkpoints/checkpoint.pth.tar'
 CHECKPOINT_DIR = 'checkpoints/checkpoint.pth.tar'
 
 def main():
@@ -46,13 +33,10 @@ def main():
     # calculate the dice score on the test set
     dice_score = calc_dice_score(model, test_loader, device=device, verbose=True)
     print(f'Test Dice Score: {dice_score:.4f}')
-
-    # print('>>> Generating and saving predictions')
-    # folder = 'old/epoch_data1/epoch_18/images/'
     
     save_predictions_as_imgs(test_loader, model, num=30, folder='saved_images/', device=device)
 
-    plot_samples(3, title='Predictions', include_image=True)
+    plot_samples(6, title='Predictions', include_image=True)
 
 if __name__ == '__main__':
     main()

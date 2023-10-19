@@ -3,19 +3,19 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-import torchvision.transforms as transforms
-import torchvision.transforms.functional as TF
 import numpy as np
 
 
 class ContextModule(nn.Module):
     """
     This is the context module from the improved UNet architecture.
-    See https://arxiv.org/pdf/1802.10508v1.pdf for network architecture.
+    "Each context module is in fact a pre-activation residual block with two
+    3x3 convolutional layers and a dropout layer (pdrop = 0.3) in between."
     """
-#     # Each context module is in fact a pre-activation residual block with two
-#     # 3x3 convolutional layers and a dropout layer (pdrop = 0.3) in between.
     def __init__(self, in_channels, out_channels):
+        """
+        Initialize the ContextModule.
+        """
         super(ContextModule, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
         self.norm1 = nn.InstanceNorm2d(out_channels)
@@ -26,6 +26,9 @@ class ContextModule(nn.Module):
         self.relu2 = nn.LeakyReLU(negative_slope=1e-2)
         
     def forward(self, x):
+        """
+        Forward pass of the ContextModule.
+        """
         out = self.conv1(x)
         out = self.norm1(out)
         out = self.relu1(out)
@@ -41,21 +44,20 @@ class LocalisationModule(nn.Module):
     This is the localization module from the improved UNet architecture.
     A localization module consists of a 3x3 convolution followed by a 1x1 convolution that 
     halves the number of feature maps.
-    See https://arxiv.org/pdf/1802.10508v1.pdf for network architecture.
     """
-    # This is first upsampling the low resolution feature maps, which is done by
-    # means of a simple upscale that repeats the feature pixels twice in each spatial
-    # dimension, followed by a 3x3 convolution that halves the number of feature
-    # maps
-    
     def __init__(self, in_channels, out_channels):
+        """
+        Initialize the LocalisationModule.
+        """
         super(LocalisationModule, self).__init__()
         # self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
         self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1)
         self.conv2 = nn.Conv2d(in_channels, out_channels, kernel_size=1)
     
     def forward(self, x):
-        # out = self.upsample(x)
+        """
+        Forward pass of the LocalisationModule.
+        """
         out = self.conv1(x)
         out = self.conv2(out)
         return out
@@ -63,12 +65,9 @@ class LocalisationModule(nn.Module):
 
 class UpsamplingModule(nn.Module):
     """
-    This is achieved by first upsampling the low resolution feature maps, which is done by 
-    means of a simple upscale that repeats the feature pixels twice in each spatial dimension, 
-    followed by a 3x3 convolution that halves the number of feature maps.
-    See https://arxiv.org/pdf/1802.10508v1.pdf for network architecture.
+    An upsampling module consists of an upsampling layer that repeats the feature pixels 
+    twice in each spatial dimension followed by a 3x3 convolution.
     """
-    
     def __init__(self, in_channels, out_channels):
         """
         Initialize the UpsamplingModule.
@@ -80,15 +79,31 @@ class UpsamplingModule(nn.Module):
         )
         
     def forward(self, x):
+        """
+        Forward pass of the UpsamplingModule.
+        """
         out = self.layers(x)
         return out
 
 
 class ImprovedUNet(nn.Module):
     """
+    This is the improved UNet model, it consists of the context aggregation pathway (encoder)
+    and the localization pathway (decoder). The model is designed to outpreform the original
+    UNet for medical image segmentation tasks.
     See https://arxiv.org/pdf/1802.10508v1.pdf for network architecture.
     """
     def __init__(self, in_channels=3, out_channels=1, features=[16,32,64,128,256]):
+        """
+        Initialize the ImprovedUNet model by creating all necessary layers.
+
+        Args:
+            in_channels (int, optional): Number of input channels. Defaults to 3 for RGB color images.
+            out_channels (int, optional): Number of output channels. Defaults to 1 a for greyscale binary 
+            segmentation mask.
+            features (list, optional): The numbers of feature maps to extract (must be length 5 and each 
+            entry must be double the previous entry). Defaults to [16,32,64,128,256].
+        """
         super(ImprovedUNet, self).__init__()
         self.encoder_block1 = nn.Sequential(
             nn.Conv2d(in_channels, features[0], kernel_size=3, stride=1, padding=1),
@@ -142,6 +157,14 @@ class ImprovedUNet(nn.Module):
         
     
     def forward(self, x):
+        """Forward pass of the ImprovedUNet model to generate a binary segmentation mask.
+
+        Args:
+            x (torch.Tensor): An input image in tensor form.
+
+        Returns:
+            torch.Tensor: Binary segmentation mask in tensor form
+        """
         skip_connections = []
         
         x = self.encoder_block1(x) # 3 channels in, 16 channels out
@@ -188,20 +211,4 @@ class ImprovedUNet(nn.Module):
         # element wise addition of the segmentation connections
         x += seg_connection2
         
-        # return F.softmax(x, dim=1) # final softmax activation function
-        # return F.sigmoid(x) # final sigmoid activation function
         return x # no final activation function
-        
-
-
-
-def test():
-    x = torch.randn((3, 1, 256, 256))
-    model = ImprovedUNet(in_channels=1, out_channels=1)
-    preds = model(x)
-    print('preds shape =',preds.shape)
-    print('x shape =',x.shape)
-    assert preds.shape == x.shape
-
-if __name__ == '__main__':
-    test()

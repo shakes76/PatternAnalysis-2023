@@ -14,45 +14,44 @@ import time
 from tqdm import tqdm
 
 def save_checkpoint(state, filename='checkpoints/checkpoint.pth.tar'):
+    """
+    Saves the model and optimizer state dicts to a checkpoint file
+    """
     print('>>> Saving checkpoint')
     # os.makedirs('checkpoints', exist_ok=True)
     torch.save(state, filename)
     print('>>> Checkpoint saved')
 
 def load_checkpoint(checkpoint, model, optimizer=None):
+    """
+    Loads the model and optimizer state dicts from a checkpoint file
+    """
     print('>>> Loading checkpoint')
     model.load_state_dict(checkpoint['state_dict'])
     if optimizer is not None:
         optimizer.load_state_dict(checkpoint['optimizer'])
     print('>>> Checkpoint loaded')
 
-def create_dataloader(img_dir, mask_dir, transform, 
-                      batch_size, num_workers, 
-                      pin_memory, shuffle=True):
+# def create_dataloader(img_dir, mask_dir, transform, 
+#                       batch_size, num_workers, 
+#                       pin_memory, shuffle=True):
+#     """
     
-    dataset = ISICDataset(img_dir, mask_dir, transform=transform)
-    loader = DataLoader(dataset, batch_size=batch_size, 
-                        num_workers=num_workers, 
-                        pin_memory=pin_memory, shuffle=shuffle)
-    return loader
-
-def dice_score(preds, targets, smooth=1e-4):
-    """
-    Dice score is the F1 score for binary classification problems.
-    """
-    preds = torch.sigmoid(preds)
-    intersection = (preds * targets).sum()
-    union = preds.sum() + targets.sum()
-    dice = (2 * intersection) / (union + smooth)
-    return dice
+#     """
+#     dataset = ISICDataset(img_dir, mask_dir, transform=transform)
+#     loader = DataLoader(dataset, batch_size=batch_size, 
+#                         num_workers=num_workers, 
+#                         pin_memory=pin_memory, shuffle=shuffle)
+#     return loader
 
 def calc_dice_score(model, dataloader, device='cuda', verbose=False):
-    
+    """
+    Calculates the average dice score over the entire dataloader
+    """
     model.eval()
     print('>>> Calculating Dice Score')
     with torch.no_grad():
         dice_score = 0
-        loop = tqdm(dataloader) if verbose else dataloader
         for _, (x, y) in enumerate(dataloader):
             x = x.to(device)
             y = y.to(device)
@@ -214,11 +213,3 @@ def print_progress(start_time, epoch, num_epochs):
     print(f"""Epoch [{epoch+1}/{num_epochs}] completed. Time elapsed: {elapsed_time}. 
           seconds. Time remaining: {days:.0f} days, {hours:.0f} hours, 
           {minutes:.0f} minutes.""")
-
-
-# # test plot_samples and ISICDataset
-# TRAIN_IMG_DIR = 'data/ISIC_2017/Training/ISIC-2017_Training_Data'
-# TRAIN_MASK_DIR = 'data/ISIC_2017/Training/ISIC-2017_Training_Part1_GroundTruth'
-
-# isic_data = ISICDataset(TRAIN_IMG_DIR, TRAIN_MASK_DIR)
-# plot_samples_mask_overlay(isic_data)
