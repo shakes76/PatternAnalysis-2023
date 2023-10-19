@@ -174,7 +174,7 @@ class UNet(nn.Module):
         x = self.second_local(concat_skip)
         segment1 = self.segment_layer1(x)
         segment1 = self.segment_upscale(segment1)
-        segment2 = TF.resize(segment2, size=torch.Size([224, 224])) 
+        segment1 = TF.resize(segment1, size=torch.Size([224, 224])) 
         x = self.thrid_up(x)
         
 
