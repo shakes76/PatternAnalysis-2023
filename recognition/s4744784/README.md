@@ -7,7 +7,7 @@ Written by Harrison Tolley (47447842)
 In this project, we have implemented a super-resolution convolutional neural network (SRCNN) to upscale the resolution of images. This has been done with the MRI ADNI brain scan dataset.
 
 Example images of the dataset can be seen below (before downscaling):
-![Unprocessed Images](./s4744784/figures/unprocessed_images.png)
+![Unprocessed Images](./figures/unprocessed_images.png)
 
 ## What we've done
 
