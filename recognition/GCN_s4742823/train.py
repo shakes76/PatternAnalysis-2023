@@ -37,6 +37,7 @@ def train_model(model, data):
     for epoch in range(NUM_EPOCHS):
         model.train()
         epoch_loss = 0
+        epoch_acc = 0
 
         out = model(data)  # Pass the whole graph in.
         loss = criterion(out[data.train_mask].to(device), data.y[data.train_mask].to(device))  # Only calculate loss with train nodes.
@@ -47,6 +48,7 @@ def train_model(model, data):
         loss.backward()
         optimizer.step()
         epoch_loss += loss.item()
+        epoch_acc += accuracy.item()
         optimizer.zero_grad()
         train_losses.append(loss.item())
         train_accuracies.append(accuracy.item())
@@ -67,10 +69,13 @@ def train_model(model, data):
         val_accuracies.append(accuracy.item())
 
         if (epoch % 25 == 0):
-            print(f"Epoch {epoch + 1}/{NUM_EPOCHS}, Loss: {epoch_loss:.4f}")
+            print(f"Epoch {epoch + 1}/{NUM_EPOCHS}, Loss: {epoch_loss:.4f}, Acc: {epoch_acc:.4f}")
 
     if (best_model_state is not None):
         model.load_state_dict(best_model_state)
+
+    plot_accuracy(train_accuracies, val_accuracies)
+    plot_loss(train_losses, val_losses)
 
     # Save the model
     torch.save(model, "Facebook_GCN.pth") 
@@ -92,7 +97,7 @@ def test_model(model, data):
 
 def plot_tsne(output, y_true, data):
     # Plotting t-SNE
-    tsne = TSNE(n_components=2, perplexity=50)  # It was found that divergence did not converge before 50 perplexity
+    tsne = TSNE(n_components=2, perplexity=30)
     transformed = tsne.fit_transform(output)
 
     plt.figure(figsize=(10, 8))

@@ -8,7 +8,10 @@ if __name__ == "__main__":
     data = load_data(test_size=TEST_SIZE, val_size=VAL_SIZE)
     data = data.to(device)
 
-    model = torch.load("Facebook_GCN.pth")
-    model = model.to(device)
-
-    test_model(model, data)
+    try:
+        model = torch.load("Facebook_GCN.pth")
+        model = model.to(device)
+    except FileNotFoundError:
+        print(f"Model file Facebook_GCN.pth not found.")
+    else:
+        test_model(model, data)
