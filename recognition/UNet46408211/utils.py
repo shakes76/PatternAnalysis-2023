@@ -1,3 +1,5 @@
+# Some helper functions for visualization, saving/loading checkpoints and calculating the dice score.
+
 import numpy as np
 import torch.nn as nn
 from PIL import Image
@@ -34,15 +36,15 @@ def create_dataloader(img_dir, mask_dir, transform,
                         pin_memory=pin_memory, shuffle=shuffle)
     return loader
 
-def dice_score(preds, targets, smooth=1e-6):
+def dice_score(preds, targets, smooth=1e-4):
     """
     Dice score is the F1 score for binary classification problems.
     """
-    preds = preds.float()
-    targets = targets.float()
-    intersection = 2 * (preds * targets).sum()
+    preds = torch.sigmoid(preds)
+    intersection = (preds * targets).sum()
     union = preds.sum() + targets.sum()
-    return (intersection + smooth) / (union + smooth)
+    dice = (2 * intersection) / (union + smooth)
+    return dice
 
 def calc_dice_score(model, dataloader, device='cuda', verbose=False):
     
@@ -83,7 +85,7 @@ def save_predictions_as_imgs(loader, model, num, folder='saved_images/', device=
             x = x.to(device)
             y = y.to(device) # add 1 channel to mask
             preds = torch.sigmoid(model(x))
-            preds = (preds > 0.5).float()
+            preds = (preds > 0.6).float()
             torchvision.utils.save_image(preds, f'{preds_path}pred_{idx+1}.png')
             torchvision.utils.save_image(y.unsqueeze(1), f'{masks_path}mask_{idx+1}.png')
             torchvision.utils.save_image(x, f'{orig_path}orig_{idx+1}.png')
@@ -148,23 +150,36 @@ def plot_samples(num, folder='saved_images', include_image=True, shuffle=True, t
     else:
         indices = range(num)
     
-    fig, axs = plt.subplots(num, 3, figsize=(20, 10*num))
-    for i, ind in enumerate(indices):
-        pred = Image.open(preds_path + preds[ind])
-        mask = Image.open(masks_path + masks[ind])
-        orig = Image.open(orig_path + origs[ind])
-        if include_image:
+    if include_image:
+        fig, axs = plt.subplots(num, 3, figsize=(20, 10*num))
+        for i, ind in enumerate(indices):
+            pred = Image.open(preds_path + preds[ind])
+            mask = Image.open(masks_path + masks[ind])
+            orig = Image.open(orig_path + origs[ind])
             axs[i, 0].imshow(orig)
             axs[i, 0].set_title('Original Image')
             axs[i, 0].axis('off')
-        axs[i, 1].imshow(mask)
-        axs[i, 1].set_title('Mask')
-        axs[i, 1].axis('off')
-        axs[i, 2].imshow(pred)
-        axs[i, 2].set_title('Prediction')
-        axs[i, 2].axis('off')
-    fig.suptitle(title)
-    plt.show()
+            axs[i, 1].imshow(mask)
+            axs[i, 1].set_title('Mask')
+            axs[i, 1].axis('off')
+            axs[i, 2].imshow(pred)
+            axs[i, 2].set_title('Prediction')
+            axs[i, 2].axis('off')
+        fig.suptitle(title)
+        plt.show()
+    else:
+        fig, axs = plt.subplots(num, 2, figsize=(20, 10*num))
+        for i, ind in enumerate(indices):
+            pred = Image.open(preds_path + preds[ind])
+            mask = Image.open(masks_path + masks[ind])
+            axs[i, 0].imshow(mask)
+            axs[i, 0].set_title('Mask')
+            axs[i, 0].axis('off')
+            axs[i, 1].imshow(pred)
+            axs[i, 1].set_title('Prediction')
+            axs[i, 1].axis('off')
+        fig.suptitle(title)
+        plt.show()
 
 def plot_samples_mask_overlay(dataset, n=12):
     """

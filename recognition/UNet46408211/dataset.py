@@ -1,14 +1,12 @@
+# A custom data set class for the ISIC 2017 data set. This class is used in the train.py and predict.py files.
+
 import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 import torchvision.transforms as transforms
-import torchvision
-import torch
-import time
 import os
 import PIL.Image as Image
-import PIL
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 

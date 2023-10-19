@@ -1,3 +1,6 @@
+# Loads the model and runs it on the test set. Saves the predictions to a folder for visualization.
+# and calculates the dice score on the test set.
+
 from dataset import ISICDataset
 import matplotlib.pyplot as plt
 import numpy as np
@@ -5,10 +8,11 @@ import torch
 import os
 import time
 from utils import *
-from modules import UNet
+from modules import UNet, ImprovedUNet, DiceLossLogits
 from dataset import ISICDataset
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
+from global_params import *
 
 #----------------------------------------------------------------------
 # set the device to cuda if available
@@ -18,21 +22,16 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 # print('Using device:', device)
 #----------------------------------------------------------------------
 
-# Test data
-TEST_IMG_DIR = 'data/ISIC_2017/Testing/ISIC-2017_Test_v2_Data'
-TEST_MASK_DIR = 'data/ISIC_2017/Testing/ISIC-2017_Test_v2_Part1_GroundTruth'
-# Validation data
-VAL_IMG_DIR = 'data/ISIC_2017/Validation/ISIC-2017_Validation_Data'
-VAL_MASK_DIR = 'data/ISIC_2017/Validation/ISIC-2017_Validation_Part1_GroundTruth'
-# Hyperparameters
-IMAGE_HEIGHT = 512
-IMAGE_WIDTH = 512
+
+# IMAGE_HEIGHT = 512
+# IMAGE_WIDTH = 512
 BATCH_SIZE = 1 # We want to test one image at a time
 NUM_WORKERS = 1
-CHECKPOINT_DIR = 'old/epoch_data1/epoch_19/checkpoints/checkpoint.pth.tar'
+# CHECKPOINT_DIR = 'old/epoch_data1/epoch_19/checkpoints/checkpoint.pth.tar'
+CHECKPOINT_DIR = 'checkpoints/checkpoint.pth.tar'
 
 def main():
-    model = UNet(in_channels=3, out_channels=1).to(device)
+    model = ImprovedUNet(in_channels=3, out_channels=1).to(device=device)
     load_checkpoint(torch.load(CHECKPOINT_DIR), model)
 
     # Defining the test loader
@@ -43,10 +42,6 @@ def main():
         ])
     test_set = ISICDataset(TEST_IMG_DIR, TEST_MASK_DIR, transform=test_transform)
     test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
-    
-    # Defining the validation loader
-    val_set = ISICDataset(VAL_IMG_DIR, VAL_MASK_DIR, transform=test_transform)
-    val_loader = DataLoader(val_set, batch_size=BATCH_SIZE, shuffle=False, num_workers=NUM_WORKERS)
 
     # calculate the dice score on the test set
     dice_score = calc_dice_score(model, test_loader, device=device, verbose=True)
@@ -54,11 +49,10 @@ def main():
 
     # print('>>> Generating and saving predictions')
     # folder = 'old/epoch_data1/epoch_18/images/'
-    save_predictions_as_imgs(test_loader, model, num=6, folder='saved_images/', device=device)
+    
+    save_predictions_as_imgs(test_loader, model, num=30, folder='saved_images/', device=device)
 
-    # print('>>> Predictions saved')
-    plot_samples(6, title='Epoch 18')
-    # plot_prediction()
+    plot_samples(3, title='Predictions', include_image=True)
 
 if __name__ == '__main__':
     main()
