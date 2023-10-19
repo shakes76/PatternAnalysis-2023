@@ -53,15 +53,5 @@ class VisionModel(nn.Module):
 
         return self.mlp_head(aggregated)
 
-# Define model hyperparameters
-num_classes = 10
-image_size = (150, 150)
-patch_size = 16
-num_patches = (image_size[0] // patch_size) * (image_size[1] // patch_size)
-dim = 64
-depth = 12
-num_heads = 8
-mlp_dim = 256
 
-# Create an instance of the PyTorch model
-model = VisionModel(num_classes, image_size, patch_size, num_patches, dim, depth, num_heads, mlp_dim)
+
