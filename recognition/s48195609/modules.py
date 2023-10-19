@@ -60,3 +60,15 @@ class EmbedPatch(nn.Module):
         positions = torch.arange(self.num_patches, device=patches.device).unsqueeze(0)
         position_embedding = self.position_embedding
         return patches + position_embedding
+
+class MultiHeadAttentionLSA(nn.MultiheadAttention):
+    """
+    Multi Head Attention layer for the transformer encoder block, but with the addition of using Local Self Attention to improve finer-level feature learning.
+    """
+    def __init__(self, embed_dim, num_heads, **kwargs):
+        super(MultiHeadAttentionLSA, self).__init__(embed_dim, num_heads, **kwargs)
+        self.tau = nn.Parameter(math.sqrt(float(embed_dim), requires_grad=True))
+
+    def forward(self, query, key, value, attn_mask=None, bias_k=None, bias_v=None):
+        query = query / self.tau
+        return super(MultiHeadAttentionLSA, self).forward(query, key, value, attn_mask, bias_k, bias_v)
