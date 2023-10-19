@@ -49,8 +49,7 @@ X_train_pairs, ys_train = create_pairs(X_train, y_train)
 X_test_pairs, ys_test = create_pairs(X_test, y_test)
 
 # Specify checkpoint paths
-checkpoint_path = "cp.ckpt"
-checkpoint_dir = os.path.dirname(checkpoint_path)
+checkpoint_path = "./Checkpoint/cp.ckpt"
 
 # Create a callback that saves the model's weights
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
