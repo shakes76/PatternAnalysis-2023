@@ -152,12 +152,11 @@ We trained the model using 100 epochs, with a batch size of 8, and a learning ra
 
 As it can be seen in the figures below, the loss function decreased rapidly initially, eventually plateauing as the epochs progressed. We can see this in the following graphs:
 
-![Training and Validation Loss Graph](./s4744784/figures/losses.png)
+![Training and Validation Loss Graph](./figures/losses.png)
 
 As it can be seen, the validation loss and accuracy did not change much after approximately ~30-40 epochs. This is consistent with other implementations of SRCNN such as [Long (2020)](https://keras.io/examples/vision/super_resolution_sub_pixel/#introduction). While our validation loss is consistently lower than training loss, there could be a few reasons for this. By utilising dropout and batch normalisation, some neurons will deactive during training, making the networks task harder. This was experimented with and it lead to a lower overall loss, so was implemented for final version. Batch normalisation uses statistics during training to normalise the data, which is not used during validation. This could lead to a lower validation loss as the data is normalised. Note that differences between loss was not significant (approximately 0.0024 for training loss after 30 epochs whereas validation loss was approximately 0.0020 after 30 epochs). This was not investigated futher.
 
-![PSNR Graph](./s4744784/figures/psnrs.png)
-<img src="https://github.com/Porcupinee/PatternAnalysis-2023/blob/30cae9a05c03b4fb9ddf53d040cae79380216c17/recognition/s4744784/figures/psnrs.png" width="50%" alt="img8 psnr graph>
+![PSNR Graph](./figures/psnrs.png)
 
 We have measured the peak signal-to-noise ratio ([PSNR](https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio)) of the images to gauge the effectiveness of the model. The PSNR is a metric that measures the differences between two images. A higher PSNR value indicates that the quality of the reconstructed image is better, whereas a lower value suggests theres a larger difference - indicating lower quality. The PSNR is calculated within our training loop as follows:
 
@@ -175,7 +174,7 @@ As our validation PSNR is higher than our training PSNR, it aligns with our earl
 # Raw Results
 
 The results can be seen in the following figure. The top row is the original images, the middle row is the downsampled images, and the bottom row is the reconstructed images (sampled from using the model above).
-![Raw Results](./s4744784/figures/results.jpg)
+![Raw Results](./figures/results.jpg)
 
 ## References
 
