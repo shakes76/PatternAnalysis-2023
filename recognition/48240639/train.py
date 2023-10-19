@@ -10,6 +10,7 @@ It includes training and validation loops, model saving, and TensorBoard logging
 @ID: s4824063
 
 """
+#Import necessary libraries 
 from modules import SiameseNN
 from dataset import get_training
 import os
@@ -18,12 +19,12 @@ import torch
 from torch.utils.data import DataLoader, Subset
 import torch.optim as optim
 from torch import nn
-
-def train(model, dataloader, device, optimizer, epoch):
+# Define the training function
+def training(model, dataloader, device, optimizer, epoch):
     model.train()
-    criterion = nn.BCELoss()
-    correct = 0
     total_samples = 0
+    correct = 0
+    criterion = nn.BCELoss()
 
     for batch_idx, (images_1, images_2, targets) in enumerate(dataloader):
         images_1, images_2, targets = images_1.to(device), images_2.to(device), targets.to(device)
@@ -46,14 +47,13 @@ def train(model, dataloader, device, optimizer, epoch):
 
             writer.add_scalar('Training Loss', loss.item(), epoch * len(dataloader) + batch_idx)
             writer.add_scalar('Training Accuracy', accuracy, epoch * len(dataloader) + batch_idx)
-
-def validate(model, dataloader, device):
-    print("Starting Validation.")
+# Define the validation function
+def check(model, dataloader, device):
+    print("Starting Checks.")
     model.eval()
-    test_loss = 0
-    correct = 0
     criterion = nn.BCELoss()
-
+    correct = 0
+    test_loss = 0
     with torch.no_grad():
         for (images_1, images_2, targets) in dataloader:
             images_1, images_2, targets = images_1.to(device), images_2.to(device), targets.to(device)
@@ -64,9 +64,41 @@ def validate(model, dataloader, device):
 
     test_loss /= len(dataloader.dataset)
 
-    print('\nVal set: Average loss: {:.4f}, Validation Accuracy: {}/{} ({:.0f}%)\n'.format(
+    print('\nVal set: Centralized  loss: {:.4f}, Validate Accuracy: {}/{} ({:.0f}%)\n'.format(
         test_loss, correct, len(dataloader.dataset),
         100. * correct / len(dataloader.dataset)))
 
-    print("Finished Validation.")
+    print("Finished Checked.")
 
+if __name__ == '__main__':
+    writer = SummaryWriter('logs/siam_net_exp')
+    epochs = 50
+    batch_size = 2816
+    learning_rate = 0.001
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
+
+    model = SiameseNN().to(device)
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+    print("Loading data...")
+    train_data = get_training('/Users/aniketgupta/Desktop/Pattern Recognition/PatternAnalysis-2023/recognition/48240639/AD_NC')
+    train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size)
+    print("Data loaded.")
+
+    save_directory = "/Users/aniketgupta/Desktop/Pattern Recognition/PatternAnalysis-2023/results"
+    save_filename = f"siam_net_{epochs}epochs.pt"
+
+    print("Training Started.")
+    for epoch in range(1, epochs + 1):
+        training(model, train_dataloader, device, optimizer, epoch)
+    print("Finished training.")
+
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+
+    save_path = os.path.join(save_directory, save_filename)
+    torch.save(model.state_dict(), save_path)
+
+    writer.close()
