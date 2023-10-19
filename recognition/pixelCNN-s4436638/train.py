@@ -17,7 +17,7 @@ device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
 # Define the path to the dataset
-images_path = args.data_path + "/*"
+images_path = args.data_path + "/"
 
 ### Define a few training parameters
 batch_size = 10

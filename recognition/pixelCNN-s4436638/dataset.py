@@ -7,17 +7,23 @@ import glob
 class GetADNITrain(Dataset):
     def __init__(self, path, train_split=0.9, train=True):
         
+        image_list = []
+
         # Get the list of images and sort them
         # glob.glob gives a list of files in a folder
         # sorted sorts this in alphabetical/numerical order
-        image_list = sorted(glob.glob(path)) # [21520, path_string]
+        image_list_AD = sorted(glob.glob(path + "AD/*"))
+        image_list_NC = sorted(glob.glob(path + "NC/*"))
 
         # Shrink to the desired train_split and if in validation or train
-        temp_arr_len = int(len(image_list)) # 21520
+        temp_arr_len_AD = int(len(image_list_AD))
+        temp_arr_len_NC = int(len(image_list_NC))
         if train: # We want to use 90% of train images for train
-            image_list = image_list[:int(temp_arr_len * train_split)]
+            image_list += image_list_AD[:int(temp_arr_len_AD * train_split)]
+            image_list += image_list_NC[:int(temp_arr_len_NC * train_split)]
         else: # We want to use 10% of train images for validation
-            image_list = image_list[int(temp_arr_len * train_split):]
+            image_list += image_list_AD[int(temp_arr_len_AD * train_split):]
+            image_list += image_list_NC[int(temp_arr_len_NC * train_split):]
 
         # Get the array length
         self.arrLen = len(image_list)
@@ -38,9 +44,14 @@ class GetADNITrain(Dataset):
 
 class GetADNITest(Dataset):
     def __init__(self, path):
-        
+
         # Get the list of images and sort them
-        self.image_list = sorted(glob.glob(path))
+        # glob.glob gives a list of files in a folder
+        # sorted sorts this in alphabetical/numerical order
+        image_list_AD = sorted(glob.glob(path + "AD/*"))
+        image_list_NC = sorted(glob.glob(path + "NC/*"))
+        # Get the list of images and sort them
+        self.image_list = image_list_AD + image_list_NC
 
         # Get the array length
         self.arrLen = len(self.image_list)
