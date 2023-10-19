@@ -11,7 +11,9 @@ A YOLO model can be trained on a custom dataset to be suitable for a wide range 
 ## Training
 (Use the yaml file to see how it trains)
 For this model, an 80/10/10 split for training, validating and testing data repectively was chosen.
-Justify training, validation, and testing splits
+- generally want 10-20 for val and test, data is not complex, only 1 class, so 10/10 is sufficient for generalization.
+- yet the dataset is large enough that 80% still leaves 2076 images. Medium says that 150-500 images per class is enough for YOLO so this is enough
+- 225 layers, 3011043 parameters, AdamW optimiser, lr 0.002, momentum 0,9
 
 ## Results
 
