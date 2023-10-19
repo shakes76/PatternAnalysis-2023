@@ -92,7 +92,7 @@ def train_step(image, label): # Added label as an input, even if you might not u
 
     # Move data to device
     image = image.to(device)
-    label = label.to(device) # If you use the label in the model
+    label = label.to(device)
 
     # Forward pass
     model_output = model(image)

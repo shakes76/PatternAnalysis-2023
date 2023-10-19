@@ -132,42 +132,46 @@ class Decoder(nn.Module):
     
 
 class VectorQuantizer(nn.Module):
-    def __init__(self, embedding_dim, num_embeddings, commitment_cost, dtype=torch.float32):
+    def __init__(self, embedding_dim, num_embeddings, commitment_cost):
         super(VectorQuantizer, self).__init__()
+
         self.embedding_dim = embedding_dim
         self.num_embeddings = num_embeddings
         self.commitment_cost = commitment_cost
 
-        embedding_shape = (embedding_dim, num_embeddings)
-        initializer = nn.init.uniform_
-        self.embeddings = nn.Parameter(initializer(torch.empty(embedding_shape, dtype=dtype)))
+        # Initialize the embedding space
+        self.embeddings = nn.Embedding(self.num_embeddings, self.embedding_dim)
+        self.embeddings.weight.data.uniform_(-1/self.num_embeddings, 1/self.num_embeddings)
 
     def forward(self, inputs):
-        flat_inputs = inputs.contiguous().view(-1, self.embedding_dim)
+        # Flatten input
+        flat_input = inputs.reshape(-1, self.embedding_dim)
 
+        # Calculate distances
         distances = (
-            torch.sum(flat_inputs**2, dim=1, keepdim=True) -
-            2 * torch.matmul(flat_inputs, self.embeddings) +
-            torch.sum(self.embeddings**2, dim=0, keepdim=True)
+            torch.sum(flat_input**2, dim=1, keepdim=True) 
+            - 2 * torch.matmul(flat_input, self.embeddings.weight.t()) 
+            + torch.sum(self.embeddings.weight**2, dim=1)
         )
 
-        encoding_indices = torch.argmax(-distances, dim=1)
-        encoding_indices = encoding_indices.view(*inputs.shape[:-1])
-        encodings = F.one_hot(encoding_indices, num_classes=self.num_embeddings).to(distances.dtype)
+        # Encoding
+        encoding_indices = torch.argmin(distances, dim=1).unsqueeze(1)
+        encodings = torch.zeros(encoding_indices.shape[0], self.num_embeddings).to(inputs.device)
+        encodings.scatter_(1, encoding_indices, 1)
 
-        # Reshape encoding_indices to match the shape of inputs
-        encoding_indices = encoding_indices.view(inputs.shape[:-1] + (-1,))
+        # Quantize
+        quantized = self.embeddings(encoding_indices).squeeze(1)
+        quantized = quantized.view(inputs.shape)
 
-        quantized = self.quantize(encoding_indices)
-
-        # print("quantized from self.quantized:", quantized.shape)
-
-        e_latent_loss = torch.mean((quantized.detach() - inputs)**2)
-        q_latent_loss = torch.mean((quantized - inputs.detach())**2)
+        # Loss
+        e_latent_loss = F.mse_loss(quantized.detach(), inputs)
+        q_latent_loss = F.mse_loss(quantized, inputs.detach())
         loss = q_latent_loss + self.commitment_cost * e_latent_loss
 
+        # Use the Straight Through Estimator for the gradients in the backward pass
         quantized = inputs + (quantized - inputs).detach()
-        quantized = quantized.view(*inputs.shape)
+
+        # Perplexity
         avg_probs = torch.mean(encodings, dim=0)
         perplexity = torch.exp(-torch.sum(avg_probs * torch.log(avg_probs + 1e-10)))
 
@@ -179,12 +183,6 @@ class VectorQuantizer(nn.Module):
             'encoding_indices': encoding_indices,
             'distances': distances,
         }
-
-    def quantize(self, encoding_indices):
-        quantized = self.embeddings.t()[encoding_indices].contiguous()
-        quantized = quantized.squeeze(3)
-        # print("quantized after squeeze", quantized.shape)
-        return quantized
 
 
 class VQVAEModel(nn.Module):
