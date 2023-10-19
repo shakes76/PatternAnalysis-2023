@@ -8,9 +8,9 @@ class ISICDataset(Dataset):
     Custom dataset for loading ISIC skin lesion images and their corresponding masks.
 
     Args:
-        image_dir (str): Path to the directory with image files.
-        mask_dir (str): Path to the directory with mask files.
-        transform (callable, optional): Optional transform to be applied on both image and mask. Defaults to None.
+        - image_dir (str): Path to the directory with image files.
+        - mask_dir (str): Path to the directory with mask files.
+        - transform (callable, optional): Optional transform to be applied on both image and mask. Defaults to None.
     """
     def __init__(self, image_dir, mask_dir, transform=None):
         self.image_dir = image_dir
@@ -28,10 +28,10 @@ class ISICDataset(Dataset):
         Fetches the image and mask at the specified index.
         
         Args:
-            idx (int): Index of the item to retrieve.
+            - idx (int): Index of the item to retrieve.
 
         Returns:
-            tuple: (image, mask) pair.
+            - tuple: (image, mask) pair.
         """
         img_name = os.path.join(self.image_dir, self.image_files[idx])
         mask_name = os.path.join(self.mask_dir, self.image_files[idx].replace('.jpg', '_segmentation.png'))
@@ -50,14 +50,14 @@ def get_isic_dataloader(image_dir, mask_dir, batch_size=32, shuffle=True, num_wo
     Helper function to create a DataLoader for the ISIC dataset.
 
     Args:
-        image_dir (str): Path to the directory with image files.
-        mask_dir (str): Path to the directory with mask files.
-        batch_size (int, optional): Number of samples per batch. Defaults to 32.
-        shuffle (bool, optional): Whether to shuffle the dataset. Defaults to True.
-        num_workers (int, optional): Number of subprocesses to use for data loading. Defaults to 4.
+        - image_dir (str): Path to the directory with image files.
+        - mask_dir (str): Path to the directory with mask files.
+        - batch_size (int, optional): Number of samples per batch. Defaults to 32.
+        - shuffle (bool, optional): Whether to shuffle the dataset. Defaults to True.
+        - num_workers (int, optional): Number of subprocesses to use for data loading. Defaults to 4.
 
     Returns:
-        DataLoader: DataLoader object for the ISIC dataset.
+        - DataLoader: DataLoader object for the ISIC dataset.
     """
     transform = transforms.Compose([
         transforms.Resize((128, 128)),
