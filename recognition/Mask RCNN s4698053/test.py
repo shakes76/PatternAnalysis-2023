@@ -43,7 +43,8 @@ class ManualTest():
         self.test_dataloader()
     
     def test_dataloader(self):
-        train_dataset, test_dataset = random_split(self.dataloader, [train_size, test_size])
+        generator = torch.Generator().manual_seed(42)
+        train_dataset, test_dataset = random_split(self.dataloader, [train_size, test_size], generator=generator)
 
         fig, axes = plt.subplots(2, 3, figsize=(12, 8))
         count = 0
@@ -61,7 +62,7 @@ class ManualTest():
 
                 mask = raw_target['masks'].cpu().numpy()[0]
                 masked_image = np.copy(image)
-                masked_image[mask > 0.5] = [0, 255, 0]
+                masked_image[mask > 0.5] = [0.0, 1.0, 0.0]
                 ax.imshow(masked_image, alpha=0.3)
             else:
                 ax.set_title('none')
