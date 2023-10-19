@@ -23,11 +23,12 @@ try:
     model.load_state_dict(torch.load('best_model1.pth'))
 except FileNotFoundError:
     print("Not find model! Please use train.py to produce one!")
+    print("Otherwise change the dir in predict.py line 26")
     exit(1)
 model.eval()
 
 # Create test dataset
-transform = transforms.Compose([
+transform = transforms.Compose([  # same as default transforms in dataset.py
     transforms.ToTensor(),
     transforms.Normalize((0.5,), (0.5,))
 ])
