@@ -1,4 +1,3 @@
-
 """
 Created on Wednesday October 18 
 Siamese Network Training Script
@@ -10,81 +9,98 @@ It includes training and validation loops, model saving, and TensorBoard logging
 @ID: s4824063
 
 """
-#Import necessary libraries 
-from modules import SiameseNN
-from dataset import get_training
-import os
-from torch.utils.tensorboard import SummaryWriter
-import torch
-from torch.utils.data import DataLoader, Subset
-import torch.optim as optim
-from torch import nn
-# Define the training function
-def training(model, dataloader, device, optimizer, epoch):
-    model.train()
-    total_samples = 0
-    correct = 0
-    criterion = nn.BCELoss()
+
+# Import necessary libraries
+import os  # Import the os module for file operations
+import torch  # Import the PyTorch library
+import torch.optim as optim  # Import the optimizer module from PyTorch
+from torch.utils.tensorboard import SummaryWriter  # Import TensorBoard for logging
+from torch.utils.data import DataLoader  # Import DataLoader for handling data batches
+from modules import SiameseNN  # Import the Siamese Network model
+from dataset import get_training  # Import the function for loading the training dataset
+from torch import nn  # Import the neural network module from PyTorch
+
+# Training function
+def train(model, dataloader, device, optimizer, epoch):
+    """
+    Training function for the Siamese Network.
+
+    Args:
+        model (nn.Module): The Siamese Network model.
+        dataloader (DataLoader): DataLoader for training data.
+        device (torch.device): The device to perform training on (CPU or GPU).
+        optimizer (Optimizer): The optimizer used for training.
+        epoch (int): The current training epoch.
+
+    Returns:
+        None
+    """
+    model.train()  # Set the model to training mode
+    total_samples, correct, criterion = 0, 0, nn.BCELoss()  # Initialize variables
 
     for batch_idx, (images_1, images_2, targets) in enumerate(dataloader):
         images_1, images_2, targets = images_1.to(device), images_2.to(device), targets.to(device)
-        optimizer.zero_grad()
-        outputs = model(images_1, images_2).squeeze()
-        loss = criterion(outputs, targets)
-        loss.backward()
-        optimizer.step()
+        optimizer.zero_grad()  # Zero the gradients
+        outputs = model(images_1, images_2).squeeze()  # Forward pass to obtain model's predictions
+        loss = criterion(outputs, targets)  # Calculate the loss
+        loss.backward()  # Backpropagation
+        optimizer.step()  # Optimizer step
 
-        pred = torch.where(outputs > 0.5, torch.tensor(1.0, device=device), torch.tensor(0.0, device=device))
-        correct += pred.eq(targets.view_as(pred)).sum().item()
+        pred = (outputs > 0.5).float()  # Convert model outputs to binary predictions
+        correct += pred.eq(targets.view_as(pred)).sum().item()  # Count correct predictions
         total_samples += len(targets)
 
         if batch_idx % 10 == 0:
             accuracy = 100. * correct / total_samples
-
-            print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tAccuracy: {:.2f}%'.format(
-                epoch, total_samples, len(dataloader.dataset),
-                100. * batch_idx / len(dataloader), loss.item(), accuracy))
+            print(f'Train Epoch: {epoch} [{total_samples}/{len(dataloader.dataset)} '
+                  f'({100. * batch_idx / len(dataloader):.0f}%)]\tLoss: {loss.item():.6f}\tAccuracy: {accuracy:.2f}%')
 
             writer.add_scalar('Training Loss', loss.item(), epoch * len(dataloader) + batch_idx)
             writer.add_scalar('Training Accuracy', accuracy, epoch * len(dataloader) + batch_idx)
-# Define the validation function
-def check(model, dataloader, device):
-    print("Starting Checks.")
-    model.eval()
-    criterion = nn.BCELoss()
-    correct = 0
-    test_loss = 0
+
+# Validation function
+def validate(model, dataloader, device):
+    """
+    Validation function for the Siamese Network.
+
+    Args:
+        model (nn.Module): The Siamese Network model.
+        dataloader (DataLoader): DataLoader for validation data.
+        device (torch.device): The device to perform validation on (CPU or GPU).
+
+    Returns:
+        None
+    """
+    print("Starting Validation.")
+    model.eval()  # Set the model to evaluation mode (no gradient computation)
+    criterion = nn.BCELoss()  # Define the loss function
+    correct, test_loss = 0, 0  # Initialize variables for tracking correctness and loss
+
     with torch.no_grad():
-        for (images_1, images_2, targets) in dataloader:
+        for images_1, images_2, targets in dataloader:
             images_1, images_2, targets = images_1.to(device), images_2.to(device), targets.to(device)
-            outputs = model(images_1, images_2).squeeze()
-            test_loss += criterion(outputs, targets).sum().item()
-            pred = torch.where(outputs > 0.5, 1, 0)
-            correct += pred.eq(targets.view_as(pred)).sum().item()
+            outputs = model(images_1, images_2).squeeze()  # Forward pass for validation data
+            test_loss += criterion(outputs, targets).sum().item()  # Calculate the loss
+            pred = (outputs > 0.5).int()  # Convert model outputs to binary predictions
+            correct += pred.eq(targets.view_as(pred)).sum().item()  # Count correct predictions
 
-    test_loss /= len(dataloader.dataset)
+    test_loss /= len(dataloader.dataset)  # Calculate the average test loss
 
-    print('\nVal set: Centralized  loss: {:.4f}, Validate Accuracy: {}/{} ({:.0f}%)\n'.format(
-        test_loss, correct, len(dataloader.dataset),
-        100. * correct / len(dataloader.dataset)))
-
-    print("Finished Checked.")
+    print(f'\nVal set: Centralized loss: {test_loss:.4f}, Validate Accuracy: {correct}/{len(dataloader.dataset)} '
+          f'({100. * correct / len(dataloader.dataset):.0f}%)\n')
+    print("Finished Validation.")
 
 if __name__ == '__main__':
-    writer = SummaryWriter('logs/siam_net_exp')
-    epochs = 50
-    batch_size = 2816
-    learning_rate = 0.001
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    writer = SummaryWriter('logs/siam_net_exp')  # Create a TensorBoard writer
+    epochs, batch_size, learning_rate = 50, 256, 0.002 # Define training epochs, batch size, and learning rate
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")  # Check and set the device
     print(device)
-
-    model = SiameseNN().to(device)
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    model = SiameseNN().to(device)  # Initialize the Siamese Network model
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate)  # Initialize the optimizer
 
     print("Loading data...")
     train_data = get_training('/Users/aniketgupta/Desktop/Pattern Recognition/PatternAnalysis-2023/recognition/48240639/AD_NC')
-    train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size)
+    train_dataloader = DataLoader(train_data, batch_size=batch_size)  # Load training data
     print("Data loaded.")
 
     save_directory = "/Users/aniketgupta/Desktop/Pattern Recognition/PatternAnalysis-2023/results"
@@ -92,13 +108,13 @@ if __name__ == '__main__':
 
     print("Training Started.")
     for epoch in range(1, epochs + 1):
-        training(model, train_dataloader, device, optimizer, epoch)
+        train(model, train_dataloader, device, optimizer, epoch)  # Training loop
     print("Finished training.")
 
     if not os.path.exists(save_directory):
         os.makedirs(save_directory)
 
     save_path = os.path.join(save_directory, save_filename)
-    torch.save(model.state_dict(), save_path)
+    torch.save(model.state_dict(), save_path)  # Save the trained model
 
-    writer.close()
+    writer.close()  # Close the TensorBoard writer
