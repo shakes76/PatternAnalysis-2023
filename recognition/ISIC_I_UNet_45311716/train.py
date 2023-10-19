@@ -61,9 +61,13 @@ def main():
     loss_fn = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+    total_step = len(train_data)
+    # Cosine annealing w/ warm restarts lr scheduler
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=total_step, 
+                                                                    eta_min=num_epochs, verbose=True)
+
     # Gradient scaler
     scaler = torch.cuda.amp.GradScaler()
-
     for epoch in range(num_epochs):
         for batch in train_data:
             image, mask = batch
