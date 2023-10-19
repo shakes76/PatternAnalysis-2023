@@ -117,7 +117,11 @@ class UNet(nn.Module):
         self.first_local = Localization(512*2,512)
         self.second_local = Localization(256*2,256)
         self.third_local = Localization(128*2,128)
-        
+
+        self.segment1 = nn.Conv2d(128, 1, 3, padding=1,stride=1)
+        self.segment2 = nn.Conv2d(128, 1, 3, padding=1,stride=1)
+        self.segment3 = nn.Conv2d(128, 1, 3, padding=1,stride=1)
+
         for feature in reversed(features):
             self.ups.append(
                 nn.Conv2d(
