@@ -1,102 +1,111 @@
-import glob
-import os
-import numpy as np
 import torch
-from torchvision import transforms
-from torch.utils.data import Dataset, DataLoader
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
+import os
+from torch.utils.data import Dataset
 from PIL import Image
 import matplotlib.pyplot as plt
 
-NORMALISE = 255.0
-CENTRE = 0.5
-IMAGE_DIM = 80
-ENC_IN_SHAPE = (1, 80, 80)
+'''
+This script reads a downloaded image dataset from the OASIS dataset and returns a data loader of it 
+along with a transformation of the original dataset. Additionally, it displays some sample images from the loader.
+'''
 
-GREYSCALE = "L"  # Grayscale mode in PyTorch
+# Define dataset paths
+TRAIN_DATASET_PATH = "/Users/yashmittal/Downloads/Pattern Recognition Project 02/keras_png_slices_data/keras_png_slices_seg_train"  # Training data
+TEST_DATASET_PATH = "/Users/yashmittal/Downloads/Pattern Recognition Project 02/keras_png_slices_data/keras_png_slices_seg_test"   # Test data
+VALIDATION_DATASET_PATH = "/Users/yashmittal/Downloads/Pattern Recognition Project 02/keras_png_slices_data/keras_png_slices_seg_validate"  # Validation data
+BATCH_SIZES = [256, 128, 64, 32, 16, 8]
+CHANNELS_IMG = 3
 
-SPLITS = 3
-BASE = "keras_png_slices_data/keras_png_slices_"
-TRAINING = BASE + "train/*"
-TESTING = BASE + "test/*"
-VALIDATION = BASE + "validate/*"
+# Customized ImageDataset to read image data
+class CustomImageDataset(Dataset):
+    def __init__(self, img_dirs, transform=None):
+        '''
+        Custom Image Dataset
 
-def normalise(data):
-    """
-    Normalize the input data.
+        Args:
+            img_dirs (list): List of paths to image directories.
+            transform (callable): A function/transform to apply to the images.
 
-    data - Input data to be normalized
-
-    Returns normalized data
-    """
-    # Normalize the data by dividing by the normalization factor
-    data = data / NORMALISE
-    return data
-
-class CustomDataset(Dataset):
-    def __init__(self, data_paths, transform=None):
-        self.data_paths = data_paths
+        '''
         self.transform = transform
+        self.img_files = []
+        for dir_path in img_dirs:
+            self.img_files += [os.path.join(dir_path, fname) for fname in os.listdir(dir_path)]
 
     def __len__(self):
-        return len(self.data_paths)
+        return len(self.img_files)
 
     def __getitem__(self, idx):
-        img = Image.open(self.data_paths[idx])
+        '''
+        Get an image from the dataset by index.
+
+        Args:
+            idx (int): Index of the image to retrieve.
+
+        Returns:
+            torch.Tensor: The image data.
+
+        '''
+        img_name = self.img_files[idx]
+        image = Image.open(img_name).convert("RGB")
+
         if self.transform:
-            img = self.transform(img)
-        return img
+            image = self.transform(image)
 
-def get_ttv(subset_size=None):
-    """
-    Read in the training/testing/validation datasets from local files.
-    Mostly repurposed from the original demo.
+        return image
 
-    return    - the training, testing, and validation datasets
-    """
-    train_data = glob.glob(TRAINING)
-    test_data = glob.glob(TESTING)
-    val_data = glob.glob(VALIDATION)
+def get_loader(image_size):
+    '''
+    Create a data loader for the image dataset.
 
-    # Check if the directories exist and contain files
-    if not train_data:
-        print("No training data found. Please check file paths or obtain the missing data.")
-        return None, None, None
+    Args:
+        image_size (int): The size to which images should be resized.
 
-    if not test_data:
-        print("No testing data found. Using a subset of training data for testing.")
-        test_data = train_data[:subset_size]
+    Returns:
+        torch.utils.data.DataLoader: Data loader for the image dataset.
+        CustomImageDataset: The dataset itself.
 
-    if not val_data:
-        print("No validation data found. Using a subset of training data for validation.")
-        val_data = train_data[subset_size:2 * subset_size]
+    '''
+    transform = transforms.Compose([
+        transforms.Resize((image_size, image_size)),  # Resize the images
+        transforms.ToTensor(),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.Normalize(
+            [0.5 for _ in range(CHANNELS_IMG)],
+            [0.5 for _ in range(CHANNELS_IMG)],
+        )
+    ])
+    batch_size = BATCH_SIZES[4]  # Image size = 256, batch size = 16
 
-    transform = transforms.Compose([transforms.Grayscale(num_output_channels=1),
-                                    transforms.Resize((IMAGE_DIM, IMAGE_DIM)),
-                                    transforms.ToTensor()])
+    # Load all the training, test, and validation data together to train the styleGAN model
+    dataset = CustomImageDataset(img_dirs=[TRAIN_DATASET_PATH, TEST_DATASET_PATH, VALIDATION_DATASET_PATH], transform=transform)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    return loader, dataset
 
-    train_dataset = CustomDataset(data_paths=train_data, transform=transform)
-    test_dataset = CustomDataset(data_paths=test_data, transform=transform)
-    val_dataset = CustomDataset(data_paths=val_data, transform=transform)
+def check_loader():
+    '''
+    Check and display sample images from the data loader.
 
-    train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
-    test_loader = DataLoader(test_dataset, batch_size=64, shuffle=False)
-    val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
+    '''
+    loader, _ = get_loader(256)
+    img = next(iter(loader))
+    _, ax = plt.subplots(3, 3, figsize=(8, 8))
+    plt.suptitle('Real sample images')
+    ind = 0
+    for k in range(3):
+        for kk in range(3):
+            ax[k][kk].imshow((img[ind].permute(1, 2, 0) + 1) / 2)
+            ind += 1
 
-    return train_loader, test_loader, val_loader
+    if not os.path.exists("output_images"):
+        os.makedirs("output_images")
 
-def preview(dataset, n):
-    """
-    Show the first n^2 images of the dataset in an n x n grid
+    # Save the figure to the specified path
+    save_path = os.path.join("output_images", "real_grid.png")
+    plt.savefig(save_path)
+    plt.close()
 
-    dataset    - training / testing / validation dataset to preview
-    n        - length of the preview square grid
-    """
-    fig, axes = plt.subplots(n, n, figsize=(8, 8))
-    for i in range(n):
-        for j in range(n):
-            ind = (n * i) + j
-            img = dataset.dataset[ind].numpy().squeeze()
-            axes[i, j].imshow(img, cmap=GREYSCALE)
-            axes[i, j].axis('off')
-
-    plt.show()
+if __name__ == "__main__":
+    check_loader()
