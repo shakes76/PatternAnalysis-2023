@@ -31,45 +31,47 @@ BETA = 0.25
 DATA_VARIANCE = 0.0338
 LOG_STEP = 100
 
-# create VQVAE model
-model = VQVAE(NUM_HIDDENS, RESIDUAL_INTER, NUM_EMBEDDINGS, EMBEDDING_DIM, BETA)
-model.to(device)
+# # create VQVAE model
+# model = VQVAE(NUM_HIDDENS, RESIDUAL_INTER, NUM_EMBEDDINGS, EMBEDDING_DIM, BETA)
+# model.to(device)
+#
+# # Init optimizer
+# optimizer = torch.optim.Adam(model.parameters(), lr=LR_VQVAE)
+# train_recon_loss = []
+#
+# # train VQVAE
+# print("VQVAE Training started")
+# for i in range(MAX_EPOCHS_VQVAE):
+#     print(f"EPOCH [{i+1}/{MAX_EPOCHS_VQVAE}]")
+#
+#     size = len(vqvae_train_loader.dataset)
+#     batch_losses = []
+#     i = 0
+#     for batch, (X, _) in enumerate(vqvae_train_loader):
+#         X = X.to(device)
+#
+#         optimizer.zero_grad()
+#         vq_loss, data_recon = model(X)
+#
+#         recon_error = F.mse_loss(data_recon, X) / DATA_VARIANCE
+#         loss = recon_error + vq_loss
+#         loss.backward()
+#         optimizer.step()
+#         batch_losses.append(recon_error.item())
+#
+#         if (i+1) % LOG_STEP == 0:
+#             print(f"Step {i+1} -  recon_error: {np.mean(batch_losses[-100:])}")
+#         i += 1
+#
+#     loss = sum(batch_losses) / len(batch_losses)
+#
+#     train_recon_loss.append(loss)
+#     print(f"Reconstruction loss: {loss}")
+#
+# # Save model
+# t.save(model, os.path.join(MODEL_PATH, "vqvae.txt"))
 
-# Init optimizer
-optimizer = torch.optim.Adam(model.parameters(), lr=LR_VQVAE)
-train_recon_loss = []
-
-# train VQVAE
-print("VQVAE Training started")
-for i in range(MAX_EPOCHS_VQVAE):
-    print(f"EPOCH [{i+1}/{MAX_EPOCHS_VQVAE}]")
-
-    size = len(vqvae_train_loader.dataset)
-    batch_losses = []
-    i = 0
-    for batch, (X, _) in enumerate(vqvae_train_loader):
-        X = X.to(device)
-
-        optimizer.zero_grad()
-        vq_loss, data_recon = model(X)
-
-        recon_error = F.mse_loss(data_recon, X) / DATA_VARIANCE
-        loss = recon_error + vq_loss
-        loss.backward()
-        optimizer.step()
-        batch_losses.append(recon_error.item())
-
-        if (i+1) % LOG_STEP == 0:
-            print(f"Step {i+1} -  recon_error: {np.mean(batch_losses[-100:])}")
-        i += 1
-
-    loss = sum(batch_losses) / len(batch_losses)
-
-    train_recon_loss.append(loss)
-    print(f"Reconstruction loss: {loss}")
-
-# Save model
-t.save(model, os.path.join(MODEL_PATH, "vqvae.txt"))
+model = t.load(os.path.join(MODEL_PATH, 'vqvae.txt'))
 
 # save samples of real and test data
 real_imgs1 = next(iter(vqvae_test_loader)) # load some from test dl
@@ -98,11 +100,12 @@ save_image(test_quantized, 'quantized-single-sample.png')
 # ========== TRAIN GAN ==========
 
 # GAN Hyper params
-LR_GAN = 2e-4
+LR_GAN = 4e-4
 BATCH_SIZE_GAN = 256
 MAX_EPOCHS_GAN = 20
 Z_DIM_GAN = 100
 SAMPLE_NUM_GAN = 32
+LOG_STEP_GAN = 10
 
 # define dataset
 gan_train_ds = GanDataset(model, transform)
@@ -121,16 +124,16 @@ criterion = nn.BCELoss().to(device)
 
 # train GAN
 # taken from COMP3710 Lab Demo 2 Part 3 (GAN) by Luke Halberstadt
-total_batch = len(gan_train_dl.dataset) // BATCH_SIZE_GAN
 fixed_z = Variable(torch.randn(SAMPLE_NUM_GAN, Z_DIM_GAN)).to(device)
 print("GAN Training started")
 for epoch in range(MAX_EPOCHS_GAN):
-    for i, (images, labels) in enumerate(gan_train_dl):
+    for i, (images, _) in enumerate(gan_train_dl):
+        batch_size = images.shape[0]
         # Build mini-batch dataset
         image = Variable(images).to(device)
         # Create the labels which are later used as input for the BCE loss
-        real_labels = Variable(torch.ones(BATCH_SIZE_GAN)).to(device)
-        fake_labels = Variable(torch.zeros(BATCH_SIZE_GAN)).to(device)
+        real_labels = Variable(torch.ones(batch_size)).to(device)
+        fake_labels = Variable(torch.zeros(batch_size)).to(device)
 
         # train discriminator
         outputs = D(image)
@@ -138,7 +141,7 @@ for epoch in range(MAX_EPOCHS_GAN):
         real_score = outputs
 
         # compute loss using fake images
-        z = Variable(torch.randn(BATCH_SIZE_GAN, Z_DIM_GAN)).to(device)
+        z = Variable(torch.randn(batch_size, Z_DIM_GAN, 1, 1)).to(device)
         fake_images = G(z)
         outputs = D(fake_images)
         d_loss_fake = criterion(outputs, fake_labels)  # BCE
@@ -151,7 +154,7 @@ for epoch in range(MAX_EPOCHS_GAN):
         d_optimizer.step()
 
         # train generator
-        z = Variable(torch.randn(BATCH_SIZE_GAN, Z_DIM_GAN)).to(device)
+        z = Variable(torch.randn(batch_size, Z_DIM_GAN, 1, 1)).to(device)
         fake_images = G(z)
         outputs = D(fake_images)
 
@@ -165,12 +168,12 @@ for epoch in range(MAX_EPOCHS_GAN):
         g_loss.backward()
         g_optimizer.step()
 
-        if (i + 1) % LOG_STEP == 0:
+        if (i + 1) % LOG_STEP_GAN == 0:
             # print("Epoch [%d/%d], Step[%d/%d], d_loss: %.4f, g_loss: %.4f, D(x): %.2f, D(G(z)): %.2f" % (
             #     epoch, max_epoch, i + 1, total_batch, d_loss.data.item(), g_loss.data.item(), real_score.data.mean(),
             #     fake_score.data.mean()))
             print("Epoch [%d/%d], Step[%d/%d], D(x): %.2f, D(G(z)): %.2f" % (
-                epoch, MAX_EPOCHS_GAN, i + 1, total_batch, real_score.data.mean(),
+                epoch, MAX_EPOCHS_GAN, i + 1, len(gan_train_dl.dataset) // batch_size, real_score.data.mean(),
                 fake_score.data.mean()))
 
 # save models

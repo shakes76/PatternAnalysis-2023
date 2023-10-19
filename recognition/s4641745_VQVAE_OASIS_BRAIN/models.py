@@ -44,7 +44,7 @@ GAN discriminator
 model taken from COMP3710 Lab Demo 2 Part 3 (GAN) by Luke Halberstadt
 """
 class Discriminator(nn.Module):
-    def __init__(self, image_size=128, conv_dim=64):
+    def __init__(self, image_size=64, conv_dim=64):
         super(Discriminator, self).__init__()
         self.conv1 = conv(3, conv_dim, 4, bn=False)
         self.conv2 = conv(conv_dim, conv_dim * 2, 4)
@@ -67,7 +67,7 @@ GAN generator
 model taken from COMP3710 Lab Demo 2 Part 3 (GAN) by Luke Halberstadt
 """
 class Generator(nn.Module):
-    def __init__(self, z_dim=256, image_size=128, conv_dim=64):
+    def __init__(self, z_dim=100, image_size=64, conv_dim=32):
         super(Generator, self).__init__()
         self.fc = deconv(z_dim, conv_dim * 8, int(image_size / 16), 1, 0, bn=False)
         self.deconv1 = deconv(conv_dim * 8, conv_dim * 4, 4)
