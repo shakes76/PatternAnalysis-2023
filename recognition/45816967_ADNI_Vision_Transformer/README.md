@@ -133,21 +133,31 @@ The following command can be used to create an identical copy of my conda enviro
 conda env create -n {environment_name} -f environment.yml
 ```
 
+When running the subsequent steps ensure the conda environment is activated using the command:
+```
+conda activate {environment_name}
+```
+
 ### Training
 First ensure that the ADNI dataset is downloaded and placed into a directory named "data" in /PatternAnalysis-2023/recognition/45816967_ADNI_Vision_Transformer, and a "models" directory is created in the same directory. Then, run the following command to train the model:
 
 ```
-train.py --img_size 224 --patch_size 16 --num_layers 12 --embed_dim 256 --mlp_dim 256 --num_heads 16 --n_epochs 50 --batch_size 64
+train.py --img_size 224 --patch_size 16 --num_layers 12 --embed_dim 256 --mlp_size 256 --num_heads 16 --n_epochs 50 --batch_size 64
 ```
 
 ### Testing
 To predict the test set and show the results, run the following command:
 
 ```
-predict.py --model_dir models/vit21_model_49_78.45794392523364.pth --dim 2
+predict.py --model_dir models/{model_name}.pth --dim 2
 ```
 
+### All together
+Alternatively, to train, test, and predict using the model all together, run the following command:
 
+```
+driver.py
+```
 
 
 
