@@ -80,7 +80,6 @@ def snn():
                 kernel_initializer="he_uniform",
             ),
             tf.keras.layers.MaxPooling2D((2, 2)),
-            tf.keras.layers.Dropout(0.2),
             tf.keras.layers.Conv2D(
                 128,
                 (7, 7),
