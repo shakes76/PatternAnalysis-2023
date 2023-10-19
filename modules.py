@@ -9,6 +9,7 @@ class UNet(nn.Module):
         self.decoders = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2)
         self.dropout = nn.Dropout(dropout_prob)
+        self.upsamples = nn.ModuleList()
 
         # Contracting path
         for i in range(depth):
@@ -21,7 +22,7 @@ class UNet(nn.Module):
             in_ch = base_filters * 2**(i+1)  # After concatenation
             out_ch = base_filters * 2**i
             self.decoders.append(self.conv_block(in_ch, out_ch))
-            self.decoders.append(nn.ConvTranspose2d(out_ch, out_ch//2, kernel_size=2, stride=2))
+            self.upsamples.append(nn.ConvTranspose2d(out_ch, out_ch//2, kernel_size=2, stride=2))
 
         self.decoders.append(self.conv_block(base_filters * 2, base_filters))
         self.out_conv = nn.Conv2d(base_filters, out_channels, kernel_size=1)
@@ -35,11 +36,13 @@ class UNet(nn.Module):
             x = self.pool(x)
 
         rev_skips = reversed(skips[:-1])
-        for skip, dec in zip(rev_skips, self.decoders[::2]):
-            x = self.dropout(dec[1](x))
+        for skip, (dec, upsample) in zip(rev_skips, zip(self.decoders[:-1], self.upsamples)):
+            x = upsample(x)
+            x = self.dropout(x)
             x = torch.cat((x, skip), dim=1)
-            x = dec[0](x)
+            x = dec(x)
 
+        x = self.decoders[-1](x)
         x = self.out_conv(x)
         return self.sigmoid(x)
 
@@ -52,6 +55,11 @@ class UNet(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
+
+model = UNet(in_channels=3, out_channels=1)  # Assuming input is RGB and output is a binary mask
+print(model)
+
+
 
 model = UNet(in_channels=3, out_channels=1)  # Assuming input is RGB and output is a binary mask
 print(model)
