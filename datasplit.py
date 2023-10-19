@@ -1,44 +1,52 @@
+"""
+datasplit.py
+
+Data loader for loading and preprocessing data.
+
+Author: Atharva Gupta
+Date Created: 17-10-2023
+"""
 import os
-import shutil
-from sklearn.model_selection import train_test_split
+import torch
+from torchvision import datasets, transforms
+from torch.utils.data import DataLoader
 
-print("Starting data split process...")
+from parameter import DATA_LOAD_PATH, IMAGE_SIZE, BATCH_SIZE
 
-# Define paths to your data directories
-data_dir = 'AD_NC'  # Update with the actual path to your data directory
 
-# Define the proportion of data to allocate to the training set
-train_split = 0.7  # 70% for training, adjust as needed
-print(f"Allocating {train_split * 100}% of data for training...")
+def load_data():
+    """
+    Loads the dataset that will be used into PyTorch datasets.
+    """
+    data_transforms = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomRotation(2),
+        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    ])
 
-# Iterate through the "train" and "test" subdirectories and split the data
-for data_split in ["train", "test"]:
-    for class_name in ["AD", "NC"]:
-        class_dir = os.path.join(data_dir, data_split, class_name)
-        all_files = os.listdir(class_dir)
-        total_files = len(all_files)
-        print(f"Total {class_name} files in {data_split} set: {total_files}")
+    train_dataset = datasets.ImageFolder(
+        os.path.join(DATA_LOAD_PATH, 'train'),
+        transform=data_transforms
+    )
 
-        if total_files > 0:
-            # Split the data into training and testing sets for each class
-            train_files, test_files = train_test_split(all_files, test_size=1 - train_split, random_state=42)
-            print(f"Allocating {len(train_files)} files for training and {len(test_files)} files for testing for class {class_name}...")
+    test_dataset = datasets.ImageFolder(
+        os.path.join(DATA_LOAD_PATH, 'test'),
+        transform=data_transforms
+    )
 
-            # Move the files to their respective directories
-            for file in train_files:
-                source_path = os.path.join(class_dir, file)
-                dest_path = os.path.join(data_dir, 'train' if data_split == 'train' else 'test', class_name, file)
-                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-                if not os.path.isdir(source_path) and source_path != dest_path:
-                    shutil.copy(source_path, dest_path)
+    # Split the test dataset into validation and test sets
+    num_test_images = len(test_dataset)
+    split_index = num_test_images // 2
 
-            for file in test_files:
-                source_path = os.path.join(class_dir, file)
-                dest_path = os.path.join(data_dir, 'train' if data_split == 'train' else 'test', class_name, file)
-                os.makedirs(os.path.dirname(dest_path), exist_ok=True)
-                if not os.path.isdir(source_path) and source_path != dest_path:
-                    shutil.copy(source_path, dest_path)
-        else:
-            print(f"No files available for class {class_name} in {data_split} set.")
+    validation_dataset, test_dataset = torch.utils.data.random_split(
+        test_dataset, [split_index, num_test_images - split_index]
+    )
 
-print("Data split completed.")
+    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+    validation_loader = DataLoader(validation_dataset, batch_size=BATCH_SIZE, shuffle=False)
+    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+
+    return train_loader, validation_loader, test_loader
