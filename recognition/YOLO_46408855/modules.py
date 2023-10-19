@@ -112,6 +112,10 @@ class YOLO(nn.Module):
 
 
 def calculate_iou(pred, label):
+    """
+    Used to determine accuracy of given bounding boxes.
+    Also is a key part of the loss function
+    """
     px, py, pw, ph = pred[:,0], pred[:,1], pred[:,2], pred[:,3]
     lx, ly, lw, lh = label[0], label[1], label[2], label[3]
     box_a = [px-(pw/2), py-(ph/2), px+(pw/2), py+(ph/2)]
@@ -162,14 +166,14 @@ class YOLO_loss(nn.Module):
         i = 0
         for idx in best_boxes:
             box = boxes[i][idx]
-            #coordinate loss
-            xy_loss = (label[0]-box[0])**2 + (label[1]-box[1])**2
-            wh_loss = ((label[0])**(1/2)-(box[0])**(1/2))**2 + ((label[1])**(1/2)-(box[1])**(1/2))**2
-            coord_loss[i] = box_accuracy*(xy_loss + wh_loss)
             #Check if there was a detection
             if box[4] > 0.8: #There was
                 #classification loss
                 class_loss[i] = (label[5] - box[5])**2 + (label[6] - box[6])**2
+                #coordinate loss
+                xy_loss = (label[0]-box[0])**2 + (label[1]-box[1])**2
+                wh_loss = ((label[0])**(1/2)-(box[0])**(1/2))**2 + ((label[1])**(1/2)-(box[1])**(1/2))**2
+                coord_loss[i] = box_accuracy*(xy_loss + wh_loss)
                 #confidence loss
                 conf_loss[i] = (label[4] - box[4])**2
             else: #There wasn't

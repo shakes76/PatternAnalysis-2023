@@ -1,4 +1,4 @@
-from train import model
+from train import model, device
 from modules import *
 from dataset import *
 import matplotlib.pyplot as plt
@@ -13,7 +13,7 @@ def plot_boxes(image, vectors):
     fig, ax = plt.subplots()
 
     # Display the image
-    ax.imshow(image)
+    ax.imshow(image.cpu().permute(1, 2, 0))
 
     for i in range(vectors.shape(1)):
         vector = vectors[0,i,:]
@@ -51,13 +51,14 @@ def predict(path):
     """
     Displays image with the detection box and label
     """
+    model.eval()
     image = cv2.imread(path)
     image = cv2.resize(image, (416, 416))
     image = image.transpose((2, 0, 1)).astype(np.float32)
     image = image/255
     image = torch.from_numpy(image)
     image = torch.reshape(image, (1,3,416,416))
-    model.eval()
+    image = image.to(device)
     pred = model(image)
     pred = filter_boxes(pred)
     plot_boxes(image, pred)

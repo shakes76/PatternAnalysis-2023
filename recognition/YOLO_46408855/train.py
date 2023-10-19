@@ -1,12 +1,10 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F 
-import torchvision
-import torchvision.transforms as transforms
 import time
 
 from dataset import *
-from modules import YOLO, compute_loss
+from modules import YOLO, YOLO_loss
 
 
 # Device configuration
@@ -29,12 +27,15 @@ dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 model = YOLO()
 model.to(device)
 
-#optimizer
+#optimizer and loss
 optimizer = torch.optim.Adam(model.parameters(), learning_rate)
+criterion = YOLO_loss()
 
 #learning rate schedule, using because SGD is dumb, adam has its own learning rate
 total_step = len(dataloader)
-scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,max_lr=learning_rate,steps_per_epoch=total_step, epochs=epochs)
+scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,max_lr=learning_rate,
+                                                steps_per_epoch=total_step, epochs=epochs)
+
 #Train
 model.train()
 start = time.time()
@@ -45,16 +46,19 @@ for epoch in range(epochs):
 
     #Forward pass
     outputs = model(images)
-    loss = compute_loss(outputs, labels, batch_size)
+    total_loss = 0
+    for a in range(batch_size):
+        loss = criterion(outputs[a], labels[a])
+        total_loss += loss
 
     #Backwards and optimize
     optimizer.zero_grad()
-    loss.requires_grad = True
-    loss.backward()
+    total_loss.requires_grad = True
+    total_loss.backward()
     optimizer.step()
 
     if (i+1) % 50 == 0:
-      print("Epoch [{}/{}], Step[{},{}] Loss: {:.5f}".format(epoch+1, epochs, i+1, total_step, loss.item()))
+      print("Epoch [{}/{}], Step[{},{}] Loss: {:.5f}".format(epoch+1, epochs, i+1, total_step, total_loss.item()))
 
     scheduler.step()
 end = time.time()
