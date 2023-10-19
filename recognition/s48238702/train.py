@@ -1,6 +1,7 @@
 import torch
 import torch.optim as optim
 import torchvision
+import tqdm
 import matplotlib.pyplot as plt
 from dataset import load_siamese_data
 from modules import SiameseNetwork, ContrastiveLoss
@@ -22,43 +23,47 @@ def train():
 def trainSNN(epochs=50):
     """
     Train the Siamese Network.
-
+    
     Args:
         epochs (int, optional): Number of training epochs. Default is 30.
-
+    
     Returns:
         dict: A dictionary containing the trained model and loss history.
     """
     siamese_train_loader = load_siamese_data(batch_size=32)
     model = SiameseNetwork()
-
+    
     # Check if CUDA (GPU) is available and move the model to the device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(device)
     model.to(device)
-
+    
     criterion = ContrastiveLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.0001)
-
+    
     siamese_fit = {'model': model, 'loss': {'train': [], 'val': []}}
-
+    
     for epoch in range(epochs):
         model.train()
         train_loss = 0
-        for batch_idx, (img1, img2, labels) in enumerate(siamese_train_loader):
-            optimizer.zero_grad()
-            
-            # Move tensors to the device
-            img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
-            
-            output1, output2 = model(img1, img2)
-            loss = criterion(output1, output2, labels)
-            loss.backward()
-            optimizer.step()
-            train_loss += loss.item()
+        
+        # Wrap the data loader with tqdm to add a progress bar
+        with tqdm.tqdm(siamese_train_loader, unit="batch") as data_loader:
+            for batch_idx, (img1, img2, labels) in enumerate(data_loader):
+                optimizer.zero_grad()
+                img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
+                output1, output2 = model(img1, img2)
+                loss = criterion(output1, output2, labels)
+                loss.backward()
+                optimizer.step()
+                train_loss += loss.item()
+                
+                # Update the progress bar description
+                data_loader.set_description(f"Epoch {epoch + 1}/{epochs}, Loss: {train_loss / (batch_idx + 1):.4f}")
+        
         siamese_fit['loss']['train'].append(train_loss / len(siamese_train_loader))
-
         print(f'Epoch {epoch + 1}/{epochs}, Loss: {siamese_fit["loss"]["train"][-1]}')
-
+    
     return siamese_fit
 
 def plot_data(data, title):
