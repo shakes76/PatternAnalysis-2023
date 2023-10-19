@@ -2,10 +2,7 @@ import torch
 from torch import nn, optim
 from dataset import load_dataset
 from modules import Generator, Discriminator
-#TODO remove
-from tqdm import tqdm
 from math import log2
-
 from torchvision.utils import save_image
 import os
 
@@ -81,9 +78,8 @@ def train_fn(
     opt_discriminator,
     opt_gen,
 ):
-    loop = tqdm(loader, leave=True)
 
-    for batch_idx, (real, _) in enumerate(loop):
+    for batch_idx, (real, _) in enumerate(loader):
         real = real.to(DEVICE)
         cur_batch_size = real.shape[0]
 
@@ -122,11 +118,9 @@ def train_fn(
         gen_losses.append(loss_g)
         discriminator_losses.append(loss_d)
     
-        loop.set_postfix(
-            gp = gp.item(),
-            loss_discriminator = loss_d,
-            loss_gen = loss_g
-        )
+        gp = gp.item(),
+        loss_discriminator = loss_d,
+        loss_gen = loss_g
 
     return alpha
 #----------------------------------------------------------------
