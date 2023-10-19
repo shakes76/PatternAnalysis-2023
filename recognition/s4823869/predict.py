@@ -8,14 +8,14 @@ import modules
 # Random seed to ensure reproducibility
 torch.manual_seed(42)
 
-DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+DEVICE = 'mps' if torch.backends.mps.is_available() else 'cpu'
 Z_DIm = 512
 W_DIM = 512
 IN_CHANNELS = 512
 CHANNELS_IMG = 3
 
 gen = modules.Generator(Z_DIm, W_DIM, IN_CHANNELS, CHANNELS_IMG).to(DEVICE)
-gen.load_state_dict(torch.load('OASIS_style_gan_generater.pth'))
+gen.load_state_dict(torch.load('Generator.pth'))
 # eval mode
 gen.eval()
 
@@ -30,7 +30,7 @@ generated_images = generated_images.cpu().numpy().transpose(0, 2, 3, 1)  # (batc
 
 # Plot
 _,ax = plt.subplots(3,3,figsize=(8,8))
-plt.suptitle('Generated sample images')
+plt.suptitle('Generated images')
 
 for i in range(3):
     for j in range(3):
