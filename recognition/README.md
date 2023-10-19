@@ -128,6 +128,8 @@ pip install -r requirements.txt
 ### Dataset
 Click here to get [ADNI](http://adni.loni.usc.edu/data-samples/access-data/)
 
+### Hardware
+This model have be trained 50 epochs on a RTX4090 for about 30 minutes. Please take this as a reference and adjust your batch size with your hardware.
 
 # Reference
 Chopra, Sumit & Hadsell, Raia & Lecun, Yann. (2005). Learning a similarity metric discriminatively, with application to 
