@@ -2,7 +2,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 import torch.optim as optim
-from torchmetrics.functional.image import structural_similarity_index_measure as ssim
+from torchmetrics.functional.image \
+    import structural_similarity_index_measure as ssim
 from dataset import OASISDataLoader
 import modules
 import parameters
@@ -15,9 +16,10 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(device)
 print("Name: ", torch.cuda.get_device_name(0))
 
-train_loader, _, val_loader = OASISDataLoader(batch_size=parameters.batch_size).get_dataloaders()
+train_loader, _, val_loader = OASISDataLoader(
+    batch_size=parameters.batch_size).get_dataloaders()
 
-# Calculate variance
+# Calculate variance for data normalization
 mean = 0.0
 mean_sq = 0.0
 count = 0
@@ -31,14 +33,16 @@ total_mean = mean/count
 total_var = (mean_sq / count) - (total_mean ** 2)
 data_variance = float(total_var.item()) # 0.68
 
-
+# Create the VQ-VAE model and optimizer
 model = modules.VQVAE(parameters.num_channels,
-                      parameters.num_hiddens,
-                      parameters.num_residual_hiddens,
-                      parameters.num_embeddings,
-                      parameters.embedding_dim,
-                      parameters.commitment_cost).to(device)
-optimizer = optim.Adam(model.parameters(), lr=parameters.learning_rate, amsgrad=False)
+    parameters.num_hiddens,
+    parameters.num_residual_hiddens,
+    parameters.num_embeddings,
+    parameters.embedding_dim,
+    parameters.commitment_cost
+).to(device)
+optimizer = optim.Adam(model.parameters(), lr=parameters.learning_rate,
+                       amsgrad=False)
 
 # Training loop
 epoch_train_loss = []
@@ -93,11 +97,11 @@ for epoch in range(parameters.num_epochs):
     epoch_ssim.append(average_ssim)
     print()
 
-# Save model
+# Save the trained model
 if parameters.save_model:
     torch.save(model, parameters.VQVAE_PATH)
 
-# Save training data
+# Save training data to a text file
 if parameters.save_model_output:
     with open(parameters.TRAIN_OUTPUT_PATH, 'w') as file:
         for i in range(parameters.num_epochs):

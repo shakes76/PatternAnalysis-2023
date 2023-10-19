@@ -11,33 +11,60 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 resize_size = (128, 128)
 
-# Rangpur = 0, Home PC = 1, Laptop = 2
+# Device configuration (0 = Rangpur, 1 = Home PC, 2 = Laptop)
 device_config = 1
+
 if device_config == 0:
     train_path = '/home/groups/comp3710/OASIS/keras_png_slices_train/'
     test_path = '/home/groups/comp3710/OASIS/keras_png_slices_test/'
     validation_path = '/home/groups/comp3710/OASIS/keras_png_slices_validate/'
 elif device_config == 1:
-    train_path = 'C:/Users/PC User/Desktop/COMP3710/PatternAnalysis-2023/dataset/keras_png_slices_data/keras_png_slices_train/'
-    test_path = 'C:/Users/PC User/Desktop/COMP3710/PatternAnalysis-2023/dataset/keras_png_slices_data/keras_png_slices_test/'
-    validation_path = 'C:/Users/PC User/Desktop/COMP3710/PatternAnalysis-2023/dataset/keras_png_slices_data/keras_png_slices_validate/'
+    train_path = 'C:/Users/PC User/Desktop/COMP3710/PatternAnalysis-2023' \
+                 '/dataset/keras_png_slices_data/keras_png_slices_train/'
+    test_path = 'C:/Users/PC User/Desktop/COMP3710/PatternAnalysis-2023/' \
+                'dataset/keras_png_slices_data/keras_png_slices_test/'
+    validation_path = 'C:/Users/PC User/Desktop/COMP3710/' \
+                      'PatternAnalysis-2023/' \
+                      'dataset/keras_png_slices_data/' \
+                      'keras_png_slices_validate/'
 elif device_config == 2:
-    train_path = 'C:/Users/SAM/Desktop/COMP3710/PatternAnalysis-2023/dataset/keras_png_slices_data/keras_png_slices_train/'
-    test_path = 'C:/Users/SAM/Desktop/COMP3710/PatternAnalysis-2023/dataset/keras_png_slices_data/keras_png_slices_test/'
-    validation_path = 'C:/Users/SAM/Desktop/COMP3710/PatternAnalysis-2023/dataset/keras_png_slices_data/keras_png_slices_validate/'
+    train_path = 'C:/Users/SAM/Desktop/COMP3710/PatternAnalysis-2023/' \
+                 'dataset/keras_png_slices_data/keras_png_slices_train/'
+    test_path = 'C:/Users/SAM/Desktop/COMP3710/PatternAnalysis-2023/dataset/' \
+                'keras_png_slices_data/keras_png_slices_test/'
+    validation_path = 'C:/Users/SAM/Desktop/COMP3710/PatternAnalysis-2023/' \
+                      'dataset/keras_png_slices_data/' \
+                      'keras_png_slices_validate/'
 
-roots = 'C:/Users/PC User/Desktop/COMP3710/PatternAnalysis-2023/dataset/keras_png_slices_data'
+roots = 'C:/Users/PC User/Desktop/COMP3710/PatternAnalysis-2023/' \
+        'dataset/keras_png_slices_data'
+
 
 class OASISDataLoader:
+    """
+    DataLoader for OASIS dataset.
+
+    Args:
+        batch_size (int): The batch size for training, testing,
+        and validation datasets.
+        image_size (tuple): The size to resize images (default is (128, 128)).
+
+    Attributes:
+        batch_size (int): The batch size.
+        device_config (int): Device configuration
+        (0 = Rangpur, 1 = Home PC, 2 = Laptop).
+    """
     def __init__(self, batch_size, image_size=resize_size):
         self.batch_size = batch_size
         self.device_config = 1
-        if self.device_config == 0: # rangpur
+        if self.device_config == 1:  # Home pc
+            root_dir = 'C:/Users/PC User/Desktop/COMP3710/' \
+                       'PatternAnalysis-2023/dataset/keras_png_slices_data/'
+        elif self.device_config == 2:  # Laptop
+            root_dir = 'C:/Users/SAM/Desktop/COMP3710/' \
+                       'PatternAnalysis-2023/dataset/keras_png_slices_data/'
+        else:
             root_dir = '/home/groups/comp3710/OASIS/'
-        elif self.device_config == 1:   # home pc
-            root_dir = 'C:/Users/PC User/Desktop/COMP3710/PatternAnalysis-2023/dataset/keras_png_slices_data/'
-        elif self.device_config == 2:   # laptop
-            root_dir = 'C:/Users/SAM/Desktop/COMP3710/PatternAnalysis-2023/dataset/keras_png_slices_data/'
 
         train_dir = os.path.join(root_dir, "keras_png_slices_train")
         test_dir = os.path.join(root_dir, "keras_png_slices_test")
@@ -55,14 +82,39 @@ class OASISDataLoader:
         self.val = OASISDataset(root_dir=validation_dir, transform=transformer)
 
     def get_dataloaders(self):
-        train_loader = DataLoader(self.train, batch_size=self.batch_size, shuffle=True)
-        test_loader = DataLoader(self.test, batch_size=self.batch_size, shuffle=True)
-        validation_loader = DataLoader(self.val, batch_size=self.batch_size, shuffle=True)
+        """
+        Get data loaders for training, testing, and validation sets.
+
+        Returns:
+            DataLoader: Training data loader.
+            DataLoader: Testing data loader.
+            DataLoader: Validation data loader.
+        """
+        train_loader = DataLoader(self.train, batch_size=self.batch_size,
+                                  shuffle=True)
+        test_loader = DataLoader(self.test, batch_size=self.batch_size,
+                                 shuffle=True)
+        validation_loader = DataLoader(self.val, batch_size=self.batch_size,
+                                       shuffle=True)
 
         return train_loader, test_loader, validation_loader
 
 
 class OASISDataset(Dataset):
+    """
+    Custom dataset for the OASIS dataset.
+
+    Args:
+       root_dir (str): The root directory of the dataset.
+       transform (callable, optional): A function/transform to apply to
+       the data (default is None).
+
+    Attributes:
+       root_dir (str): The root directory of the dataset.
+       file_list (list): List of file names in the dataset directory.
+       transform (callable, optional): A function/transform to apply to
+       the data (default is None).
+    """
     def __init__(self, root_dir, transform):
         self.root_dir = root_dir
         self.file_list = os.listdir(root_dir)
