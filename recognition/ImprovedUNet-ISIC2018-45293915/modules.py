@@ -26,6 +26,3 @@ def unet_model(input_shape=(256, 256, 1)):
     
     model = tf.keras.Model(inputs, outputs)
     return model
-
-model = unet_model()
-model.summary()
