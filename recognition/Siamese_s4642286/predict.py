@@ -49,4 +49,6 @@ def calculate_accuracy(dataloader):
 # Calculate accuracy on the test dataloader
 test_accuracy = calculate_accuracy(testloader)
 
+# specify a path to an image to send, show predict label vs actual label + probability.
+
 print(f'Test Accuracy: {test_accuracy * 100:.2f}%') # Need a minimum accuracy of 0.8 on the test set.

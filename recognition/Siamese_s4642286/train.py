@@ -10,7 +10,7 @@ import torch.nn as nn
 import time
 import matplotlib.pyplot as plt
 from modules import SiameseNetwork, ContrastiveLoss, MLP
-from dataset import trainloader, mlp_trainloader
+from dataset import trainloader, mlp_loader
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
@@ -20,24 +20,11 @@ print(device)
 
 
 ##########################################################################################
-################                  Training Siamese Network                  ##############
+################                  Training Siamese Network                ################
 ##########################################################################################
-
-# Initialize the Siamese network
-# CNN_A = CNN()
-# CNN_B = CNN()
-
-# # Move the network to GPU if available
-# CNN_A.to(device)
-# CNN_B.to(device)  
-
-# Siamese = SiameseNetwork(CNN_A, CNN_B)
-# Siamese.to(device)
-
 
 siamese_net = SiameseNetwork()
 siamese_net.to(device)
-
 
 # Define loss function and optimizer
 criterion = ContrastiveLoss(margin=2.0)
@@ -100,7 +87,7 @@ torch.save(siamese_net.state_dict(), "PatternAnalysis-2023/recognition/Siamese_s
 
 
 # ##########################################################################################
-# ################                    Training MLP                            ##############
+# ################                      Training MLP                          ##############
 # ##########################################################################################
 
 siamese = SiameseNetwork()
@@ -136,7 +123,7 @@ start = time.time()
 
 for epoch in range(num_epochs):
 
-    for batch_idx, (input, label) in enumerate(mlp_trainloader):
+    for batch_idx, (input, label) in enumerate(mlp_loader):
         input, label = input.to(device), label.to(device)
 
         optimizer.zero_grad()

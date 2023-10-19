@@ -8,45 +8,6 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
-# class CNN(nn.Module):
-#     def __init__(self):
-#         super(CNN, self).__init__()
-
-#         # CNN and Pooling layers
-#         self.cnn = nn.Sequential(
-#             nn.Conv2d(3, 32, kernel_size=10), nn.ReLU(),
-#             nn.MaxPool2d(2),
-#             nn.Conv2d(32, 64, kernel_size=7), nn.ReLU(),
-#             nn.MaxPool2d(2),
-#             nn.Conv2d(64, 64, kernel_size=4), nn.ReLU(),
-#             nn.MaxPool2d(2),
-#             nn.Conv2d(64, 128, kernel_size=4),
-#             nn.BatchNorm2d(128),
-#             nn.ReLU(),
-#             nn.Flatten() # Outputs a 128 dimensional feature vector
-#         )
-
-#     def forward(self, input):
-#         return self.cnn(input)
-    
-
-# class SiameseNetwork(nn.Module):
-#     def __init__(self, cnn1, cnn2):
-#         super(SiameseNetwork, self).__init__()
-#         self.cnn1 = cnn1
-#         self.cnn2 = cnn2
-
-#     def forward(self, input1, input2):
-#         # combined_input = torch.cat((input1, input2), dim=1)
-#         output1 = self.cnn1(input1)
-#         output2 = self.cnn2(input2)
-#         return output1, output2
-
-#     def forward_cnn(self, input):
-#         return self.cnn1(input)
-
-
 #create the Siamese Neural Network
 class SiameseNetwork(nn.Module):
 
