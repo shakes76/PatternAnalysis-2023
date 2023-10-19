@@ -1,17 +1,18 @@
 import unittest
-import dataset
 from CONFIG import *
 import torch
 from torch.utils.data import DataLoader, random_split
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from torchvision.transforms import v2
+from dataset import ISICDataloader
 
 class DatasetTest(unittest.TestCase):
 
     def __init__(self, methodName: str = "runTest") -> None:
         super().__init__(methodName)
-        self.dataloader = dataset.ISICDataloader(classify_file=classify_file, 
+        self.dataloader = ISICDataloader(classify_file=classify_file, 
                                                  photo_dir=photo_dir, 
                                                  mask_dir=mask_dir,
                                                  mask_empty_dim=(1000, 700))
@@ -32,7 +33,7 @@ class DatasetTest(unittest.TestCase):
 
 class ManualTest():
     def __init__(self):
-        self.dataloader = dataset.ISICDataloader(classify_file=classify_file, 
+        self.dataloader = ISICDataloader(classify_file=classify_file, 
                                                  photo_dir=photo_dir, 
                                                  mask_dir=mask_dir,
                                                  mask_empty_dim=(1000, 700))
@@ -40,6 +41,7 @@ class ManualTest():
         
     def main(self):
         self.test_dataloader()
+        self.getNormalize()
     
     def test_dataloader(self):
         train_dataset, test_dataset = random_split(self.dataloader, [train_size, test_size])
@@ -47,7 +49,7 @@ class ManualTest():
         fig, axes = plt.subplots(2, 3, figsize=(12, 8))
         count = 0
         for raw_image, raw_target in test_dataset:
-            image = raw_image.cpu().numpy()
+            image = raw_image.cpu().numpy().transpose((1, 2, 0))
             #image = np.transpose(raw_image, (2, 0, 1))
             ax = axes[count % 2, count // 2]
             ax.imshow(image)
@@ -70,9 +72,33 @@ class ManualTest():
             if count > 6 - 1:
                  break
         plt.show()
-            
-        
 
+    def getNormalize(self):
+        transforms = v2.Compose([
+            v2.ToImage(),
+            v2.Resize(size=IMAGE_SIZE, antialias=True)
+        ])
+        
+        mean = [0.0, 0.0, 0.0]
+        std = [0.0, 0.0, 0.0]
+
+        dataset = ISICDataloader(classify_file=classify_file, 
+                                                 photo_dir=photo_dir, 
+                                                 mask_dir=mask_dir,
+                                                 mask_empty_dim=IMAGE_SIZE,
+                                                 transform=transforms)
+
+        for image, _ in dataset:
+            for i in range(3):  # 3 channels: Red, Green, Blue
+                mean[i] += image[i, :, :].mean()
+                std[i] += image[i, :, :].std()
+        
+        num_samples = len(dataset)
+        mean = [m / num_samples for m in mean]
+        std = [s / num_samples for s in std]
+        
+        print(mean)
+        print(std)
 
 
 
