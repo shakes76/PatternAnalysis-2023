@@ -108,6 +108,7 @@ class UNet(nn.Module):
         for feature in features:
             self.downs.append(ContextLayer(input_channels, feature))    
             input_channels = feature    
+        self.segment_upscale = nn.Upsample(scale_factor=2,mode='nearest')
         
         self.first_up = Upsampling(512*2,512)
         self.second_up = Upsampling(512,256)
@@ -118,17 +119,10 @@ class UNet(nn.Module):
         self.second_local = Localization(256*2,256)
         self.third_local = Localization(128*2,128)
 
-        self.segment1 = nn.Conv2d(128, 1, 3, padding=1,stride=1)
-        self.segment2 = nn.Conv2d(128, 1, 3, padding=1,stride=1)
-        self.segment3 = nn.Conv2d(128, 1, 3, padding=1,stride=1)
+        self.segment_layer1 = nn.Conv2d(256, 1, 1, padding=1,stride=1)
+        self.segment_layer2 = nn.Conv2d(128, 1, 1, padding=1,stride=1)
+        self.segment_layer3 = nn.Conv2d(128, 1, 1, padding=1,stride=1)
 
-        for feature in reversed(features):
-            self.ups.append(
-                nn.Conv2d(
-                    feature*2,feature,kernel_size=2,stride=2
-                )
-            )
-            self.ups.append(ContextLayer(feature*2,feature))
         self.bottleneck = ContextLayer(features[-1],features[-1]*2)
         self.final_conv = nn.Conv2d(128,128,kernel_size=1)
         self.final_segmentIDK = nn.Conv2d(128,1,kernel_size=1)
@@ -178,19 +172,32 @@ class UNet(nn.Module):
             x = TF.resize(x, size=skip_connection3.shape[2:])       
         concat_skip = torch.cat((skip_connection3, x), dim=1)
         x = self.second_local(concat_skip)
+        segment1 = self.segment_layer1(x)
+        segment1 = self.segment_upscale(segment1)
+        segment2 = TF.resize(segment2, size=torch.Size([224, 224])) 
         x = self.thrid_up(x)
+        
 
         #LAYER 2
         if x.shape != skip_connection2.shape:
             x = TF.resize(x, size=skip_connection2.shape[2:])     
         concat_skip = torch.cat((skip_connection2, x), dim=1)
         x = self.third_local(concat_skip)
+        segment2 = self.segment_layer2(x)
+        segment2 = TF.resize(segment2, size=torch.Size([224, 224]))    
+        segment2.add(segment1)
+        segment2 = self.segment_upscale(segment2)
+        x = self.fourth_up(x)
 
         #LAYER 1
-        x = self.fourth_up(x)
+
         if x.shape != skip_connection1.shape:
             x = TF.resize(x, size=skip_connection1.shape[2:])      
         concat_skip = torch.cat((skip_connection1, x), dim=1)
         x = self.final_conv(concat_skip)
-        x = self.final_segmentIDK(x)
-        return self.final_activiation(x)
+        segment3 = self.segment_layer3(x)
+        print(segment3.shape[2:])
+        segment3 = TF.resize(segment3, size=torch.Size([224, 224]))  
+        print(segment2.shape[2:])  
+        segment3.add(segment2)
+        return self.final_activiation(segment3)
