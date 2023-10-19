@@ -8,7 +8,6 @@ The vision transformer utilises the transform encoder from the transformer archi
 <p align="center">
     <img width="650" src="Images/ViT_Architect.png">
 </p>
-![Alt text](Images/ViT_Architect.png)
 
 1. Image Patching + Linear Embedding: Takes an image and split them into smaller patches and then transforming each patch into a their respective 1D vector representation. This is to convert the image as a suitable input for the transform encoder. Which requires the input to be in the form of a token, in this case we use a smaller patch of the images as the token representations.
 2. Positional Encoding: Encodes spatial information, allowing the model to understand where each patch belongs on the input image. This is added to the input after image patching and linear embedding.
@@ -94,5 +93,7 @@ Therefore for future improvements would to be to gather a larger dataset to trai
     wandb 0.15
 ## References
 [1]	https://browse.arxiv.org/pdf/2010.11929.pdf 
+
 [2]	https://jalammar.github.io/illustrated-transformer/ 
+
 [3]	https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial15/Vision_Transformer.html 
