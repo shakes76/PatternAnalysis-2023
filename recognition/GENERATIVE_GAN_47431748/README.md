@@ -25,16 +25,43 @@ to be extremely helpful in building understanding of the VQ-VAE model.
  
 
 ### 1.1 VQ-VAE
-To motivate the idea of a VQ-VAE, let us first revisit the idea of traditional Variational AutoEncoders (VAE). A VAE made up of
-a decoder and an encoder. The purpose of the decoder is to, given a series of inputs, learns the probability 
-distribution over a reduced representation over the latent vector space, which act as a reduced representation of the model inputs.
-The encoder then reconstructs the original image 
+To motivate the idea of a VQ-VAE, let us first revisit the idea of traditional Variational AutoEncoders (VAE). A VAE 
+made up of a decoder and an encoder. The purpose of the decoder is to, given a series of inputs, learn the probability 
+distribution over the latent vector space, which act as a reduced representation of the model inputs. Given the reduced 
+representation, a working encoder should reconstruct this image so that is is similar to the image passed into the VAE. 
 
+<br/>
+  
 As outlined in Oord's, Vinyals', and Kavukcuoglu's paper [Neural Representation Learning](https://arxiv.org/abs/1711.00937),
-a VQ-VAE differs from a traditional VAE in two key ways. The encode network outputs discrete, as opposed to continuous, codes;
-and the prior (in this implementation a PixelCNN) is learnt rather than static. 
+a VQ-VAE differs from a traditional VAE in two key ways. The encode network outputs discrete, as opposed to continuous, 
+codes, and the prior (in this implementation a PixelCNN) is learnt rather than static. The discrete representation of the
+latent space is represented as a set of vectors collectively known as a codebook. Vectors from the encoder are quantised
+using a Vector Quantisation layer. Figure 1 (Sourced from [this paper](https://arxiv.org/abs/1711.00937)) details VQ-VAE
+architecture which was utilised in my 
+implementation.
+
+<br/>
+
+![VQ-VAE Architecture](Images/VQVAE.png)
+
+Initially, the embedding space it randomly intisialised using a uniform distribution and is later refined using the loss
+function defined in [Neural Representation Learning](https://arxiv.org/abs/1711.00937). Namely,
+
+![Loss function](Images/loss.png)
+
+Where:
+* $\text{sg}$ is the stop-gradient operator
+* Given some arbitrary input $x$, $z_e(x)$ and $z_q(x)$ denote the encoded, and decoded inputs
+* $e$ is the unique element in the codebook in which $z_e(x) - e$ has the least euclidean norm.
+* $||\cdot||$ denotes the l-2 norm.
+
+Alternatively, the three individual terms in $L$ can be understood to represent reconstruction loss, the distance between
+the encoded input and it's nearest embedding, and finally a term to 'commit' the encoder to the closest embedding.
+
 
 ### 1.2 PixelCNN
+
+A PixelCNN is an autoregressive 
 
 ## ADNI Brain Dataset
 
