@@ -41,7 +41,6 @@ class ManualTest():
         
     def main(self):
         self.test_dataloader()
-        self.getNormalize()
     
     def test_dataloader(self):
         train_dataset, test_dataset = random_split(self.dataloader, [train_size, test_size])
@@ -76,7 +75,7 @@ class ManualTest():
     def getNormalize(self):
         transforms = v2.Compose([
             v2.ToImage(),
-            v2.Resize(size=IMAGE_SIZE, antialias=True)
+            v2.Resize(size=image_size, antialias=True)
         ])
         
         mean = [0.0, 0.0, 0.0]
@@ -85,7 +84,7 @@ class ManualTest():
         dataset = ISICDataloader(classify_file=classify_file, 
                                                  photo_dir=photo_dir, 
                                                  mask_dir=mask_dir,
-                                                 mask_empty_dim=IMAGE_SIZE,
+                                                 mask_empty_dim=image_size,
                                                  transform=transforms)
 
         for image, _ in dataset:
@@ -98,7 +97,9 @@ class ManualTest():
         std = [s / num_samples for s in std]
         
         print(mean)
+        # [tensor(0.7079, device='cuda:0'), tensor(0.5916, device='cuda:0'), tensor(0.5469, device='cuda:0')]
         print(std)
+        # [tensor(0.0925, device='cuda:0'), tensor(0.1103, device='cuda:0'), tensor(0.1247, device='cuda:0')]
 
 
 
