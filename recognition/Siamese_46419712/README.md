@@ -54,39 +54,40 @@ If the program is successully run, ```Siamese.pt and Classifier.pt``` exists, ru
 ### 4.1. Background
 According to a paper by Koch, Zemel, and Salakhutdinov [1] about Siamese network for one shot image recognition, the Siamese model is best work when used to find the dissimilarity between two images. That is why, traditional Siamese model often train in a pair dataset.
 
-**Key features of Siamese model include**
-
 * Siamese architecture
 
 ![Siamese oneshot](research_image/Siamese_oneshot.png)
 The figure above demonstrate Siamese's architecture One-shot image recognition.
 
-As shown from the figure, the first four layers of the model is for feature extraction, extracting important feature from the image. 
+Based on the paper, key features from the Siamese's model One-shot image recognition includin, feature extraction using convolutional layer to extract feature vector from the image. This process is done with two identical subnetworks and compare between two iamges. The goal is to identify the dissimilarity between the two images.
 
-
-
+After the first four layer of feature extraction, the distance metric (Siamese L1 distance) is calculated between the two images, and this will return the distance represent the dissimilarity. The image with similar dissimilarity will be closer to each other while higher dissimilarity will be push away. This is done using the contrastive loss function
+$L = (1-Y) * ||x_i-y_j||^2 + (Y) * \max(0, m-||x_i-y_j||^2)$ .
 
 ### 4.2. Implementation
 
+Adapting from the Siamese architecture above, the project is followed Siamese model architecture from the oneshot learning paper to implement the layer for Siamese model and the contrastive loss function for criterion.
+![Siamese oneshot](research_image/Siamese_oneshot.png)
 
+**Data preprocessing**
 
+For data processing, there is no data for validating so, the train dataset was split in 80% for training and 20% for validating. To avoid data leakage, the data split was performed on patient level, so dataset that belong to the same patient will not shared between training and validating data.
+In addition, the size of the image is resize to 105 to match with the classification from the paper. The result showed that when resize to 105, it not only train faster but the accuracy remain similar with little differences.
 
-### 4.3. Model limitation
-When implementing the model, 
+**Binary classification model**
+
+Once the Siamese model is finish training, the model was used to help trained the binary classifier to classify the class of the image. First, the image will go through the Siamese to extract the feature vector. This feature vector is expected to distancing images that are dissimilar. The classifier is then used to classify the image. The classifier follow a simple multi fuly connected layer (5 fully connected layers) for better classification.
 
 
 ## 5. Train and validate loss
-
 
 ![Siamese loss plot](result/siamese_loss_plot.png)
 
 The Siamese's train and validate loss show that when training and validating, the loss is converging and getting close to one another.
 
-
 ![Classifier loss plot](result/classifier_loss_plot.png)
 
 However, when the image is put through the train Siamese model to extract feature vector to train the binary classifier, the loss model from the binary classifier showed that it is overfitting. This is due to the validate loss 
-
 
 <div>
     <img src="result/tsn_train.png" alt="t-SNE train data" width="40%">
@@ -100,18 +101,23 @@ The t-SNE diagram shows that when evaluate Siamese model during validate using t
 The accuracy of the classifier model during training and validating further prove that there is overfitting in the model, where the accuracy of the train is growing while the accuracy of validate data capped at around 75%.
 ![Result Accuracy loss plot](result/Accuracy_plot.png)
 
-For this project, when run the test using the following hyper-parameter, the final result accuracy is 72.83%.
+### 6.1. What went wrong
+Initially, this project has taken a wrong path where the file path for training dataset was accidentally use during the testing phase. This has cause false information and with the remaining time (2 days before the deadline), it is impossible to tune the hyper-parameters and the model to increase the accuracy.
+When the wrong path was used, the highest accuracy achieved is 82.65%.
+![img1](result/img1.png)
 
+The image above show the visual prediction of the model, classifying the image from the test dataset vs the actual label.
 
-The following hyper-parameters is alter in an attempt to improve accuracy. 
+### 6.2. Accuracy after correct the issue
 
-The final accuracy is 72.83%
-The following is the model predict of the image
+After correcting the path for the testing phase, the actual accuracy is fell down to 62.4%.
 
-
+Some attempted to tuning the accuracy include, using batchnorm and dropout layer to prevent overfitting from the Siamese model. However, in the end, the highest accuracy achieved is only 63.4%. Another attempt was using ResNet-18 as Siamese layer by remove the last layer and replace with the fully connected layer to extract the feature vector. However, the ResNet-18 doesn't work very well without careful tuning and the resource is limited in the remaining time, hence, the best accuracy achieved using ResNet-18 is only around 50.4%. 
 
 ## 7. Future improvement
-
+Due to unfortunate incident that causing misleading in interpreting the model performance, future work will focus on tuning the parameters and apply more data augmentation to increase the accuracy of the model. In addition, this project will explore more on using ResNet-18 (CNN) as Siamese embedding layer to extract better feature vector from the data.
 
 ## 8. References
 [1]	G. Koch, R. Zemel, and R. Salakhutdinov, "Siamese neural networks for one-shot image recognition," in ICML deep learning workshop, 2015, vol. 2, no. 1: Lille. 
+
+**Code adaptation from external source is reference within the code comment**
