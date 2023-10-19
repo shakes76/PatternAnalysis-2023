@@ -60,7 +60,7 @@ for epoch in range(num_epochs):
         total_loss += loss.item()
     
     total_loss = total_loss/len(train_loader)
-    print ("Epoch [{}/{}], Loss: {:.5f}"
+    print ("Epoch [{}/{}], Training Loss: {:.5f}"
            .format(epoch+1, num_epochs, total_loss))
     train_loss.append(total_loss)
         
@@ -78,8 +78,8 @@ for epoch in range(num_epochs):
             
             total_loss += loss.item()
 
-    total_loss = total_loss/len(train_loader)
-    print ("Epoch [{}/{}], Loss: {:.5f}"
+    total_loss = total_loss/len(valid_loader)
+    print ("Epoch [{}/{}], Validation Loss: {:.5f}"
            .format(epoch+1, num_epochs, total_loss))
     valid_loss.append(total_loss)
 
