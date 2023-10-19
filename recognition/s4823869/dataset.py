@@ -1,3 +1,10 @@
+'''
+Image Dataset Preparation and Visualization
+
+This part of code prepares a dataset from the OASIS dataset for training, including transforming the images and providing data loaders.
+It also displays sample images from the dataset.
+'''
+
 import torch
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
@@ -5,11 +12,6 @@ import os
 from torch.utils.data import Dataset
 from PIL import Image
 import matplotlib.pyplot as plt
-
-'''
-This script reads a downloaded image dataset from the OASIS dataset and returns a data loader of it 
-along with a transformation of the original dataset. Additionally, it displays some sample images from the loader.
-'''
 
 # Define dataset paths
 TRAIN_DATASET_PATH = "/Users/yashmittal/Downloads/Pattern Recognition Project 02/keras_png_slices_data/keras_png_slices_seg_train"  # Training data
@@ -100,10 +102,11 @@ def check_loader():
             ind += 1
 
     if not os.path.exists("output_images"):
+
         os.makedirs("output_images")
 
     # Save the figure to the specified path
-    save_path = os.path.join("output_images", "real_grid.png")
+    save_path = os.path.join("output_images", "initial_image.png")
     plt.savefig(save_path)
     plt.close()
 
