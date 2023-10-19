@@ -28,7 +28,7 @@ class ISICDataset(Dataset):
         im_path = os.path.join(self.img_dir, self.img_files[idx])
         im = Image.open(im_path)
         
-        mask_path = os.path.join(self.mask_dir, self.find_mask(img_files[idx]))
+        mask_path = os.path.join(self.mask_dir, self.find_mask(self.img_files[idx]))
         mask = Image.open(mask_path)
         
         if self.transform:
