@@ -1,6 +1,4 @@
 """
-Created on Wednesday September 20 2023
-
 Scripts for misc functions used in training, saving and loading the model
 
 @author: Rodger Xiang s4642506
@@ -68,6 +66,11 @@ def load_model(model_name, device, config):
     return model.to(device)
 
 def create_new_sweep():
+    """initialises a sweep according to the sweep config below
+
+    Returns:
+        str: sweep id to use when initialising sweep agents
+    """
     sweep_config = {
     "method": "grid",
     "metric": {"goal": "maximize", "name": "test/epoch/acc"},
@@ -134,3 +137,4 @@ def create_new_sweep():
     sweep_config['parameters'] = param_dict
     sweep_id  = wandb.sweep(sweep_config, project='ViT_Sweep')
     return sweep_id
+

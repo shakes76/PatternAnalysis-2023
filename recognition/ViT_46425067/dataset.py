@@ -1,6 +1,4 @@
 """
-Created on Wednesday September 20 2023
-
 Script to load in the ADNI dataset as a pytorch DataLoader
 
 @author: Rodger Xiang s4642506
