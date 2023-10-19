@@ -29,7 +29,7 @@ The train and test splits were already done in the dataset downloaded off of the
 
 Each patient in the data set had 20 mri scans of their brain.
 
-The validation set was produced by taking 216 patients, 108 with alzheimers and 108 without, (so 4320 samples or a standard 20% of the train set). The validation split was done on a per patient basis to avoid data leakage from the train set into the validation set. If a patient appeared half in the validation set and half in the train set, the model might be just remembering the general brain shape or skull shape to get the alzheimer's classification right, giving a deceptively high validation accuracy, rather than looking in the correct places.
+The validation set was produced by taking 216 patients, 108 with alzheimers and 108 without, (so 4320 samples or 20% of the train set). The validation split was done on a per patient basis to avoid data leakage from the train set into the validation set. If a patient appeared half in the validation set and half in the train set, the model might be just remembering the general brain shape or skull shape to get the alzheimer's classification right, giving a deceptively high validation accuracy, rather than looking in the correct places. A 20% validation set was chosen to give a good balance between decently estimating test performance and not cutting into the training set.
 
 The images were cropped to be square, scaled to have its pixel values between 0 and 1. Data normalisation wasnt used since the pixel values were already scaled between 0 and 1.
 
