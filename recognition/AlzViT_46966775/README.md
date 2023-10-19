@@ -83,7 +83,7 @@ Key components of the ViT model include:
 
 ```
 git clone https://github.com/LeSnack/PatternAnalysis-2023-46966775.git
-cd PatternAnalysis-2023-46966775/recognition/AlzheimerClassifierNN_ZacharyWalls_46966775
+cd PatternAnalysis-2023-46966775/recognition/AlzViT_46966775
 ```
 
 2. Train the model:
@@ -92,7 +92,9 @@ cd PatternAnalysis-2023-46966775/recognition/AlzheimerClassifierNN_ZacharyWalls_
 python train.py
 ```
 
-This will train the AlzViT model on the ADNI dataset and save the trained model to `trained_model_weights.pth` within the base AlzheimerClassifierNN_ZacharyWalls_46966775 folder.
+This will train the AlzViT model on the ADNI dataset and save the trained model to `trained_model_weights.pth` within the base folder.
+
+Performance on the test dataset will also be recorded on the best performing epoch on the validation set at the end of training.
 
 For the model used within the results the model was trained for 50 Epochs.
 
