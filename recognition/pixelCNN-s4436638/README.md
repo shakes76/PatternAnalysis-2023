@@ -63,10 +63,10 @@ python train.py --data_path "path/to/folder/with/train/images/"
 The ADNI dataset is structured as follows:
 ```bash
 |--AD_NC
-|  |--test
-|     |--AD
-|     |--NC
-|--|train
+|--|--test
+|  |  |--AD
+|  |  |--NC
+|--|--train
       |--AD
       |--NC
 ```
