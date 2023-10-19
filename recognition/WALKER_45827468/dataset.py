@@ -21,7 +21,7 @@ class ISICDataset(Dataset):
         return len(self.img_files)
     
     def find_mask(self, im):
-        im_num = im.split('.')[0]
+        im_num = os.path.splitext(im)[0]
         mask = im_num + "_segmentation.png"
     
     def __getitem__(self, idx):
