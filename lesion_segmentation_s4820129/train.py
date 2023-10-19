@@ -26,7 +26,7 @@ model = model.to(device)
 # criterion = DiceLoss()
 # optimizer = Adam(model.parameters(), lr=0.001)
 criterion = DiceLoss()
-lr_init = 0.001
+lr_init = 0.0001
 weight_decay = 1e-5
 optimizer = torch.optim.Adam(model.parameters(), lr=lr_init, weight_decay=weight_decay)
 scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: lr_init * (0.985 ** epoch))
