@@ -42,7 +42,7 @@ class VectorQuantizer(nn.Module):
 
 class Encoder(nn.Module):
     def __init__(self, lat_dim):
-        super(Encoder, self).__init__()
+        super(Encoder, self).__init()
         self.conv1 = nn.Conv2d(1, CONV_W_FACTOR, KERN_SIZE, stride=STRIDES, padding=1)
         self.conv2 = nn.Conv2d(CONV_W_FACTOR, 2 * CONV_W_FACTOR, KERN_SIZE, stride=STRIDES, padding=1)
         self.conv3 = nn.Conv2d(2 * CONV_W_FACTOR, 4 * CONV_W_FACTOR, KERN_SIZE, stride=STRIDES, padding=1)
@@ -58,7 +58,7 @@ class Encoder(nn.Module):
 
 class Decoder(nn.Module):
     def __init__(self, lat_dim):
-        super(Decoder, self).__init__()
+        super(Decoder, self).__init()
         self.conv1 = nn.ConvTranspose2d(lat_dim, 4 * CONV_W_FACTOR, KERN_SIZE, stride=STRIDES, padding=1)
         self.conv2 = nn.ConvTranspose2d(4 * CONV_W_FACTOR, 2 * CONV_W_FACTOR, KERN_SIZE, stride=STRIDES, padding=1)
         self.conv3 = nn.ConvTranspose2d(2 * CONV_W_FACTOR, 1, KERN_SIZE, padding=1)
@@ -103,3 +103,26 @@ class Trainer(nn.Module):
 def build_vqvae(lat_dim, embeds, beta):
     vqvae = VQVAE(lat_dim, embeds, beta)
     return vqvae
+
+class PCNN(nn.Module):
+    def __init__(self, vqvae):
+        super(PCNN, self).__init__()
+        self.vqvae = vqvae
+        # Define your PCNN layers here
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
+        self.fc1 = nn.Linear(64 * 20 * 20, 128)
+        self.fc2 = nn.Linear(128, 10)  # Modify this based on your classification task
+
+    def forward(self, x):
+        x = self.vqvae.encoder(x)
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = x.view(x.size(0), -1)  # Flatten
+        x = self.fc1(x)
+        x = self.fc2(x)
+        return x
+
+def build_pcnn(vqvae):
+    pcnn = PCNN(vqvae)
+    return pcnn
