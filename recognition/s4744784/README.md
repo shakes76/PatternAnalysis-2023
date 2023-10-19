@@ -76,42 +76,42 @@ class Network(nn.Module):
 
 Note the key features of the model being:
 
-# Input: 1 channel (greyscale) image of size 60x64
+Input: 1 channel (greyscale) image of size 60x64
 
-# Layer 1:
+Layer 1:
 
 - 64 filters with 5x5 kernels
 - Batch Normalisation
 - ReLu activation
 - Dropout (30%)
 
-# Layer 2:
+Layer 2:
 
 - 128 filters with 3x3 kernels
 - Batch Normalisation
 - ReLu activation
 - Dropout (30%)
 
-# Layer 3:
+Layer 3:
 
 - 128 filters with 3x3 kernels
 - Batch Normalisation
 - ReLu activation
 - Dropout (30%)
 
-# Layer 4:
+Layer 4:
 
 - 64 filters with 3x3 kernels
 - Batch Normalisation
 - ReLu activation
 - Dropout (30%)
 
-# Layer 5:
+Layer 5:
 
 - 16 filters with 3x3 kernels
 - ReLu activation
 
-# Pixel Shuffling Layer:
+Pixel Shuffling Layer:
 
 - Upscales the images by rearranging pixels in the feature map (based on the upscale factor)
 
@@ -174,6 +174,7 @@ As our validation PSNR is higher than our training PSNR, it aligns with our earl
 # Raw Results
 
 The results can be seen in the following figure. The top row is the original images, the middle row is the downsampled images, and the bottom row is the reconstructed images (sampled from using the model above).
+
 ![Raw Results](./figures/results.jpg)
 
 ## References
