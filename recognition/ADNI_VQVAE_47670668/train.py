@@ -48,45 +48,38 @@ else:
 
 
 # initialize all variables for training
-num_training_updates = 30000
-num_epochs = 10
+num_training_updates = 10000
+num_epochs = 5  
 
-num_hiddens = 128
-num_residual_hiddens = 32
+num_hiddens = 256
+num_residual_hiddens = 64  
 num_residual_layers = 2
 
 embedding_dim = 64
 
-num_embeddings = 512
+num_embeddings = 128  
 
-commitment_cost = 0.25
+commitment_cost = 0.1  
 
-decay = 0.99
+decay = 1e-5 
 
-learning_rate = 1e-5
-
+learning_rate = 1e-4
 
 encoder = Encoder(num_hiddens, num_residual_layers, num_residual_hiddens)
 decoder = Decoder(num_hiddens, num_residual_layers, num_residual_hiddens, embedding_dim)
 
-vq_vae = VectorQuantizer(
-      embedding_dim=embedding_dim,
-      num_embeddings=num_embeddings,
-      commitment_cost=commitment_cost
-      )
+vq_vae = VectorQuantizer(embedding_dim, num_embeddings, commitment_cost)
 
-pre_vq_conv1 = nn.Conv2d(in_channels=num_hiddens, out_channels=embedding_dim,
-                         kernel_size=1, stride=1)
+pre_vq_conv1 = nn.Conv2d(num_hiddens, embedding_dim, kernel_size=1, stride=1)
 
-model = VQVAEModel(encoder, decoder, vq_vae, pre_vq_conv1,
-                   data_variance=train_data_variance)
+model = VQVAEModel(encoder, decoder, vq_vae, pre_vq_conv1, train_data_variance).to(device)
 
-optimizer = optim.Adam(lr=learning_rate, weight_decay=decay, params=model.parameters())
-model.to(device)
+optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=decay)
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)
 
 torch.autograd.set_detect_anomaly(True)
 
-def train_step(image, label): # Added label as an input, even if you might not use it.
+def train_step(image, label): 
     # Zero the parameter gradients
     optimizer.zero_grad()
 
@@ -103,7 +96,6 @@ def train_step(image, label): # Added label as an input, even if you might not u
 
     # Backward pass and optimization
     loss.backward()
-    torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1)
     optimizer.step()
 
     return model_output, ssim_value.item()
@@ -111,32 +103,25 @@ def train_step(image, label): # Added label as an input, even if you might not u
 for epoch in range(num_epochs):  # Added epoch loop
 
     # Reset training metrics at the start of each epoch
-    train_losses = []
     train_recon_errors = []
-    train_perplexities = []
-    train_vqvae_loss = []
     train_ssim_values = []
     
     for step_index, (image, label) in enumerate(train_dataloader): # Updated data unpacking
 
         train_results, ssim_value = train_step(image, label)
-        train_losses.append(train_results['loss'].item())
         train_ssim_values.append(ssim_value)
         train_recon_errors.append(train_results['recon_error'].item())
-        train_perplexities.append(train_results['vq_output']['perplexity'].item())
-        train_vqvae_loss.append(train_results['vq_output']['loss'].item())
 
 
         if (step_index + 1) % 100 == 0:  # Adjust frequency as needed
-            print('Epoch %d/%d - Step %d train loss: %f ' % (epoch + 1, num_epochs, step_index + 1,
-                                                              np.mean(train_losses[-100:])) +
+            print('Epoch %d/%d - Step %d ' % (epoch + 1, num_epochs, step_index + 1) +
                   ('recon_error: %.3f ' % np.mean(train_recon_errors[-100:])) +
-                  ('perplexity: %.3f ' % np.mean(train_perplexities[-100:])) +
-                  ('vqvae loss: %.3f' % np.mean(train_vqvae_loss[-100:])) +
                   ('ssim: %.3f' % np.mean(train_ssim_values[-100:]))) 
 
         if step_index == num_training_updates:
             break
+
+    scheduler.step()
 
     # Visualization logic
     with torch.no_grad():
@@ -148,6 +133,7 @@ for epoch in range(num_epochs):  # Added epoch loop
     model.eval()  # Switch to evaluation mode
 
     # Initialize validation metrics
+    
     val_losses = []
     val_recon_errors = []
     val_perplexities = []
@@ -157,15 +143,10 @@ for epoch in range(num_epochs):  # Added epoch loop
         for image, label in val_dataloader:
             image, label = image.to(device), label.to(device)
             val_results = model(image)
-            val_losses.append(val_results['loss'].item())
             val_recon_errors.append(val_results['recon_error'].item())
-            val_perplexities.append(val_results['vq_output']['perplexity'].item())
-            val_vqvae_loss.append(val_results['vq_output']['loss'].item())
 
     # Print validation metrics
-    print(f"Epoch {epoch + 1}/{num_epochs} - Val loss: {np.mean(val_losses):.3f}, "
-          f"recon_error: {np.mean(val_recon_errors):.3f}, "
-          f"perplexity: {np.mean(val_perplexities):.3f}, "
-          f"vqvae loss: {np.mean(val_vqvae_loss):.3f}")
+    print(f"Epoch {epoch + 1}/{num_epochs} - "
+          f"recon_error: {np.mean(val_recon_errors):.3f}," )
 
     model.train()  # Switch back to training mode
