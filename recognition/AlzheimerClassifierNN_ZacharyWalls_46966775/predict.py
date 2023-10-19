@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
     # Load the model
     model = ViT(
-        in_channels=3,
+        in_channels=1,
         patch_size=14,
         emb_size=1536,
         img_size=224,
