@@ -9,13 +9,14 @@ import torch
 from torch.optim import Adam
 from torch.nn import CrossEntropyLoss
 from tqdm import tqdm, trange
+from modules import ViT
 
 
 def main():
     # data variables
     model_name = 'revert_to_crop.pth'
     root = '/home/callum/AD_NC/'
-    root = '/home/groups/comp3710/ADNI/AD_NC/'
+    # root = '/home/groups/comp3710/ADNI/AD_NC/'
     
     image_size = 256
     batch_size = 64
