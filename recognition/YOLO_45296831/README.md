@@ -17,19 +17,19 @@ AdamW Optimiser, Learning Rate = 0.002, Momentum = 0.9\
 Epochs = 20
 
 ## Results
-![Validation batch 1](/ReadmeSupport/val_batch0_pred.jpg)
-![Validation batch 2](/ReadmeSupport/val_batch1_pred.jpg)
-![Validation batch 3](/ReadmeSupport/val_batch2_pred.jpg)
+![Validation batch 1](/recognition/YOLO_45296831/ReadmeSupport/val_batch0_pred.jpg)
+![Validation batch 2](/recognition/YOLO_45296831/ReadmeSupport/val_batch1_pred.jpg)
+![Validation batch 3](/recognition/YOLO_45296831/ReadmeSupport/val_batch2_pred.jpg)
 \
 \
 Here we can see the results on the validation and test data after training. Most Lesions have a perfect IoU with over 80% confidence.\
 \
 \
-![Results](/ReadmeSupport/results.png)
+![Results](/recognition/YOLO_45296831/ReadmeSupport/results.png)
 From the test data, the model had a mean average precision of 97.6%. This is calculated from the mean IoU thresholds of the lesions, meaning it had an IoU well over 80%.\
 \
 We can also see the P-curve to see how the precision and the confidence interact with each other.\
-![P-curve](/ReadmeSupport/P_curve.png)
+![P-curve](/recognition/YOLO_45296831/ReadmeSupport/P_curve.png)
 
 
 
