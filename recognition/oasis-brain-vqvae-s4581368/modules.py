@@ -160,11 +160,13 @@ class VectorQuantizer(nn.Module):
 
         # Calulate distance from input to codebook mapping
         # Insert Equation
-        codebook_squared= torch.sum(self.embedding_layer.weight**2, dim=1) 
-        input_squared = torch.sum(x_flattened**2, dim=1, keepdim=True)
-        latent_area = 2 * torch.matmul(x_flattened, self.embedding_layer.weight.t())
-        x_distance = input_squared + codebook_squared - latent_area
+        distance = torch.sum(self.embedding_layer.weight**2, dim=1) + torch.sum(x_flattened**2, dim=1, keepdim=True) - 2 * torch.matmul(x_flattened, self.embedding_layer.weight.t())
 
+        #codebook_squared = torch.sum(self.embedding_layer.weight**2, dim=1) 
+        #input_squared = torch.sum(x_flattened**2, dim=1, keepdim=True)
+        #latent_area = 2 * torch.matmul(x_flattened, self.embedding_layer.weight.t())
+        #x_distance = input_squared + codebook_squared - latent_area
+        x_distance = distance
 
         encoding_idx = torch.argmin(x_distance, dim=1).unsqueeze(1)
         encodings = torch.zeros(encoding_idx.shape[0], self.num_e).to(device)
@@ -172,7 +174,6 @@ class VectorQuantizer(nn.Module):
 
         # Obtain the (quantized) latent vectors
         x_quantized = torch.matmul(encodings, self.embedding_layer.weight).view(x_shape)
-        
         # Find losses
         embedding_loss = F.mse_loss(x_quantized.detach(), x)
         quantization_loss = F.mse_loss(x_quantized, x.detach())
@@ -181,7 +182,7 @@ class VectorQuantizer(nn.Module):
 
         # Perplexity - Do I need?
         e_mean = torch.mean(encodings, dim=0)
-        perplexity = torch.exp(-torch.sum(e_mean * torch.log(e_mean + 1e10)))
+        perplexity = torch.exp(-torch.sum(e_mean * torch.log(e_mean + 1e-10)))
 
         x_quantized = x + (x_quantized - x).detach()
 
@@ -232,12 +233,15 @@ class MaskedConv2d(nn.Conv2d):
     def __init__(self, mask_class, in_channels, out_channels, kernel_size, padding):
         super(MaskedConv2d, self).__init__(in_channels, out_channels, kernel_size, padding=padding, stride=1)
         self.mask_class = mask_class
-        self.mask = torch.ones(out_channels, in_channels, kernel_size, kernel_size)
-        if self.mask_class == "A":
-            self.mask[:, :, kernel_size // 2, kernel_size // 2:] = 0
+        assert mask_class in ['A', 'B'], "Unknown Mask"
+        mask = torch.ones(out_channels, in_channels, kernel_size, kernel_size)
+        if mask_class == "A":
+            mask[:, :, kernel_size // 2, kernel_size // 2:] = 0
+            mask[:, :, kernel_size // 2 + 1:] = 0
         else:
-            self.mask[:, :, kernel_size // 2, kernel_size // 2 + 1:] = 0
-        self.mask[:, :, kernel_size // 2 + 1:] = 0
+            mask[:, :, kernel_size // 2, kernel_size // 2 + 1:] = 0
+            mask[:, :, kernel_size // 2] = 0
+        self.register_buffer('mask', mask)
 
     def forward(self, x):
         self.weight.data *= self.mask
@@ -261,6 +265,7 @@ class MaskedResidual(nn.Module):
 
 class PixelCNN(nn.Module):
     def __init__(self, in_channels, layers, out_channels):
+        super(PixelCNN, self).__init__()
         self.in_channels = in_channels
         self.embedded_layers = layers
         self.out_channels = out_channels
@@ -269,14 +274,18 @@ class PixelCNN(nn.Module):
             nn.ReLU(True),
             MaskedResidual(self.embedded_layers),
             nn.ReLU(),
-            nn.BatchNorm2d(self.embedded_layers),
-            MaskedResidual(self.embedded_layers),
+            #MaskedResidual(self.embedded_layers),
+            #nn.ReLU(),
+            #nn.BatchNorm2d(self.embedded_layers),
+            #MaskedResidual(self.embedded_layers),
+            #nn.ReLU(),
+            #nn.BatchNorm2d(self.embedded_layers),
+            MaskedConv2d("B", self.embedded_layers, self.embedded_layers, 1, 1),
             nn.ReLU(),
-            nn.BatchNorm2d(self.embedded_layers),
-            MaskedResidual(self.embedded_layers),
+            nn.Conv2d(self.embedded_layers, self.out_channels, 3),
+            nn.Conv2d(self.in_channels, self.out_channels, 4, 2, 1),
             nn.ReLU(),
-            nn.BatchNorm2d(self.embedded_layers),
-            MaskedConv2d("B", self.embedded_layer, self.out_channels, 1, 0)
+            nn.Conv2d(self.in_channels, 128, 4, 2, 1)
         )
 
     def forward(self, x):

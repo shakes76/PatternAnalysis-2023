@@ -7,7 +7,7 @@ from torchvision.utils import save_image, make_grid
 import torch.nn.functional as F
 from torch.utils.tensorboard import SummaryWriter
 from datetime import datetime
-from modules import VQVAE
+from modules import VQVAE, PixelCNN, Decoder
 from dataset import data_loaders, see_data
 from skimage.metrics import structural_similarity as ssim
 import matplotlib.pyplot as plt
@@ -18,14 +18,14 @@ HIDDEN_LAYERS = 128
 RESIDUAL_HIDDEN_LAYERS = 32
 RESIDUAL_LAYERS = 2
 
-EMBEDDING_DIMENSION = 64
-EMBEDDINGS = 512
+EMBEDDING_DIMENSION = 128
+EMBEDDINGS = 128
 
 BETA = 0.25
 
 LEARNING_RATE = 1e-3
 EPOCHS = 3
-
+torch.cuda.empty_cache()
 
 def ssim_batch(x, x_tilde):
     ssims = []
@@ -84,12 +84,21 @@ def main():
 #    plt.imshow(grid.permute(1, 2, 0))
 #    plt.show()
     model = VQVAE(HIDDEN_LAYERS, RESIDUAL_HIDDEN_LAYERS, EMBEDDINGS, EMBEDDING_DIMENSION, BETA)
+    if True:
+        model.load_state_dict(torch.load("./models/10-20-2023-09_14_42/best.pt"))
+        pixel_cnn = train_pixelcnn(model, train_loader, device, save_filename)
+        
+        vqvae_decoder = Decoder(EMBEDDING_DIMENSION, HIDDEN_LAYERS, RESIDUAL_HIDDEN_LAYERS)
+
+        generate_novel_brains(pixel_cnn, vqvae_decoder, test_loader, device, logger)
+        return
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     
     reconstructions = generate_samples(fixed_images, model, device)
 
     grid = make_grid(reconstructions.cpu(), nrow=8)
+
 #    plt.imshow(grid.permute(1, 2, 0))
 #    plt.show()
     logger.add_image('original', grid, 0)
@@ -138,12 +147,69 @@ def main():
    
     with open('{0}/model_{1}.pt'.format(save_filename, 'final'), 'wb') as f:
         torch.save(model.state_dict(), f)
+
+    model.load_state_dict(torch.load("./models/10-20-2023-08_06_56/best.pt"))
+    model.to(device)
+    model.eval()
+
+    pixel_cnn = train_pixelcnn(model, train_loader, device, save_filename)
+        
+    vqvae_decoder = Decoder(EMBEDDING_DIMENSION, HIDDEN_LAYERS, RESIDUAL_HIDDEN_LAYERS)
+
+    generate_novel_brains(pixel_cnn, vqvae_decoder, test_loader, device, logger)
+
     
-    #new_model = VQVAE(HIDDEN_LAYERS, RESIDUAL_HIDDEN_LAYERS, EMBEDDINGS, EMBEDDING_DIMENSION, BETA)
+        #new_model = VQVAE(HIDDEN_LAYERS, RESIDUAL_HIDDEN_LAYERS, EMBEDDINGS, EMBEDDING_DIMENSION, BETA)
     #new_model.load_state_dict(torch.load("./models/10-17-2023-23_34_52/best.pt"))
     #new_model.to(device)
     #new_model.eval()
     #test_trained_model(test_loader, new_model, device)
+
+def train_pixelcnn(vqvae_model: VQVAE, train_loader, device, save_path):
+    cnn_model = PixelCNN(1, 128, 1)
+    cnn_model = cnn_model.to(device)
+    vqvae_model = vqvae_model.to(device)
+    optimizer = torch.optim.Adam(cnn_model.parameters(), lr=LEARNING_RATE)
+    loss = 0
+    best_loss = -1
+    for epoch in range(EPOCHS):
+        for images in train_loader:
+            images = images.to(device)
+            optimizer.zero_grad()
+
+            _, _, x_q = vqvae_model(images)
+
+            cnn_output = cnn_model(images)
+            print(cnn_output.shape, x_q.shape)
+
+            loss = F.mse_loss(cnn_output, x_q)
+
+            loss.backward()
+            optimizer.step()
+            if (epoch == 0) or (loss < best_loss):
+                best_loss = loss
+            
+        print(f"EPOCH: {epoch}, LOSS: {loss}, BEST_LOSS: {best_loss}")
+
+    with open(f"{save_path}/model_cnn_final.pt", 'wb') as f:
+        torch.save(cnn_model.state_dict(), f)
+
+    return cnn_model
+    
+def generate_novel_brains(cnn_model, vqvae_decoder, test_loader, device, logger):
+    test_images = next(iter(test_loader))
+    test_images.to(device)
+
+    cnn_quantized = cnn_model(test_images)
+
+    x_reconstructed = vqvae_decoder(cnn_quantized)
+
+    grid = make_grid(x_reconstructed.cpu(), nrow=8, range=(-1, 1), normalize=True)
+    logger.add_image('cnn_reconstruction', grid, 0)
+
+    
+
+
 
 
 
