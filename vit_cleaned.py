@@ -166,7 +166,7 @@ def main():
     # ----------------------------------------
     # Loss Function and Optimiser
     criterion = nn.CrossEntropyLoss()
-    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=(1e-3) / 512, weight_decay=0.03)
+    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=(1e-5))
 
     # ----------------------------------------
     # Training loop
