@@ -39,17 +39,19 @@ prediction = []
 ImpUNET.eval()
 with torch.no_grad():
     for im,mask in test_loader:
-        im.to(device)
+        im = im.to(device)
+        mask = mask.to(device)
         pred = ImpUNET(im)
-        prediction.append(pred)
-        masks.append(mask)
-        images.append(im)
+        prediction.append(pred.cpu())
+        masks.append(mask.cpu())
+        images.append(im.cpu())
         
         
 # find dice coefficient
 
 # plot example
-fig,ax = plt.subplot((1,3), figsize=(10,10))
+fig,ax = plt.subplots(1, 3, figsize=(10,10))
 ax[0].imshow(images[0])
 ax[1].imshow(masks[0])
 ax[2].imshow(pred[0])
+fig.show()
