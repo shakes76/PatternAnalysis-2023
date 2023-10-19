@@ -33,7 +33,7 @@ ADNI dataset
 
 ## Perceiver Transformer Model Architecture
 
- ![Model Architecture](architecture.png)
+ ![Model Architecture (Jaegle et al., 2021)](architecture.png)
 
 The Perceiver model is designed to overcome key limitations observed in standard transformer models. Let's delve into its core components:
 
@@ -43,21 +43,21 @@ The Perceiver begins its journey with input data, which in this case are MRI ima
 
 **Position Encoding: Retaining Spatial Context**
 
-Preserving spatial information is a fundamental challenge in various data processing tasks. In the context of the Perceiver model, a unique technique known as Fourier position encoding is employed to capture and represent the spatial relationships between elements within the input data. The Perceiver model, as described in the paper, [Perceiver: General Perception with Iterative Attention (arxiv.org)](https://arxiv.org/pdf/2103.03206.pdf), is distinguished by its "permutation invariant" principle. This principle signifies that the Perceiver model does not directly depend on the specific spatial arrangement of the elements in the input data.
+Preserving spatial information is a fundamental challenge in various data processing tasks. In the context of the Perceiver model, a unique technique known as Fourier position encoding is employed to capture and represent the spatial relationships between elements within the input data. The Perceiver model, as described in the paper, [Perceiver: General Perception with Iterative Attention (arxiv.org)](https://arxiv.org/pdf/2103.03206.pdf), is distinguished by its "permutation invariant" principle. This principle signifies that the Perceiver model does not directly depend on the specific spatial arrangement of the elements in the input data (Jaegle et al., 2021).
 
-Instead of relying on the raw spatial positions, the Perceiver model leverages Fourier position encodings. Fourier position encoding is created with a different channel count than the image representation. It's not added to the input data; instead, it's concatenated along the channel dimension, facilitating attention calculations between positions and input. The resulting combined representation is then flattened and can be further adapted using 1D convolution to suit the task at hand and for effective feature extraction. This approach allows the Perceiver model to handle diverse data without relying on explicit spatial information.
+Instead of relying on the raw spatial positions, the Perceiver model leverages Fourier position encodings. Fourier position encoding is created with a different channel count than the image representation. It's not added to the input data; instead, it's concatenated along the channel dimension, facilitating attention calculations between positions and input (Tigges, 2022). The resulting combined representation is then flattened and can be further adapted using 1D convolution to suit the task at hand and for effective feature extraction. This approach allows the Perceiver model to handle diverse data without relying on explicit spatial information.
 
- ![Perceiver Accuracy with Fourier Feature Encoding](ff.png)
+ ![Perceiver Accuracy with Fourier Feature Encoding (Jaegle et al., 2021)](ff.png)
 
 **Latent Array: A Learnable Parameter**
 
-In the original paper, this array was initialised randomly by drawing from a truncated normal distribution with a mean of 0, a standard deviation of 0.02, and truncation boundaries of [-2, 2]. Remarkably, the model's performance remains relatively consistent across different initialisations of this array. These values were used to initialise my latent array, which plays a significant role in shaping the query vectors used in the cross-attention mechanism.
+In the original paper, this array was initialised randomly by drawing from a truncated normal distribution with a mean of 0, a standard deviation of 0.02, and truncation boundaries of [-2, 2] (Jaegle et al., 2021). Remarkably, the model's performance remains relatively consistent across different initialisations of this array. These values were used to initialise my latent array, which plays a significant role in shaping the query vectors used in the cross-attention mechanism.
 
 **Perceiver Cross-Attention: Handling Diverse Inputs**
 
-At the core of the Perceiver's architecture lies the cross-attention module, which maps a byte array and a latent array to a latent array, before processing it using a deep stack of Transformer-style self-attention blocks in the latent space (reference). Here's an overview of how it operates:
+At the core of the Perceiver's architecture lies the cross-attention module, which maps a byte array and a latent array to a latent array, before processing it using a deep stack of Transformer-style self-attention blocks in the latent space (Jaegle et al., 2021). Here's an overview of how it operates:
 
-- **Layer Normalisation**: The Perceiver starts with layer normaliaation, diverging from the traditional transformer's approach. This is done before being undergoing linear layers to produce each of the query, key, and value inputs.
+- **Layer Normalisation**: The Perceiver starts with layer normaliaation, diverging from the traditional transformer's approach (Tigges, 2022). This is done before being undergoing linear layers to produce each of the query, key, and value inputs.
 - **Multi-Head Attention**: For this, a single attention head is used. The latent array functions as the query, while the input data, with position information, fulfills the roles of both key and value inputs.
 - **Residual Connection**: A critical aspect is the integration of the latent array with the output of the multi-head attention module, ensuring a smooth flow of data.
 - **Layer Normalisation and Feedforward**: After normalisation, a feedforward network with linear layers and the GeLU activation function continues the data transformation process.
@@ -65,7 +65,7 @@ At the core of the Perceiver's architecture lies the cross-attention module, whi
 
 **Latent Transformer: Leveraging Decoders**
 
-Following the cross-attention stage, the output proceeds to the "latent transformer tower” as described in the paper. In the paper, the Latent Transformer uses the GPT-2 architecture (Radford et al., 2019), which itself is based on the decoder of the original Transformer architecture (Vaswani et al., 2017). This part processes the input data and performs cross-attention over the data patches to create a latent representation. Here, a series of decoder layers are deployed. Notably, this architecture utilises multiple heads to enhance the attention mechanism.
+Following the cross-attention stage, the output proceeds to the "latent transformer tower” as described in the paper. In the paper, the Latent Transformer uses the GPT-2 architecture, which itself is based on the decoder of the original Transformer architecture (Jaegle et al., 2021). This part processes the input data and performs cross-attention over the data patches to create a latent representation. Here, a series of decoder layers are deployed. Notably, this architecture utilises multiple heads to enhance the attention mechanism.
 
 **Perceiver Block: Combining Insights**
 
@@ -170,7 +170,7 @@ The data preprocessing and pipeline are designed to make the Perceiver model com
 Initially I set my parameters to the following:  
   
 
-| Parameter             | Description          |
+| Parameter             | Value                |
 |-----------------------|----------------------|
 | input_shape           | (256, 256)           |
 | latent_dim            | 16                   |
@@ -203,7 +203,7 @@ The log and plot suggests that the model's performance is not improving signific
 ### Improved and Final Performance
 
 
-| Parameter             | Description          |
+| Parameter             | Value                |
 |-----------------------|----------------------|
 | input_shape           | (256, 256)           |
 | latent_dim            | 32                   |
@@ -221,7 +221,7 @@ The log and plot suggests that the model's performance is not improving signific
  ![Iteration 2](plots/plot2.png)
  ![Iteration 3](plots/plot3.png)
 
- - **Following the paper**: I revised the original paper and aligned a few hyperparameters with the best performing model in their experiments. Matching the number of transformer layers to the best-performing model in the paper (6 blocks) can boost the model's ability to comprehend intricate patterns. Similarly, aligning the number of Perceiver blocks with the best-performing model in the paper (6 blocks) grants the model a robust representational capacity. It was also mentioned that increasing the size of the latent dimension helps performance up to a point, but often leads to overfitting. By experimenting with the dimensions, I found that these dimensions parameters had the best performance.
+ - **Following the paper**: I revised the original paper and aligned a few hyperparameters with the best performing model in their experiments. Matching the number of transformer layers to the best-performing model in the paper (6 blocks) can boost the model's ability to comprehend intricate patterns. Similarly, aligning the number of Perceiver blocks with the best-performing model in the paper (6 blocks) grants the model a robust representational capacity (Jaegle et al., 2021). It was also mentioned that increasing the size of the latent dimension helps performance up to a point, but often leads to overfitting. By experimenting with the dimensions, I found that these dimensions parameters had the best performance.
  - **Reducing Complexity**: Furthermore, I decided to reduce the complexity of the model. Occam's Razor is a principle in machine learning that suggests that the simplest model that explains the data is often the best. A complex model introduces more parameters, making it more flexible and capable of fitting the training data more closely. However, a simpler model, with fewer parameters and a more straightforward structure, is more likely to generalise well to unseen data. As there was a limited amount of training data, complex models with many layers, hidden units, or attention heads have a higher risk of overfitting. With a limited dataset, there may not be enough diverse examples to support highly complex models. A simpler model is less prone to fitting the noise in the data, which is why I reduced the number of layers and blocks.
  - **Increase Batch Size**: Additionally, I increased the batch size to provide more stable and consistent updates to the model's weights. This can lead to faster convergence during training, which may help in regularising the model.
  - **Scheduler** I also implemented a scheduler for the learning rate, which dynamically adjusts the learning rate during training to help improve model convergence and achieve better results.
@@ -304,4 +304,6 @@ If you want to see your model’s accuracy on the unseen test set, run the `test
 
 ## References
 
+Jaegle, A., Gimeno, F., Brock, A., Zisserman, A., Vinyals,  O., & Carreira, J. (2021). Perceiver: General Perception with Iterative Attention. ArXiv:2103.03206 [Cs, Eess]. Retrieved from https://arxiv.org/abs/2103.03206
 
+Tigges, C. (2022, August 19). The Annotated Perceiver - Curt Tigges - Medium. Retrieved October 19, 2023, from Medium website: https://medium.com/@curttigges/the-annotated-perceiver-74752113eefb
