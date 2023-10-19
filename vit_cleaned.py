@@ -166,7 +166,7 @@ def main():
     # ----------------------------------------
     # Loss Function and Optimiser
     criterion = nn.CrossEntropyLoss()
-    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=1e-6, weight_decay=0.03)
+    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=(1e-3) / 512, weight_decay=0.03)
 
     # ----------------------------------------
     # Training loop
@@ -189,12 +189,15 @@ def main():
             optimiser.step()
 
             running_loss += loss.item()
-            if (index+1) % 10 == 0:
+            if (index) % batch_size == batch_size - 1:
                 running_time = time.time()
+                last_loss = running_loss / batch_size
                 print("Epoch [{}/{}], Loss: {:.5f}".format(epoch+1, num_epochs, loss.item()))
-                train_loss_values.append(running_loss / len(train_loader))
+                #print('  batch {} loss: {}'.format(index + 1, last_loss))
                 print(f"Timer: {running_time - start_time}")
+                running_loss = 0.
 
+        train_loss_values.append(running_loss / len(train_loader))
         print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {running_loss/len(train_loader)}")
 
         # -----------------
