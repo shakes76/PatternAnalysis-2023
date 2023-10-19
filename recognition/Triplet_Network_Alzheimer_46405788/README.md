@@ -16,6 +16,16 @@ As stated earlier, the primary objective is to minimize the distance between the
 5. Apply a ReLU to ensure the loss is positive.
 ![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/ffbb0047-deac-4760-a5a2-6930efd2e717)
 https://towardsdatascience.com/triplet-loss-advanced-intro-49a07b7d8905
+## Architecture
+### Triplet Siamese Network Architecture
+The triplet siamese network uses ResNet 18 as its backbone for creating the embeddings for the ADNI dataset. Residual Network (ResNet), is a type of convolutional neaural network commonly used for vision and image recognition. The key difference from a regular convolutional neaural network, is the use of residual blocks. A common issue with networks with high number of layers, is the vanishing gradient problem.. This is when the gradient becomes too small during backpropagation making it difficult to train networks with large number of layers. The resnet introduces the skip connection which bypasses certain layers which addresses the vanishing gradient problem. As can be seen in the figure below, ResNet 18 has 18 convolutional layers. The triplet siamese network, will take a 1 channel ADNI image (i.e grayscale) and output the image in a 128 dimension embeded space.
+![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/a1888ac3-d9e2-4558-b984-284374083703)
+https://www.researchgate.net/figure/Original-ResNet-18-Architecture_fig1_336642248
+
+### Triplet Classifier Architecture
+The triplet classifier uses a basic neural network to classify between the AD and NC. The first fully connected layer has 128 input neurons and 256 output neurons followed by a `ReLu`. The second linear layer takes the 256 outputs from the previous layer and outputs 256 neurons to another `Relu`. The final layer takes the previous 256 outputs and outputs to 2 units. These 2 units represent the two classes, where the larger value between the two, is the predicted class. 
+
+
 ## Dependencies
 To run this code, you'll need the following dependencies:
 
@@ -69,6 +79,24 @@ Training Loss and Accuracy: A plot of training loss and accuracy over epochs to 
 
 ##### TripleClassifier Loss
 ![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/18068dd2-98fd-4ade-b95e-45995860ee10)
+
+## Results
+After training the TripletNet, on the ADNI dataset for the 135 total epochs the tripleNet has the following accuracies:
+
+**Triplet Network accuracy**
+* Test Accuracy: 80%
+
+After training the TripletClassifier, with the previously seen 80% accurate model creating the emmbeddings, the TripletClassifier has the following accuracies:
+
+**Triplet Classifier accuracy**
+* Test Accuracy: 77.7%
+  * AD Accuracy: 73.7%
+  * NC Accuracy: 81.6%
+
+#### Batch Example
+This was an example of 40 randomly selected images from the test split with its corresponding classifcations and the tripleClssifer predictions
+* y_test_batch = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+* y_test_batch = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 0, 1, 1, 0]
 
 ## Pre-processing 
 
