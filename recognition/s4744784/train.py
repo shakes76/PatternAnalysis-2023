@@ -1,30 +1,30 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
-import math
-from dataset import load_data
+from dataset import load_test_data, load_train_data
 from modules import Network
 import time
 import matplotlib.pyplot as plt
 from utils import *
 from torch.optim.lr_scheduler import StepLR
 
-model = Network(upscale_factor=upscale_factor, channels=channels).to(device)
-# optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
+model = Network(upscale_factor=upscale_factor, channels=channels, dropout_probability=dropout_probability).to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 scheduler = StepLR(optimizer, step_size=30, gamma=0.1)
-
 criterion = nn.MSELoss()
 
 def train(epochs: int):
-    model.train()
-    epoch_losses = []
+    epoch_train_losses = []
+    epoch_val_losses = []
+
+    train_loader = load_train_data(train_path)
+    val_loader = load_test_data(test_path)
 
     for epoch in range(1, epochs + 1):
-        running_loss = 0.0
+        model.train()
+        running_train_loss = 0.0
 
-        for target, _ in dataloader:
+        for target, _ in train_loader:
             target = target.to(device)
             input = down_sample(target) 
 
@@ -36,12 +36,26 @@ def train(epochs: int):
             loss.backward()
             optimizer.step()
 
-            running_loss += loss.item()
+            running_train_loss += loss.item()
 
-        avg_epoch_loss = running_loss / len(dataloader)
-        epoch_losses.append(avg_epoch_loss)
-        
-        print(f"Epoch [{epoch}/{epochs}] Loss: {avg_epoch_loss}")
+        avg_train_loss = running_train_loss / len(train_loader)
+        epoch_train_losses.append(avg_train_loss)
+
+        # Validation loss
+        model.eval()
+        running_val_loss = 0.0
+        with torch.no_grad():
+            for target, _ in val_loader:
+                target = target.to(device)
+                input = down_sample(target)
+                outputs = model(input)
+                loss = criterion(outputs, target)
+                running_val_loss += loss.item()
+
+        avg_val_loss = running_val_loss / len(val_loader)
+        epoch_val_losses.append(avg_val_loss)
+
+        print(f"Epoch [{epoch}/{epochs}] Train Loss: {avg_train_loss} Validation Loss: {avg_val_loss}")
 
         # Update the learning rate
         scheduler.step()
@@ -52,20 +66,22 @@ def train(epochs: int):
             torch.save(model.state_dict(), f'./Trained_Model_Epoch_{epoch}.pth')
             print("Model saved!")
 
-    # Plotting the losses
-    plt.figure()
-    plt.plot(range(1, epochs + 1), epoch_losses, label='Training Loss')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.title('Training Loss over Time')
-    plt.legend()
-    plt.savefig('training_loss.png')
+    return epoch_train_losses, epoch_val_losses
 
 if __name__ == '__main__':
-    dataloader = load_data(train_path)
     start_time = time.time()
     print("Starting training...")
-    train(num_epochs)
+    train_losses, val_losses = train(num_epochs)
     end_time = time.time()
     print("Training finished!")
     print(f"Time taken: {end_time - start_time} seconds, or {(end_time - start_time) / 60} minutes.")
+
+    # Plotting the losses
+    plt.figure()
+    plt.plot(range(1, num_epochs + 1), train_losses, label='Training Loss')
+    plt.plot(range(1, num_epochs + 1), val_losses, label='Validation Loss')
+    plt.xlabel('Epochs')
+    plt.ylabel('Loss')
+    plt.title('Training and Validation Loss over Time')
+    plt.legend()
+    plt.savefig('losses.png')
