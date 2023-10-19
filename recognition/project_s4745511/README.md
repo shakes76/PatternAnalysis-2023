@@ -1,18 +1,18 @@
 # Classification of Alzheimer’s Disease using Siamese Neural Network
 (A Deep Learning Approach with Application to the ADNI Dataset)
 ## 1.Overview
-The focus of this project is to develop medical image classification system using Siamese networks. Here, I used the ADNI dataset which contains brain images divided into two categories: Alzheimer's disease (AD) vs. normal (NC). This project can contribute significantly to early Alzheimer's disease diagnosis. 
+The focus of this project is to develop medical image classification system using Siamese networks. Here, I used the ADNI dataset which contains brain images divided into two categories: Alzheimer's disease (AD) vs. normal (NC). This project can contribute significantly to early Alzheimer's disease diagnosis. The code in this repository is designed for building, training, and evaluating two neural network models: a Siamese Network and a Classification Model. These models are typically used for image-based tasks like similarity comparison and classification. The Siamese Network learns to extract meaningful features from images and computes a similarity score between pairs of images. The Classification Model, built on top of the Siamese Network, is used for classifying images based on the features extracted by the Siamese Network.
 
 ## 2. Data - ADNI Dataset 
 ### 2.1 Data Collection
 The dataset used for this project was obtained from a particular URL: "<https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI/download>". I used HTTP GET request to downloaded the dataset (from the mentioned link). The dataset was saved locally in a specified file path after successful download. The downloaded content was written to this local file and was ensured by the code. The downloaded zip file was extracted to reveal its contents subsequently. 
 
-![image](https://github.com/me50/s-prak/assets/116443738/8ecd2f11-3e9a-4500-902f-47465dd14777)
+I then did som preprocessing to understand the dataset:
+The following are the example images under the two categories as given below (from the training set):
 
+The code for data collection and preprocessing is mentioned in utils.py
 ### 2.1 Data Pairing
-The preparation of data for training a Siamese neural network is streamlined by the load_siamese_data function in the dataset.py. The consistency and readiness of the input data for neural network training is ensured by this.
-
-The creation of image pairs is the core of the function and a fundamental aspect of Siamese network training. Pairs of images from the same class ("AD" or "NC") and pairs from different classes is constructed by it while assigning corresponding labels to indicate whether the pairs match (label 1) or not (label 0). There are four different combination of images that can be created:
+The preparation of data for training a Siamese neural network is streamlined by the siamese_data_loader function in the dataset.py. The consistency and readiness of the input data for neural network training is ensured by this process. The creation of image pairs is the core of the function and a fundamental aspect of Siamese network training. Pairs of images from the same class ("AD" or "NC") and pairs from different classes is constructed by it while assigning corresponding labels to indicate whether the pairs match (label 1) or not (label 0). There are four different combination of images that can be created:
 1. Poisitve Pair(1) - (AD, AD)
 2. Poisitve Pair(1) - (NC, NC)
 3. Negative Pair(0) - (AD, NC)
@@ -21,16 +21,12 @@ The creation of image pairs is the core of the function and a fundamental aspect
 The function deliberately randomizes the order of images within each class to eliminate any potential biases prior to pairing. It shuffles the dataset after pairing, ensuring that the order of pairs is randomized. Based on a user-defined ratio, the final dataset is split into training and validation sets and is then batched for efficient model training. This function simplifies the process of preparing data for Siamese neural network training, in summary, emphasizing the randomization of data before pairing and shuffling after pairing to promote unbiased and effective training.
 
 ## 3.Working of Siamese on the ADNI Dataset
-Two interconnected models are used to classify images as either 0 - "normal" or 1 - "Alzheimer's disease" by using: a Siamese Neural Network (SNN) and a classification model. 
-
-Here's how these components work together to achieve this task:
+Two interconnected models are used to classify images as either 0 - "normal" or 1 - "Alzheimer's disease" by using. These are the Siamese Neural Network (SNN) and a classification model. Here's how these components work together to achieve this task:
 
 ### 3.1 Siamese Neural Network (SNN):
-The SNN plays an essential role in learning and representing the similarity between pairs of images. It comprises of a network that processes individual images and computes feature vectors for them. The SNN architecture is designed to generate feature vectors. These feature vectors effectively capture the essential characteristics of the input images. 
+The SNN plays an essential role in learning and representing the similarity between pairs of images. It comprises of a network that processes individual images and computes feature vectors for them. The SNN architecture is designed to generate feature vectors. These feature vectors effectively capture the essential characteristics of the input images. The SNN's subnetwork learns to differentiate between image pairs belonging to different classes (0 or 1) by producing distinct feature vectors for them, for this binary classification problem. To quantify their similarity, the distance between these feature vectors is computed using a Euclidean distance layer. Smaller distances indicate more similar images whereas larger distances represent dissimilar pairs.
 
-The SNN's subnetwork learns to differentiate between image pairs belonging to different classes (0 or 1) by producing distinct feature vectors for them, for this binary classification problem. To quantify their similarity, the distance between these feature vectors is computed using a Euclidean distance layer. Smaller distances indicate more similar images whereas larger distances represent dissimilar pairs.
-
-##### Architecture:
+##### 3.1.1 Architecture:
 In the Siamese Network both neural network branches share the same set of neural network weights.  Each branch processes one input image and learns a common representation for both inputs.
 
 The architecture of my Siamese Network consists of the following components:
@@ -47,13 +43,17 @@ Ultimately, the output of my Siamese Network is a similarity score. For various 
 
 ### 3.2 Loss, Distance Metric and Optimizer
 Contrastive loss is a common choice for training Siamese networks, in particular, when the goal is to learn embeddings or representations for similarity-based tasks. Similar pairs of data points are encouraged to be closer to each other by the loss in the embedding space while pushing dissimilar pairs farther apart.
+This loss function drives the Siamese network to learn embeddings that are useful for distinguishing between similar and dissimilar pairs of data. By minimizing the contrastive loss, the network learns to create embeddings in which similar data points are clustered together and dissimilar data points are pushed apart. 
 
-This loss function drives the Siamese network to learn embeddings that are useful for distinguishing between similar and dissimilar pairs of data. By minimizing the contrastive loss, the network learns to create embeddings in which similar data points are clustered together and dissimilar data points are pushed apart. This is a fundamental concept for various tasks like face recognition, image similarity, and, in your project, Alzheimer's disease classification.
+I used the Euclidean distance as the distance metric for my model, between two input vectors, represented by tensors. It computes the squared differences, summing them, and taking the square root. This distance measurement is a floating-point value, ensuring accurate vector dissimilarity assessment.
 
-**Loss Calculation:** The Siamese network generates embeddings for both data points for each pair of data points. The Euclidean distance between these embeddings is calculated by the loss function. The similarity or dissimilarity between the two data points are in the embedding space is quantified by this distance. Using this distance the contrastive loss is computed. If the distance between similar data points is too large or if the distance between dissimilar data points is too small, it penalizes the model. In specific, the loss term for a pair of similar data points is proportional to the square of the distance between their embeddings, aiming to minimize this distance. In contrast, the loss term for a pair of dissimilar data points is proportional to the square of the maximum difference between a specified margin and the distance between their embeddings. The embeddings of dissimilar data points to be separated by a margin is encouraged by this.
+(insert the euclidian distance code)
 
+**Loss Calculation:** The Siamese network generates embeddings for both data points for each pair of data points. The Euclidean distance between these embeddings is calculated by the loss function. The similarity or dissimilarity between the two data points are in the embedding space is quantified by this distance. Using this distance the contrastive loss is computed. If the distance between similar data points is too large or if the distance between dissimilar data points is too small, it penalizes the model. In specific, the loss term for a pair of similar data points is proportional to the square of the distance between their embeddings, aiming to minimize this distance. In contrast, the loss term for a pair of dissimilar data points is proportional to the square of the maximum difference between a specified margin and the distance between their embeddings.
 
-I use the Adam Optimizer as the optimizer for my model. The learning_rate parameter specifies the step size at which the optimizer updates the model's parameters during training. In this case, you've set it to 0.0001. A smaller learning rate means smaller steps, which can help the optimizer converge more stably but may require more training epochs. The choice of the learning rate depends on the specific problem, and it often requires experimentation to find the optimal value. A common range for learning rates is between 0.1 and 0.0001.
+(insert image for loss calculation in the code)
+
+Lastly, for the optimizer I use the Adam Optimizer as the optimizer for my model. The learning_rate parameter specifies the step size at which the optimizer updates the model's parameters during training. In this case, you've set it to 0.0001. A smaller learning rate means smaller steps, which can help the optimizer converge more stably but may require more training epochs. The choice of the learning rate depends on the specific problem, and it often requires experimentation to find the optimal value. A common range for learning rates is between 0.1 and 0.0001.
 
 ### 3.3 Classification Model:
 The feature vectors produced by the SNN's network is leveraged by the classification model to perform binary classification. It consists of a neural network architecture with layers such as dense layers and batch normalization. Pairs of images comprise the input to the classification model. These pairs are processed by the model through the SNN's subnetwork to obtain their feature vectors. To improve the model's generalization, the feature vectors are then normalized.
@@ -93,56 +93,24 @@ The following are the python files used :
 
 4. "predict.py": In this file, I've demonstrated how to use the trained model for making predictions. 
 
-5. "utils.py": This file contains all the extra codes I have used in process to do the project.
+5. "utils.py": This file contains all the extra codes I have used in process to do the project (data collection and preprocessing).
 
 The execution of the project starts with training the model using the train.py file following which the predictions can be done using the predict.py file.
+Add the paths links are changed from the original to keep the paths in my computer private.
 
 ## 5.1 Sequence of Working of the Code
-Paragraph 1 - Introduction
-The code in this repository is designed for building, training, and evaluating two neural network models: a Siamese Network and a Classification Model. These models are typically used for image-based tasks like similarity comparison and classification. The Siamese Network learns to extract meaningful features from images and computes a similarity score between pairs of images. The Classification Model, built on top of the Siamese Network, is used for classifying images based on the features extracted by the Siamese Network.
+Training the Siamese Network is done using trainSNN function. It loads the training and validation data, trains the Siamese Network, and saves the trained model to a file.Next, the train the Classification Model is carried out using the trainClassifier function. It loads the Siamese model, extracts the shared subnetwork, creates a classification model, and trains it on classification data. Then visualizations are represented to understand the training progress of both models.
 
-Paragraph 2 - Usage
-To use this code, follow these steps:
+SNN_PATH and CLASSIFIER_PATH are file paths used for saving trained machine learning models in the Hierarchical Data Format (HDF5) format. In the provided code, these paths are used to save the trained Siamese Network (SNN) model and the Classification Model (Classifier) after training. This allows you to persist the trained models so that you can later load and use them for making predictions without retraining the models each time.
 
-Train the Siamese Network using the trainSNN function. It loads the training and validation data, trains the Siamese Network, and saves the trained model to a file.
-Train the Classification Model using the trainClassifier function. It loads the Siamese model, extracts the shared subnetwork, creates a classification model, and trains it on classification data.
-Use the plot_training_history function to visualize the training progress of both models.
-To make predictions, use the predict function to load the trained Classification Model and evaluate it on test data. It also provides an example of printing predictions and actual labels.
-Paragraph 3 - Training History Plotting
-The plot_training_history function generates two subplots for each model's training history. The first subplot displays training accuracy and validation accuracy, with different colors to distinguish them. The second subplot illustrates the training loss with another color. This function helps monitor the performance and progress of both models during training.
+To make predictions, I use the predict function to load the trained Classification Model (saved as Classifier.h5) and evaluates it on test data. It also provides an example of printing predictions and actual labels. The plot_training_history function generates two subplots for each model's training history. The first subplot displays training accuracy and validation accuracy, with different colors to distinguish them. The second subplot illustrates the training loss with another color. This function helps monitor the performance and progress of both models during training.
 
-Paragraph 4 - Requirements
-This code was developed using Python with TensorFlow and Keras. To run the code successfully, ensure you have these libraries installed. You can also customize the model architectures, data paths, and training parameters to suit your specific use case.
-
-With this readme file, users can understand the purpose of the code, follow a clear set of instructions for training and using the models, and learn how to visualize training history. It also mentions the essential libraries required to run the code.
-
-
+This code was developed using Python with TensorFlow and Keras.With this readme file, users can understand the purpose of the code, follow a clear set of instructions for training and using the models, and learn how to visualize training history. It also mentions the essential libraries required to run the code.
 
 ## Results (Training and Testing)
 
-## Python Packages
-1.	Tensorflow
-2.	Numpy
-3.	Matplotlib
 
 ## References
 1.	<https://medium.com/@rinkinag24/a-comprehensive-guide-to-siamese-neural-networks-3358658c0513>
 2.	<https://www.baeldung.com/cs/siamese-networks>
 3.	<https://builtin.com/machine-learning/vgg16>
-
- 
-Google Colab
-
-![image](https://github.com/me50/s-prak/assets/116443738/c760824c-be8c-48f0-83e6-86c688037664)
-![image](https://github.com/me50/s-prak/assets/116443738/0fd27eec-2eeb-46cd-a4aa-a4c9c899c4e9)
-![image](https://github.com/me50/s-prak/assets/116443738/d896b303-0612-45ea-ad93-ac6f7c715eee)
-![image](https://github.com/me50/s-prak/assets/116443738/de32015a-f031-4d48-bf56-abea541c63fb)
-![image](https://github.com/me50/s-prak/assets/116443738/31378f42-0865-412b-88e8-50565f67cc27)
-![image](https://github.com/me50/s-prak/assets/116443738/43b95742-2f6b-4154-962b-43c001713f8b)
-
-
-
-
-
-
-
