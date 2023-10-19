@@ -111,74 +111,89 @@ opt_mapping_network = optim.Adam(mapping_network.parameters(), lr=utils.LEARNING
 
 losses = []
 best_loss = float('inf')
-best_model_state_dict = None
 validate_every_n_epochs = 5
 start_time = time.time()
 last_epoch = start_time
 
 load_checkpoint = False
+load_best = True
 
 starting_epoch = 1
 if load_checkpoint:
-    start_time = 1697569326.1386592
-    with open(f'checkpoint_{start_time}.pickle', 'rb') as handle:
-        starting_epoch, losses, best_loss = pickle.load(handle)
-    gen.load_state_dict(torch.load(f"best_gen_{start_time}.pth"))
-    critic.load_state_dict(torch.load(f'best_critic_{start_time}.pth'))
-    mapping_network.load_state_dict(torch.load(f'best_map_{start_time}.pth'))
+    start_time = 1697679243.0313046
+    if load_best:
+        gen.load_state_dict(torch.load(f"best_gen_{start_time}.pth"))
+        critic.load_state_dict(torch.load(f'best_critic_{start_time}.pth'))
+        mapping_network.load_state_dict(torch.load(f'best_map_{start_time}.pth'))
+        with open(f'best_checkpoint_{start_time}.pickle', 'rb') as handle:
+            starting_epoch, losses, best_loss = pickle.load(handle)
+    else:
+        gen.load_state_dict(torch.load(f"latest_gen_{start_time}.pth"))
+        critic.load_state_dict(torch.load(f'latest_critic_{start_time}.pth'))
+        mapping_network.load_state_dict(torch.load(f'latest_map_{start_time}.pth'))
+        with open(f'latest_checkpoint_{start_time}.pickle', 'rb') as handle:
+            starting_epoch, losses, best_loss = pickle.load(handle)
     #start_time += 0.0000000001
     starting_epoch+=1
 
 for epoch in tqdm(range(starting_epoch, utils.epochs + 1)):
 
-    loss = train_fn(
-        critic,
-        gen,
-        mapping_network,
-        path_length_penalty,
-        loader_train,
-        opt_critic,
-        opt_gen,
-        opt_mapping_network,
-    )
-    # Save losses obtained from training the model
-    losses.append(loss)
-    print(f"Epoch {epoch:03d} | Training Loss: {loss}")
-    if epoch % validate_every_n_epochs == 0:
-        average_loss = eval_fn(
+    try:
+        loss = train_fn(
             critic,
             gen,
             mapping_network,
-            loader_validate,
+            path_length_penalty,
+            loader_train,
+            opt_critic,
+            opt_gen,
+            opt_mapping_network,
         )
+        # Save losses obtained from training the model
+        losses.append(loss)
 
-        utils.generate_examples(mapping_network, gen, epoch, start_time)
+        print(f"Epoch {epoch:03d} | Training Loss: {loss}")
+        if epoch % validate_every_n_epochs == 0:
+            average_loss = eval_fn(
+                critic,
+                gen,
+                mapping_network,
+                loader_validate,
+            )
 
-        # Save model if better
-        if average_loss < best_loss:
-            best_loss = average_loss
-            best_gen_state_dict = gen.state_dict()
-            best_critic_state_dict = critic.state_dict()
-            best_map_state_dict = mapping_network.state_dict()
+            utils.generate_examples(mapping_network, gen, epoch, start_time)
 
-            torch.save(best_gen_state_dict, f'best_gen_{start_time}.pth')
-            torch.save(best_critic_state_dict, f'best_critic_{start_time}.pth')
-            torch.save(best_map_state_dict, f'best_map_{start_time}.pth')
-            with open(f'checkpoint_{start_time}.pickle', 'wb') as handle:
+            # Save model if better
+            if average_loss < best_loss:
+                best_loss = average_loss
+
+                torch.save(gen.state_dict(), f'best_gen_{start_time}.pth')
+                torch.save(critic.state_dict(), f'best_critic_{start_time}.pth')
+                torch.save(mapping_network.state_dict(), f'best_map_{start_time}.pth')
+                with open(f'best_checkpoint_{start_time}.pickle', 'wb') as handle:
+                    pickle.dump([epoch, losses, best_loss], handle, protocol=pickle.HIGHEST_PROTOCOL)
+            #save progress
+            torch.save(gen.state_dict(), f'latest_gen_{start_time}.pth')
+            torch.save(critic.state_dict(), f'latest_critic_{start_time}.pth')
+            torch.save(mapping_network.state_dict(), f'latest_map_{start_time}.pth')
+            with open(f'latest_checkpoint_{start_time}.pickle', 'wb') as handle:
                 pickle.dump([epoch, losses, best_loss], handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+            # Plot the losses over number of epochs
+            plt.plot(range(1, len(losses) + 1), losses, label='Training Loss')
+            plt.title('Training Loss over Epochs')
+            plt.xlabel('Epoch')
+            plt.ylabel('Loss')
+            plt.legend()
+            plt.savefig('loss_plot.png')
+            plt.close()
 
             # Print validation results
             print(f"Epoch {epoch} | Validation Loss: {average_loss}")
-    time_elapsed = time.time() - last_epoch
-    print(f'Epoch {epoch} complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
-    #print(f"Time Running: {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
-    last_epoch = time.time()
-
-# Plot the losses over number of epochs
-plt.plot(range(1, len(losses) + 1), losses, label='Training Loss')
-plt.title('Training Loss over Epochs')
-plt.xlabel('Epoch')
-plt.ylabel('Loss')
-plt.legend()
-plt.savefig('loss_plot.png')
-plt.close()
+        time_elapsed = time.time() - last_epoch
+        print(f'Epoch {epoch} complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+        #print(f"Time Running: {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s")
+        last_epoch = time.time()
+    except KeyboardInterrupt:
+        print ("\n\nUser cancelled training")
+        break
