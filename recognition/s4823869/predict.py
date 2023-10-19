@@ -1,103 +1,47 @@
 import torch
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from skimage.metrics import structural_similarity as ssim
-from torch.distributions import Categorical
-from dataset import get_ttv, normalise
-from modules import VectorQuantiser, PixelConvolution, ResidualBlock
-import numpy as np
+import os
 
-VISUALISATIONS = 5
-COLS = 2
-MAX_VAL = 1.0
-CENTRE = 0.5
-BATCH = 10
-NUM_EMBEDDINGS = 512
-PCNN_PATH = "pcnn.pth"
-MODEL_PATH = "vqvae.pth"
+#import train
+import modules
 
+# Random seed to ensure reproducibility
+torch.manual_seed(42)
 
-def compare(originals, recons):
-    ssims = 0
-    pairs = zip(originals, recons)
-    for i, pair in enumerate(pairs):
-        o, r = pair
-        orig = torch.Tensor(o)
-        recon = torch.Tensor(r)
-        sim = ssim(orig, recon, data_range=MAX_VAL, multichannel=True)
-        ssims += sim
-        plt.subplot(VISUALISATIONS, COLS, COLS * i + 1)
-        plt.imshow(o + CENTRE, cmap="gray")
-        plt.title("Test Input")
-        plt.axis("off")
-        plt.subplot(VISUALISATIONS, COLS, COLS * (i + 1))
-        plt.imshow(r + CENTRE, cmap="gray")
-        plt.title("Test Reconstruction")
-        plt.axis("off")
-    plt.suptitle("SSIM: %.2f" % (ssims / len(originals)))
-    plt.show()
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+Z_DIm = 512
+W_DIM = 512
+IN_CHANNELS = 512
+CHANNELS_IMG = 3
 
-def validate_vqvae(vqvae, test):
-    image_inds = np.random.choice(len(test), VISUALISATIONS, replace=False)
-    images = test[image_inds]
-    recons = vqvae(images).cpu().detach().numpy()
-    compare(images, recons)
+gen = modules.Generator(Z_DIm, W_DIM, IN_CHANNELS, CHANNELS_IMG).to(DEVICE)
+gen.load_state_dict(torch.load('OASIS_style_gan_generater.pth'))
+# eval mode
+gen.eval()
 
-def show_new_brains(priors, samples):
-    for i in range(VISUALISATIONS):
-        plt.subplot(VISUALISATIONS, COLS, COLS * i + 1)
-        plt.imshow(priors[i], cmap="gray")
-        plt.title("PCNN Prior")
-        plt.axis("off")
-        plt.subplot(VISUALISATIONS, COLS, COLS * (i + 1))
-        plt.imshow(samples[i] + CENTRE, cmap="gray")
-        plt.title("Decoded Prior")
-        plt.axis("off")
-    plt.show()
+num_samples = 9
+z = torch.randn(num_samples, Z_DIm).to(DEVICE)
+with torch.no_grad():
+    generated_images = gen(z, alpha=1.0, steps=5)
 
-def show_quantisations(test, encodings, quantiser):
-    encodings = encodings[:len(encodings) // 2]
-    flat = encodings.reshape(-1, encodings.shape[-1])
-    codebooks = quantiser.code_indices(flat).cpu().numpy().reshape(encodings.shape[:-1])
+# Convert the generated images to a format suitable for visualization
+generated_images = (generated_images + 1) / 2
+generated_images = generated_images.cpu().numpy().transpose(0, 2, 3, 1)  # (batch, height, width, channels)
 
-    for i in range(VISUALISATIONS):
-        plt.subplot(VISUALISATIONS, COLS, COLS * i + 1)
-        plt.imshow(test[i] + CENTRE, cmap="gray")
-        plt.title("Test Image")
-        plt.axis("off")
-        plt.subplot(VISUALISATIONS, COLS, COLS * (i + 1))
-        plt.imshow(codebooks[i], cmap="gray")
-        plt.title("VQ Encoding")
-        plt.axis("off")
-    plt.show()
+# Plot
+_,ax = plt.subplots(3,3,figsize=(8,8))
+plt.suptitle('Generated sample images')
 
-def validate_pcnn(vqvae, test):
-    pcnn = torch.load(PCNN_PATH)  # Load your PCNN model
-    priors = torch.zeros(BATCH, *pcnn.input_shape[1:])
-    rows, columns = priors.shape
+for i in range(3):
+    for j in range(3):
+        idx = i * 3 + j
+        if idx < len(generated_images):
+            ax[i][j].imshow(generated_images[idx])
 
-    for r in range(rows):
-        for c in range(columns):
-            logits = pcnn(priors)
-            sampler = Categorical(logits=logits)
-            prob = sampler.sample()
-            priors[:, r, c] = prob[:, r, c]
+if not os.path.exists("output_images"):
+        os.makedirs("output_images")
 
-    encoder = vqvae.encoder
-    quantiser = vqvae.quantiser
-    encoded_out = encoder(test)
-    show_quantisations(test, encoded_out, quantiser)
-    old_embeds = quantiser.embeddings.cpu().detach().numpy()
-    pr_onehots = F.one_hot(priors.to(torch.int64), NUM_EMBEDDINGS).cpu().numpy()
-    qtised = torch.mm(torch.tensor(pr_onehots, dtype=torch.float32), torch.tensor(old_embeds, dtype=torch.float32).t())
-    qtised = qtised.view(-1, *encoded_out.shape[1:])
-    decoder = vqvae.decoder
-    samples = decoder(qtised)
-    show_new_brains(priors.cpu().detach().numpy(), samples.cpu().detach().numpy())
+save_path = os.path.join("output_images", "generated_grid.png")
+plt.savefig(save_path)
 
-if __name__ == "__main__":
-    _, te, _ = get_ttv()
-    test = normalise(te)
-    vqvae = torch.load(MODEL_PATH)  # Load your VQVAE model
-    validate_vqvae(vqvae, test)
-    validate_pcnn(vqvae, test)
+plt.close()
