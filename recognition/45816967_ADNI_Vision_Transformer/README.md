@@ -10,6 +10,10 @@ Transformers form a more generalised model compared to traditional CNNs, since t
 While transformers typically require large datasets to be able to overcome the lack of biases, augmentations can be applied to "generate" new images, and current image datasets have grown to a size which makes transformers possible to train. This project aims to apply transformers to the ADNI dataset, which is a dataset of MRI scans of patients with Alzheimer's Disease, and patients without Alzheimer's Disease.
 
 ## Architecture
+
+![ViT Architecture From The Original Paper](figures/vit_figure.png)
+Architecture of a Vision Transformer.
+
 The vision transformer (ViT) is composed of a a few key components, namely - the patch and position embeddings, a transformer encoder layer, and a transformer decoder layer. The patch embedding layer takes in the input image and breaks it into patches of pixels, which are then flattened into one dimensional patch embeddings. This matrix is then fed into the transformer encoder layer which extracts the relationships between the patches, and a final transformer decoder consisting of a linear layer.
 
 1. Patch Embedding - The patch embedding consists of a 2D convolutional layer which breaks the grayscale square input image into patches of pixels, and then flattens the patches into a one dimensional matrix. The output of this layer is a matrix of patch embeddings which is fed into the transformer encoder layer and each patch serves as a "token" in the traditional sense of a natural language processing (NLP) transformer. Increasing the number of patches increases the number of tokens which the model can learn from - and hence derive more intricate spatial relationhips, however, this also increases the number of parameters in the model, and thus increases the training time and space complexity of the model. A class token is also typically appended to the patches at this stage which allows the model to extract the overall output of the data at the end of the transformer.
@@ -18,13 +22,11 @@ The vision transformer (ViT) is composed of a a few key components, namely - the
 
     2.1. Layer normalisation (LN) - Layer normalisation is a normalisation technique which normalises the output of the previous layer to have a set mean and standard deviation. This is done to prevent the output of the previous layer from being too large or too small, and thus causing the model to be unable to learn from the results of backpropagation.
 
-    2.2. Multi-head Self-Attention (MHSA) - The Multi-Head Self-Attention layer is a layer which calculates the attention between each token in the input. The input is first split into a number of heads, and each head is then fed into a scaled dot product attention layer which calculates the attention between each token in the head. The output of each head is then concatenated together and fed into a linear layer which outputs the attention between each token in the input.
+    2.2. Multi-head Self-Attention (MHSA) - The Multi-Head Self-Attention layer is a layer which calculates the attention between each token in the input. The input to this layer is of the form Query, Key, Value which is then encoded in the encoder block.
 
     2.3. Feed Forward Layer (MLP) - The feed forward layer is a linear layer which calculates the relationships between each token in the input. The output of this layer is then fed into another layer normalisation layer. Increasing the dimension of the feed forward layer increases the model's ability to learn more complex relationships in the data at the cost of training time and space. 
 3. Transformer Decoder - The transformer decoder block commonly known as the "Head" can be thought of as a layer which tries to make a conclusion out of the attention and relationships extracted from the transformer encoder layer. While this head can have many different forms depending on the task, the most common form is a linear layer which outputs the classification of the image.
 
-The architecture of the ViT is shown in the figure below.
-![ViT Architecture From The Original Paper](figures/vit_figure.png)
 
 ## Preprocessing
 The ADNI dataset consisted of a train set and test set with grayscale images of dimension 256x240 and each dataset was further split into a cognitive normal (CN) and Alzheimer's Disease (AD) set as subdirectories. This allowed for easy parsing of the data into a train and test set with labels 0 for CN and 1 for AD.
@@ -63,9 +65,7 @@ Below are graphs for the training and validation loss of the initial model devel
 
 The saved model with the highest validation accuracy was used to determine the test accuracy of the model.This model achieved a test accuracy of 59% and can be seen to be quite noisy during training as both the train and validation losses and accuracies oscillated quite a bit. This model was also prone to overfitting as the validation accuracy began to drop after 25 epochs - once again likely due to the lack of dropout layers and normalisation.
 
-After 
-
-After performing a parameter search, I arrived on my best model
+After switching to the new model, it can be seen that the noise in the validation accuracy and loss significantly decreased, and the model performed better overall in the validation set.
 
 <p float="middle">
   <img src="figures/vit10_trainloss.png" width="400" />
@@ -76,6 +76,7 @@ After performing a parameter search, I arrived on my best model
 </p>
 
 
+After adding dropout layers to the model, the trained model was again much less noisy than the previous model, this model was also able to achieve a train accuracy of 98% and validation accuracy of 82% after 50 epochs. The test accuracy of this model was 63.52% which was a slight improvement over the previous model.
 
 <p float="middle">
   <img src="figures/vit11_trainloss.png" width="400" />
@@ -86,17 +87,34 @@ After performing a parameter search, I arrived on my best model
   <img src="figures/vit11_valacc.png" width="400" /> 
 </p>
 
+
+Finally, after performing a parameter search, I arrived on my best model which also able to achieve a train accuracy of 98% and validation accuracy of 82% after 50 epochs. The test accuracy of this model was 64.43% which was a slight improvement over the previous model.
+
+<p float="middle">
+  <img src="figures/vit16_trainloss.png" width="400" />
+  <img src="figures/vit16_valloss.png" width="400" /> 
+</p>
+<p float="middle">
+  <img src="figures/vit16_trainacc.png" width="400" /> 
+  <img src="figures/vit16_valacc.png" width="400" /> 
+</p>
+
+Below is a table of the parameters used for each model, and the test accuracy of each model. While other models with varying learning rates, batch sizes, and number of epochs were trained, they were not included in the table below as they did not perform as well as the models below, and the model parameters were mistakenly lost.
+
 | Model No. | Img Size | Patch Size | No. Transformer Layers | Embedding Dimension | MLP Size | No. Transformer Heads | Normalised? | Dropout? | Test Acc |
 |-----------|----------|------------|------------------------|---------------------|----------|-----------------------|-------------|----------|----------|
 | 21        | 224      | 16         | 12                     | 256                 | 256      | 8                     | True        | True     | 64.11    |
 | 20        | 224      | 16         | 12                     | 256                 | 128      | 16                    | True        | True     | 63.80    |
 | 19        | 224      | 16         | 8                      | 256                 | 128      | 16                    | True        | True     | 61.99    |
 | 18        | 224      | 16         | 8                      | 512                 | 256      | 16                    | True        | True     | 62.8     |
-| 16        | 224      | 16         | 12                     | 256                 | 256      | 16                    | True        | True     | 64.44    |
+| 16        | 224      | 16         | 12                     | 256                 | 256      | 16                    | True        | True     | 64.43    |
 | 15        | 224      | 14         | 8                      | 256                 | 256      | 16                    | True        | True     | 62.14    |
 | 14        | 224      | 14         | 4                      | 256                 | 256      | 16                    | True        | True     | 59.96    |
 | 10        | 192      | 16         | 12                     | 256                 | 256      | 16                    | False       | True     | 59.63    |
 | 7         | 192      | 24         | 8                      | 256                 | 32       | 4                     | False       | False    | 50.44    |
+
+### Sample Predictions From Best Model
+![Sample Predictions From the Best Model](figures/vit_preds.png)
 
 ## Running the code
 
@@ -109,6 +127,12 @@ To run the code, the following core dependencies are required:
 - torchsummary
 - tqdm
 
+The following command can be used to create an identical copy of my conda environment used to train the model:
+
+```
+conda env create -n {environment_name} -f environment.yml
+```
+
 ### Training
 First ensure that the ADNI dataset is downloaded and placed into a directory named data in /PatternAnalysis-2023/recognition/45816967_ADNI_Vision_Transformer, and a models directory is created in the same directory. Then, run the following command to train the model:
 
@@ -116,13 +140,12 @@ First ensure that the ADNI dataset is downloaded and placed into a directory nam
 train.py --img_size 224 --patch_size 16 --num_layers 12 --embed_dim 256 --mlp_dim 256 --num_heads 16 --n_epochs 50 --batch_size 64
 ```
 
+### Testing
 To predict the test set and show the results, run the following command:
 
 ```
 predict.py --model_dir models/vit21_model_49_78.45794392523364.pth --dim 2
 ```
-
-### Testing
 
 
 
