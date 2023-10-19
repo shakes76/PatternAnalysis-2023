@@ -9,13 +9,15 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
 
-from dataset import vqvae_test_loader, vqvae_train_loader, MODEL_PATH
-from models import VQVAE
+from dataset import vqvae_test_loader, vqvae_train_loader, MODEL_PATH, transform, GanDataset
+from models import VQVAE, Generator, Discriminator
 from utils import save_image
 
 device = t.device('cuda' if t.cuda.is_available() else 'cpu')
 if not t.cuda.is_available():
     print("Warning CUDA not found. Using CPU")
+
+# ========== TRAIN VQVAE ==========
 
 # VQVAE Hyper params
 LR_VQVAE = 1e-3
@@ -27,6 +29,7 @@ NUM_EMBEDDINGS = 512
 EMBEDDING_DIM = 64
 BETA = 0.25
 DATA_VARIANCE = 0.0338
+LOG_STEP = 100
 
 # create VQVAE model
 model = VQVAE(NUM_HIDDENS, RESIDUAL_INTER, NUM_EMBEDDINGS, EMBEDDING_DIM, BETA)
@@ -36,36 +39,37 @@ model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=LR_VQVAE)
 train_recon_loss = []
 
-# # train VQVAE
-# for i in range(MAX_EPOCHS_VQVAE):
-#     print(f"EPOCH [{i+1}/{MAX_EPOCHS_VQVAE}]")
-#
-#     size = len(vqvae_train_loader.dataset)
-#     batch_losses = []
-#     i = 0
-#     for batch, (X, _) in enumerate(vqvae_train_loader):
-#         X = X.to(device)
-#
-#         optimizer.zero_grad()
-#         vq_loss, data_recon = model(X)
-#
-#         recon_error = F.mse_loss(data_recon, X) / DATA_VARIANCE
-#         loss = recon_error + vq_loss
-#         loss.backward()
-#         optimizer.step()
-#         batch_losses.append(recon_error.item())
-#
-#         if (i+1) % 100 == 0:
-#             print(f"Step {i} -  recon_error: {np.mean(batch_losses[-100:])}")
-#         i += 1
-#
-#     loss = sum(batch_losses) / len(batch_losses)
-#
-#     train_recon_loss.append(loss)
-#     print(f"Reconstruction loss: {loss}")
-#
-# # Save model
-# t.save(model, os.path.join(MODEL_PATH, "vqvae.txt"))
+# train VQVAE
+print("VQVAE Training started")
+for i in range(MAX_EPOCHS_VQVAE):
+    print(f"EPOCH [{i+1}/{MAX_EPOCHS_VQVAE}]")
+
+    size = len(vqvae_train_loader.dataset)
+    batch_losses = []
+    i = 0
+    for batch, (X, _) in enumerate(vqvae_train_loader):
+        X = X.to(device)
+
+        optimizer.zero_grad()
+        vq_loss, data_recon = model(X)
+
+        recon_error = F.mse_loss(data_recon, X) / DATA_VARIANCE
+        loss = recon_error + vq_loss
+        loss.backward()
+        optimizer.step()
+        batch_losses.append(recon_error.item())
+
+        if (i+1) % LOG_STEP == 0:
+            print(f"Step {i+1} -  recon_error: {np.mean(batch_losses[-100:])}")
+        i += 1
+
+    loss = sum(batch_losses) / len(batch_losses)
+
+    train_recon_loss.append(loss)
+    print(f"Reconstruction loss: {loss}")
+
+# Save model
+t.save(model, os.path.join(MODEL_PATH, "vqvae.txt"))
 
 # save samples of real and test data
 real_imgs1 = next(iter(vqvae_test_loader)) # load some from test dl
@@ -89,3 +93,82 @@ test_quantized = decoded[0][1]
 save_image(real2, 'real-single-sample.png')
 save_image(test_codebook, 'codebook-single-sample.png')
 save_image(test_quantized, 'quantized-single-sample.png')
+
+
+# ========== TRAIN GAN ==========
+
+# GAN Hyper params
+LR_GAN = 2e-4
+BATCH_SIZE_GAN = 256
+MAX_EPOCHS_GAN = 20
+Z_DIM_GAN = 100
+SAMPLE_NUM_GAN = 32
+
+# define dataset
+gan_train_ds = GanDataset(model, transform)
+gan_train_dl = t.utils.data.DataLoader(gan_train_ds, batch_size=BATCH_SIZE_GAN)
+
+# define models
+G = Generator()
+D = Discriminator()
+G = G.to(device)
+D = D.to(device)
+
+# criterion
+g_optimizer = torch.optim.Adam(G.parameters(), lr=LR_GAN, betas=(0.5, 0.999))
+d_optimizer = torch.optim.Adam(D.parameters(), lr=LR_GAN, betas=(0.5, 0.999))
+criterion = nn.BCELoss().to(device)
+
+# train GAN
+# taken from COMP3710 Lab Demo 2 Part 3 (GAN) by Luke Halberstadt
+total_batch = len(gan_train_dl.dataset) // BATCH_SIZE_GAN
+fixed_z = Variable(torch.randn(SAMPLE_NUM_GAN, Z_DIM_GAN)).to(device)
+print("GAN Training started")
+for epoch in range(MAX_EPOCHS_GAN):
+    for i, (images, labels) in enumerate(gan_train_dl):
+        # Build mini-batch dataset
+        image = Variable(images).to(device)
+        # Create the labels which are later used as input for the BCE loss
+        real_labels = Variable(torch.ones(BATCH_SIZE_GAN)).to(device)
+        fake_labels = Variable(torch.zeros(BATCH_SIZE_GAN)).to(device)
+
+        # train discriminator
+        outputs = D(image)
+        d_loss_real = criterion(outputs, real_labels)  # BCE
+        real_score = outputs
+
+        # compute loss using fake images
+        z = Variable(torch.randn(BATCH_SIZE_GAN, Z_DIM_GAN)).to(device)
+        fake_images = G(z)
+        outputs = D(fake_images)
+        d_loss_fake = criterion(outputs, fake_labels)  # BCE
+        fake_score = outputs
+
+        # Backwards propagation + optimize
+        d_loss = d_loss_real + d_loss_fake
+        D.zero_grad()
+        d_loss.backward()
+        d_optimizer.step()
+
+        # train generator
+        z = Variable(torch.randn(BATCH_SIZE_GAN, Z_DIM_GAN)).to(device)
+        fake_images = G(z)
+        outputs = D(fake_images)
+
+        # We train G to maximize log(D(G(z))) instead of minimizing log(1-D(G(z)))
+        # For the reason, see the last paragraph of section 3. https://arxiv.org/pdf/1406.2661.pdf
+        g_loss = criterion(outputs, real_labels)  # BCE
+
+        # Backprob + Optimize
+        D.zero_grad()
+        G.zero_grad()
+        g_loss.backward()
+        g_optimizer.step()
+
+        if (i + 1) % LOG_STEP == 0:
+            # print("Epoch [%d/%d], Step[%d/%d], d_loss: %.4f, g_loss: %.4f, D(x): %.2f, D(G(z)): %.2f" % (
+            #     epoch, max_epoch, i + 1, total_batch, d_loss.data.item(), g_loss.data.item(), real_score.data.mean(),
+            #     fake_score.data.mean()))
+            print("Epoch [%d/%d], Step[%d/%d], D(x): %.2f, D(G(z)): %.2f" % (
+                epoch, MAX_EPOCHS_GAN, i + 1, total_batch, real_score.data.mean(),
+                fake_score.data.mean()))
