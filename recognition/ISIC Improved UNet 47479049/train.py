@@ -2,18 +2,15 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torchvision
-import torchvision.datasets as dset
 import torchvision.transforms as transforms
-import matplotlib.pyplot as plt
 from modules import UNet
-from Model2 import Modified3DUNet
-from dataset import SkinDataset, get_loaders
+from dataset import get_loaders
 
 # Hyperparameters
 learning_rate = 1e-4
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 batch_size = 16
-num_epochs = 64
+num_epochs = 32
 num_workers = 4
 image_height = 96
 image_width = 128
@@ -99,11 +96,6 @@ def main():
         transforms.Resize((image_height, image_width), antialias=None)
     ])
 
-    val_transforms = transforms.Compose([
-        transforms.ToTensor(),
-    ])
-
-
     model = UNet(3, 1).to(device)
     criterion = nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
@@ -115,17 +107,8 @@ def main():
         test_dir,
         batch_size,
         train_transforms,
-        val_transforms,
     )
 
-    #img = next(iter(test_loader))
-    #plt.imshow(img[0][0], "Greys_r")
-    #plt.show()
-
-    img = next(iter(test_loader))
-    img = img.to(device)
-    img = model(img)
-    torchvision.utils.save_image(img, "Epoch_0.png")
 
     train(train_loader, val_loader, test_loader, model, optimizer, criterion, num_epochs)
         

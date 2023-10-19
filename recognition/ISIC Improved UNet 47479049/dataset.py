@@ -51,7 +51,7 @@ class TestDataset(Dataset):
         return t_image
         
 
-def get_loaders(train_dir, mask_dir, test_dir, batch_size, train_trasform, val_transform):
+def get_loaders(train_dir, mask_dir, test_dir, batch_size, train_trasform):
 
     dataset = SkinDataset(
         image_dir=train_dir,
