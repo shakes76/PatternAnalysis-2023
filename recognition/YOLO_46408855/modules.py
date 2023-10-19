@@ -113,8 +113,9 @@ class YOLO(nn.Module):
 
 def calculate_iou(pred, label):
     """
+    Caculates the IoUs of a given list of boxes.
     Used to determine accuracy of given bounding boxes.
-    Also is a key part of the loss function
+    Also is a key part of the loss function.
     """
     px, py, pw, ph = pred[:,0], pred[:,1], pred[:,2], pred[:,3]
     lx, ly, lw, lh = label[0], label[1], label[2], label[3]
@@ -148,7 +149,6 @@ class YOLO_loss(nn.Module):
 
     def forward(pred, label):
         #Constants
-        box_accuracy = 5 #Puts more emphasis on coordinate loss
         no_object = 0.5 #Puts less emphasis on loss from boxes with no object
         #Rearrange predictions to have one box shape on each line
         boxes = torch.reshape(pred, (776, 3))
@@ -166,14 +166,14 @@ class YOLO_loss(nn.Module):
         i = 0
         for idx in best_boxes:
             box = boxes[i][idx]
+            #coordinate loss
+            xy_loss = (label[0]-box[0])**2 + (label[1]-box[1])**2
+            wh_loss = ((label[0])**(1/2)-(box[0])**(1/2))**2 + ((label[1])**(1/2)-(box[1])**(1/2))**2
+            coord_loss[i] = (xy_loss + wh_loss)
             #Check if there was a detection
             if box[4] > 0.8: #There was
                 #classification loss
                 class_loss[i] = (label[5] - box[5])**2 + (label[6] - box[6])**2
-                #coordinate loss
-                xy_loss = (label[0]-box[0])**2 + (label[1]-box[1])**2
-                wh_loss = ((label[0])**(1/2)-(box[0])**(1/2))**2 + ((label[1])**(1/2)-(box[1])**(1/2))**2
-                coord_loss[i] = box_accuracy*(xy_loss + wh_loss)
                 #confidence loss
                 conf_loss[i] = (label[4] - box[4])**2
             else: #There wasn't
@@ -187,3 +187,42 @@ class YOLO_loss(nn.Module):
         total_loss += torch.sum(conf_loss)
 
         return total_loss
+
+def single_iou(pred, label):
+        """
+        Calculates the IoU of a single box
+        """
+        px, py, pw, ph = pred[:,0], pred[:,1], pred[:,2], pred[:,3]
+        lx, ly, lw, lh = label[0], label[1], label[2], label[3]
+        box_a = [px-(pw/2), py-(ph/2), px+(pw/2), py+(ph/2)]
+        box_b = [lx-(lw/2), ly-(lh/2), lx+(lw/2), ly+(lh/2)]
+
+        # determine the (x, y) of the corners of intersection area
+        ax = torch.clamp(box_a[0], min=box_b[0])
+        ay = torch.clamp(box_a[1], min=box_b[1])
+        bx = torch.clamp(box_a[2], max=box_b[2])
+        by = torch.clamp(box_a[3], max=box_b[3])
+
+        # compute the area of intersection
+        intersect = torch.abs(torch.clamp((bx - ax), min=0) * torch.clamp((by - ay), min=0))
+
+        # compute the area of both the prediction and ground-truth
+        area_a = torch.abs((box_a[2] - box_a[0]) * (box_a[3] - box_a[1]))
+        area_b = torch.abs((box_b[2] - box_b[0]) * (box_b[3] - box_b[1]))
+
+        # compute the iou
+        iou = intersect / (area_a + area_b - intersect)
+        return iou
+    
+def filter_boxes(pred):
+    """
+    Returns highest confidence box that has detected something
+    """
+    best_box = None
+    highest_conf = 0.8
+    for i in range(pred.size(0)):
+        box = pred[i,:]
+        if box[4] >= highest_conf:
+            best_box = box
+            highest_conf = box[4]
+    return best_box
