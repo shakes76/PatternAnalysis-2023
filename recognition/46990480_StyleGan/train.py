@@ -17,7 +17,7 @@ if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
 # Path Parameters
-modelName = "256_train_Wpre_256_lat"
+modelName = "QuickTesting2"
 # data_path_root = "./data/OASIS/" # Rangpur
 data_path_root = "/Datasets/keras_png_slices_data/" # Desktop
 output_path = "./"
@@ -40,8 +40,6 @@ lambda_gp = 10  # Lambda value for the gradient penalty
 # Data
 print("> Loading Dataset")
 trainset, train_loader, *otherLoaders = generateDataLoader(image_height, image_width, batch_size, data_path_root)
-
-train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)  # Data Loader
 total_steps = len(train_loader)
 print("> Dataset Ready")
 
@@ -144,23 +142,21 @@ def generate_examples(gen, epoch, n=100):
 
     gen.train()
 
+print("> Training")
+start = time.time()  # time generation
+
 # Lists to keep track of progress
 G_losses = []
 D_losses = []
 
-def train_fn(
-    discriminator,
-    generator,
-    path_length_penalty,
-    loader,
-    opt_discriminator,
-    opt_generator,
-    opt_mapping_network,
-):
-    '''
-    Main training loop for the model
-    '''
-    loop = tqdm(loader, leave=True)
+# Train loop
+for epoch in range(num_epochs):
+    # tqdm training loop
+    loop = tqdm(train_loader, leave=True)
+
+    # Variables to track the progress of the discriminator
+    epoch_generator_loss = []
+    epoch_discriminator_loss = []
 
     for batch_idx, (real, _) in enumerate(loop): # load a batch of images (depicted by the batch size)
         # Real image batch
@@ -209,29 +205,19 @@ def train_fn(
         loss_gen.backward()
         opt_generator.step()
         opt_mapping_network.step()
-        G_losses.append(gp.item())
-        D_losses.append(loss_discriminator.item())
+        epoch_generator_loss.append(criterion.item())
+        epoch_discriminator_loss.append(loss_discriminator.item())
 
         # logging with tqdm
         loop.set_postfix(
-            gp=criterion.item(),
-            loss_critic=loss_discriminator.item(),
+            epoch=epoch,
+            G_loss=criterion.item(),
+            D_loss=loss_discriminator.item()
         )
-
-print("> Training")
-start = time.time()  # time generation
-
-# Train loop
-for epoch in range(num_epochs):
-    train_fn(
-        discriminator,
-        generator,
-        path_length_penalty,
-        train_loader,
-        opt_discriminator,
-        opt_generator,
-        opt_mapping_network,
-    )
+    
+    # Compute Average losses
+    G_losses.append(sum(epoch_generator_loss)/len(epoch_generator_loss))
+    D_losses.append(sum(epoch_discriminator_loss)/len(epoch_discriminator_loss))
 
     # Save example images every 50 epochs
     if epoch % 50 == 0:
@@ -251,10 +237,10 @@ plt.figure(figsize=(10, 5))
 plt.title("Generator and Discriminator Loss During Training")
 plt.plot(G_losses, label="Generator")
 plt.plot(D_losses, label="Discriminator")
-plt.xlabel("Iterations")
-plt.ylabel("Loss")
+plt.xlabel("Epochs")
+plt.ylabel("Average Loss")
 plt.legend()
-plt.show()
-plt.savefig(f'{output_path}saved_examples_{modelName}/trainingLossPlot.png')
+plt.savefig(f'{output_path}saved_examples_{modelName}/trainingLossPlotAvgPerEpoch.png')
 
+# Training Complete
 print("> Done")
