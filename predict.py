@@ -3,6 +3,8 @@ import modules as m
 import dataset as d
 from torch.utils.data import DataLoader
 import random as r
+import matplotlib.pyplot as plt
+import numpy as np
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
@@ -18,15 +20,36 @@ model = m.ModifiedUNet(3, 1).to(device)
 
 model.load_state_dict(torch.load('model_weights.pth'))
 
+random_indices = [ round(r.random()*80) for i in range(5)]
 
+figure, axis = plt.subplots(1, 3, figsize=(15,5*5))
+axis[0][0].set_title("Original Image") # The titles that will appear above each column
+axis[0][1].set_title("Ground Truth")
+axis[0][2].set_title("Modelled Mask")
+dice_list = []
+for i, input in enumerate(test_loader):
+    if i in random_indices:
+        image = input[0].cpu()[0].permute(1,2,0) # Same transforms as the one in train.py
+        ground_truth = input[1].cpu()[0][0]
+        modelled_image = model(input[0].to(device)).cpu()[0][0][0]
+        axis[0][0].imshow(image.numpy())
+        axis[0][0].xaxis.set_visible(False)
+        axis[0][0].yaxis.set_visible(False)
 
-# if i == 1:
-            #     test_image = images.cpu()[0].squeeze(0).numpy()
-            #     # test_segment = segment.cpu()[0]
-            #     # test_modelled_image = modelled_image.cpu()
-            #     plt.plot(test_image)
-            #     plt.title("test")
-            #     # plt.imshow(test_segment.numpy())
-            #     # plt.imshow(test_modelled_image.numpy())
-            #     plt.savefig("/home/Student/s4742286/PatternAnalysis-2023/outputs/test.jpg")
-            #     exit()
+        axis[0][1].imshow(ground_truth.numpy(), cmap="gray")
+        axis[0][1].xaxis.set_visible(False)
+        axis[0][1].yaxis.set_visible(False)
+
+        axis[0][2].imshow(modelled_image.numpy(), cmap="gray")
+        axis[0][2].xaxis.set_visible(False)
+        axis[0][2].yaxis.set_visible(False)
+        figure.suptitle(f"Predicted Masks")
+
+        plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/GroupedResultsComparisonPrediction_No{i} ")
+        plt.close()
+
+        dice_score = 1 - m.dice_loss(ground_truth, modelled_image).item()
+        dice_list.append(dice_score)
+
+print("Mean dice coefficient across random sample: " + str(np.mean(dice_list)))
+

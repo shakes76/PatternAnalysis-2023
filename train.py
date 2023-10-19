@@ -64,8 +64,7 @@ def main():
             elif i in range(56, 81):
                 # Disables gradient calculations for increased performance
                 with torch.no_grad():
-                    # Validation phase is where we test the model to test if the model is doing well or not. The key difference here is that the optimizer  
-                    # plays no role in the calculations, as we presume we have found the minima that results in the least loss.
+                    # Validation phase is where we test the model to test if the model is doing well or not. The key difference here is that the optimizer plays no role in the calculations, as we presume we have found the minima that results in the least loss.
                     model.eval()
                     images, segments = input[0].to(device), input[1].to(device)
 
@@ -103,7 +102,7 @@ def main():
 
                     figure.suptitle(f"Validation Phase: Epoch {epoch + 1}")
                     # Saving the figure
-                    plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/GroupedResultsComparison_Epoch{epoch + 1}")
+                    plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/GroupedResultsComparison_Epoch{epoch + 1} ")
                     plt.close()
 
 
@@ -113,14 +112,14 @@ def main():
             plt.xlabel('Epoch')
             plt.ylabel('Dice Loss')
             plt.title(f'Training Loss to Epoch {epoch + 1}')
-            plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/Training_Loss_Epoch_{epoch + 1}")
+            plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/Training_Loss_Epoch_{epoch + 1}.png")
             plt.close()
 
             plt.plot(runningloss_val)
             plt.xlabel('Epoch')
             plt.ylabel('Loss')
             plt.title(f'Validation Loss to Epoch {epoch + 1}')
-            plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/Validation_Loss_Epoch_{epoch + 1}")
+            plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/Validation_Loss_Epoch_{epoch + 1}.png")
             plt.close()
 
     # Calculate the overall dice score
