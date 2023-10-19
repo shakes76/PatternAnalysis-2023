@@ -95,6 +95,17 @@ def load_dataset(
 
     train_AD, train_NC = get_jpegs(f"{path}/train/AD"), get_jpegs(f"{path}/train/NC")
 
+    patient_ids = set(x.split("/")[-1].split("_")[0] for x in train_AD)
+    for x in train_NC:
+        patient_ids.add(x.split("/")[-1].split("_")[0])
+
+    # ensure consistent order of patient IDs
+    patient_ids = list(patient_ids)
+    np.random.shuffle(patient_ids)
+
+    train_patient_ids = patient_ids[len(patient_ids) // 5 :]
+    validate_patient_ids = patient_ids[: len(patient_ids) // 5]
+
     train_both_AD, train_both_NC = create_pairs(train_AD, train_AD, 0), create_pairs(
         train_NC, train_NC, 0
     )
@@ -143,8 +154,72 @@ def load_dataset(
     validate = train[: len(train) // 5]
     train = train[len(train) // 5 :]
 
+    # ensure patient-level split in train and validate data
+
+    to_delete = set()
+
+    for i in range(len(train)):
+        if (
+            train[i][0].split("/")[-1].split("_")[0] in validate_patient_ids
+            or train[i][1].split("/")[-1].split("_")[0] in validate_patient_ids
+        ):
+            validate = np.append(validate, [train[i]], axis=0)
+            to_delete.add(i)
+
+    train = np.delete(train, list(to_delete), axis=0)
+
+    to_delete.clear()
+
+    for i in range(len(validate)):
+        if (
+            validate[i][0].split("/")[-1].split("_")[0] in train_patient_ids
+            or validate[i][1].split("/")[-1].split("_")[0] in train_patient_ids
+        ):
+            train = np.append(train, [validate[i]], axis=0)
+            to_delete.add(i)
+
+    validate = np.delete(validate, list(to_delete), axis=0)
+
+    np.random.shuffle(train)
+    np.random.shuffle(validate)
+
+    # end patient-level split
+
     classify_validate = classify_train[: len(classify_train) // 5]
     classify_train = classify_train[len(classify_train) // 5 :]
+
+    # ensure patient-level split in classifier train and validate data
+
+    to_delete.clear()
+
+    for i in range(len(classify_train)):
+        if (
+            classify_train[i][0].split("/")[-1].split("_")[0] in validate_patient_ids
+            or classify_train[i][1].split("/")[-1].split("_")[0] in validate_patient_ids
+        ):
+            classify_validate = np.append(
+                classify_validate, [classify_train[i]], axis=0
+            )
+            to_delete.add(i)
+
+    classify_train = np.delete(classify_train, list(to_delete), axis=0)
+
+    to_delete.clear()
+
+    for i in range(len(classify_validate)):
+        if (
+            classify_validate[i][0].split("/")[-1].split("_")[0] in train_patient_ids
+            or classify_validate[i][1].split("/")[-1].split("_")[0] in train_patient_ids
+        ):
+            classify_train = np.append(classify_train, [classify_validate[i]], axis=0)
+            to_delete.add(i)
+
+    classify_validate = np.delete(classify_validate, list(to_delete), axis=0)
+
+    np.random.shuffle(classify_train)
+    np.random.shuffle(classify_validate)
+
+    # end patient-level split
 
     # Load the dataset into tf.data.Dataset objects, map the paths to JPEG images, and batch them
 
