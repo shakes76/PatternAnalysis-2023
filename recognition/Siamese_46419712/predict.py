@@ -49,13 +49,15 @@ def random_test_model(device, model, cModel, test_loader):
 def save_plot_image(img, label, predicted):
     n_col = 3
     n_row = 4
-    plt.figure(figsize=(1.8 * n_col, 2.4 * n_row))
-
+    plt.figure(figsize=(10, 12))
+    # adapt from demo2 question 1
     verbose = ["AD", "NC"]
     for i in range(n_row * n_col):
         plt.subplot(n_row, n_col, i + 1)
         plt.imshow(np.transpose(img[i].cpu().squeeze(), (1,2,0)), cmap="gray")
-        plt.title(f"Actual: {verbose[label[i]]}, Predicted: {verbose[predicted[i]]}", size=12)
+        actual_class = int(label[i].item())  # Cast to integer
+        predicted_class = int(predicted[i].item())  # Cast to integer 
+        plt.title(f"Actual: {verbose[actual_class]}, Predicted: {verbose[predicted_class]}", size=12)
         plt.axis('off')
     
     plt.savefig(utils.image_plot)  # Specify the desired file format and filename

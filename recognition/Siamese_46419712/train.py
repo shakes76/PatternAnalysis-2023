@@ -238,7 +238,7 @@ def execute_sTrain(train_loader, val_loader):
     learning_rate = 0.0001
 
     criterion = ContrastiveLossFunction()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999)) # Optimize model parameter
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate) # Optimize model parameter
 
     # training
     loss_list = []
@@ -283,7 +283,7 @@ def execute_sTrain(train_loader, val_loader):
         save_loss_plot(avg_loss_list, avg_val_loss, epoch)
 
     # test save the last model
-    save_model(epoch, best_model, criterion, optimizer.state_dict())
+    # save_model(epoch, best_model, criterion, optimizer.state_dict())
 
     end = time.time() #time generation
 
@@ -302,7 +302,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     learning_rate = 0.001
 
     criterion = nn.BCELoss()
-    optimizer = torch.optim.Adam(cModel.parameters(), lr=learning_rate, betas=(0.5, 0.999))
+    optimizer = torch.optim.Adam(cModel.parameters(), lr=learning_rate)
 
     # training
     classifier_loss_list = []
@@ -342,13 +342,13 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
         
         if best_model is None:
             best_model = cModel.state_dict()
-            best_acc = accuracy
-            print(f"Current best accuracy is {best_acc} at epoch {epoch + 1}")
+            best_acc = current_classifier_val_loss
+            print(f"Current best accuracy is {current_classifier_val_loss} at epoch {epoch + 1}")
             save_model(epoch, best_model, criterion, optimizer.state_dict(), 1)
-        elif accuracy > best_acc:
+        elif current_classifier_val_loss < best_acc:
             best_model = cModel.state_dict()
             print(f"The previous best accuracy is {best_acc}")
-            best_acc = accuracy
+            best_acc = current_classifier_val_loss
             print(f"Current best validate accuracy is {best_acc} at epoch {epoch + 1}")
             save_model(epoch, best_model, criterion, optimizer.state_dict(), 1)
         
@@ -359,7 +359,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
         save_val_accuracy_plot(accuracy_list, train_accuracy_list, epoch)
     
     # test save the last model
-    save_model(epoch, best_model, criterion, optimizer.state_dict(), 1)
+    # save_model(epoch, best_model, criterion, optimizer.state_dict(), 1)
 
     end = time.time() #time generation
     print("Finish classifier training")
