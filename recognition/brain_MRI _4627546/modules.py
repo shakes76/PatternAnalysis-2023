@@ -36,5 +36,6 @@ class ESPCN(nn.Module):
 
 
 # Instantiate the model
-model = ESPCN(upscale_factor=4, channels=1)
-print(model)
+if __name__ == '__main__':
+    model = ESPCN(upscale_factor=4, channels=1)
+    print(model)

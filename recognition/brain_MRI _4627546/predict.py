@@ -19,7 +19,7 @@ DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 
 # Load the model that trained from train.py
 model = ESPCN().to(DEVICE)
-model.load_state_dict(torch.load('best_model_v2.pth'))
+model.load_state_dict(torch.load('best_model.pth'))
 model.eval()
 
 # Create test dataset
@@ -63,8 +63,13 @@ for idx in range(num_images_to_show):
 
     # Display images
     axes[idx, 0].imshow(np.asarray(lr_image), cmap='gray')
+    axes[idx, 0].set_title(f"Low Resolution input {lr_image.size}")
+
     axes[idx, 1].imshow(np.asarray(pred_hr_image), cmap='gray')
+    axes[idx, 1].set_title(f"Predicted High Resolution {pred_hr_image.size}")
+
     axes[idx, 2].imshow(np.asarray(hr_image), cmap='gray')
+    axes[idx, 2].set_title(f"Original High Resolution {hr_image.size}")
 
     # Remove axis ticks
     for ax in axes[idx]:

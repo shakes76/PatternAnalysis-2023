@@ -87,7 +87,7 @@ def validate(model, loader, criterion):
 train_losses = []
 val_losses = []
 best_val_loss = float('inf')
-
+print('training start')
 for epoch in range(EPOCHS):
     start_time = time.time()
 
