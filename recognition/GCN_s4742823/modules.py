@@ -1,3 +1,7 @@
+'''
+This file contains the Model class which is used to solve this task, as well as
+the GNNLayer module which performs the graph convolution in it.
+'''
 import torch
 
 # -------------

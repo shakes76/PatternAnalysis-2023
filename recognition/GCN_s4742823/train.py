@@ -1,3 +1,8 @@
+'''
+This file contains the hyperparameters, as well as the functions used to train and test the model, and to plot its results.
+It also has the main functionality, which is to create a new Model, train it, test it, and plot the results.
+This file will save the model as "Facebook_GCN.pth", which can then be loaded and tested in predict.py.
+'''
 from dataset import load_data
 from modules import Model
 import torch

@@ -1,3 +1,6 @@
+'''
+This file contains constants used by other classes, and configures the device for rendering on GPU.
+'''
 import torch
 
 print("PyTorch Version:", torch.__version__)

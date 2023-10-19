@@ -1,3 +1,8 @@
+'''
+Simple script which loads a file of the name "Facebook_GCN.pth" and tests it.
+Note that it uses the same test split as the train script. This is to ensure that the model loaded
+can be accurately compared to the model trained in train.py.
+'''
 import torch
 from dataset import load_data
 from utils import device
