@@ -45,7 +45,7 @@ print("Testing SNN model")
 model.evaluate(test_ds, verbose=1)
 
 print("Saving SNN model")
-model.save("models/snn", save_format="tf")
+model.save(constants.SIAMESE_MODEL_PATH, save_format="tf")
 
 # Classifier Training
 
@@ -70,4 +70,4 @@ plot_training_history(history, "classifier")
 
 classifier.evaluate(class_test_ds, verbose=1)
 
-classifier.save("models/classifier", save_format="tf")
+classifier.save(constants.CLASSIFIER_MODEL_PATH, save_format="tf")
