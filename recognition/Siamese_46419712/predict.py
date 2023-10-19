@@ -4,12 +4,13 @@ import os
 import matplotlib.pyplot as plt
 import random
 import numpy as np
+import utils
 
 from modules import RawSiameseModel, BinaryModelClassifier
 from dataset import LoadData
 
-SIAMESE_MODEL_SAVE_PATH = "/home/Student/s4641971/project/result/siamese.pt"
-CLASSIFIER_MODEL_SAVE_PATH = "/home/Student/s4641971/project/result/classifier.pt"
+SIAMESE_MODEL_SAVE_PATH = utils.siamese
+CLASSIFIER_MODEL_SAVE_PATH = utils.classifier
 
 def load_model(model_type=0):
     if model_type == 0:
@@ -24,7 +25,9 @@ def load_model(model_type=0):
     else:
         return None
 
-def test_model(model, cModel, test_loader):
+def random_test_model(device, model, cModel, test_loader):
+    random.seed(60)
+
     # evaluate the model
     model.eval()
     cModel.eval()
@@ -55,7 +58,7 @@ def save_plot_image(img, label, predicted):
         plt.title(f"Actual: {verbose[label[i]]}, Predicted: {verbose[predicted[i]]}", size=12)
         plt.axis('off')
     
-    plt.savefig("/home/Student/s4641971/project/result/predict_result.png")  # Specify the desired file format and filename
+    plt.savefig(utils.image_plot)  # Specify the desired file format and filename
     plt.close()
         
 if __name__ == "__main__":
@@ -87,6 +90,6 @@ if __name__ == "__main__":
     else:
         print("error, unable to load cannot find save file")
 
-    img, label, predicted = test_model(siamese_model, classifier_model, test_loader)
+    img, label, predicted = random_test_model(device, siamese_model, classifier_model, test_loader)
 
     save_plot_image(img, label, predicted)
