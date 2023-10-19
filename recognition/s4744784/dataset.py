@@ -58,8 +58,6 @@ def load_train_data(path: str):
     print("Training image picture created!")
     return train_loader
 
-
-
 def load_test_data(path: str):
     """
     Function that loads the test daMdReturns test dataloader.
