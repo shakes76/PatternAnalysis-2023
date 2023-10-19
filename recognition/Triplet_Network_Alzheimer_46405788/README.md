@@ -74,7 +74,7 @@ The output of the classifier is a binary classification result, indicating wheth
 The following plots can be generated:
 
 Training Loss and Accuracy: A plot of training loss and accuracy over epochs to visualize the training progress.
-##### TripleNet Loss
+##### TripleNet Loss first 35 epochs with the `scheduler`
 ![image](https://github.com/Kai-Barry/PatternAnalysis-2023/assets/88063818/38d0e0db-1b62-4517-a7da-a1b4883a88f3)
 
 ##### TripleClassifier Loss
