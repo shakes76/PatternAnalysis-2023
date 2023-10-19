@@ -63,21 +63,26 @@ For the efficient training of our Improved UNet model on the ISIC 2017/8 dataset
 Resizing:
 
 All images and their corresponding masks were resized to a consistent dimension, say 256x256 pixels. This ensures that the network receives inputs of a fixed size.
+
 Normalization:
 
 Image pixel values, initially in the range [0, 255], were normalized to fall within [0, 1]. This aids in faster and more stable convergence during training.
+
 Data Augmentation:
 
 To diversify our training data and enhance the model's generalization, we applied various augmentation techniques:
 Random Rotations: Images were randomly rotated between -15 to 15 degrees.
 Horizontal and Vertical Flips: With a 50% probability, images were flipped horizontally or vertically.
 Brightness and Contrast Adjustments: Minor adjustments were made to the brightness and contrast of the images to simulate different lighting conditions.
+
 Train-Validation Split:
 
 The dataset was split into training and validation sets. Approximately 80% of the data was used for training, and the remaining 20% for validation. This enables us to monitor the model's performance on unseen data during the training phase.
+
 Batching:
 
 For efficient training, images and their masks were grouped into batches. Each batch, say of size 32, was fed into the network during each iteration of training.
+
 Shuffling:
 
 The training data was shuffled at the beginning of each epoch to ensure the model doesn't memorize any specific order of data presentation.
