@@ -38,24 +38,17 @@ class SiameseModel:
 
         inputs = [anchor_input, positive_input, negative_input]
 
-        # Output the embeddings as a list
-        output_embeddings = [anchor_embedding, positive_embedding, negative_embedding]
-
-        siamese_network = Model(inputs=inputs, outputs=output_embeddings)
+        siamese_network = Model(inputs=inputs, outputs=anchor_embedding)
         siamese_network.compile(optimizer='adam', loss=tfa.losses.TripletSemiHardLoss())
         return siamese_network
     
-    def create_classifier(self):
-        input_image = Input(shape=(256, 240, 3))
+    def create_classifier(self, base_model):
+        anchor_embedding_input = Input(shape=(128,))  # Assuming the embedding size is 128
+        x = Dense(64, activation='relu')(anchor_embedding_input)
+        x = Dense(32, activation='relu')(x)
+        output = Dense(2, activation='softmax')(x)  # Adjust num_classes accordingly
 
-        # Reuse the same base network architecture as the Siamese model
-        base_model = self.base_network()
-        classifier_embedding = base_model(input_image)
-
-        # Add additional layers for classification
-        classifier_output = Dense(2, activation='softmax')(classifier_embedding)
-
-        # Create the classifier model
-        classifier_model = Model(inputs=input_image, outputs=classifier_output)
+        classifier_model = Model(inputs=anchor_embedding_input, outputs=output)
+        classifier_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
         return classifier_model
     
