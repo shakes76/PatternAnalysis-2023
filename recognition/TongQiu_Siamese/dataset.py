@@ -3,6 +3,7 @@ from torch.utils.data import Dataset
 from torchvision.io import read_image, ImageReadMode
 import random
 import os
+import torchvision.transforms as tf
 
 from utils import Config
 
@@ -54,8 +55,8 @@ class ContrastiveDataset(Dataset):
             other_img_path, _, other_patient_id = random.choice(other_patients)
 
         # Read images
-        img1 = read_image(img_path, ImageReadMode.GRAY).float()
-        img2 = read_image(other_img_path, ImageReadMode.GRAY).float()
+        img1 = read_image(img_path, ImageReadMode.GRAY).float()/255.
+        img2 = read_image(other_img_path, ImageReadMode.GRAY).float()/255.
         if self.transform:
             img1 = self.transform(img1)
             img2 = self.transform(img2)
@@ -76,9 +77,18 @@ if __name__ == '__main__':
     full_train_data = discover_directory(Config.TRAIN_DIR)
     train_data, val_data = patient_level_split(full_train_data)
 
-    train_dataset = ContrastiveDataset(train_data)
-    val_dataset = ContrastiveDataset(val_data)
+    tr_transform = tf.Compose([
+        tf.Normalize((0.1160,), (0.2261,)),
+        tf.RandomRotation(10)
+    ])
 
+    val_transform = tf.Compose([
+        tf.Normalize((0.1160,), (0.2261,)),
+        tf.RandomRotation(10)
+    ])
+
+    train_dataset = ContrastiveDataset(train_data, transform=tr_transform)
+    val_dataset = ContrastiveDataset(val_data, transform=val_transform)
 
     dataloader = DataLoader(
         dataset=train_dataset,
