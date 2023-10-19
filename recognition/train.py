@@ -2,9 +2,7 @@ import tensorflow as tf
 import numpy as np
 import keras.api._v2.keras as keras # Required as, though it violates Python conventions, my TF cannot load Keras properly
 from keras.layers import *
-from keras.models import Sequential, Model
 from keras.optimizers import Adam
-import os
 
 import modules
 import dataset
@@ -14,17 +12,22 @@ from itertools import product
 train, test = dataset.get_data()
 model = modules.get_model()
 
+
 # Extract X and y from the train dataset
 X_train = [X for X, _ in train]
 y_train = [y for _, y in train]
 X_train = np.array(X_train)
 y_train = np.array(y_train)
 
+print("X_train.shape", X_train.shape)
+print("y_train.shape", y_train.shape)
+
 # Do the same in test
 X_test = [X for X, _ in test]
 y_test = [y for _, y in test]
 X_test = np.array(X_test)
 y_test = np.array(y_test)
+
 
 def create_pairs(X, y):
     X_pairs, ys = [], []
@@ -45,9 +48,6 @@ def create_pairs(X, y):
 
     return X_pairs, ys
 
-X_train_pairs, ys_train = create_pairs(X_train, y_train)
-X_test_pairs, ys_test = create_pairs(X_test, y_test)
-
 # Specify checkpoint paths
 checkpoint_path = "./Checkpoint/cp.ckpt"
 
@@ -57,11 +57,20 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                  verbose=1)
 
 model.compile(loss='binary_crossentropy', # As we are using Sigmoid activation
-              optimizer=Adam(learning_rate=0.001),
+              optimizer=Adam(learning_rate=0.005),
               metrics=['accuracy'])
-model.fit(x=[X_train_pairs[:, 0, :, :], X_train_pairs[:, 1, :, :]],
+
+num_batches = 538
+batch_size = 40
+epoch = 5
+
+for b in range(50):
+    X_train_pairs, ys_train = create_pairs(X_train[b], y_train[b])
+    X_test_pairs, ys_test = create_pairs(X_test[b], y_test[b])
+
+    model.fit(x=[X_train_pairs[:, 0, :, :], X_train_pairs[:, 1, :, :]],
           y=ys_train,
           validation_data=([X_test_pairs[:, 0, :, :], X_test_pairs[:, 1, :, :]], ys_test),
-          epochs=200,
-          batch_size=32,
+          batch_size=None,
+          steps_per_epoch=20,
           callbacks=[cp_callback])
