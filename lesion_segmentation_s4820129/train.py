@@ -1,4 +1,4 @@
-from modules import ImprovedUNET, DiceLoss, CustomCompose, CustomResize
+from modules import ImprovedUNET, DiceLoss, CustomCompose, CustomResize, UNET
 from dataset import ISICdataset
 from torch.utils.data import DataLoader
 import wandb
@@ -8,7 +8,7 @@ from tqdm import tqdm
 import torch
 from utilities import accuracy
 
-wandb.init(project="Lesion_detection", name="UNET_2")
+wandb.init(project="Lesion_detection_rangpur_gpu", name="my_unet")
 
 
 # Initialize Dataset and Dataloader
@@ -27,7 +27,7 @@ model = model.to(device)
 # criterion = DiceLoss()
 # optimizer = Adam(model.parameters(), lr=0.001)
 criterion = DiceLoss()
-lr_init = 0.0001
+lr_init = 5e-4
 weight_decay = 1e-5
 optimizer = torch.optim.Adam(model.parameters(), lr=lr_init, weight_decay=weight_decay)
 scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: lr_init * (0.985 ** epoch))
@@ -61,7 +61,7 @@ for epoch in range(num_epochs):
         progress_bar.set_description(f'Epoch {epoch+1}, Loss {loss.item()}')
         wandb.log({'Running loss': loss.item(), 'Acc': acc})
     scheduler.step()
-    wandb.log({'Epoch_loss': epoch_loss}) 
+    wandb.log({'Epoch_loss': epoch_loss/(epoch+1)}) 
     print(f'Epoch {epoch+1}, Avg Loss {epoch_loss/len(train_dataloader)}')
 
 
