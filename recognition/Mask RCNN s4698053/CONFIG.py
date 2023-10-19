@@ -1,6 +1,7 @@
 #--------------
 # Train config
 num_epochs=1
+batch_size = 4
 
 #--------------
 # Data information
@@ -9,4 +10,5 @@ mask_dir = './recognition/Mask RCNN s4698053/.tmp/ISIC-2017_Training_Part1_Groun
 photo_dir = './recognition/Mask RCNN s4698053/.tmp/ISIC-2017_Training_Data/'
 train_size = 0.8
 test_size = 0.2
-image_size = (1000, 700)
+image_size = (250, 175)
+torch_seed = 56
