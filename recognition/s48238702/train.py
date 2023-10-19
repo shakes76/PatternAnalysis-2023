@@ -19,7 +19,7 @@ def train():
     plot_data(siamese_fit['loss'], 'Siamese Network')
     plt.show()
 
-def trainSNN(epochs=30):
+def trainSNN(epochs=50):
     """
     Train the Siamese Network.
 
