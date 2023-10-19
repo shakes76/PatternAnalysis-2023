@@ -31,3 +31,13 @@ def show_graph(graph, model):
     
     plt.savefig("Model.png")
     #plt.show()
+
+def evaluate(model, graph, test_mask, epoch, loss):
+    # Evaluate the model on the test set
+    model.eval()
+    with pt.no_grad():
+        logits = model(graph, graph.ndata['Features'])
+        predictions = logits.argmax(1)
+        accuracy = ((predictions[test_mask] == graph.ndata['Target'][test_mask]).float()).mean()
+
+    print(f'Epoch {epoch}: Loss {loss.item()}, Test Accuracy {accuracy.item()}')
