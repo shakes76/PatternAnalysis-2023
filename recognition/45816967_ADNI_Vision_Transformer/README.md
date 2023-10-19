@@ -134,7 +134,7 @@ conda env create -n {environment_name} -f environment.yml
 ```
 
 ### Training
-First ensure that the ADNI dataset is downloaded and placed into a directory named data in /PatternAnalysis-2023/recognition/45816967_ADNI_Vision_Transformer, and a models directory is created in the same directory. Then, run the following command to train the model:
+First ensure that the ADNI dataset is downloaded and placed into a directory named "data" in /PatternAnalysis-2023/recognition/45816967_ADNI_Vision_Transformer, and a "models" directory is created in the same directory. Then, run the following command to train the model:
 
 ```
 train.py --img_size 224 --patch_size 16 --num_layers 12 --embed_dim 256 --mlp_dim 256 --num_heads 16 --n_epochs 50 --batch_size 64
