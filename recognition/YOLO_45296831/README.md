@@ -9,18 +9,34 @@ YOLOv8, you only look once, is a comprehensive computer vision AI tool. It uses 
 A YOLO model can be trained on a custom dataset to be suitable for a wide range of applications. Given an image plus an accompaning text file detailing the boundaries of objects to be detected, YOLO will provide a fast and accurate model for object detection.
 
 ## Training
-(Use the yaml file to see how it trains)
-For this model, an 80/10/10 split for training, validating and testing data repectively was chosen.
-- generally want 10-20 for val and test, data is not complex, only 1 class, so 10/10 is sufficient for generalization.
-- yet the dataset is large enough that 80% still leaves 2076 images. Medium says that 150-500 images per class is enough for YOLO so this is enough
-- 225 layers, 3011043 parameters, AdamW optimiser, lr 0.002, momentum 0,9
+For this model, an 80/10/10 split for training, validating and testing data repectively was chosen. It is often recommended to have 10-20% splits for both validating and testing, but 10% was chosen since the data is not very complex, only having 1 class for detection. This leaves 80% of the data for training, meaning 2076 images. [Medium](https://changsin.medium.com/how-many-images-do-you-need-for-object-detection-d33185629843) states that 150-500 images per class is enough to train a good YOLO model, so 2076 should give great results.\
+\
+The training parameters used for this model are as follows:\
+225 Layers, 3011043 Parameters\
+AdamW Optimiser, Learning Rate = 0.002, Momentum = 0.9\
+Epochs = 20
 
 ## Results
+![Validation batch 1](/ReadmeSupport/val_batch0_pred.jpg)
+![Validation batch 2](/ReadmeSupport/val_batch1_pred.jpg)
+![Validation batch 3](/ReadmeSupport/val_batch2_pred.jpg)
+\
+\
+Here we can see the results on the validation and test data after training. Most Lesions have a perfect IoU with over 80% confidence.\
+\
+\
+![Results](/ReadmeSupport/results.png)
+From the test data, the model had a mean average precision of 97.6%. This is calculated from the mean IoU thresholds of the lesions, meaning it had an IoU well over 80%.\
+\
+We can also see the P-curve to see how the precision and the confidence interact with each other.\
+![P-curve](/ReadmeSupport/P_curve.png)
+
+
 
 ## Usage
 1. To run this model on your own device, you will first need access to the ISIC 2017/8 data set. You will need both the training input data and the training ground truth segmentation data.
 2. Then you will need to configure the data paths on dataset.py so that it grabs the segmentation data and converts it to the text files that will be readable from YOLO.
-3. Next, you will have to structure you data in the following way, where images contains the training input JPEG's, and labels contains the text files you created from dataset.py\
+3. Next, you will have to structure you data in the following way, where images contains the training input JPEG's, and labels contains the text files you created from dataset.py
 <pre>
 ├── train
 │   ├── images
