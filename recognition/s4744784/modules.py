@@ -2,7 +2,6 @@
 File containing the module/s used in the efficient sup pixel convolutional neural network.
 """
 import torch.nn as nn
-import torch.nn.functional as F
 from utils import *
 
 class Network(nn.Module):
