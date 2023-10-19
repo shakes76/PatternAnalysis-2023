@@ -1,9 +1,14 @@
 """The primary function where hyperparameters and variables can be tuned"""
-from train import *
-from modules import *
+# from train import *
+# from modules import *
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
+
+import torch
+from torch.optim import Adam
+from torch.nn import CrossEntropyLoss
+from tqdm import tqdm, trange
 
 
 def main():
@@ -11,6 +16,18 @@ def main():
     model_name = 'revert_to_crop.pth'
     root = '/home/callum/AD_NC/'
     root = '/home/groups/comp3710/ADNI/AD_NC/'
+    
+    image_size = 256
+    batch_size = 64
+    crop_size = 192
+    
+    patch_size = image_size // 8
+    channels = 1
+    embedding_dims = channels * patch_size**2
+    patches = (image_size // patch_size)**2
+    num_heads = embedding_dims // 64
+
+    assert image_size % patch_size == 0, print('Image size not divisible by patch size')
     
     # hyperparameters
     epochs = 10
@@ -104,7 +121,7 @@ def main():
     #             epochs=epochs,
     #             device=device)
     
-    save_model(model, model_name)
+    # save_model(model, model_name)
 
         
 if __name__ == '__main__':
