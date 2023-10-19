@@ -144,13 +144,14 @@ class VectorQuantizer(nn.Module):
         self.embeddings.weight.data.uniform_(-1/self.num_embeddings, 1/self.num_embeddings)
 
     def forward(self, inputs):
+      
         # Flatten input
         flat_input = inputs.reshape(-1, self.embedding_dim)
 
         # Calculate distances
         distances = (
-            torch.sum(flat_input**2, dim=1, keepdim=True) 
-            - 2 * torch.matmul(flat_input, self.embeddings.weight.t()) 
+            torch.sum(flat_input**2, dim=1, keepdim=True)
+            - 2 * torch.matmul(flat_input, self.embeddings.weight.t())
             + torch.sum(self.embeddings.weight**2, dim=1)
         )
 
@@ -158,6 +159,9 @@ class VectorQuantizer(nn.Module):
         encoding_indices = torch.argmin(distances, dim=1).unsqueeze(1)
         encodings = torch.zeros(encoding_indices.shape[0], self.num_embeddings).to(inputs.device)
         encodings.scatter_(1, encoding_indices, 1)
+
+        # Restore spatial dimensions for encoding_indices
+        encoding_indices = encoding_indices.view(inputs.shape[:-1])
 
         # Quantize
         quantized = self.embeddings(encoding_indices).squeeze(1)
@@ -178,26 +182,19 @@ class VectorQuantizer(nn.Module):
             'distances': distances,
         }
 
-
 class VQVAEModel(nn.Module):
-    def __init__(self, encoder, decoder, vqvae, pre_vq_conv1):
+    def __init__(self, encoder, decoder, vq, pre_vq_conv1):
         super(VQVAEModel, self).__init__()
         self._encoder = encoder
         self._decoder = decoder
-        self._vqvae = vqvae
+        self._vq = vq
         self._pre_vq_conv1 = pre_vq_conv1
 
     def forward(self, inputs):
-        z = self._pre_vq_conv1(self._encoder(inputs))
-        # print("output after encoder and _pre_vq_conv1", z.shape)
-
-        z = z.permute(0,2,3,1)
-        # print("output after permute", z.shape)
-
-        vq_output = self._vqvae(z)  # Unpack the tuple
-
-        quantize = vq_output['quantize'].permute(0, 3, 1, 2)
-        x_recon = self._decoder(quantize)
+        z = self._encoder(inputs)
+        z = self._pre_vq_conv1(z).permute(0, 2, 3, 1)
+        vq_output = self._vq(z)
+        x_recon = self._decoder(vq_output['quantize'].permute(0, 3, 1, 2))
 
         return {
             'z': z,
