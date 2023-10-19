@@ -23,7 +23,7 @@ def train(model: TripletNetwork, criterion: TripletLoss, optimiser: optim.Optimi
             model.train()
             for batch_no, (a_t, label, p_t, n_t) in enumerate(train_loader):
                 # move the data to the GPU
-
+                a_t, p_t, n_t = a_t.to(device), p_t.to(device), n_t.to(device)
                 # zero the gradients
                 optimiser.zero_grad()
                 # input triplet images into model
@@ -87,8 +87,10 @@ if __name__ == '__main__':
     valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
     test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
     # set up network and hyperparameters
-    model = TripletNetwork()
+    model = TripletNetwork().to(device)
     criterion = TripletLoss()
     optimiser = optim.Adam(model.parameters(), lr=1e-3)
     epochs = 10
