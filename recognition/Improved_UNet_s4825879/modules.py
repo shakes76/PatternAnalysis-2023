@@ -13,7 +13,7 @@ class DiceLoss(nn.Module):
         target = target.view(-1)
 
         intersect = (predict * target).sum()
-        dice = (2*intersect)/(predict.sum() + target.sum())
+        dice = (2.*intersect)/(predict.sum() + target.sum())
         return 1 - dice
 
 class Conv(nn.Module):

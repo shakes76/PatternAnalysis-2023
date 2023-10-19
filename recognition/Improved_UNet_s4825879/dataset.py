@@ -5,10 +5,10 @@ from PIL import Image
 import os
 
 # specify batch size
-BATCH_SIZE = 10
+BATCH_SIZE = 3
 
 # Specify vished image size
-IMAGE_SIZE = 128
+IMAGE_SIZE = 64
 
 # Specify dataset directory path
 TRAIN_DATA_PATH = 'data/train_data'

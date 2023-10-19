@@ -12,10 +12,10 @@ from torchvision.utils import save_image
 from modules import ImpUNet, DiceLoss
 
 # import dataloaders
-from dataset import train_loader, val_loader, IMAGE_SIZE 
+from dataset import train_loader, val_loader, IMAGE_SIZE, BATCH_SIZE
 
 # Macros
-LEARNING_RATE = 0.0005
+LEARNING_RATE = 5*10**(-4)
 NUM_EPOCH = 60 
 
 device = ('cuda' if torch.cuda.is_available() else 'cpu')
@@ -26,7 +26,7 @@ total_val_step = len(val_loader)
 
 model = ImpUNet(3).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE) 
-#scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=50)    
+#scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.985)    
 loss_fcn = DiceLoss()
 
 # variable for saving the global best loss
@@ -35,10 +35,10 @@ currentBestLoss = float("inf")
 # ----------
 # TRAINING -
 # ----------
-
+running_loss = 0.0
+counter = 0
 for epoch in range(NUM_EPOCH):
-    print(f"epoch : {epoch} of {NUM_EPOCH}")
-    running_loss = 0.0
+    print(f"epoch : {epoch + 1} of {NUM_EPOCH}")
     model.train()
     for i, (img, truth) in enumerate(train_loader):
         img = img.to(device)
@@ -54,20 +54,21 @@ for epoch in range(NUM_EPOCH):
         optimizer.step() 
 
         running_loss += loss.item()
+        counter += 1
 
         # print status
-        if (i + 1) % 15 == 0:
+        if (i + 1) % 50 == 0:
             print("Epoch: [{}/{}], Step: [{}/{}], Loss: {:.5f}"
-                  .format(epoch+1, NUM_EPOCH, i+1, total_step, running_loss/((i+1))))
+                  .format(epoch+1, NUM_EPOCH, i+1, total_step, running_loss/counter))
             sys.stdout.flush()
             
             # save image
             outputs = outputs.round()
             saved = torch.cat((outputs, truth), dim=0)
-            save_image(saved.view(-1, 1, IMAGE_SIZE, IMAGE_SIZE), f"data/prod_img/{epoch}_{i+1}_seg.png", nrow=5)
+            save_image(saved.view(-1, 1, IMAGE_SIZE, IMAGE_SIZE), f"data/prod_img/{epoch + 1}_{i+1}_seg.png", nrow=BATCH_SIZE)
 
         # scheduler step
-        # scheduler.step()
+        #scheduler.step()
 
     # ----------------
     #  EVALUATION    -
@@ -75,27 +76,33 @@ for epoch in range(NUM_EPOCH):
 
     model.eval()
     total = 0.0
+    best_loss = 0.0
+    worst_loss = 1.0
     for i, (img, truth) in enumerate(val_loader):
         # compute without accumulating gradients
         with torch.no_grad():
-          # send tensors to device
-          img = img.to(device)
-          truth = truth.to(device)
-          
-          # compute outputs
-          outputs = model(img)
-          
-          # compute loss
-          loss = loss_fcn(outputs, truth)
-          
-          # add loss to total loss
-          total += loss.item()
+            # send tensors to device
+            img = img.to(device)
+            truth = truth.to(device)
+            
+            # compute outputs
+            outputs = model(img)
+            
+            # compute loss
+            loss = loss_fcn(outputs, truth)
+            
+            # add loss to total loss
+            total += loss.item()
 
-          if (i+1) % 10 == 0:
-              outputs = outputs.round()
-              saved = torch.cat((outputs, truth), dim=0)
-              save_image(saved.view(-1, 1, IMAGE_SIZE, IMAGE_SIZE), f"data/prod_img/val_{epoch+1}_{i+1}.png", nrow=5)
-                  
+            if (i+1) % 50 == 0:
+                outputs = outputs.round()
+                saved = torch.cat((outputs, truth), dim=0)
+                save_image(saved.view(-1, 1, IMAGE_SIZE, IMAGE_SIZE), f"data/prod_img/val_{epoch+1}_{i+1}.png", nrow=BATCH_SIZE)
+                    
+            if loss.item() < worst_loss:
+                worst_loss = loss.item()
+            if loss.item() > best_loss:
+                best_loss = loss.item()
           
     # Check if new loss is better than best loss
     if total < currentBestLoss:
@@ -108,7 +115,7 @@ for epoch in range(NUM_EPOCH):
     
     # print out the total average loss for the validation set
     print("epoch: {}, Loss: {}".format(epoch+1, total/total_val_step))
-
+    print("Worst: {:.3f}, Best: {:.3f}".format(worst_loss, best_loss))
 
 #----------
 # TESTING -
