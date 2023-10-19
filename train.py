@@ -1,95 +1,63 @@
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torchvision import transforms  
-from torch.utils.data import DataLoader
-from modules import UNetPlusPlus, DiceLoss  # Import UNetPlusPlus model
-from dataset import CustomDataset
+import glob
+import os
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
+import tensorflow as tf
+from tensorflow.keras.callbacks import EarlyStopping
+from modules import improved_unet
+from dataset import process_images, create_ds, img_height, img_width
 
-def train(model, train_loader, criterion, optimizer):
-    """
-    Training loop function. It trains the model using the provided data loader.
+"""Model Saving Constants"""
+# If a pre-trained model should be used
+use_saved_model = False
+# If the model being trained should be saved (Note: Only works if use_saved_model = True)
+save_model = True
 
-    Args:
-        model (nn.Module): The neural network model.
-        train_loader (DataLoader): DataLoader for the training dataset.
-        criterion (nn.Module): Loss function.
-        optimizer (torch.optim.Optimizer): Optimizer for updating model parameters.
+"""Model Training Constants"""
+# If the images should be shuffled (Note: Masks and their related image are not changed)
+shuffle = True
+# The dataset split percentage for the training dataset
+training_split = 0.8
+# The dataset split percentage for the validation dataset
+# (Note: The testing dataset will be the remaining dataset once the training and validation datasets have been taken)
+validation_split = 0.1
+# The shuffle size to be used
+shuffle_size = 50
 
-    Returns:
-        float: Average training loss for the epoch.
-    """
-    model.train()
-    total_loss = 0.0
-    total_samples = 0
-
-    for batch in train_loader:
-        inputs, masks = batch
-        optimizer.zero_grad()
-        outputs = model(inputs)
-        loss = criterion(outputs, masks)
-        loss.backward()
-        optimizer.step()
-        total_loss += loss.item() * inputs.size(0)
-        total_samples += inputs.size(0)
-
-    avg_loss = total_loss / total_samples
-    return avg_loss
-
-def validate(model, val_loader, criterion):
-    """
-    Validation loop function. It evaluates the model on the validation dataset.
-
-    Args:
-        model (nn.Module): The neural network model.
-        val_loader (DataLoader): DataLoader for the validation dataset.
-        criterion (nn.Module): Loss function.
-
-    Returns:
-        float: Average validation loss for the epoch.
-    """
-    model.eval()
-    total_loss = 0.0
-    total_samples = 0
-
-    with torch.no_grad():
-        for batch in val_loader:
-            inputs, masks = batch
-            outputs = model(inputs)
-            loss = criterion(outputs, masks)
-            total_loss += loss.item() * inputs.size(0)
-            total_samples += inputs.size(0)
-
-    avg_loss = total_loss / total_samples
-    return avg_loss
-
-# Set hyperparameters and paths
-data_dir = "path/to/your/dataset"
+# The height and width of the processed image
+img_height = img_width = 256
+# The batch size to be used
 batch_size = 16
-learning_rate = 0.001
-num_epochs = 10
+# The number of training epochs
+epochs = 10
+# The number of times a similar validation dice coefficient score is achieved before training is stopped early
+patience = 5
 
-# Instantiate the UNet++ model and the dataset
-in_channels = 3  # Adjust based on your dataset
-out_channels = 1  # Adjust based on your segmentation task
-model = UNetPlusPlus(in_channels, out_channels, num_levels=4)  # Create your UNet++ model
-transform = transforms.Compose([transforms.ToTensor()])  # Adjust as needed
-dataset = CustomDataset(data_dir, transform)
-train_loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+def dice_sim_coef(y_true, y_pred, epsilon=1.0):
+    axes = tuple(range(1, len(y_pred.shape) - 1))
+    numerator = 2. * tf.math.reduce_sum(y_pred * y_true, axes)
+    denominator = tf.math.reduce_sum(tf.math.square(y_pred) + tf.math.square(y_true), axes)
+    return tf.reduce_mean((numerator + epsilon) / (denominator + epsilon))
 
-# Define loss function and optimizer
-criterion = DiceLoss()  # Use your appropriate loss function
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-if __name__ == "__main__":
-    for epoch in range(num_epochs):
-        model.train()
-        train_loss = train(model, train_loader, criterion, optimizer)
-        print(f"Epoch {epoch+1}/{num_epochs}, Training Loss: {train_loss:.4f}")
+def dice_sim_coef_loss(y_true, y_pred):
+    return 1 - dice_sim_coef(y_true, y_pred)
 
-        model.eval()
-        val_loss = validate(model, val_loader, criterion)
-        print(f"Epoch {epoch+1}/{num_epochs}, Validation Loss: {val_loss:.4f}")
 
-    # Save the trained model
-    torch.save(model.state_dict(), "trained_model.pth")
+def initialise_model():
+    # Creates the improved UNet model
+    unet_model = improved_unet(img_height, img_width, 3)
+    # Sets the training parameters for the model
+    unet_model.compile(optimizer='adam', loss=[dice_sim_coef_loss],
+                       metrics=[dice_sim_coef])
+    # Prints a summary of the model compiled
+    unet_model.summary()
+    # Plots a summary of the model's architecture
+    tf.keras.utils.plot_model(unet_model, show_shapes=True)
+    # Moves the model.png file created to the Results folder. If model.png is already present in the Results
+    # sub directory, it is deleted and replaced with the new model.png
+    if os.path.exists(os.getcwd() + "\Results\model.png"):
+        os.remove(os.getcwd() + "\Results\model.png")
+    os.rename(os.getcwd() + "\model.png", os.getcwd() + "\Results\model.png")
+    return unet_model
+
