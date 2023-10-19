@@ -95,7 +95,9 @@ class TripletDataset(Dataset):
             positive_img = self.transform(positive_img)
             negative_img = self.transform(negative_img)
 
-        return anchor_img, positive_img, negative_img
+        label = torch.tensor([1 if anchor_cls == 'AD' else 0], dtype=torch.float32)
+
+        return anchor_img, positive_img, negative_img, label
 
 
 
@@ -133,6 +135,7 @@ if __name__ == '__main__':
         print("anchor shape:", batch[0].shape)
         print("positive shape:", batch[1].shape)
         print("negative:", batch[2].shape)
+        print("anchor class:", batch[3])
         print()
         break
 """
