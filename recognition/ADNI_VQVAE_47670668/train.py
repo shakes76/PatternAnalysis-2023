@@ -3,6 +3,7 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import numpy as np
 from pytorch_msssim import ssim
+from sklearn.cluster import KMeans
 
 from dataset import train_dataloader, val_dataloader, test_loader
 from modules import *
@@ -22,30 +23,6 @@ def visualize_reconstructions(original_images, reconstructed_images, num_samples
         axs[1, i].axis('off')
     plt.tight_layout()
     plt.show()
-
-# Initialize values for incremental variance computation
-mean = torch.zeros(1).float().to(device)
-M2 = torch.zeros(1).float().to(device)
-n = 0
-
-# Loop through the DataLoader and compute incremental variance
-for batch in train_dataloader:
-    images = batch[0].float().to(device) / 255.0
-    batch_mean = images.mean()
-    n_batch = images.numel()
-    n += n_batch
-
-    delta = batch_mean - mean
-    mean += delta * n_batch / n
-    M2 += delta * (batch_mean - mean) * n_batch
-
-
-# Compute variance
-if n < 2:
-    train_data_variance = float('nan')
-else:
-    train_data_variance = M2 / (n - 1)
-
 
 # initialize all variables for training
 num_training_updates = 10000
@@ -72,7 +49,7 @@ vq_vae = VectorQuantizer(embedding_dim, num_embeddings, commitment_cost)
 
 pre_vq_conv1 = nn.Conv2d(num_hiddens, embedding_dim, kernel_size=1, stride=1)
 
-model = VQVAEModel(encoder, decoder, vq_vae, pre_vq_conv1, train_data_variance).to(device)
+model = VQVAEModel(encoder, decoder, vq_vae, pre_vq_conv1).to(device)
 
 optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=decay)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=30, gamma=0.1)

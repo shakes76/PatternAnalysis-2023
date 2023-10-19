@@ -163,11 +163,6 @@ class VectorQuantizer(nn.Module):
         quantized = self.embeddings(encoding_indices).squeeze(1)
         quantized = quantized.view(inputs.shape)
 
-        # Loss
-        e_latent_loss = F.mse_loss(quantized.detach(), inputs)
-        q_latent_loss = F.mse_loss(quantized, inputs.detach())
-        loss = q_latent_loss + self.commitment_cost * e_latent_loss
-
         # Use the Straight Through Estimator for the gradients in the backward pass
         quantized = inputs + (quantized - inputs).detach()
 
@@ -177,7 +172,6 @@ class VectorQuantizer(nn.Module):
 
         return {
             'quantize': quantized,
-            'loss': loss,
             'perplexity': perplexity,
             'encodings': encodings,
             'encoding_indices': encoding_indices,
@@ -186,13 +180,12 @@ class VectorQuantizer(nn.Module):
 
 
 class VQVAEModel(nn.Module):
-    def __init__(self, encoder, decoder, vqvae, pre_vq_conv1, data_variance):
+    def __init__(self, encoder, decoder, vqvae, pre_vq_conv1):
         super(VQVAEModel, self).__init__()
         self._encoder = encoder
         self._decoder = decoder
         self._vqvae = vqvae
         self._pre_vq_conv1 = pre_vq_conv1
-        self._data_variance = data_variance
 
     def forward(self, inputs):
         z = self._pre_vq_conv1(self._encoder(inputs))
@@ -205,45 +198,9 @@ class VQVAEModel(nn.Module):
 
         quantize = vq_output['quantize'].permute(0, 3, 1, 2)
         x_recon = self._decoder(quantize)
-        recon_error = torch.mean((x_recon - inputs) ** 2) / self._data_variance
-        total_loss = recon_error + vq_output['loss']  # Use the 'loss' from the VQ-VAE module
 
         return {
             'z': z,
             'x_recon': x_recon,
-            'loss': total_loss,
-            'recon_error': recon_error,
-            'vq_output': vq_output
-        }
-
-
-class VQVAEModel(nn.Module):
-    def __init__(self, encoder, decoder, vqvae, pre_vq_conv1, data_variance):
-        super(VQVAEModel, self).__init__()
-        self._encoder = encoder
-        self._decoder = decoder
-        self._vqvae = vqvae
-        self._pre_vq_conv1 = pre_vq_conv1
-        self._data_variance = data_variance
-
-    def forward(self, inputs):
-        z = self._pre_vq_conv1(self._encoder(inputs))
-        # print("output after encoder and _pre_vq_conv1", z.shape)
-
-        z = z.permute(0,2,3,1)
-        # print("output after permute", z.shape)
-
-        vq_output = self._vqvae(z)  # Unpack the tuple
-
-        quantize = vq_output['quantize'].permute(0, 3, 1, 2)
-        x_recon = self._decoder(quantize)
-        recon_error = torch.mean((x_recon - inputs) ** 2) / self._data_variance
-        total_loss = recon_error + vq_output['loss']  # Use the 'loss' from the VQ-VAE module
-
-        return {
-            'z': z,
-            'x_recon': x_recon,
-            'loss': total_loss,
-            'recon_error': recon_error,
             'vq_output': vq_output
         }
