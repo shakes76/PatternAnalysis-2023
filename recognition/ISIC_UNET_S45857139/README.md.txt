@@ -1,25 +1,31 @@
 # Segmentation of the ISIC 2018 Dataset with the Improved UNET
-## Developed by Thomas Witherspoon for COMP3710 (UQ)
+**Developed by Thomas Witherspoon for COMP3710 (UQ)**
 
-A typical UNET algorithm is characterised by an encoding path that captures the context of an input image, and a decoding path that restores the spatial details, with skip 
-connections between the two paths to improve performance. My implementation of the improved UNET (inspired by https://arxiv.org/abs/1802.10508v1) makes use of residual blocks 
-instead of standard convolutions.The residual block consists of two convolution layers followed by instance normalization. The output is then added to the residual to form the final output.
-The improved UNet also features a localization module for the decoding path, which consists of a 3x3 convolution followed by a 1x1 convolution which reduces the number of channels by half.
+## Introduction
+A typical UNET algorithm is characterized by an encoding path that captures the context of an input image, and a decoding path that restores the spatial details. Skip connections between the two paths enhance performance.
 
+My improved UNET implementation, inspired by [this paper](https://arxiv.org/abs/1802.10508v1), uses residual blocks instead of standard convolutions. These residual blocks consist of two convolution layers followed by instance normalization and a dropout layer set to 0.3. The resultant output is added to the residual to create the final output. Furthermore, the improved UNet incorporates a localization module for the decoding path. This module features a 3x3 convolution succeeded by a 1x1 convolution, effectively reducing the channel count by half.
 
+## Task Overview
+The goal was to segment the ISIC dataset using the improved UNet, ensuring all labels attain a minimum dice similarity coefficient of 0.8 on the test set. The dataset encompasses images of skin lesions and their corresponding segmented mask images. The model's purpose is to accurately predict the segmented mask for an unseen skin lesion image.
 
-The task was to segment the ISIC dataset with the improved UNet, with all labels having a minimum dice similarity coefficient of 0.8 on the test set. The dataset consists of 
-skin lesions as images, and corresponding segmented mask images. The algorithm will learn to accurately predict the segmented mask for an unseen skin lesion image.
+In terms of dataset allocation, 80% is designated for training, while the remaining 20% is used for validation. There's no separate test set. A more substantial training dataset promotes superior model generalization and diminishes overfitting.
 
-In the dataset, the training set size is set to 80% of the dataset, whereas the validation set is set to the remaining 20% of the dataset. There is no seperate test set. Having
-a larger training set size is beneficial because it results in better model generalization and reduces overfitting.
+## Python Script Functions
+1. `modules.py` - Contains the source code for model components. Every component should be implemented as either a class or a function.
+2. `dataset.py` - Houses the data loader for loading and preprocessing the dataset.
+3. `train.py` - Features the source code for training, validating, testing, and saving the model. Ensure to import the model from `modules.py` and the data loader from `dataset.py`. Also, plot the losses and metrics during the training phase.
+4. `predict.py` - Demonstrates the trained model's usage. Be sure to print results and/or provide relevant visualizations where needed.
 
-The algorithm was trained on the rangpur HPC at UQ for a total of 10 epochs. Here are the results.
+## Dependencies/Libraries:
+- PyTorch
+- Python
+- PIL
+- os
 
-Dependencies/Libraries:
-	- PyTorch
-	- Python
-	- PIL
-	- os
+## Training Details
+The model underwent training on the Google Colab V100 GPU, spanning 10 epochs. The results are as follows:
 
-	
+**Sample Predictions**: (Input at the top, mask in the middle, predicted mask at the bottom)
+
+**Metrics**: Loss per Epoch and Average Dice Coefficient per Epoch
