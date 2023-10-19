@@ -33,7 +33,7 @@ test_path = os.path.join(directory, 'test')
 
 trained_path = os.path.abspath('./models/Trained_Model_Epoch_100.pth')
 
-down_sample = transforms.Compose([transforms.Resize((new_height, new_width))])
+down_sample = transforms.Compose([transforms.Resize((new_height, new_width), antialias=True)])
 up_sample = Upsample(scale_factor=upscale_factor)
 
 def compute_psnr(mse, max_pixel_val=1.0):
