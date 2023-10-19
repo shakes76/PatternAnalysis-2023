@@ -4,9 +4,11 @@ import pandas as pd
 import torch
 from os.path import join as pathJoin
 from PIL import Image
+from torchvision.transforms import v2
 
 class ISICDataloader(Dataset):
     def __init__(self, classify_file, photo_dir, mask_dir, mask_empty_dim, transform=None) -> None:
+        self.device = self.check_cuda()
         self.csv_df = pd.read_csv(classify_file)
         self.photo_dir = photo_dir
         self.mask_dir = mask_dir
@@ -15,6 +17,13 @@ class ISICDataloader(Dataset):
         self.empty_W = mask_empty_dim[1]
         self.index = 0
         self.transform = transform
+        self.defaultTransform = v2.Compose([v2.ToImage(), v2.ToDtype(torch.float32)])
+
+    def check_cuda(self):
+        device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        if not torch.cuda.is_available():
+            exit("Warning CUDA not Found. Using CPU")
+        return device
     
     def mask_to_bbox(self, mask):
         non_zero_coords = torch.nonzero(mask)
@@ -43,19 +52,19 @@ class ISICDataloader(Dataset):
         print(row['image_id'])
         if (row['melanoma'] == 1):
             labels = torch.tensor([1], dtype=torch.int64)
-            image = Image.open(mask_pth + '_segmentation.png').convert('L')
-            mask = torch.from_numpy(((np.array(image) / 255.0)).astype('float32'))
+            mask = Image.open(mask_pth + '_segmentation.png').convert('L')
+            mask = self.defaultTransform(mask).to(self.device) / 255.0
             if self.transform:
                 mask = self.transform(mask)
-            masks = mask.unsqueeze(0)
+            masks = mask
             boxes = self.mask_to_bbox(masks[0]).unsqueeze(0)
         elif (row['seborrheic_keratosis'] == 1):
             labels = torch.tensor([2], dtype=torch.int64)
-            image = Image.open(mask_pth + '_segmentation.png').convert('L')
-            mask = torch.from_numpy(((np.array(image) / 255.0)).astype('float32'))
+            mask = Image.open(mask_pth + '_segmentation.png').convert('L')
+            mask = self.defaultTransform(mask).to(self.device) / 255.0
             if self.transform:
                 mask = self.transform(mask)
-            masks = mask.unsqueeze(0)
+            masks = mask
             boxes = self.mask_to_bbox(masks[0]).unsqueeze(0)
         else: # No images in image
             labels = self._empty_labels()
@@ -69,7 +78,7 @@ class ISICDataloader(Dataset):
             'masks': masks
         }
         image = Image.open(img_pth + '.jpg').convert('RGB')
-        image = torch.from_numpy(((np.array(image) / 255.0)).astype('float32'))
+        image = mask = self.defaultTransform(image).to(self.device) / 255.0
         if self.transform:
             image = self.transform(image)
 
