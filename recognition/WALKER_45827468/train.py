@@ -22,7 +22,7 @@ TRAIN_MASK_PATH = "./ISIC-2017_Training_Part1_GroundTruth"
 
 transform = transforms.Compose([
     transforms.ToTensor(),
-    transforms.Normalize([0.7079, 0.5915, 0.5469], [0.1543, 0.1629, 0.1780]),
+    # transforms.Normalize([0.7079, 0.5915, 0.5469], [0.1543, 0.1629, 0.1780]),
     transforms.Resize((256, 256))
 ])
 

@@ -36,7 +36,7 @@ class UpSampling(nn.Module):
         super(UpSampling, self).__init__()
         self.upsamp = nn.Upsample(scale_factor=2)
         self.instNorm = nn.InstanceNorm2d(size // 2)
-        self.conv = nn.Conv2d(size, size // 2, kernel_size=3, padding=1)
+        self.conv = nn.Conv2d(size // 2, size // 2, kernel_size=3, padding=1)
         
     def forward(self, input):
         out = self.instNorm(self.upsamp(input))
@@ -131,62 +131,80 @@ class ImprovedUNet(nn.Module):
          
     def forward(self, input):
         # layer 1
+        print(input.size())
         out = self.in1(self.conv1(input))
+        print("CONV1", out.size())
         out = self.context1(out)
         out1 = out                      # save output for concat
-        
+        print("CONTEXT1", out.size())
         # layer 2
         out = self.in2(self.conv2(out))
+        print("CONV2", out.size())
         out = self.context2(out)
         out2 = out                      # save output for concat
-        
+        print("CONTEXT2", out.size())
         # layer 3
         out = self.in3(self.conv3(out))
+        print("CONV3", out.size())
         out = self.context3(out)
         out3 = out                      # save output for concat
-        
+        print("CONTEXT3", out.size())
         # layer 4
         out = self.in4(self.conv4(out))
+        print("CONV4", out.size())
         out = self.context4(out)
         out4 = out                      # save output for concat
-        
+        print("CONTEXT4", out.size())
         # layer 5
         out = self.in5(self.conv5(out))
+        print("CONV5", out.size())
         out = self.context5(out)
-        
+        print("CONTEXT5", out.size())
         # layer 4
         out = self.upsamp1(out)
+        print("UPSAMP1", out.size())
         out = torch.cat((out,out4), 1)
+        print("CAT1", out.size())
         out = self.local1(out)
-        
+        print("LOCAL1", out.size())
         # layer 3
         out = self.upsamp2(out)
+        print("UPSAMP2", out.size())
         out = torch.cat((out,out3), 1)
+        print("CAT2", out.size())
         out = self.local2(out)
+        print("LOCAL2", out.size())
         # seg
         seg1 = self.upscale(self.segRelu(self.segNorm(self.seg1(out))))
-        
+        print("SEG1", seg1.size())
         # layer 2
         out = self.upsamp3(out)
+        print("UPSAMP3", out.size())
         out = torch.cat((out,out2), 1)
+        print("CAT2", out.size())
         out = self.local3(out)
+        print("LOCAL3", out.size())
         # seg
         seg2 = self.segRelu(self.segNorm(self.seg2(out)))
+        print("SEG2", seg2.size())
         seg2 = torch.add(seg2, seg1)
         seg2 = self.upscale(seg2)
-        
+        print("SEG2 AGAIN", seg2.size())
         # layer 1
         out = self.upsamp4(out)
+        print("UPSAMP4", out.size())
         out = torch.cat((out,out1), 1)
+        print("CAT3", out.size())
         out = self.conv6(out)
+        print("CONV6", out.size())
         # seg
         out = self.segRelu(self.segNorm(self.seg3(out)))    # seg3
-        
+        print("SEG3", out.size())
         out = torch.add(out, seg2)                          # combine seg layers
-        
+        print("SEGOUT", out.size())
         # softmax
         out = self.softmax(out)
-        
+        print("SOFTMAX", out.size())
         return out
     
 class DiceLoss(nn.Module):
