@@ -59,7 +59,7 @@ for idx in range(num_images_to_show):
     lr_image = transforms.ToPILImage()(denormalize(lr_tensor.squeeze().cpu()))
     pred_hr_image = transforms.ToPILImage()(denormalize(pred_hr_tensor.squeeze().cpu().detach()))
     hr_image = transforms.ToPILImage()(denormalize(hr_tensor.cpu()))
-    print(pred_hr_image)
+    print(lr_image, pred_hr_image, hr_image)
 
     # Display images
     axes[idx, 0].imshow(np.asarray(lr_image), cmap='gray')
