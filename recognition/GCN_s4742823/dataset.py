@@ -1,3 +1,8 @@
+'''
+This file loads the data from the path "data/facebook.npz" (or the filepath given to load_data()) 
+and prepares it for training or testing. It also contains the GCNData class, which stores all of 
+the information regarding the data.
+'''
 import numpy as np
 import torch
 import scipy.sparse as sp
