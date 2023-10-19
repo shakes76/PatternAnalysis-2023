@@ -18,6 +18,14 @@ def test():
     print(f"Image: {image}, Label: {label}")
 
 def get_loaders():
+    """
+    Loads the AD_NC dataset to get train, validation, and test data loaders.
+    
+    Returns:
+        train_loader (torch.utils.data.DataLoader): The data loader for the training set.
+        validation_loader (torch.utils.data.DataLoader): The data loader for the validation set.
+        test_loader (torch.utils.data.DataLoader): The data loader for the test set.
+    """
     # Define data transformations (resize, normalize, etc.) with data augmentation
     transform = transforms.Compose([
         transforms.Resize((256, 256)),  # Resize images to a consistent size

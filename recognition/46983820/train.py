@@ -84,15 +84,26 @@ def main():
 
         if epochs_without_improvement >= early_stopping_patience:
             logging.info(f"No improvement in validation loss for {early_stopping_patience} epochs.")
-            #break  # Exit the training loop
+            break  # Exit the training loop
 
     # Save the best model state
     torch.save(best_model_state, 'saved/best_model.pth')
-    
-    # Plot training history
-    plot_training_history(history)
 
 def train(model, data_loader, criterion, optimizer, device):
+    """
+    Train the model for one epoch.
+    
+    Args:
+        model (torch.nn.Module): The model to train.
+        data_loader (torch.utils.data.DataLoader): The data loader for the training set.
+        criterion (torch.nn.Module): The loss function.
+        optimizer (torch.optim.Optimizer): The optimiser.
+        device (torch.device): The device to use for training.
+    
+    Returns:
+        loss (float): The training loss.
+        accuracy (float): The training accuracy.
+    """
     model.train()
     total_loss = 0.0
     correct_predictions = 0
@@ -114,6 +125,20 @@ def train(model, data_loader, criterion, optimizer, device):
     return loss, accuracy
 
 def validate(model, data_loader, criterion, device):
+    """
+    Validate the model on the validation set for one epoch.
+    
+    Args:
+        Args:
+        model (torch.nn.Module): The model to validate.
+        data_loader (torch.utils.data.DataLoader): The data loader for the validation set.
+        criterion (torch.nn.Module): The loss function.
+        device (torch.device): The device to use.
+    
+    Returns:
+        loss (float): The validation loss.
+        accuracy (float): The validation accuracy.
+    """
     model.eval()
     total_loss = 0.0
     correct_predictions = 0
@@ -133,29 +158,7 @@ def validate(model, data_loader, criterion, device):
 
     return loss, accuracy
 
-def plot_training_history(history):
-    plt.figure(figsize=(12, 8), dpi=80)
-    plt.plot(history['train_acc'])
-    plt.plot(history['valid_acc'])
-    plt.xlim([0, len(history['train_acc'])])
-    plt.xticks(range(len(history['train_acc'])))
-    plt.ylim([0, 1])
-    plt.title('Accuracy')
-    plt.legend(['Training', 'Validation'])
-    plt.show()
-    plt.savefig('plots/accuracy.png')
-
-    plt.figure(figsize=(12, 8), dpi=80)
-    plt.plot(history['train_loss'])
-    plt.plot(history['valid_loss'])
-    plt.xlim([0, len(history['train_loss'])])
-    plt.xticks(range(len(history['train_loss'])))
-    plt.ylim([0, 1])
-    plt.title('Loss')
-    plt.legend(['Training', 'Validation'])
-    plt.show()
-    plt.savefig('plots/loss.png')
-
 if __name__ == "__main__":
+    # Set up logging
     logging.basicConfig(level=logging.INFO)
     main()

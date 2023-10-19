@@ -7,6 +7,17 @@ Loads the best model and evaluates it on the test set.
 """
 
 def test(model, data_loader, device):
+    """
+    Test the model on the test set.
+    
+    Args:
+        model (torch.nn.Module): The model to test.
+        data_loader (torch.utils.data.DataLoader): The data loader for the test set
+        device (torch.device): The device to use.
+    
+    Returns:
+        accuracy (float): The test accuracy.
+    """
     model.eval()
     correct_predictions = 0
     total_samples = len(data_loader.dataset)
