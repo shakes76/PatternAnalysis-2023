@@ -46,7 +46,7 @@ class CustomDataset(Dataset):
             img = self.transform(img)
         return img
 
-def get_ttv():
+def get_ttv(subset_size=None):
     """
     Read in the training/testing/validation datasets from local files.
     Mostly repurposed from the original demo.
@@ -58,8 +58,17 @@ def get_ttv():
     val_data = glob.glob(VALIDATION)
 
     # Check if the directories exist and contain files
-    if not train_data or not test_data or not val_data:
-        raise FileNotFoundError("No image files found in the specified directories. Check file paths.")
+    if not train_data:
+        print("No training data found. Please check file paths or obtain the missing data.")
+        return None, None, None
+
+    if not test_data:
+        print("No testing data found. Using a subset of training data for testing.")
+        test_data = train_data[:subset_size]
+
+    if not val_data:
+        print("No validation data found. Using a subset of training data for validation.")
+        val_data = train_data[subset_size:2 * subset_size]
 
     transform = transforms.Compose([transforms.Grayscale(num_output_channels=1),
                                     transforms.Resize((IMAGE_DIM, IMAGE_DIM)),
