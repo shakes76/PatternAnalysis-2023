@@ -73,7 +73,7 @@ Batch size had a significant effect as lowering it increased accuracy and comput
 To balance out the two aforementioned factors, a size of 30 is set as default.
 
 Furthermore, graphing the total training loss per epoch is shown as below.
-![graph of loss per iteration](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/newerlossgraph.PNG)
+![graph of loss per iteration](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/newerExampleFigure.PNG)
 
 As shown in the graph, the rate at which the total loss decreases drastically slows down between 10-15 epochs thus, if a user desired for time effective tranining which yielded acceptable results, stopping at 10-15 epochs would result in similar predictions as 15+ epochs. However to minimize loss and retain practicality, I have chosen to go with a middle ground of 40 epochs.
 
