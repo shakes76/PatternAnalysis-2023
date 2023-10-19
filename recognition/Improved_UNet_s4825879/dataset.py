@@ -2,14 +2,13 @@ from torchvision import transforms
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
 from PIL import Image
-from utils import DataTransform
 import os
 
 # specify batch size
 BATCH_SIZE = 10
 
 # Specify vished image size
-IMAGE_SIZE = 64
+IMAGE_SIZE = 128
 
 # Specify dataset directory path
 TRAIN_DATA_PATH = 'data/train_data'
