@@ -66,7 +66,38 @@ class ContrastiveDataset(Dataset):
 
 
 class TripletDataset(Dataset):
-    pass
+    def __init__(self, data_lst, transform=None):
+        self.data_lst = data_lst
+        self.transform = transform
+        self.classes = ['AD', 'NC']
+
+    def __len__(self):
+        return len(self.data_lst)
+
+    def __getitem__(self, idx):
+        anchor_img_path, anchor_cls, anchor_patient_id = self.data_lst[idx]
+
+        # Positive selection
+        positive_samples = [(i, c, p) for i, c, p in self.data_lst if c == anchor_cls and p != anchor_patient_id]
+        positive_img_path, _, positive_patient_id = random.choice(positive_samples)
+
+        # Negative selection
+        negative_cls = 'NC' if anchor_cls == 'AD' else 'AD'
+        negative_samples = [(i, c, p) for i, c, p in self.data_lst if c == negative_cls and p != anchor_patient_id]
+        negative_img_path, _, negative_patient_id = random.choice(negative_samples)
+
+        # Read images
+        anchor_img = read_image(anchor_img_path, ImageReadMode.GRAY).float() / 255.
+        positive_img = read_image(positive_img_path, ImageReadMode.GRAY).float() / 255.
+        negative_img = read_image(negative_img_path, ImageReadMode.GRAY).float() / 255.
+        if self.transform:
+            anchor_img = self.transform(anchor_img)
+            positive_img = self.transform(positive_img)
+            negative_img = self.transform(negative_img)
+
+        return anchor_img, positive_img, negative_img
+
+
 
 
 """
@@ -87,8 +118,8 @@ if __name__ == '__main__':
         tf.RandomRotation(10)
     ])
 
-    train_dataset = ContrastiveDataset(train_data, transform=tr_transform)
-    val_dataset = ContrastiveDataset(val_data, transform=val_transform)
+    train_dataset = TripletDataset(train_data, transform=tr_transform)
+    val_dataset = TripletDataset(val_data, transform=val_transform)
 
     dataloader = DataLoader(
         dataset=train_dataset,
@@ -99,9 +130,9 @@ if __name__ == '__main__':
     )
     for batch in dataloader:
         print("Batch:")
-        print("volume1 shape:", batch[0].shape)
-        print("volume2 shape:", batch[1].shape)
-        print("label:", batch[2].shape)
+        print("anchor shape:", batch[0].shape)
+        print("positive shape:", batch[1].shape)
+        print("negative:", batch[2].shape)
         print()
         break
 """
