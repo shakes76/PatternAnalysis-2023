@@ -1,46 +1,58 @@
-import torch
-from torch.nn import CrossEntropyLoss
-from tqdm import tqdm
-import matplotlib.pyplot as plt
 
-def predict(model, dataloader):
+import argparse
+import matplotlib.pyplot as plt
+import torch
+from torch.utils.data import DataLoader
+from dataset import generate_adni_datasets
+
+def predict(model, dataloader, dim=(2, 5), version_prefix="vit", save_fig=True):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    
+    labels = ["CN", "AD"]
 
     model.eval()
     with torch.no_grad():
-        for batch_idx, (data, target) in enumerate(dataloader):
-            data, target = data.to(device), target.to(device)
-            y_hat = model(data)
-            _, preds = torch.max(y_hat, 1)
-            
-            # plot images in a grid with labels above each image
-            fig, axs = plt.subplots(2, 5, figsize=(10, 5))
-            fig.suptitle('Batch Predictions')
-            for i in range(2):
-                for j in range(5):
-                    idx = i * 5 + j
-                    axs[i, j].imshow(data[idx].permute(1, 2, 0).cpu(), cmap="gray")
-                    axs[i, j].set_title(f'Label: {target[idx].item()}, Pred: {preds[idx].item()}')
-                    axs[i, j].axis('off')
-            plt.show()
-
-
-def test(model, test_loader):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    criterion = CrossEntropyLoss()
-
-    with torch.no_grad():
-        correct, total = 0, 0
-        test_loss = 0.0
-        for batch in tqdm(test_loader, desc="Testing"):
-            x, y = batch
-            x, y = x.type(torch.FloatTensor).to(device), y.to(device)
-            y_hat = model(x)
-            loss = criterion(y_hat, y)
-            test_loss += loss.detach().cpu().item() / len(test_loader)
-
-            correct += torch.sum(torch.argmax(y_hat, dim=1) == y).detach().cpu().item()
-            total += len(x)
-        print(f"Test loss: {test_loss:.2f}")
-        print(f"Test accuracy: {correct / total * 100:.2f}%")
+        # get random data subset
+        (data, target) = next(iter(dataloader))
+        data, target = data.to(device), target.to(device)
+        y_hat = model(data)
+        _, preds = torch.max(y_hat, 1)
+        
+        # plot images in a grid with labels above each image
+        fig, axs = plt.subplots(dim[0], dim[1], figsize=(2*dim[1], 2*dim[0]))
+        fig.suptitle(f"{version_prefix} Predictions")
+        # fig.tight_layout(pad=0.3)
+        for i in range(dim[0]):
+            for j in range(dim[1]):
+                idx = i * dim[1] + j
+                axs[i, j].imshow(data[idx].permute(1, 2, 0).cpu(), cmap="gray")
+                axs[i, j].set_title(f'Label: {labels[target[idx].item()]}, Pred: {labels[preds[idx].item()]}')
+                axs[i, j].axis('off')
+                axs[i, j].title.set_size(8)
+        #save image
+        if (save_fig):
+            plt.savefig(f"{version_prefix}_preds.png")
+        plt.show()
     
+    
+def main():
+    # Parse commandline arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model_dir", nargs='?', default=None, type=str)
+    parser.add_argument("--dim", nargs='?', default=4, type=int)
+    args = parser.parse_args()
+       
+    if args.model_dir is None:
+        raise("Must specify model directory")
+    else:
+        print("model_dir: ", args.model_dir, "dim: ", args.dim)
+        train_set, val_set, test_set = generate_adni_datasets(datasplit=0.1)
+        
+        model = torch.load(args.model_dir)
+
+        test_loader = DataLoader(test_set, shuffle=True, batch_size=args.dim**2 + 1)
+    
+        predict(model, dataloader=test_loader, dim=(args.dim, args.dim), version_prefix="vit")
+
+if __name__ == "__main__":
+	main()

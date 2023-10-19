@@ -27,6 +27,10 @@ The architecture of the ViT is shown in the figure below.
 ![ViT Architecture From The Original Paper](figures/vit_figure.png)
 
 ## Preprocessing
+The ADNI dataset consisted of a train set and test set with grayscale images of dimension 256x240 and each dataset was further split into a cognitive normal (CN) and Alzheimer's Disease (AD) set as subdirectories. This allowed for easy parsing of the data into a train and test set with labels 0 for CN and 1 for AD.
+
+
+### Loading Data
 The data was first loaded into the program using a custom function which parsed all images in a list of directories, labeled based on directory, and split the training directories into a train and validation set with an 90:10 split. This split was chosen since it is known that vision transformers require alot of data to train, and I thus gave more data to the train set. The set split was conducted on a per subject and per group basis - hence there would be approximately the same number of AD and CN subjects in the train and validation sets. The test directories were also parsed with the same function. These loaded images and labels were then loaded into a custom torch dataset which performed the specified preprocessing to the data, before finally being put into a dataloader to be used in the future.
 
 ### Center Cropping
@@ -57,36 +61,76 @@ Below are graphs for the training and validation loss of the initial model devel
 </p>
 
 
-The saved model with the highest validation accuracy was used to determine the test accuracy of the model.This model achieved a test accuracy of 59% and can be seen to be 
+The saved model with the highest validation accuracy was used to determine the test accuracy of the model.This model achieved a test accuracy of 59% and can be seen to be quite noisy during training as both the train and validation losses and accuracies oscillated quite a bit. This model was also prone to overfitting as the validation accuracy began to drop after 25 epochs - once again likely due to the lack of dropout layers and normalisation.
+
+After 
 
 After performing a parameter search, I arrived on my best model
 
 <p float="middle">
-  <img src="figures/vit7_trainloss.png" width="400" />
-  <img src="figures/vit7_valloss.png" width="400" /> 
+  <img src="figures/vit10_trainloss.png" width="400" />
+  <img src="figures/vit10_valloss.png" width="400" /> 
 </p>
 <p float="middle">
-  <img src="figures/vit7_valacc.png" width="400" /> 
+  <img src="figures/vit10_valacc.png" width="400" /> 
 </p>
 
 
 
 <p float="middle">
-  <img src="figures/vit7_trainloss.png" width="400" />
-  <img src="figures/vit7_valloss.png" width="400" /> 
+  <img src="figures/vit11_trainloss.png" width="400" />
+  <img src="figures/vit11_valloss.png" width="400" /> 
 </p>
 <p float="middle">
-  <img src="figures/vit7_trainacc.png" width="400" /> 
-  <img src="figures/vit7_valacc.png" width="400" /> 
+  <img src="figures/vit11_trainacc.png" width="400" /> 
+  <img src="figures/vit11_valacc.png" width="400" /> 
 </p>
+
+| Model No. | Img Size | Patch Size | No. Transformer Layers | Embedding Dimension | MLP Size | No. Transformer Heads | Normalised? | Dropout? | Test Acc |
+|-----------|----------|------------|------------------------|---------------------|----------|-----------------------|-------------|----------|----------|
+| 21        | 224      | 16         | 12                     | 256                 | 256      | 8                     | True        | True     | 64.11    |
+| 20        | 224      | 16         | 12                     | 256                 | 128      | 16                    | True        | True     | 63.80    |
+| 19        | 224      | 16         | 8                      | 256                 | 128      | 16                    | True        | True     | 61.99    |
+| 18        | 224      | 16         | 8                      | 512                 | 256      | 16                    | True        | True     | 62.8     |
+| 16        | 224      | 16         | 12                     | 256                 | 256      | 16                    | True        | True     | 64.44    |
+| 15        | 224      | 14         | 8                      | 256                 | 256      | 16                    | True        | True     | 62.14    |
+| 14        | 224      | 14         | 4                      | 256                 | 256      | 16                    | True        | True     | 59.96    |
+| 10        | 192      | 16         | 12                     | 256                 | 256      | 16                    | False       | True     | 59.63    |
+| 7         | 192      | 24         | 8                      | 256                 | 32       | 4                     | False       | False    | 50.44    |
 
 ## Running the code
 
-
 ### Dependencies
+To run the code, the following core dependencies are required:
+- PyTorch
+- Numpy
+- Matplotlib
+- Torchvision
+- torchsummary
+- tqdm
+
+### Training
+First ensure that the ADNI dataset is downloaded and placed into a directory named data in /PatternAnalysis-2023/recognition/45816967_ADNI_Vision_Transformer, and a models directory is created in the same directory. Then, run the following command to train the model:
+
+```
+train.py --img_size 224 --patch_size 16 --num_layers 12 --embed_dim 256 --mlp_dim 256 --num_heads 16 --n_epochs 50 --batch_size 64
+```
+
+To predict the test set and show the results, run the following command:
+
+```
+predict.py --model_dir models/vit21_model_49_78.45794392523364.pth --dim 2
+```
+
+### Testing
+
+
+
+
 
 ## Reproducibility of results
 
-While the results of the ViT training seem quite non-deterministic, training the same model with the same parameters seemed to produce roughly the same performance. It is suspected that using a seed at the start of the training script might help with the reproducibility of the results, however, this was not wanted while I was training the model as I was simply trying to obtain the best model possible. 
+While the results of the ViT training seem quite non-deterministic, training the same model with the same parameters seemed to produce roughly the same performance. It is suspected that using a seed at the start of the training script might help with the reproducibility of the results, however, this was not wanted while I was training the model as I was simply trying to obtain the best model possible. After the model has been trained and saved, the results of the model then become reproducible.
 
 ## Future Work
+In the future, transfer learning could be investigated using a transformer backbone trained on a larger dataset such as imagenet. This could be useful since the transformer would have been able to learn more complex and refined attention maps between the tokens, and thus be able to extract more information from the ADNI dataset. Also, an alternative transformer head could be investigated such as a CNN or a more complicated MLP. This could improve the results of the model since the transformer head would be able to learn more complex relationships from the outputs of the transformer encoder.

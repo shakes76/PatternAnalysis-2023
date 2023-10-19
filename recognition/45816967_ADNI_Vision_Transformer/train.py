@@ -1,6 +1,7 @@
 import torch
 import torch.optim as optim
 import torch.nn as nn
+from torch.nn import CrossEntropyLoss
 from torch.utils.data import DataLoader
 from tqdm import tqdm
 import matplotlib.pyplot as plt
@@ -108,73 +109,50 @@ def train(model, train_loader, val_loader, criterion=nn.CrossEntropyLoss(), n_ep
 		# save figure
 		plt.savefig(f"{version_prefix}_trainacc.png")
 		plt.show()
-	return train_losses, val_losses, train_accs, val_accs
+	return model, train_losses, val_losses, train_accs, val_accs
 
+
+def test(model, test_loader):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    criterion = CrossEntropyLoss()
+
+    with torch.no_grad():
+        correct, total = 0, 0
+        test_loss = 0.0
+        for batch in tqdm(test_loader, desc="Testing"):
+            x, y = batch
+            x, y = x.type(torch.FloatTensor).to(device), y.to(device)
+            y_hat = model(x)
+            loss = criterion(y_hat, y)
+            test_loss += loss.detach().cpu().item() / len(test_loader)
+
+            correct += torch.sum(torch.argmax(y_hat, dim=1) == y).detach().cpu().item()
+            total += len(x)
+        print(f"Test loss: {test_loss:.2f}")
+        print(f"Test accuracy: {correct / total * 100:.2f}%")
 
 def main():
     # Parse commandline arguments
 	parser = argparse.ArgumentParser()
-	parser.add_argument("img_size")
-	parser.add_argument("patch_size")
-	parser.add_argument("num_layers")
-	parser.add_argument("embed_dim")
-	parser.add_argument("mlp_size")
-	parser.add_argument("num_heads")
-	parser.add_argument("n_epochs")
-	parser.add_argument("batch_size")
+	parser.add_argument("--img_size", nargs='?', default=224, type=int)
+	parser.add_argument("--patch_size", nargs='?', default=16, type=int)
+	parser.add_argument("--num_layers", nargs='?', default=12, type=int)
+	parser.add_argument("--embed_dim", nargs='?', default=256, type=int)
+	parser.add_argument("--mlp_size", nargs='?', default=256, type=int)
+	parser.add_argument("--num_heads", nargs='?', default=16, type=int)
+	parser.add_argument("--n_epochs", nargs='?', default=50, type=int)
+	parser.add_argument("--batch_size", nargs='?', default=64, type=int)
 	args = parser.parse_args()
-	if args.img_size:
-		img_size = args.img_size
-	else:
-		img_size = 224
-  
-	if args.patch_size:
-		patch_size = args.patch_size
-	else:
-		patch_size = 16
-  
-	if args.num_layers:
-		num_layers = args.num_layers
-	else:
-		num_layers = 12
-  
-	if args.embed_dim:
-		embed_dim = args.embed_dim
-	else:
-		embed_dim = 256
-  
-	if args.mlp_size:
-		mlp_size = args.mlp_size
-	else:
-		mlp_size = 256
-  
-	if args.num_heads:
-		num_heads = args.num_heads
-	else:
-		num_heads = 16
-  
-	if args.n_epochs:
-		n_epochs = args.n_epochs
-	else:
-		n_epochs = 50
-  
-	if args.batch_size:
-		batch_size = args.batch_size
-	else:
-		batch_size = 64
-  
+
+	print("img_size: ", args.img_size, "patch_size: ", args.patch_size, "num_layers: ", args.num_layers, "embed_dim: ", args.embed_dim, "mlp_size: ", args.mlp_size, "num_heads: ", args.num_heads, "n_epochs: ", args.n_epochs, "batch_size: ", args.batch_size)
 	train_set, val_set, test_set = generate_adni_datasets(datasplit=0.1)
 
-	train_loader = DataLoader(train_set, shuffle=True, batch_size=batch_size)
+	train_loader = DataLoader(train_set, shuffle=True, batch_size=args.batch_size)
+	val_loader = DataLoader(val_set, shuffle=True, batch_size=args.batch_size)
   
 	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-	model = ViT(img_size=img_size, patch_size=patch_size, num_transformer_layers=num_layers, embedding_dim=embed_dim, mlp_size=mlp_size, num_heads=num_heads).to(device)
-	train(model, train_loader=train_loader, n_epochs=n_epochs, version_prefix="vit")
- 
-	
- 
- 
-    
-    
+	model = ViT(img_size=args.img_size, patch_size=args.patch_size, num_transformer_layers=args.num_layers, embedding_dim=args.embed_dim, mlp_size=args.mlp_size, num_heads=args.num_heads).to(device)
+	train(model, train_loader=train_loader, val_loader=val_loader, n_epochs=args.n_epochs, version_prefix="vit")
+
 if __name__ == "__main__":
 	main()
