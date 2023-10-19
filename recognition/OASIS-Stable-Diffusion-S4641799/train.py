@@ -118,6 +118,8 @@ last_epoch = start_time
 load_checkpoint = False
 load_best = True
 
+old_epoch = 0
+
 starting_epoch = 1
 if load_checkpoint:
     start_time = 1697679243.0313046
@@ -133,6 +135,8 @@ if load_checkpoint:
         mapping_network.load_state_dict(torch.load(f'latest_map_{start_time}.pth'))
         with open(f'latest_checkpoint_{start_time}.pickle', 'rb') as handle:
             starting_epoch, losses, best_loss = pickle.load(handle)
+    with open(f'latest_checkpoint_{start_time}.pickle', 'rb') as handle:
+        old_epoch, _, _ = pickle.load(handle)
     #start_time += 0.0000000001
     starting_epoch+=1
 
@@ -196,10 +200,13 @@ for epoch in tqdm(range(starting_epoch, utils.epochs + 1)):
         last_epoch = time.time()
     except KeyboardInterrupt:
         print ("\n\nUser cancelled training: saving progress")
-        #save progress
-        torch.save(gen.state_dict(), f'latest_gen_{start_time}.pth')
-        torch.save(critic.state_dict(), f'latest_critic_{start_time}.pth')
-        torch.save(mapping_network.state_dict(), f'latest_map_{start_time}.pth')
-        with open(f'latest_checkpoint_{start_time}.pickle', 'wb') as handle:
-            pickle.dump([epoch, losses, best_loss], handle, protocol=pickle.HIGHEST_PROTOCOL)
+        # Only save if loaded best and past latest, or loaded latest
+        if (old_epoch < epoch) or (load_checkpoint == True and load_best == False):
+            #save progress
+            print ("Overriding last save")
+            torch.save(gen.state_dict(), f'latest_gen_{start_time}.pth')
+            torch.save(critic.state_dict(), f'latest_critic_{start_time}.pth')
+            torch.save(mapping_network.state_dict(), f'latest_map_{start_time}.pth')
+            with open(f'latest_checkpoint_{start_time}.pickle', 'wb') as handle:
+                pickle.dump([epoch, losses, best_loss], handle, protocol=pickle.HIGHEST_PROTOCOL)
         break
