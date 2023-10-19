@@ -15,4 +15,3 @@ class ADNI():
         self.dataset = datasets.ImageFolder(path + "train", transform=self.transformations) # datasets.CelebA(root=path, download=True, transform=transformations)
         self.training_data_loader = torch.utils.data.DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
         self.testing_data_loader = torch.utils.data.DataLoader(self.dataset, batch_size=self.batch_size, shuffle=True)
-        

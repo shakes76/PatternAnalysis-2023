@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
 from dataset import ADNI
@@ -45,4 +46,10 @@ print("Total predictions are", total_predictions)
 print("Accuracy is", correct_predictions/total_predictions)
 
 
-
+plt.plot(correct_predictions, label="Correct predictions", color="blue")
+plt.plot(total_predictions, label="Total predictions", color="orange")
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title("Accuracy")
+plt.legend()
+plt.show()
