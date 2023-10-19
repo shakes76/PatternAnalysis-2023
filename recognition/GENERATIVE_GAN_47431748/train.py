@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 # Change as needed
-FILE_PATH = r'C:/Users/jackc/OneDrive/Desktop/UQ/UQ23S2/COMP3710_PROJ/PatternAnalysis-2023/AD_NC/'
+FILE_PATH = '/home/groups/comp3710/ADNI/AD_NC/'
 VQVAE_WEIGHTS_PATH = './VQVAEWeights/'
 PIXEL_WEIGHTS_PATH = './PixelWeights/'
 RESULTS_PATH = './Results/'
@@ -152,7 +152,7 @@ if TRAINING_VQVAE:
             sys.stdout = main_stdout
 
         # Save the trained model
-        vqvae.save_weights(SAVED_WEIGHTS_PATH + 'trained_model_weights')
+        vqvae.save_weights(VQVAE_WEIGHTS_PATH + 'trained_model_weights')
 
 # Load the trained model
 vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM, num_channels=num_channels)
@@ -272,12 +272,12 @@ def plot_pixel_train_val_results(epoch_results):
     """ Plots and saves the train/val losses of the PixelCNN """
     # Total losses
     plt.figure()
-    plt.plot(epoch_results['loss'], label='Training')
-    plt.plot(epoch_results['val_loss'], label='Validation')
+    plt.plot(epoch_results['loss'], label='Training loss')
+    plt.plot(epoch_results['val_loss'], label='Validation loss')
 
     plt.xlabel('Epoch')
     plt.ylabel('Loss')
-    plt.title('Sparse Categorical Cross Entropy Loss')
+    plt.title('(Sparse) Categorical Cross Entropy Loss')
     plt.legend(loc='upper right')
 
     plt.savefig(RESULTS_PATH + 'pixel_losses.png')

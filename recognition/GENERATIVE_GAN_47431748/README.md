@@ -1,4 +1,9 @@
-This is the README for my initial commit.
-* Dear tutor, I promise that I'm not starting this late. My previous model was not training at all despite my best efforts so I've rage quit.
-* Time to channel my inner 10x dev over the next few days. 
-* I expect there are going to be some long night :L
+* Title 
+* Description of algorithm 
+* Problem that algorithm solves 
+* How algorithm works 
+* Figure / Visualisation 
+* Dependencies (inc. versions) + reproducability 
+* Example inputs / outputs / Plots 
+* Describe pre-processing 
+* Justify train/test/val splits of the data

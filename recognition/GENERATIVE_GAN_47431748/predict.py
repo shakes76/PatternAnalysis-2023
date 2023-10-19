@@ -39,17 +39,17 @@ def generate_vqvae_images(images):
 
         plt.subplot(1, 3, 1)
         plt.imshow(tf.squeeze(test_image))
-        plt.title("Test Image")
+        plt.title("Sample Image")
         plt.axis('off')
 
         plt.subplot(1, 3, 2)
         plt.imshow(codebook_image)
-        plt.title("Codebook")
+        plt.title("Codebook deconstruction")
         plt.axis("off")
 
         plt.subplot(1, 3, 3)
         plt.imshow(tf.squeeze(reconstructed_image))
-        plt.title("Reconstruction")
+        plt.title("VQVAE Reconstruction")
         plt.axis("off")
 
         plt.savefig(RESULTS_PATH + f'vq_vae_reconstructions_{i}.png')
@@ -60,7 +60,7 @@ def generate_vqvae_images(images):
         main_stdout = sys.stdout
         with open(RESULTS_PATH + 'main_results.txt', 'a') as f:
             sys.stdout = f
-            print(f"SSIM between Test Image {i} and Reconstruction: ", ssim)
+            print(f"Test Image {i} and Reconstruction SSIM: ", ssim)
             sys.stdout = main_stdout
 
 for sample_batch in test_data.take(1).as_numpy_iterator():
