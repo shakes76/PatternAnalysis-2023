@@ -23,11 +23,11 @@ It was mentioned there were two classes in the ADNI dataset, Alzheimer's disease
 The ADNI dataset provided was given in training and test folders. So, one of the first pre-processing steps used was to seperate the train folder into a training and validation set. It was decided a 80/20 train/validation split would be applied to the data. This is a common split ratio so it was a clear choice to use. On top of this, a patient-level split is also applied. As there are multiple scans of the same patient in the dataset, it was important to ensure that a patient scans only lies in the training or validation set. This is because the model would learn the patients number and hence, if the same patient existed in both datasets, the validation loss (and accuracy) would become a meaningless performance metric. 
 
 When loading images into Python using PyTorch's ImageFolder class, the images undergo several transformations. These being:
- * Image resizing to 192px x 192px 
+ * Image resizing to 240px x 240px 
  * Normalisation with mean 0.5, and standard deviation 0.5
  * Image crop about the centre
 
-The images were resized and cropped about the centre for a size of 192px x 192px because the original size of the image did not faciliate a patch size of 16px x 16px, so it was appropriate to resize the images. Furthermore, the images were normalised as this is a standard pre-processing technique. The values for the mean and standard deviation of normalisation were altered; however, it did not appear to have any significant impact on the results. A batch of brain scans after pre-processing are shown below:
+The images were resized and cropped about the centre for a size of 240px x 240px because the original size of the image did not faciliate a patch size of 16px x 16px, so it was appropriate to resize the images. Furthermore, the images were normalised as this is a standard pre-processing technique. The values for the mean and standard deviation of normalisation were altered; however, it did not appear to have any significant impact on the results. A batch of brain scans after pre-processing are shown below:
 
 ![alt text](images/brains-after-processing.png)
 
@@ -42,6 +42,8 @@ The architecture above describes the general flow of a vision transformer; howev
 * Number of encoders --> number of encoder layers in the transformer encoder section
 * Number of attention heads --> number of heads on the multi-head attention block
 * Hidden size --> number of output channels from the convolutional layers
+* MLP Dimension --> dimension of the MLP in the transformer encoder
+* MLP Head Dimension --> dimension of the MLP head
 * Dropout regularisation
 * Number of epochs
 * Learning rate
@@ -65,6 +67,8 @@ The hyperparameters of an initial training run were:
  * Loss Criterion = Cross entropy loss
  * Learning rate scheduler = ReduceLROnPlateau
  * Weight decay = 0.0
+ * MLP Dimension = 768
+ * MLP Head Dimension = 768
 
 The plot below shows the cross entropy loss of the training at each epoch:
 
@@ -76,6 +80,19 @@ From this, it was clear that the model was overfitting to the training data. To 
 
 ![alt text](images/accuracy2.png)
 
-The model is still overfitting but the changes have decreased the losses in the validation dataset. To try and introduce more regularisation, weight decay was introduced at 1e-4. Additionally, the number of neurons in the feed-forward layers of the transformer encoder was increased. 
+The model is still overfitting but the changes have decreased the losses in the validation dataset. To try and introduce more regularisation, weight decay was introduced at 1e-4. Additionally, the number of neurons in the feed-forward layers of the transformer encoder was increased, so that the MLP dimension is 1024.
+
+![alt text](images/losses4.png)
+![alt text](images/accuracy4.png)
+
+The model is still overfitting. At this point, I decided to take a different approach. As there is significantly less data in the dataset than a usual deep learning model is trained on, I decided to make the model more simple. All regularisation (dropout and weight decay) was removed, the number of encoder layers was decreased to 4, the image patch size was decreased to 4, the MLP dimension was decreased to 128, and the MLP head dimension was decreased to 512. These hyperparameters produced the following results:
+
+![alt text](images/losses5.png)
+![alt text](images/accuracy5.png)
+
+The plots show the model is not overfitting to the same extent (this is evident by the lowered training accuracy and increased cross entropy loss). This trained model performed admirably on the test dataset, with an accuracy of 69.65%.
+
+![alt text](images/test_accuracy5.png)
+
 
 ## Test Dataset Accuracy
