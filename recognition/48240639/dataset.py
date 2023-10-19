@@ -1,26 +1,55 @@
 """
 Created on Wednesday October 18 
+ADNI Dataset and Data Loaders
 
-This script is intended for managing the retrieval of the OASIS Brain dataset,
-which consists of 9,000 images that have been downloaded. 
-It involves establishing a data loader and undertaking essential preprocessing steps before commencing the training.
-The dataset provided by the COMP3710 course staff is a preprocessed version derived from the original OASIS Brain dataset.
+This code defines a custom dataset class, ADNIDataset, for loading and processing
+ADNI dataset images for use in Siamese Network training and testing. It also provides
+functions to get train and test datasets from a specified data path.
+
 @author: Aniket Gupta 
 @ID: s4824063
 
 """
-
+import os
 import torch
+from PIL import Image
 from torch.utils.data import Dataset
+from torchvision import transforms
 
-class CustomDataset(Dataset):
-    def __init__(self, data, labels):
-        self.data = data
-        self.labels = labels
+class ADNIDataset(Dataset):
+    def __init__(self, data_path):
+        super(ADNIDataset, self).__init()
+
+        self.transform = transforms.ToTensor()
+
+        self.ad_path = os.path.join(data_path, 'AD')
+        self.nc_path = os.path.join(data_path, 'NC')
+
+        self.ad_images = [self.transform(Image.open(os.path.join(self.ad_path, img))) for img in os.listdir(self.ad_path)]
+        self.nc_images = [self.transform(Image.open(os.path.join(self.nc_path, img))) for img in os.listdir(self.nc_path)]
+
+        self.ad_images = torch.stack(self.ad_images)
+        self.nc_images = torch.stack(self.nc_images)
 
     def __len__(self):
-        return len(self.data)
+        return min(len(self.ad_images), len(self.nc_images))
 
-    def __getitem__(self, idx):
-        sample = {'data': self.data[idx], 'label': self.labels[idx]}
-        return sample
+    def __getitem__(self, index):
+        if index % 2 == 0:
+            img1 = self.ad_images[index % len(self.ad_images)]
+            img2 = self.ad_images[(index + 1) % len(self.ad_images)]
+            label = torch.tensor(1, dtype=torch.float)
+        else:
+            img1 = self.ad_images[index % len(self.ad_images)]
+            img2 = self.nc_images[index % len(self.nc_images)]
+            label = torch.tensor(0, dtype=torch.float)
+
+        return img1, img2, label
+
+def get_train_dataset(data_path):
+    train_dataset = ADNIDataset(os.path.join(data_path, 'train'))
+    return train_dataset
+
+def get_test_dataset(data_path):
+    test_dataset = ADNIDataset(os.path.join(data_path, 'test'))
+    return test_dataset
