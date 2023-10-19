@@ -90,9 +90,9 @@ with torch.no_grad():
         save_image(input, "test_images/downscale/" + str(i) + ".png")
         save_image(image, "test_images/ground_truth/" + str(i) + ".png")
         
-print("Mean PSNR: " + np.mean(np.array(psnr_arr)))
-print("Mean SSIM: " + np.mean(np.array(ssim_arr)))
-print("Mean MSE: " + np.mean(np.array(mse_arr)))
+print("Mean PSNR: " + str(np.mean(np.array(psnr_arr))))
+print("Mean SSIM: " + str(np.mean(np.array(ssim_arr))))
+print("Mean MSE: " + str(np.mean(np.array(mse_arr))))
 
 ### Save the metrics as a .csv file
 np.savetxt("psnr_loss.csv", psnr_arr, delimiter=",")
