@@ -41,7 +41,7 @@ valid_loader = DataLoader(valid, batch_size=BATCH_SIZE)
 ImpUNET = ImprovedUNet()
 ImpUNET.to(device)
 
-lossFunc = DiceLoss()
+lossFunc = nn.BCELoss()
 opt = torch.optim.Adam(ImpUNET.parameters(), lr=LEARNING_RATE)
 
 ImpUNET.train()
@@ -67,7 +67,7 @@ for epoch in range(NUM_EPOCH):
         opt.step()
         total_loss += loss.item()
     print("EPOCH", epoch, ":")
-    print("     TRAINING LOSS:", total_loss)
+    print("     TRAINING LOSS:", total_loss / float(len(train_loader)))
     loss_train.append(total_loss)
     
     ImpUNET.eval()
@@ -81,13 +81,13 @@ for epoch in range(NUM_EPOCH):
             loss = lossFunc(pred, mask)
             
             total_loss += loss.item()
-    print("     VALIDATION LOSS:", total_loss)
+    print("     VALIDATION LOSS:", total_loss / float(len(valid_loader)))
     loss_valid.append(total_loss)
     
 # save model and associated losses
-torch.save(ImpUNET, "impUNetMODEL.pth")
+torch.save(ImpUNET, "impUNetMODELval.pth")
 import pandas as pd
 losses = pd.DataFrame()
 losses['TRAIN'] = loss_train
 losses['VALID'] = loss_valid
-losses.to_csv('losses.csv')
+losses.to_csv('lossesval.csv')
