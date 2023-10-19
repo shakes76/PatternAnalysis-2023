@@ -1,13 +1,3 @@
-* ~~Title~~ 
-* Description of algorithm 
-* Problem that algorithm solves 
-* How algorithm works 
-* Figure / Visualisation 
-* Dependencies (inc. versions) + reproducability 
-* Example inputs / outputs / Plots 
-* Describe pre-processing 
-* Justify train/test/val splits of the data
-
 # Generative VQ-VAE + PixelCNN for the ADNI brain data set
 
 ## 0.0 Overview
@@ -109,14 +99,29 @@ of the trained model.
 <br/>
 
 
-## Training / Validation
+## Training / Validation Performance
 
-- Will do once model training is completed
+The model was trained over 7 epochs with the hyper-parameters that are defined in `modules.py`. The loss
+metrics on both the training and validation sets are seen in the figures below. The graphs were produced
+using data which the code prints to `training.log`. 
+
+![Train_loss](Images/LOSS_TRAIN.png)
 
 <br/>
 
-## Testing / Reconstruction
-- Will do once model training is completed.
+![Train_loss](Images/LOSS_VAL.png)
+
+<br/>
+
+Furthermore, the model achieved a mean ssim on the training data of 0.92562, and 0.92570
+on the validation set. In total the Mean SSIM on the VQ-VAE test was 1.28696
+
+
+<br/>
+
+## Reconstruction
+Once the model was has been trained, 5 randomly selected images will be tested ... 
+TODO
 
 <br/>
 
