@@ -50,4 +50,4 @@ After training the model for 40 Epochs it achieved 51% accuracy on the testing s
 
 The loss during training fluctuates around 50% and does not change much during the training. 
 
-The accuracy of the model is poor being 50% and after further investigation the model appears to be always guessing that the image is an Alzheimers image. This explains why the accuracy is poor as it is always guessing the same result regardless of the image. 
+The accuracy of the model is poor being 50% and after further investigation the model appears to be always guessing that the image is an Alzheimers image. This explains why the accuracy is poor as it is always guessing the same result regardless of the image. I could not deduce the exact reason for the model to be producing such inaccurate results. I thought it may be related to there being no positional encoding of the pixel positions for the images however i tested this theory and discovered that there was no difference between having the positional embedding and not.
