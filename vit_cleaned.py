@@ -2,49 +2,60 @@ import torch
 import torch.nn as nn
 import torch.nn.parallel
 import torch.optim as optim
+from torch.optim.lr_scheduler import OneCycleLR
 import torch.utils.data
 import torchvision
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torchvision.utils as vutils
 import time
+import matplotlib.pyplot as plt
 
-batch_size = 128
-workers = 1
+batch_size = 8
+workers = 4 # Best num workers for my pc is 4
 
 # Images are 256 by 240 pixels. Resize them to 224 by 224; must be divisible by 16
 image_size = 224  # Resized 2D image input
 patch_size = 16  # Dimension of a patch
 num_patches = (image_size // patch_size) ** 2  # Number of patches in total
-num_channels = 3  # 3 channels for RGB
+num_channels = 1  # 3 channels for RGB
 embed_dim = 768  # Hidden size D of ViT-Base model from paper, equal to [(patch_size ** 2) * num_channels]
 num_heads = 12  # Number of self attention blocks
 num_layers = 12  # Number of Transformer encoder layers
 mlp_size = 3072  # Number of hidden units between each linear layer
 dropout_size = 0.1
 num_classes = 2  # Number of different classes to classify (i.e. AD and NC)
-num_epochs = 3
+num_epochs = 7
 
 # Create the dataset
 train_dataroot = "AD_NC/train"
 test_dataroot = "AD_NC/test"
-train_dataset = dset.ImageFolder(root=train_dataroot,
+full_train_dataset = dset.ImageFolder(root=train_dataroot,
                             transform=transforms.Compose([
                             transforms.Resize((image_size, image_size)),
                             transforms.ToTensor(),
+                            transforms.Grayscale()
                         ]))
 
 test_dataset = dset.ImageFolder(root=test_dataroot,
                             transform=transforms.Compose([
                             transforms.Resize((image_size, image_size)),
                             transforms.ToTensor(),
+                            transforms.Grayscale()
                         ]))
+
+train_size = int(0.8 * len(full_train_dataset))
+validation_size = len(full_train_dataset) - train_size
+train_dataset, validation_dataset = torch.utils.data.random_split(full_train_dataset, [train_size, validation_size])
 
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size,
                                         shuffle=True, num_workers=workers)
 
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size,
                                         shuffle=False, num_workers=workers)
+
+validation_loader = torch.utils.data.DataLoader(validation_dataset, batch_size=batch_size,
+                                                shuffle=False, num_workers=workers)
 
 
 
@@ -62,9 +73,8 @@ class PatchEmbedding(nn.Module):
     N is the number of patches, 
     and P is the dimension of each patch; P^2 represents a flattened patch.
     """
-    def __init__(self, ngpu):
+    def __init__(self):
         super(PatchEmbedding, self).__init__()
-        self.ngpu = ngpu
         # Puts image through Conv2D layer with kernel_size = stride to ensure no patches overlap.
         # This will split image into fixed-sized patches; each patch has the same dimensions
         # Then, each patch is flattened, including all channels for each patch.
@@ -87,16 +97,13 @@ class TransformerEncoder(nn.Module):
     One transformer encoder layer consists of layer normalisation, multi-head self attention layer, 
     a residual connection, another layer normalisation, an mlp block, and another residual connection.
     """
-    def __init__(self, ngpu):
+    def __init__(self):
         super(TransformerEncoder, self).__init__()
-        self.ngpu = ngpu
 
         self.transformer_encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim,
                                                                     nhead=num_heads,
                                                                     dim_feedforward=mlp_size,
-                                                                    dropout=dropout_size,
                                                                     activation="gelu",
-                                                                    layer_norm_eps=1e-5,
                                                                     batch_first=True,
                                                                     norm_first=True
                                                                     )
@@ -114,9 +121,8 @@ class MLPHead(nn.Module):
     """Creates an MLP head.
     Consists of a layer normalisation and a linear layer.
     """
-    def __init__(self, ngpu):
+    def __init__(self):
         super(MLPHead, self).__init__()
-        self.ngpu = ngpu
 
         self.main = nn.Sequential(nn.LayerNorm(normalized_shape=embed_dim),
                                     nn.Linear(in_features=embed_dim,
@@ -129,23 +135,22 @@ class MLPHead(nn.Module):
 
 class ViT(nn.Module):
     """Creates a vision transformer model."""
-    def __init__(self, ngpu):
+    def __init__(self):
         super(ViT, self).__init__()
-        self.ngpu = ngpu
 
-        self.patch_embedding = PatchEmbedding(workers)
+        self.patch_embedding = PatchEmbedding()
         self.prepend_embed_token = nn.Parameter(torch.randn(1, 1, embed_dim), requires_grad=True)
         self.position_embed_token = nn.Parameter(torch.randn(1, num_patches + 1, embed_dim), requires_grad=True)
         self.embedding_dropout = nn.Dropout(p=dropout_size)  # Apply dropout after positional embedding as well
-        self.transformer_encoder = TransformerEncoder(workers)
-        self.mlp_head = MLPHead(workers)
+        self.transformer_encoder = TransformerEncoder()
+        self.mlp_head = MLPHead()
 
     def forward(self, input):
-        current_batch_size = input.size(0)
+        current_batch_size = input.shape[0]
         prepend_embed_token_expanded = self.prepend_embed_token.expand(current_batch_size, -1, -1)
         input = self.patch_embedding(input)  # Patch embedding
         input = torch.cat((prepend_embed_token_expanded, input), dim=1)  # Prepend class token
-        input = input + self.position_embed_token  # Add position embedding
+        input = self.position_embed_token + input  # Add position embedding
         input = self.embedding_dropout(input)  # Apply dropout
         input = self.transformer_encoder(input)  # Feed into transformer encoder layers
         input = self.mlp_head(input[:, 0])  # Get final classificaiton from MLP head
@@ -153,21 +158,25 @@ class ViT(nn.Module):
 
 
 def main():
-    visual_transformer = ViT(workers).to(device)
-    torch.save(visual_transformer.state_dict(), "visual_transformer")
+    print(torch.cuda.get_device_name())
+    visual_transformer = ViT()
+    visual_transformer.to(device)
+    print(device)
     
     # ----------------------------------------
     # Loss Function and Optimiser
     criterion = nn.CrossEntropyLoss()
-    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=3e-3, weight_decay=0.3)
+    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=1e-6, weight_decay=0.03)
 
     # ----------------------------------------
     # Training loop
-    visual_transformer.train()
+    train_loss_values = []
+    val_acc_values = []
     start_time = time.time()
-    print("Starting training loop")
+    print("Starting training loop") 
     
     for epoch in range(num_epochs):
+        visual_transformer.train()
         running_loss = 0.0
         for index, (inputs, labels) in enumerate(train_loader):
             inputs, labels = inputs.to(device), labels.to(device)
@@ -180,13 +189,50 @@ def main():
             optimiser.step()
 
             running_loss += loss.item()
-            if (index+1) % 2 == 0:
+            if (index+1) % 10 == 0:
                 running_time = time.time()
                 print("Epoch [{}/{}], Loss: {:.5f}".format(epoch+1, num_epochs, loss.item()))
+                train_loss_values.append(running_loss / len(train_loader))
                 print(f"Timer: {running_time - start_time}")
-                running_loss = 0.0
+
+        print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {running_loss/len(train_loader)}")
+
+        # -----------------
+        # Validation Loop
+        visual_transformer.eval()
+        val_acc = 0
+        with torch.no_grad():  # Disable gradient computation
+            for inputs, labels in validation_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = visual_transformer(inputs)
+
+                _, predicted = torch.max(outputs.data, 1)
+                val_acc += (predicted == labels).sum().item() / len(outputs)
+
+        print(f"Validation Accuracy: {val_acc / len(validation_loader)}")
+        val_acc_values.append(val_acc / len(validation_loader))
 
     print(f"Finished Training")
+    # Plot training loss
+    plt.figure(figsize=(10, 5))
+    plt.subplot(1, 2, 1)
+    plt.plot(train_loss_values)
+    plt.title('Training Loss')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+
+    # Plot validation accuracy
+    plt.subplot(1, 2, 2)
+    plt.plot(val_acc_values)
+    plt.title('Validation Accuracy')
+    plt.xlabel('Epoch')
+    plt.ylabel('Accuracy')
+
+    plt.tight_layout()
+    plt.savefig('training_plot.png', format='png')
+    plt.show()
+    torch.save(visual_transformer.state_dict(), "visual_transformer")
+
 
     # ----------------------------------------
     # Testing loop
