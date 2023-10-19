@@ -17,6 +17,9 @@ def train(epochs: int):
     epoch_train_losses = []
     epoch_val_losses = []
 
+    epoch_train_psnrs = []
+    epoch_val_psnrs = []
+
     train_loader = load_train_data(train_path)
     val_loader = load_test_data(test_path)
 
@@ -55,7 +58,13 @@ def train(epochs: int):
         avg_val_loss = running_val_loss / len(val_loader)
         epoch_val_losses.append(avg_val_loss)
 
-        print(f"Epoch [{epoch}/{epochs}] Train Loss: {avg_train_loss} Validation Loss: {avg_val_loss}")
+        avg_train_psnr = compute_psnr(avg_train_loss)
+        epoch_train_psnrs.append(avg_train_psnr.item())
+    
+        avg_val_psnr = compute_psnr(avg_val_loss)
+        epoch_val_psnrs.append(avg_val_psnr.item())
+
+        print(f"Epoch [{epoch}/{epochs}] Train Loss: {avg_train_loss}, Train PSNR: {avg_train_psnr}, Validation Loss: {avg_val_loss}, Validation PSNR: {avg_val_psnr}")
 
         # Update the learning rate
         scheduler.step()
@@ -66,12 +75,19 @@ def train(epochs: int):
             torch.save(model.state_dict(), f'./Trained_Model_Epoch_{epoch}.pth')
             print("Model saved!")
 
-    return epoch_train_losses, epoch_val_losses
+    return epoch_train_losses, epoch_val_losses, epoch_train_psnrs, epoch_val_psnrs
+
+def compute_psnr(mse, max_pixel_val=1.0):
+    mse_tensor = torch.tensor(mse).to(device)
+    if mse == 0:
+        return float('inf')
+    return 10 * torch.log10(max_pixel_val**2 / mse_tensor)
+
 
 if __name__ == '__main__':
     start_time = time.time()
     print("Starting training...")
-    train_losses, val_losses = train(num_epochs)
+    train_losses, val_losses, epoch_train_psnrs, epoch_val_psnrs = train(num_epochs)
     end_time = time.time()
     print("Training finished!")
     print(f"Time taken: {end_time - start_time} seconds, or {(end_time - start_time) / 60} minutes.")
@@ -85,3 +101,11 @@ if __name__ == '__main__':
     plt.title('Training and Validation Loss over Time')
     plt.legend()
     plt.savefig('losses.png')
+    plt.figure()
+    plt.plot(range(1, num_epochs + 1), epoch_train_psnrs, label='Training PSNR')
+    plt.plot(range(1, num_epochs + 1), epoch_val_psnrs, label='Validation PSNR')
+    plt.xlabel('Epochs')
+    plt.ylabel('PSNR')
+    plt.title('Training and Validation PSNR over Time')
+    plt.legend()
+    plt.savefig('psnrs.png')
