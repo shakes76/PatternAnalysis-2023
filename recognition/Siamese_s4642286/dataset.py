@@ -10,15 +10,12 @@ import itertools
 import torch
 import math
 import torchvision
-from torch.utils.data import DataLoader, TensorDataset, Subset, Dataset
-from sklearn.model_selection import train_test_split
+from torch.utils.data import DataLoader, TensorDataset, Dataset
+# from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from PIL import Image
-from torchvision.io import read_image
-
-batch_size = 2
 
 class_labels = {
     'AD': 1,
@@ -28,62 +25,42 @@ class_labels = {
 train_data = []
 test_data = []
 
-train_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/train"
-test_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/test"
+# train_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/train"
+# test_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/test"
 
-# train_dataroot = "/home/groups/comp3710/ADNI/AD_NC/train"
-# test_dataroot = "/home/groups/comp3710/ADNI/AD_NC/test"
+train_dataroot = "/home/groups/comp3710/ADNI/AD_NC/train"
+test_dataroot = "/home/groups/comp3710/ADNI/AD_NC/test"
 
-# Iterate through the subdirectories (AD and NC) and assign labels accordingly
-for class_name, label in [("AD", 1), ("NC", 0)]:
-    class_directory = os.path.join(train_dataroot, class_name)
-    for filename in os.listdir(class_directory):
-        if filename.endswith('.jpeg') or filename.endswith('.png'):
-            image_path = os.path.join(class_name, filename)
-            train_data.append((image_path, label))
+# # Iterate through the subdirectories (AD and NC) and assign labels accordingly
+# for class_name, label in [("AD", 1), ("NC", 0)]:
+#     class_directory = os.path.join(train_dataroot, class_name)
+#     for filename in os.listdir(class_directory):
+#         if filename.endswith('.jpeg') or filename.endswith('.png'):
+#             image_path = os.path.join(class_name, filename)
+#             train_data.append((image_path, label))
 
-    class_directory = os.path.join(test_dataroot, class_name)
-    for filename in os.listdir(class_directory):
-        if filename.endswith('.jpeg') or filename.endswith('.png'):
-            image_path = os.path.join(class_name, filename)
-            test_data.append((image_path, label))
+#     class_directory = os.path.join(test_dataroot, class_name)
+#     for filename in os.listdir(class_directory):
+#         if filename.endswith('.jpeg') or filename.endswith('.png'):
+#             image_path = os.path.join(class_name, filename)
+#             test_data.append((image_path, label))
 
-# Specify the desired CSV file name
-csv_file = 'train_labelled.csv'
+# # Specify the desired CSV file name
+# csv_file = 'train_labelled.csv'
 
-# Write the collected data to a CSV file
-with open(csv_file, 'w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(['filename', 'label'])  # Write the header row
-    writer.writerows(train_data)  # Write the data
+# # Write the collected data to a CSV file
+# with open(csv_file, 'w', newline='') as file:
+#     writer = csv.writer(file)
+#     writer.writerow(['filename', 'label'])  # Write the header row
+#     writer.writerows(train_data)  # Write the data
 
-csv_file = 'test_labelled.csv'
+# csv_file = 'test_labelled.csv'
 
-with open(csv_file, 'w', newline='') as file:
-    writer = csv.writer(file)
-    writer.writerow(['filename', 'label'])  # Write the header row
-    writer.writerows(test_data)  # Write the data
+# with open(csv_file, 'w', newline='') as file:
+#     writer = csv.writer(file)
+#     writer.writerow(['filename', 'label'])  # Write the header row
+#     writer.writerows(test_data)  # Write the data
 
-
-
-# class ADNIDataset(Dataset):
-#     def __init__(self, annotations_file, img_dir, transform=None):
-#         self.img_labels = pd.read_csv(annotations_file)
-#         self.img_dir = img_dir
-#         self.transform = transform
-
-#     def __len__(self):
-#         return len(self.img_labels)
-
-#     def __getitem__(self, idx):
-#         img_path = os.path.join(self.img_dir, self.img_labels.iloc[idx, 0])
-#         image = read_image(img_path)
-#         label = torch.tensor(int(self.img_labels.iloc[idx, 1]))
-
-#         if self.transform:
-#             image = self.transform(image)
-
-#         return image, label
 
 class ADNIDataset(Dataset):
     def __init__(self, annotations_file, img_dir, transform=None):
@@ -178,58 +155,58 @@ testloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
 
 
-# # Iterate through a few batches from the Siamese loader
-# print("Siamese Loader:")
-# for batch_idx, (data, labels) in enumerate(trainloader):
-#     print(f"Batch {batch_idx + 1}:")
-#     print("Data shape:", data.shape)  # Print the shape of the data tensor
-#     print("Labels:", labels)  # Print the labels
-#     if batch_idx >= 2:  # Print the first 3 batches as an example
-#         break
+# Iterate through a few batches from the Siamese loader
+print("Siamese Loader:")
+for batch_idx, (data, labels) in enumerate(trainloader):
+    print(f"Batch {batch_idx + 1}:")
+    print("Data shape:", data.shape)  # Print the shape of the data tensor
+    print("Labels:", labels)  # Print the labels
+    if batch_idx >= 2:  # Print the first 3 batches as an example
+        break
 
-# # Iterate through a few batches from the MLP loader
-# print("\nMLP Loader:")
-# for batch_idx, (data, labels) in enumerate(mlp_loader):
-#     print(f"Batch {batch_idx + 1}:")
-#     print("Data shape:", data.shape)  # Print the shape of the data tensor
-#     print("Labels:", labels)  # Print the labels
-#     if batch_idx >= 2:  # Print the first 3 batches as an example
-#         break
+# Iterate through a few batches from the MLP loader
+print("\nMLP Loader:")
+for batch_idx, (data, labels) in enumerate(mlp_loader):
+    print(f"Batch {batch_idx + 1}:")
+    print("Data shape:", data.shape)  # Print the shape of the data tensor
+    print("Labels:", labels)  # Print the labels
+    if batch_idx >= 2:  # Print the first 3 batches as an example
+        break
 
-# # Iterate through a few batches from the test loader
-# print("\nTest Loader:")
-# for batch_idx, (data, labels) in enumerate(testloader):
-#     print(f"Batch {batch_idx + 1}:")
-#     print("Data shape:", data.shape)  # Print the shape of the data tensor
-#     print("Labels:", labels)  # Print the labels
-#     if batch_idx >= 2:  # Print the first 3 batches as an example
-#         break
+# Iterate through a few batches from the test loader
+print("\nTest Loader:")
+for batch_idx, (data, labels) in enumerate(testloader):
+    print(f"Batch {batch_idx + 1}:")
+    print("Data shape:", data.shape)  # Print the shape of the data tensor
+    print("Labels:", labels)  # Print the labels
+    if batch_idx >= 2:  # Print the first 3 batches as an example
+        break
 
 
-# # Fetch a batch of data
-# data_iter = iter(trainloader)
-# images, labels = next(data_iter)
+# Fetch a batch of data
+data_iter = iter(trainloader)
+images, labels = next(data_iter)
 
-# # Display a few images from the dataset in two rows
-# def show_images(images, labels, class_names):
-#     num_images = len(images)
-#     num_columns = int(math.ceil(num_images / 2))
-#     fig, axes = plt.subplots(2, num_columns, figsize=(15, 7))
+# Display a few images from the dataset in two rows
+def show_images(images, labels, class_names):
+    num_images = len(images)
+    num_columns = int(math.ceil(num_images / 2))
+    fig, axes = plt.subplots(2, num_columns, figsize=(15, 7))
 
-#     for i in range(2):
-#         for j in range(num_columns):
-#             index = i * num_columns + j
-#             if index < num_images:
-#                 image = images[index].permute(1, 2, 0)
-#                 axes[i, j].imshow(image)
-#                 axes[i, j].set_title(class_names[labels[index]])
-#                 axes[i, j].axis('off')
+    for i in range(2):
+        for j in range(num_columns):
+            index = i * num_columns + j
+            if index < num_images:
+                image = images[index].permute(1, 2, 0)
+                axes[i, j].imshow(image)
+                axes[i, j].set_title(class_names[labels[index]])
+                axes[i, j].axis('off')
 
-#     plt.tight_layout()
-#     plt.show()
+    plt.tight_layout()
+    plt.show()
 
-# # Load and display the first batch of images with axis titles in two rows
-# for images, labels in mlp_loader:
-#     show_images(images, labels, ["NC","AD"])
-#     break
+# Load and display the first batch of images with axis titles in two rows
+for images, labels in mlp_loader:
+    show_images(images, labels, ["NC","AD"])
+    break
 

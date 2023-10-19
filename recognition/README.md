@@ -1,4 +1,4 @@
-# Classification of Alzheimer's disease of the ADNI Brain data using a Siamese Network.
+# Classification of Alzheimer's disease of the ADNI Brain data using a Siamese Neural Network
 
 Name: Ethan Pinto
 
@@ -17,10 +17,23 @@ The classifier is made up of two separate stages, the first is the Siamese Neura
 
 INSERT MLP DIAGRAM
 
-## Datasets
+## Dataset Structure
+The ADNI dataset is currently stored on the Rangpur HPC and has the following file structure.
 
+/home/groups/comp3710/<br>
+&nbsp;&nbsp;&nbsp;&nbsp;->ADNI<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->test<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->AD<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->NC<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->train<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->AD<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->NC<br>
+
+> There are a total of 9001 images in the test dataset, and 21521 images in the train dataset.
 
 ## Data Preprocessing
+
+There are
 
 ```
 def foo():
