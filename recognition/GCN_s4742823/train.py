@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from utils import SEED
+import copy
 
 print("PyTorch Version:", torch.__version__)
 
@@ -76,12 +77,15 @@ for epoch in range(num_epochs):
     accuracy = accuracy_score(y_true, predicted)
     if accuracy > best_accuracy:
         best_accuracy = accuracy
-        best_model = model.state_dict()
+        best_model_state = copy.deepcopy(model.state_dict())
     val_losses.append(loss.item())
     val_accuracies.append(accuracy.item())
 
     if (epoch % 25 == 0):
         print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {epoch_loss:.4f}")
+
+# Save the model
+torch.save(model, "Facebook_GCN.pth")
 
 # ----- Testing -----
 print("--- Testing ---")
