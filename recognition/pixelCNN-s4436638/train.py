@@ -5,13 +5,19 @@ from torch.utils.data import DataLoader
 from modules import pixelCNN
 from dataset import GetADNITrain
 import matplotlib.pyplot as plt
+from argparse import ArgumentParser
+
+# Get arguments about opt
+parser = ArgumentParser(description='pixelCNN')
+parser.add_argument('--data_path', type=str, default="/home/Student/s4436638/Datasets/AD_NC/test/", help='folder containing test images')
+args = parser.parse_args()
 
 # Get device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
 # Define the path to the dataset
-images_path = "/home/Student/s4436638/Datasets/AD_NC/train/*"
+images_path = args.data_path + "/*"
 
 ### Define a few training parameters
 batch_size = 10

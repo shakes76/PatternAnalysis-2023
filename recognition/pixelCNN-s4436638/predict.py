@@ -9,6 +9,7 @@ from dataset import GetADNITest
 from skimage.metrics import peak_signal_noise_ratio as psnr
 from skimage.metrics import structural_similarity as ssim
 from skimage.metrics import mean_squared_error as mse
+from argparse import ArgumentParser
 
 ### We will use this to store the images to
 if not os.path.exists("test_images/recon"):
@@ -18,12 +19,17 @@ if not os.path.exists("test_images/downscale"):
 if not os.path.exists("test_images/ground_truth"):
     os.makedirs("test_images/ground_truth")
 
+# Get arguments about opt
+parser = ArgumentParser(description='pixelCNN')
+parser.add_argument('--data_path', type=str, default="/home/Student/s4436638/Datasets/AD_NC/test/", help='folder containing test images')
+args = parser.parse_args()
+
 # Get device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
 
 # Define the path to the dataset
-images_path = "/home/Student/s4436638/Datasets/AD_NC/test/*"
+images_path = args.data_path + "/*"
 
 ### Define a few testing parameters
 batch_size = 1
