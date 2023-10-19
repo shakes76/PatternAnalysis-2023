@@ -62,7 +62,7 @@ class MainSteps(nn.Module):
 
 class UpSteps(nn.Module):
     def __init__(self, in_channels, out_channels):
-        super(MainSteps, self).__init__()
+        super(UpSteps, self).__init__()
         
         self.LastCon = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 3, 1, 1, bias=False),
