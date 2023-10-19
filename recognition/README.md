@@ -109,7 +109,13 @@ The training accuracy shows convergence after 1200 steps.
 The testing process is similar to the training process, but the testing process is only used to test the Performance.
 The testing result of 50 epochs are shown below:
 
-![Testing_result.png](../Images/Test_result.png)
+![Testing_result50.png](../Images/Test_result50.png)
+
+
+There is another model only trained 10 epochs, but does not have the log and 
+the testing result of 10 epochs are shown below:
+
+![Testing_result10.png](../Images/Test_result10.png)
 
 ## Dependencies
 
