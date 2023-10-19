@@ -53,7 +53,7 @@ class ImprovedUNet(nn.Module):
 
         # Down sample sample
         for ds in self.down_samples:
-            x = ds (x) 
+            x = ds(x) 
             skip_connections.append(x) # store skip connect sample
             x = self.pool(x) # max pool downsample
 
@@ -67,7 +67,7 @@ class ImprovedUNet(nn.Module):
             skip_connection = skip_connections[i//2]
             # check size of sample
             if x.shape != skip_connection.shape:
-                x = TF.interpolate(x, size=skip_connection.shape[2:])
+                x = TF.interpolate(x, size=skip_connection.shape[2:]) #
             skip_x = torch.cat((skip_connection, x), dim=1) # concatinate skip and sample along 2-D
             x = self.up_samples[i+1](skip_x) # upsample sample
 

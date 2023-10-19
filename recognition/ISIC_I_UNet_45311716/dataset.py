@@ -2,11 +2,6 @@ import torch
 import torchvision
 import torchvision.transforms as transforms
 
-# Device configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if not torch.cuda.is_available():
-    print("Warning CUDA not Found. Using CPU")
-
 class UNetData():
     def __init__(self, path, height, width):
 

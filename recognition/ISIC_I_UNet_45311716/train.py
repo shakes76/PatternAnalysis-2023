@@ -66,6 +66,7 @@ def main():
     scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=total_step, 
                                                                     eta_min=num_epochs, verbose=True)
 
+    print(" - - Start Training - - ")
     # Gradient scaler
     scaler = torch.cuda.amp.GradScaler()
     for epoch in range(num_epochs):
