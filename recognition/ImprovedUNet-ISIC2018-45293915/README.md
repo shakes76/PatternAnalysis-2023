@@ -50,6 +50,23 @@ Images were resized to 128x128 pixels for consistency. Furthermore, we applied h
 **References**:
 - https://arxiv.org/pdf/1802.10508v1.pdf
 
+## Dataset Folder Structure
+
+```
+root_directory
+│
+├── datasets
+│   ├── isic-512
+│   │   ├── resized_train
+│   │   ├── resized_train_gt
+│   │   ├── resized_test
+│   │   ├── resized_test_gt
+│   │   ├── resized_valid
+│   │   └── resized_valid_gt
+│
+└── your_script.py
+```
+
 ## Data Splits
 
 We divided the ISIC 2018 dataset into training, validation, and test sets following an 80-10-10 split:
