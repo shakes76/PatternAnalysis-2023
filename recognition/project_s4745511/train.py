@@ -1,98 +1,86 @@
-# from modules import siamese
-# from modules import classification_model
-# from modules import contrastive_loss
-# from dataset import load_siamese_data
-# from dataset import load_classify_data
-from tensorflow.keras.models import load_model
+import tensorflow as tf
 import matplotlib.pyplot as plt
+from modules import create_siamese_network
+from modules import create_classification_model
+from modules import create_contrastive_loss
+from dataset import siamese_data_loader
+from dataset import classification_data_loader
+from tensorflow.keras.models import load_model
 
-SNN_PATH = '/content/SNN.h5'
-CLASSIFIER_PATH = '/content/Classifier.h5'
+# Define file paths for saving models
+SNN_PATH = '/SNN.h5'
+CLASSIFIER_PATH = '/Classifier.h5'
 
+def training(epochs_snn=1, epochs_classifier=1):
+    # Load the Siamese model data
+    siamese_train, siamese_val = siamese_data_loader()
 
-def train():
-    """ 
-    Train both models and plot results
-    """
+    # Create and compile the Siamese Network
+    snn_model = create_siamese_network(128, 128)
 
-    # Train and Save the SNN
-    siamese_fit = trainSNN()
+    # Train the Siamese Network
+    snn_fit = snn_model.fit(siamese_train, epochs=epochs_snn, validation_data=siamese_val)
 
-    # Train and Save classification
-    classifier_fit = trainClassifier()
+    # Save the trained Siamese Network model
+    snn_model.save(SNN_PATH)
 
-    # Plot Accuracy, Val Accuracy and Loss-----------
-    plot_data(siamese_fit, [0, 50])
-    plot_data(classifier_fit, [0, 1])
+    # Load the Classification Model data
+    classify_train, classify_val = classification_data_loader(testing=False)
+
+    # Load the pre-trained Siamese model
+    siamese_model = load_model(SNN_PATH, custom_objects={'create_contrastive_loss': create_contrastive_loss})
+
+    # Create and compile the Classification Model
+    classifier_model = create_classification_model(siamese_model.get_layer(name="subnet"))
+
+    # Train the Classification Model
+    classifier_fit = classifier_model.fit(classify_train, epochs=epochs_classifier, validation_data=classify_val)
+
+    # Save the trained Classification Model
+    classifier_model.save(CLASSIFIER_PATH)
+
+    # Create subplots for plotting
+    fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+
+    # Plot accuracy and validation accuracy with different colors
+    axes[0].plot(snn_fit.history['accuracy'], label='accuracy', color='blue')
+    axes[0].plot(snn_fit.history['val_accuracy'], label='val_accuracy', color='green')
+    axes[0].set_xlabel('Epoch')
+    axes[0].set_ylabel('Accuracy')
+    axes[0].set_ylim([0, 1])
+    axes[0].legend(loc='lower right')
+    axes[0].set_title('Siamese Network Training Accuracy')
+
+    # Plot loss and validation loss with different colors
+    axes[1].plot(snn_fit.history['loss'], label='loss', color='red')
+    axes[1].plot(snn_fit.history['val_loss'], label='val_loss', color='orange')
+    axes[1].set_xlabel('Epoch')
+    axes[1].set_ylabel('Loss')
+    axes[1].set_ylim([0, 1])
+    axes[1].legend(loc='upper right')
+    axes[1].set_title('Siamese Network Training Loss')
+
+    # Plot validation accuracy
+    axes[2].plot(classifier_fit.history['accuracy'], label='accuracy', color='blue')
+    axes[2].plot(classifier_fit.history['val_accuracy'], label='val_accuracy', color='green')
+    axes[2].set_xlabel('Epoch')
+    axes[2].set_ylabel('Accuracy')
+    axes[2].set_ylim([0, 1])
+    axes[2].legend(loc='lower right')
+    axes[2].set_title('Classification Model Training Accuracy')
+
+    # Plot validation loss
+    axes[3].plot(classifier_fit.history['loss'], label='loss', color='red')
+    axes[3].plot(classifier_fit.history['val_loss'], label='val_loss', color='orange')
+    axes[3].set_xlabel('Epoch')
+    axes[3].set_ylabel('Loss')
+    axes[3].set_ylim([0, 1])
+    axes[3].legend(loc='upper right')
+    axes[3].set_title('Classification Model Training Loss')
+
+    # Adjust layout
+    plt.tight_layout()
     plt.show()
 
-
-def trainSNN(epochs=30):
-    """ Train the SNN
-
-    Args:
-        epochs (int): number of epochs to run
-
-    Returns:
-        history: training history of the model
-    """
-
-    # Siamese model data
-    siamese_train, siamese_val = load_siamese_data()
-
-    # Siamese model
-    model = siamese(128, 128)
-
-    # Train
-    siamese_fit = model.fit(siamese_train, epochs=epochs, validation_data=siamese_val)
-    model.save(SNN_PATH)
-
-    return siamese_fit
-
-
-def trainClassifier(epochs=10):
-    """ Train the classifier
-
-    Args:
-        epochs (int): number of epochs to run
-
-    Returns:
-        history: training history of the model
-    """
-    # Classification model data
-    classify_train, classify_val = load_classify_data(testing=False)
-
-    # Get the trained subnet
-    siamese_model = load_model(SNN_PATH, custom_objects={ 'contrastive_loss': contrastive_loss })
-    classifier = classification_model(siamese_model.get_layer(name="subnet"))
-
-    # train
-    classifier_fit = classifier.fit(classify_train, epochs=epochs, validation_data=classify_val)
-    classifier.save(CLASSIFIER_PATH)
-
-    return classifier_fit
-
-
-def plot_data(fit, lim):
-    """ Plot the accuracy/val accuracy and loss of a training history model
-
-    Args:
-        fit (history): training history
-        lim (list): 2 element list for the ylim of loss plot
-    """
-    plt.figure()
-    plt.plot(fit.history['accuracy'], label='accuracy')
-    plt.plot(fit.history['val_accuracy'], label = 'val_accuracy')
-    plt.xlabel('Epoch')
-    plt.ylabel('Accuracy')
-    plt.ylim([0, 1])
-    plt.legend(loc='lower right')
-
-    plt.figure()
-    plt.plot(fit.history['loss'], label='loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.ylim(lim)
-    plt.legend(loc='lower right')
-
-train()
+# Usage:
+training(epochs_snn=40, epochs_classifier=20)
