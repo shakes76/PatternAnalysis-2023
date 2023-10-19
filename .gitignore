@@ -1,2 +1,3 @@
 recognition/ViT-ADNI-s4532823/__pycache__
 *.pt
+*.png
