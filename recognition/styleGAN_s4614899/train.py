@@ -56,6 +56,8 @@ def gradient_penalty(critic, real, fake, alpha, train_step, device="cpu"):
 gen_losses = []
 critic_losses = []
 
+# The nature of WGAN's training means that the critic's (or discriminator's) loss should ideally 
+# approach zero, while the generator tries to make it as negative as possible.
 def train_fn(critic, gen, loader, dataset, step, alpha, opt_critic, opt_gen):
     loop = tqdm(loader, leave=True)
 
@@ -153,8 +155,5 @@ def plot_and_save_losses(gen_losses, critic_losses, save_path):
 save_path = os.path.join("output_images", "losses_plot.png")
 plot_and_save_losses(gen_losses, critic_losses, save_path)
 
-# Loss Dynamics: The nature of WGAN's training means that the critic's (or discriminator's) loss should ideally 
-# approach zero, while the generator tries to make it as negative as possible. Saving the absolute value will help in 
-# visualizing, but keep in mind the dynamics of the actual values when interpreting results.
 
 
