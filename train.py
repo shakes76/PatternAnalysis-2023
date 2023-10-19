@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import torch
 import numpy as np
-import dataset
+import dataset 
 import module
 import logging
 
@@ -15,6 +15,7 @@ def main():
     # Load training data with train valid split of 0.8 to 0.2
     train_data, valid_data, test_data = dataset.get_loaders()
     print(f"Train Data Size: {len(train_data.dataset)}\nValid Data Size: {len(valid_data.dataset)}")
+    print(f"1st Train Data: {next(iter(train_data))[0].shape}\n1st Valid Data: {next(iter(valid_data))[0].shape}")
 
     sample, _ = next(iter(train_data))
 
@@ -25,17 +26,17 @@ def main():
 
     # Create model and training components
     model, optimizer, criterion, scheduler = module.create_model(
-        input_shape=(256, 256),            # Reduce input image shape
-        latent_dim=8,                   # Smaller latent space dimension
-        embed_dim=16,                     # Smaller image patch dimension
-        attention_mlp_dim=16,            # Smaller dimension for cross-attention's feedforward network
-        transformer_mlp_dim=16,          # Smaller dimension for the latent transformer's feedforward network
-        transformer_heads=4,              # Fewer attention heads for the latent transformer
-        dropout=0.1,                      # Reduce dropout for lower memory usage
-        transformer_layers=4,            # Fewer layers in the latent transformer
-        n_blocks=4,                       # Fewer Perceiver blocks
-        n_classes=2,                      # Number of target classes (binary classification)
-        lr=0.005,                        # Smaller learning rate for stability
+        input_shape=(256, 256),
+        latent_dim=8, # Increase latent space dimension for more representational capacity
+        embed_dim=16,
+        attention_mlp_dim=16,
+        transformer_mlp_dim=16,
+        transformer_heads=4, # Use more attention heads for enhanced feature capturing
+        dropout=0.1,
+        transformer_layers=4,
+        n_blocks=4,
+        n_classes=2,
+        lr=0.005,
     )
 
     model = model.to(device)

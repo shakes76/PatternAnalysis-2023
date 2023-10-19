@@ -43,10 +43,10 @@ def process_output(text_file):
             valid_loss.append(float(line.split()[-1]))
         elif line.startswith("Valid Accuracy: "):
             valid_accuracy.append(float(line.split()[-1]))
-            
+
     return epochs, train_loss, train_accuracy, valid_loss, valid_accuracy
 
-def plot(text_file):
+def plot(text_file, saved_file):
     """
     Plot the training and validation loss and accuracy from the output text file.
     """
@@ -71,7 +71,7 @@ def plot(text_file):
     plt.legend()
 
     plt.tight_layout()
-    plt.savefig("plots/training.png")
+    plt.savefig(saved_file)
 
 if __name__ == "__main__":
-    plot(text_file="out/1.txt")
+    plot(text_file="out/4.txt", saved_file="plots/plot4.png")

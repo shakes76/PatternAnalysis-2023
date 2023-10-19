@@ -40,7 +40,7 @@ def get_loaders():
     train_data, validation_data = train_test_split(train_data, train_size=train_size, test_size=1 - train_size, shuffle=True, random_state=42)
 
     # Create data loaders with reduced batch size and multi-processing
-    batch_size = 32  # Adjust as needed
+    batch_size = 64  # Adjust as needed
     num_workers = 4  # Use multiple workers for data loading
 
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)#, num_workers=num_workers, pin_memory=True)
