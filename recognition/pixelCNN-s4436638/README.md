@@ -37,6 +37,16 @@ Examples of each of the ground truth input, downsampled input and reconstructed 
 
 A concern that can arise in models like these is the model overfitting to the training data, which can be observed by  the plateau of the validation loss being significantly higher than that of the training loss, or worse, by arching back up. However, it can be observed that this does not occur in the validation set.
 
+## Dependecies
+
+The following libraries and respective versions have been utilised in this project:
+
+- Numpy : 1.25.0
+- Pytorch : 2.0.1
+- TorchVision : 0.15.2
+- Python : 3.11.0
+- Matplotlib : 3.7.1
+
 
 
 
