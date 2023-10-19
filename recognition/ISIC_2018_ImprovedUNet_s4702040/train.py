@@ -29,7 +29,7 @@ if not torch.cuda.is_available():
 
 # Training Hyper-parameters
 num_epochs = 20
-learning_rate = 1e-4
+learning_rate = 1e-3
 
 #--------------
 # DATA PREPROCESSING AND DATA LOADING
@@ -56,11 +56,13 @@ validationset = CustomDataset("path to file\\ISIC2018\\ISIC2018_Task1-2_Validati
                          "path to file\\ISIC2018\\ISIC2018_Task1_Validation_GroundTruth",
                          transform=transform_validate)
 validation_loader = torch.utils.data.DataLoader(validationset, batch_size=16, shuffle=True)
+total_val_step = len(validation_loader)
 
 testset = CustomDataset("path to file\\ISIC2018\\ISIC2018_Task1-2_Test_Input",
                          "path to file\\ISIC2018\\ISIC2018_Task1_Test_GroundTruth",
                          transform=transform_test)
 test_loader = torch.utils.data.DataLoader(testset, batch_size=64, shuffle=True)
+total_test_step = len(test_loader)
 # END OF DATA PREPROCESSING AND DATA LOADING
 #--------------
 
@@ -88,9 +90,6 @@ def dice_loss(input, target):
 
 #Adam Optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
-
-#Piecewise Linear Schedule
-scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=5e-1, total_steps=total_step*num_epochs)
 # END OF SETUP
 #--------------
 
@@ -146,12 +145,12 @@ for epoch in range(num_epochs):
             validationLossAvg += dice_loss(outputs, masks).detach().cpu().numpy()
 
         # print the validation accuracy as the dice coefficient which is (1 - dice loss)
-        print('Validation Accuracy: {} %'.format(1 - (validationLossAvg/total_step)))
-        validationLossList.append((validationLossAvg/total_step))
+        print('Validation Accuracy: {} %'.format(1 - (validationLossAvg/total_val_step)))
+        validationLossList.append((validationLossAvg/total_val_step))
 
         # breaks out of the training loop early if validation dice coefficient equals or is greater than 0.8
         # this conditional is OPTIONAL and can be commented out if you want to let the training loop go to number of epochs set
-        if 1 - (validationLossAvg/total_step) >= 0.8:
+        if 1 - (validationLossAvg/total_val_step) >= 0.8:
             break
 
 end = time.time()
@@ -199,7 +198,7 @@ with torch.no_grad():
         lossAvg += dice_loss(outputs, masks)
 
     # print the test accuracy as the dice coefficient which is (1 - dice loss)
-    print('Test Accuracy: {} %'.format(1 - (lossAvg/total_step)))
+    print('Test Accuracy: {} %'.format(1 - (lossAvg/total_test_step)))
 end = time.time()
 elapsed = end - start
 print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
