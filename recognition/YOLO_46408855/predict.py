@@ -5,47 +5,46 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import cv2
 
-def plot_boxes(image, vectors):
+def plot_boxes(image, boxes):
     """
     Plots detection boxes on image
     """
+    image = torch.reshape(image, (3,416,416))
     # Create figure and axes
     fig, ax = plt.subplots()
 
     # Display the image
     ax.imshow(image.cpu().permute(1, 2, 0))
 
-    for i in range(vectors.shape(1)):
-        vector = vectors[0,i,:]
-        print(vector)
+    if boxes is not None:
+        vector = boxes.cpu()
         # Create a Rectangle patch
-        rect = patches.Rectangle((vector[0] - vector[2]/2, vector[1] - vector[2]/2), 
-                                 vector[2], vector[3], linewidth=1, edgecolor='r', facecolor='none')
+        rect = patches.Rectangle((vector[0] - vector[2]/2, vector[1] - vector[2]/2), vector[2], vector[3], linewidth=1, edgecolor='r', facecolor='none')
         #Get label
-        if vector[5] > 0.8:
-          label = 'melanoma'
-        elif vector[6] > 0.8:
-          label = 'seborrheic keratosis'
-        else: 
-          label = ''
+        if vector[5] > vector[6]:
+            label = 'melanoma'
+        else:
+            label = 'seborrheic keratosis'
+
         # Add the patch to the Axes
         ax.add_patch(rect)
         #Add labels
-        plt.text(vector[0] - vector[2]/2, vector[1] - vector[2]/2, label, 
-                 bbox=dict(facecolor='red', alpha=0.5))
+        plt.text(vector[0] - vector[2]/2, vector[1] - vector[2]/2, label, bbox=dict(facecolor='red', alpha=0.5))
 
     plt.show()
 
-def filter_boxes(pred, label):
+def filter_boxes(pred):
   """
-  Returns boxes that have a detection in them
+  Returns boxes that have detected something
   """
-  boxes = []
+  best_box = None
+  highest_conf = 0.8
   for i in range(pred.size(1)):
     box = pred[0][i]
-    if box[4] >= 0.8:
-      boxes.append(box)
-  return boxes
+    if box[4] >= highest_conf:
+      best_box = box
+      highest_conf = box[4]
+  return best_box
 
 def predict(path):
     """
