@@ -11,8 +11,17 @@ import copy
 torch.manual_seed(SEED)
 torch.cuda.manual_seed_all(SEED)
 
-def train_model(model, data):    
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
+# Hyperparameters
+NUM_EPOCHS = 500
+HIDDEN_DIM = 64
+LEARNING_RATE = 1e-2
+DROPOUT_PROB = 0.5
+# test / validation split (10% each default)
+TEST_SIZE = 0.1
+VAL_SIZE = 0.1
+
+def train_model(model, data):
+    optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE)
     criterion = torch.nn.CrossEntropyLoss()
 
     best_model_state = None
@@ -25,7 +34,7 @@ def train_model(model, data):
     
     # ----- Training -----
     print("--- Training ---")
-    for epoch in range(num_epochs):
+    for epoch in range(NUM_EPOCHS):
         model.train()
         epoch_loss = 0
 
@@ -58,7 +67,7 @@ def train_model(model, data):
         val_accuracies.append(accuracy.item())
 
         if (epoch % 25 == 0):
-            print(f"Epoch {epoch + 1}/{num_epochs}, Loss: {epoch_loss:.4f}")
+            print(f"Epoch {epoch + 1}/{NUM_EPOCHS}, Loss: {epoch_loss:.4f}")
 
     if (best_model_state is not None):
         model.load_state_dict(best_model_state)
@@ -96,7 +105,7 @@ def plot_tsne(output, y_true, data):
 
 def plot_loss(train_losses, val_losses):
     # Plotting Loss
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(8, 6))
     plt.plot(train_losses, label='Train Loss', color='blue')
     plt.plot(val_losses, label='Validation Loss', color='red')
     plt.xlabel('Epochs')
@@ -107,7 +116,7 @@ def plot_loss(train_losses, val_losses):
 
 def plot_accuracy(train_accuracies, val_accuracies):
     # Plotting Accuracy
-    plt.figure(figsize=(10, 8))
+    plt.figure(figsize=(8, 6))
     plt.plot(train_accuracies, label='Train Accuracy', color='blue')
     plt.plot(val_accuracies, label='Validation Accuracy', color='red')
     plt.xlabel('Epochs')
@@ -117,22 +126,13 @@ def plot_accuracy(train_accuracies, val_accuracies):
     plt.savefig("accuracy.png")
 
 if __name__ == "__main__":
-    # test / validation split
-    test_size = 0.1
-    val_size = 0.1
-
     # load_data() can take a filepath, otherwise will use default filepath in method.
-    data = load_data(test_size=test_size, val_size=val_size)
+    data = load_data(test_size=TEST_SIZE, val_size=VAL_SIZE)
     data = data.to(device)
 
-    # Hyperparameters
-    num_epochs = 500
     num_features = data.features.shape[1]  # 128 for default data
-    hidden_dim = 64
-    learning_rate = 1e-2
-    dropout_prob = 0.5
 
-    model = Model(num_features, hidden_dim, NUM_CLASSES, dropout_prob)
+    model = Model(num_features, HIDDEN_DIM, NUM_CLASSES, DROPOUT_PROB)
     model = model.to(device)
 
     trained_model = train_model(model, data)
