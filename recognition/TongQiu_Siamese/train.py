@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 import torch.nn.functional as F
+from torch.nn import TripletMarginLoss
 import torchvision.transforms as tf
 from tqdm.auto import tqdm
 from utils import Config
@@ -142,6 +143,7 @@ class ContrastiveLoss(torch.nn.Module):
         loss_contrastive = torch.mean((1 - label) * torch.pow(euclidean_distance, 2) +
                                       label * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
         return loss_contrastive
+
 
 """
 if __name__ == '__main__':
