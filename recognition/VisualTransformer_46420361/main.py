@@ -10,6 +10,7 @@ def main():
     # data variables
     model_name = 'revert_to_crop.pth'
     root = '/home/callum/AD_NC/'
+    root = '/home/groups/comp3710/ADNI/AD_NC/'
     
     # hyperparameters
     epochs = 10
