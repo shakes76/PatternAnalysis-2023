@@ -43,11 +43,12 @@ def main():
         transforms.Normalize(mean=[0.1167], std=[0.2228]) # Calculated values
     ])
     
+    train_dataset = ImageFolder(root + 'train', transform=train_transform)
+    test_dataset = ImageFolder(root + 'test', transform=test_transform)
+    
     train_loader = DataLoader(dataset=train_dataset, batch_size=batch_size, shuffle=True, drop_last=True)
     test_loader = DataLoader(dataset=test_dataset, batch_size=batch_size, shuffle=False, drop_last=True)
     
-    train_dataset = ImageFolder(root + 'train', transform=train_transform)
-    test_dataset = ImageFolder(root + 'test', transform=test_transform)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print("Using device: ", device, f"({torch.cuda.get_device_name(device)})" if torch.cuda.is_available() else "")
