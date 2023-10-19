@@ -1,4 +1,4 @@
-# Semi-supervised Multi-class Node Classification via GCN
+# Semi-supervised Multi-class Node Classification of Facebook Page-Page Network data via GCN
 This Graph Convolutional Model is used to perform semi-supervised multi-class node classification. The nodes in question are Facebook pages, the edges are mutual likes between these pages and the features are descriptions of the pages created by their owners. The classes are politicians, governmental organisations, television shows and companies. In summary, this model is used to classify webpages into one of the four aforementioned categories.
 
 ## About the Data
