@@ -2,9 +2,10 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
+import os
+
 from dataset import get_train_val_loaders, get_test_loader
 from modules import ViT
-import os
 
 
 def initialize_device():
