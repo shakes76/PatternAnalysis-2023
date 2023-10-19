@@ -50,7 +50,7 @@ To prepare the data for training and testing, the following preprocessing steps 
 
 3. **Data Augmentation (Training Only)**: Data augmentation techniques, such as random cropping, horizontal flipping, and random adjustments in sharpness were applied to the training dataset to increase the generalization performance of the model.
 
--   **_Note that both the training and testing datasets were both grey-scaled as the image datasets are grey-scale in nature, this is to minimize the computation needed on channels that would otherwise present very little information._**
+-   **_Note that both the training and testing datasets were both grey-scaled as the image datasets are grey-scale in nature, this is to minimize the computation needed on channels that would otherwise present very little additional information._**
 
 4. **Normalization**: The pixel values of the images were normalized to have a mean of approximately 0.141 and a standard deviation of approximately 0.242. These values were derived from the dataset whereby the mean and standard deviation was calculated on the training dataset images and collated. Normalization ensures that the input data has zero mean and unit variance, which aids in training deep neural networks.
 
