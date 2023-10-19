@@ -50,7 +50,7 @@ optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 # -------
 # Value trackers
 loss_values = []
-iterations = []
+epochs = []
 
 model.train()
 print("> Training")
@@ -58,6 +58,8 @@ start = time.time()
 
 iteration = 1
 for epoch in range(num_epochs):
+    epochs.append(epoch)
+    loss_val = 0
     for i, (images, _) in enumerate(train_loader):
 
         low_res_images = resize_tensor(images)
@@ -72,14 +74,15 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
         
-        iteration += 1
+        # iteration += 1
+        loss_val += loss.item()
         if (i+1) % 10 == 0:
-            loss_values.append(loss.item())
-            iterations.append(iteration)
             
             print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
                     .format(epoch+1, num_epochs, i+1, 
                             total_step, loss.item()), flush=True)
+            
+    loss_values.append(loss_val / total_step)
             
 
 end = time.time()
@@ -90,8 +93,8 @@ print("Training took " + str(elapsed) + " secs or "
 # New canvas for graph
 plt.figure()
 
-plt.plot(iterations, loss_values)
-plt.title("Training Loss per Iteration")
+plt.plot(epochs, loss_values)
+plt.title("Average loss per epoch")
 plt.xlabel("Iteration")
 plt.ylabel("Loss")
 plt.grid(True)
