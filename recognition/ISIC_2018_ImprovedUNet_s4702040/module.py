@@ -129,7 +129,7 @@ class ImprovedUNet(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        #  Level 1 context pathway
+        #  Level 1 context layer
         out = self.conv3E11(x)
         sum1 = out
         out = F.leaky_relu(out)
@@ -142,7 +142,7 @@ class ImprovedUNet(nn.Module):
         out = self.inorm3d(out)
         out = F.leaky_relu(out)
 
-        # Level 2 context pathway
+        # Level 2 context layer
         out = self.conv3E21(out)
         sum2 = out
         out = self.inorm3E21(out)
@@ -157,7 +157,7 @@ class ImprovedUNet(nn.Module):
         out = self.inorm3E23(out)
         out = F.leaky_relu(out)
 
-        # Level 3 context pathway
+        # Level 3 context layer
         out = self.conv3E31(out)
         sum3 = out
         out = self.inorm3E31(out)
@@ -172,7 +172,7 @@ class ImprovedUNet(nn.Module):
         out = self.inorm3E33(out)
         out = F.leaky_relu(out)
 
-        # Level 4 context pathway
+        # Level 4 context layer
         out = self.conv3E41(out)
         sum4 = out
         out = self.inorm3E41(out)
@@ -187,7 +187,7 @@ class ImprovedUNet(nn.Module):
         out = self.inorm3E43(out)
         out = F.leaky_relu(out)
 
-        # Level 5 context pathway
+        # Level 5 context layer
         out = self.conv3E51(out)
         sum5 = out
         out = self.inorm3E51(out)
@@ -201,20 +201,20 @@ class ImprovedUNet(nn.Module):
         out = self.inorm3E53(out)
         out = F.leaky_relu(out)
 
-        # Level 0 local
+        # Level 0 local layer
         out = self.upscale(out)
         out = self.convD01(out)
         out = self.inorm3D01(out)
         out = F.leaky_relu(out)
 
-        # Level 1 local
+        # Level 1 local layer
         out = torch.cat([out, skip4], dim=1)
         out = F.leaky_relu(self.inorm3D11(self.convD11(out)))
         out = F.leaky_relu(self.inorm3D12(self.convD12(out)))
         out = self.upscale(out)
         out = F.leaky_relu(self.inorm3D13(self.convD13(out)))
 
-        # Level 2 local
+        # Level 2 local layer
         out = torch.cat([out, skip3], dim=1)
         out = F.leaky_relu(self.inorm3D21(self.convD21(out)))
         segment2 = self.seg2(out)
@@ -223,7 +223,7 @@ class ImprovedUNet(nn.Module):
         out = self.upscale(out)
         out = F.leaky_relu(self.inorm3D23(self.convD23(out)))
 
-        # Level 3 local
+        # Level 3 local layer
         out = torch.cat([out, skip2], dim=1)
         out = F.leaky_relu(self.inorm3D31(self.convD31(out)))
         segment3 = self.seg3(out)
@@ -231,7 +231,7 @@ class ImprovedUNet(nn.Module):
         out = self.upscale(out)
         out = F.leaky_relu(self.inorm3D33(self.convD33(out)))
 
-        # Level 4 local
+        # Level 4 local layer
         out = torch.cat([out, skip1], dim=1)
         out = F.leaky_relu(self.inorm3D4(self.conv3D41(out)))
 
