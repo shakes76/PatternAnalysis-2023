@@ -33,7 +33,7 @@ The image below shows the structure of the network:
 
 ## Training of the model
 
-For the training of the model, a maximum of 50 epochs are trained. However, callbacks are used, which allows us to get the best validation loss. In addition, the callback function stops the training if the validation loss is no longer improved. For the loss function, contrastive loss or triplet loss can be used. In this project, contrastive loss is used. For the optimizer, Adam is used with a learning rate of 0.00001. The training of the neural network is done with Google Colab Pro. The V100 is used as a GPU.
+For the training of the model, a maximum of 50 epochs are trained. However, callbacks are used, which allows us to get the best validation loss. In addition, the callback function stops the training if the validation loss is no longer improved. For the loss function, contrastive loss or triplet loss can be used. In this project, contrastive loss is used. For the optimizer, Adam is used with a learning rate of 0.0001. The training of the neural network is done with Google Colab Pro. The V100 is used as a GPU.
 The training of the model is shown below:
 
 ![Training](https://github.com/UQpfister/PatternAnalysis-2023/blob/topic-recognition/recognition/DanielPfisterSiameseNetwork/Images/Training.PNG)
@@ -46,8 +46,6 @@ The image shows how fast the accuracy increases and the loss function decreases 
 
 The graphs show that the model overfits because the training accuracy reaches nearly one after ten epochs. Different numbers of dropout layers or batch normalization layers are tried out to avoid this. However, I couldn't prevent that, so I finally left them out.
 The accuracy of the validation data stops heavily increasing at around 0.7. The loss function graph shows that the training loss decreases to nealy 0 and the validaiton loss settles at approximately 0.2.
-
-From these graphs, it can be assumed that the Siamese neural network has a good performance because the validation looks good.
 
 ## Testing
 
