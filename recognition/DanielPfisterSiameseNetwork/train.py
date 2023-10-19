@@ -62,9 +62,9 @@ valid_images = load_images_valid_generator(path_train_images_AD, path_train_imag
 #define callbacks
 callback = tf.keras.callbacks.EarlyStopping(monitor="val_loss",min_delta=0,patience=6,verbose=0,mode="auto",baseline=None,restore_best_weights=True,start_from_epoch=5)
 #define model
-model = siamese_network(height,width,dimension)
+siamese_model = siamese_network(height,width,dimension)
 #training of the neural network
-history = model.fit(x=train_images,
+history = siamese_model.fit(x=train_images,
                             validation_data = valid_images,
                             steps_per_epoch = len(train_data_AD)//batch_size,
                             validation_steps = len(valid_data_AD)//batch_size,
@@ -102,16 +102,16 @@ plt.show()
 
 # %%
 #saves the model
-siamese_network.save('C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5')
+siamese_model.save('C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5')
 
 #%%
 #load the trained weights of the neural network
-siamese_network = tf.keras.saving.load_model("C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5")
+siamese_model = tf.keras.saving.load_model("C:/Users/Daniel/Desktop/Studium/UQ/5.Semester/COMP3710/Assignment/LabReport/PatternAnalysis-2023/recognition/DanielPfisterSiameseNetwork/model1.h5")
 
 # %%
 
 # validate the model with the validate dataset
-metrics_valid = siamese_network.evaluate(valid_images,steps = len(train_data_AD)//batch_size)
+metrics_valid = siamese_model.evaluate(valid_images,steps = len(train_data_AD)//batch_size)
 print('Loss of {} and Accuracy is {} %'.format(metrics_valid[0], metrics_valid[1] * 100))
 
 
@@ -125,7 +125,7 @@ test_data_order_NC = valid_order(list_test_NC)
 test_images = load_images_valid_generator(path_test_images_AD, path_test_images_NC, list_test_AD, list_test_NC, number_test_AD, number_test_NC,test_data_order_AD, test_data_order_NC,height, width, batch_size= batch_size)
 
 #test the model with test images
-metrics_test = siamese_network.evaluate(test_images,steps = len(list_test_AD)//batch_size)
+metrics_test = siamese_model.evaluate(test_images,steps = len(list_test_AD)//batch_size)
 print('Loss of {} and Accuracy is {} %'.format(metrics_test[0], metrics_test[1] * 100))
 
 
