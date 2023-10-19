@@ -44,6 +44,12 @@ EPOCHS = 2
 BATCH_SIZE = 5
 LEARNING_RATE = 0.0004 
 
+# File Structure
+The dataset.py file contains the class ADNI which fetches and performs the augmentation and transformations on the datasets. This is used for getting both the training and testing datasets. It reads the images from the ADNI/AD_NC/ file path and goes to either the test or train subfolders. 
+The modules.py file contains the Perceiver Transformer model. Within this file there are any classes which build key aspects of the model. The class nomenclature is based upon its functionality within the model itself. The key classes are Perceiver which constructs the final architecture of the model. The Block class contains the cross attention and the latest transformer steps of the Perceiver Transformer model. The LatestTransformer contains the self attention functionality. 
+The predict.py file is where the saved model is tested against the testing dataset. The model is saved during training and used here. This file displays various statistics and graphs about the accuracy of the model on the testing dataset.
+The train.py file is where the training of the model occurs. The hyperparameters are set here and passed into the model for usage. The main trainging loop is here too which runs for the specified number of epochs.
+
 # Results
 After training the model for 40 Epochs it achieved 51% accuracy on the testing set but appears to be random guessing of whether the image is of Alzheimers or not. To resolve this problem I attempt to resolve it by changing the transforms I was using as initially I was randomcropping which could be giving partial segments of the brain however this only slightly improved the accuracy. I also altered the hyperparameters used but this had little effect on the outcome. 
 # Images here
