@@ -9,7 +9,7 @@ from argparse import ArgumentParser
 
 # Get arguments about opt
 parser = ArgumentParser(description='pixelCNN')
-parser.add_argument('--data_path', type=str, default="/home/Student/s4436638/Datasets/AD_NC/test/", help='folder containing test images')
+parser.add_argument('--data_path', type=str, default="/home/Student/s4436638/Datasets/AD_NC/train/", help='folder containing test images')
 args = parser.parse_args()
 
 # Get device
