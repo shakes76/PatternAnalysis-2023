@@ -11,7 +11,7 @@ Load and preprocess the data used in training and testing the algorithm
 Loads the edges, features and target data into numpy arrays.
 
 Creates a Deep Graph Library (DGL) graph to be used for the GCN,
-This graph will contain Features and Target information.
+This graph contains Edges, Features and Target information.
 
 Creates two numpy arrays train_mask and test_mask, these state
 which values of the graph are for training and which are for testing.

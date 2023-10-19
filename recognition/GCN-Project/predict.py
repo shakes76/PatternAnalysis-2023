@@ -7,6 +7,13 @@ import numpy as np
 import umap.umap_ as umap
 import matplotlib.pyplot as plt
 
+'''
+show_graph(graph, model):
+Creates a UMAP embeddings plot with ground truth in colours.
+
+graph: dgl graph representing the dataset
+model: GCN model
+'''
 def show_graph(graph, model):
     with pt.no_grad():
         embeddings = model(graph, graph.ndata['Features'])
@@ -22,4 +29,5 @@ def show_graph(graph, model):
     plt.scatter(umap_embeddings[:, 0], umap_embeddings[:, 1], c=true_labels, cmap='viridis', s=10)
     plt.colorbar()
     
-    plt.show()
+    plt.savefig("Model.png")
+    #plt.show()

@@ -101,6 +101,6 @@ def train_model(graph, train_mask, test_mask, model, epochs, learning_rate):
             predictions = logits.argmax(1)
             accuracy = ((predictions[test_mask] == graph.ndata['Target'][test_mask]).float()).mean()
 
-        #print(f'Epoch {epoch}: Loss {loss.item()}, Test Accuracy {accuracy.item()}')
+        print(f'Epoch {epoch}: Loss {loss.item()}, Test Accuracy {accuracy.item()}')
     
     predict.show_graph(graph, model)
