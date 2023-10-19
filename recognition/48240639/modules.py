@@ -1,54 +1,48 @@
 """
 Created on Wednesday October 18 
+Siamese Network using PyTorch
 
-The following script outlines the construction of the VQVAE model components, 
-encapsulated within a class to facilitate training.
+This code defines a Siamese Network architecture for image similarity comparison.
+The network is built upon the ResNet-18 architecture with modifications to handle
+grayscale images. It includes custom weight initialization and forward pass methods.
+
 
 @author: Aniket Gupta 
 @ID: s4824063
 
 """
 
-import numpy as np
-from numpy import f2py
+import torch
+import torch.nn as nn
+import torchvision
 
-np.char
-np.ctypeslib
-np.emath
-np.fft
-np.lib
-np.linalg
-np.ma
-np.matrixlib
-np.polynomial
-np.random
-np.rec
-np.testing
-np.version
 
-np.lib.format
-np.lib.mixins
-np.lib.scimath
-np.lib.stride_tricks
-np.ma.extras
-np.polynomial.chebyshev
-np.polynomial.hermite
-np.polynomial.hermite_e
-np.polynomial.laguerre
-np.polynomial.legendre
-np.polynomial.polynomial
+class SiameseNetwork(nn.Module):
+    def __init__(self):
+        super(SiameseNetwork, self).__init__()
+        # get resnet model
+        self.resnet = torchvision.models.resnet18(weights=None)
 
-np.__path__
-np.__version__
-np.__git_version__
+        # over-write the first conv layer to be able to read ADNI images
+        # as resnet18 reads (3,x,x) where 3 is RGB channels
+        # whereas ADNI has (1,x,x) where 1 is a gray-scale channel
+        self.resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        self.fc_in_features = self.resnet.fc.in_features
 
-np.__all__
-np.char.__all__
-np.ctypeslib.__all__
-np.emath.__all__
-np.lib.__all__
-np.ma.__all__
-np.random.__all__
-np.rec.__all__
-np.testing.__all__
-f2py.__all__
+        # remove the last layer of resnet18 (linear layer which is before avgpool layer)
+        self.resnet = torch.nn.Sequential(*(list(self.resnet.children())[:-1]))
+
+        # add linear layers to compare between the features of the two images
+        self.fc = nn.Sequential(
+            nn.Linear(self.fc_in_features * 2, 256),
+            nn.ReLU(inplace=True),
+            nn.Linear(256, 1),
+        )
+
+        self.sigmoid = nn.Sigmoid()
+
+        # initialize the weights
+        self.resnet.apply(self.init_weights)
+        self.fc.apply(self.init_weights)
+
+  
