@@ -38,7 +38,8 @@ class ADNIDataset(Dataset):
         orig = Image.open(path)
         downscaler = transforms.Compose([
             transforms.Resize((int(self.image_size[0]/self.downscale_factor), 
-                               int(self.image_size[1]/self.downscale_factor)))
+                               int(self.image_size[1]/self.downscale_factor)), 
+                              interpolation=Image.BICUBIC) 
             ])
         downscaled = downscaler(orig)
         
