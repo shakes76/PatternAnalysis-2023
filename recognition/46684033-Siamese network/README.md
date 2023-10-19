@@ -35,8 +35,15 @@ As the Siamese neural network requires two inputs, `dataset.py` contain a data l
 two different images, and labeling them 1 if the classes are the same, 0 if the classes are different. For example,
 ((AD,AD),1) , ((AD,NC),0), ((NC,AD),0), etc.
 
+As ADNI dataset is patient-level specific, therefore when splitting validation set from training set have be performed 
+cautiously to prevent data leakage. An alternative is to split validation set from test set. As there are no identical
+patient images exists in both train set and test set, there should be no data leakage for using part of test set
+as validation set.
+
 Images are pre-processed by a number of pytorch transform function to facilitate training process. Specific
 transform used is discussed in the discussion section.
+
+
 
 ### Siamese neural network architecture
 The model is defined in `modules.py`. The model consists of a several sequences of convolutional layers, batch normalization layers,
@@ -46,24 +53,86 @@ ReLU activation function, and pooling layers. Then followed by several fully con
 In `train.py`, the model is trained with the training dataset prepared in `dataset.py`. 
 
 Contrastive loss is used for the training:
+
 ![img_1.png](images_for_README%2Fimg_1.png)
+
 It takes as input a pair of sample that are either similar or dissimilar, and it brings similar samples closer and
 dissimilar samples far apart.
 
-Adam optimizer is used for the training
+Adam optimizer is used for the training of SNN and a classifier
 
 ![training_loss.png](images_for_README%2Ftraining_loss.png)
-![loss_plot.png](images_for_README%2Floss_plot.png)
+
+
 The loss reduces over each epoch, indicating the success and evidence of the training.
+
+With the code from [adambielski](https://github.com/adambielski/siamese-triplet/blob/master/README.md) (Github),
+the training progress can also be visualised in the vector space.
+
+Epoch 1:
+
 
 ### Prediction
 After training, the model can be used in predicting the class of an image. The performance of the model is evaluated in
-`predict.py`, where images from the test dataset is inputted into the model. To make a good prediction,
+`predict.py`, where images from the test dataset is inputted into the model. The Siamese Neural Network outputs the embeddings
+of the input, and a classifier is build to inference the embeddings, and determine the respective class of the images. The classifier structure
+looks like this:
+
+
+
+which is just a dense layer converting the embeddings into 2 outputs. Cross Entropy loss is used.
 
 ## Result
-The best result obtained over numerous trial is 78.7% test accuracy on test set. 
-## Discussion
+The best result obtained over numerous trial is 79.8% test accuracy on test set, which is around 80%
 
+| model combination and settings            | Test accuracy |
+|-------------------------------------------|--------------:|
+| Just classifier                           |           67% |
+| SNN(triplet loss) + classifier            |           71% |
+| SNN(Contrastive loss(2.0)) + classifier   |           72% |
+| SNN(Contrastive loss(1.0)) + classifier   |           72% |
+| Resnet18 as back bone of SNN + classifier |         73.5% |
+| SNN + classifier + data augmentation      |         79.8% |
+
+
+
+## Discussion
+During first successful attempt, the classifier
+end up with around 72% accuracy on the test set, while having 99% accuracy on the training set. Different architectures
+of SNN were tested. I have tried 1 CNN layer + 1 dense layer, 2 CNN layer + 1 dense layer, etc. Despite minor improvement,
+the test accuracy remains relatively identical. With ResNet18 being implemented as the backbone of the SNN, the 
+similar result recorded on test accuracy shows network complexity is probably not the major limitation of the model 
+performance. The issue is probably over-fitting.
+
+| SNN architecture (backbone) | Best Test accuracy |
+|-----------------------------|-------------------:|
+| 1 CNN layer + 1 dense layer |                72% |
+| 2 CNN layer + 1 dense layer |                73% |
+| 3 CNN layer + 2 dense layer |                73% |
+| 4 dense layer               |                69% |
+| 3 CNN layer + 3 dense layer |                73% |
+| ResNet18                    |                73% |
+
+To tackle the problem of over-fitting, different learning rates on the model have been attempted. However, the effect is minimal.
+However, when the batch size is decreased from 64 to 16, the test accuracy has increased 1-2% on average.
+
+The major improvement comes from data augmentation. Different data augmentations are attempted:
+
+| Data augmentation                               | Improvement |
+|-------------------------------------------------|------------:|
+| RandomCrop                                      |         +5% |
+| RandomRotation                                  |         +2% |
+| RandomPerspective                               |         +1% |
+| RandomCrop + RandomRotation                     |         +6% |
+| RandomCrop + RandomRotation + RandomPerspective |         +6% |
+
+
+
+
+
+potential improvement:
+
+## Requirement
 
 ## Reference
 [1] Chicco, Davide (2020), "Siamese neural networks: an overview", Artificial Neural Networks, Methods in Molecular Biology, vol. 2190 (3rd ed.), New York City, New York, USA: Springer Protocols, Humana Press, pp. 73–94, doi:10.1007/978-1-0716-0826-5_3, ISBN 978-1-0716-0826-5, PMID 32804361, S2CID 221144012
