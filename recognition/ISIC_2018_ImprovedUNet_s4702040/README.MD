@@ -1,17 +1,17 @@
 # Improved UNet for ISIC 2018 Dataset - Task 1 Lesion Segmentation
 ## Description
 ### Task
+This project is a model which attempts to perform segmentation on the ISIC 2018 Task 1 data set which consists of images of skin lesions and an associated mask which segments the skin lesion against normal skin. This data set is available on the following website https://challenge.isic-archive.com/data/#2018.  
+The model to be implemented is the Improved UNet as described in the paper https://arxiv.org/abs/1802.10508v1 which contains several differences compared to the original UNet architecture.
 ### Algorithm
-This project implements the UNet architecture as described in the paper: https://arxiv.org/abs/1802.10508v1
-The implemented UNet was used on the ISIC 2018 dataset for segementation.
-The difference between the Improved UNet and a basic UNet is...
-The following is the figure of the Improved UNet architecture and a typical UNet architecture.
+A UNet has an encoder-decoder style scheme. The encoder side reduces the spatial map and expands the feature map with each successive layer while the decoder side expands the spatial map and reduces the feature map. There are skip connections between the layers of the encoder and decoder side which concatenates the the feature maps of both the encoder and decoder layers in order to recover details that may have been lost during downsampling. The major difference when it comes to the Improved UNet is the fact that results from layers of the decoder side is also added to the final result. Another difference is that the transposed convolution is replaced with a convolution.  
 
-PICTURE OF Improved UNet
-https://arxiv.org/pdf/1802.10508v1.pdf
+The following are the figures of the Improved UNet architecture (https://arxiv.org/abs/1802.10508v1) and the original UNet architecture (https://arxiv.org/abs/1505.04597).  
 
-PICTURE OF Basic UNet
-https://towardsdatascience.com/unet-line-by-line-explanation-9b191c76baf5
+![Improved UNet Diagram](Improved_UNet_Architecture_Diagram.png)  
+
+![Original UNet Diagram](Original_UNet_Architecture_Diagram.png)  
+
 
 ## Dependencies
 - python 3.10.6
