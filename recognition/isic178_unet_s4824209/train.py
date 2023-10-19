@@ -5,17 +5,15 @@ Program for training and testing the model
 
 '''
 
-from dataset import customDataset, data_sorter
 import torch 
-import torch.nn as nn
 from torchvision import transforms
 from torch.utils.data import DataLoader
-from modules import IuNet
-from utils import Diceloss
-from utils import Train_Transform, Test_Transform
 from torchvision.utils import save_image
-import sys
 from sklearn.model_selection import train_test_split
+
+from modules import IuNet
+from dataset import customDataset, data_sorter
+from utils import Diceloss, Train_Transform, Test_Transform
 
 #Computation will run on GPU if possible 
 device = torch.device('cuda'if torch.cuda.is_available() else 'cpu')
@@ -24,31 +22,28 @@ if not torch.cuda.is_available():
 
 
 #PARAMETERS
-
 Num_epochs = 10
 batch_size = 2 #will only be applied to the trainset
 LR = 5e-4         
 
 
-
 #LOAD DATA
-
 #fetching root path of images and ground truth
 img_root = '/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2'
 gt_root = '/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2'
 
 #Creating sorted lists of image and ground truth path for test and train (80%/20% split)
-img_train_path,gt_train_path, img_test_path, gt_test_path = data_sorter(img_root='data', gt_root='GT_data', mode='Train')
+img_train_path,gt_train_path, img_test_path, gt_test_path = data_sorter(img_root=img_root, gt_root=gt_root, mode='Train')
 
 #Defining transforms for trainset and testset
 train_transform = transforms.Compose([Train_Transform()])
 test_transform = transforms.Compose([Test_Transform()])
 
-#Loading the trainset into dataloader with defined transforms
+#Creating the trainset and loading into dataloader with defined transforms
 train_set = customDataset(images=img_train_path, GT=gt_train_path, transform=train_transform)
 train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
 
-#Loading the test set into dataloader
+#Creating testset and loading into dataloader
 #Test loader has batch_size=1 to be able to check dice score of each separate image 
 test_set = customDataset(images=img_test_path, GT=gt_test_path, transform=test_transform)
 test_loader = DataLoader(test_set, batch_size=1)
@@ -70,7 +65,7 @@ best_avg_dcs = 0
 
 
         
-
+#TRAINING / TESTING
 def train(model, train_loader, criterion):
     '''
     Function for training the model
@@ -106,8 +101,7 @@ def train(model, train_loader, criterion):
     #learning rate scheduler step every epoch
     scheduler.step()
 
-
-def eval(model, test_loader):
+def test(model, test_loader):
     '''
     Function for testing the module during training
     args:
@@ -152,15 +146,12 @@ def eval(model, test_loader):
 
         return avg_DCS, min_DCS  
 
-
-#TRAINING / TESTING
-
 for epoch in range(Num_epochs):
     #train model
     train(model, train_loader, criterion)
     
-    #evaluate model
-    avg_dcs, min_dcs = eval(model, test_loader)
+    #test model
+    avg_dcs, min_dcs = test(model, test_loader)
 
     #save model with best minimum DCS score:
     if min_dcs > best_min_dcs:

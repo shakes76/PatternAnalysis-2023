@@ -1,15 +1,32 @@
 '''
-source: https://www.kaggle.com/code/bigironsphere/loss-function-library-keras-pytorch
+Author: Marius Saether
+Student id: s4824209
+
+Mudules used for transformations and loss
+
+Code on lines 76-113 is developed with CHATGPT 3.5, see source 2 in README.md
+
 '''
 
-import torch.nn.functional as F
 import torch.nn as nn
 from torchvision import transforms
 import torch
 import random
 
 
+
 class Diceloss(nn.Module):
+    '''
+    source: https://www.kaggle.com/code/bigironsphere/loss-function-library-keras-pytorch
+
+    Computes the dice loss (1-DCS) of the input and target tensor
+    
+    args:
+        inputs(tensor): tensor to meassure
+        targets(tensor): tensor to compare against
+
+    '''
+
     def __init__(self):
         super(Diceloss, self).__init__()
               
@@ -21,7 +38,7 @@ class Diceloss(nn.Module):
 
         #avoids dividing by zero
         eps = 1e-4
-
+        
         #Computes DSC, and returns Dice loss
         intersection = torch.sum(inputs * targets)
         dice = (2.*intersection+eps)/(torch.sum(inputs)+torch.sum(targets)+eps)
@@ -39,14 +56,14 @@ class Train_Transform(object):
 
     
     Transforms:
-        Vertical flip (p=0.25): Vertically flips the image and the corresponding ground truth  
+        Vertical flip (p=0.25): Vertically flips the input image and the corresponding ground truth  
         
-        Horizontal flip (p=0.25): Horizontally flips the image and the corresponding ground truth
+        Horizontal flip (p=0.25): Horizontally flips the input image and the corresponding ground truth
         
-        Rotation (p=0.5): Rotates both the image and ground truth between 1 and 359 degrees 
+        Rotation (p=0.3): Rotates both the input image and ground truth between 1 and 359 degrees 
         **(the rotatonvalue is random, but consistent between image and ground truth)
 
-        ColourJitter(p=0.25): Adjust the brightness, saturation, contrast and hue of image
+        ColourJitter(p=0.25): Adjust the brightness, saturation and contrast of input image
         ***This is not applied to the ground truth
 
         Resize: Resizes the image and ground truth to (size)
@@ -55,7 +72,7 @@ class Train_Transform(object):
 
     '''
 
-    def __init__(self, p=0.25, size=(256,256)):
+    def __init__(self, p=0.25, size=(64,64)):
         self.p = p
         self.size = size
 
@@ -73,16 +90,17 @@ class Train_Transform(object):
             ground_t = transforms.functional.hflip(ground_t)
 
         #Rotation
-        if random.random() < 0.5:
+        if random.random() < 0.3:
             random_rotation = random.uniform(1,359)
             image = transforms.functional.rotate(image, angle=random_rotation)
             ground_t = transforms.functional.rotate(ground_t, angle=random_rotation)
 
         #ColourJitter
         if random.random() < 0.25:
-            jitter_transform = transforms.ColorJitter(brightness=(0.5,1.5), contrast=(0.7, 1.3), saturation=(0.5,1.5), hue=(-0.1,0.1))
+            jitter_transform = transforms.ColorJitter(brightness=(1), contrast=(2.5), saturation=(0.5))
             image = jitter_transform(image)
 
+        
         #Resize 
         image = transforms.functional.resize(image, self.size)
         ground_t = transforms.functional.resize(ground_t, self.size)
@@ -98,7 +116,7 @@ class Train_Transform(object):
 
 class Test_Transform(object):
     '''
-    Transforms applied to the test set
+    Aplies transforms.rezise() and transforms.toTensor() to input
 
     args:
         data(Tuple): image and corresponding ground truth to transform
@@ -110,9 +128,8 @@ class Test_Transform(object):
 
     '''
 
-    def __init__(self, size=(256,256)):
+    def __init__(self, size=(64,64)):
         self.size=size
-
 
     def __call__(self, data):
         image, ground_t = data
@@ -126,3 +143,6 @@ class Test_Transform(object):
         ground_t = transforms.functional.to_tensor(ground_t)
 
         return image, ground_t
+    
+
+

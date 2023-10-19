@@ -1,20 +1,23 @@
 '''
-Author: s4824209
+Author: Marius Saether
+student id: s4824209
+
+Program for plotting and evaluating the trained model on the validation set.
 '''
 
 
 from dataset import customDataset, data_sorter
 import torch 
-import torch.nn as nn
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from modules import IuNet
 from utils import Diceloss
-from utils import Train_Transform, Test_Transform
+from utils import Test_Transform
 from torchvision.utils import save_image
 import sys
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
+
 
 device = torch.device('cuda'if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
@@ -25,7 +28,7 @@ if not torch.cuda.is_available():
 batch_size = 1
 
 #LOAD DATA
-#fetching root path of validation images and ground truth
+#Root path of validation images and ground truth
 img_root = 'validation_data/ISIC2018_Task1-2_Validation_Input'
 gt_root = 'validation_data/ISIC2018_Task1_Validation_GroundTruth'
 
@@ -34,8 +37,7 @@ gt_root = 'validation_data/ISIC2018_Task1_Validation_GroundTruth'
 img_val_path,gt_val_path = data_sorter(img_root=img_root, gt_root=gt_root, mode='Validate')
 
 
-
-
+#Resize images to (512x512) and convert to tensors
 validation_transform = transforms.Compose([Test_Transform()])
 
 #Loading the test set into dataloader
@@ -86,14 +88,13 @@ with torch.no_grad():
         if DCS.item() > max_DCS:
             max_DCS = DCS.item()
 
-        
         if DCS.item() < min_DCS:
             min_DCS = DCS.item()
         
         if DCS.item() < 0.1:
             img = torch.cat((torch.round(output), ground_t), dim=0)
             min_DCS_list.append(img)
-    
+
             
         
         DCS_list.append(DCS.item())
@@ -114,7 +115,6 @@ with torch.no_grad():
 
 plt.scatter(y_list, DCS_list)
 plt.ylabel('DCS score')
-
 plt.savefig('plot/DCS.png')
 
 # print(len(min_DCS_list))
