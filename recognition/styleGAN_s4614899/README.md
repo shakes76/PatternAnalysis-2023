@@ -60,7 +60,7 @@ This plot shows typical characteristics of the WGAN training framework:
 
 While from the losses plot we can see this styleGAN model is performing well, the true measure of a GAN's performance is the quality of the generated images, which are displayed below.
 
-Beyond the training losses, both the generator and the discriminater are trained using the Adam optimizer but with slightly different learning rates (lower learning rate for the discriminater), and the progressive training approach mentioned above. Additionally, in order to smooth the transitions from lower resolutions to higher resolutions during prograssive training, another parameter *alpha* is introduced and calculated based on the last layer with lower resolution and the next layer with higher resolution, so that the model can gradually adjust to new information from higher resolutions. 
+Beyond the training losses, both the generator and the discriminater are trained using the Adam optimizer but with slightly different learning rates (lower learning rate for the discriminater), and the progressive training approach mentioned above. Additionally, in order to smooth the transitions from lower resolutions to higher resolutions during progressive training, another parameter *alpha* is introduced and calculated based on the last layer with lower resolution and the next layer with higher resolution, so that the model can gradually adjust to new information from higher resolutions. 
 
 ## Generated images
 After training the styleGAN model, a sample of generated images is output by the *predict.py* file:
