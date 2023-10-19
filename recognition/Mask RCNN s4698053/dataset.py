@@ -88,7 +88,7 @@ class ISICDataloader(Dataset):
         row = self.csv_df.iloc[index]
         mask_pth = pathJoin(self.mask_dir, row['image_id'])
         img_pth = pathJoin(self.photo_dir, row['image_id'])
-        print(row['image_id'])
+        #print(row['image_id'])
         class_label = -1
         for key, value in self.class_dictionary.items():
             if row[value] == 1:

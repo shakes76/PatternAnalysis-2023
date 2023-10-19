@@ -66,6 +66,8 @@ def train(train_dataloader: DataLoader, model, optimizer, loss_fn):
             if (batch_index+1) % 100 == 0:
                 print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
                         .format(epoch+1, NUM_EPOCHS, batch_index+1, total_step, loss.item()))
+        print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}"
+                        .format(epoch+1, NUM_EPOCHS, batch_index+1, total_step, loss.item()))
     end = time.time()
     elapsed = end - start
     print("Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
