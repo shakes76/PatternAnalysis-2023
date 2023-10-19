@@ -25,25 +25,31 @@ class Predict() :
 
         self.img_size=(img_size, img_size)
     
-    def generate_gan(self, num_images = 1) :
+    def generate_gan(self) :
         self.gan.generator.eval()
         noise = torch.randn(1, 100, 1, 1).to(self.device)
         with torch.no_grad():
             self.generated_images = self.gan.generator(noise)
-        self.visualise(num_images=1, show = False, save = True, savename="gan_generated")
+        img = self.generated_images[0][0] #Get single image for plotting 64 x 64
+        img = img.cpu()
+        img = img.numpy()
+        plt.clf()
+        plt.tight_layout()
+        plt.figure(figsize=(10, 5))
+        img = np.clip(img, 0, 1)
+        plt.title('GAN Output')
+        plt.imshow(img, cmap='gray')
+        plt.savefig("./models/predictions/generate_gan.png")
 
     def generate_vqvae(self, num_images=1):
         self.vqvae.eval()
-        with torch.no_grad():
-            random_indices = torch.randint(
-                high=self.vqvae.quantizer.n_embeddings, 
-                size=(num_images, *self.img_size)
-            ).to(self.device)
-            
-            random_embeddings = self.vqvae.quantizer.embedding(random_indices).permute(0, 3, 1, 2)
-            self.generated_images = self.vqvae.decoder(random_embeddings)
-        
-        self.visualise(num_images=num_images, show = False, save = True, savename="vqvae_generated")
+        self.generate_gan()
+        indice = torch.flatten(self.generated_images[0][0])
+        indice = (indice - indice.min()) / (indice.max() - indice.min())
+        indice.long()
+        indice = indice.unsqueeze(0)
+        quantized = self.vqvae.quantizer(indice)
+        self.generated_images = self.vqvae.decoder(quantized)
     
 
     def visualise(self, num_images = 4, show = True, save = True, savename="out"):
@@ -72,7 +78,6 @@ class Predict() :
             self.generate_gan()
         else :
             self.generate_vqvae()
-        print(model)
         gen_img = self.generated_images[0].detach().cpu().numpy()  
         
         ssim_scores = []
