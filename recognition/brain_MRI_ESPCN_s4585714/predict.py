@@ -17,14 +17,15 @@ if not torch.cuda.is_available():
     
 model = modules.ESPCN()
 model = model.to(device)
-model.load_state_dict(torch.load('model.pth'))
+model.load_state_dict(torch.load('model.pth', map_location=torch.device(device)))
 
 test_loader = dataset.ADNIDataLoader(root, mode='test')
 
 toPil = transforms.ToPILImage()
 
 with torch.no_grad():
-    fig, axes = plt.subplots(nrows=3, ncols=5)
+    model.eval()
+    fig, axes = plt.subplots(nrows=3, ncols=5, figsize=(15, 9))
     for i, (downscaled, orig) in enumerate(test_loader):
         if (i < 5):
             downscaled = downscaled.to(device)

@@ -56,7 +56,6 @@ class ADNIDataset(Dataset):
 def ADNIDataLoader(root, mode='train'):
     transform = transforms.Compose([
         transforms.ToTensor(), 
-        transforms.Normalize((0.5,), (0.5,))
         ])
     dataset = ADNIDataset(root, transform, mode=mode)
     
