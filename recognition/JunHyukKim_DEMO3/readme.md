@@ -31,6 +31,17 @@ The
 
 2. It should also list any dependencies required, including versions and address reproduciblility of results,
 if applicable.
+import torchvision
+import torch
+import matplotlib
+import sklearn
+import glob 
+import PIL
+import pandas
+import numpy
+python 3.11.5
+window 11
+the training dataset requires to be in 
 
 3. provide example inputs, outputs and plots of your algorithm
 
@@ -43,7 +54,8 @@ and testing splits of the data.
 1. description and explanation of the working principles of the algorithm implemented and the problem it
 solves (5 Marks)
 This program uses improved Unet to segment the differnt types of skin conditions such as melanoma.
-The improved Unet strucuture    
+The improved Unet strucuture explained
+
 ![My Image Alt Text](image.png)
     
 2. description of usage and comments throughout scripts (3 Marks)

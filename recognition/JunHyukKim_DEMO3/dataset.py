@@ -20,7 +20,7 @@ TESTTRUTH = "ISIC/ISIC-2017_Test_v2_Part1_GroundTruth/ISIC-2017_Test_v2_Part1_Gr
 VALIDTRUTH = "ISIC/ISIC-2017_Validation_Part1_GroundTruth/ISIC-2017_Validation_Part1_GroundTruth"
 
 NUM_EPOCHS = 5
-BATCH_SIZE = 4
+BATCH_SIZE = 1
 WORKERS = 4
 
     
@@ -65,8 +65,8 @@ class CustomDataset(Dataset):
         self.transform = transform
         self.custom_transform = Compose(transform)
         
-        self.resize = Resize((224, 224))
-        self.resize_mask = Resize((224, 224),Image.NEAREST)
+        self.resize = Resize((256, 256))
+        self.resize_mask = Resize((256, 256),Image.NEAREST)
 
         ignored = {"ISIC-2017_Test_v2_Data_metadata.csv","ISIC-2017_Training_Data_metadata.csv"}
         self.images = [x for x in os.listdir(image_dir) if x not in ignored]
