@@ -45,7 +45,7 @@ architecture_config = [
 
 class CNNBlock(nn.Module):
     def __init__(self, in_channels, out_channels, **kwargs) -> None:
-        super(CNNBlock).__init__()
+        super(CNNBlock, self).__init__()
         # Any additional args should be put into Conv2d, e.g. kernel size
         self.conv = nn.Conv2d(in_channels, out_channels, bias=False, **kwargs)
         self.batchNorm = nn.BatchNorm2d(out_channels)
@@ -56,15 +56,15 @@ class CNNBlock(nn.Module):
     
 class YoloV1(nn.Module):
     def __init__(self, in_channels=3, **kwargs) -> None:
-        super(YoloV1).__init__()
+        super(YoloV1, self).__init__()
         self.architecture = architecture_config
         self.in_channels = in_channels
         self.darknet = self._create_conv_layers(self.architecture)
-        self.fcs = self._create_fcs(((kwargs)))
+        self.fcs = self._create_fcs(**kwargs)
 
     def forward(self, x):
-        x = self.darknet(x)
-        return self.fcs(torch.flatten(x, start_dim=1))
+        x1 = self.darknet(x)
+        return self.fcs(torch.flatten(x1, start_dim=1))
 
     def _create_conv_layers(self, architecture):
         layers = []
@@ -93,10 +93,10 @@ class YoloV1(nn.Module):
         S, B, C = split_size, num_boxes, num_classes
         return nn.Sequential(
             nn.Flatten(), 
-            nn.Linear(1024 * S * S, 4096), 
+            nn.Linear(1024 * S * S, 496), 
             nn.Dropout(0.0), 
             nn.LeakyReLU(0.1), 
-            nn.Linear(4096, S * S * (C + B * 5))
+            nn.Linear(496, S * S * (C + B * 5))
         )
 
 def intersection_over_union(boxes_preds, boxes_labels, box_format='midpoint'):
@@ -413,7 +413,7 @@ class YoloLoss(nn.Module):
     Calculate the loss for yolo (v1) model
     """
 
-    def __init__(self, S=7, B=2, C=3):
+    def __init__(self, S=7, B=1, C=2):
         super(YoloLoss, self).__init__()
         self.mse = nn.MSELoss(reduction="sum")
 
@@ -437,8 +437,8 @@ class YoloLoss(nn.Module):
 
         # Calculate IoU for the two predicted bounding boxes with target bbox
         iou_b1 = intersection_over_union(predictions[..., self.C + 1:self.C + 5], target[..., self.C + 1:self.C + 5])
-        iou_b2 = intersection_over_union(predictions[..., self.C + 6:self.C + 10], target[..., self.C + 1:self.C + 5])
-        ious = torch.cat([iou_b1.unsqueeze(0), iou_b2.unsqueeze(0)], dim=0)
+        #iou_b2 = intersection_over_union(predictions[..., self.C + 6:self.C + 10], target[..., self.C + 1:self.C + 5])
+        ious = torch.cat([iou_b1.unsqueeze(0)], dim=0)
 
         # Take the box with highest IoU out of the two prediction
         # Note that bestbox will be indices of 0, 1 for which bbox was best
@@ -453,8 +453,7 @@ class YoloLoss(nn.Module):
         # predictions, which is the one with highest Iou calculated previously.
         box_predictions = exists_box * (
             (
-                bestbox * predictions[..., self.C + 6:self.C + 10]
-                + (1 - bestbox) * predictions[..., self.C + 1:self.C + 5]
+                (1 - bestbox) * predictions[..., self.C + 1:self.C + 5]
             )
         )
 
@@ -477,7 +476,7 @@ class YoloLoss(nn.Module):
 
         # pred_box is the confidence score for the bbox with highest IoU
         pred_box = (
-            bestbox * predictions[..., self.C + 5:self.C + 6] + (1 - bestbox) * predictions[..., self.C:self.C + 1]
+            (1 - bestbox) * predictions[..., self.C:self.C + 1]
         )
 
         object_loss = self.mse(
@@ -500,10 +499,10 @@ class YoloLoss(nn.Module):
             torch.flatten((1 - exists_box) * target[..., self.C:self.C + 1], start_dim=1),
         )
 
-        no_object_loss += self.mse(
+        """no_object_loss += self.mse(
             torch.flatten((1 - exists_box) * predictions[..., self.C + 5:self.C + 6], start_dim=1),
             torch.flatten((1 - exists_box) * target[..., self.C:self.C + 1], start_dim=1)
-        )
+        )"""
 
         # ================== #
         #   FOR CLASS LOSS   #

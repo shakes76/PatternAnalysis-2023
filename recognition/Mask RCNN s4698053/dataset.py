@@ -43,6 +43,7 @@ class ISICDataloader(Dataset):
         self.defaultTransform = v2.Compose([
             v2.ToImage(), 
             v2.ToDtype(torch.float32),
+            v2.Resize(size=image_size, antialias=True)
         ])
         self.class_dictionary = {0: 'melanoma', 1: 'seborrheic_keratosis'}
 
@@ -87,7 +88,7 @@ class ISICDataloader(Dataset):
         row = self.csv_df.iloc[index]
         mask_pth = pathJoin(self.mask_dir, row['image_id'])
         img_pth = pathJoin(self.photo_dir, row['image_id'])
-        #print(row['image_id'])
+        print(row['image_id'])
         class_label = -1
         for key, value in self.class_dictionary.items():
             if row[value] == 1:
@@ -97,14 +98,14 @@ class ISICDataloader(Dataset):
         if class_label >= 0:
             mask = Image.open(mask_pth + '_segmentation.png').convert('L')
             mask = self.defaultTransform(mask).to(self.device) / 255.0
-            bboxes = torch.tensor([class_label, self.bbox_to_XYWH(self.mask_to_bbox(mask))]).unsqueeze(0)
+            bboxes = torch.tensor([class_label, *self.bbox_to_XYWH(self.mask_to_bbox(mask))]).unsqueeze(0)
         else:
             bboxes = torch.empty(0, 5)
         
         image = Image.open(img_pth + '.jpg').convert('RGB')
         image = self.defaultTransform(image).to(self.device) / 255.0
 
-        if self.transform():
+        if self.transform:
             image = self.transform(image)
         
         # Convert To Cells
@@ -147,7 +148,7 @@ class ISICDataloader(Dataset):
                     [x_cell, y_cell, width_cell, height_cell]
                 )
 
-                label_matrix[i, j, 4:8] = box_coordinates
+                label_matrix[i, j, 3:7] = box_coordinates
 
                 # Set one hot encoding for class_label
                 label_matrix[i, j, class_label] = 1

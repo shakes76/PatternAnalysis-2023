@@ -38,7 +38,7 @@ def main():
     train_dataloader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
     test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-    train(train_dataloader)
+    train(train_dataloader, model, optimizer, loss_fn)
     save_checkpoint(model, SAVE_MODEL_FILE)
 
 def train(train_dataloader: DataLoader, model, optimizer, loss_fn):
