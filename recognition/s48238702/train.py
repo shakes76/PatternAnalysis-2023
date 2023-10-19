@@ -8,7 +8,10 @@ from modules import SiameseNetwork, ContrastiveLoss
 SNN_PATH = 'SNN.pth'  # Path to save the trained Siamese Network model
 
 def train():
-
+    """
+    Train the Siamese Network, save the model, and plot the loss.
+    """
+    # Train and Save the Siamese Network
     siamese_fit = trainSNN()
     torch.save(siamese_fit['model'].state_dict(), SNN_PATH)
 
@@ -17,10 +20,19 @@ def train():
     plt.show()
 
 def trainSNN(epochs=30):
-    
+    """
+    Train the Siamese Network.
+
+    Args:
+        epochs (int, optional): Number of training epochs. Default is 30.
+
+    Returns:
+        dict: A dictionary containing the trained model and loss history.
+    """
     siamese_train_loader = load_siamese_data(batch_size=32)
     model = SiameseNetwork()
 
+    # Check if CUDA (GPU) is available and move the model to the device
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
 
@@ -35,6 +47,7 @@ def trainSNN(epochs=30):
         for batch_idx, (img1, img2, labels) in enumerate(siamese_train_loader):
             optimizer.zero_grad()
             
+            # Move tensors to the device
             img1, img2, labels = img1.to(device), img2.to(device), labels.to(device)
             
             output1, output2 = model(img1, img2)
@@ -49,7 +62,13 @@ def trainSNN(epochs=30):
     return siamese_fit
 
 def plot_data(data, title):
-    
+    """
+    Plot training data (e.g., loss).
+
+    Args:
+        data (dict): Data to be plotted, typically containing training and validation loss.
+        title (str): Title for the plot.
+    """
     plt.figure()
     plt.plot(data['train'], label='Train Loss')
     plt.xlabel('Epoch')
