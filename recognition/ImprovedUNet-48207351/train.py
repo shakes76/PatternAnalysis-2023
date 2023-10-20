@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader, Dataset
 import numpy as np
 
 from modules import ImprovedUNET
-from dataset import train_loader, val_loader, test_loader
+from dataset import train_images, val_loader, test_images
 
 # Hyperparameters etc.
 LEARNING_RATE = 1e-4
