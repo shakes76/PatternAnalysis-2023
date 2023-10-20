@@ -77,6 +77,63 @@ def map_ds_to_images(
     return (load_jpeg(x1), load_jpeg(x2)), y
 
 
+@tf.function
+def zip_pair_ds(array: np.ndarray) -> tf.data.Dataset:
+    """
+    Zips the given array of pairs of images and labels into a tf.data.Dataset.
+
+    Args:
+        array (np.ndarray): The array of pairs of images and labels.
+
+    Returns:
+        tf.data.Dataset: The zipped dataset.
+    """
+    if array.shape[1] != 3:
+        raise ValueError(
+            "The given array must have 3 columns: the first path, the second path, and the label."
+        )
+
+    return (
+        tf.data.Dataset.zip(
+            (
+                tf.data.Dataset.from_tensor_slices(array[:, 0]),
+                tf.data.Dataset.from_tensor_slices(array[:, 1]),
+                tf.data.Dataset.from_tensor_slices(array[:, 2].astype(np.float32)),
+            )
+        )
+        .map(map_ds_to_images)
+        .batch(32)
+    )
+
+
+@tf.function
+def zip_classify_ds(array: np.ndarray) -> tf.data.Dataset:
+    """
+    Zips the given array of images and labels into a tf.data.Dataset.
+
+    Args:
+        array (np.ndarray): The array of images and labels.
+
+    Returns:
+        tf.data.Dataset: The zipped dataset.
+    """
+    if array.shape[1] != 2:
+        raise ValueError(
+            "The given array must have 3 columns: the first path, the second path, and the label."
+        )
+
+    return (
+        tf.data.Dataset.zip(
+            (
+                tf.data.Dataset.from_tensor_slices(array[:, 0]),
+                tf.data.Dataset.from_tensor_slices(array[:, 1].astype(np.float32)),
+            ),
+        )
+        .map(lambda x1, x2: (load_jpeg(x1), x2))
+        .batch(32)
+    )
+
+
 def load_dataset(
     path: str,
 ) -> tuple[
@@ -228,78 +285,13 @@ def load_dataset(
 
     # Load the dataset into tf.data.Dataset objects, map the paths to JPEG images, and batch them
 
-    train_ds = (
-        tf.data.Dataset.zip(
-            (
-                tf.data.Dataset.from_tensor_slices(train[:, 0]),
-                tf.data.Dataset.from_tensor_slices(train[:, 1]),
-                tf.data.Dataset.from_tensor_slices(train[:, 2].astype(np.float32)),
-            )
-        )
-        .map(map_ds_to_images)
-        .batch(32)
-    )
-    validate_ds = (
-        tf.data.Dataset.zip(
-            (
-                tf.data.Dataset.from_tensor_slices(validate[:, 0]),
-                tf.data.Dataset.from_tensor_slices(validate[:, 1]),
-                tf.data.Dataset.from_tensor_slices(validate[:, 2].astype(np.float32)),
-            )
-        )
-        .map(map_ds_to_images)
-        .batch(32)
-    )
-    test_ds = (
-        tf.data.Dataset.zip(
-            (
-                tf.data.Dataset.from_tensor_slices(test[:, 0]),
-                tf.data.Dataset.from_tensor_slices(test[:, 1]),
-                tf.data.Dataset.from_tensor_slices(test[:, 2].astype(np.float32)),
-            )
-        )
-        .map(map_ds_to_images)
-        .batch(32)
-    )
+    train_ds = zip_pair_ds(train)
+    validate_ds = zip_pair_ds(validate)
+    test_ds = zip_pair_ds(test)
 
-    classify_train_ds = (
-        tf.data.Dataset.zip(
-            (
-                tf.data.Dataset.from_tensor_slices(classify_train[:, 0]),
-                tf.data.Dataset.from_tensor_slices(
-                    classify_train[:, 1].astype(np.float32)
-                ),
-            ),
-        )
-        .map(lambda x1, x2: (load_jpeg(x1), x2))
-        .batch(32)
-    )
-
-    classify_validate_ds = (
-        tf.data.Dataset.zip(
-            (
-                tf.data.Dataset.from_tensor_slices(classify_validate[:, 0]),
-                tf.data.Dataset.from_tensor_slices(
-                    classify_validate[:, 1].astype(np.float32)
-                ),
-            ),
-        )
-        .map(lambda x1, x2: (load_jpeg(x1), x2))
-        .batch(32)
-    )
-
-    classify_test_ds = (
-        tf.data.Dataset.zip(
-            (
-                tf.data.Dataset.from_tensor_slices(classify_test[:, 0]),
-                tf.data.Dataset.from_tensor_slices(
-                    classify_test[:, 1].astype(np.float32)
-                ),
-            ),
-        )
-        .map(lambda x1, x2: (load_jpeg(x1), x2))
-        .batch(32)
-    )
+    classify_train_ds = zip_classify_ds(classify_train)
+    classify_validate_ds = zip_classify_ds(classify_validate)
+    classify_test_ds = zip_classify_ds(classify_test)
 
     return (
         train_ds,
