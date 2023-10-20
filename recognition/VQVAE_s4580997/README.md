@@ -404,21 +404,20 @@ It is highly recommended to use the `main.py` file to execute the code as desire
 
 ## Results
 ### Training
-Training was performed for 5 epochs, with a learning rate of 0.001 and a weight decay of 0.0001 on the training set. The training set was not split, as the problem was generation and so added data is beneficial, and was segmented with a batch size of 32. The loss function used was the embedding loss and mean-squared error of the output. The loss function was plotted at each batch, this time unit was defined as an iteration denoted as batch by epoch. The loss over training is shown in Figure _ below.
+Training for the VQVAE was performed for 5 epochs, and a learning rate of 0.001 on the full training set. The training set was not split, as the problem was generation and so added data is beneficial, and was segmented with a batch size of 32. The loss function used was the embedding (quantised) loss added with mean-squared error of the output defined as the reconstruction loss. The loss function was plotted at each batch, this time unit was defined as an iteration denoted as batch by epoch. The loss over training is shown in Figure _ below.
 
-Figure
+<img src="images/results/vqvae_train_loss.png" alt="VQVAE loss" style="float: left;">
 <caption>
     <strong>Figure 3:</strong> VQVAE training loss.
 </caption>
 
 <br />
 
-The loss rapidly converges after the first few iterations. Hence, the additional epochs were redundant for training as a local minima was already attained. The loss function was not observed to increase after this point, and so the model was not overfitting. The model was saved at the end of training.
+Figure 3 shows that the loss function was dominated for the quantisation loss - which is the loss for embedding the latent space of the features to create a representation of the image. The loss rapidly converges after the first few iterations. Hence, the additional epochs were redundant for training as a local minima was already attained. The loss function was not observed to increase after this point, and so the model was not overfitting. The model was saved at the end of training.
 
-The GAN network was trained on the encoded indices of the images produced at the end of the VQVAE training. This was performed for 80 epochs, with a learning rate of 0.001. The loss function used was the binary cross-entropy loss. The loss over training is shown in Figure _ below.
+The Generator and Discriminator networks were trained in competition, as is their architecture. The generator was trained for 50 epochs, with a learning rate of 0.001. The discriminator was trained for 50 epochs, with a learning rate of 0.001. The loss function used was the binary cross-entropy loss. The loss over training is shown in Figure 4 below.
 
-
-<img src="images/results/GAN_Losses.png" alt="GAN Losses" style="float: left;">
+<img src="images/results/gan_train_loss.png" alt="GAN Losses" style="float: left;">
 <caption>
     <strong>Figure 4:</strong> Generator and discriminator training loss.
 </caption>
@@ -457,7 +456,7 @@ The model produces images by taking the codebook from the VQVAE, and encoding th
 
 <br />
 
-This image is then passed to the `generate vqvae` function, which quantizes the data using the codebook and then decodes the quantized data to reconstruct the image.
+This image is then passed to the `generate_vqvae` function, which quantizes the data using the codebook and then decodes the quantized data to reconstruct the image.
 
 <img src="images/results/generated_vqvae.png" alt="VQVAE Generated image" style="float: left;">
 <caption>
@@ -496,12 +495,12 @@ The generated images had a structural similarity index above 0.5, indicating tha
 [1] A. v. d. Oord, O. Vinyals, and K. Kavukcuoglu, “Neural Discrete Representation Learning,”
 arXiv:1711.00937 [cs], May 2018, arXiv: 1711.00937. [Online]. Available: http://arxiv.org/abs/1711.00937
 
-[2] Laskin, Misha (2019), Vector Quantized Variational Autoencoder. Available: https://github.com/MishaLaskin/vqvae
+[2] Laskin, Misha (2019), Vector Quantized Variational Autoencoder. [Online] Available: https://github.com/MishaLaskin/vqvae
 
-[3] Team, K. (2021). Keras documentation: Vector-Quantized Variational Autoencoders. [online] Keras.io. Available: https://keras.io/examples/generative/vq_vae
+[3] Team, K. (2021). Keras documentation: Vector-Quantized Variational Autoencoders. [Online] Keras.io. Available: https://keras.io/examples/generative/vq_vae
 
-[4] https://arxiv.org/pdf/1406.2661v1.pdf
+[4] I. J. Goodfellow, J. Pouget-Abadie, M. Mirza, B. Xu, D. Warde-Farley, S. Ozair, A. Courville, and Y. Bengio, "Generative Adversarial Nets," arXiv:1406.2661v1, June 2014, [Online]. Available: https://arxiv.org/abs/1406.2661
 
-[5] https://www.jeremyjordan.me/variational-autoencoders/
+[5] J. Jordan, "Variational Autoencoders," Jeremy Jordan, 19-Mar-2018. [Online]. Available: https://www.jeremyjordan.me/variational-autoencoders/
 
-[6] https://www.frontiersin.org/articles/10.3389/fpsyg.2017.01404/full
+[6] C. Gerlach, "Different Measures of Structural Similarity Tap Different Aspects of Visual Object Processing," in Frontiers in Psychology, Vol. 8, 2017. [Online]. Available: https://doi.org/10.3389/fpsyg.2017.01404
