@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense
+from tensorflow.keras.layers import Input, Conv2D, MaxPooling2D, Flatten, Dense, Dropout, BatchNormalization
 from tensorflow.keras.models import Model
 import tensorflow_addons as tfa
 
@@ -10,9 +10,9 @@ Architecture (input linking) was influenced by the video
 below for a 2 input siamese neural network
 https://youtu.be/DGJyh5dK4hU?si=2LxFEx1aOVHJEFBu
 """
-class Model():
+class Modules():
     """
-    Initialises the Model class
+    Initialises the Modules class
     """
     def __init__(self):
         pass
@@ -24,14 +24,22 @@ class Model():
         model - the base network used for the layers of the siamese model
     """
     def base_network(self):
-        input_image = Input(shape=(256, 240, 3)) # know shape of images
+        input_image = Input(shape=(256, 240, 3))
         x = Conv2D(64, (3, 3), activation='relu')(input_image)
+        x = BatchNormalization()(x)  # Add BatchNormalization after Conv2D
         x = MaxPooling2D()(x)
+        x = Dropout(0.25)(x)
         x = Conv2D(128, (3, 3), activation='relu')(x)
+        x = BatchNormalization()(x)  # Add BatchNormalization after Conv2D
         x = MaxPooling2D()(x)
+        x = Dropout(0.25)(x)
         x = Flatten()(x)
         x = Dense(256, activation='relu')(x)
+        x = BatchNormalization()(x)  # Add BatchNormalization after Dense
+        x = Dropout(0.25)(x)
         x = Dense(128, activation='relu')(x)
+        x = BatchNormalization()(x)  # Add BatchNormalization after Dense
+        x = Dropout(0.25)(x)
         model = Model(input_image, x)
         return model
 
@@ -57,7 +65,8 @@ class Model():
 
         # define model architecture
         inputs = [anchor_input, positive_input, negative_input]
-        siamese_network = Model(inputs=inputs, outputs=anchor_embedding)
+        outputs = [anchor_embedding, positive_embedding, negative_embedding]
+        siamese_network = Model(inputs=inputs, outputs=outputs)
         siamese_network.compile(optimizer='adam', loss=tfa.losses.TripletSemiHardLoss())
         return siamese_network
     
@@ -67,12 +76,11 @@ class Model():
     Outputs:
         classifier_model - A compiled siamese network ready for training.
     """
-    def create_classifier(self, base_model):
+    def create_classifier(self):
         anchor_embedding_input = Input(shape=(128,))  # Assuming the embedding size is 128
         x = Dense(64, activation='relu')(anchor_embedding_input)
         x = Dense(32, activation='relu')(x)
         output = Dense(2, activation='softmax')(x)  # Adjust num_classes accordingly
-
         classifier_model = Model(inputs=anchor_embedding_input, outputs=output)
         classifier_model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
         return classifier_model

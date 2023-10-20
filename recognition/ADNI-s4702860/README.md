@@ -79,7 +79,7 @@ Program that runs to make predictions, and evaluate the model trained in train.p
 Upon running this program, the weights created in predict.py will be loaded into a model, 
 and various plots will be displayed to show the effect of using the Siamese model.
 
-
+line 42
 ## Example Use
 The main task of this is to attempt to classify the ADNI dataset as either AD (Alzeimers disease) or NC 
 (normal cognition). Initially, there does not appear to be any pattern to the image. 
@@ -118,6 +118,12 @@ Finally, taking the number of correct classifications divided by the total numbe
 ```
 accuracy = accuracy_score(tf.argmax(test_labels, axis=1), predicted_labels)
 ```
+![UMAP after classifier](Figures/UMAP_AFTER.png)
+The above plot shows the same classes after undergoing the classifier. Even though the data has been transformed, it is 
+quite obvious that the model is not able to find change between classes. While there is more of a "structure" to the code, 
+in the sense that it is in a circular line, no class has any specific region. This is further supported when looking at the validation
+accuracy curves ![Validation curves for classifier](Figures/Classification_Accuracy.png)
+
 
 
 
