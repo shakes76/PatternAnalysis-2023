@@ -19,25 +19,27 @@ ADNI_PATH = Path('/home', 'groups', 'comp3710', 'ADNI', 'AD_NC')
 if sys.platform == 'win32':
     ADNI_PATH = Path('D:', 'ADNI', 'AD_NC')
 
-# Centre crop all images to 224x224
+# Training image transforms
 TRAIN_TRANSFORM = transforms.Compose([
     transforms.RandomCrop(224),
     transforms.RandomHorizontalFlip(),
     transforms.RandomVerticalFlip(),
-    transforms.Grayscale(num_output_channels=3),
+    #transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
 ])
 
+# Testing image transforms
 TEST_TRANSFORM = transforms.Compose([
-    transforms.RandomCrop(224),
-    transforms.Grayscale(num_output_channels=3),
+    transforms.CenterCrop(224),
+    #transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
 ])
 
-"""
-Custom Dataset class for the ADNI dataset.
-"""
+
 class ADNIDataset(Dataset):
+    """
+    Custom Dataset class for the ADNI dataset.
+    """
     def __init__(self, root_path, train=True, transform=None):
         self.path = Path(root_path, 'train' if train else 'test')
         self.transform = transform
@@ -65,12 +67,13 @@ class ADNIDataset(Dataset):
 
         return image, label
     
-"""
-Function to split the training set into training and validation sets, with a certain proportion of images to be included in the validation set.
 
-Images to be split on a patient level (i.e. all images with the same patient ID to be included in the same set).
-"""
 def split_train_val(dataset: ADNIDataset, val_proportion: float, keep_proportion: float):
+    """
+    Function to split the training set into training and validation sets, with a certain proportion of images to be included in the validation set.
+
+    Images to be split on a patient level (i.e. all images with the same patient ID to be included in the same set).
+    """
     # Get the patient ID's and the number of AD and NC patients
     ad_patient_ids = set(filename.split('_')[0] for filename in dataset.ad_files)
     num_ad_patients = len(ad_patient_ids)
@@ -99,10 +102,11 @@ def split_train_val(dataset: ADNIDataset, val_proportion: float, keep_proportion
 
     return dataset, val_dataset
 
-"""
-Returns data loader for either the training (plus validation) set, or the test set.
-"""
+
 def get_dataloader(batch_size, train: bool, val_proportion: float = 0.2, keep_proprtion: float = 1.0):
+    """
+    Returns data loader for either the training (plus validation) set, or the test set.
+    """
     train_dataset = ADNIDataset(root_path=ADNI_PATH, train=True, transform=TRAIN_TRANSFORM)
     train_dataset, val_dataset = split_train_val(dataset=train_dataset, val_proportion=val_proportion, keep_proportion=keep_proprtion)
     loader = (DataLoader(train_dataset, batch_size=batch_size, shuffle=True), DataLoader(val_dataset, batch_size=batch_size, shuffle=True))
