@@ -29,3 +29,17 @@ The bridging block applies the two  two 3x3 convolution layers with a ReLU.
 #### Decoder Block 
 
 The decoder block has two 3x3 convolution layers with a ReLU then a up conv 2x2. The 4 encoder outputs are used as skip features in each decoder block. The Decoder tires to recunstruct based on the imput and skip features given.
+
+### Results
+
+show epoch progress here
+#### Training 
+
+The data reached a val_dice_coef of > 0.8 after 13 epoch. As seen the val_dice_coef and val_precision grew with the num of epochs.
+
+#### Evaluation
+show result table here mean and per image
+
+#### Image results
+
+add first 5 images
