@@ -81,17 +81,26 @@ class WeightScaledConv2d(nn.Module):
 
     def forward(self, x):
         return self.conv(x * self.scale) + self.bias.view(1, self.bias.shape[0], 1, 1)
+
+
 class AdaptiveInstanceNorm(nn.Module):
     def __init__(self, channels, w_dim):
-        super().__init__()
+        super(AdaptiveInstanceNorm, self).__init__()
         self.instance_norm = nn.InstanceNorm2d(channels)
         self.style_scale = WeightScaledLinear(w_dim, channels)
         self.style_bias = WeightScaledLinear(w_dim, channels)
 
     def forward(self, x, w):
-        x = self.instance_norm(x)
+        # Style Scale
         style_scale = self.style_scale(w).unsqueeze(2).unsqueeze(3)
+
+        # Style Bias
         style_bias = self.style_bias(w).unsqueeze(2).unsqueeze(3)
+
+        # Apply Instance Normalization
+        x = self.instance_norm(x)
+
+        # Apply Style Scaling and Biasing
         return style_scale * x + style_bias
 
 class ConvolutionBlock(nn.Module):
