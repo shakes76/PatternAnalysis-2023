@@ -7,6 +7,7 @@ import torch.nn.functional as F
 import torch.optim as optim
 import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
+from torch.optim.lr_scheduler import StepLR
 import cv2
 import os
 from dataset import get_dataset
@@ -20,27 +21,29 @@ import numpy as np
 
 # Toggles.
 all_train = 1   # If 0 Disables all training.
-train = 0       # Enables/Disables Resnet Training
-train_clas = 0  # Enables/Disables Classifier Training
+train = 1       # Enables/Disables Resnet Training
+train_clas = 1  # Enables/Disables Classifier Training
 test = 1        # Enables/Disables testing.
-plot_loss = 0   # Enables/Disables plotting of loss.
+plot_loss = 1   # Enables/Disables plotting of loss.
 data_visual = 1 # Enables/Disables Visualisation of Data
+scheduler_active = 1
 
 # Path that model is saved to and loaded from.
-PATH = 'resnet_net_1000.pth'
-CLAS_PATH = 'clas_net_neww.pth'
+#PATH = 'resnet_net_good_p100.pth'
+PATH = 'resnet_net_local30_6.pth'
+CLAS_PATH = 'clas_net_local30_6.pth'
 
 # Path that plots are saved to.
-PLOT_PATH = 'training_loss_temp.png'
-DATA_PATH = 'data_plot_temp.png'
+PLOT_PATH = 'training_loss_local30_6.png'
+DATA_PATH = 'data_plot_local30_6.png'
 
 # Hyperparameters
-num_epochs = 50
-num_epochs_clas = 10
-batch_size = 10
-batch_size_clas = 20
-learning_rate = 0.001
-res_learning_rate = 0.001
+num_epochs = 30
+num_epochs_clas = 30
+batch_size = 8
+batch_size_clas = 3
+learning_rate = 0.005
+res_learning_rate = 0.0001
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -60,11 +63,11 @@ validset_clas = get_dataset(valid=1, clas=1)
 
 
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
-
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size_clas, shuffle=False)
 validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=False)
 
 trainloader_clas = torch.utils.data.DataLoader(trainset_clas, batch_size=batch_size_clas, shuffle=True)
+validloader_clas = torch.utils.data.DataLoader(validset_clas, batch_size=batch_size_clas, shuffle=False)
 
 trainloader_tsne= torch.utils.data.DataLoader(trainset_clas, batch_size=len(trainloader_clas.dataset), shuffle=True)
 
@@ -73,7 +76,7 @@ for i, data in enumerate(trainloader_tsne, 0):
     labels_tsne = data[1].to(device).cpu().numpy()
 
 
-validloader_clas = torch.utils.data.DataLoader(validset_clas, batch_size=batch_size_clas, shuffle=False)
+
 
 # Model.
 #resnet = Resnet().to(device)
@@ -91,8 +94,8 @@ class_optimizer = optim.Adam(clas_net.parameters(), lr=learning_rate)
 
 # Future spot for Scheduler?
 
-
-
+scheduler = StepLR(optimizer, step_size=num_epochs, gamma=0.95)
+scheduler_clas = StepLR(class_optimizer, step_size=num_epochs_clas, gamma=0.95)
 #
 
 if train == 0:
@@ -155,6 +158,8 @@ if all_train == 1:
                 # Keep track of running loss.
                 running_loss += loss.item()
 
+
+
                 # Print Loss Info while training.
                 if (i + 1) % 1 == 0:
                     print(f'[T][Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {running_loss:.5f}')
@@ -162,6 +167,9 @@ if all_train == 1:
                     running_loss = 0.0
 
                 loss_list.append(loss.item())
+
+                if scheduler_active == 1:
+                    scheduler.step()
 
             # Validation
             print(">>Validating")
@@ -190,16 +198,16 @@ if all_train == 1:
 
                     # Keep track of running loss.
                     val_running_loss += loss.item()
-                    total_loss = val_running_loss/anchor.size(dim=0)
+                    #total_loss = val_running_loss/anchor.size(dim=0)
 
                     # Print Loss Info while training.
                     if (i + 1) % 1 == 0:
                         print(f'[V][Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {val_running_loss:.5f}')
-                        print(f"[V] Anchor Size is: {anchor.size(dim=0)}, Divided: {loss / anchor.size(dim=0)}")
+                        #print(f"[V] Anchor Size is: {anchor.size(dim=0)}, Divided: {loss / anchor.size(dim=0)}")
                         val_running_loss = 0.0
 
                     #valid_loss_list.append(loss.item())
-                    valid_loss_list.append(total_loss)
+                    valid_loss_list.append(loss.item())
 
 
         # Save trained model for later use.
@@ -247,27 +255,28 @@ if all_train == 1:
         class_st = time.time()
         for epoch in range(num_epochs_clas):
             running_loss = 0.0
+            val_running_loss = 0.0
 
             clas_net.train()
-            #resnet.eval()
-
-
 
             # Loop over every batch in data loader.
             for i, (inputs, labels) in enumerate(trainloader_clas, 0):
                 # Extract data and transfer to GPU.
                 inputs = inputs.to(device)
                 labels = labels.to(device, dtype=torch.float)
-                #labels = data[1].to(device)  # For Cross Entropy Loss
-                # labels = torch.stack([data[1]], dim=1).float().to(device)  # For Binary Cross Entropy Loss
-                print(labels)
-                # Zero the gradients -- Ensuring gradients not accumulated
-                #                       across multiple training iterations.
-                class_optimizer.zero_grad()
 
                 # Forward Pass
                 res_output = resnet(inputs)
+
+                # Zero the gradients -- Ensuring gradients not accumulated
+                #                       across multiple training iterations.
+                class_optimizer.zero_grad()
+                
                 output = clas_net(res_output).squeeze()
+
+                # Zero the gradients -- Ensuring gradients not accumulated
+                #                       across multiple training iterations.
+                class_optimizer.zero_grad()
 
                 # Calculate Loss with Cross Entropy.
                 loss = criterion_class(output, labels)
@@ -278,10 +287,11 @@ if all_train == 1:
                 # Optimizer step - Update model parameters.
                 class_optimizer.step()
 
-                print(loss)
-
                 # Keep track of running loss.
                 running_loss += loss.item()
+
+                if scheduler_active == 1:
+                    scheduler_clas.step()
 
                 # Print Loss Info while training.
                 if (i + 1) % 1 == 0:
@@ -289,6 +299,46 @@ if all_train == 1:
                     running_loss = 0.0
 
                 class_loss_list.append(loss.item())
+
+            # Validation
+            print(">>Validating")
+            clas_net.eval()
+
+            # Evaluating - Gradient doesn't change.
+            with torch.no_grad():
+                # Loop over every batch in data loader.
+                for i, (inputs, labels) in enumerate(validloader_clas, 0):
+                    # Extract data and transfer to GPU.
+                    inputs = inputs.to(device)
+                    labels = labels.to(device, dtype=torch.float)
+
+                    # Zero the gradients -- Ensuring gradients not accumulated
+                    #                       across multiple training iterations.
+                    class_optimizer.zero_grad()
+
+                    # Forward Pass
+                    res_output = resnet(inputs)
+
+                    output = clas_net(res_output).squeeze()
+
+                    # Zero the gradients -- Ensuring gradients not accumulated
+                    #                       across multiple training iterations.
+                    class_optimizer.zero_grad()
+
+                    # Calculate Loss with Cross Entropy.
+                    loss = criterion_class(output, labels)
+
+                    # Keep track of running loss.
+                    val_running_loss += loss.item()
+
+                    # Print Loss Info while training.
+                    if (i + 1) % 1 == 0:
+                        print(f'[V][Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {val_running_loss:.5f}')
+                        # print(f"[V] Anchor Size is: {anchor.size(dim=0)}, Divided: {loss / anchor.size(dim=0)}")
+                        val_running_loss = 0.0
+
+                    # valid_loss_list.append(loss.item())
+                    valid_class_loss_list.append(loss.item())
 
         # Save trained model for later use.
         torch.save(clas_net.state_dict(), CLAS_PATH)
@@ -304,7 +354,6 @@ if test == 1:
     st = time.time()
 
     # Set Model to evaluation mode.
-    #resnet.eval()
     clas_net.eval()
 
     # Gradient not required, improves performance.
@@ -315,22 +364,16 @@ if test == 1:
         for i, data in enumerate(testloader, 0):
             inputs, labels = data[0].to(device), data[1].to(device)
 
+            # Forward Pass
             features = resnet(inputs)
-
-            #print(f"Tensors: {features[0]}, {features[1]}")
-
-
-
             output = clas_net(features)
 
-
-            #print(f"Output is: {output}, {output[0]==output[1]}")
-            #print(f"Softmax is: {torch.softmax(output, dim=1)}")
-
             #predicted = torch.softmax(output, dim=1).argmax(dim=1)
-            print(f"Output is {output}")
-            predicted = torch.round(torch.sigmoid(output))
-            print(f"After Sigmoid is {predicted}")
+            print(f"Output is {output} while labels are {labels}")
+            #predicted = torch.sigmoid(output)
+            #print(f"After Sigmoid is {predicted}")
+            predicted = torch.round(output)
+            print(f"After round is {predicted}")
 
             # For each image in the batch -> as .size is [batch, channel, height, width]
             for index in range(inputs.size(0)):
@@ -352,22 +395,28 @@ if test == 1:
 
 # Plot the loss over the many iterations of training.
 if plot_loss == 1:
-    plt.figure(figsize=(8, 12))
-    plt.subplot(3, 1, 1)
+    plt.figure(figsize=(16, 12))
+    plt.subplot(2, 2, 1)
     plt.title("Resnet Loss")
     plt.plot(loss_list)
     plt.xlabel("Iterations")
     plt.ylabel("Loss")
 
-    plt.subplot(3, 1, 2)
+    plt.subplot(2, 2, 2)
     plt.title("Validation Resnet Loss")
     plt.plot(valid_loss_list)
     plt.xlabel("Iterations")
     plt.ylabel("Loss")
 
-    plt.subplot(3, 1, 3)
+    plt.subplot(2, 2, 3)
     plt.title("Classifier Loss")
     plt.plot(class_loss_list)
+    plt.xlabel("Iterations")
+    plt.ylabel("Loss")
+
+    plt.subplot(2, 2, 4)
+    plt.title("Validation Classifier Loss")
+    plt.plot(valid_class_loss_list)
     plt.xlabel("Iterations")
     plt.ylabel("Loss")
 
