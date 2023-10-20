@@ -21,3 +21,7 @@ matplotlib 3.7.2
 numpy 1.25.2
 scikit-image 0.20.0
 Pillow 9.4.0
+
+## References
+[Image Super-Resolution using an Efficient Sub-Pixel CNN](https://keras.io/examples/vision/super_resolution_sub_pixel/#image-superresolution-using-an-efficient-subpixel-cnn)
+[ADNI Data](https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI)
