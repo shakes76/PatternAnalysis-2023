@@ -75,11 +75,15 @@ The model's accuracy is poor, 50%, and after further investigation, the model ap
 
 # Accuracy of model during testing
 ![40 Epoch training accuracy](./plots/40epochtrainingaccuracy.png)
+
 This plot shows that the accuracy of the model does increase, however slowly. It plateaus after around 10 epochs. The model does not seem to learn anything after this point. The increase in accuracy in very gradual on the learning increase in the first 10 epochs, going from 51.3% to 51.6%. The model appears only to guess randomly and not learn the Alzheimer's detection. 
 
 # Accuracy of model for entire testing set
 ![40 Epoch accuracy on testing dataset](./plots/40epochpredictingaccuracy.png)
+
 The model initially appears to have an extremely high accuracy but quickly drops to just above 50%. This is possibly due to the having lucky early on in testing or from the first testing batch having mainly brains with Alzheimer's as the model seemed to predict Alzheimer's more commonly. Then, the model fluctuates around 53% accuracy. 
+
+Overall, the model does not predict which images have Alzheimer’s accurately. This could be from the dataset being too small or the model overfitting the training images. Another additional reason could be the positional embedded. When I tested this, I found no difference between having positional image embedding and not. However, I should attempt to use other embedded methods like learned embedding. In future development of this model, I will aim to test other variations of positional embeddings to see their impact on the model's accuracy. Furthermore, I will attempt to use a larger dataset and ensure that the same patient's scans are all within the same testing folder. This could potentially cause the model to detect relations between the brains. 
 
 # References
 [1]	A. Vaswani et al., "Attention is all you need," presented at the Proceedings of the 31st International Conference on Neural Information Processing Systems, Long Beach, California, USA, 2017.

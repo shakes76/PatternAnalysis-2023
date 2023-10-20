@@ -53,7 +53,7 @@ plt.title("Accuracy")
 plt.legend()
 plt.show()
 
-plt.plot(correct_predictions)
+plt.plot(running_accuracy)
 plt.xlabel('Epoch')
 plt.ylabel('Correct predictions')
 plt.title("Accuracy")
