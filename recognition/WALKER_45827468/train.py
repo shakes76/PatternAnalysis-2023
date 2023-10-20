@@ -68,7 +68,7 @@ for epoch in range(NUM_EPOCH):
         total_loss += loss.item()
     print("EPOCH", epoch, ":")
     print("     TRAINING LOSS:", total_loss / float(len(train_loader)))
-    loss_train.append(total_loss)
+    loss_train.append(total_loss / float(len(train_loader)))
     
     ImpUNET.eval()
     total_loss = 0
@@ -82,7 +82,7 @@ for epoch in range(NUM_EPOCH):
             
             total_loss += loss.item()
     print("     VALIDATION LOSS:", total_loss / float(len(valid_loader)))
-    loss_valid.append(total_loss)
+    loss_valid.append(total_loss / float(len(valid_loader)))
     
 # save model and associated losses
 torch.save(ImpUNET, "impUNetMODELsig.pth")
@@ -100,4 +100,4 @@ plt.plot(loss_valid, label="validation loss")
 plt.xlabel("Epoch")
 plt.ylabel("Loss (BCE)")
 plt.legend()
-plt.savefig("lossgraphsig.jpg")
+plt.savefig("lossgraph.jpg")
