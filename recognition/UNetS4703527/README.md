@@ -93,4 +93,16 @@ This project requires the following dependencies:
 - OpenCV
 - Pandas
 - Tqdm
+### Refernces 
+
+- https://medium.com/analytics-vidhya/image-classification-with-tf-keras-introductory-tutorial-7e0ebb73d044
+- https://medium.com/geekculture/semantic-image-segmentation-using-unet-28dbc247d63e
+- https://medium.com/@CereLabs/understanding-u-net-architecture-for-image-segmentation-74bef8caefee
+- https://medium.com/mlearning-ai/understanding-evaluation-metrics-in-medical-image-segmentation-d289a373a3f#:~:text=Dice%20coefficient%20%3D%20F1%20score%3A%20a,recall%2C%20or%20vice%2Dversa.
+- https://keviinkibe.medium.com/performing-image-segmentation-using-tensorflow-1c82608d2233
+- https://arxiv.org/pdf/1505.04597.pdf
+- https://medium.com/analytics-vidhya/image-input-pipeline-using-tensorflow-c9f729ead09f
+- https://financial-engineering.medium.com/tensorflow-2-0-load-images-to-tensorflow-897b8b067fc2
+- https://pyimagesearch.com/2022/02/21/u-net-image-segmentation-in-keras/
+- https://keras.io/examples/vision/oxford_pets_image_segmentation/
 
