@@ -257,7 +257,7 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
     return average_loss, val_acc
 
 
-"""
+
 # train with contrastive
 if __name__ == '__main__':
     random.seed(2023)
@@ -293,7 +293,7 @@ if __name__ == '__main__':
         drop_last=True
     )
 
-    criterion = ContrastiveLoss()
+    criterion = ContrastiveLoss(margin=1)
 
     lr = 0.005
     weight_decay = 1e-5
@@ -302,7 +302,7 @@ if __name__ == '__main__':
     epochs = 100
 
     main_contrastive(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
-"""
+
 
 
 """
