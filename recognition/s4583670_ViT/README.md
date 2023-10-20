@@ -44,7 +44,7 @@ The images were resized and cropped about the centre for a size of 240px x 240px
 ![alt text](images/brains-after-processing.png)
 
 ## Model Implementation
-The desi#gned model follows the following architecture:
+The designed model follows the following architecture:
 
 ![alt text](images/report-flowchart.drawio.png)
 
