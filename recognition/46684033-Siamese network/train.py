@@ -338,7 +338,7 @@ for epoch in range(num_epoch):
     validation_loss.append(sum(total_val_loss_this_epoch) / len(total_val_loss_this_epoch))
     print("Epoch [{}/{}], Training Loss: {:.5f} Training Accuracy: {:.5f}% Testing Loss: {:.5f} Validation accuracy: {:.5f}%"
           .format(epoch + 1, num_epoch, c_loss.item(), train_acc, tc_loss.item(),test_acc))
-
+    torch.save(classifier, f"C:\\Users\\wongm\\Desktop\\COMP3710\\project\\classifier_{epoch + 1}.pth")
 
 epochs = list(range(1, num_epoch + 1))
 
