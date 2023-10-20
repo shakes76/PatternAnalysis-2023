@@ -7,25 +7,19 @@ import torchvision.utils as vutils
 import numpy as np
 import matplotlib.pyplot as plt
 from modules import Generator, MappingNetwork
-from config import learning_rate, channels, batch_size, image_size, log_resolution, image_height
-from config import image_width, z_dim, w_dim, lambda_gp
+from config import device, log_resolution
+from config import modelName, z_dim, w_dim
 
 log_resolution = 8
 z_dim = 512
 w_dim = 512
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-model_name', default='./Models/', help='Name of model under inference')
-parser.add_argument('-load_path_mapping', default='./Models/MAPPING_NETWORK_OASIS_With_Preprocessing_A100_512_lat.pth', help='Checkpoint to load path from')
-parser.add_argument('-load_path', default='./Models/GENERATOR_OASIS_With_Preprocessing_A100_512_lat.pth', help='Checkpoint to load path from')
+parser.add_argument('-load_path_mapping', default=f'./Models/MAPPING_NETWORK_{modelName}.pth', help='Provide the load path of the mapping network')
+parser.add_argument('-load_path_generator', default=f'./Models/GENERATOR_{modelName}.pth', help='Provide the load path of the generator network')
 parser.add_argument('-num_output', default=64, help='Number of generated outputs')
-parser.add_argument('-plt_title', default="Generated Images", help='Title for the plot')
+parser.add_argument('-plt_title', default="Generated Images", help='Provide a title for the plot')
 args = parser.parse_args()
-
-# Set the device to run on GPU if available
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if not torch.cuda.is_available():
-    print("Warning CUDA not Found. Using CPU")
 
 # Create the mapping network
 mapping_network = MappingNetwork(z_dim, w_dim).to(device)
@@ -67,7 +61,7 @@ def get_noise(batch_size):
 generator = Generator(log_resolution, w_dim).to(device)
 
 # Load the trained generator weights.
-generator.load_state_dict(torch.load(args.load_path, map_location=device))
+generator.load_state_dict(torch.load(args.load_path_generator, map_location=device))
 print(generator)
 
 print(f'Number of images to output: {args.num_output}')
