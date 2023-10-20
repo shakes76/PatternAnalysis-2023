@@ -13,7 +13,7 @@ CROSS_ATTENTION_HEADS = 1 # How many cross attentions to use in model
 SELF_ATTENTION_HEADS = 4 # How many self-attentions to run per level
 SELF_ATTENTION_DEPTH = 4 # How many times to run the self-attention
 MODEL_DEPTH = 4 # The number of times to repeat the block of cross-attention, self-attention and latent transformer
-EPOCHS = 30 # Amount of epochs to run the training for
+EPOCHS = 40 # Amount of epochs to run the training for
 BATCH_SIZE = 5 #Batch size of images used
 LEARNING_RATE = 0.0004 # Learning rate for training
 SAVE_PATH_LOCATION = "./MODEL.txt"
@@ -54,8 +54,8 @@ for epoch in range(EPOCHS):
         correct += torch.sum(predicted == labels).item()
         running_loss += loss.item()
 
-    print(f"Epoch {epoch} completed")
-    loss_data.append(running_loss / 500)
+    print("Epoch " + epoch + " finished")
+    loss_data.append(running_loss / total)
     accuracy.append(correct / total)
 
 print("The loss data is ", loss_data)
@@ -70,7 +70,7 @@ plt.show()
 plt.plot(accuracy)
 plt.xlabel('Epoch')
 plt.ylabel('Accuracy')
-plt.title('Trainging accuracy over epochs')
+plt.title('Training accuracy over epochs')
 plt.show()
 
 plt.plot(loss_data, label="Loss data", color="blue")

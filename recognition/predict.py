@@ -24,6 +24,7 @@ perceiver.load_state_dict(torch.load(MODEL))
 #perceiver.to(device)
 correct_predictions = 0
 total_predictions = 0
+running_accuracy = []
 
 test_dataset = ADNI(BATCH_SIZE).testing_data_loader
 with torch.no_grad():
@@ -37,9 +38,7 @@ with torch.no_grad():
         total_predictions += labels.shape[0]
         #correct_predictions += (predicted == labels).sum().item()
         correct_predictions += torch.sum(predicted == labels).item()
-        
-        if (index == 50):
-            break
+        running_accuracy.append(correct_predictions / total_predictions)
 
 print("Total correct detections are", correct_predictions)
 print("Total predictions are", total_predictions)
@@ -53,3 +52,10 @@ plt.ylabel('Accuracy')
 plt.title("Accuracy")
 plt.legend()
 plt.show()
+
+plt.plot(correct_predictions)
+plt.xlabel('Epoch')
+plt.ylabel('Correct predictions')
+plt.title("Accuracy")
+plt.show()
+
