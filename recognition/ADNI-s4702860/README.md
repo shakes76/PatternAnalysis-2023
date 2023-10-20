@@ -140,8 +140,12 @@ accuracy curves ![Validation curves for classifier](Figures/Classification_Accur
 
 ## Preprocessing and Data Augumentation
 Image data generators were chosen as not only are they computationally cheap, they also allow
-for data Augumentation quite easily. 
-Typically the data was normalized, however, it also allowed for random variences such as pizel dimension, rotation etc.
+for data Augumentation quite easily ([IDG](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator)). 
+Typically ,the data was normalized, however generators also allowed for random variences such as pixel dimension, rotation etc., which 
+would increase the generalizability. 
 Attempts were made to try and load the data generator into the model. Results found that the model
-while training on the dataset would take substancial time per iteration. 
-As such, only a subset of features were trained and tested upon [IDG](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator). 
+while training on the dataset would take substancial time per iteration, and as such, only a subset of (random) features
+were trained and tested on. 
+As for the data split, the ADNI dataset comes pre-batched into training and validation splits, with each also having 
+there own class label. Interestingly, the ADNI dataset has no seen data in the testing set, so patients who were in training will not be 
+tested ([ADNI](https://adni.loni.usc.edu/)). 
