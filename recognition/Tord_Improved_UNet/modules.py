@@ -6,9 +6,9 @@ import torch.nn as nn
 
 #Class implementation of model source code
 
-class UNet3D(nn.Module):
+class ImprovedUNET(nn.Module):
     def __init__(self, in_channels, out_channels):
-        super(UNet3D, self).__init__()
+        super(ImprovedUNET, self).__init__()
         
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
         self.context1 = context_module(out_channels, out_channels)
@@ -56,37 +56,34 @@ class UNet3D(nn.Module):
         self.lastconv = nn.Conv2d(in_channels, in_channels, kernel_size=1)
         self.segmentation_layer4 = nn.Conv2d(in_channels, in_channels, kernel_size=1)
         self.sample = nn.Upsample(scale_factor=2)
-    
-    def element_wise_sum(self, x, y):
-        x = x + y
-        return x
-    
+        self.featureReduc = nn.Conv2d(32, 1, kernel_size=1)
+
     def forward(self, x):
         features = []
         x = self.conv1(x)
         elem1 = x
         x = self.context1(x)
-        x = self.element_wise_sum(x, elem1)
+        x = x + elem1
         features.append(x)
         x = self.conv2(x)
         elem2 = x
         x = self.context2(x)
-        x = self.element_wise_sum(x, elem2)
+        x = x + elem2
         features.append(x)
         x = self.conv3(x)
         elem3 = x
         x = self.context3(x)
-        x = self.element_wise_sum(x, elem3)
+        x = x + elem3
         features.append(x)
         x = self.conv4(x)
         elem4 = x
         x = self.context4(x)
-        x = self.element_wise_sum(x, elem4)
+        x = x + elem4
         features.append(x)
         x = self.conv5(x)
         elem5 = x
         x = self.context5(x)
-        x = self.element_wise_sum(x, elem5)
+        x = x + elem5
         x = self.up1(x)
         x = torch.cat((x, features[-1]), dim=1)
         x = self.localization1(x)
@@ -102,10 +99,11 @@ class UNet3D(nn.Module):
         x = torch.cat((x, features[-4]), dim=1)
         x = self.lastconv(x)
         segmentation4 = self.segmentation_layer4(x)
-        combine1 = self.element_wise_sum(segmentation2, segmentation3)
+        combine1 = segmentation2 + segmentation3
         combine1 = self.sample(combine1)
-        conbine2 = self.element_wise_sum(combine1, segmentation4)
-        final = nn.Softmax(dim=1)(conbine2)
+        conbine2 = combine1 + segmentation4
+        combineLast = self.featureReduc(conbine2)
+        final = nn.Sigmoid()(combineLast)
         return final
 
 def context_module(in_channels, out_channels):
