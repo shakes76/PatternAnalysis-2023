@@ -1,3 +1,4 @@
-recognition/ViT-ADNI-s4532823/__pycache__
+__pycache__
 *.pt
 Training_vs*.png
+README.pdf
