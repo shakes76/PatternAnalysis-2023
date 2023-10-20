@@ -51,8 +51,9 @@ The convergence is very slow when training at around 100 epochs, and the subsequ
 
 The generated code and image are as follows:
 
-<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/547967dd50082d3618473d6ab722719a44fecb63/recognition/VQ-VAE-46495408/Images/pixel_test_image_3.png" width="300">
-<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/547967dd50082d3618473d6ab722719a44fecb63/recognition/VQ-VAE-46495408/Images/pixel_test_image_4.png" width="300">
+<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/1294fa615793764af35dd1064c52a7181b9b90e5/recognition/VQ-VAE-46495408/Images/pixel_test_image_1.png" width="300">
+<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/1294fa615793764af35dd1064c52a7181b9b90e5/recognition/VQ-VAE-46495408/Images/pixel_test_image_2.png" width="300">
+<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/1294fa615793764af35dd1064c52a7181b9b90e5/recognition/VQ-VAE-46495408/Images/pixel_test_image_3.png" width="300">
 
 ## Future Outlook
 The training results of VQ-VAE are quite noticeable, and the reconstructed photos are relatively high-quality. However, the photos generated using PixelCNN have significant differences from real ones. I suspect this is a result of suboptimal training. There are several possible remedies to try:
