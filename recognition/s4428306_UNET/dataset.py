@@ -93,9 +93,9 @@ def normalize(image, mask):
     #image = tf.squeeze(image)
     #mask = tf.squeeze(mask)
     #Convert mask to one hot encoding.
-    mask = tf.cast(mask, tf.int8)
-    mask = tf.one_hot(mask, 2)
-    mask = tf.squeeze(mask)
+    #mask = tf.cast(mask, tf.int8)
+    #mask = tf.one_hot(mask, 2)
+    #mask = tf.squeeze(mask)
     return image, mask
 
 #Based on code from:

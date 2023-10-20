@@ -10,31 +10,34 @@ from matplotlib import pyplot as plt
 #      Reference UNet model this is based on.
 #      Write documentation for these functions/classes.
 
+#Going to make this exclusively 1 class now.
 class Dice(tf.keras.losses.Loss):
-    def __init__(self, reduction=tf.keras.losses.Reduction.AUTO, name=None, k=1):
-        super().__init__(reduction=reduction, name=name)
-        self.k = k
-
     def call(self, y_true, y_pred):
         #NOTE: Want to know if whole batches are being passed to this function.
         #      If so, surely it would have complained by now, right?
+        #      Turns out the predictions should have been rounded.
+        #      Rounding them makes this function non-differentiable.
+        #y_pred = tf.math.round(y_pred)
         print("Y_TRUE SHAPE", y_true.shape)
         print("Y_PRED SHAPE", y_pred.shape)
         #Compute Dice loss.
-        total = 0
-        for i in range(self.k):
-            #Will these be different shapes if batches are used?
-            y_true_i = y_true[:, :, i]
-            y_pred_i = y_pred[:, :, i]
-            numerator = tf.math.reduce_sum(y_true_i * y_pred_i)
-            denominator = tf.math.reduce_sum(y_true_i) + tf.math.reduce_sum(y_pred_i)
-            total += numerator / denominator
-        return -1 * (2 / self.k) * total
+        #NOTE: Is the way this for loop is created not differentiable?
+        #      May need to look at other dice function implementations.
+        #for i in range(self.k):
+        #Will these be different shapes if batches are used?
+        #y_true_i = y_true[:, :, i]
+        #y_pred_i = y_pred[:, :, i]
+        numerator = tf.math.reduce_sum(y_true * y_pred)
+        denominator = tf.math.reduce_sum(y_true) + tf.math.reduce_sum(y_pred)
+        total = numerator / denominator
+        return -2 * total
 
-    def get_config(self):
-        config = super().get_config()
-        config.update({"k": self.k})
-        return config
+#NOTE: Not actually dice related.
+#      Just makes sure accuracy is measured properly.
+class DiceAccuracy(tf.keras.metrics.Accuracy):
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        y_pred = tf.math.round(y_pred)
+        return super().update_state(y_true, y_pred, sample_weight)
 
 #Plotting code taken from:
 #https://stackoverflow.com/questions/41908379/keras-plot-training-validation-and-test-set-accuracy
@@ -70,13 +73,14 @@ def train_main():
     #lr_schedule = tf.keras.optimizers.schedules.ExponentialDecay(0.0005, STEPS_PER_EPOCH, 0.985)
     #NOTE: No l2 decay yet.
     #a_opt = tf.keras.optimizers.Adam(learning_rate=lr_schedule)
-    dice_loss = Dice(k=2)
+    dice_loss = Dice()
+    dice_accuracy = DiceAccuracy()
     #Build model.
     iunet_model = build_improved_unet_model()
     iunet_model.summary()
     iunet_model.compile(optimizer=tf.keras.optimizers.Adam(),
                         loss=dice_loss,
-                        metrics="accuracy")
+                        metrics=dice_accuracy) #"accuracy")
     model_history = iunet_model.fit(train_batches,
                                     epochs=NUM_EPOCHS,
                                     steps_per_epoch=STEPS_PER_EPOCH,
