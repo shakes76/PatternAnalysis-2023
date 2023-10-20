@@ -38,7 +38,7 @@ The network takes a RGB channeled image as input, and outputs a binary segmentat
 [^3]: https://paperswithcode.com/task/semantic-segmentation
 [^4]: https://arxiv.org/abs/1802.10508v1
 
-## preprocessing
+## dataset creation
 The image sizes in the dataset varey. This causes problems when loading the data from the pytorch dataloader.
 As a work around fo this issue a standard image size can be specified in the macro *IMAGE_SIZE* in ***dataset.py*** .
 The path of the dataset should be specified in the following macros in ***dataset.py***:
@@ -62,14 +62,19 @@ val_data = ISICDataset(img_dir=TRAIN_DATA_PATH, truth_dir=TRAIN_TRUTH_PATH, spli
 In this example the train data will be allocated the first 90% of the directory,
 and the valuation data will be allocated the last 10%.
 
+# Preproccesing
+The ISIC 2018 training dataset consists of 2594 images. to push the algorithm to train on more complex data,
+Image augmentation is included when loading the dataset. The image augmentation consists of random rotation and image flipping.
+This allows the network to train on a more diverse data.
+
 ## Training
 The Network was trained with an initial learning rate of *5e-4* and a linear step scheduler with stepsize of 4 and
 a gamma value of 0.985. The network trained for 60 epochs. Due to high traffic on the computing cluster[^5] the images was rezised to
-64 x 64 pixels to allow for training on the cpu on a computer. (The final product should be reprodusable for higher image qualities as well).
+64 x 64 pixels to allow for training on the cpu on a computer.
 
 [^5]: https://rcc.uq.edu.au/high-performance-computing
 ## example segmentation
-![example of image segmentation](images/segmentation_example.png)
+![example of image segmentation](images/segmentation_example_1.png)
 
 ## loss function
 The dice loss function is used during training on this dataset.
@@ -97,10 +102,17 @@ class DiceLoss(nn.Module):
         return 1 - dice
 ```
 
+## Final product
+The model achieves a average dice score of 0.8 with each individual dice score being represented in the plot below.
+Further improvements of the training should be tested to improve the minimum dice scores for the set.
+
+![dice score plot](images/individual_dsc.png)
+
 ## dependencies
 * pytorch (2.1.0) for dataset creation, data loading and torchvision functionality and training
 * pillow (10.0.1) for image loading
 * matplotlib (3.7.2) for plotting
+* numpy (1.24.3) for plotting
 
 ## References
 [1] Noel Codella, Veronica Rotemberg, Philipp Tschandl, M. Emre Celebi, Stephen Dusza, David Gutman, Brian Helba, Aadi Kalloo, Konstantinos Liopyris, Michael Marchetti, Harald Kittler, Allan Halpern: "Skin Lesion Analysis Toward Melanoma Detection 2018: A Challenge Hosted by the International Skin Imaging Collaboration (ISIC)", 2018; https://arxiv.org/abs/1902.03368
