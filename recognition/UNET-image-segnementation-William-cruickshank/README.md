@@ -39,17 +39,13 @@ This is the structuring that was used for the modules, these were similar to the
 
 ## Example input and output
 
-### Input Image
+### Input (True) Mask
 
-![Input Image](URL_TO_INPUT_IMAGE)
+![Input Mask](saved_test_images\0.png)
 
-### Input Mask
+### Output (Predicted) Mask
 
-![Input Mask](URL_TO_INPUT_MASK)
-
-### Output Mask
-
-![Output Mask](URL_TO_OUTPUT_MASK)
+![Output Mask](saved_test_images\pred_0.png)
 
 ---
 
@@ -57,11 +53,11 @@ This is the structuring that was used for the modules, these were similar to the
 
 ### Dice vs Epoch
 
-![Dice vs Epoch Alt Text](URL_TO_DICE_VS_EPOCH_GRAPH)
+![Dice vs Epoch Alt Text](dice_vs_epoch.png)
 
 ### Loss vs Epoch
 
-![Loss vs Epoch Alt Text](URL_TO_LOSS_VS_EPOCH_GRAPH)
+![Loss vs Epoch Alt Text](loss_vs_epoch.png)
 
 ---
 
