@@ -6,6 +6,9 @@ from dataset import get_train_dataset, get_test_dataset, get_dataset_variance
 from matplotlib import pyplot as plt
 
 def plot_vqvae_history(history):
+    """
+    Plot the loss and ssim of  VQ-VAE trainer
+    """
     plt.plot(history.history['loss'])
     plt.plot(history.history['reconstruction_loss'])
     plt.plot(history.history['vqvae_loss'])
@@ -42,6 +45,9 @@ def train_vqvae():
     plot_vqvae_history(vqvae_history)
     
 def visualize_vqvae_results():
+    """
+    Generate reconstructed images using trained VQ-VAE
+    """
     # Load the trained weights to vq-vae trainer
     vqvae_trainer = VQVAETrainer(0.03525, latent_dim=32, num_embeddings=128)
     vqvae_trainer.load_weights('recognition/VQ-VAE-46495408/checkpoint/vqvae_ckpt')
@@ -90,6 +96,9 @@ def visualize_vqvae_results():
     plt.show()
     
 def plot_pixelcnn_history(history):
+    """
+    Plot the training results of Pixel CNN model
+    """
     # Plot the loss for PixelCNN model
     plt.plot(history.history['loss'])
     plt.plot(history.history['val_loss'])
@@ -111,6 +120,7 @@ def plot_pixelcnn_history(history):
     plt.close()
     
 def train_pixelcnn():
+    """Train the Pixel CNN Model"""
     # Load the trained weights to vq-vae trainer
     vqvae_trainer = VQVAETrainer(train_variance, latent_dim=32, num_embeddings=128)
     vqvae_trainer.load_weights('recognition/VQ-VAE-46495408/checkpoint/vqvae_ckpt')

@@ -2,6 +2,9 @@ import tensorflow as tf
 import matplotlib.pyplot as plt
 
 def get_train_dataset():
+    """
+    Load the train data from the data folder
+    """
     train_ds = tf.keras.utils.image_dataset_from_directory(
         'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_train',
         label_mode=None,
@@ -15,6 +18,9 @@ def get_train_dataset():
     return train_ds
 
 def get_validate_dataset():
+    """
+    Load the train data from the data folder
+    """
     validate_ds = tf.keras.utils.image_dataset_from_directory(
         'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_validate',
         label_mode=None,
@@ -28,6 +34,9 @@ def get_validate_dataset():
     return validate_ds
 
 def get_test_dataset():
+    """
+    Load the test data from the data folder
+    """
     test_ds = tf.keras.utils.image_dataset_from_directory(
         'recognition/VQ-VAE-46495408/keras_png_slices_data/keras_png_slices_test',
         label_mode=None,
@@ -41,6 +50,9 @@ def get_test_dataset():
     return test_ds
 
 def preview_images():
+    """
+    Plot images in the dataset
+    """
     train_ds = next(iter(get_train_dataset().take(1)))
     plt.figure(figsize=(10,10))
     plt.title("Sample of images froxm OASIS train dataset")
@@ -52,6 +64,9 @@ def preview_images():
     plt.show()
     
 def get_dataset_variance(dataset):
+    """
+    Calculate the variance of the dataset
+    """
     # Calculate the mean value
     sum = 0
     num_samples = 0

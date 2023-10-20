@@ -3,7 +3,14 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import layers
 
+"""
+Code reference source: https://keras.io/examples/generative/vq_vae/
+"""
+
 class VectorQuantizer(layers.Layer):
+    """
+    Build the vector quantizer layers
+    """
     def __init__(self, num_embeddings, embedding_dim, beta=0.25, **kwargs):
         super().__init__(**kwargs)
         self.embedding_dim = embedding_dim
@@ -59,6 +66,9 @@ class VectorQuantizer(layers.Layer):
         return encoding_indices
     
 def get_encoder(latent_dim=16):
+    """
+    Build the encoder layers
+    """
     encoder_inputs = keras.Input(shape=(256, 256, 1))
     x = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same")(encoder_inputs)
     x = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same")(x)
@@ -66,6 +76,9 @@ def get_encoder(latent_dim=16):
     return keras.Model(encoder_inputs, encoder_outputs, name="encoder")
 
 def get_decoder(latent_dim=16):
+    """
+    Build the decoder layers
+    """
     latent_inputs = keras.Input(shape=get_encoder(latent_dim).output.shape[1:])
     x = layers.Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same")(
         latent_inputs)
@@ -74,6 +87,9 @@ def get_decoder(latent_dim=16):
     return keras.Model(latent_inputs, decoder_outputs, name="decoder")
 
 def get_vqvae(latent_dim=16, num_embeddings=128):
+    """
+    Build the full VQ-VAE
+    """
     vq_layer = VectorQuantizer(num_embeddings, latent_dim, name="vector_quantizer")
     encoder = get_encoder(latent_dim)
     decoder = get_decoder(latent_dim)
@@ -84,6 +100,9 @@ def get_vqvae(latent_dim=16, num_embeddings=128):
     return keras.Model(inputs, reconstructions, name="vq_vae")
 
 class VQVAETrainer(keras.models.Model):
+    """
+    Implement training for the VQ-VAE model
+    """
     def __init__(self, train_variance, latent_dim=32, num_embeddings=128, **kwargs):
         super().__init__(**kwargs)
         self.train_variance = train_variance
@@ -137,6 +156,9 @@ class VQVAETrainer(keras.models.Model):
         }
         
 class PixelConvLayer(layers.Layer):
+    """
+    Build the pixel convolution layer using the 2D convolution layer
+    """
     def __init__(self, mask_type, **kwargs):
         super().__init__()
         self.mask_type = mask_type
@@ -158,6 +180,9 @@ class PixelConvLayer(layers.Layer):
         return self.conv(inputs)
         
 class ResidualBlock(keras.layers.Layer):
+    """
+    Build the residual block using the 2D convolution layer and the pixel convolution layer
+    """
     def __init__(self, filters, **kwargs):
         super().__init__(**kwargs)
         self.conv1 = keras.layers.Conv2D(
@@ -181,6 +206,9 @@ class ResidualBlock(keras.layers.Layer):
         return keras.layers.add([inputs, x])
     
 def get_pixel_cnn(pixelcnn_input_shape, num_embeddings):
+    """
+    Build the pixel CNN model with input shape and embedding numbers of VQ-VAE
+    """
     num_residual_blocks = 2
     num_pixelcnn_layers = 2
     pixelcnn_inputs = keras.Input(shape=pixelcnn_input_shape, dtype=tf.int32)
