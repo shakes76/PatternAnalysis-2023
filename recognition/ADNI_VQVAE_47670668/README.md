@@ -5,9 +5,9 @@ student number: 47670668
 Chosen project: #8 - Vector Quantised Variational Auto Encoder (VQ-VAE) on ADNI dataset.
 
 
-# VQVAE with PixelCNN Prior for ADNI Brain Data Set Generation
+# VQVAE for ADNI Brain Data Set Generation
 ## Description
-Variational autoencoders (VQVAE) are a class of generative models proficient in reconstructing and generating high-dimensional data from lower-dimensional embeddings. In our unique implementation, we incorporate PixelCNN as a prior for the latent codes, which enhances the quality and diversity of generated MRI brain scans from the ADNI dataset. Our combined approach not only reconstructs the intricate details and structures of brain scans but also achieves a Structured Similarity (SSIM) of over 0.6.
+Variational autoencoders (VQVAE) are a class of generative models proficient in reconstructing and generating high-dimensional data from lower-dimensional embeddings. In our unique implementation, we incorporate histogram distribution to generate new latent codes. Our combined approach not only reconstructs the intricate details and structures of brain scans but also achieves a Structured Similarity (SSIM) of over 0.6.
 
 ## How it works
 ### VQVAE:
