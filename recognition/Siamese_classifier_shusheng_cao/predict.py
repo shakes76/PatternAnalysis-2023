@@ -61,7 +61,7 @@ def predict_classifier(data_dir, model_path):
     siamese_testset = ADNIDataset(data_dir, transform)
     testloader = torch.utils.data.DataLoader(siamese_testset, batch_size=32, shuffle=True, pin_memory=True)
 
-    model = Classifier()
+    model = Classifier(2)
     model.load_state_dict(torch.load(model_path))
     model.to(device)
 
