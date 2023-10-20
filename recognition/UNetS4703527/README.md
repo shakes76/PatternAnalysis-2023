@@ -82,3 +82,15 @@ To Predict the masks on the model run
 pyton predict.py --path "your-data-set-path"
 ```
 Make sure to have a results folder to save you predicted masks.
+
+### Dependencies
+
+This project requires the following dependencies:
+
+- Python 3.x
+- TensorFlow 2.x
+- NumPy
+- OpenCV
+- Pandas
+- Tqdm
+
