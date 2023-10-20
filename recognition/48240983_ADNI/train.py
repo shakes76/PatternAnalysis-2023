@@ -23,7 +23,6 @@ class Net(nn.Module):
     def forward(self, x):
         x = self.pool(torch.relu(self.conv1(x)))
         x = self.pool(torch.relu(self.conv2(x)))
-
         x = self.adaptive_pool(x)
         x = x.view(x.size(0), -1)
         x = torch.relu(self.fc1(x))
@@ -114,6 +113,11 @@ print('Finished Training')
 # Plot the training and test loss with the same range of epochs
 plt.figure(figsize=(10, 4))
 plt.subplot(1, 2, 1)
+
+# Find the minimum of the two loss lists and set it as the lower y-limit
+y_min = min(min(loss_values), min(test_loss_values))
+plt.ylim(y_min, None)
+
 plt.plot(range(1, 11), loss_values, label='Train', color='blue')  # Training loss in blue
 plt.plot(range(1, 11), test_loss_values, label='Test', color='red')  # Testing loss in red
 plt.xlabel('Epoch')
