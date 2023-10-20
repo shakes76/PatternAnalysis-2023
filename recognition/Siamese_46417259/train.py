@@ -71,7 +71,7 @@ def train_siamese_one_epoch(model: SiameseNeuralNet,
         criterion: the loss function
         optimiser: the optimizer
         device: the device to train on
-        train_loader: the training data
+        train_loader: the dataloader containing training data
     """
     model.train()
     start = time.time()
@@ -118,7 +118,7 @@ def eval_siamese_one_epoch(model: SiameseNeuralNet,
         model: the Siamese network
         criterion: the loss function
         device: the device to train on
-        test_loader: the test data
+        test_loader: the dataloader to be tested
     """
     model.eval()
     start = time.time()
@@ -164,7 +164,7 @@ def train_classifier_one_epoch(model: nn.Module,
         criterion: the loss function
         optimiser: the optimizer
         device: the device to train on
-        train_loader: the training data
+        train_loader: the dataloader containing training data
     """
     model.train()
     backbone.eval()
@@ -218,7 +218,7 @@ def eval_classifier_one_epoch(model: nn.Module,
         backbone: the embedding network
         criterion: the loss function
         device: the device to train on
-        test_loader: the test data
+        test_loader: the dataloader to be tested
     """
     model.eval()
     backbone.eval()
@@ -267,7 +267,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     args:
         total_epochs: the epoch number to end training at. if resuming from a checkpoint, 
             this should be the number of epochs to train for in total, not the number of epochs to train for after resuming
-        random_seed: random seed to reduce variability in training
+        random_seed: random seed for reproducibility
         checkpoint: if resuming training from a checkpoint, the file name of that the checkpoint. Do not include the path.
             the filepath should be defined in CONSTANTS.py
     """
@@ -335,7 +335,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
         backbone: the embedding network to be used
         total_epochs: the epoch number to end training at. if resuming from a checkpoint, 
             this should be the number of epochs to train for in total, not the number of epochs to train for after resuming
-        random_seed: random seed to reduce variability in training
+        random_seed: random seed for reproducibility
         checkpoint: if resuming training from a checkpoint, the file name of that the checkpoint. Do not include the path.
             the filepath should be defined in CONSTANTS.py
     """

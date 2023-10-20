@@ -111,8 +111,8 @@ def visualise_sample_predictions(classifier, backbone, device, random_seed=None,
         backbone: the trained embedding network
         device: the device to run the inferencing on
         random_seed: the random seed to use for reproducibility
-        save_name: the name of the file to save the visualisation to. do not include the path.
-            the filepath should be defined in CONSTANTS.py. if None, the visualisation will be shown instead of saved
+        save_name: the filename to save the visualisation as. if None, the visualisation will be shown instead of saved
+            do not include the path. the filepath should be defined in CONSTANTS.py. 
     """
     # For reproducibility if desired. RNG seeding is handled in load_test_data()
     if random_seed is not None:

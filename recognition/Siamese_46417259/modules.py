@@ -4,7 +4,11 @@ import torch.nn.functional as F
 
 # images are size [3, 240, 240]
 class SiameseTwin(nn.Module):
-    # the backbone / embedding network of the Siamese Neural Network
+    """
+    the backbone / embedding network of the Siamese Neural Network
+    expected input: images of size [3, 240, 240]
+    output: feature vector of size [4096, 1]
+    """
     def __init__(self) -> None:
         super(SiameseTwin, self).__init__()
 
@@ -31,7 +35,11 @@ class SiameseTwin(nn.Module):
         return out
     
 class SiameseNeuralNet(nn.Module):
-    # the overall Siamese Neural Network
+    """
+    the overall Siamese Neural Network
+    expected input: two images of size [3, 240, 240] each
+    output: two feature vectors of size [4096, 1] each
+    """
     def __init__(self) -> None:
         super(SiameseNeuralNet, self).__init__()
 
@@ -46,8 +54,12 @@ class SiameseNeuralNet(nn.Module):
         return self.backbone
 
 class SimpleMLP(nn.Module):
-    # the classifier network
-    # works in conjunction with the embedding network, input is the embedding network's output
+    """
+    the classifier network
+    works in conjunction with the embedding network
+    expected input: feature vector of size [4096, 1] (the embedding network's output)
+    output: a single value between 0 and 1 representing the likelihood an image is Cognitive Normal
+    """
     def __init__(self) -> None:
         super(SimpleMLP, self).__init__()
         
