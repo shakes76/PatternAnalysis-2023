@@ -1,3 +1,46 @@
+# Table of Contents
+
+- [**Introduction**](#introduction)
+- [**Dataset**](#dataset)
+  - [Training, Testing, and Validation Splits](#dataset)
+  - [Image Specifications](#dataset)
+  - [Dataset Samples](#dataset)
+- [**Model Definitions**](#model-definitions)
+  - [**VQ-VAE**](#vq-vae)
+    - [VQ-VAE Architecture](#vq-vae)
+    - [VQ-VAE Framework](#vq-vae)
+    - [Description and Components](#vq-vae)
+    - [Loss Mechanisms](#vq-vae)
+    - [Pseudocode](#vq-vae)
+  - [**PixelCNN**](#pixelcnn)
+    - [PixelCNN Architecture](#pixelcnn)
+    - [How it Works](#pixelcnn)
+    - [The Loss Mechanism](#pixelcnn)
+- [**Visualization**](#visualization)
+  - [Sample Output Images](#visualization)
+  - [Training Progress GIFs](#visualization)
+- [**Training Insights**](#training-insights)
+  - [Overview of Metrics](#training-insights)
+  - [Graphs and Observations](#training-insights)
+- [**Scope of Improvement**](#scope-of-improvement)
+  - [Model Architecture Enhancements](#scope-of-improvement)
+  - [Hyperparameter Tuning](#scope-of-improvement)
+  - [Data Augmentation](#scope-of-improvement)
+  - [And more...](#scope-of-improvement)
+- [**Future Roadmap**](#future-roadmap)
+- [**Dependencies**](#dependencies)
+- [**Directory Structure**](#directory-structure)
+- [**Usage**](#usage)
+  - [Mounting Google Drive](#usage)
+  - [Path Set-up](#usage)
+  - [Running the Main Function](#usage)
+- [**Training**](#training)
+- [**Prediction with Optional Pre-trained Model**](#prediction-with-optional-pre-trained-model)
+- [**Output**](#output)
+- [**References**](#references)
+
+
+
 # VQ-VAE with PixelCNN for Brain Image Reconstruction and Generation
 
 ## Introduction
@@ -15,17 +58,17 @@ The dataset is split into:
 
 Each image is of shape 128x128.
 
-![Dataset Samples](path_to_dataset_samples_image)
+![Dataset Samples](Resources/Input.png)
 
 ## Model Definitions
 
 ### VQ-VAE
 
 #### VQ-VAE Architecture
-![VQ-VAE Architecture](path_to_vqvae_architecture_image)
+![VQ-VAE Architecture](Resources/model_architecture.png)
 
 #### VQ-VAE Framework
-![VQ-VAE Framework](path_to_vqvae_framework_image)
+![VQ-VAE Framework](Resources/VQ-VAE_Framework.png)
 
 VQ-VAE is used for the compression of brain images. It comprises three main components: an encoder, a vector quantizer, and a decoder. The encoder maps input images to a continuous representation, which is then quantized by the vector quantizer. The quantized representation is finally mapped back to the original image space using the decoder.
 
@@ -47,57 +90,89 @@ Where:
 
 **VQ Loss** = Commitment Loss + Codebook Loss
 
-#### Pseudocode
-``` FUNCTION main():
+### Pseudocode
+```
+INITIALIZE necessary libraries
+SET device, paths, and directories
 
-    INITIALIZE device, paths, and directories
+DEFINE BrainSlicesDataset:
+    INITIALIZE with image slices
+    DEFINE methods to get length and item
 
-    LOAD brain slices images
-    PREPROCESS images
-    SPLIT dataset into training, testing, and validation
+DEFINE function to load and extract image slices
+DEFINE function to retrieve image slices and provide summary
 
-    CREATE data loader for training
+DEFINE VectorQuantizer class:
+    INITIALIZE embeddings and parameters
+    FORWARD function to perform quantization and compute loss
 
+DEFINE Encoder class:
+    INITIALIZE encoder neural network
+    FORWARD function to encode input
+
+DEFINE Decoder class:
+    INITIALIZE decoder neural network
+    FORWARD function to decode input
+
+DEFINE VQVAE class:
+    INITIALIZE encoder, vector quantizer, and decoder
+    FORWARD function to perform end-to-end VQ-VAE processing
+
+DEFINE VQVAETrainer class:
     INITIALIZE VQ-VAE model
-    SET optimizer and loss functions for VQ-VAE
+    FORWARD function to compute losses and perform reconstruction
 
-    FOR each epoch:
-        FOR each batch in training data:
+DEFINE PixelConvLayer class:
+    INITIALIZE convolutional layer with mask
+    FORWARD function to apply masked convolution
+    CREATE mask based on mask type
+
+DEFINE PixelCNN class:
+    INITIALIZE layers for PixelCNN
+    FORWARD function for end-to-end PixelCNN processing
+
+DEFINE training functions:
+    TRAIN VQ-VAE
+        LOOP through epochs:
             FORWARD pass through VQ-VAE
-            COMPUTE loss
+            COMPUTE losses
             BACKWARD pass
             UPDATE model weights
-        VISUALIZE reconstructed images
-
-    INITIALIZE PixelCNN model
-    SET optimizer and loss functions for PixelCNN
-
-    FOR each epoch:
-        FOR each batch in training data:
+        VISUALIZE results after each epoch
+    TRAIN PixelCNN
+        LOOP through epochs:
             FORWARD pass through PixelCNN
             COMPUTE loss
             BACKWARD pass
             UPDATE model weights
 
-    VISUALIZE original vs. VQ-VAE reconstructed images
-    VISUALIZE PixelCNN generated images
-    DISPLAY histograms and loss plots
+DEFINE visualization functions:
+    VISUALIZE original vs reconstructed images
+    VISUALIZE samples generated by PixelCNN
+    COMPARE original with PixelCNN generated image
 
-END FUNCTION
+MAIN function:
+    LOAD brain slice images
+    INITIALIZE and TRAIN VQ-VAE
+    INITIALIZE and TRAIN PixelCNN
+    VISUALIZE results using the trained models
 
-CALL main()
+EXECUTE main function
 ```
 
 ### PixelCNN
 PixelCNN is like an artist with a paintbrush, creating images one pixel at a time. It's a generative model that cleverly utilizes convolutional and residual blocks. 
 The idea is to compute the distribution of prior pixels to guess the next pixel.
 
+![PixelCNN Architecture](Resources/pcnn_model.png)
+
 **How it Works:**
 1. **Initial Convolution**: The input image is passed through a convolutional layer.
    This process is a bit like using a magnifying glass to inspect the image, where the "receptive fields" help the model learn features for all the pixels simultaneously.
    But there's a catch! We use masks, termed 'A' and 'B', to ensure that we're not "cheating" by looking at pixels we shouldn't.
    The 'A' mask restricts connections to only the pixels we've already predicted, while the 'B' mask allows connections only from predicted pixels to the current ones.
-3. **Residual Blocks**: After the initial convolution, the data flows through residual blocks.
+   
+2. **Residual Blocks**: After the initial convolution, the data flows through residual blocks.
    These blocks are smart! Instead of trying to learn the output directly, they focus on learning the difference (or residuals) between the expected output and the current one.
    This is achieved by creating shortcuts (or skip connections) between layers.
 
@@ -109,14 +184,15 @@ PixelCNN is a generative model trained to predict the next pixel's value in an i
 
 Functions are provided to visualize the reconstructions made by the VQ-VAE, as well as images generated by the PixelCNN. This includes side-by-side comparisons of original and reconstructed/generated images, histograms of encoding indices, and various loss plots.
 
-#### Sample Input Image
-![Input Image](path_to_input_image)
-
 #### Sample Output Image
-![Output Image](path_to_output_image)
+Output at epoch = 2
+![Output Image](Resources/2.png)  
+
+Output at epoch = 30
+![Output Image](Resources/30.png)
 
 #### Training Progress
-![Training GIF](path_to_training_gif)
+![Training GIF](Resources/3x2_gif.gif)     ![Training GIF](Resources/1x2_gif.gif)
 
 ## Training Insights
 
@@ -128,37 +204,39 @@ From the data provided:
 - **Perplexity** - Perplexity provides insights into the diversity of the embeddings being used. A higher perplexity indicates that more embeddings from the codebook are being actively used.
   
 1. **Reconstruction Loss:**
+   
 This graph showcases the reconstruction loss over epochs. The reconstruction loss quantifies how well the reconstructed output from the VQ-VAE matches the original input. A lower value of this loss indicates that the VQ-VAE is effectively reproducing the original images from its encoded representations.
 
-![Reconstruction Loss Graph](path_to_reconstruction_loss_graph)
+![Reconstruction Loss Graph](Resources/Reconstruction_Losses.png)
 
-Observations:
+#### Observations:
 
 The reconstruction loss demonstrates a declining trend, which suggests that as the training progresses, the model becomes better at reconstructing the input data.
 This is expected behavior during training as the model adapts its weights and biases to minimize the difference between the original input and the reconstructed output.
 
 2. **VQ Loss:**
+   
 This graph depicts the vector quantization (VQ) loss over epochs. The VQ loss measures the discrepancy between the encoder's output and the nearest embedding from the codebook. It ensures that the continuous representations from the encoder are effectively transformed to discrete values that can be looked up in the codebook.
 
-![VQ Loss Graph](path_to_vq_loss_graph)
+![VQ Loss Graph](Resources/VQ_Losses.png)
 
-Observations:
+#### Observations:
 
 The VQ loss also displays a general decreasing trend, albeit with some fluctuations. This indicates that, over time, the encoder's outputs are getting closer to the codebook embeddings, ensuring effective quantization.
 The fluctuations might suggest that the model is exploring different parts of the latent space during training.
 
 3. **Perplexity:**
+   
 This graph illustrates the perplexity over epochs. Perplexity offers insights into the diversity of the embeddings being used. A higher perplexity indicates that a wider range of embeddings from the codebook is being actively utilized.
 
-![Perplexity Graph](path_to_perplexity_graph)
+![Perplexity Graph](Resources/Perplexities.png)
+![Perplexity Graph](Resources/Perplexity_over_training.png)
 
-Observations:
+#### Observations:
 
 The perplexity seems to rise initially and then stabilizes, which implies that as the model trains, it starts using a broader variety of embeddings from the codebook.
 The stabilization of perplexity suggests that the model has reached a point where it consistently uses a certain number of embeddings from the codebook for representation.
 Overall, these graphs provide insights into the training dynamics of the VQ-VAE model. The decreasing reconstruction and VQ losses indicate that the model is learning effectively. The behavior of perplexity suggests that the model is leveraging a diverse set of embeddings from the codebook for representation, which is a good sign of a well-trained model.
-
-![Loss and Perplexity Plots](path_to_loss_perplexity_plots)
 
 # Scope of Improvement
 - **Model Architecture Enhancements**: The current architecture can be improved by adding more convolutional layers or integrating techniques like batch normalization to stabilize and accelerate the training process.
