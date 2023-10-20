@@ -30,11 +30,24 @@ tqdm       = 4.65.0
 
 Once everything is installed, make sure to change the file paths in train.py (line 26-29) and predict.py (line 17-18) to where your data is installed.
 
-In terms of preprocessing the data, it was already separated into training, validation and test before it was downloaded and left in those splits
+In terms of preprocessing the data, it was already separated into training, validation and test before it was downloaded and left in those splits. In total there are 3694 images with 2594 used for training (70.2%), 100 used for validation (2.7%) and 1000 used for testing (27.1%).
 
 ## inputs and outputs
 ![gif of the 30 epoch progress](https://github.com/valensmith/PatternAnalysis-2023/blob/topic-recognition/recognition/Project/images/ezgif.com-gif-maker.gif)
-
+![Epochs1](https://github.com/valensmith/PatternAnalysis-2023/blob/topic-recognition/recognition/Project/images/1-15.PNG)
+![Epochs2](https://github.com/valensmith/PatternAnalysis-2023/blob/topic-recognition/recognition/Project/images/16-30%2Btime.PNG)
 ## Training and Validation Plots
 ![loss curve](https://github.com/valensmith/PatternAnalysis-2023/blob/topic-recognition/recognition/Project/images/LossCurve.png)
 ![dice curve](https://github.com/valensmith/PatternAnalysis-2023/blob/topic-recognition/recognition/Project/images/DiceCurve.png)
+
+## Predictions
+![results](https://github.com/valensmith/PatternAnalysis-2023/blob/topic-recognition/recognition/Project/images/result.PNG)
+
+The output from predict.py shows that the model exceeds the goal Dice score of 0.8
+
+## References
+https://arxiv.org/abs/1802.10508v1
+
+https://pytorch.org/docs/stable/index.html
+
+https://www.geeksforgeeks.org/u-net-architecture-explained/
