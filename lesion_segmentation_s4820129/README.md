@@ -5,9 +5,9 @@
   - [Training procedure](#training-procedure)
   - [Results](#results)
   - [Dependencies](#dependencies)
-  
+
 <p align="center">
-  <img src="images/grid_plot.png" alt="Model_inference_on_batch" width="400"/>
+  <img src="images/grid_plot.png" alt="Model_inference_on_batch" width="700"/>
 </p>
 
 ### Dataset
@@ -43,16 +43,16 @@ As proposed in the paper [], a dice similarity loss function is used to train th
  Due to the limitation in training and a batch size of 32 the results here are obtained from the 8 epochs of training. The metrics used to evaluate the model were dice score, dice loss and the accuracy of the model. The accuracy is computed by accepting the predicted image as a 1.0 where the prediction is > 0.5. After 18 epochs, this was how the models prediction compared to the actual mask:
 
 <p align="center">
-  <img src="images/loss19epoch29.png" alt="Dice_score=0.8" width="400"/>
+  <img src="images/loss19epoch29.png" alt="Dice_score=0.8" width="700"/>
 </p>
 <p align="center">
-  <img src="images/dice.svg" alt="dice_score_plot" width="400"/>
+  <img src="images/dice.svg" alt="dice_score_plot" width="700"/>
 </p>
 <p align="center">
-  <img src="images/loss.svg" alt="loss_score_plot" width="400"/>
+  <img src="images/loss.svg" alt="loss_score_plot" width="700"/>
 </p>
 <p align="center">
-  <img src="images/acc.svg" alt="acc_plot" width="400"/>
+  <img src="images/acc.svg" alt="acc_plot" width="700"/>
 </p>
 
 
