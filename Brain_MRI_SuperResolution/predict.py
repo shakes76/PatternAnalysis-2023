@@ -6,18 +6,30 @@ HEIGHT = 256
 WIDTH = 256
 DOWNSCALE_FACTOR = 4
 
-import tensorflow as tf
 
+# Function to calculate the Peak Signal-to-Noise Ratio (PSNR) between true and predicted images
 def psnr_metric(y_true, y_pred):
+    """Calculate the PSNR between y_true and y_pred."""
     return tf.image.psnr(y_true, y_pred, max_val=1.0)
 
-def predict(model, image):
-    """Use the model to predict the image from the lowres image and plot results"""
-    input = tf.expand_dims(image, axis=0)
-    output = model.predict(input)
-    plt.imshow(output[0] / 255.0)
 
-    # plt.imshow(output[0] / 255.0, cmap='gray')
+def predict(model, image):
+    """
+        Use the given model to predict the high-resolution version of an image.
+
+        Arguments:
+        - model: Trained super-resolution model
+        - image: Low-resolution input image
+
+        Returns:
+        - Displays the high-resolution prediction using matplotlib
+        """
+    # Expanding the dimensions of the input image for the model prediction
+    input = tf.expand_dims(image, axis=0)
+    # Getting the model prediction
+    output = model.predict(input)
+    # Displaying the output image
+    plt.imshow(output[0] / 255.0)
 
     plt.title("Upscaled Image")
     plt.axis('off')
@@ -25,15 +37,24 @@ def predict(model, image):
 
 
 def displayPredictions(model, test_image_path):
-    """Function used to display the Original image, the low resolution image
-        and the upscaled image the model has predicted"""
+    """
+       Load a test image, display its original and low-resolution versions,
+       and then use the model to predict and display its high-resolution version.
 
-    # Load the image
+       Arguments:
+       - model: Trained super-resolution model
+       - test_image_path: Path to the test image
+       """
+
+    # Load the test image
     image = tf.io.read_file(test_image_path)
     image = tf.io.decode_jpeg(image, channels=1)
+
+    # Resize the image to original dimensions and downscale it to get the low-resolution version
     original = tf.image.resize(image, [HEIGHT, WIDTH])
     downscaled = tf.image.resize(original, [100, 100], method=tf.image.ResizeMethod.BILINEAR)
 
+    # Plot and display the original and downscaled images side by side
     plt.figure(figsize=(10, 5))
 
     plt.subplot(1, 2, 1)
@@ -48,6 +69,7 @@ def displayPredictions(model, test_image_path):
     plt.tight_layout()
     plt.show()
 
+    # Predict the high-resolution version of the downscaled image
     predict(model, downscaled)
 
 
@@ -60,6 +82,8 @@ model = tf.keras.models.load_model(
         "psnr_metric": psnr_metric
     }
 )
-test_image_path = 'AD_NC/test/AD/388206_87.jpeg'
+# Image used fot testing
+test_image_path = 'AD_NC/test/AD/390461_93.jpeg'
 
+# Display the test image predictions using the model
 displayPredictions(model, test_image_path)
