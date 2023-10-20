@@ -96,8 +96,8 @@ def train_and_validate(
                 batch_correct = 0
 
         # Storing Training Epoch Performance
-        train_losses.append(total_train_loss / len(train_loader))
-        train_accuracies.append(total_train_correct / len(train_loader))
+        train_losses.append(total_train_loss / total_samples)
+        train_accuracies.append(total_train_correct / total_samples)
 
         # Validation Phase
         model.eval()

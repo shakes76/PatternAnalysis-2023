@@ -119,7 +119,7 @@ Predictions are saved as images to the output folder, see below for an example o
 
 The AlzViT model achieved impressive results with an accuracy exceeding 80% on the Alzheimer's Disease Neuroimaging Initiative (ADNI) test dataset. This showcases the power of Vision Transformers (ViTs) in handling complex medical image classification tasks.
 
-Within training the model achieved an impressive 86.29% on the validation set, please see below for the validation loss and validation accuracy per epoch of training (please note that the model used for testing was trained for 50 epochs, the below data is a reference to the training performance over shorter periods as training the model is quite computer intensive as such a smaller epoch count is displayed for performance reference, further epochs of training yielded minimal improvements to the performance of the model);
+Within training, the model achieved an impressive 86.29% on the validation set indicating the model generalizes well on unseen data. Please see below for the validation cross entropy loss and validation accuracy per epoch of training (please note that the model used for testing was trained for 50 epochs, the below data is a reference to the training performance over shorter periods as training the model is quite computer intensive taking roughly 26.4 hrs of compute time to train for 50 epochs, as such a smaller epoch count is displayed for performance reference, further epochs of training yielded minimal improvements to the performance of the model);
 
 ![Loss_Time](images/loss_time.png)
 
@@ -127,7 +127,7 @@ Within training the model achieved an impressive 86.29% on the validation set, p
 
 From above we can see a decreasing stable and very low Training loss value between Epochs, this suggests that the model is fitting the training data relatively well allowing for the model to converge and effectively minimize the loss on the validation set.
 
-Additionally, from above we can see the Validation Accuracy steadily increases per Epoch suggesting the model has an increasing generalization ability on data it has not seen before.
+Additionally, from above we can see the Validation Accuracy steadily increases per Epoch suggesting the model has an increasing generalization ability on data it has not seen before as previously stated.
 
 Both results indicate the model is fitting well with the data and pulling the relative relationships within the data.
 
