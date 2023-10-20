@@ -35,7 +35,7 @@ A VAE is a type of generative model that falls under the umbrella of autoencoder
 
 </p>
 
-#####Encoding layer
+__Encoding layer__
 
 Summarised from [this paper](https://shashank7-iitd.medium.com/understanding-vector-quantized-variational-autoencoders-vq-vae-323d710a888a), the encoder layer takes in an image noted as x with the following parameters: 
 - n: batch size
@@ -43,11 +43,11 @@ Summarised from [this paper](https://shashank7-iitd.medium.com/understanding-vec
 - w: image width
 - c: number of channels in the input image
 
-##### Vector Quantization layer
+__Vector Quantization layer__
 
 The VQ layer operates in six key steps, illustrated in Figure 2. Initially, a Reshape combines dimensions into vectors. Distances are then calculated between these vectors and those in the embedding dictionary, yielding a matrix. The Argmin step finds the index of the closest dictionary vector for each input vector. Subsequently, the closest dictionary vectors replace the original vectors. Reversing the Reshape operation, vectors are restored to the shape (n, h, w, d). Since backpropagation can't flow through Argmin, gradients are approximated by copying them from the quantized vector (z_q) back to the original vector (z_e). Despite not directly minimizing the loss function, this process transmits information for training.
 
-#####Decoding layer
+__Decoding layer__
  The decoder in a VQ-VAE is typically a neural network responsible for generating data samples from the latent representations produced by the encoder. In the context of a VQ-VAE, the decoder is responsible for reconstructing the data, such as images or audio, from the discrete latent variables learned during the encoding process.
 
 <p align="center">
@@ -257,6 +257,7 @@ The hyper-parameters for this model are specified below and incorporated through
 
 ---
 ## References
+
 [1] https://shashank7-iitd.medium.com/understanding-vector-quantized-variational-autoencoders-vq-vae-323d710a888a
 [2] https://keras.io/examples/generative/vq_vae/
 [3] https://en.wikipedia.org/wiki/Structural_similarity
