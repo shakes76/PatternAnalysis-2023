@@ -160,9 +160,10 @@ As you can see from the code, pairwise distance is used to find the dissimilarit
 ### Example usage
 
 Now we run some of our code and see how it does. First ill run the training and plot the loss function to see if our model is actuall learning. 
-![Figure_2](https://github.com/Picayune1/PatternAnalysis-2023/assets/141021565/2c109f32-0c53-42fb-92b8-8e6287fc48c8)
 
-The fact that the loss does not change may be due to not enough data or the model not being strong enought to hansle the data, the model used was 
+![Figure_3](https://github.com/Picayune1/PatternAnalysis-2023/assets/141021565/9f5e6bb1-5d52-4d7a-b90f-96525485fc9f)
+
+As you can see the loss does seem to show a steady trend of decreasing. The model used to generate this example is below and was given about 2.5 hours to train through the dataset
 ```
 layer = "VGG16"
     in_channels = 1
@@ -174,7 +175,7 @@ layer = "VGG16"
     optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
 ```
 
-That being said, the code did porduce and accuracy of 60%. This may either be due to random chance, or that the default model with no training could already spot some differences in the images with AD compared to those without. 
+The accuracy produced was 60% which may be due to learning, or may be due to random chance. I do beleive though that the model and loss function used were correct, and if better image preprocessing was used and the model had more time to tran and ran through more epochs, it could produce and accuracy of 80%.
 
 
 
