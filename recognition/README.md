@@ -13,4 +13,13 @@ torchvision
 matplotlib
 pandas
 ```
+
 # Model
+The Improved UNet model was constructed as outlined by [1], diagram given below:
+![HELLO](modelstructure.png)
+
+## Context
+
+## Localisation
+
+## Segmentation
