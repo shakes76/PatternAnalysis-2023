@@ -100,7 +100,7 @@ save_image(test_quantized, 'quantized-single-sample.png')
 # ========== TRAIN GAN ==========
 
 # GAN Hyper params
-LR_GAN = 1e-4
+LR_GAN = 2e-4
 BATCH_SIZE_GAN = 256
 MAX_EPOCHS_GAN = 20
 Z_DIM_GAN = 100
@@ -117,9 +117,17 @@ D = Discriminator()
 G = G.to(device)
 D = D.to(device)
 
+# weight initialisation
+for l in G.modules():
+    if isinstance(l, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)) and l.weight.data.dim() > 1:
+        nn.init.kaiming_normal_(l.weight.data, nonlinearity='leaky_relu')
+for l in D.modules():
+    if isinstance(l, (nn.Conv2d, nn.ConvTranspose2d, nn.BatchNorm2d)) and l.weight.data.dim() > 1:
+        nn.init.kaiming_normal_(l.weight.data, nonlinearity='leaky_relu')
+
 # criterion
-g_optimizer = torch.optim.Adam(G.parameters(), lr=LR_GAN, betas=(0.5, 0.999))
-d_optimizer = torch.optim.Adam(D.parameters(), lr=LR_GAN, betas=(0.5, 0.999))
+g_optimizer = torch.optim.Adam(G.parameters(), lr=LR_GAN, betas=(0.9, 0.999))
+d_optimizer = torch.optim.Adam(D.parameters(), lr=LR_GAN, betas=(0.9, 0.999))
 criterion = nn.BCELoss().to(device)
 
 # train GAN
@@ -148,13 +156,12 @@ for epoch in range(MAX_EPOCHS_GAN):
         fake_score = outputs
 
         # Backwards propagation + optimize
-        d_loss = d_loss_real + d_loss_fake
+        d_loss = (d_loss_real + d_loss_fake) / 2
         D.zero_grad()
         d_loss.backward()
         d_optimizer.step()
 
         # train generator
-        z = Variable(torch.randn(batch_size, Z_DIM_GAN, 1, 1)).to(device)
         fake_images = G(z)
         outputs = D(fake_images)
 
@@ -163,18 +170,14 @@ for epoch in range(MAX_EPOCHS_GAN):
         g_loss = criterion(outputs, real_labels)  # BCE
 
         # Backprob + Optimize
-        D.zero_grad()
         G.zero_grad()
         g_loss.backward()
         g_optimizer.step()
 
         if (i + 1) % LOG_STEP_GAN == 0:
-            # print("Epoch [%d/%d], Step[%d/%d], d_loss: %.4f, g_loss: %.4f, D(x): %.2f, D(G(z)): %.2f" % (
-            #     epoch, max_epoch, i + 1, total_batch, d_loss.data.item(), g_loss.data.item(), real_score.data.mean(),
-            #     fake_score.data.mean()))
-            print("Epoch [%d/%d], Step[%d/%d], D(x): %.2f, D(G(z)): %.2f" % (
-                epoch, MAX_EPOCHS_GAN, i + 1, len(gan_train_dl.dataset) // batch_size, real_score.data.mean(),
-                fake_score.data.mean()))
+            print("Epoch [%d/%d], Step[%d/%d], d_loss: %.5f, g_loss: %.5f, D(x): %.5f, D(G(z)): %.5f" % (
+                epoch, MAX_EPOCHS_GAN, i + 1, len(gan_train_dl.dataset) // batch_size, d_loss.data, g_loss.data,
+                real_score.data.mean(), fake_score.data.mean()))
 
 # save models
 t.save(G, os.path.join(MODEL_PATH, "generator.txt"))

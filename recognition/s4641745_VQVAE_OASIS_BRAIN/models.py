@@ -14,7 +14,7 @@ def conv(ch_in, ch_out, k_size, stride=2, pad=1, bn=True):
 
 def deconv(ch_in, ch_out, k_size, stride=2, pad=1, bn=True):
     layers = []
-    layers.append(nn.ConvTranspose2d(ch_in, ch_out, k_size, stride, pad))
+    layers.append(nn.ConvTranspose2d(ch_in, ch_out, k_size, stride, pad, bias=False))
     if bn:
         layers.append(nn.BatchNorm2d(ch_out))
     return nn.Sequential(*layers)
