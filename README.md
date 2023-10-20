@@ -130,7 +130,7 @@ Furthermore, the class token that was part of the Transformer Encoder in the ori
 ## Architecture of Vision Transformer 
 Following the initial input layer of the Vision Transformer, the data proceeds to the PatchLayer. Within this layer, the images are divided into patches, each with dimensions defined by the constant PATCH_SIZE. Moreover, Shifted Patch Tokenization is employed on the input images before the patching process. As a result of this operation, the original image is partitioned into patches as follows:
 
-<p align="center">
+<p align="left">
     <img src="resources/brain1.png" alt="MRI Patches">
 </p>
 
