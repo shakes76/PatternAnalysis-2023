@@ -9,26 +9,28 @@ Submission Date: 20/10/2023
 The ADNI (Alzheimer's Disease Neuroimaging Initiative) Brain Dataset includes both MRI (Magnetic Resonance Imaging) and PET (Positron Emission Tomography) scans. By analysing these scans using deep learning models, we can effectively detect whether a patient has Alzheimer's disease. In this project, a Siamese Neural Network will be utilised to assist in the classification of brain scans into one of two categories: Alzheimer's Disease (AD) or Normal Cognitive ability (NC).
 
 ## Description of Algorithm: 
-A Siamese network consists of two identical neural networks with the same weights and parameters, each of which takes in an input images. The main objective of an SNN is to differentiate between two images i.e. provide a measure of similarity between the inputs. The outputs of the networks are 128-dimensional feature vectors which are fed into a contrastive loss function, which calculates a similarity measure between the two images. The siamese network should effectively be trained to distinguish between a brain scan which shows AD and NC, the embeddings for a certain class should be groups together and separated for different classes. To classify an image into one of two classes, a Multi Layer Perceptron was trained to take in the feature embedding from the Siamese Neural Network and classify it into one of two classes: Alzheimer's Disease (AD) or Normal Cognitive Ability (NC).
+A Siamese network consists of two identical neural networks with the same weights and parameters, each of which takes in an input image. The main objective of an SNN is to differentiate between two images i.e. provide a measure of similarity between the inputs. The outputs of the networks are 128-dimensional feature vectors which are fed into a contrastive loss function, which calculates a similarity measure between the two images. The siamese network should effectively be trained to distinguish between a brain scan which shows AD and NC. The embeddings for a certain class should be groups together and separated for different classes. To classify an image into one of two classes, a Multi Layer Perceptron was trained to take in the feature embedding from the Siamese Neural Network and classify it into one of two classes: Alzheimer's Disease (AD) or Normal Cognitive Ability (NC).
 
-## Diagram of Siamese Neural Network Classifier
-The classifier is made up of two separate stages, the first is the Siamese Neural Network, which takes in a 3 x 128 x 128 image and outputs a 1D feature vector embedding of size 128. The second stages is the multi-layer perceptron, which takes in an embedding and classifies it. Both these architectures can be found in the <i>modules.py</i> file.
+## Breakdown of Siamese Neural Network Classifier
+The classifier is made up of two separate stages, the first is the Siamese Neural Network, which takes in a 3 x 128 x 128 image and outputs a 1D feature vector embedding of size 128. The second stage is the multi-layer perceptron, which takes in an embedding and classifies it. Both these architectures can be found in the <i>modules.py</i> file.
 
 
 ![](siamese_diagram.png) Imaged sourced from [1]
 * The inputs to the Siamese Neural Network are pairs of images and a label corresponding to if the images belong to the same class.
-* The outputs of the Siamese Neural Network are embeddings of the input images.
+* The output of the Siamese Neural Network is a 128-dimension feature vector embeddings of the input image.
 
 <br>
 
 ![](MLP_Diagram.png)
 
-* The inputs to the MLP is an embedding vector of size 128 x 1 and label corresponding to it's class.
+* The input to the MLP is an embedding vector of size 128 x 1 and label corresponding to it's class.
 * The output of the MLP is a single value between 0 and 1.
 
 
 ## Dataset Structure
 The ADNI dataset is currently stored on the Rangpur HPC and has the following file structure.
+
+> There are a total of 9001 images in the test dataset, and 21521 images in the train dataset.
 
 /home/groups/comp3710/<br>
 &nbsp;&nbsp;&nbsp;&nbsp;->ADNI<br>
@@ -39,7 +41,6 @@ The ADNI dataset is currently stored on the Rangpur HPC and has the following fi
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->AD<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;->NC<br>
 
-> There are a total of 9001 images in the test dataset, and 21521 images in the train dataset.
 
 ## Data Preprocessing
 Firstly, the images were labelled using a short script which produces a csv file with two columns: image path and image label. This csv file was then used to create custom datasets for the ADNI dataset. Three datasets were created:
@@ -47,7 +48,7 @@ Firstly, the images were labelled using a short script which produces a csv file
 2. MLP Classifier training dataset
 3. Testing Dataset
 
-A transform was also applied to the images, which crops them to 128x128, converts them to tensors, and normalises them for faster convergence. A sample of images from the dataset is shown below:
+A transform was also applied to the images, which crops them to 128x128, converts them to tensors, and normalises them for faster convergence. A sample batch of images from the dataset is shown below:
 
 ![](Sample_Data.png)
 
@@ -133,8 +134,6 @@ Output:
 Predicted Class: 0
 Raw Output: 0.48585471510887146
 ```
-
-
 
 
 ## Dependencies
