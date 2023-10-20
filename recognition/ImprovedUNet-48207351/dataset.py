@@ -56,6 +56,8 @@ class ISICDataLoader(Dataset):
 
         self.dataset = [(img, 0) for img in train_images] + [(img, 1) for img in val_images] + [(img, 2) for img in test_images]
 
+        
+
 
 
 

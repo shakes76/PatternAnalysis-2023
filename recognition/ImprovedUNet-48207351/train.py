@@ -5,20 +5,9 @@ from torch.utils.data import DataLoader, Dataset
 import numpy as np
 
 from modules import ImprovedUNET
-from dataset import train_images, val_loader, test_images
+from dataset import train_images, val_images, test_images
 
-# Hyperparameters etc.
-LEARNING_RATE = 1e-4
-DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 16
-NUM_EPOCHS = 500
-NUM_WORKERS = 2
-IMAGE_HEIGHT = 160  # 1280 originally
-IMAGE_WIDTH = 240  # 1918 originally
-PIN_MEMORY = True
-LOAD_MODEL = False
-
-# Define the Dice loss function
+# Dice loss function
 class DiceLoss(nn.Module):
     def __init__(self):
         super(DiceLoss, self).__init__()
@@ -36,9 +25,9 @@ if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
 
-def train_unet_with_dice_loss(data, labels, num_epochs=300, batch_size=2, lr_init=5e-4, weight_decay=1e-5):
+def train_unet_with_dice_loss(data, labels, num_epochs=300, batch_size=2, lr_init=1e-4, weight_decay=1e-5):
     # Create a DataLoader for the dataset
-    dataloader = DataLoader(val_loader, batch_size=batch_size, shuffle=True)
+    dataloader = DataLoader(val_images, batch_size=batch_size, shuffle=True)
 
     # Define the loss function (Dice loss) and optimizer
     criterion = DiceLoss()
