@@ -11,9 +11,6 @@ import utils
 from dataset import Dataset, ModelDataset
 from train import TrainVQVAE, TrainGAN
 from predict import Predict
-from test import TestVQVAE
-import matplotlib.pyplot as plt
-import torch.nn.functional as F
 import other
 
 if __name__ == '__main__':
@@ -37,11 +34,11 @@ if __name__ == '__main__':
     if utils.VQVAE_RETRAIN :
         vqvae_trainer = TrainVQVAE(vqvae, adni_dataset, utils.VQVAE_LR, utils.VQVAE_WD, utils.VQVAE_EPOCHS, utils.VQVAE_SAVEPATH)
         vqvae_trainer.train()
+        vqvae_trainer.validate()
         vqvae_trainer.plot(save=True)
         vqvae_trainer.save(utils.VQVAE_MODEL_PATH)
     else :
-        # vqvae.load_state_dict(torch.load(utils.VQVAE_MODEL_PATH, map_location=utils.DEVICE)) # Change back to utils.VQVAE_MODEL_PATH
-        vqvae.load_state_dict(torch.load(utils.VQVAE_RANGPUR_MODEL_PATH, map_location=utils.DEVICE)) # Change back to utils.VQVAE_MODEL_PATH
+        vqvae.load_state_dict(torch.load(utils.VQVAE_MODEL_PATH, map_location=utils.DEVICE)) 
     
     # Train GAN prior
     if utils.GAN_RETRAIN :
@@ -51,22 +48,12 @@ if __name__ == '__main__':
         gan_trainer.plot(save=True)
         gan_trainer.save(utils.DISCRIMINATOR_MODEL_PATH, utils.GENERATOR_MODEL_PATH)
     else :
-        # gan.discriminator.load_state_dict(torch.load(utils.DISCRIMINATOR_MODEL_PATH, map_location=utils.DEVICE))
-        # gan.generator.load_state_dict(torch.load(utils.GENERATOR_MODEL_PATH, map_location=utils.DEVICE))
-        gan.discriminator.load_state_dict(torch.load(utils.DISCRIMINATOR_RANGPUR_MODEL_PATH, map_location=utils.DEVICE))
-        gan.generator.load_state_dict(torch.load(utils.GENERATOR_RANGPUR_MODEL_PATH, map_location=utils.DEVICE))
-
-    
-    # Run test
-    if utils.VQVAE_TEST :
-        vqvae_tester = TestVQVAE(vqvae, adni_dataset, savepath=utils.VQVAE_SAVEPATH, device=utils.DEVICE)
-        vqvae_tester.reconstruct(path=utils.VQVAE_RECONSTRUCT_PATH, show=True)
+        gan.discriminator.load_state_dict(torch.load(utils.DISCRIMINATOR_MODEL_PATH, map_location=utils.DEVICE))
+        gan.generator.load_state_dict(torch.load(utils.GENERATOR_MODEL_PATH, map_location=utils.DEVICE))
     
     # Run predict
-    if utils.VQVAE_PREDICT :
+    if utils.PREDICT :
         predict = Predict(vqvae, gan, adni_dataset, utils.DEVICE, savepath=utils.OUTPUT_PATH, img_size=64)
-        predict.generate_gan(1)
-        predict.generate_vqvae(1)
-        predict.ssim('gan')
-        predict.ssim('vqvae')
-        # predict.gan_generated_images(gan.generator, 128, utils.DEVICE)
+        predict.generate_gan()
+        predict.generate_vqvae()
+        predict.ssim()

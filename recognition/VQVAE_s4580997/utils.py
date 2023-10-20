@@ -27,8 +27,7 @@ FRACTION = 0.1
 # Running Parameters
 VQVAE_RETRAIN = False
 GAN_RETRAIN = True
-VQVAE_TEST = True
-VQVAE_PREDICT = True
+PREDICT = True
 
 # VQVAE Model Parameters
 VQVAE_HIDDEN = 128
@@ -59,10 +58,7 @@ GAN_WD = 1e-5
 GAN_EPOCHS = 20
 GAN_SAVEPATH = os.path.join(os.getcwd(), 'models/gan')
 DISCRIMINATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_discriminator.pth')
-DISCRIMINATOR_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/new/discriminator.pth')
 GENERATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')
-GENERATOR_RANGPUR_MODEL_PATH = os.path.join(os.getcwd(), 'models/rangpur/new/generator.pth')
-
 
 # Prediction Parameters
 OUTPUT_PATH = os.path.join(os.getcwd(), 'models/predictions/generated_')

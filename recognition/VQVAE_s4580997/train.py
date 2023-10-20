@@ -11,10 +11,13 @@ import torch.nn as nn
 import torch.nn.functional as F
 from dataset import Dataset
 import matplotlib.pyplot as plt
-from utils import PRINT_AT, DEVICE
+from utils import PRINT_AT, DEVICE, NOISE
 from abc import ABC, abstractmethod
 
 class Trainer(ABC) :
+    """
+    Interface for the required methods to be implemented on a trainer.
+    """
     def __init__(self, model: nn.Module, dataset: Dataset, lr=1e-3, wd=0, epochs=10, savepath='./models/vqvae') :
         self.savepath = savepath
         self.lr = lr
@@ -41,7 +44,10 @@ class TrainVQVAE(Trainer) :
     def __init__(self, model: nn.Module, dataset: Dataset, lr=1e-3, wd=0, epochs=10, savepath='./models/vqvae') :
         super().__init__(model, dataset, lr, wd, epochs, savepath)
         self.optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)        
-        self.losses = list()
+        self.total_losses = list()
+        self.quant_loss = list()
+        self.recon_loss = list()
+
 
     def train(self) -> None :
         if self.dataset.train_unloaded() :
@@ -61,7 +67,7 @@ class TrainVQVAE(Trainer) :
                 loss.backward()
                 self.optimiser.step()
 
-                self.losses.append(loss.item())
+                self.total_losses.append(loss.item())
 
                 if i % PRINT_AT == 0 :
                     print(f"Epoch: {epoch+1}/{self.epochs} Batch: {i+1}/{len(self.dataset.get_train())} Loss: {loss.item():.6f}")
@@ -69,20 +75,33 @@ class TrainVQVAE(Trainer) :
         print(f"Total Time for training: {end - start:.2f}s")
 
     def validate(self) -> None :
-        self.model = self.model.eval()
-        with torch.no_grad() :
-            for i, (data, label) in enumerate(self.dataset.get_val()) :
-                data = data.to(DEVICE)
-                embedding_loss, x_hat, perplexity = self.model(data)
-                recon_loss = torch.mean((x_hat - data)**2) / self.dataset.val_var()
-                loss = recon_loss + embedding_loss
+        x, label = next(iter(self.dataset.get_test()))
+        x = x.to(self.device)
+        x = self.model.encoder(x)
+        x = self.model.conv(x)
+        _, x_hat, _, embeddings, _ = self.model.quantizer(x)
+        x_recon = self.model.decoder(x_hat)
 
-                if i % 10 == 0 :
-                    print(f"Batch: {i+1}/{len(self.dataset.get_val())} Loss: {loss.item():.6f}")
+        rows = 4 
+        batch = x_recon.shape[0]
+        cols = batch // rows
+
+        fig, axs = plt.subplots(rows, cols, figsize=(8, 4)) 
+        axs = axs.ravel()
+
+        for i in range(x_recon.shape[0]):
+            axs[i].imshow(x_recon[i][0].detach().cpu(), cmap='gray')
+            axs[i].axis('off')
+
+        plt.subplots_adjust(wspace=0, hspace=0, left=0, right=1, bottom=0, top=1)
+        plt.savefig(self.savepath + "/reconstructed.png")
+            
                 
     def plot(self, save = True) -> None :
         plt.figure(figsize=(10, 5))
-        plt.plot(self.losses, label='Loss')
+        plt.plot(self.recon_loss, label='Reconstruction Loss')
+        plt.plot(self.quant_loss, label='Quantisation Loss')
+        plt.plot(self.total_losses, label='Total Loss')
         plt.title('Training Epochs against Loss for VQVAE')
         plt.xlabel('Iteration (Epoch * Batch Size)')
         plt.ylabel('Reconstruction Loss')
@@ -90,7 +109,7 @@ class TrainVQVAE(Trainer) :
         plt.grid(True)
 
         if save :
-            plt.savefig(self.savepath + '_training_loss.png')
+            plt.savefig(self.savepath + '_train_loss.png')
         else :
             plt.show()
 
@@ -110,7 +129,7 @@ class TrainGAN(Trainer) :
         self.criterion = nn.BCELoss().to(DEVICE)
         self.d_losses = list()
         self.g_losses = list()
-        self.latent = 100
+        self.latent = NOISE
 
     def train(self) -> None :
         if self.dataset.train_unloaded() :
@@ -169,7 +188,7 @@ class TrainGAN(Trainer) :
         plt.grid(True)
         plt.title('GAN Training Loss')
         if save :
-            plt.savefig(self.savepath + '_training_loss.png')
+            plt.savefig(self.savepath + '_train_loss.png')
         if show :
             plt.show()
     
