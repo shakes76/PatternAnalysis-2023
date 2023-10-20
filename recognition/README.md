@@ -14,6 +14,7 @@ Once the model has been trained, to show results of the completed generator, run
 
 ## Example output
 Below are some generated outputs of the trained model.
+
 ![](https://github.com/Ashom2/CSS3710_lab_report/blob/topic-recognition/recognition/images/img_0.png)
 ![](https://github.com/Ashom2/CSS3710_lab_report/blob/topic-recognition/recognition/images/img_2.png)
 ![](https://github.com/Ashom2/CSS3710_lab_report/blob/topic-recognition/recognition/images/img_4.png)
