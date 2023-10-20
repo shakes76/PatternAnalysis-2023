@@ -13,6 +13,7 @@ class ImprovedUNET(nn.Module):
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
         self.context1 = context_module(out_channels, out_channels)
        
+        #Reducing the number of channels to half for each layer
         in_channels = out_channels
         out_channels = out_channels * 2
         self.conv2 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=2)
@@ -52,6 +53,7 @@ class ImprovedUNET(nn.Module):
         
         in_channels = in_channels // 2
         out_channels = out_channels // 2
+        
         self.up4 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
         self.lastconv = nn.Conv2d(in_channels, in_channels, kernel_size=1)
         self.segmentation_layer4 = nn.Conv2d(in_channels, in_channels, kernel_size=1)
@@ -98,6 +100,9 @@ class ImprovedUNET(nn.Module):
         x = self.up4(x)
         x = torch.cat((x, features[-4]), dim=1)
         x = self.lastconv(x)
+        
+        #Adding the residual connections
+        
         segmentation4 = self.segmentation_layer4(x)
         combine1 = segmentation2 + segmentation3
         combine1 = self.sample(combine1)

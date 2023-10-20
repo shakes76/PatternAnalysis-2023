@@ -42,16 +42,16 @@ class Wandb_logger():
         image_array = image_tensor.numpy()
         ground_array = ground.numpy()
 
-        # Display the stacked images side by side
-        plt.figure(figsize=(15, 7))  # You can adjust the figure size as needed
+
+        plt.figure(figsize=(15, 7))
 
         plt.subplot(1, 2, 1)
-        plt.imshow(image_array[0, 0], cmap='gray')  # Display the first image in image_tensor
+        plt.imshow(image_array[0, 0], cmap='gray')
         plt.title("Prediction")
         plt.axis('off')
 
         plt.subplot(1, 2, 2)
-        plt.imshow(ground_array[0, 0], cmap='gray')  # Display the first image in ground
+        plt.imshow(ground_array[0, 0], cmap='gray')
         plt.title("Ground Truth")
         plt.axis('off')
         plt.show()
