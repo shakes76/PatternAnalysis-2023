@@ -17,8 +17,10 @@ Parameters:
     valid_dir - new validation file directory
     file_limit - number of files to store in validation directory
 '''
-def move_files(directory, valid_dir, file_limit=4000):
+def move_files(directory, valid_dir):
     files = defaultdict(set)
+    file_limit = int(len(os.listdir(directory)) * 0.2)
+    print(file_limit)
     
     for file in os.listdir(directory):
         key = int(file.split("_")[0])
@@ -35,8 +37,8 @@ def move_files(directory, valid_dir, file_limit=4000):
             dest_path = os.path.join(valid_dir, file)
             move(src_path, dest_path)
             file_count += 1
-            if file_count >= file_limit:
-                break
+        if file_count >= file_limit:
+            break
 
 if __name__ == "__main__":
     data_dir = "AD_NC/"
