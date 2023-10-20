@@ -1,36 +1,47 @@
-# Alzheimer's Disease Classification with Swin Transformer
+# Alzheimer's Disease Classification with Swin Transformer 💻
 <p align="center"> Name: <b>TARUSHI GERA</b><br>Student ID: <b>48242204</b>
     <br> 
 </p>
 
-### Description
+## Index 🖋️
+
+- [Description](#description)
+- [Working](#working)
+- [Requirements](#requirements)
+- [Configuration File](#configuration-file)
+- [How to Run](#how-to-run)
+- [Model Evaluation](#model-evaluation)
+- [Plots](#plots)
+- [References](#references)
+
+## Description 📖 <a name="description"></a>
 
 Alzheimer's disease is a neurodegenerative condition affecting millions worldwide, making early and accurate diagnosis critical for patient care and research. Extracting meaningful features from medical images is challenging due to the subtlety of disease-related patterns. The Swin Transformer, a state-of-the-art deep learning architecture, excels at capturing fine-grained details and long-range dependencies within images. This capability significantly enhances the accuracy of Alzheimer's disease classification, contributing to early diagnosis and research efforts. The Swin Transformer's hierarchical structure allows it to efficiently process the large and complex medical images commonly used in this field.
 
-![Swin Transformer](/images/swin_transformer.png)
+![Swin Transformer](images/swin_transformer.png)
 
-## Working
-### Data Preprocessing
+## Working 🪛 <a name="working"></a>
+### Data Preprocessing 🖥️
 
 Data preprocessing plays a pivotal role in preparing input images for classification. The key steps include:
 
 1. **Background Removal**: Eliminating undesirable background elements by generating a binary mask that isolates the object of interest while eliminating surrounding gray or dark regions. This process is adaptable to both grayscale and color images.
-![Input Image](/images/crop_image.png)
+![Input Image](images/crop_image.png)
 
 2. **Color Space Conversion**: Ensuring uniformity and compatibility by converting input images to the RGB color space.
 
 3. **Gaussian Noise (Optional)**: An optional step that introduces Gaussian noise to images. While this can enhance model robustness by adding variability to the training data, it is currently commented out and can be enabled as needed.
-![Input Image](/images/gaussian_blur.png)
+![Input Image](images/gaussian_blur.png)
 
 We used 19520 samples for training, 2000 for validation, and 9000 for testing.
 
-## Example Input and Output
+### Example Input and Output 👷‍♀️
 
 Following are the example input images where **AD** means Alzheimer Disease and **NC** means No Disease.
-![Input Image](/images/example_input.png)
+![Input Image](images/example_input.png)
 
 
-## Requirements
+## Requirements 🧱 <a name="requirements"></a>
 
 Make sure you have the following dependencies installed:
 
@@ -41,7 +52,7 @@ Make sure you have the following dependencies installed:
     ```bash
     pip install -r requirements.txt
 
-## Configuration File
+## Configuration File 📁 <a name="configuration-file"></a>
 
 You can customize the model, data, and training settings using the configuration file config.yaml. Update the configuration to match your dataset and training requirements.
     
@@ -68,7 +79,7 @@ You can customize the model, data, and training settings using the configuration
       model_path: #'./results/swin_transformer_model.pth'   # Path to the checkpoint
 
 
-## How to Run
+## How to Run 🏃 <a name="how-to-run"></a>
 
 1. For training, set is_train = true in config.yaml
    
@@ -80,12 +91,13 @@ You can customize the model, data, and training settings using the configuration
    ```bash
    python train.py
 
+For this project, I used Google Colab Pro for its flexibility and the option to work online without having to setup several softwares.
 
-## Model Evaluation
+## Model Evaluation 🧑‍🏫 <a name="model-evaluation"></a>
 
 We evaluated our model on testing data. The results indicate the following:
 
-**Accuracy (0.7227):** This metric tells us that the model correctly predicts the class of about 81.2% of the instances. It represents the overall ability of the model to classify samples correctly.
+**Accuracy (0.7227):** This metric tells us that the model correctly predicts the class of about 72.27% of the instances. It represents the overall ability of the model to classify samples correctly.
 
 **Precision (0.714):** Precision measures the ability of the model to correctly classify positive cases. In this context, it indicates that when the model predicts Alzheimer's Disease (AD), it's correct about 71.4% of the time.
 
@@ -93,4 +105,15 @@ We evaluated our model on testing data. The results indicate the following:
 
 **F1 Score (0.732):** The F1 score is the harmonic mean of precision and recall. It provides a balance between these two metrics. An F1 score of 0.732 indicates a reasonable balance between precision and recall.
 
-![Input Image](/results/cm_plot.png)
+![Input Image](results/cm_plot.png)
+
+## Plots 📈 <a name="plots"></a>
+
+![Input Image](results/accuracy_plot.png)
+
+![Input Image](results/loss_plot.png)
+
+## References 🔖 <a name="references"></a>
+- [Swin Transformer Module and Architecture](https://arxiv.org/abs/2103.14030)
+- [Overview of Swin Transformer](https://www.section.io/engineering-education/an-overview-of-swin-transformer/) 
+- [More about Swin Transformers](https://medium.com/@crlc112358/swin-transformer-hierarchical-vision-transformer-using-shifted-windows-ca1ccc8760b)
