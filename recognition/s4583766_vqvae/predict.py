@@ -63,14 +63,16 @@ def evaluate_model(args):
         embeddings_dim=EMBEDDINGS_DIM, 
         beta=BETA
     )	
-    model.load_state_dict(torch.load(args.model_path))
-
-    # set the device to use
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model_path = FILE_SAVE_PATH + args.model_path   
+    print("Model path:", model_path) 
+    model.load_state_dict(torch.load(FILE_SAVE_PATH + args.model_path))
     model.to(device)
 
+    # set the device to use
+    model.eval()
+
     # get the test data loader
-    _, test_loader = get_dataloaders()
+    _, test_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, BATCH_SIZE)
 
     # evaluate the SSIM results of the model
     ssim_total = 0
@@ -79,41 +81,75 @@ def evaluate_model(args):
     ssim_list = []
     mse_list = []
     loss_list = []
+    count = 0
+    best_recon_before = None 
+    best_recon = None
+    worst_recon_before = None
+    worst_recon = None
+    best_ssim = 0
+    worst_ssim = 1
+    subcount = 0
     with torch.no_grad():
-        for i, (data, _) in enumerate(test_loader):
-            data = data.to(device)
-            recon, _, _ = model(data)
-            ssim = F.mse_loss(data, recon, reduction='mean')
-            mse = F.mse_loss(data, recon, reduction='mean')
-            loss = ssim + mse
-            ssim_total += ssim.item()
-            mse_total += mse.item()
-            loss_total += loss.item()
-            ssim_list.append(ssim.item())
-            mse_list.append(mse.item())
-            loss_list.append(loss.item())
+        for batch in test_dl:
+            for data in batch:
+                sys.stdout.flush()
+                data = data.to(device)
+                data = data.unsqueeze(0)
+                vq_loss, x_hat, z_q, _ = model(data)
+                recons_error = F.mse_loss(x_hat, data)
+                # print(recons_error)
+                # print(vq_loss)
+                loss = recons_error + vq_loss
 
-            # save the input and output images
-            save_image(data, f'input_{i}.png')
-            save_image(recon, f'output_{i}.png')
+                img1 = data[0][0].cpu().detach().numpy()
+                img2 = x_hat[0][0].cpu().detach().numpy()
+
+                ssim_score = ssim(img1, img2, data_range=img2.max() - img2.min())
+                # loss = ssim + mse
+                ssim_total += ssim_score.item()
+                # mse_total += mse.item()
+                loss_total += loss.item()
+
+                ssim_list.append(ssim_score.item())
+                # mse_list.append(mse.item())
+                loss_list.append(loss.item())
+                # Store 
+                if ssim_score > best_ssim:
+                    best_ssim = ssim_score
+                    best_recon_before = data
+                    best_recon = x_hat
+                elif ssim_score < worst_ssim:
+                    worst_ssim = ssim_score
+                    worst_recon_before = data
+                    worst_recon = x_hat
+                subcount+=1
+
+            # if (count == 0):
+            #     break;
+            count += 1
+
+        save_image(best_recon_before, RUN_IMG_OUTPUT + 'best_recon_before.png')
+        save_image(best_recon, RUN_IMG_OUTPUT + 'best_recon.png')
+        save_image(worst_recon_before, RUN_IMG_OUTPUT + 'worst_recon_before.png')
+        save_image(worst_recon, RUN_IMG_OUTPUT + 'worst_recon.png')
 
     # calculate the average SSIM score
-    ssim_avg = ssim_total / len(test_loader)
-    mse_avg = mse_total / len(test_loader)
-    loss_avg = loss_total / len(test_loader)
-    print(f'Average SSIM score: {ssim_avg:.4f}')
-    print(f'Average MSE score: {mse_avg:.4f}')
-    print(f'Average loss score: {loss_avg:.4f}')
+    ssim_avg = np.mean(ssim_list)
+    loss_avg = np.mean(loss_list)
+    n_over_threshold = np.sum(np.array(ssim_list) >= 0.6)
+    print(f'SSIM mean: {ssim_avg:.4f}')
+    # print(f'Loss mean: {loss_avg:.4f}')
+    print(f'Min SSIM score: {min(ssim_list):.4f}')
+    print(f'Max SSIM score: {max(ssim_list):.4f}')
+    print(f'Number of images with SSIM >= 0.6: {n_over_threshold}, {n_over_threshold/len(ssim_list)*100:.2f}%.')
 
     # plot the SSIM, MSE, and loss curves
-    plt.plot(ssim_list, label='SSIM')
-    plt.plot(mse_list, label='MSE')
-    plt.plot(loss_list, label='Loss')
+    plt.scatter(range(len(ssim_list)), ssim_list, label='SSIM')
     plt.legend()
-    plt.xlabel('Iteration')
-    plt.ylabel('Score')
-    plt.title('SSIM, MSE, and Loss Curves')
-    plt.savefig(os.path.join('RUN_IMG_OUTPUT', 'ssim_mse_loss.png'))
+    plt.xlabel('Training image')
+    plt.ylabel('SSIM')
+    plt.title('SSIM scores for training images')
+    plt.savefig(os.path.join(RUN_IMG_OUTPUT, 'test_ssim_scores.png'))
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Example usage of the trained model, generates results and provides visualisations.')
