@@ -60,6 +60,9 @@ Here is the formula for the AdaIN;
 
 ![AdaIN](images/AdaIN.png)
 
+Where, x_i is the ith channel for input x. y_s is the transformed sclae from 
+w and y_b is the transformed bias from w.
+
 Additionally, here is a visualisation of the mapping and styles components of 
 the StyleGAN
 ![Mapping and Styles](images/Mapping.png)
@@ -146,7 +149,7 @@ As the generator begins to produce more realistic images, the discriminator
 begins to struggle to distinguish the generated images from the real data. 
 As the discriminator becomes more accurate, the generator begins to struggle,
 which we can see occurs at around 50 epochs. This divergence is likely 
-caused by over fitting.
+caused by unfavourable hyperparameters, such as the learning rate.
 
 Training this model took approximately 78 hours on a system with the 
 following hardware;
