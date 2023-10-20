@@ -26,4 +26,5 @@ Below are some generated outputs of the trained model.
 ## References
 - StyleGAN paper https://github.com/NVlabs/stylegan
 - ADNI Brain dataset https://adni.loni.usc.edu/
+
 Much of the code was based off the styleGAN implementation found at https://blog.paperspace.com/implementation-stylegan-from-scratch/.
