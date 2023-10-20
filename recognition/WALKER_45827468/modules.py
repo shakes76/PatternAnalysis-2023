@@ -127,7 +127,7 @@ class ImprovedUNet(nn.Module):
         self.upscale = nn.Upsample(scale_factor=2)
         
         # soft max
-        self.softmax = nn.Softmax(dim=3)
+        self.sigmoid = nn.Sigmoid()
         
          
     def forward(self, input):
@@ -188,7 +188,7 @@ class ImprovedUNet(nn.Module):
         out = torch.add(out, seg2)                          # combine seg layers
         
         # softmax
-        out = self.softmax(out)
+        out = self.sigmoid(out)
         return out
     
 class DiceLoss(nn.Module):
