@@ -182,7 +182,7 @@ for epoch in range(numEpochs):
 	
 	should_stop = False
 	with open("should_stop.txt", "r") as file:
-		if file.readline() == "STOP":
+		if file.readline().strip().upper() == "STOP":
 			logger.info("Exiting early on user request.")
 			should_stop = True
 	if should_stop:
