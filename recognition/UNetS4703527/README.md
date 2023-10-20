@@ -62,3 +62,23 @@ The data reached a val_dice_coef of > 0.8 after 13 epoch. As seen the val_dice_c
 </div>
 
 The results are shown as the Original image then the Groundtruth mask and finally the models Predicted mask.
+
+### Repoducing Results
+
+#### Train Model
+
+To train the model run
+
+```sh
+python train --path "your-dataset-path"
+```
+
+Before training the model make sure you change the Dataset image mask path name in Datasets if you want to use a diffrent dataset. Make sure to also have a files folder in your durectort to store your data.csv and model.h5
+
+#### Predict Model
+To Predict the masks on the model run
+
+```sh
+pyton predict.py --path "your-data-set-path"
+```
+Make sure to have a results folder to save you predicted masks.
