@@ -4,7 +4,7 @@ import tensorflow as tf
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint, EarlyStopping
 from model.modules import sub_pixel_cnn
-from utils.data_loader import load_images_from_category
+from utils.dataset import load_images_from_category
 
 # Configuring TensorFlow to run functions eagerly for debugging and development
 tf.config.run_functions_eagerly(True)
