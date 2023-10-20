@@ -4,11 +4,6 @@ Contains the data loader for loading and preprocessing the dataset
 import torch
 import torchvision
 import torchvision.transforms as transforms
-
-# Device Configuration
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if not torch.cuda.is_available():
-    print("Warning CUDA not Found. Using CPU")
     
 # ----------------
 # Data Loader

@@ -7,6 +7,8 @@ import torchvision.utils as vutils
 import numpy as np
 import matplotlib.pyplot as plt
 from modules import Generator, MappingNetwork
+from config import learning_rate, channels, batch_size, image_size, log_resolution, image_height
+from config import image_width, z_dim, w_dim, lambda_gp
 
 log_resolution = 8
 z_dim = 512
