@@ -1,6 +1,7 @@
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
+from utils import DataTransform
 from PIL import Image
 import os
 
@@ -47,6 +48,9 @@ class ISICDataset(Dataset):
             if not file.endswith('.png'):
                 self.truth_files.remove(file)
 
+        self.train = train
+        
+        # split directory into seperate training and validation sets
         if train:
             self.image_files = self.image_files[:split_idx]
             self.truth_files = self.truth_files[:split_idx]
@@ -66,20 +70,26 @@ class ISICDataset(Dataset):
         truth = Image.open(truth_path)
 
         if self.transform:
-            image = self.transform(image)
-            truth = self.transform(truth)
-
+            if self.train:
+                (image, truth) = self.transform((image, truth))
+            else:
+                image = self.transform(image)
+                truth = self.transform(truth)
         return image, truth
 
+# custom data transformations
+train_transform = DataTransform(size=(IMAGE_SIZE,IMAGE_SIZE))
 # transforms for validation data
 transform = transforms.Compose([transforms.ToTensor(),
                                     transforms.Resize((IMAGE_SIZE, IMAGE_SIZE), antialias=True)])
 
 # create datasets
-train_data = ISICDataset(img_dir=TRAIN_DATA_PATH, truth_dir=TRAIN_TRUTH_PATH ,split_ratio=0.5, transform=transform, train=True)
+train_data = ISICDataset(img_dir=TRAIN_DATA_PATH, truth_dir=TRAIN_TRUTH_PATH ,split_ratio=0.5, transform=train_transform, train=True)
 val_data = ISICDataset(img_dir=TRAIN_DATA_PATH, truth_dir=TRAIN_TRUTH_PATH, split_ratio=0.9,transform=transform, train=False)
+test_data = ISICDataset(img_dir=TEST_DATA_PATH, truth_dir=TEST_TRUTH_PATH, split_ratio=0.0, transform=transform, train=False)
 
 # create dataloaders
 train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
 val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=False)
+test_data = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=False)
 
