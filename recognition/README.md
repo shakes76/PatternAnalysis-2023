@@ -43,10 +43,26 @@ Segmentation occurs at multiple levels, reducing the feature map back into one f
 Due to the model size and difficulties in accessing the Rangpur computing cluster, this model was difficult to train. This necessitated some changes: BCELoss() was used instead of DiceLoss due to Dice's relatively slow convergence, and the recommended 300 epochs was not feasible. With more time and computing power, the results are obviously expected to improve.
 
 To get some initial results, the model was simply trained on the validation dataset, purely due to its reduced size. Two sample outputs are given below after 50 epochs of training, demonstrating some feasibility in the model - it does detect some of the mole's shape. As such, with a larger dataset and more epochs, it is believed that these predictions will improve further.
+
 ![Res1](res1.jpg)
+
 ![Res2](res2.jpg)
+
 Due to their differences, the Dice coefficient is not meaningful in this context - there is not much overlap.
 
+This process was repeated on the full training set, but only for 20 epochs. The losses are shown in the plot below (high values since total sum of losses not divided by data length).
+![loss](lossgraph.jpg)
+
+Using this model again to make predictions, the following results are obtained:
+![train1](train1.jpg)
+![train2](train2.jpg)
+
+Again, it seems to highlight the overall shape and is expected to improve with more training.
+
+### Recommendations
+There are several improvements that could be made to the overall procedure:
+* more epochs in training would improve accuracy
+* converting the predictions to binarised images (via thresholding) would make the Dice coefficient more effective
 
 # References
 [1] Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., and Maier-Hein, K. "Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge". Feb 28, 2018 [Online]. Accessed from <https://arxiv.org/pdf/1802.10508v1.pdf>
