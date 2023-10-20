@@ -1,10 +1,25 @@
-# Recognition Tasks
-Various recognition tasks solved in deep learning frameworks.
+# Perceiver Transformer 
+# Classify Alzheimer’s disease (normal and AD) of the ADNI brain data (see Appendix for link) using a visual or perceiver transformer [8, 9] set having a minimum accuracy of 0.8 on the test set. 
+# Akshath Katyal
+# 47144691
 
-Tasks may include:
-* Image Segmentation
-* Object detection
-* Graph node classification
-* Image super resolution
-* Disease classification
-* Generative modelling with StyleGAN and Stable Diffusion
+
+## Task Description:
+
+
+
+
+## Model/ALgorithm Description
+
+
+
+# List Dependencies
+
+
+
+# Provide examples of input, output and plots of algorithm
+
+
+
+# Describe any specific pre-processing you have used with references if any. Justify your training, validation and testing splits of the data.
+
