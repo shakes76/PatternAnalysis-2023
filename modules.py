@@ -4,27 +4,40 @@ import torchvision
 from parameters import *
 
 
+class WeightedLinear(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(WeightedLinear, self).__init__()
+        self.linear = nn.Linear(in_channels, out_channels)
+        self.scale = (2 / in_channels) ** 0.5
+        self.bias = self.linear.bias
+        self.linear.bias = None
+
+        # Initializing linear layer parameters
+        nn.init.normal_(self.linear.weight)
+        nn.init.zeros_(self.bias)
+
+    def forward(self, x):
+        return self.linear(x * self.scale) + self.bias
+
+
 class ADaIN(nn.Module):
     def __init__(self, number_channels):
         super(ADaIN, self).__init__()
-        self.ys = nn.Parameter(torch.ones(number_channels))
-        self.yb = nn.Parameter(torch.zeros(number_channels))
+        self.instance_norm = nn.InstanceNorm2d(number_channels)
+        self.ys = WeightedLinear(number_channels, number_channels)
+        self.yb = WeightedLinear(number_channels, number_channels)
 
     def forward(self, content, style):
         # Calculating mean and std from content and style tensors
         # Dim denoted as 2nd and 3rd dimension for height and width respectively
-        content = content.permute(0, 2, 3, 1)
-        content_mean = content.mean(dim=[1, 2], keepdim=True)
-        content_std = content.std(dim=[1, 2], keepdim=True)
+        content = self.instance_norm(content)
 
-        style_mean = style
-        style_std = style
-
-        # Normalizing the content tensor using the statistics from content tensor
-        normalized_content = self.ys * (content - content_mean) / content_std + self.yb
+        style_mean = self.yb(style)
+        style_std = self.ys(style)
 
         # Scale and shift normalized content
-        stylized_content = style_std * normalized_content + style_mean
+        content = content.permute(0, 2, 3, 1)
+        stylized_content = style_std * content + style_mean
 
         return stylized_content
 
@@ -34,14 +47,16 @@ class MappingNetwork(nn.Module):
         super(MappingNetwork, self).__init__()
 
         layers = []
+        layers.append(PixelNorm())
         for i in range(number_layers):
             # Setting the first and last layer to be dimension z to include different input and hidden layer size
             if i == 0:
-                layers.append(nn.Linear(z_dimension, hidden_dimension))
+                layers.append(WeightedLinear(z_dimension, hidden_dimension))
+                layers.append(nn.LeakyReLU(0.2))
             elif i == num_layers - 1:
-                layers.append(nn.Linear(hidden_dimension, z_dimension))
+                layers.append(WeightedLinear(hidden_dimension, z_dimension))
             else:
-                layers.append(nn.Linear(hidden_dimension, hidden_dimension))
+                layers.append(WeightedLinear(hidden_dimension, hidden_dimension))
                 layers.append(nn.LeakyReLU(0.2))
         # Passing through each layer into a parameter of the sequential network
         self.mapping_layers = nn.Sequential(*layers)
@@ -52,10 +67,19 @@ class MappingNetwork(nn.Module):
         return style
 
 
+class PixelNorm(nn.Module):
+    def __init__(self):
+        super(PixelNorm, self).__init__()
+        self.epsilon = 1e-8
+
+    def forward(self, x):
+        return x / torch.sqrt(torch.mean(x ** 2, dim=1, keepdim=True) + self.epsilon)
+
+
 class ScalingFactor(nn.Module):
     def __init__(self, number_channels):
         super(ScalingFactor, self).__init__()
-        self.scaling_factors = nn.Parameter(torch.ones(number_channels))
+        self.scaling_factors = nn.Parameter(torch.zeros(number_channels))
 
     def forward(self, noise):
         noise = noise.permute(0, 2, 3, 1)
@@ -64,15 +88,36 @@ class ScalingFactor(nn.Module):
         return scaled_noise
 
 
+class WeightedConv(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(WeightedConv, self).__init__()
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
+        self.scale = (2 / (in_channels * (3 ** 2))) ** 0.5
+        self.bias = self.conv.bias
+        self.conv.bias = None
+
+        # Initialize convelution layer
+        nn.init.normal_(self.conv.weight)
+        nn.init.zeros_(self.bias)
+
+    def forward(self, x):
+        return self.conv(x * self.scale) + self.bias.view(1, self.bias.shape[0], 1, 1)
+
+
 class StyleGANGeneratorBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(StyleGANGeneratorBlock, self).__init__()
 
         # Defining operations conveyed in paper
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
-        self.noise_scaler = ScalingFactor(out_channels)
-        self.adain = ADaIN(out_channels)
+        self.conv1 = WeightedConv(in_channels, out_channels)
+        self.noise_scaler1 = ScalingFactor(out_channels)
+        self.adain1 = ADaIN(out_channels)
+        self.leaky1 = nn.LeakyReLU(0.2)
+        self.conv2 = WeightedConv(out_channels, out_channels)
+        self.noise_scaler2 = ScalingFactor(out_channels)
+        self.adain2 = ADaIN(out_channels)
+        self.relu = nn.ReLU()
 
     def forward(self, x, w_vector, noise_vector):
         # Ensure w_vector has dimension batch_size x out_channels
@@ -80,10 +125,18 @@ class StyleGANGeneratorBlock(nn.Module):
         x = x.permute(0, 3, 1, 2)
         x = self.upsample(x)
         # x = x.permute(0, 2, 3, 1)
-        x = self.conv(x)
-        factored_noise = self.noise_scaler(noise_vector)
+        x = self.conv1(x)
+        factored_noise = self.noise_scaler1(noise_vector)
         x = x + factored_noise
-        x = self.adain(x, w_vector)
+        x = self.leaky1(x)
+        x = self.adain1(x, w_vector)
+
+        x = x.permute(0, 3, 1, 2)
+        x = self.conv2(x)
+        x = self.relu(x)
+        factored_noise = self.noise_scaler2(noise_vector)
+        x = x + factored_noise
+        x = self.adain2(x, w_vector)
         return x
 
 

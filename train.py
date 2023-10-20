@@ -81,17 +81,17 @@ def train_model():
             optimizerG.step()
 
             i += 1
-            if i % 10 == 0:
+            if i % 200 == 0:
                 print("Progress: (", i, "/", int(load_len/batch_size), ")")
                 # Test output
-        netG.eval()
-        noise = torch.randn(batch_size, 1, 1, z_dim, device=device)
-        output = netG(noise)
-        img = transform(output[0])
-        img.show()
-        plt.imshow(output.cpu().detach().numpy()[0][0])
-        plt.show()
-        netG.train()
+                netG.eval()
+                noise = torch.randn(batch_size, 1, 1, z_dim, device=device)
+                output = netG(noise)
+                img = transform(output[0])
+                img.show()
+                plt.imshow(output.cpu().detach().numpy()[0][0])
+                plt.show()
+                netG.train()
 
         # Saving models after completion of epoch
         torch.save(netG.state_dict(), 'model_gen.pt')
