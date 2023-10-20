@@ -26,7 +26,7 @@ class TrainingDataset(VisionDataset):
         data_folder = os.path.join(root, 'ISIC2018_Task1-2_Training_Input_x2')
         mask_folder = os.path.join(root, 'ISIC2018_Task1_Training_GroundTruth_x2')
         
-        for i in range(500):
+        for i in range(10000):
             image_name = "ISIC_{:07d}.jpg".format(i)
             mask_name = image_name.replace('.jpg', '_segmentation.png')
             try:
@@ -66,14 +66,14 @@ std = [0.0948, 0.1099, 0.1240]
 
 # Example usage:
 data_transform = transforms.Compose([
-    transforms.Resize((128, 128)),
+    transforms.Resize((256, 256)),
     transforms.ToTensor(),
     CustomNormalize(mean, std)
     
 ])
 
 target_transform = transforms.Compose([
-    transforms.Resize((128, 128)),
+    transforms.Resize((256, 256)),
     transforms.ToTensor(),
     CustomNormalize(mean, std)
 ])

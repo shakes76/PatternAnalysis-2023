@@ -1,3 +1,7 @@
 recognition/Tord_Improved_UNet/tensorsets
 recognition/Tord_Improved_UNet/data
 *.DS_Store
+*.ipynb_checkpoints
+*.pth
+wandb
+recognition/Tord_Improved_UNet/__pycache__

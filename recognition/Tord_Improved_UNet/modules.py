@@ -42,7 +42,7 @@ class ImprovedUNET(nn.Module):
         out_channels = out_channels // 2
         self.up2 = nn.ConvTranspose2d(in_channels, out_channels, kernel_size=2, stride=2)
         self.localization2 = localization_module(in_channels, out_channels)
-        self.segmentation_layer2 = nn.Conv2d(out_channels, 32, kernel_size=1)
+        self.segmentation_layer2 = nn.Conv2d(out_channels, out_channels//2, kernel_size=1)
         
         in_channels = in_channels // 2
         out_channels = out_channels // 2
@@ -56,7 +56,7 @@ class ImprovedUNET(nn.Module):
         self.lastconv = nn.Conv2d(in_channels, in_channels, kernel_size=1)
         self.segmentation_layer4 = nn.Conv2d(in_channels, in_channels, kernel_size=1)
         self.sample = nn.Upsample(scale_factor=2)
-        self.featureReduc = nn.Conv2d(32, 1, kernel_size=1)
+        self.featureReduc = nn.Conv2d(in_channels, 1, kernel_size=1)
 
     def forward(self, x):
         features = []
@@ -124,3 +124,6 @@ def localization_module(in_channels, out_channels):
             nn.LeakyReLU(0.01)
         )
         return module
+    
+
+
