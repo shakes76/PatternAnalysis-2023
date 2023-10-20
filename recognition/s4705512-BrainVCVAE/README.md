@@ -1,5 +1,6 @@
 
 # OASISVQ: Enhancing Brain Image Generation with VQVAE
+Francesca Brzoskowski | s4705512 
 
 OASISVQ is a project dedicated to advancing brain image generation using the Vector Quantized Variational Autoencoder (VQVAE) deep learning model. This README provides an overview of the project and its goals.
 
