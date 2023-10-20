@@ -27,6 +27,7 @@ conda install python=3.10
 conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
 conda install matplotlib
 conda install numpy
+conda install -c conda-forge tqdm
 ```
 
 ## Model
