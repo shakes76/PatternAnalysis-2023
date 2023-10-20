@@ -1,11 +1,4 @@
-"""
-modules.py
-
-Components of the visual transformer model.
-
-Author: Atharva Gupta
-Date Created: 17-10-2023
-"""
+# Import required libraries and modules
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -26,14 +19,40 @@ class PatchLayer(nn.Module):
         self.projection = nn.Linear(self.num_patches * self.projection_dim, self.num_patches * self.projection_dim)
         self.layer_norm = nn.LayerNorm(self.num_patches * self.projection_dim)
 
-   
-    def forward(self, images):
+    def shift_images(self, images, mode, stride):
+        # Build diagonally shifted images
+        if mode == 'left-up':
+            crop_height = self.half_patch
+            crop_width = self.half_patch
+            shift_height = 0
+            shift_width = 0
+        elif mode == 'left-down':
+            crop_height = 0
+            crop_width = self.half_patch
+            shift_height = self.half_patch
+            shift_width = 0
+        elif mode == 'right-up':
+            crop_height = self.half_patch
+            crop_width = 0
+            shift_height = 0
+            shift_width = self.half_patch
+        else:
+            crop_height = 0
+            crop_width = 0
+            shift_height = self.half_patch
+            shift_width = self.half_patch
+
+        crop = images[:, :, crop_height:(self.image_size - self.half_patch):stride, crop_width:(self.image_size - self.half_patch):stride]
+        shift_pad = F.pad(crop, (shift_width, self.image_size - self.image_size, shift_height, self.image_size - self.image_size))
+        return shift_pad
+
+    def forward(self, images, stride=1):
         images = torch.cat([
             images,
-            self.shift_images(images, mode='left-up'),
-            self.shift_images(images, mode='left-down'),
-            self.shift_images(images, mode='right-up'),
-            self.shift_images(images, mode='right-down')
+            self.shift_images(images, mode='left-up', stride=stride),
+            self.shift_images(images, mode='left-down', stride=stride),
+            self.shift_images(images, mode='right-up', stride=stride),
+            self.shift_images(images, mode='right-down', stride=stride)
         ], dim=1)
 
         patches = images.unfold(2, self.patch_size, self.patch_size).unfold(3, self.patch_size, self.patch_size)
@@ -62,23 +81,29 @@ class EmbedPatch(nn.Module):
         return patches + position_embedding
 
 class MultiHeadAttentionLSA(nn.MultiheadAttention):
-    """
-    Multi Head Attention layer for the transformer encoder block, but with the addition of using Local Self Attention to improve finer-level feature learning.
-    """
-    def __init__(self, embed_dim, num_heads, **kwargs):
+    def __init__(self, embed_dim, num_heads, local_window_size, **kwargs):
         super(MultiHeadAttentionLSA, self).__init__(embed_dim, num_heads, **kwargs)
         self.tau = nn.Parameter(math.sqrt(float(embed_dim), requires_grad=True))
+        self.local_window_size = local_window_size
 
     def forward(self, query, key, value, attn_mask=None, bias_k=None, bias_v=None):
         query = query / self.tau
+
+        seq_length = query.size(1)
+        local_attn_mask = torch.triu(torch.ones(seq_length, seq_length), diagonal=self.local_window_size + 1).to(query.device)
+        local_attn_mask = local_attn_mask == 0
+
+        if attn_mask is not None:
+            attn_mask = attn_mask & local_attn_mask
+        else:
+            attn_mask = local_attn_mask
+
         return super(MultiHeadAttentionLSA, self).forward(query, key, value, attn_mask, bias_k, bias_v)
+
 
 def build_vision_transformer(input_shape, image_size, patch_size, num_patches,
         attention_heads, projection_dim, hidden_units, dropout_rate,
-        transformer_layers, mlp_head_units):
-    """
-    Builds the vision transformer model.
-    """
+        transformer_layers, mlp_head_units, local_window_size):
     patch_layer = PatchLayer(image_size, patch_size, num_patches, projection_dim)
     embed_patch = EmbedPatch(num_patches, projection_dim)
 
@@ -93,7 +118,7 @@ def build_vision_transformer(input_shape, image_size, patch_size, num_patches,
             for _ in range(transformer_layers):
                 layer_norm_1 = nn.LayerNorm(encoded_patches.size(-1), eps=1e-6)(encoded_patches)
                 diag_attn_mask = 1 - torch.eye(num_patches, device=x.device, dtype=torch.int8)
-                attention_output = MultiHeadAttentionLSA(embed_dim=projection_dim, num_heads=attention_heads, dropout=dropout_rate)(layer_norm_1, layer_norm_1, layer_norm_1, attn_mask=diag_attn_mask)
+                attention_output = MultiHeadAttentionLSA(embed_dim=projection_dim, num_heads=attention_heads, dropout=dropout_rate, local_window_size=local_window_size)(layer_norm_1, layer_norm_1, layer_norm_1, attn_mask=diag_attn_mask)
                 skip_1 = attention_output + encoded_patches
 
                 layer_norm_2 = nn.LayerNorm(skip_1.size(-1), eps=1e-6)(skip_1)
@@ -105,18 +130,18 @@ def build_vision_transformer(input_shape, image_size, patch_size, num_patches,
 
                 encoded_patches = mlp_layer + skip_1
 
-                representation = nn.LayerNorm(encoded_patches.size(-1), eps=1e-6)(encoded_patches)
-                representation = representation.view(representation.size(0), -1)
-                representation = nn.Dropout(dropout_rate)(representation)
+            representation = nn.LayerNorm(encoded_patches.size(-1), eps=1e-6)(encoded_patches)
+            representation = representation.view(representation.size(0), -1)
+            representation = nn.Dropout(dropout_rate)(representation)
 
-                features = representation
-                for units in mlp_head_units:
-                    features = nn.Linear(features.size(-1), units)(features)
-                    features = nn.GELU()(features)
-                    features = nn.Dropout(dropout_rate)(features)
+            features = representation
+            for units in mlp_head_units:
+                features = nn.Linear(features.size(-1), units)(features)
+                features = nn.GELU()(features)
+                features = nn.Dropout(dropout_rate)(features)
 
-                logits = nn.Linear(features.size(-1), 1)(features)
-                return logits
+            logits = nn.Linear(features.size(-1), 1)(features)
+            return logits
 
     model = VisionTransformer()
     return model

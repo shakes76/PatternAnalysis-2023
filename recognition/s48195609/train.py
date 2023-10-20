@@ -1,10 +1,8 @@
 """
 train.py
-
 Code for training, validating, testing, and saving the model.
-
-Author: Your Name
-Date Created: Your Date
+Author: Atharva Gupta
+Date Created: 20-10-2023
 """
 import torch
 import torch.optim as optim
