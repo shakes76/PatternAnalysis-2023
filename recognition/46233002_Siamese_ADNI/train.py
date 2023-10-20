@@ -7,7 +7,8 @@ import time
 def train_encoder(model, train_loader, device, num_epochs, tensor_path, learning_rate):
 
     # Initialise loss functions, optimizer, and scheduler
-    miner = miners.MultiSimilarityMiner()
+    miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.EASY, 
+                                      neg_strategy=miners.BatchEasyHardMiner.SEMIHARD)
     criterion = losses.TripletMarginLoss()
     optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,
@@ -38,6 +39,7 @@ def train_encoder(model, train_loader, device, num_epochs, tensor_path, learning
 
                 # Compute loss
                 loss = criterion(outputs, labels, hard_pairs)
+                #loss = criterion(outputs, labels)
                 total_loss += loss
 
                 optimizer.zero_grad() # Zero gradient
