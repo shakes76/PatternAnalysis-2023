@@ -103,7 +103,7 @@ Download the ADNI dataset and place into the AlzViT_46966775 folder, ensure it h
         └── NC/
 ```
 
-**_Please Note: The validation folder was manually sorted whereby 10% of the training dataset from the ADNI data was used as the validation set. _**
+**_Please Note: The validation folder was manually sorted whereby 10% of the training dataset from the ADNI data was used as the validation set._**
 
 3. Train the model:
 
