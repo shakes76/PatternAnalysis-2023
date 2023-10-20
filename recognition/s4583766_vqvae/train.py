@@ -10,17 +10,15 @@ import datetime
 import os
 import sys
 
-import dataset
-import modules
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
-import torchvision
-from dataset import get_dataloaders, show_images
-from modules import VQVAE, Decoder, Encoder
+from dataset import get_dataloaders
+from modules import VQVAE, Discriminator, Generator
 from torch import nn
 from torch.nn import functional as F
+from torch.utils.data import DataLoader
 from torchvision.utils import make_grid, save_image
-import matplotlib.pyplot as plt
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -41,7 +39,9 @@ os.makedirs(RUN_IMG_OUTPUT, exist_ok=True)
 
 # Hyper-parameters
 BATCH_SIZE = 32
+BATCH_SIZE_GAN = 256
 EPOCHS = 3
+EPOCHS_GAN = 20
 
 # Taken from paper and YouTube video
 N_HIDDEN_LAYERS = 128
@@ -53,6 +53,8 @@ N_EMBEDDINGS = 512 # Size of the codebook (number of embeddings)
 
 BETA = 0.25
 LEARNING_RATE = 1e-3
+LR_GAN = 2e-4
+
 
 def gen_imgs(images, model, device):
     with torch.no_grad():
@@ -181,6 +183,115 @@ def train_vqvae(train_dl):
         recon_losses.append(avg_train_loss)
         print("Recon loss: {}".format(avg_train_loss))
 
+def train_gan(model, train_dl):
+    # define dataset
+
+    generator = Generator()
+    discriminator = Discriminator()
+
+    # optimizer_gen = torch.optim.Adam(generator.parameters(), lr=LR_GAN, betas=(0.5, 0.999))
+    # optimizer_dis = torch.optim.Adam(discriminator.parameters(), lr=LR_GAN, betas=(0.5, 0.999))
+    criterion = nn.BCELoss()
+
+    generator = generator.to(device)
+    discriminator = discriminator.to(device)
+
+    fixed_latent = torch.randn(BATCH_SIZE_GAN, 100, 1, 1, device=device)
+    # save_samples(0, fixed_latent)
+
+    # og_imgs = next(iter(train_dl))
+    # og_imgs = og_imgs.to(device)
+
+    # create new subfolder thats title is the current time
+    og_imgs = generator(fixed_latent)
+    save_image(og_imgs, RUN_IMG_OUTPUT + "gan_epoch_0.png")
+    # print("Saving", img_name)
+    torch.cuda.empty_cache()
+
+    # Losses & scores
+    losses_g = []
+    losses_d = []
+    real_scores = []
+    fake_scores = []
+
+    # Create optimizers for generator and discriminator using Adam. Adam analyzes historical gradients, to adjust the learning rate for each parameter in real-time, resulting in faster convergence and better performance.
+    # Adam is a combination of RMSProp + Momentum, it uses moving averages of parameters.
+    opt_d = torch.optim.Adam(discriminator.parameters(), lr=LR_GAN, betas=(0.5, 0.999))
+    opt_g = torch.optim.Adam(generator.parameters(), lr=LR_GAN, betas=(0.5, 0.999))
+
+    for epoch in range(EPOCHS_GAN):
+        for real_images in train_dl:
+            real_images = real_images.to(device)
+            # Train discriminator
+            # loss_d, real_score, fake_score = train_discriminator(real_images, opt_d)
+            # Train generator
+            # Clear discriminator gradients
+            opt_d.zero_grad()
+
+            # Pass real images through  discriminator, so discriminator can
+            # learn what they look like.
+            real_preds = discriminator(real_images)
+            real_targets = torch.ones(real_images.size(0), 1, device=device)
+            real_loss = criterion(real_preds, real_targets)
+            real_score = torch.mean(real_preds).item()
+
+            # Generate fake images. Latent space = representation of compressed data.
+            # Use the same seed every time, so we can compare the generated images.
+            latent = torch.randn(BATCH_SIZE_GAN, 100, 1, 1, device=device)
+            fake_images = generator(latent)
+
+            # Pass Fake images through discriminator
+            fake_targets = torch.zeros(fake_images.size(0), 1, device=device)
+            fake_preds = discriminator(fake_images)
+            fake_loss = criterion(fake_preds, fake_targets)
+            fake_score = torch.mean(fake_preds).item()
+
+            loss = real_loss + fake_loss
+            # Backpropagate loss, and update weights.
+            loss.backward()
+            opt_d.step()
+            loss_d = loss.item()
+
+            opt_g.zero_grad()
+
+            # Generate a batch of fake images.
+            latent = torch.randn(BATCH_SIZE_GAN, 100, 1, 1, device=device)
+            fake_images = generator(latent)
+
+            # Try to fool the discriminator
+            preds = discriminator(fake_images)
+            # Set labels to '1' to indicate they're fake.
+            targets = torch.ones(BATCH_SIZE_GAN, 1, device=device)
+            # Minimize loss of D(G(z)).
+            loss_g = criterion(preds, targets)
+
+            # Backpropagate loss, and update weights.
+            loss_g.backward()
+            loss_g = loss_g.item()
+            opt_g.step()
+
+        # Record losses & scores
+        losses_g.append(loss_g)
+        losses_d.append(loss_d)
+        real_scores.append(real_score)
+        fake_scores.append(fake_score)
+
+        # Log losses & scores (last batch)
+        print(
+            "Epoch [{}/{}], loss_g: {:.4f}, loss_d: {:.4f}, real_score: {:.4f}, fake_score: {:.4f}".format(
+                epoch + 1, EPOCHS, loss_g, loss_d, real_score, fake_score
+            )
+        )
+        # Save generated images
+        # save_samples(epoch+start_idx, fixed_latent, show=False)
+        # save_image(denorm(fake_images), os.path.join(sample_dir, fake_fname), nrow=8)
+        checkpoint_img = generator(fixed_latent)
+        save_image(denorm(checkpoint_img), RUN_IMG_OUTPUT + f"gan_epoch_{epoch}.png")
+
+    return losses_g, losses_d, real_scores, fake_scores
+
+
+
 def main():
     train_dl, test_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, BATCH_SIZE)
     train_vqvae(train_dl=train_dl)
@@ -204,6 +315,8 @@ def main():
     model.eval()
 
     visualise_embeddings(model, test_dl)
+
+    train_gan(model, train_dl)
 
 
 if __name__ == '__main__':
