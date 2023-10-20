@@ -5,6 +5,8 @@ import numpy as np
 import math
 from torch.utils.data import Dataset, DataLoader
 import torchvision
+import matplotlib
+import PIL
 
 class SiameseDataSet(Dataset):
 
@@ -40,8 +42,8 @@ def get_validation_sets(num: int) -> [[str]]:
     """
         Returns a list of lists containing a non-intersecting list of patient id's to be used for validation sets
     """
-    partition_ad = partition(get_patients("ADNI_AD_NC_2D/AD_NC/train/AD"), num)
-    partition_nc = partition(get_patients("ADNI_AD_NC_2D/AD_NC/train/NC"), num)
+    partition_ad = partition(get_patients("AD_NC/train/AD"), num)
+    partition_nc = partition(get_patients("AD_NC/train/NC"), num)
 
     return partition_ad, partition_nc
 
