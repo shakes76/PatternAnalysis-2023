@@ -178,6 +178,7 @@ class VectorQuantizer(nn.Module):
     def quantize(self, z):
         # find closest encoding
         encoding_indices = z.unsqueeze(1)
+        print(encoding_indices.shape)
         encodings = t.zeros(encoding_indices.shape[0], self.num_embeddings, device=z.device)
         encodings.scatter_(1, encoding_indices, 1)
         # get quantized latent vector

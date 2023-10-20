@@ -3,11 +3,7 @@ import os
 import torch as t
 import torch.nn as nn
 import torch.utils.data
-import torchvision as tv
-import torchvision.transforms as transforms
-import torch.nn.functional as F
 from torch.autograd import Variable
-import numpy as np
 
 from dataset import vqvae_test_loader, vqvae_train_loader, MODEL_PATH, transform, GanDataset
 from models import VQVAE, Generator, Discriminator
@@ -31,47 +27,45 @@ BETA = 0.25
 DATA_VARIANCE = 0.0338
 LOG_STEP = 100
 
-# # create VQVAE model
-# model = VQVAE(NUM_HIDDENS, RESIDUAL_INTER, NUM_EMBEDDINGS, EMBEDDING_DIM, BETA)
-# model.to(device)
-#
-# # Init optimizer
-# optimizer = torch.optim.Adam(model.parameters(), lr=LR_VQVAE)
-# train_recon_loss = []
-#
-# # train VQVAE
-# print("VQVAE Training started")
-# for i in range(MAX_EPOCHS_VQVAE):
-#     print(f"EPOCH [{i+1}/{MAX_EPOCHS_VQVAE}]")
-#
-#     size = len(vqvae_train_loader.dataset)
-#     batch_losses = []
-#     i = 0
-#     for batch, (X, _) in enumerate(vqvae_train_loader):
-#         X = X.to(device)
-#
-#         optimizer.zero_grad()
-#         vq_loss, data_recon = model(X)
-#
-#         recon_error = F.mse_loss(data_recon, X) / DATA_VARIANCE
-#         loss = recon_error + vq_loss
-#         loss.backward()
-#         optimizer.step()
-#         batch_losses.append(recon_error.item())
-#
-#         if (i+1) % LOG_STEP == 0:
-#             print(f"Step {i+1} -  recon_error: {np.mean(batch_losses[-100:])}")
-#         i += 1
-#
-#     loss = sum(batch_losses) / len(batch_losses)
-#
-#     train_recon_loss.append(loss)
-#     print(f"Reconstruction loss: {loss}")
-#
-# # Save model
-# t.save(model, os.path.join(MODEL_PATH, "vqvae.txt"))
+# create VQVAE model
+model = VQVAE(NUM_HIDDENS, RESIDUAL_INTER, NUM_EMBEDDINGS, EMBEDDING_DIM, BETA)
+model.to(device)
 
-model = t.load(os.path.join(MODEL_PATH, 'vqvae.txt'))
+# Init optimizer
+optimizer = torch.optim.Adam(model.parameters(), lr=LR_VQVAE)
+train_recon_loss = []
+
+# train VQVAE
+print("VQVAE Training started")
+for i in range(MAX_EPOCHS_VQVAE):
+    print(f"EPOCH [{i+1}/{MAX_EPOCHS_VQVAE}]")
+
+    size = len(vqvae_train_loader.dataset)
+    batch_losses = []
+    i = 0
+    for batch, (X, _) in enumerate(vqvae_train_loader):
+        X = X.to(device)
+
+        optimizer.zero_grad()
+        vq_loss, data_recon = model(X)
+
+        recon_error = F.mse_loss(data_recon, X) / DATA_VARIANCE
+        loss = recon_error + vq_loss
+        loss.backward()
+        optimizer.step()
+        batch_losses.append(recon_error.item())
+
+        if (i+1) % LOG_STEP == 0:
+            print(f"Step {i+1} -  recon_error: {np.mean(batch_losses[-100:])}")
+        i += 1
+
+    loss = sum(batch_losses) / len(batch_losses)
+
+    train_recon_loss.append(loss)
+    print(f"Reconstruction loss: {loss}")
+
+# Save model
+t.save(model, os.path.join(MODEL_PATH, "vqvae.txt"))
 
 # save samples of real and test data
 real_imgs1 = next(iter(vqvae_test_loader)) # load some from test dl
@@ -182,36 +176,5 @@ for epoch in range(MAX_EPOCHS_GAN):
 # save models
 t.save(G, os.path.join(MODEL_PATH, "generator.txt"))
 t.save(D, os.path.join(MODEL_PATH, "discriminator.txt"))
-
-# save generated codebook indices
-x = torch.randn(1, 100, 1, 1).to(device)
-with torch.no_grad():
-    f1 = G(x)
-gen_codebook_idx = f1[0][0]
-save_image(gen_codebook_idx, 'generated-codebook-single-sample.png')
-
-# save generated embeddings
-gen_codebook_idx = torch.flatten(gen_codebook_idx)
-unique_vals = [134, 418]
-input_min = torch.min(gen_codebook_idx)
-input_max = torch.max(gen_codebook_idx)
-num_intervals = len(unique_vals)
-interval_size = (input_max - input_min) / num_intervals
-
-for i in range(0, num_intervals):
-    MIN = input_min + i * interval_size
-    gen_codebook_idx[
-        torch.logical_and(
-            MIN <= gen_codebook_idx,
-            gen_codebook_idx <= (MIN + interval_size))] = unique_vals[i]
-
-gen_embedding = gen_codebook_idx.view(64, 64)
-save_image(gen_embedding, 'generated-embedding-single-sample.png')
-
-gen_codebook_idx = gen_codebook_idx.long()
-gen_output = model.vq.quantize(gen_codebook_idx)
-gen_output = model.decoder(gen_output)
-gen_decoded = gen_output[0][0]
-save_image(gen_decoded, 'generated-decoded-single-sample.png')
 
 
