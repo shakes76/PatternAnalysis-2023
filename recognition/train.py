@@ -54,7 +54,7 @@ for epoch in range(EPOCHS):
         correct += torch.sum(predicted == labels).item()
         running_loss += loss.item()
 
-    print("Epoch " + epoch + " finished")
+    print("Epoch " + str(epoch) + " finished")
     loss_data.append(running_loss / total)
     accuracy.append(correct / total)
 
