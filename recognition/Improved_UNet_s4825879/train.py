@@ -12,7 +12,7 @@ from torchvision.utils import save_image
 from modules import ImpUNet, DiceLoss
 
 # import dataloaders
-from dataset import train_loader, val_loader, IMAGE_SIZE, BATCH_SIZE
+from dataset import train_loader, val_loader, test_loader, IMAGE_SIZE, BATCH_SIZE
 
 # Macros
 LEARNING_RATE = 5*10**(-4)
@@ -26,11 +26,12 @@ total_val_step = len(val_loader)
 
 model = ImpUNet(3).to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE) 
-#scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=100, gamma=0.985)    
-loss_fcn = DiceLoss()
+scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.985)    
+loss_fcn = DiceLoss(smooth=4.0)
 
 # variable for saving the global best loss
-currentBestLoss = float("inf")
+currentBestLoss = 0.0 
+best_global_min = 0.0
 
 # ----------
 # TRAINING -
@@ -68,7 +69,7 @@ for epoch in range(NUM_EPOCH):
             save_image(saved.view(-1, 1, IMAGE_SIZE, IMAGE_SIZE), f"data/prod_img/{epoch + 1}_{i+1}_seg.png", nrow=BATCH_SIZE)
 
         # scheduler step
-        #scheduler.step()
+        scheduler.step()
 
     # ----------------
     #  EVALUATION    -
@@ -86,11 +87,10 @@ for epoch in range(NUM_EPOCH):
             truth = truth.to(device)
             
             # compute outputs
-            outputs = model(img)
+            outputs = model(img).round()
             
             # compute loss
-            loss = loss_fcn(outputs, truth)
-            
+            loss = dice(outputs, truth)
             # add loss to total loss
             total += loss.item()
 
@@ -105,13 +105,20 @@ for epoch in range(NUM_EPOCH):
                 best_loss = loss.item()
           
     # Check if new loss is better than best loss
-    if total < currentBestLoss:
+    if total/total_val_step > currentBestLoss:
         print("New best lost calculated... saving model dictionary")
         # upddate the best loss
-        currentBestLoss = total
+        currentBestLoss = total/total_val_step
         # save model
         # this ensures that model with best loss is saved
-        torch.save(model.state_dict(), "model_dict.pt")         
+        torch.save(model.state_dict(), "best_average.pt")         
+
+    # check if new parameters create better minimum loss on ecaluation set
+    if worst_loss > best_global_min:
+        print("new global min found. saving dictionary")
+        best_global_min = worst_loss
+
+        torch.save(model.state_dict(), "best_min.pt")
     
     # print out the total average loss for the validation set
     print("epoch: {}, Loss: {}".format(epoch+1, total/total_val_step))
@@ -120,3 +127,24 @@ for epoch in range(NUM_EPOCH):
 #----------
 # TESTING -
 #----------
+# Variable for total dice score
+total_dice = 0.0
+# create instance of loss function without smooth
+loss_test = DiceLoss(smooth=0.0)
+# load model dictionary
+model.load_state_dict(torch.load('best_min.pt', map_location=torch.device('cpu')))
+for i (img, truth) in enumerate(test_loader):
+    with torch.no_grad():
+        img = img.to(device)
+        truth = truth.to(device)
+
+        # send image through model and round output for binary segmentation map
+        output = model(img).round()
+
+        dsc = 1 - loss_test(output, truth).item()
+        total_dice += dsc
+        
+        if (i + 1) % 15 == 0:
+            # Print average dice score
+            print("\rAverage Loss: {}".format(total_dice/(i + 1)), end="")
+
