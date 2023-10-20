@@ -25,8 +25,7 @@ class SiameseNetwork(nn.Module):
             nn.MaxPool2d(2, stride=2),
 
             nn.Conv2d(256, 384, kernel_size=3,stride=1),
-            # nn.ReLU()
-        )
+       )
 
         # Setting up the Fully Connected Layers
         self.fc1 = nn.Sequential(

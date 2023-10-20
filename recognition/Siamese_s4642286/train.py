@@ -32,9 +32,7 @@ optimizer = optim.Adam(siamese_net.parameters(), lr=1e-3)
 
 # Training loop
 num_epochs = 10
-counter = []
-loss_history = [] 
-iteration_number= 0
+loss_history = []
 
 print("Starting Training Siamese Network...")
 start = time.time()
@@ -49,33 +47,35 @@ for epoch in range(num_epochs):
 
         optimizer.zero_grad()
 
+        # Pass each image individually through the Siamese Network
         output1, output2 = siamese_net(inputs[:, 0], inputs[:, 1])
 
+        # Calculate the loss for the batch and backpropagate
         loss = criterion(output1, output2, labels)
         loss.backward()
 
         optimizer.step()
-        
+
         # Accumulate the loss for the epoch
         total_loss += loss.item()
 
     # Print the average loss for the epoch
     avg_loss = total_loss / len(trainloader)  # Calculate the average loss for the epoch
-    print(f"Epoch number: {epoch} -> Average loss: {avg_loss}")
-    counter.append(iteration_number)
     loss_history.append(avg_loss)
-    iteration_number += 1
 
+    print(f"Epoch {epoch + 1}/{num_epochs} -> Average loss: {avg_loss}")
 
 print("Finished Training Siamese Network...")
 
 # Display and Save Figure
 plt.figure(figsize=(10,5))
 plt.title("Siamese Network Training Loss")
-plt.plot(counter, loss_history)
-plt.xlabel("Iterations")
+plt.plot(range(1, num_epochs + 1), loss_history)
+plt.xlabel("Epochs")
 plt.ylabel("Loss")
-plt.savefig('siamese_loss_plot.png', dpi=300)
+plt.show()
+plt.savefig('siamese_loss_plot1.png', dpi=300)
+
 
 end = time.time()
 elapsed = end - start
@@ -107,21 +107,20 @@ mlp = MLP(input_size, hidden_size, output_size)
 mlp.to(device)
 mlp.train()
 
-
 # Define binary cross-entropy loss and optimizer for MLP
 criterion = nn.BCELoss()
 optimizer = optim.SGD(mlp.parameters(), lr=1e-3)
 
 # Training loop for MLP
 num_epochs = 10
-counter = []
-loss_history = [] 
-iteration_number= 0
+epoch_losses = []  # List to store the loss for each epoch
 
 print("Starting Training MLP...")
 start = time.time()
 
 for epoch in range(num_epochs):
+    iteration_number = 0
+    loss_history = []
 
     for batch_idx, (input, label) in enumerate(mlp_loader):
         input, label = input.to(device), label.to(device)
@@ -138,24 +137,27 @@ for epoch in range(num_epochs):
 
         optimizer.step()
 
-        # Every 10 batches print out the loss
-        if batch_idx % 10 == 0 :
-            print(f"Epoch number: {epoch} -> Current loss: {loss.item()}\n")
+        loss_history.append(loss.item())
+
+        if batch_idx % 10 == 0:
             iteration_number += 10
 
-            counter.append(iteration_number)
-            loss_history.append(loss.item())
+    # Calculate the average loss for the epoch
+    epoch_loss = sum(loss_history) / len(loss_history)
+    epoch_losses.append(epoch_loss)
 
+    print(f"Epoch number: {epoch} -> Average loss: {epoch_loss:.4f}")
 
 print("Finished Training MLP...")
 
 # Display and Save Figure
-plt.figure(figsize=(10,5))
+plt.figure(figsize=(10, 5))
 plt.title("MLP Training Loss")
-plt.plot(counter, loss_history)
-plt.xlabel("Iterations")
+plt.plot(range(1, num_epochs + 1), epoch_losses)
+plt.xlabel("Epochs")
 plt.ylabel("Loss")
-plt.savefig('MLP_loss_plot.png', dpi=300)
+plt.show()
+plt.savefig('MLP_loss_plot1.png', dpi=300)
 
 end = time.time()
 elapsed = end - start

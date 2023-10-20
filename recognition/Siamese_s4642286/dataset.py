@@ -4,9 +4,8 @@ Student: Ethan Pinto (s4642286)
 Description: Creates the data loader for loading and preprocessing the ADNI Brain Data.
 """
 import os
-import csv
 import numpy as np
-import itertools
+import csv
 import torch
 import math
 import torchvision
@@ -25,11 +24,11 @@ class_labels = {
 train_data = []
 test_data = []
 
-# train_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/train"
-# test_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/test"
+train_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/train"
+test_dataroot = "C:/Users/Q/OneDrive/Desktop/COMP3710/REPORT/ADNI/AD_NC/test"
 
-train_dataroot = "/home/groups/comp3710/ADNI/AD_NC/train"
-test_dataroot = "/home/groups/comp3710/ADNI/AD_NC/test"
+# train_dataroot = "/home/groups/comp3710/ADNI/AD_NC/train"
+# test_dataroot = "/home/groups/comp3710/ADNI/AD_NC/test"
 
 # # Iterate through the subdirectories (AD and NC) and assign labels accordingly
 # for class_name, label in [("AD", 1), ("NC", 0)]:
@@ -86,12 +85,11 @@ transform = torchvision.transforms.Compose([
     torchvision.transforms.Resize((128, 128)),  # Resize images to a common size
     torchvision.transforms.ToTensor(),  # Convert images to tensors
     torchvision.transforms.Normalize(mean=(0.485, 0.456, 0.406),
-                         std=(0.229, 0.224, 0.225)) # CALCULATE PROPERLY
+                         std=(0.229, 0.224, 0.225))
 ])
 
 siamese_train_dataset = ADNIDataset(annotations_file='train_labelled.csv', img_dir=train_dataroot, transform=transform)
 mlp_train_dataset = ADNIDataset(annotations_file='train_labelled.csv', img_dir=train_dataroot, transform=transform)
-
 test_dataset = ADNIDataset(annotations_file='test_labelled.csv', img_dir=test_dataroot, transform=transform)
 
 
@@ -151,7 +149,16 @@ batch_size = 32
 # Create data loaders
 trainloader = DataLoader(siamese_train_dataset, batch_size=batch_size, shuffle=True)
 mlp_loader = DataLoader(mlp_train_dataset, batch_size=batch_size, shuffle=True)
-testloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
+testloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+
+# Get the size of each dataset
+train_dataset_size = len(trainloader.dataset)
+mlp_dataset_size = len(mlp_loader.dataset)
+test_dataset_size = len(testloader.dataset)
+
+print("Size of the Siamese Training Dataset:", train_dataset_size)
+print("Size of the MLP Training Dataset:", mlp_dataset_size)
+print("Size of the Test Dataset:", test_dataset_size)
 
 
 
@@ -183,30 +190,30 @@ for batch_idx, (data, labels) in enumerate(testloader):
         break
 
 
-# Fetch a batch of data
-data_iter = iter(trainloader)
-images, labels = next(data_iter)
+# # Fetch a batch of data
+# data_iter = iter(trainloader)
+# images, labels = next(data_iter)
 
-# Display a few images from the dataset in two rows
-def show_images(images, labels, class_names):
-    num_images = len(images)
-    num_columns = int(math.ceil(num_images / 2))
-    fig, axes = plt.subplots(2, num_columns, figsize=(15, 7))
+# # Display a few images from the dataset in two rows
+# def show_images(images, labels, class_names):
+#     num_images = len(images)
+#     num_columns = int(math.ceil(num_images / 2))
+#     fig, axes = plt.subplots(2, num_columns, figsize=(15, 7))
 
-    for i in range(2):
-        for j in range(num_columns):
-            index = i * num_columns + j
-            if index < num_images:
-                image = images[index].permute(1, 2, 0)
-                axes[i, j].imshow(image)
-                axes[i, j].set_title(class_names[labels[index]])
-                axes[i, j].axis('off')
+#     for i in range(2):
+#         for j in range(num_columns):
+#             index = i * num_columns + j
+#             if index < num_images:
+#                 image = images[index].permute(1, 2, 0)
+#                 axes[i, j].imshow(image)
+#                 axes[i, j].set_title(class_names[labels[index]])
+#                 axes[i, j].axis('off')
 
-    plt.tight_layout()
-    plt.show()
+#     plt.tight_layout()
+#     plt.show()
 
-# Load and display the first batch of images with axis titles in two rows
-for images, labels in mlp_loader:
-    show_images(images, labels, ["NC","AD"])
-    break
+# # Load and display the first batch of images with axis titles in two rows
+# for images, labels in mlp_loader:
+#     show_images(images, labels, ["NC","AD"])
+#     break
 
