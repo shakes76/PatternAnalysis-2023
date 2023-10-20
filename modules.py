@@ -2,18 +2,21 @@ import torch
 import torch.nn as nn
 
 class Block(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, shape, in_c, out_c, kernel_size=3, stride=1, padding=1):
         super(Block, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1)
+        self.ln = nn.LayerNorm(shape)
+        self.conv1 = nn.Conv2d(in_c, out_c, kernel_size, stride, padding)
+        self.conv2 = nn.Conv2d(out_c, out_c, kernel_size, stride, padding)
         self.activation = nn.SiLU()
 
     def forward(self, x):
-        x = self.conv1(x)
-        x = self.activation(x)
-        x = self.conv2(x)
-        x = self.activation(x)
-        return x
+        out = self.ln(x) 
+        out = self.conv1(out)
+        out = self.activation(out)
+        out = self.conv2(out)
+        out = self.activation(out)
+        return out
+
     
 class UNet(nn.Module):
     def __init__(self, n_steps=1000, time_emb_dim=100):
