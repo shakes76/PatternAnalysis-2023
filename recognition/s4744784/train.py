@@ -72,7 +72,7 @@ def train(epochs: int):
         # Save model
         if epoch in [20, 40, 60, 80, 100]:
             print(f"Saving model on epoch {epoch}...")
-            torch.save(model.state_dict(), f'./Trained_Model_Epoch_{epoch}.pth')
+            torch.save(model.state_dict(), f'./models/Trained_Model_Epoch_{epoch}.pth')
             print("Model saved!")
 
     return epoch_train_losses, epoch_val_losses, epoch_train_psnrs, epoch_val_psnrs
