@@ -1,6 +1,5 @@
 import torch, dataset, utils, modules, time, pickle
 import matplotlib.pyplot as plt
-from torch import optim
 from tqdm import tqdm
 
 def train_fn(
@@ -105,9 +104,9 @@ critic              = modules.Discriminator(utils.LOG_RESOLUTION).to(utils.DEVIC
 mapping_network     = modules.MappingNetwork(utils.Z_DIM, utils.W_DIM).to(utils.DEVICE)
 path_length_penalty = modules.PathLengthPenalty(0.99).to(utils.DEVICE)
 
-opt_gen             = optim.Adam(gen.parameters(), lr=utils.LEARNING_RATE, betas=(0.0, 0.99))
-opt_critic          = optim.Adam(critic.parameters(), lr=utils.LEARNING_RATE, betas=(0.0, 0.99))
-opt_mapping_network = optim.Adam(mapping_network.parameters(), lr=utils.LEARNING_RATE, betas=(0.0, 0.99))
+opt_gen             = torch.optim.Adam(gen.parameters(), lr=utils.LEARNING_RATE, betas=(0.0, 0.99))
+opt_critic          = torch.optim.Adam(critic.parameters(), lr=utils.LEARNING_RATE, betas=(0.0, 0.99))
+opt_mapping_network = torch.optim.Adam(mapping_network.parameters(), lr=utils.LEARNING_RATE, betas=(0.0, 0.99))
 
 losses = []
 best_loss = float('inf')

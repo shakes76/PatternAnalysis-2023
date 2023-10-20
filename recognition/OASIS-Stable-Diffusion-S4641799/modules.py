@@ -1,5 +1,4 @@
-import utils, torch, math
-import torch.nn.functional as F
+import torch, math
 import numpy as np
 from torch import nn
 
@@ -30,7 +29,7 @@ class EqualizedLinear(nn.Module):
         self.bias = nn.Parameter(torch.ones(out_features) * bias)
 
     def forward(self, x: torch.Tensor):
-        return F.linear(x, self.weight(), bias=self.bias)
+        return torch.nn.functional.linear(x, self.weight(), bias=self.bias)
 
 class EqualizedConv2d(nn.Module):
 
@@ -43,7 +42,7 @@ class EqualizedConv2d(nn.Module):
         self.bias = nn.Parameter(torch.ones(out_features))
 
     def forward(self, x: torch.Tensor):
-        return F.conv2d(x, self.weight(), bias=self.bias, padding=self.padding)
+        return torch.nn.functional.conv2d(x, self.weight(), bias=self.bias, padding=self.padding)
 
 class MappingNetwork(nn.Module):
     def __init__(self, z_dim, w_dim):
@@ -141,7 +140,7 @@ class Conv2dWeightModulate(nn.Module):
         _, _, *ws = weights.shape
         weights = weights.reshape(b * self.out_features, *ws)
 
-        x = F.conv2d(x, weights, padding=self.padding, groups=b)
+        x = torch.nn.functional.conv2d(x, weights, padding=self.padding, groups=b)
 
         return x.reshape(-1, self.out_features, h, w)
 
@@ -231,9 +230,9 @@ class Generator(nn.Module):
         rgb = self.to_rgb(x, w[0])
 
         for i in range(1, self.n_blocks):
-            x = F.interpolate(x, scale_factor=2, mode="bilinear")
+            x = torch.nn.functional.interpolate(x, scale_factor=2, mode="bilinear")
             x, rgb_new = self.blocks[i - 1](x, w[i], input_noise[i])
-            rgb = F.interpolate(rgb, scale_factor=2, mode="bilinear") + rgb_new
+            rgb = torch.nn.functional.interpolate(rgb, scale_factor=2, mode="bilinear") + rgb_new
 
         return torch.tanh(rgb)
 
