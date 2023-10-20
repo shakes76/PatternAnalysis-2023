@@ -9,12 +9,12 @@ from modules import ImprovedUNET
 test_dir = '/home/groups/comp3710/ISIC2018/'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
 model = ImprovedUNET(3,1)
-model = torch.load('checkpoints/checkpoint5.pth')
+model.load_state_dict(torch.load('checkpoints/checkpoint5.pth'))
 model.eval()
 dataset = TestDataset(test_dir)
-dataloader = DataLoader(TestDataset, batch_size=8)
+dataloader = DataLoader(TestDataset, batch_size=8, shuffle=false)
 model.to(device)
-for image in dataloader():
+for image in dataloader:
     image.to(device)
     out = model(image)
     print(out.shape)

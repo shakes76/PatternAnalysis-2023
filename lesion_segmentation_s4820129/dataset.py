@@ -31,7 +31,7 @@ class ISICdataset(Dataset):
       #data augmentation
       image = transforms.ToTensor()(image)
       truth = transforms.ToTensor()(truth)
-      image = transforms.Normalize([0.7084, 0.5822, 0.5361], [0.0948, 0.1099, 0.1240])(image)
+      image = transforms.Normalize([0.7084, 0.5822, 0.5361], [0.0948, 0.1099, 0.1240])(image) #values gotten from get_statistics function
       return image, truth
 
     def __len__(self):
@@ -52,7 +52,7 @@ class TestDataset(Dataset):
       image = Image.open(img_path).convert('RGB')
       image = transforms.Resize(self.target_size)(image)
       image = transforms.ToTensor()(image)
-      image = transforms.Normalize([0.7084, 0.5822, 0.5361], [0.0948, 0.1099, 0.1240])(image) #values got with get_statistics from utilities.py
+  
       return image
 
     def __len__(self):
