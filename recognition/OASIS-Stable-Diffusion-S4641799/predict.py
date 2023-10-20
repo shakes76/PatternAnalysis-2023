@@ -2,6 +2,11 @@ import torch, utils, modules, pickle, dataset
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid, save_image
 from torchvision import transforms
+
+"""
+Generate images from the supplied trained model
+"""
+
 gen                 = modules.Generator(utils.LOG_RESOLUTION, utils.W_DIM).to(utils.DEVICE)
 mapping_network     = modules.MappingNetwork(utils.Z_DIM, utils.W_DIM).to(utils.DEVICE)
 load_best = False

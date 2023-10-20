@@ -2,6 +2,10 @@ import torch, dataset, utils, modules, time, pickle
 import matplotlib.pyplot as plt
 from tqdm import tqdm
 
+"""
+Create a new model or continue to train a previously created one.
+"""
+
 def train_fn(
     critic,
     gen,

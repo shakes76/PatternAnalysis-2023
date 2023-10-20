@@ -2,6 +2,10 @@ import torch, math
 import numpy as np
 from torch import nn
 
+"""
+torch modules for the stylegan network
+"""
+
 IMAGE_SIZE = 256
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')

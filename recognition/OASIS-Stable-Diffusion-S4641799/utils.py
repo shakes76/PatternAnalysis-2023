@@ -1,6 +1,11 @@
 import os, torch, math
 from torchvision.utils import save_image
 
+
+"""
+Utils of functions and global variables needed for other scripts.
+"""
+
 # Path to data images
 root_path = 'data/keras_png_slices_data'
 

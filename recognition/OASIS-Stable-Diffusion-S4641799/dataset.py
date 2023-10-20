@@ -3,6 +3,10 @@ from torchvision import transforms
 from torch.utils.data import DataLoader, dataset
 from PIL import Image
 
+"""
+Data loader and transformer for StyleGAN model
+"""
+
 # Define data transformations
 transform = transforms.Compose([
     transforms.Resize((utils.IMAGE_SIZE, utils.IMAGE_SIZE)),
