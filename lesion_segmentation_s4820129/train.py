@@ -18,7 +18,6 @@ n_elements = 2594
 train_dataset, validation_dataset = random_split(fulldataset, [round(n_elements*0.8),n_elements- round(n_elements*0.8)])
 train_dataloader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 validation_dataloader = DataLoader(validation_dataset, batch_size=16, shuffle=False)
-
 # Initialize Model, Loss and Optimizer
 n_channels = 3 # RGB Images
 n_classes = 1  # Background and Object

@@ -1,25 +1,19 @@
 ## UNET segmentation of ISIC 2018
 ### Table of Contents
-  - [Libraries](#libraries)
   - [Dataset](#dataset)
   - [UNET Architecture](#unet-architecture)
   - [Training procedure](#training-procedure)
   - [Results](#results)
-  - [Usage](#usage)
-  - [Contributing](#contributing)
-  - [Acknowledgements](#acknowledgements)
-  - [License](#license)
+  - [Dependencies](#dependencies)
 
-### Libraries
-- Pytorch
-- Wandb
-- 
 ### Dataset
-The ISIC 2018 dataset used for this project is part of a public data repository. This dataset includes training data in the form of png and jpg images of skin lesions as well as their ground-truth segmentation. The training data has been preprocessed by resizing the images to 256x256, followed by a normalization with the data's respective mean and standard deviation.
-Dataset source: (link)
-- Training set:
-- Test set:
-- Validation set:
+The ISIC 2018 dataset used for this project is part of a public data repository. This dataset includes training data in the form of png and jpg images of skin lesions as well as their ground-truth segmentation. The training data has been preprocessed by resizing the images to 256x256, followed by a normalization with the data's respective mean and standard deviation (which had to be calculated).
+Dataset source: [ISIC 2018](https://challenge.isic-archive.com/data/#2018)
+- Training set: 2075
+- Validation set: 519
+- Test set: 1000
+
+The images in the test set did not have masks and are therefore not part of any of the logged metrics. For these, the training and validation sets were used.
 
 ### UNET Architecture
 The UNET architecture is based on the architecture proposed by a paper () published in (). The network was originally used to do 3D image segmentation on the BRATS 2017 dataset (link), but has been restructured in accordance with the task at hand. It consists of four downsampling blocks, one bottom layer and four upsampling blocks:
@@ -50,3 +44,8 @@ As proposed in the paper [], a dice similarity loss function is used to train th
  <img src="images/loss.svg" alt="loss_score_plot" width="600"/>
  <img src="images/acc.svg" alt="acc_plot" width="600"/>
  <img src="images/acc.svg" alt="accuracy plot" width="600"/>
+
+### Dependencies
+- python 3.11.4
+- conda 23.5.2
+- cuda 11.7.99
