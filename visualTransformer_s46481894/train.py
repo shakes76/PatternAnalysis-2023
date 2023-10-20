@@ -24,7 +24,7 @@ def run_model(model):
     # define model
     model.compile(
         optimizer=optimiser,
-        loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+        loss=keras.losses.BinaryCrossentropy(from_logits=True),
         metrics=[
             keras.metrics.SparseCategoricalAccuracy(name="accuracy"),
         ],
