@@ -1,4 +1,4 @@
-# COMP3710 Project Siamese Network on ADNI(46684033)
+# COMP3710 Project Siamese Network on ADNI (Man Lik Nicholas Wong 46684033)
 ## Project aim
 Create a classifier based on Siamese network to classify either Alzheimer’s disease (normal and AD)
 of the ADNI brain data set, while having an accuracy of around 0.8 on the test set
@@ -7,13 +7,20 @@ of the ADNI brain data set, while having an accuracy of around 0.8 on the test s
 A Siamese neural network is a neural network that uses the
 same weights while working in tandem on two different
 input vectors to compute comparable output vectors[1].
+
 ![img.png](images_for_README%2Fimg.png)
+
 *Example for a siamese network*[2]
 
 Siamese neural network has different applications, one of the prevalent usage is matching the inputs to a vector space.
-This enables metric learning and can be used to identify inputs' similarity. In this project, the inputs are brain images either with 
-Alzheimer’s disease (AD) or Cognitive Normal (CN) from the __ADNI__ dataset. Based on the similarity output of the 
+This enables metric learning and can be used to identify inputs' similarity or facilitate classification. In this project, the inputs are brain images either with 
+Alzheimer’s disease (AD) or Cognitive Normal (NC) from the __ADNI__ dataset. Based on the similarity output of the 
 Siamese neural network, brain images can be classified into AD or CN based on similarity on other images with known classes.
+
+The goal is to input a brain MRI image to the trained SNN, extracts its embeddings, and use a classifier to find its class (AD or NC)
+
+![218391_78.jpeg](images_for_README%2F218391_78.jpeg)
+
 ## Methodology
 ### Dataset
 The dataset used in this project is the **ADNI** dataset. The Alzheimer's Disease Neuroimaging Initiative (ADNI) is a large and long-term research project that began in 2004 with the primary goal of studying Alzheimer's disease (AD) and related neurodegenerative disorders. 
@@ -55,6 +62,8 @@ transform used is discussed in the discussion section.
 The model is defined in `modules.py`. The model consists of a several sequences of convolutional layers, batch normalization layers,
 ReLU activation function, and pooling layers. Then followed by several fully connected layer with ReLU activation function in between.
 
+![螢幕擷取畫面 2023-10-20 212307.png](images_for_README%2F%BF%C3%B9%F5%C2%5E%A8%FA%B5%65%AD%B1%202023-10-20%20212307.png)
+
 ### Training Siamese Neural Network
 In `train.py`, the model is trained with the training dataset prepared in `dataset.py`. 
 
@@ -67,25 +76,45 @@ dissimilar samples far apart.
 
 Adam optimizer is used for the training of SNN and a classifier
 
-![training_loss.png](images_for_README%2Ftraining_loss.png)
+![loss_plot_epoch_65.png](images_for_README%2Floss_plot_epoch_65.png)
 
 
 The loss reduces over each epoch, indicating the success and evidence of the training.
 
 With the code from [adambielski](https://github.com/adambielski/siamese-triplet/blob/master/README.md) (Github),
-the training progress can also be visualised in the vector space.
+the embeddings can also be visualised in the vector space.
 
 Epoch 1:
 
+Training: 
+
+![1.5_training_1.png](images_for_README%2F1.5_training_1.png)
+
+Validation:
+
+![1.5_validation_1.png](images_for_README%2F1.5_validation_1.png)
+
+Epoch 50:
+
+Training:
+
+![1.5_training_25.png](images_for_README%2F1.5_training_25.png)
+
+Validation:
+
+![1.5_validation_25.png](images_for_README%2F1.5_validation_25.png)
 
 ### Training classifier 
 The Siamese Neural Network outputs the embeddings
 of the input, and a classifier is build to inference the embeddings, and determine the respective class of the images. The classifier structure
 looks like this:
-![img_2.png](images_for_README%2Fimg_2.png)
+
+![螢幕擷取畫面 2023-10-20 211403.png](images_for_README%2F%BF%C3%B9%F5%C2%5E%A8%FA%B5%65%AD%B1%202023-10-20%20211403.png)
 
 which is just 2 dense layers converting the embeddings into 2 outputs. Cross Entropy loss is used.
+
 ![Accuracy_plot.png](images_for_README%2FAccuracy_plot.png)
+
 ![loss_plot_classifier.png](images_for_README%2Floss_plot_classifier.png)
 
 As the validation loss is pretty stable around 0.25 loss, the classifier at 30 Epochs is used for prediction
@@ -94,7 +123,7 @@ After training, the model can be used in predicting the class of an image. The p
 `predict.py`, where images from the test dataset is inputted into the classifier. 
 
 ## Result
-The best result obtained over numerous trial is 80.5% test accuracy on test set, which meets the project aim
+The best result obtained over numerous trials is 80.5% test accuracy on test set, which meets the project aim
 
 | model combination and settings                              | Test accuracy |
 |-------------------------------------------------------------|--------------:|
@@ -145,7 +174,7 @@ data leakage. However, for this project, the goal is met.
 As the test set is patient-level specific, i.e. there are 20 images from each patient in the test set, it is possible
 to make a prediction based on the average classification result on all images from a patient.  
 
-Another potential improvement is to prepare validation set with code. This will eliminate any risk of train-test contamination.
+Another potential improvement is to prepare validation set with code. This should eliminate any risk of train-test contamination.
 
 
 ## Requirement
