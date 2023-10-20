@@ -37,7 +37,7 @@ This is the structuring that was used for the modules, these were similar to the
 
 ---
 
-## Example input and output
+## Example input and output of model trained for 20 epochs
 
 ### Input (True) Mask
 
