@@ -1,10 +1,11 @@
 # GCN Model for Node Classification
+This project aims to develop an appropriate multi-layer Graph Convolutional Network (GCN) model for semi-supervised multi-class node classification, utilizing the Facebook Large Page-Page Network dataset. To accomplish this, we will use a partially processed dataset, where the features are represented as vectors in a 128-dimensional space.
 
 ## Description
 This project implements a Graph Convolutional Network (GCN) to perform node classification on the Facebook Large Page-Page Network dataset.
 
 ## Algorithm
-The GCN is a type of neural network that operates directly on graphs. It uses the graph structure and node features to predict a label for each node.
+The GCN is a type of neural network that operates directly on graphs. It uses the graph structure and node features to predict a label for each node. The graph convolution layer collects data from neighboring nodes and updates the feature representation of the node. The convolution operation of the graph relies on a weighted collection of the features of adjacent nodes. The last layer is a linear classifier that translates the output from the final GCN layer into class scores.
 
 ## Dependencies
 - torch
@@ -23,12 +24,17 @@ The GCN is a type of neural network that operates directly on graphs. It uses th
 
 ## Data Preprocessing
 The node features are normalized using `StandardScaler` from `sklearn`. The dataset is split into 70% training and 30% testing. The process also involves creating train/test split and convert them to boolean masks. This is a way to segment the data so that the model can learn from one subset and be evaluated on another, ensuring a fair assessment of its performance.
+
 ![Dataset.py](Dataset.jpg)
 
-## Results
+## Figures and Results
 The model achieves an accuracy of 94% on the test set.
 
 ![Results](TrainResult.png)
+
+Below is a plot displaying the accuracy and loss throughout training.
+
+![Loss and Acurracy Plot based on number of Epochs](LossAndAcc.png)
 
 ## Example output
 
