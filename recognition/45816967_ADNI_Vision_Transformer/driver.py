@@ -15,7 +15,7 @@ test_loader = DataLoader(test_set, shuffle=False, batch_size=64)
 # Create model
 model = ViT(patch_size=16, num_transformer_layers=12, embedding_dim=256, mlp_size=256, num_heads=16).to(device)
 # Train model
-train(model, train_loader, val_loader, n_epochs=20, lr = 0.000015, version_prefix="vit22")
+train(model, train_loader, val_loader, n_epochs=50, lr = 0.000015, version_prefix="vit22")
 # Test model
 test(model, test_loader)
 # Run predictions using model
