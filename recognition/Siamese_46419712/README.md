@@ -22,6 +22,7 @@ The Siamese model is a powerful deep learning model that is often used to assess
 
 ## 3. Model
 ### 3.1. Background
+
 According to a paper by Koch, Zemel, and Salakhutdinov [1] about Siamese network for one shot image recognition, the Siamese model is best when it is used to find the similarity between two images. That is why, traditional Siamese model often trained on pair dataset.
 
 For the Siamese model, this project will adapt the Siamese Neural Networks One-shot image recognition below.
@@ -35,14 +36,16 @@ Instead of including the final layer to calculate the similarity between the two
 
 After the first four feature extraction layers, the Siamese L1 distance will be calculated between the two images and minimized using the contrastive loss function. Images with high similarity will be close to each other while images with higher dissimilarity will be separated. This is complete using the contrastive loss function (This is showed below) [1].
 
-$$L = (1 - Y) \cdot ||x_i - y_j||^2 + (Y) \cdot \max(0, m - ||x_i - y_j||^2)$$
+![Contrastive loss function](research_image/ContrastiveLossFunction.png)
 
-The overall architecture for siamese model of this project is as followed:
-![Final siamese architecture](research_image/Siamese_overall_structure.png) [2]
+The overall architecture for siamese model of this project is as followed [2]:
+
+<img src="research_image/Siamese_overall_structure.png" width="70%" height="70%">
 
 For the binary classifier, this project will only use a simple multi fully connected layer that convert 4096 feature vector into binary classifier. 
 The architecture is as followed (primary source)
-![Classifier architecture](research_image/Binary_classifier_model.png)
+
+<img src="research_image/Binary_classifier_model.png" width="70%" height="70%">
 
 ### 3.2. Implementation
 
@@ -75,23 +78,23 @@ The hyper parameter turning for Classifier:
 
 ## 4. Train and validate loss
 
-![Siamese loss plot](result/siamese_loss_plot.png)
+<img src="result/siamese_loss_plot.png" width="70%" height="70%">
 
 The Siamese's train and validate loss show that when training and validating, the loss is converging and getting close to one another.
 
-![Classifier loss plot](result/classifier_loss_plot.png)
+<img src="result/classifier_loss_plot.png" width="70%" height="70%">
 
 However, when the image is put through the train Siamese model to extract feature vector to train the binary classifier, the loss model from the binary classifier showed that it is overfitting. This is due to the validate loss 
 
 <div>
-    <img src="result/tsn_train.png" alt="t-SNE train data" width="40%">
-    <img src="result/tsn_validate.png" alt="t-SNE validate data" width="40%">
+    <img src="result/tsn_train.png" alt="t-SNE train data" width="50%">
+    <img src="result/tsn_validate.png" alt="t-SNE validate data" width="50%">
 </div>
 
 The t-SNE diagram shows that when evaluate Siamese model during validate using test set, there is some clear difference in the separation between the AD and NC data. However, in the train dataset used for training classifier, there is no clear difference between the AD and NC classes. This is a good indication that there might be some overfitting in the training where for certain dataset, the Siamese model extract a good quality feature vector for differentiate between the two class, whereas for other cases, it doesn't work very well.
 
 <div class="side-by-side">
-  <img src="result/Accuracy_plot.png" alt="Result Accuracy loss plot" width="60%">
+  <img src="result/Accuracy_plot.png" alt="Result Accuracy loss plot" width="50%" height="50%">
   <p>Based on the accuracy plot at classifier on training data vs validating data is a clear evidence of overfitting in the mode. The training accuracy is increasing while the accuracy of validation data is capped at around 75%.</p>
 </div>
 
@@ -110,13 +113,16 @@ The t-SNE diagram shows that when evaluate Siamese model during validate using t
 Initially, this project took a wrong path when the file path for the training dataset was  used during the testing phase. This caused false information, and with the remaining time, it was impossible to tune the hyperparameters and model to increase the accuracy.
 
 When the wrong path was used, the highest accuracy achieved is 82.65%. The following is the image showcasing the visual prediction of the model, classifying the image from the test dataset versus the actual label.
-![img1](result/img1.png)
+
+<img src="result/img1.png" width="70%" height="70%">
 
 ### 5.2. Accuracy after correct the issue
 After correcting the path for the testing phase, the actual accuracy fell to 61.69%. Some attempts to tune the accuracy included using batchnorm and dropout layers to prevent overfitting in the Siamese model. However, in the end, the highest accuracy achieved was only 63.4%
 
 In an attempt to increase the predict accuracy and also prevent to prevent overfitting, ResNet-18 was used as the Siamese layer by removing the last layer and replacing it with a fully connected layer to extract the feature vector. However, the Resnet-18 is too powerful and with out careful tuning the model does not work very well. The best accuracy achieved using ResNet-18 was around 50.4%. Here is the representation of the loss function of the siamese model.
-![Binary](result/siamese_loss_plot_resnet18.png)
+
+<img src="result/siamese_loss_plot_resnet18.png" width="70%" height="70%">
+
 The result shows that at around 2 epochs the model loss function is close to achieving 0 loss. This is an indication that the model is still overfitting, and using a more powerful convolutional neural network layer like ResNet-18 speeds up the process.
 
 ## 6. Reproducibility
