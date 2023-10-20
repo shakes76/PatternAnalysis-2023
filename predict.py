@@ -4,16 +4,23 @@ from torchvision import transforms
 from PIL import Image
 from modules import UNet  # Import your UNet class or module
 
-# Load the saved model
-model = UNet(3, 1)  # Instantiate the model (make sure to use the same architecture as in your training script)
-model.load_state_dict(torch.load(r'C:\Users\sam\OneDrive\Desktop\COMP\Lab-Report.pt'))
+# Create an instance of your model (replace YourModelClass with your actual model class)
+model = UNet(3, 1)  # Instantiate the model with the same architecture as in your training script
+
+# Load the saved model state dictionary
+state_dict = torch.load(r'saved model directory here')
+
+# Load the state dictionary into your model
+model.load_state_dict(state_dict)
+
+# Set the model in evaluation mode
 model.eval()
 
 # Define the test data directory
-test_data_dir = r'C:\Users\sam\Downloads\ISIC2018_Task1-2_SegmentationData_x2\ISIC2018_Task1-2_Test_Input'
+test_data_dir = r'testing data directory here'
 
 # Define the output directory for saving the predictions
-output_dir = r'C:\Users\sam\Downloads\ISIC2018_Task1-2_SegmentationData_x2\predictions'
+output_dir = r'location of output here'
 
 # Create the output directory if it doesn't exist
 if not os.path.exists(output_dir):
@@ -26,7 +33,7 @@ transform = transforms.Compose([transforms.ToTensor()])
 test_files = [file for file in os.listdir(test_data_dir) if file.endswith('.jpg')]
 
 # Make predictions for each test image
-for file in test_files:
+for idx, file in enumerate(test_files):
     # Load the test image
     image = Image.open(os.path.join(test_data_dir, file))
 
@@ -38,7 +45,7 @@ for file in test_files:
         predicted_segmentation = model(image)
 
     # Convert the predicted segmentation to a format suitable for saving (e.g., numpy array)
-    predicted_segmentation = predicted_segmentation[0].cpu().numpy()
+    predicted_segmentation = predicted_segmentation[0, 0].cpu().numpy()  # Assuming output has a single channel
 
     # Save the predicted segmentation to the output directory
     output_filename = os.path.splitext(file)[0] + '_segmentation.png'
@@ -46,5 +53,8 @@ for file in test_files:
     # Save the predicted segmentation using your preferred method (e.g., PIL, OpenCV)
     # Example using PIL:
     Image.fromarray((predicted_segmentation * 255).astype('uint8')).save(output_path)
+
+    # Print the progress
+    #print(f"Processed {idx + 1} out of {len(test_files)} images")
 
 print("Predictions have been saved to the output directory:", output_dir)
