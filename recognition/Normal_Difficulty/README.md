@@ -1,5 +1,8 @@
 # brain MRI super-resolution network
 
+##
+install tensorflow numpy os mathlib IPython matplotlib
+
 
 ## Introduction of the problem
 
@@ -16,9 +19,14 @@ The untils.py file contains two function, `get_lowres_image` and `upscale_image`
 
 ## training and testing
 The training process includes various callbacks for monitoring and early stopping, as well as model checkpointing. 
-`ESPCNCallback`: A custom Keras callback that calculates and prints the Peak Signal-to-Noise Ratio (PSNR) during training. It stores PSNR values for each epoch.
-`keras.callbacks.EarlyStopping`: Monitors training loss and stops training if it doesn't improve for a specified number of epochs (patience).
-`keras.callbacks.ModelCheckpoint`: Saves the model's weights during training, allowing you to keep the best-performing model.
-
+- `ESPCNCallback`: A custom Keras callback that calculates and prints the Peak Signal-to-Noise Ratio (PSNR) during training. It stores PSNR values for each epoch.
+- `keras.callbacks.EarlyStopping`: Monitors training loss and stops training if it doesn't improve for a specified number of epochs (patience).
+- `keras.callbacks.ModelCheckpoint`: Saves the model's weights during training, allowing you to keep the best-performing model.
+number of epochs can be changed to improve the performance of the model.
+plot of loss value for each epoch is graphed when the training completes.
 
 ## prediction results
+10 image form `relative_test_path` are used to show a example of the profromance of the model, the results of testing is stored in folder test_result, each made up of three images : original image, lower resolution image and the predicted image.
+
+## reference
+Long  X. (2020). Image Super-Resolution using an Efficient Sub-Pixel CNN.  https://keras.io/examples/vision/super_resolution_sub_pixel/
