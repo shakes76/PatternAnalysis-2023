@@ -122,7 +122,7 @@ def train_pixelcnn():
     flat_enc_outputs = encoded_outputs.reshape(-1, encoded_outputs.shape[-1])
     codebook_indices = quantizer.get_code_indices(flat_enc_outputs)
     codebook_indices = codebook_indices.numpy().reshape(encoded_outputs.shape[:-1])
-    #print(f"Shape of the training data for PixelCNN: {codebook_indices.shape}")
+    print(f"Shape of the training data for PixelCNN: {codebook_indices.shape}")
     
     # Compile and train
     pixelcnn_input_shape = encoded_outputs.shape[1:-1]
@@ -143,7 +143,7 @@ def train_pixelcnn():
     pixelcnn_history = pixel_cnn.fit(
         x=codebook_indices,
         y=codebook_indices,
-        epochs=50,
+        epochs=800,
         validation_split=0.1,
         callbacks=[checkpoint]
     )
@@ -152,3 +152,4 @@ def train_pixelcnn():
     
 if __name__=='__main__':
     train_vqvae()
+    train_pixelcnn()
