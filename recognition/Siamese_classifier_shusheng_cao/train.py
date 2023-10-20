@@ -90,7 +90,7 @@ def train_classifier(data_dir, siamese_model_path, output_path):
     learning_rate = 0.1
     optimiser = torch.optim.SGD(model.fc.parameters(), lr=learning_rate, momentum=0.9)
 
-    epochs = 30
+    epochs = 4
 
     total_step = epochs * len(trainloader)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimiser, max_lr=learning_rate,
@@ -115,7 +115,8 @@ def train_classifier(data_dir, siamese_model_path, output_path):
             running_loss += loss.item()
 
         print(f"Epoch {epoch + 1}, Loss: {running_loss / len(trainloader)}")
-        print(f"Epoch {epoch + 1}, Accuracy: {evaluate_classifier(model, valloader)}")
+        print(f"Epoch {epoch + 1}, Train Accuracy: {evaluate_classifier(model, trainloader)}")
+        print(f"Epoch {epoch + 1}, Val Accuracy: {evaluate_classifier(model, valloader)}")
 
     torch.save(model.state_dict(), output_path)
 
