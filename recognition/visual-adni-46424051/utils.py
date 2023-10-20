@@ -2,6 +2,7 @@
 import torch
 import numpy as np
 
+# Splitting the images into patches and sequentialising them
 def patch(img, patches):
     c, h, w = img.shape
     patch = torch.zeros(patches ** 2, h * w * c // patches ** 2)
@@ -12,6 +13,7 @@ def patch(img, patches):
             patch[i * patches + j] = img[:, i * patch_size: (i + 1) * patch_size, j * patch_size: (j + 1) * patch_size].flatten()
     return patch
 
+# positional embeddings
 def position(length, dim):
     res = torch.ones(length, dim)
     for i in range(length):

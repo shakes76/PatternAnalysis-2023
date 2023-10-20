@@ -13,6 +13,7 @@ import time
 
 class Train():
     def __init__(self):
+        # setup all training requirements
         self.net = Model(shape=(1, 700, 700), patches=7, hidden_dim=8, blocks=2, heads=2, out_dim=2)
         self.transforms = transforms.Compose([
             transforms.Resize((700, 700)),
@@ -36,20 +37,16 @@ class Train():
         for epoch in range(constants.epochs):
             correct, total = 0, 0
             losses = 0.0
+            # go through images
             for i, (x, y) in enumerate(self.trainLoader):
-                # print("image: ", x)
                 if constants.cuda:
                     x, y = x.cuda(), y.cuda()
-                y1 = self.net(x)
-                # print("y1: ", y1)
-                # print("argmax y1: ", torch.argmax(y1).unsqueeze(0))
-                # print("y: ", y)
-                loss = self.criterion(y1.unsqueeze(0), y.long())
+                y1 = self.net(x) # run through model
+                loss = self.criterion(y1.unsqueeze(0), y.long()) #c calculate loss
                 losses += loss.detach().cpu().item() / len(self.trainLoader)
-                self.optimiser.zero_grad()
+                self.optimiser.zero_grad() # advance the optimiser
                 loss.backward()
                 self.optimiser.step()
-                # print(f'Image at index {i} is type {y} and guess is type {y1}')
                 if torch.argmax(y1, dim=0) == y:
                     correct+=1
                 total+=1
@@ -60,22 +57,23 @@ class Train():
         train_time = time.time() - start
 
         plt.figure()
-        plt.suptitle(f'Loss plot - training done in {train_time}')
+        plt.suptitle(f'Loss plot')
         plt.plot(lossy)
         plt.savefig("loss.png")
 
         plt.figure()
-        plt.suptitle(f'Training accuracy plot - training done in {train_time}')
+        plt.suptitle(f'Training accuracy plot')
         plt.plot(accuracies)
         plt.savefig("accuracy.png")
     
     def test(self):
         with torch.no_grad():
             correct, total = 0.0, 0.0
+            # stepo throught the images
             for i, (x, y) in enumerate(self.testLoader):
                 if constants.cuda:
                     x, y = x.cuda(), y.cuda()
-                y1 = self.net(x)
+                y1 = self.net(x) # run through the model
                 correct += torch.sum(torch.argmax(y1, dim=0) == y).detach().cpu().item()
                 total += len(x)
                 print(f'Image at index {i} is type {y} and guess is type {y1}')

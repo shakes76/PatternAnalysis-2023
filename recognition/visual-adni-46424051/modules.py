@@ -4,6 +4,7 @@ import torch
 from torch.nn import Module, Linear, Parameter, ModuleList, Softmax, LayerNorm, Sequential, GELU
 from utils import patch, position
 
+# Classification network
 class Model(Module):
     def __init__(self, shape=(1, 700, 700), patches=7, hidden_dim=8, blocks=2, heads=2, out_dim=2):
         super(Model, self).__init__()
@@ -30,25 +31,18 @@ class Model(Module):
         )
     
     def forward(self, img):
-        # print("1: ", img)
+        # remove first unnecessary dimension cz batch size 1
         img = img.squeeze(0)
-        # print("2: ", img)
-        patches = patch(img, self.patches)
-        # print("3: ", patches)
-        tokens = self.linear(patches)
-        # print("4: ", tokens)
-        # print(tokens.shape)
+        patches = patch(img, self.patches) # patchify
+        tokens = self.linear(patches) # add classification tokens
         tokens = torch.cat((self.token.expand(1, -1), tokens), dim=0)
-        # print("5: ", tokens)
         out = tokens + self.pos.repeat(1, 1)
-        # print(out.shape)
-        # print("6: ", out)
+        # run through encoding blocks and MLP
         for block in self.block:
             out = block(out)
-        # print("7: ", out)
-        # print("8: ", self.mlp(out[:, 0]))
         return self.mlp(out[:, 0])
     
+# multi-head self attention block
 class MSA(Module):
     def __init__(self, dim, heads=2):
         super(MSA, self).__init__()
@@ -76,6 +70,7 @@ class MSA(Module):
             result.append(self.softmax(q @ k.T / (self.head_dim ** 0.5)) @ v)
         return torch.hstack(result)
 
+# encoding block
 class Block(Module):
     def __init__(self, hidden_dim, heads, ratio=4):
         super(Block, self).__init__()
