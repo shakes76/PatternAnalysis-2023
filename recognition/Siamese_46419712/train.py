@@ -238,7 +238,7 @@ def execute_sTrain(train_loader, val_loader):
     learning_rate = 0.0001
 
     criterion = ContrastiveLossFunction()
-    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate) # Optimize model parameter
+    optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, betas=(0.5, 0.999)) # Optimize model parameter
 
     # training
     loss_list = []
@@ -298,7 +298,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     cModel = BinaryModelClassifier().to(device)
 
     # hyper parameters for classifier
-    num_epochs = 30
+    num_epochs = 40
     learning_rate = 0.001
 
     criterion = nn.BCELoss()

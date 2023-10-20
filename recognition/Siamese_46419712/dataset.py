@@ -69,7 +69,7 @@ class LoadData():
         self.siamese = siamese
 
         # data loader hyper parameter
-        self.image_size = 105
+        self.image_size = 224
         self.batch_size = 128
         self.num_worker = 0
 
@@ -163,22 +163,32 @@ class LoadData():
             Handle dataloader train, validate and siamese
             the loader is dependant on the init value
 
+            Transformation adopt from this https://github.com/metinmertakcay/video-classification-cnn-lstm/blob/main/Classify_Frame_with_ResNet18_UCFSport.ipynb
+
             Return
                 data (torch.utils.data.Data): respective dataset -> either train, validate pair or test dataset
         """
         if self.train: # transforms parameter for train/set dataset
             path = TRAIN_PATH
             transform = transforms.Compose([
-                transforms.Resize(self.image_size),
-                transforms.CenterCrop(self.image_size),
-                transforms.ToTensor()
+                transforms.Resize(self.image_size),  # Resize to a common resolution
+                transforms.RandomHorizontalFlip(),  # Random horizontal flip
+                transforms.ToTensor(),  # Convert to tensor
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
             ])
+
+            if not self.siamese:
+                transform = transforms.Compose([
+                    transforms.Resize(self.image_size),  # Resize to a common resolution
+                    transforms.ToTensor(),  # Convert to tensor
+                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+                ])
         else:
             path = TEST_PATH
             transform = transforms.Compose([
                 transforms.Resize(self.image_size),
-                transforms.CenterCrop(self.image_size),
-                transforms.ToTensor()
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
             ])
 
         image = torchvision.datasets.ImageFolder(root=path, transform=transform)
