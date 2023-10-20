@@ -74,37 +74,39 @@ def main():
                     dice_score = 1 - m.dice_loss(modelled_images, segments) # The dice score is the complement of the dice loss function, so +1
                     test_set_dice_list.append(dice_score.item())
                 if i % 10 == 0:
-                    print(f"Validating: Epoch {epoch + 1}/{epochs}, Images {i - 25}/25")
+                    print(f"Validating: Epoch {epoch + 1}/{epochs}, Images {i - 56}/25")
             else:
-                # This is the comparison of different masks made for different inputs at the end of the epoch
-                figure, axis = plt.subplots(4, 3, figsize=(15,5*5))
-                axis[0][0].set_title("Original Image") # The titles that will appear above each column
-                axis[0][1].set_title("Ground Truth")
-                axis[0][2].set_title("Modelled Mask")
+                if epoch in [0, 9, 19, 29]:
+                # This is the comparison of different masks made for different inputs at the end of select epochs to showcase change.
+                    figure, axis = plt.subplots(2, 3, figsize=(5, 5))
+                    axis[0][0].set_title("Original Image") # The titles that will appear above each column
+                    axis[0][1].set_title("Ground Truth")
+                    axis[0][2].set_title("Modelled Mask")
 
-                for row in range(4):
-                    with torch.no_grad():
-                        # Putting the tensors in the formatting necessary for matplotlib.pyplot
-                        image = input[0].cpu()[0].permute(1,2,0).numpy()
-                        ground_truth = input[1].cpu()[0][0].numpy()
-                        modelled_image = model(input[0].to(device))[0].cpu()[0][0].numpy()
+                    for row in range(2):
+                        with torch.no_grad():
+                            # Putting the tensors in the formatting necessary for matplotlib.pyplot
+                            image = input[0].cpu()[row].permute(1,2,0)
+                            ground_truth = input[1].cpu()[row][0].float()/255 
+                            modelled_image = model(input[0].to(device))[0].cpu()[row][0].float()
 
-                        axis[row][0].imshow(image)
-                        axis[row][0].xaxis.set_visible(False)
-                        axis[row][0].yaxis.set_visible(False)
+                            axis[row][0].imshow(image.numpy())
+                            axis[row][0].xaxis.set_visible(False)
+                            axis[row][0].yaxis.set_visible(False)
 
-                        axis[row][1].imshow(ground_truth, cmap="gray")
-                        axis[row][1].xaxis.set_visible(False)
-                        axis[row][1].yaxis.set_visible(False)
+                            axis[row][1].imshow(ground_truth.numpy(), cmap="gray")
+                            axis[row][1].xaxis.set_visible(False)
+                            axis[row][1].yaxis.set_visible(False)
 
-                        axis[row][2].imshow(modelled_image, cmap="gray")
-                        axis[row][2].xaxis.set_visible(False)
-                        axis[row][2].yaxis.set_visible(False)
+                            axis[row][2].imshow(modelled_image.numpy(), cmap="gray")
+                            axis[row][2].xaxis.set_visible(False)
+                            axis[row][2].yaxis.set_visible(False)
 
-                        figure.suptitle(f"Validation Phase: Epoch {epoch + 1}")
-                        # Saving the figure
-                        plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/GroupedResultsComparison_Epoch{epoch + 1} ")
-                        plt.close()
+                            figure.suptitle(f"Validation Phase: Epoch {epoch + 1}")
+                    
+                    # Saving the figure
+                    plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/GroupedResultsComparison_Epoch{epoch + 1} ")
+                    plt.clf()
 
 
         # Easier to imagine epochs if they are 1-indexed instead of 0-indexed
@@ -114,14 +116,14 @@ def main():
             plt.ylabel('Dice Loss')
             plt.title(f'Training Loss to Epoch {epoch + 1}')
             plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/Training_Loss_Epoch_{epoch + 1}.png")
-            plt.close()
+            plt.clf()
 
             plt.plot(runningloss_val)
             plt.xlabel('Epoch')
             plt.ylabel('Loss')
             plt.title(f'Validation Loss to Epoch {epoch + 1}')
             plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/Validation_Loss_Epoch_{epoch + 1}.png")
-            plt.close()
+            plt.clf()
 
     # Calculate the overall dice score
     test_dice_score = np.mean(test_set_dice_list)
