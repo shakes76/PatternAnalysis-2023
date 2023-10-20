@@ -14,4 +14,7 @@ The dataset consits of 2000 lesion images and 2000 ground truth masks. Preview o
 
 <img width="440" alt="first masks" src="https://github.com/mraula/PatternAnalysis-2023/assets/96328895/28c63790-50c7-40c7-94fd-443d288bfbb1">
 
+### Architecture
+
+![u-net-architecture](https://github.com/mraula/PatternAnalysis-2023/assets/96328895/14b488d2-e7bd-477e-a1b9-846d7e157e10)
 
