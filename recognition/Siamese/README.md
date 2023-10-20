@@ -136,5 +136,28 @@ layer = "VGG16"
     tr.model_train(model, optimizer, epochs)
 ```
 
+To test the model, we want to test it's ability to find disimilarity between two images. We give the model two images and take the output and find the disimilarity. If disimilarity is below a certain threshold, say 0.5 we can assume their the same class. That is the model's prediction. Next we compare that to the actual label to see if the outcome was correct.
+```
+    model.eval()
+    print("begin testing")
+    correct = 0
+    total = 0
+    for (img1, img2, label) in ds.testloader:
+        img1 = img1.to(device)
+        img2 = img2.to(device)
+        label = label.to(device)
+        output1, output2 = model(img1, img2)
+        distance = torch.nn.functional.pairwise_distance(output1, output2)
+        pred = torch.where(distance > 0.5, 0.0, 1.0)
+        right = torch.where(label == pred, 1, 0)
+        guesses = right.size(dim=0)
+        total = total + guesses
+        correct = correct + torch.sum(right).item()
+```
 
+As you can see from the code, pairwise distance is used to find the dissimilarity. 
+
+### Example usage
+
+Now we run some of our code and see how it does. First ill run the training and plot the loss function to see if our model is actuall learning. 
 
