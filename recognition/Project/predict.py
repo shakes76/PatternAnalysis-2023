@@ -1,61 +1,62 @@
+import dataset
+import modules
+import train
 import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib.patches import Rectangle
-from dataset import ISICDataset, get_transform
-from modules import get_model
+from torch.utils.data import DataLoader
+from tqdm import tqdm
+
 import torch
-from torchvision.ops import nms, box_iou
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.optim as optim
+import torchvision
+import torchvision.transforms as transforms
+import time
 
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-val_data = ISICDataset(
-    image_folder_path="./data/ISIC-2017_Validation_Data", 
-    mask_folder_path="./data/ISIC-2017_Validation_Part1_GroundTruth", 
-    #diagnoses_path="./data/ISIC-2017_Validation_Part3_GroundTruth.csv",
-    device=device,
-    transform=get_transform(True)
-    )
-val_dataloader = torch.utils.data.DataLoader(
-    val_data, 
-    batch_size=1, 
-    shuffle=True, 
-    collate_fn=lambda x:list(zip(*x))
-    )
+testImagesPath = "isic_data/ISIC2018_Task1-2_Test_Input"
+testLabelsPath = "isic_data/ISIC2018_Task1_Test_GroundTruth"
 
-model = get_model()
-model.float()
-model.load_state_dict(torch.load("./Mask_RCNN_ISIC4.pt"))
-model.eval()
-image, targets = val_data[73]
-predictions = model([image])
-image = np.array(image.detach().cpu())
-image = image.transpose((1,2,0))
-fig, ax = plt.subplots()
-ax.imshow(image[...,::-1])
-boxes = predictions[0]["boxes"]
-scores = predictions[0]["scores"]
-iou = box_iou(boxes, targets["boxes"])
-idx = torch.argmax(iou)
-bbox = boxes[idx].detach()
-mask = predictions[0]["masks"][idx]
-rect = Rectangle((bbox[0], bbox[1]), bbox[2] - bbox[0], bbox[3] - bbox[1], linewidth=1, edgecolor='r', facecolor='none')
-rx, ry = rect.get_xy()
-cx = rx + rect.get_width()/8.0
-cy = ry - rect.get_height()/22.0
-label = "Melanoma" if targets["labels"][0] == 2 else "Non-Melanoma"
-l = ax.annotate(
-        label,
-        (cx, cy),
-        fontsize=7,
-        # fontweight="bold",
-        color="r",
-        ha='center',
-        va='center'
-      )
-ax.add_patch(rect)
-# Classification
-print("Expected:", targets["labels"].item(), "Predicted:", predictions[0]["labels"][idx].item())
-# IoU
-print("IoU:", iou[idx])
-# Show mask prediction
-plt.imshow(predictions[0]["masks"][idx][0].detach() > 0.5)
+def main():
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    if not torch.cuda.is_available():
+        print("Warning CUDA not Found. Using CPU")
+
+    testDataSet = dataset.ISIC2017DataSet(testImagesPath, testLabelsPath, dataset.ISIC_transform_img(), dataset.ISIC_transform_label())
+    testDataloader = DataLoader(testDataSet, batch_size=train.batchSize, shuffle=False)
+
+    model = modules.Improved2DUnet()
+    model.load_state_dict(torch.load(train.modelPath))
+    model.to(device)
+    print("Model Successfully Loaded")
+    
+    test(testDataloader, model, device)
+
+def test(dataLoader, model, device):
+    losses_validation = list()
+    dice_similarities_validation = list()
+
+    print("> Test Inference Commenced")
+    start = time.time()
+    model.eval()
+    with torch.no_grad():
+        print(dataLoader)
+        for step, (images, labels) in enumerate(dataLoader):
+            print(step)
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images)
+            losses_validation.append(train.dice_loss(outputs, labels))
+            dice_similarities_validation.append(train.dice_coefficient(outputs, labels))
+
+            if (step == 0):
+                train.save_segments(images, labels, outputs, 9, test=True)
+
+        print('Test Loss: {:.5f}, Test Average Dice Similarity: {:.5f}'.format(train.get_average(losses_validation) ,train.get_average(dice_similarities_validation)))
+    end = time.time()
+    elapsed = end - start
+    print("Test Inference took " + str(elapsed/60) + " mins in total")
+
+if __name__ == "__main__":
+    main()
