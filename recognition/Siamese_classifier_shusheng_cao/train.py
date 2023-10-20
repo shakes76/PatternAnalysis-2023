@@ -6,6 +6,7 @@ import torchvision.transforms as transforms
 
 from modules import SiameseNetwork, Classifier, TripletLoss
 from dataset import ADNISiameseDataset, ADNIDataset
+from predict import evaluate_siamese, evaluate_classifier
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
@@ -15,8 +16,12 @@ def train_siamese(data_dir, output_path):
         transforms.ToTensor(),
         transforms.Normalize((0.1155,), (0.2254,))
     ])
-    siamese_trainset = ADNISiameseDataset(data_dir, transform)
+    siamese_dataset = ADNISiameseDataset(data_dir, transform)
+    trainset_len = int(len(siamese_dataset) * 0.6)
+    valset_len = len(siamese_dataset) - trainset_len
+    siamese_trainset, siamese_valset = torch.utils.data.random_split(siamese_dataset, [trainset_len, valset_len])
     trainloader = torch.utils.data.DataLoader(siamese_trainset, batch_size=32, shuffle=True, pin_memory=True)
+    valloader = torch.utils.data.DataLoader(siamese_valset, batch_size=32, shuffle=True, pin_memory=True)
     print("Data loaded")
 
     model = SiameseNetwork()
@@ -28,14 +33,14 @@ def train_siamese(data_dir, output_path):
     learning_rate = 0.1
     optimiser = torch.optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9)
 
-    epochs = 15
+    epochs = 30
 
     total_step = epochs * len(trainloader)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimiser, max_lr=learning_rate,
                                                     max_momentum=0.9, total_steps=total_step)
-    model.train()
 
     for epoch in range(epochs):
+        model.train()
         running_loss = 0.0
         for anchor, positive, negative in trainloader:
             anchor, positive, negative = anchor.to(device), positive.to(device), \
@@ -53,9 +58,10 @@ def train_siamese(data_dir, output_path):
             scaler.update()
 
             running_loss += loss.item()
-            print("loss: ", loss.item())
 
         print(f"Epoch {epoch + 1}, Loss: {running_loss / len(trainloader)}")
+        print(f"Epoch {epoch + 1}, Train Accuracy: {evaluate_siamese(model, trainloader)}")
+        print(f"Epoch {epoch + 1}, Val Accuracy: {evaluate_siamese(model, valloader)}")
 
     torch.save(model.state_dict(), output_path)
 
@@ -64,8 +70,12 @@ def train_classifier(data_dir, siamese_model, output_path):
         transforms.ToTensor(),
         transforms.Normalize((0.1155,), (0.2254,))
     ])
-    classifier_trainset = ADNIDataset(data_dir, transform)
+    classifier_set = ADNIDataset(data_dir, transform)
+    trainset_len = int(len(classifier_set) * 0.6)
+    valset_len = len(classifier_set) - trainset_len
+    classifier_trainset,  classifier_valset = torch.utils.data.random_split(classifier_set, [trainset_len, valset_len])
     trainloader = torch.utils.data.DataLoader(classifier_trainset, batch_size=32, shuffle=True, pin_memory=True)
+    valloader = torch.utils.data.DataLoader(classifier_valset, batch_size=32, shuffle=True, pin_memory=True)
     print("Data loaded")
 
     model = Classifier(2)
@@ -104,6 +114,7 @@ def train_classifier(data_dir, siamese_model, output_path):
             print("loss: ", loss.item())
 
         print(f"Epoch {epoch + 1}, Loss: {running_loss / len(trainloader)}")
+        print(f"Epoch {epoch + 1}, Accuracy: {evaluate_classifier(model, valloader)}")
 
     torch.save(model.state_dict(), output_path)
 
@@ -112,8 +123,8 @@ if __name__ == '__main__':
 
     parser.add_argument("network", choices=["siamese", "classifier"], help="Choose a network to train")
     parser.add_argument("--data_dir", default=os.path.join(".", "AD_NC", "train"), help="The data dir used to train")
-    parser.add_argument("--output_path", default=os.path.join(".", "model.pth"))
-    parser.add_argument("--siamese_model", default=os.path.join(".", "model.pth"))
+    parser.add_argument("--output_path", default=os.path.join(".", "model.pth"), help="The model output path")
+    parser.add_argument("--siamese_model", default=os.path.join(".", "model.pth"), help="The siamese model path use to train classifier")
 
     args = parser.parse_args()
 
