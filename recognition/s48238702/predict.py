@@ -1,3 +1,13 @@
+"""
+predict.py: Image classification using a Siamese Network and a Classifier.
+
+Author: Rachit Chaurasia (s4823870)
+Date: 20/10/2023
+
+This script loads a pre-trained Siamese Network model and uses it to perform image classification.
+The classifier is trained to classify images based on Siamese network embeddings.
+"""
+
 import torch
 import torch.nn as nn
 from torchvision import transforms

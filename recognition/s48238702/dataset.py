@@ -1,3 +1,17 @@
+"""
+dataset.py: Custom dataset definitions for Siamese network training and classification.
+
+Author: Rachit Chaurasia (s4823870)
+Date: 20/10/2023
+
+This module defines custom datasets for Siamese network training and image classification.
+The SiameseDataset is designed for Siamese network training and classification. It provides
+support for loading pairs of images and their corresponding labels, which indicate whether
+the pairs are similar or dissimilar. The load_siamese_data function loads data for Siamese
+network training, while the load_classify_data function loads data for image classification.
+
+"""
+
 import torch
 import os
 from torch.utils.data import Dataset, DataLoader

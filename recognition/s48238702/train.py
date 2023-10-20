@@ -1,3 +1,22 @@
+"""
+train.py: Train a Siamese Network for image similarity learning.
+
+Author: Rachit Chaurasia (s4823870)
+Date: 20/10/2023
+
+This script trains a Siamese Network for image similarity learning. The trained Siamese Network
+model is saved to a file specified by `SNN_PATH`. Additionally, the script plots the training loss.
+
+The Siamese Network is trained using the `trainSNN` function, which trains the network for a specified
+number of epochs. The network is trained using the provided data and saves the trained model to the
+specified file.
+
+The script uses a custom Siamese dataset and the Contrastive Loss for training.
+
+To run the training, execute this script in your preferred environment.
+
+"""
+
 import torch
 import torch.optim as optim
 import torchvision

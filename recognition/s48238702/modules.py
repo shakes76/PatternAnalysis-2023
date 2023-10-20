@@ -1,3 +1,16 @@
+"""
+modules.py: Siamese Network and Contrastive Loss for image similarity learning.
+
+Author: Rachit Chaurasia (s4823870)
+Date: 20/10/2023
+
+This module defines a Siamese Network for image similarity learning and the Contrastive Loss
+used for training the Siamese Network. The Siamese Network takes pairs of images as input and
+produces embeddings for them. The Contrastive Loss calculates the loss between the embeddings
+of the pairs.
+
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
