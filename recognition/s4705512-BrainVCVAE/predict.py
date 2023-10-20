@@ -73,20 +73,63 @@ pixel_cnn.load_weights(models_directory + pixelcnn_weights_filename)
 
 # Encode the given images
 def encode_images(images):
+    """
+    Encodes Images
+    Parameters
+    ----------
+    Image : tf.Tensor
+        Image from Dataset
+
+    Returns
+    -------
+    encoded outputs
+        """
     encoded_outputs = encoder.predict(images)
     return encoded_outputs
 
 # Decode the given codes
 def decode_images(codes):
-    decoded_images = decoder.predict(codes)
-    return decoded_images
+     """
+    Decodes coded Images back into images
+    Parameters
+    ----------
+    Coded Images
+        
+
+    Returns
+    -------
+    Image
+    """
+     decoded_images = decoder.predict(codes)
+     return decoded_images
 
 # Encode and then decode images
 def reconstruct(images):
+    """
+    Reconstructs image through trained model
+    Parameters
+    ----------
+    Image : 
+        Image to be reconstructed
+
+    Returns
+    -------
+    new images reconstructed
+        """
     return trained_vqvae_model.predict(images)
 
 # Generate codes to be decoded into novel brains
 def generate_codes(num_codes=4):
+    """
+    Generated new images using the Pixel CNN
+    ----------
+    num_codes : int
+        number of new images to generate
+
+    Returns
+    -------
+    new images
+    """
     # Generate new images with the PixelCNN model
     inputs = layers.Input(shape=pixel_cnn.input_shape[1:])
     outputs = pixel_cnn(inputs, training=False)
@@ -120,6 +163,14 @@ def generate_codes(num_codes=4):
     return priors, quantized
 
 def generate(num):
+    """
+    Generated new images using generating codes and decoding
+    Plots and shows the new images on plots
+    ----------
+    num : int
+        number of new images to generate
+
+    """
     if num == None or 0:
         num_generations = 4
     else:
@@ -147,6 +198,12 @@ def generate(num):
     plt.close()
 
 def reconstruct():
+    """
+    Reconstructs  images from generating codes
+    Plots and shows the  images on plots
+    ----------
+
+    """
     num_images = 4
 
     trained_vqvae_model = vqvae_trainer.vqvae
