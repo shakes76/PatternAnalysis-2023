@@ -44,22 +44,11 @@ class CustomDataset(Dataset):
         mask = torch.tensor(mask, dtype=torch.float32)
         return mask
 
-def get_loader(image_dir, mask_dir, batch_size, num_workers, transform=None):
+def get_loader(image_dir, mask_dir, batch_size, transform=None):
     if transform is None:
         transform = transforms.Compose([transforms.ToTensor()])
 
     dataset = CustomDataset(image_dir, mask_dir, transform=transform)
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
+    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
 
     return loader
-
-if __name__ == "__main__":
-    train_input_dir = r"C:\Users\sam\Downloads\ISIC2018_Task1-2_SegmentationData_x2\ISIC2018_Task1-2_Training_Input_x2"
-    train_mask_dir = r"C:\Users\sam\Downloads\ISIC2018_Task1-2_SegmentationData_x2\ISIC2018_Task1_Training_GroundTruth_x2"
-    batch_size = 4
-    num_workers = 4
-
-    transform = transforms.Compose([transforms.ToTensor()])
-
-    data_loader = get_loader(train_input_dir, train_mask_dir, batch_size, num_workers)
-
