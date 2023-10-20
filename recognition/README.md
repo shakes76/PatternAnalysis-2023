@@ -8,10 +8,11 @@ The [ISIC 2017/18](https://challenge.isic-archive.com/data/#2017) dataset is a c
 # Dependencies
 A `conda` environment was created with the following packages:
 ```
-pytorch
-torchvision
-matplotlib
-pandas
+python 3.10.13
+pytorch 2.1.0
+torchvision 0.16.0
+matplotlib 3.7.2
+pandas 2.1.1
 ```
 This model consists of four files:
 * `dataset.py` loads the data for processing
@@ -63,7 +64,7 @@ Again, it seems to highlight the overall shape and is expected to improve with m
 ### Recommendations
 There are several improvements that could be made to the overall procedure:
 * more epochs in training would improve accuracy
-* converting the predictions to binarised images (via thresholding) would make the Dice coefficient more effective
+* converting the predictions to binarised images (via thresholding) would make the Dice coefficient more meaningful
 
 # References
 [1] Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., and Maier-Hein, K. "Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge". Feb 28, 2018 [Online]. Accessed from <https://arxiv.org/pdf/1802.10508v1.pdf>
