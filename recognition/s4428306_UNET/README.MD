@@ -1,4 +1,4 @@
-#Improved U-Net For Image Segmentation
+# Improved U-Net For Image Segmentation
 Author: Michael Hansen, s4428306
 
 #Improved U-Net Algorithm
@@ -12,7 +12,7 @@ This model is used to classify skin lesions in the ISIC 2018 dataset.
 #Improved U-Net Architecture
 The following figure, taken from [^2], outlines the large scale architecture of Improved U-Net.
 DISPLAY UNET DIAGRAM FROM SECOND PAPER
-(/recognition/s4428306_UNET/IUNetArchitecture.png)
+![IUNet diagram](/recognition/s4428306_UNET/IUNetArchitecture.png)
 DESCRIBE PATHWAYS
 CONTEXT MODULES
 SKIP CONNECTIONS AND CONCATS
