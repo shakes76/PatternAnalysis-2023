@@ -13,7 +13,7 @@ def predict(model_dict: str):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = ViT().to(device)
     model.load_state_dict(torch.load(model_dict))
-    _, test_loader, _ = get_dataloaders(batch_size, workers, image_size)
+    _, test_loader, _ = get_dataloaders(batch_size, workers, image_size, dataroot="AD_NC", rgb=False)
     model.eval()
 
     with torch.no_grad():

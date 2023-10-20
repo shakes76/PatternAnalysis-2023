@@ -36,7 +36,7 @@ def get_dataloaders(batch_size: int, workers: int, image_resize: int, dataroot: 
 
     approx_split_idx = int(0.8 * len(full_train_dataset))
     
-    # Find next patient after 0.8 mark
+    # Find next patient after 0.8 mark and split dataset there
     for idx in range(approx_split_idx, len(full_train_dataset)):
         current_patient_id = get_patient_id_from_filename(full_train_dataset.imgs[idx][0])
         next_patient_id = get_patient_id_from_filename(full_train_dataset.imgs[idx + 1][0])

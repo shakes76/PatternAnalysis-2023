@@ -22,7 +22,7 @@ def train(batch_size: int = 8, workers: int = 4, image_resize: int = 224, dataro
     # ----------------------------------------
     # Loss Function and Optimiser
     criterion = nn.CrossEntropyLoss()
-    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=5e-5, weight_decay=0.0005)
+    optimiser = optim.Adam(params=visual_transformer.parameters(), lr=1e-5, weight_decay=0.0001)
 
     # ----------------------------------------
     # Training loop
@@ -52,8 +52,6 @@ def train(batch_size: int = 8, workers: int = 4, image_resize: int = 224, dataro
             if (index) % batch_size == batch_size - 1:
                 running_time = time.time()
                 last_loss = batch_loss / float(batch_size)
-                if math.isnan(last_loss):
-                    print(f"Batch loss: {batch_loss}, Batch size: {batch_size}")
                 print("Epoch [{}/{}], Batch {} Loss: {:.5f}".format(epoch+1, num_epochs, index+1, last_loss))
                 print(f"Timer: {running_time - start_time}")
                 batch_loss = 0.
@@ -68,18 +66,20 @@ def train(batch_size: int = 8, workers: int = 4, image_resize: int = 224, dataro
         val_acc = 0
         running_vloss = 0.0  # Validation loss logic taken from https://pytorch.org/tutorials/beginner/introyt/trainingyt.html
         with torch.no_grad():  # Disable gradient computation
+            correct = 0
+            total = 0
             for index, (inputs, labels) in enumerate(validation_loader):
                 inputs, labels = inputs.to(device), labels.to(device)
                 validation_outputs = visual_transformer(inputs)
                 validation_loss = criterion(validation_outputs, labels)
                 running_vloss += validation_loss
-
+                total += labels.size(0)
+                correct += (predicted == labels).sum().item()
                 _, predicted = torch.max(validation_outputs.data, 1)
-                val_acc += (predicted == labels).sum().item() / len(outputs)
         
         average_vloss = running_vloss / (index + 1)
-        print(f"Validation Accuracy: {val_acc / len(validation_loader)}, Validation loss: {average_vloss}")
-        val_acc_values.append(val_acc / len(validation_loader))
+        print(f"Validation Accuracy: {total / correct}, Validation loss: {average_vloss}")
+        val_acc_values.append(total / correct)
 
         if average_vloss < best_vloss:
             best_vloss = average_vloss
