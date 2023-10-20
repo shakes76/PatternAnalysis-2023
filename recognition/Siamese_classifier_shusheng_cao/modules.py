@@ -1,3 +1,4 @@
+import torch
 from torch import nn, Tensor, relu
 
 
@@ -68,17 +69,17 @@ class SiameseNetwork(nn.Module):
     def forward(self, input1, input2):
         output1 = self.resnet(input1)
         output2 = self.resnet(input2)
-        distance = nn.functional.pairwise_distance(output2, output1)
+        distance = torch.nn.functional.cosine_similarity(output2, output1)
         return distance
 
 
 class TripletLoss(nn.Module):
-    def __init__(self, margin=1.0):
+    def __init__(self, margin=0.1):
         super(TripletLoss, self).__init__()
         self.margin = margin
 
     def forward(self, positive: Tensor, negative: Tensor) -> Tensor:
-        losses = relu(positive - negative + self.margin)
+        losses = relu(2 + negative - positive + self.margin)
         return losses.mean()
 
 
