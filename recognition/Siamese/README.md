@@ -1,5 +1,7 @@
 # Siamese model
 
+## This project was created by Nathan Levu student id s4682374
+
 ### Description
 The Siamese model is a neural network that work's on two given input's to create comparable outputs. These output's can be used to judge the similarities between given inputs. Being able to compare the similarities of two input's is very useful, and Siamese network's can be used for:
 - Facial recognition
