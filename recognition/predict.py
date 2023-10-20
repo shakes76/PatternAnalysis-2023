@@ -1,7 +1,6 @@
 import numpy as np
 from keras.layers import *
 from keras.optimizers import Adam
-from keras.callbacks import ModelCheckpoint
 
 import modules
 import dataset
@@ -42,32 +41,44 @@ def create_pairs(X, y):
 
     return X_pairs, ys
 
-# Specify checkpoint paths
-checkpoint_path = "./Checkpoint/cp_p100.ckpt"
-
-# Create a callback that saves the model's weights
-cp_callback = ModelCheckpoint(filepath=checkpoint_path,
-                              save_weights_only=True,
-                              verbose=1)
-
-# Load existing checkpoint
-model.load_weights("./Saved/cp.ckpt")
-
 model.compile(loss='binary_crossentropy', # As we are using Sigmoid activation
               optimizer=Adam(learning_rate=0.005),
               metrics=['accuracy'])
 
-num_batches = 538
-batch_size = 40
-epoch = 5
+# Load trained weights
+model.load_weights("./Checkpoint/cp_p100.ckpt")
 
-for b in range(50):
-    X_train_pairs, ys_train = create_pairs(X_train[b], y_train[b])
-    X_test_pairs, ys_test = create_pairs(X_test[b], y_test[b])
+# The code below allows Matplotlib to show the images
+# import os    
+# os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
-    model.fit(x=[X_train_pairs[:, 0, :, :], X_train_pairs[:, 1, :, :]],
-          y=ys_train,
-          validation_data=([X_test_pairs[:, 0, :, :], X_test_pairs[:, 1, :, :]], ys_test),
-          batch_size=None,
-          steps_per_epoch=20,
-          callbacks=[cp_callback])
+def check_same_class(input_A, input_B):
+    is_same_class = model.predict([input_A.reshape(1, 75, 80), input_B.reshape(1, 75, 80)]).flatten() > 0.5
+    return is_same_class[0]
+
+correct = 0
+incorrect = 0
+
+for i in range(20):
+    for j in range(40):
+        input_A, input_B = X_test[i][j], X_test[i+1][j]
+        label_A, label_B = y_test[i][j], y_test[i+1][j]
+
+        guess = check_same_class(input_A, input_B)
+        actual = (label_A == label_B)
+
+        if guess == actual:
+            correct += 1
+        else:
+            incorrect += 1
+
+accuracy = correct / (correct + incorrect)
+
+print("Correct Guesses:", correct, "Incorrect Guesses:", incorrect)
+print("Accuracy:", accuracy)
+
+# Code to show images, if required
+#import matplotlib.pyplot as plt
+#plt.figure(dpi=50)
+#plt.imshow(input_A)
+#plt.imshow(input_B)

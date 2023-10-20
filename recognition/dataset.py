@@ -1,18 +1,18 @@
 import tensorflow as tf
+from keras.utils import image_dataset_from_directory
 import os
-from keras.preprocessing.image import ImageDataGenerator
 
 img_height = 240
 img_width = 256
 
-train = tf.keras.utils.image_dataset_from_directory(
+train = image_dataset_from_directory(
     os.getcwd() + "/AD_NC/train",
     #"D:/COMP3710 Project/Siamese/recognition/AD_NC/train",
     labels="inferred",
     image_size=(img_height, img_width),
     batch_size=40)
 
-test = tf.keras.utils.image_dataset_from_directory(
+test = image_dataset_from_directory(
     os.getcwd() + "/AD_NC/test",
     #"D:/COMP3710 Project/Siamese/recognition/AD_NC/test",
     labels="inferred",

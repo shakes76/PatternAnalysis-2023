@@ -1,6 +1,3 @@
-import tensorflow as tf
-import keras.api._v2.keras as keras # Required as, though it violates Python conventions, my TF cannot load Keras properly
-
 from keras.layers import *
 from keras.models import Sequential, Model
 from keras.regularizers import l2
