@@ -2,9 +2,11 @@ from parameters import *
 from modules import *
 from torchvision import datasets, transforms as T
 from train import *
+from dataset import *
 
 
 def main():
+    # load_data_celeba()
     train_model()
     ######
     # Example ADaIN
@@ -55,11 +57,20 @@ def main():
     # gen = StyleGANGenerator(128, 128, 4)
     # noise = torch.randn(5, 128, 4, 4)
     # z_vec = torch.randn(5, 1, 1, 128)
-    # 
+    #
     # result = gen(z_vec)
     # print(result)
 
     # train_dataset = datasets.CelebA(root, "train", download=True)
+
+    ######
+    # Example Discriminator
+    # ######
+    # in_vec = torch.randn(1, 3, 64, 64)
+    # discriminator = Discriminator(0)
+    #
+    # output = discriminator(in_vec)
+    # print(output)
 
 
 if __name__ == "__main__":

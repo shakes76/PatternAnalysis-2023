@@ -113,7 +113,7 @@ class StyleGANGenerator(nn.Module):
             self.channels.append(in_channels)
 
     def forward(self, z_vec):
-        noise = torch.randn(1, self.num_channels, self.resolution, self.resolution)
+        noise = torch.randn(1, self.num_channels, self.resolution, self.resolution).to("cuda:0")
         x = self.constant_input
         x = x + self.initial_scaler(noise) # Potentially change to different noise for each iter
         w_vec = self.mapping_network(z_vec)
@@ -121,13 +121,15 @@ class StyleGANGenerator(nn.Module):
         x = x.permute(0, 3, 1, 2)
         x = self.initial_conv(x)
         x = x.permute(0, 2, 3, 1)
-        feature_map_size = 4
+        current_feature_map_size = 4
         for i, layer in enumerate(self.layers):
-            feature_map_size *= 2
-            noise = torch.randn(1, self.channels[i], feature_map_size, feature_map_size)
+            current_feature_map_size *= 2
+            noise = torch.randn(1, self.channels[i], current_feature_map_size, current_feature_map_size).to("cuda:0")
             w_vec = nn.functional.interpolate(w_vec, (1, self.channels[i]))
             x = layer(x, w_vec, noise)
+        x = x.permute(0, 3, 1, 2)
         return x
+
 
 class Discriminator(nn.Module):
     def __init__(self, ngpu):

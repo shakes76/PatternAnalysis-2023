@@ -9,10 +9,10 @@ root = "."
 norm_mean, norm_sd = (0.5, 0.5, 0.5), (0.5, 0.5, 0.5)
 
 # Number of epochs in training
-epochs = 150
+epochs = 5
 
 # Batch size for loader
-batch_size = 32
+batch_size = 82
 
 # Learning Rate
 lr = 0.001
@@ -21,7 +21,7 @@ lr = 0.001
 beta1 = 0.5
 
 # Image size (nxn)
-image_size = 128
+image_size = 64
 
 # Number of channels for image
 num_channels = 3

@@ -26,4 +26,4 @@ def load_data_celeba():
     # Data loaders
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     
-    return train_loader, transform
+    return train_loader, transform, train_dataset
