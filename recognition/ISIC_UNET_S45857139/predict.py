@@ -5,9 +5,9 @@ from train import (get_data_loaders, initialize_model,
                                 save_sample_images, plot_training_progress)
 
 # Constants
-output_dir = "/home/Student/s4585713/TrainUNET"
-image_dir = "/home/Student/s4585713/TrainUNET/ISIC2018_Task1-2_Test_Input/ISIC2018_Task1-2_Test_Input"
-mask_dir = "/home/Student/s4585713/TrainUNET/ISIC2018_Task1_Test_GroundTruth"
+output_dir = "C:/users/lombo/Desktop"
+image_dir = "C:/Users/lombo/Desktop/3710_report/ISIC2018_Task1-2_Test_Input/ISIC2018_Task1-2_Test_Input"
+mask_dir = "C:/Users/lombo/Desktop/3710_report/ISIC2018_Task1_Test_GroundTruth"
 n_batch = 128
 learning_rate = 0.001
 n_epochs = 10

@@ -27,7 +27,7 @@ In terms of dataset allocation, 80% is designated for training, while the remain
 The model underwent training on the Google Colab V100 GPU, spanning 10 epochs. The results are as follows:
 
 **Sample Predictions**: (Input at the top, mask in the middle, predicted mask at the bottom): 
-[![Sample Predictions](/images/sample1.png)](https://github.com/lombo9/PatternAnalysis/blob/topic-recognition/images/sample1.png) [![Sample Predictions](/images/sample2.png)](https://github.com/lombo9/PatternAnalysis/blob/topic-recognition/images/sample2.png)
+[![Sample Predictions](/images/sample1.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/sample1.png) [![Sample Predictions](/images/sample2.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/sample2.png)
 
 
-**Metrics**: Loss per Epoch and Average Dice Coefficient per Epoch: [![Sample Predictions](/images/results.png)](https://github.com/lombo9/PatternAnalysis/blob/topic-recognition/images/results.png)
+**Metrics**: Loss per Epoch and Average Dice Coefficient per Epoch: [![Sample Predictions](/images/results.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/results.png)
