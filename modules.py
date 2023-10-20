@@ -15,12 +15,14 @@ class VQVAE(nn.Module):
     def __init__(self, num_embeddings, embedding_dim):
         super(VQVAE, self).__init__()
         
+        self.epochs_trained = 0
+        
         self.num_embeddings = num_embeddings
         self.embedding_dim = embedding_dim
         
-        self.encoder = Encoder()
+        self.encoder = Encoder(embedding_dim)
         self.quantiser = Quantiser(num_embeddings=num_embeddings, embedding_dim=embedding_dim)
-        self.decoder = Decoder()
+        self.decoder = Decoder(embedding_dim)
         
     def forward(self, x):
         # Input shape is B, C, H, W
@@ -36,24 +38,24 @@ class VQVAE(nn.Module):
     """Function while allows output to be calculated directly from indices
     param quant_out_shape is the shape that the quantiser is expected to return"""
     @torch.no_grad()
-    def img_from_indices(self, indices, quant_out_shape):
-        quant_out = self.quantiser.output_from_indices(indices, quant_out_shape)   # Output is currently 32*32 img with 32 channels
+    def img_from_indices(self, indices, quant_out_shape_BHWC):
+        quant_out = self.quantiser.output_from_indices(indices, quant_out_shape_BHWC)   # Output is currently 32*32 img with 32 channels
         return self.decoder(quant_out)
 
 """The Encoder Model used in VQ-VAE"""
 class Encoder(nn.Module):
-    def __init__(self, ):
+    def __init__(self, embedding_dim):
         super(Encoder, self).__init__()
         
         self.encoder = nn.Sequential(
             nn.Conv2d(1, 16, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(16),
             nn.ReLU(),
-            nn.Conv2d(16, 16, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(16),
-            nn.ReLU(),
             nn.Conv2d(16, 32, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.Conv2d(32, embedding_dim, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(embedding_dim),
             nn.ReLU(),
         )
         
@@ -85,17 +87,26 @@ class Quantiser(nn.Module):
         encoding_indices = torch.argmin(dist, dim=-1)       # in form B, W*H
         return encoding_indices
     
-    """Returns the output from the encoding indices"""
-    def output_from_indices(self, indices, output_shape):
+    """Returns the output from the encoding indices without calculating losses etc."""
+    def output_from_indices(self, indices, output_shape_BHWC):
         quant_out = torch.index_select(self.embedding.weight, 0, indices.view(-1))
-        quant_out = quant_out.reshape(output_shape).permute(0, 3, 1, 2)
+        quant_out = quant_out.reshape(output_shape_BHWC).permute(0, 3, 1, 2)
         return quant_out
     
     def forward(self, quant_input):
+        
+        B, C, H, W = quant_input.shape
+        
         # Finds the encoding indices
         encoding_indices = self.get_encoding_indices(quant_input)
+        
+        quant_input = quant_input.permute(0, 2, 3, 1)
+        quant_input = quant_input.reshape((quant_input.size(0), -1, quant_input.size(-1)))        
+        
         # Gets the output based on the encoding indices
-        quant_out = self.output_from_indices(encoding_indices, quant_input.shape)
+        quant_out = torch.index_select(self.embedding.weight, 0, encoding_indices.view(-1))
+        
+        quant_input = quant_input.reshape((-1, quant_input.size(-1)))
         
         # Losses
         commitment_loss = torch.mean((quant_out.detach() - quant_input)**2)
@@ -104,7 +115,9 @@ class Quantiser(nn.Module):
         
         # Straight through gradient estimator for backprop
         quant_out = quant_input + (quant_out - quant_input).detach()
-
+        
+        # Reshape quant_out
+        quant_out = quant_out.reshape((B, H, W, C)).permute(0, 3, 1, 2)
         # Reshapes encoding indices to 'B, H, W'
         encoding_indices = encoding_indices.reshape((-1, quant_out.size(-2), quant_out.size(-1)))
         
@@ -112,14 +125,14 @@ class Quantiser(nn.Module):
 
 """The Decoder Model used in VQ-VAE"""
 class Decoder(nn.Module):
-    def __init__(self, ) -> None:
+    def __init__(self, embedding_dim) -> None:
         super(Decoder, self).__init__()
         
         self.decoder = nn.Sequential(
-            nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1),
-            nn.BatchNorm2d(16),
+            nn.ConvTranspose2d(embedding_dim, 32, kernel_size=4, stride=2, padding=1),
+            nn.BatchNorm2d(32),
             nn.ReLU(),
-            nn.ConvTranspose2d(16, 16, kernel_size=4, stride=2, padding=1),
+            nn.ConvTranspose2d(32, 16, kernel_size=4, stride=2, padding=1),
             nn.BatchNorm2d(16),
             nn.ReLU(),
             nn.ConvTranspose2d(16, 1, kernel_size=4, stride=2, padding=1),
@@ -141,6 +154,9 @@ class PixelCNN(nn.Module):
     
     def __init__(self, in_channels, hidden_channels, num_embeddings):
         super(PixelCNN, self).__init__()
+        
+        self.epochs_trained = 0
+        
         # Equal to the number of embeddings in the VQVAE
         self.num_embeddings = num_embeddings
         # Initial convolutions skipping the center pixel

@@ -18,17 +18,17 @@ import dataset
 # Replace with preferred device and local path(s)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print("Torch version ", torch.__version__)
-path = "//puffball.labs.eait.uq.edu.au/s4699292/Documents/2023 Sem2/Comp3710/keras_png_slices_data/keras_png_slices_data/"
-vqvae_save_path = "//puffball.labs.eait.uq.edu.au/s4699292/Documents/2023 Sem2/Comp3710/Saved_Models/"
-pixelCNN_save_path = "//puffball.labs.eait.uq.edu.au/s4699292/Documents/2023 Sem2/Comp3710/Saved_Models/"
+path = "C:/Users/61423/COMP3710/data/keras_png_slices_data/"
+vqvae_save_path = "C:/Users/61423/COMP3710/COMP3710 Report/Models/"
+pixelCNN_save_path = "C:/Users/61423/COMP3710/COMP3710 Report/Models/"
 
 
 # Hyperparameters
 batch_size = 128
-vqvae_num_epochs = 60
-vqvae_lr = 1e-3
-cnn_num_epochs = 25
-cnn_lr = 1e-3
+vqvae_num_epochs = 10
+vqvae_lr = 5e-4
+cnn_num_epochs = 10
+cnn_lr = 5e-4
 
 # Data (If necessary, replace with the local names of the train, validate and test folders)
 print("> Loading Data")
@@ -37,9 +37,12 @@ train_dataloader = processed_data.train_dataloader
 validate_dataloader = processed_data.validate_dataloader
 test_dataloader = processed_data.test_dataloader
 
-# Models
-vqvae_model = modules.VQVAE(num_embeddings=256, embedding_dim=32).to(device)
+# Models (if not already saved)
+vqvae_model = modules.VQVAE(num_embeddings=256, embedding_dim=64).to(device)
 cnn_model = modules.PixelCNN(in_channels=1, hidden_channels=128, num_embeddings=256).to(device)
+# Models (if previously saved).
+#vqvae_model = torch.load(vqvae_save_path + "trained_vqvae_n.pth", map_location=device)
+#cnn_model = torch.load(pixelCNN_save_path + "PixelCNN model_n.pth", map_location=device)
 
 # Optimisers
 vqvae_optimiser = torch.optim.Adam(vqvae_model.parameters(), vqvae_lr)
@@ -50,7 +53,6 @@ vqvae_training_loss = []
 vqvae_validation_loss = []
 cnn_training_loss = []
 cnn_validation_loss = []
-
 
 
 # --------------------------------------------------------
@@ -76,7 +78,7 @@ def train_vqvae():
             vqvae_optimiser.step()              # Adjust weights
 
         with torch.no_grad():
-            vqvae_training_loss.append((quant_loss.cpu(), reconstruction_loss.cpu(), training_loss.cpu()))
+            vqvae_training_loss.append((quant_loss.detach().cpu(), reconstruction_loss.detach().cpu(), training_loss.detach().cpu()))
 
         # Evaluate
         vqvae_model.eval()
@@ -86,9 +88,16 @@ def train_vqvae():
             with torch.no_grad():
                 output, quant_loss, reconstruction_loss, _ = vqvae_model(images)
                 validation_loss = quant_loss + reconstruction_loss
-                vqvae_validation_loss.append((quant_loss.cpu(), reconstruction_loss.cpu(), validation_loss.cpu()))
+        
+        with torch.no_grad():
+            vqvae_validation_loss.append((quant_loss.detach().cpu(), reconstruction_loss.detach().cpu(), validation_loss.detach().cpu()))
 
+        vqvae_model.epochs_trained += 1
         print("Epoch {} of {}. Training Loss: {}, Validation Loss: {}".format(epoch_num+1, vqvae_num_epochs, training_loss, validation_loss))
+
+        if (epoch_num+1) % 20 == 0:
+            print("Saving VQVAE model")
+            torch.save(vqvae_model, vqvae_save_path + "trained_vqvae_{}.pth".format(vqvae_model.epochs_trained))
 
 
 def plot_vqvae_losses(show_individual_losses=False):
@@ -149,19 +158,16 @@ def test_vqvae(num_shown=0):
         plt.show()
 
 
-# Code
-#train_vqvae()
-#plot_vqvae_losses()
-#test_vqvae(num_shown=3)
-#print("> Saving Model")
-#torch.save(vqvae_model, vqvae_save_path + "trained_vqvae.pth")
-
+# Uncomment any functions to call
+train_vqvae()
+plot_vqvae_losses()
+test_vqvae(num_shown=3)
 
 
 # --------------------------------------------------------
 # PixCNN functions
 # --------------------------------------------------------
-vqvae_model = torch.load(vqvae_save_path + "trained_vqvae.pth")
+
 encoder = vqvae_model.__getattr__("encoder")
 quantiser = vqvae_model.__getattr__("quantiser")
 decoder = vqvae_model.__getattr__("decoder")
@@ -215,7 +221,12 @@ def train_pixcnn():
         with torch.no_grad():
             cnn_validation_loss.append(validation_loss.cpu())
             
+        cnn_model.epochs_trained += 1
         print("Epoch {} of {}. Training Loss: {}, Validation Loss: {}".format(epoch_num+1, cnn_num_epochs, training_loss, validation_loss))
+
+        if (epoch_num+1) % 20 == 0:
+            print("Saving Pixel CNN")
+            torch.save(cnn_model, pixelCNN_save_path + "PixelCNN model_{}.pth".format(cnn_model.epochs_trained))
 
 
 def plot_cnn_loss():
@@ -288,13 +299,10 @@ def test_cnn(shown_imgs=0):
             ax[i, 2].imshow(gen_indices[i][0].cpu().numpy(), cmap='gray')
         plt.show()
 
-
-
         plt.imshow(vqvae_model.img_from_indices(gen_indices[0], (1, 32, 32, 32))[0][0].cpu().numpy(), cmap='gray')
         plt.show()
 
+# Uncomment any functions to call
 train_pixcnn()
 plot_cnn_loss()
 test_cnn(shown_imgs=3)
-print("Saving pixel cnn")
-torch.save(cnn_model, pixelCNN_save_path + "PixelCNN model.pth")

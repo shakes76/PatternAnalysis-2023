@@ -63,8 +63,8 @@ class DataPreparer():
 
             data.append(image)
 
-            #if i == 5:
-            #    return data
-            #i += 1
+            if i == 50:
+                return data
+            i += 1
 
         return np.array(data)
