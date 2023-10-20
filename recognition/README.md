@@ -12,17 +12,14 @@ YOLO tries to draw a box around any detections in a given image. To do this it f
 The bounding boxes can then be filtered by their objectiveness score using non-maximum suppression. This just means the box with the highest objectiveness score is returned. The object in the box is determined to be the one with the highest probability. The box and object label can then be displayed on the image.
 
 The image below shows the desired result of this YOLO algorithm using the ICIS Dataset:
-
-
+![desired_result](https://github.com/LazyScribble/PatternAnalysis-2023/assets/141600341/9a33f633-3446-4876-a567-02f1ed311611)
 
 ## Dependencies
-* Python
-* torch
-* numpy
-* pandas
-* time
-* os
-* cv2
+* Python 3.10.12
+* torch 2.1.0+cu118
+* numpy 1.23.5
+* pandas 1.5.3
+* cv2 4.8.0
 
 ## Pre-processing
 When the images are loaded into the dataset class they are resized to 416x416 as the algorithm expects this size. They are also normalised by dividing by 255. This pre-processing is also done when the predict() dunction is called.
@@ -30,16 +27,22 @@ The train, test and validation data for the ISCI dataset is already split on the
 
 ## Usage and Results
 ### Usage
-After the model has been trained the predict() function in predict.py can be called. To use it just pass the path to the desired image you wish to detect an object in. The function will perform pre-processing then display the image with the predicted boundary box and object name.
-
-### Results
-Whether a box is accurate or not can be determined by using the intersection over uniou (IoU) score. This determines how much of the predicted box overlaps with the true box. The average IoU score for this algorithm was determined to be 0.15 in the testing phase. This is very low. The main issue is believed to stem from the custom loss function. YOLO uses the squared error of three different terms in order to determine loss. The implementation of these formulas may be incorrect leading to the algorithm not being able to learn.
+Change all the image, mask and checkpoint paths in train.py and predict.py to suit you. Then if there is no checkpoint available, run train.py. Then run predict.py with the path to the image you wish to predict.
 
 Here is an example input and output of the current algorithm:
 ```python
-predict("/content/drive/MyDrive/Uni/COMP3710/ISIC-2017_Training_Data/ISIC_0000004.jpg")
+checkpoint_path = /content/drive/MyDrive/Uni/COMP3710/checkpoint"
+image_path = "/content/drive/MyDrive/Uni/COMP3710/ISIC-2017_Training_Data/ISIC_0000004.jpg"
+checkpoint = torch.load(checkpoint_path)
+model.load_state_dict(checkpoint['model_state_dict'])
+model.eval()
+predict(image_path, model)
 ```
 
+![predict_image](https://github.com/LazyScribble/PatternAnalysis-2023/assets/141600341/7be53da0-7473-403f-817d-6a417ca70eda)
+
+### Results
+Whether a box is accurate or not can be determined by using the intersection over uniou (IoU) score. This determines how much of the predicted box overlaps with the true box. The average IoU score for this algorithm was determined to be 0.47 in the testing phase. This is lower than the desired outcome of 0.80. The main issue is believed to stem from the custom loss function. YOLO uses the squared error of three different terms in order to determine loss. The implementation of these formulas may be incorrect leading to the lack of improvement in the train step. 
 
 ## References
 1. Fang, Wei & Wang, Lin & Ren, Peiming. (2019). Tinier-YOLO: A Real-time Object Detection Method for Constrained Environments. IEEE Access. PP. 1-1. 10.1109/ACCESS.2019.2961959. https://www.researchgate.net/figure/The-network-structure-of-Tiny-YOLO-V3_fig1_338162578
