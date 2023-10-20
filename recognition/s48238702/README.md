@@ -13,16 +13,17 @@
 - [Introduction](#-introduction-)
 - [Code Overview](#-code-overview-)
 - [Detailed Overall Working](#-detailed-overall-working-)
-- [Dependencies]
-- [Conclusion]
-- [References]
+- [Results](#-results-)
+- [Dependencies](#-dependencies-)
+- [Conclusion](#-conclusion-)
+- [References](#-references-)
 
 
 ## 🧐 Introduction <a name = "introduction"></a>
 
 The Siamese Neural Network is a powerful deep learning architecture used for various tasks, including image classification and similarity measurement. In this project, we have developed a Siamese Network to classify medical images into two classes: Alzheimer's Disease (AD) and Normal Control (NC). The network is trained to distinguish between these two classes, and the project is divided into three main components: dataset preparation, neural network architecture, training, and prediction.
 
-![siamese network](assets/Siamese-network-for-embedding-the-feature-maps-into-a-constant-vector.png)
+![siamese network { width="800" height="600" style="display: block; margin: 0 auto" }](assets/Siamese-network-for-embedding-the-feature-maps-into-a-constant-vector.png)
 
 ## 👨🏻‍💻 Code Overview <a name = "code_overview"></a>
 
@@ -66,6 +67,9 @@ The Siamese Neural Network is a powerful deep learning architecture used for var
 <p>A Siamese Neural Network is a form of a twin network, consisting of two identical subnetworks. The networks have the same configurations, parameters, and weights, hence identical. A pair of images is passed through each network, thus computing the features of each image. The similarity is then computed by passing the feature pairs through a euclidean distance function. The aim of the network is to produce a value such that we know if the images are different or the same, with 0 for different, 1 for same.</p>
 <h3>Triple Loss:</h3>
 <p>Due to the nature of SNN's, cross entropy functions do not work. Given this there are other types of loss functions used with SNN's. There are two types that are most used.</p>
+
+![Triplet Loss](assets/tripletloss.png)
+
 <h3>Contrastive Loss:</h3>
 <p>Contrastive loss simply takes two inputs and computes the euclidean distance between the image features. Points with similar features will have a low euclidean distance, and high euclidean distance for points with dissimilar features.</p>
 
@@ -86,6 +90,11 @@ class ContrastiveLoss(nn.Module):
 To use this, the SNN outputs the feature vectors instead of the calculated L1 norm.  With this custom loss function, the training time and impact could be increased.
 
 <h3>Problem Statement:</h3>
+
+> Create a classifier based on Siamese network [10] to classify either Alzheimer’s disease (normal and AD)
+of the ADNI brain data set or classify the ISIC 2020 Kaggle Challenge data set (normal and melanoma)
+having an accuracy of around 0.8 on the test set 
+
 <p>In this readme we are attempting to classify the presence of Alzheimer's disease through the inspection of a brain scan.
 It is possible to classify a brain scan as either Alzheimer's Disease (AD) or Cognitive Normal (CN) using SNN. To do this we need a dataset of image pairs to train the model. The pairs will be either two CN’s or a CN and an AD and have a corresponding label (0 for two CN’s, 1 for combination). After training the model, given a pair of images, the model can then either classify the pairs as either two CN’s or a combination of an CN and an AD.
 At this point we can only tell if two images are CN or a combination of CN and AD. However, we want to have a model that we can pass a singular scan into and know whether the scan has AD or is a CN. To accomplish this, we take the trained subnetwork, and retrain the subnetwork with a classifier. Once trained this model can classify a brain scan.
