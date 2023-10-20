@@ -3,38 +3,6 @@ from torch import nn
 import torch.nn.functional as F
 import torchvision.transforms as tt
 
-def context_block(in_channels, out_channels):
-  return nn.Sequential(
-
-      nn.InstanceNorm2d(in_channels),
-      nn.LeakyReLU(negative_slope=0.01, inplace=True),
-      nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-
-      nn.Dropout2d(p=0.3),
-
-      nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
-      nn.LeakyReLU(negative_slope=0.01, inplace=True),
-      nn.InstanceNorm2d(in_channels),
-  )
-
-def localization_block(in_channels, out_channels):
-  return nn.Sequential(
-      nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-      nn.LeakyReLU(negative_slope=0.01, inplace=True),
-      nn.Conv2d(out_channels, out_channels, kernel_size=1, stride=1, padding=0),
-      nn.LeakyReLU(negative_slope=0.01, inplace=True),
-  )
-
-def upsampling_block(in_channels, out_channels, scale_factor=2,kernel_size=3,padding=1):
-  return nn.Sequential(
-      nn.Upsample(scale_factor=scale_factor, mode='nearest'),
-      nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
-  )
-def stride_layer(in_channels, out_channels):
-    return nn.Sequential(
-        nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1)
-    )
-
 class ImprovedUNET(nn.Module):
   def __init__(self, n_channels, n_classes):
     super(ImprovedUNET, self).__init__()
@@ -120,6 +88,38 @@ class ImprovedUNET(nn.Module):
 
     return x
 
+def context_block(in_channels, out_channels):
+  return nn.Sequential(
+
+      nn.LeakyReLU(negative_slope=0.01, inplace=True),
+      nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+      nn.InstanceNorm2d(in_channels),
+
+      nn.Dropout2d(p=0.3),
+
+      nn.LeakyReLU(negative_slope=0.01, inplace=True),
+      nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
+      nn.InstanceNorm2d(in_channels),
+  )
+
+def localization_block(in_channels, out_channels):
+  return nn.Sequential(
+      nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+      nn.LeakyReLU(negative_slope=0.01, inplace=True),
+      nn.Conv2d(out_channels, out_channels, kernel_size=1, stride=1, padding=0),
+      nn.LeakyReLU(negative_slope=0.01, inplace=True),
+  )
+
+def upsampling_block(in_channels, out_channels, scale_factor=2,kernel_size=3,padding=1):
+  return nn.Sequential(
+      nn.Upsample(scale_factor=scale_factor, mode='nearest'),
+      nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, padding=padding)
+  )
+def stride_layer(in_channels, out_channels):
+    return nn.Sequential(
+        nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1)
+    )
+
 class DiceLoss(nn.Module):
   def __init__(self, smooth = 1.0):
     super(DiceLoss, self).__init__()
@@ -132,21 +132,6 @@ class DiceLoss(nn.Module):
     overlap = (pred_f*truth_f).sum()
     dice = (2*overlap+self.smooth)/(pred_f.sum()+truth_f.sum()+self.smooth)
     return 1-dice
-
-class CustomCompose(tt.Compose):
-    def __call__(self, image, mask):
-        for t in self.transforms:
-            image, mask = t(image, mask)
-        return image, mask
-
-class CustomResize:
-    def __init__(self, size):
-        self.size = size
-
-    def __call__(self, image, mask):
-        image = tt.Resize(self.size)(image)
-        mask = tt.Resize(self.size)(mask)
-        return image, mask
     
 
 class DoubleConv(nn.Module):

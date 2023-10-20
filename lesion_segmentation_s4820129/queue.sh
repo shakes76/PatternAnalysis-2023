@@ -7,7 +7,7 @@
 #SBATCH --mail-user=i.wangensteen@uq.net.au
 #SBATCH -o out.txt
 #SBATCH -e err.txt
-#SBATCH --partition=vgpu
+#SBATCH --partition=test
 #SBATCH --gres=gpu:1
 
 conda activate cluster_env

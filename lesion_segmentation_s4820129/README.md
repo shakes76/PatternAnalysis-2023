@@ -13,10 +13,28 @@
 ### Libraries
 
 ### Dataset
-The ISIC 2018 dataset is part of a public data repository. This dataset includes training data in the form of png images of skin lesions as well as their ground-truth segmentation. 
+The ISIC 2018 dataset used for this project is part of a public data repository. This dataset includes training data in the form of png and jpg images of skin lesions as well as their ground-truth segmentation. The training data has been preprocessed by resizing the images to 256x256, followed by a normalization with the data's respective mean and standard deviation.
+Dataset source: (link)
+- Training set:
+- Test set:
+- Validation set:
+
 ### UNET Architecture
+The UNET architecture is based on the architecture proposed by a paper () published in (). The network was originally used to do 3D image segmentation on the BRATS 2017 dataset (link), but has been restructured in accordance with the task at hand. It consists of four downsampling blocks, one bottom layer and four upsampling blocks:
+#### Downsamling block
+- Stride convolution: doubles the amount of features in the map and downsamples the image by a factor of two.
+- Double convolution: two convolution layers with preactivation, instance normalization and inbetween dropout. Generates feature maps from the downsampled image tensor.
+
+#### Bottom layer
+- A downsampling block
+- An upsampling block, consisting of an upsampling layer and a convolution that halves the number of features in the produced map.
+
+#### Upsampling block
+- Concatenation with corresponding downsampled feature map. 
+- Two convolutions, one 3x3 and one 1x1 that halves the number of feature maps
 
 ### Training procedure
+As proposed in the paper [], a dice similarity loss function is used to train the network. The dice loss should 
 
 ### Results
  - Accuracy of the model

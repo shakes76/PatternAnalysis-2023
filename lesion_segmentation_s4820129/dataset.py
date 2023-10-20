@@ -4,25 +4,8 @@ from torch.utils.data import Dataset
 import numpy as np
 from torchvision import transforms
 
-class CustomCompose(transforms.Compose):
-    def __call__(self, image, mask):
-        for t in self.transforms:
-            image, mask = t(image, mask)
-        return image, mask
-
-class CustomResize:
-    def __init__(self, size):
-        self.size = size
-
-    def __call__(self, image, mask):
-        image = transforms.Resize(self.size)(image)
-        mask = transforms.Resize(self.size)(mask)
-        return image, mask
-
-
-
 class ISICdataset(Dataset):
-    def __init__(self, image_dir, truth_dir, transform=None, target_size=(256, 256)):
+    def __init__(self, image_dir, truth_dir, transform=True, target_size=(256, 256)):
         self.image_dir = image_dir
         self.truth_dir = truth_dir
         self.transform = transform
@@ -43,11 +26,9 @@ class ISICdataset(Dataset):
       truth = Image.open(truth_path).convert('L')
       truth = transforms.Resize(self.target_size)(truth)
 
-      if self.transform is not None:
-        image, truth = self.transform(image, truth)
-        image = transforms.ToTensor()(image)
-        truth = transforms.ToTensor()(truth)
-        image = transforms.Normalize([0.7084, 0.5822, 0.5361], [0.0948, 0.1099, 0.1240])(image)
+      image = transforms.ToTensor()(image)
+      truth = transforms.ToTensor()(truth)
+      #image = transforms.Normalize([0,0,0],[1,1,1])(image)#[0.7084, 0.5822, 0.5361], [0.0948, 0.1099, 0.1240])(image)
       return image, truth
 
     def __len__(self):
