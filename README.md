@@ -152,8 +152,9 @@ During testing, it was observed that maintaining logits and performing BinaryCro
 ## Training and Testing Process
 Numerous permutations of hyperparameters were experimented with and adjusted, guided by the outcomes derived from training, validation, and testing accuracies. The subsequent section details the outcomes of three distinct models, each characterized by varying levels of complexity.
 
-## Model 1
+### Model 1
 This model was initially trained with the following hyperparameters:
+
 '''
 IMG_SIZE = 128
 PATCH_SIZE = 8
@@ -186,7 +187,7 @@ The confusion matrix for the test set is presented. In this matrix, the label '0
 
 From the plots above, it is evident that the model is greatly overfitting in only 10 epochs. When training the model for more epochs, overfitting would worsen. Evaluating the test set on this model resulted in a 64.65% accuracy, not meeting the 80% accuracy goal.
 
-## Model 2
+### Model 2
 
 In a subsequent effort to train the model and mitigate the observed overfitting from the previous outcome, alterations were made to the hyperparameters, resulting in the following configuration:
 '''
@@ -220,7 +221,7 @@ This specific set of parameters results in 3,445,764 trainable parameters. Notab
 
 The visual representations make it apparent that the overfitting issue remains unaddressed, and the outcomes closely resemble those observed previously. The confusion matrix further underscores that there has been no enhancement in testing dataset accuracy.
 
-## Model 3
+### Model 3
 
 `A final model, characterized by substantially reduced complexity, was trained using the subsequent parameters:
 IMG_SIZE = 128
