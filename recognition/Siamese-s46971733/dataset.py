@@ -12,8 +12,8 @@ import os
 import random
 
 # Rangpur Locations
-# TESTIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/test'
-# TRAINIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/train'
+TESTIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/test'
+TRAINIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/train'
 
 # # Local Locations
 # TESTIMAGEPATH = '../ADNI/AD_NC/test'
@@ -23,9 +23,9 @@ import random
 # TESTIMAGEPATH = '..\\ADNI\\AD_NC\\test'
 # TRAINIMAGEPATH = '..\\ADNI\\AD_NC\\train'
 
-TESTIMAGEPATH = '../ADNI/AD_NC/test'
+#TESTIMAGEPATH = '../ADNI/AD_NC/test'
 #TRAINIMAGEPATH = '../ADNI/AD_NC/train'
-TRAINIMAGEPATH = '../ADNI/AD_NC/train_big'
+#TRAINIMAGEPATH = '../ADNI/AD_NC/train_big'
 
 # Creating Lists of Directories
 train_dirs_AD = sorted(os.listdir(TRAINIMAGEPATH + '/AD'))
@@ -147,12 +147,14 @@ random.shuffle(train_dirs_full_brain)
 #                                  ])
 
 transform = transforms.Compose([transforms.ToTensor(),
+                                transforms.Resize((image_size, image_size), antialias=None)
+                                 ])
+
+transform_train = transforms.Compose([transforms.ToTensor(),
                                 transforms.Resize((image_size, image_size), antialias=None),
                                 transforms.RandomHorizontalFlip(p=0.5),
                                 transforms.RandomVerticalFlip(p=0.5)
                                  ])
-
-transform_train = transform
 
 class ImageDataset(Dataset):
     """
@@ -314,8 +316,8 @@ def get_dataset(train=0, clas=0, valid=0):
     elif train == 1 and clas == 1:
         return ImageDataset3D(train_dirs_full_brain, transform=transform_train, clas=1)
     elif valid == 1 and clas == 0:
-        return ImageDataset3D(valid_dirs_full_brain, transform=transform_train, clas=0)
+        return ImageDataset3D(valid_dirs_full_brain, transform=transform, clas=0)
     elif valid == 1 and clas == 1:
-        return ImageDataset3D(valid_dirs_full_brain, transform=transform_train, clas=1)
+        return ImageDataset3D(valid_dirs_full_brain, transform=transform, clas=1)
     else:
-        return ImageDataset3D(test_dirs_full_brain, transform=transform_train, clas=1)
+        return ImageDataset3D(test_dirs_full_brain, transform=transform, clas=1)
