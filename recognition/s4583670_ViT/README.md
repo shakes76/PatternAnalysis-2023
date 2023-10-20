@@ -223,7 +223,11 @@ class Encoder(nn.Module):
 ```
 
 ## How to Train the Model
-Simply call ```train.py``` as such:
+Ensure the ADNI brain dataset is in this folder. Run ```utils.py``` to spit the train dataset appropriately.
+```bash
+python utils.py
+```
+Then, simply call ```train.py``` as such:
 ```bash
 python train.py
 ```
