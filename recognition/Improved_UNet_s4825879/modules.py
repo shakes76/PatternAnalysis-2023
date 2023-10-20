@@ -2,18 +2,20 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-# REF: DiceLoss function gotten from
+# REF: Dice function gotten from
 # REF: https://www.kaggle.com/code/bigironsphere/loss-function-library-keras-pytorch?fbclid=IwAR3q7bjIDoKFlc5IDGpd24TW8QhQdzbxh2TrIP6FCXb7A8FaluU_HhTqmHA
 class DiceLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, smooth=1.0):
         super(DiceLoss, self).__init__()
+        self.smooth = smooth
         
     def forward(self, predict, target):
         predict = predict.view(-1)
         target = target.view(-1)
 
         intersect = (predict * target).sum()
-        dice = (2.*intersect)/(predict.sum() + target.sum())
+        dice = (2.*intersect + self.smooth)/(predict.sum() + target.sum() + self.smooth)
+
         return 1 - dice
 
 class Conv(nn.Module):
