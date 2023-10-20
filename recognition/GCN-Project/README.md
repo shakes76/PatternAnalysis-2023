@@ -6,6 +6,14 @@ After the data is loaded in from the [Partially processed dataset](https://graph
 
 A test/training split of 0.8/0.2 was chosen as it allows the model to have an adequete amount of training and testing data. Considering the size of the datasets, there aren't any concerns over there being an insufficient amount of testing data or training data with this split.
 
+The data is read from three npy files gotten from the [Partially processed dataset](https://graphmining.ai/datasets/ptg/facebook.npz) stored under the facebook directory found in the same directory as the code, the specific directories are as follows:
+
+```
+edges_dir = 'facebook/edges.npy'
+features_dir = 'facebook/features.npy'
+target_dir = 'facebook/target.npy'
+```
+
 ## Training
 This model uses a Graph Convolution Network (GCN). GCN's are good for interpreting graph-structured data, and interprets the dataset as a series of nodes (entities) and edges (relationships) between nodes. Nodes can be associated with features (acts as descriptors), which in our problem is represented by a 128 dim vector.
 
