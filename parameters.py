@@ -9,22 +9,22 @@ root = "."
 norm_mean, norm_sd = (0.5, 0.5, 0.5), (0.5, 0.5, 0.5)
 
 # Number of epochs in training
-epochs = 5
+epochs = 15
 
 # Batch size for loader
-batch_size = 82
+batch_size = 1
 
 # Learning Rate
-lr = 0.001
+lr = 0.0001
 
 # Beta1 hyper-parameter for Adam optimizer
-beta1 = 0.5
+beta1 = 0.0
 
 # Image size (nxn)
 image_size = 64
 
 # Number of channels for image
-num_channels = 3
+num_channels = 1
 
 # ADaIN MODEL PARAMETERS #
 # Epsilon constant in init

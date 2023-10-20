@@ -5,6 +5,7 @@ from parameters import *
 
 
 class WeightedLinear(nn.Module):
+    # Implementation of a weighted linear layer for use in mapping network
     def __init__(self, in_channels, out_channels):
         super(WeightedLinear, self).__init__()
         self.linear = nn.Linear(in_channels, out_channels)
@@ -21,8 +22,10 @@ class WeightedLinear(nn.Module):
 
 
 class ADaIN(nn.Module):
+    # Implementation of Adaptive Instance Normalization as seen in the paper
     def __init__(self, number_channels):
         super(ADaIN, self).__init__()
+        # Initializing weights and bias'
         self.instance_norm = nn.InstanceNorm2d(number_channels)
         self.ys = WeightedLinear(number_channels, number_channels)
         self.yb = WeightedLinear(number_channels, number_channels)
@@ -43,21 +46,23 @@ class ADaIN(nn.Module):
 
 
 class MappingNetwork(nn.Module):
+    # Mapping network to map the z vector into the latent space w \in W
     def __init__(self, z_dimension=z_dim, number_layers=num_layers, hidden_dimension=hidden_dim):
         super(MappingNetwork, self).__init__()
 
         layers = []
+        # Network consists of simple linear network
         layers.append(PixelNorm())
         for i in range(number_layers):
             # Setting the first and last layer to be dimension z to include different input and hidden layer size
             if i == 0:
                 layers.append(WeightedLinear(z_dimension, hidden_dimension))
-                layers.append(nn.LeakyReLU(0.2))
+                layers.append(nn.ReLU())
             elif i == num_layers - 1:
                 layers.append(WeightedLinear(hidden_dimension, z_dimension))
             else:
                 layers.append(WeightedLinear(hidden_dimension, hidden_dimension))
-                layers.append(nn.LeakyReLU(0.2))
+                layers.append(nn.ReLU())
         # Passing through each layer into a parameter of the sequential network
         self.mapping_layers = nn.Sequential(*layers)
 
@@ -77,6 +82,7 @@ class PixelNorm(nn.Module):
 
 
 class ScalingFactor(nn.Module):
+    # As seen in the paper as "B", this scaling network is applied to each noise input into network
     def __init__(self, number_channels):
         super(ScalingFactor, self).__init__()
         self.scaling_factors = nn.Parameter(torch.zeros(number_channels))
@@ -89,10 +95,11 @@ class ScalingFactor(nn.Module):
 
 
 class WeightedConv(nn.Module):
+    # Implementation of a weighted convolution layer for use in the main network
     def __init__(self, in_channels, out_channels):
         super(WeightedConv, self).__init__()
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
-        self.scale = (2 / (in_channels * (3 ** 2))) ** 0.5
+        self.scale = (2 / (in_channels * (1 ** 2))) ** 0.5
         self.bias = self.conv.bias
         self.conv.bias = None
 
@@ -105,60 +112,59 @@ class WeightedConv(nn.Module):
 
 
 class StyleGANGeneratorBlock(nn.Module):
+    # Implementation of an abstracted block of the synthesis network
     def __init__(self, in_channels, out_channels):
         super(StyleGANGeneratorBlock, self).__init__()
 
         # Defining operations conveyed in paper
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False)
         self.conv1 = WeightedConv(in_channels, out_channels)
-        self.noise_scaler1 = ScalingFactor(out_channels)
-        self.adain1 = ADaIN(out_channels)
-        self.leaky1 = nn.LeakyReLU(0.2)
         self.conv2 = WeightedConv(out_channels, out_channels)
+        self.noise_scaler1 = ScalingFactor(out_channels)
         self.noise_scaler2 = ScalingFactor(out_channels)
+        self.adain1 = ADaIN(out_channels)
         self.adain2 = ADaIN(out_channels)
-        self.relu = nn.ReLU()
+        self.leaky = nn.LeakyReLU(0.2, inplace=True)
 
     def forward(self, x, w_vector, noise_vector):
         # Ensure w_vector has dimension batch_size x out_channels
         # Ensure noise_vector has dimension batch_size x out_channels x img_size*2 x img_size*2
         x = x.permute(0, 3, 1, 2)
         x = self.upsample(x)
-        # x = x.permute(0, 2, 3, 1)
-        x = self.conv1(x)
         factored_noise = self.noise_scaler1(noise_vector)
-        x = x + factored_noise
-        x = self.leaky1(x)
-        x = self.adain1(x, w_vector)
+        x = self.conv1(x) + factored_noise
+        x = self.adain1(self.leaky(x), w_vector)
 
         x = x.permute(0, 3, 1, 2)
         x = self.conv2(x)
-        x = self.relu(x)
         factored_noise = self.noise_scaler2(noise_vector)
         x = x + factored_noise
+        x = self.leaky(x)
         x = self.adain2(x, w_vector)
         return x
 
 
 class StyleGANGenerator(nn.Module):
-    def __init__(self, latent_dim, number_of_channels, resolution):
+    def __init__(self, latent_dim, number_of_channels, resolution, device):
         super(StyleGANGenerator, self).__init__()
 
         self.latent_dim = latent_dim
         self.num_channels = number_of_channels
         self.resolution = resolution
+        self.device = device
 
-        # Initial constant
+        # Initial constant and initial networks
         self.constant_input = nn.Parameter(torch.randn(1, number_of_channels, resolution, resolution))
         self.initial_scaler = ScalingFactor(number_of_channels)
         self.initial_adain = ADaIN(number_of_channels)
         self.initial_conv = nn.Conv2d(number_of_channels, number_of_channels, kernel_size=3, padding=1)
         self.mapping_network = MappingNetwork()
+        self.leaky = nn.LeakyReLU(0.2)
 
         self.layers = nn.ModuleList()
         self.channels = []
         in_channels = number_of_channels
-        for i, out_channels in enumerate([number_of_channels // 2, number_of_channels // 4, number_of_channels // 8, 3]):
+        for i, out_channels in enumerate([number_of_channels // 2, number_of_channels // 4, number_of_channels // 8, 1]):
             self.layers.append(
                 StyleGANGeneratorBlock(in_channels, out_channels)
             )
@@ -166,7 +172,8 @@ class StyleGANGenerator(nn.Module):
             self.channels.append(in_channels)
 
     def forward(self, z_vec):
-        noise = torch.randn(1, self.num_channels, self.resolution, self.resolution).to("cuda:0")
+        # Application synthesis network
+        noise = torch.randn(1, self.num_channels, self.resolution, self.resolution).to(self.device)
         x = self.constant_input
         x = x + self.initial_scaler(noise) # Potentially change to different noise for each iter
         w_vec = self.mapping_network(z_vec)
@@ -177,10 +184,11 @@ class StyleGANGenerator(nn.Module):
         current_feature_map_size = 4
         for i, layer in enumerate(self.layers):
             current_feature_map_size *= 2
-            noise = torch.randn(1, self.channels[i], current_feature_map_size, current_feature_map_size).to("cuda:0")
+            noise = torch.randn(1, self.channels[i], current_feature_map_size, current_feature_map_size).to(self.device)
             w_vec = nn.functional.interpolate(w_vec, (1, self.channels[i]))
             x = layer(x, w_vec, noise)
         x = x.permute(0, 3, 1, 2)
+        x = self.leaky(x)
         return x
 
 

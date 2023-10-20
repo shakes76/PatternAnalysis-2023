@@ -1,6 +1,7 @@
 from dataset import *
 import torch.optim as optim
 import matplotlib.pyplot as plt
+import numpy
 
 
 def train_model():
@@ -12,10 +13,19 @@ def train_model():
         dev = "cpu"
     device = torch.device(dev)
     
-    train_loader, transform, train_dataset = load_data_celeba()
+    # Loading in the data for the model
+    dataset = torch.Tensor(load_brain_images())
+    dataset = nn.functional.interpolate(dataset, (1, 64, 64))
+    # dataset /= 4149
+
+    for img in dataset:
+        img /= img.max()
+        img *= 2.0
+        img -= 1.0
+
 
     # Making generator
-    netG = StyleGANGenerator(z_dim, init_channels, init_resolution).to(device)
+    netG = StyleGANGenerator(z_dim, init_channels, init_resolution, device).to(device)
 
     # Making discriminator
     netD = Discriminator(1).to(device)
@@ -24,11 +34,8 @@ def train_model():
     criterion = nn.BCELoss()
 
     # Optimizers
-    optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.999))
-    optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.999))
-
-    # Defined noise
-    fixed_noise = torch.randn(64, z_dim, 1, 1)
+    optimizerD = optim.Adam(netD.parameters(), lr=lr, betas=(beta1, 0.99))
+    optimizerG = optim.Adam(netG.parameters(), lr=lr, betas=(beta1, 0.99))
 
     # Test output
     # netG.eval()
@@ -40,10 +47,8 @@ def train_model():
     # output = netD(output)
     # netD.train()
 
-    # xxxxxxxxxx
-
     # Length of dataset
-    load_len = len(train_dataset)
+    load_len = len(dataset)
 
     # Label for training discriminator
     real_target = torch.Tensor(batch_size, 1, 1, 1)
@@ -55,7 +60,7 @@ def train_model():
         print("Training Epoch:", epoch, "/", epochs)
         i = 0
         # Training models
-        for data, _ in train_loader:
+        for data in dataset:
             # Training discriminator on real
             optimizerD.zero_grad()
             output = netD(data.to(device))
@@ -81,17 +86,15 @@ def train_model():
             optimizerG.step()
 
             i += 1
-            if i % 200 == 0:
+            if i % 900 == 0:
                 print("Progress: (", i, "/", int(load_len/batch_size), ")")
-                # Test output
-                netG.eval()
-                noise = torch.randn(batch_size, 1, 1, z_dim, device=device)
-                output = netG(noise)
-                img = transform(output[0])
-                img.show()
-                plt.imshow(output.cpu().detach().numpy()[0][0])
-                plt.show()
-                netG.train()
+                # Test output for debugging purposes
+                # netG.eval()
+                # noise = torch.randn(batch_size, 1, 1, z_dim, device=device)
+                # output = netG(noise)
+                # plt.imshow(output.cpu().detach().numpy()[0][0])
+                # plt.show()
+                # netG.train()
 
         # Saving models after completion of epoch
         torch.save(netG.state_dict(), 'model_gen.pt')
@@ -102,8 +105,6 @@ def train_model():
         netG.eval()
         noise = torch.randn(batch_size, 1, 1, z_dim, device=device)
         output = netG(noise)
-        img = transform(output[0])
-        img.show()
         plt.imshow(output.cpu().detach().numpy()[0][0])
         plt.show()
 
