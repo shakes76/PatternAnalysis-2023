@@ -47,6 +47,8 @@ Images produced by `predict.py` are grey images, with no black and or white and 
 
 The UNet architecture is a powerful tool for medical image segmentation. Its ability to capture fine details in images makes it particularly suitable for identifying subtle features in medical images. However, the success of the model depends on the quality and quantity of the training data.
 
+When I started this project, I started it in another repository. For all the commit logs see this repository at https://github.com/SamWolfenden/Lab-Report which has been made public, or see the screenshots in this repository.
+
 ## Test Driver Script
 
 To run the model:
