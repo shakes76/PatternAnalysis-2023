@@ -1,8 +1,12 @@
 '''
-Image Dataset Preparation and Visualization
+OASIS Dataset and Data Loaders
 
-This part of code prepares a dataset from the OASIS dataset for training, including transforming the images and providing data loaders.
+This code prepares a dataset from the OASIS dataset for training, including transforming the images and providing data loaders.
 It also displays sample images from the dataset.
+
+@author: Yash Mittal
+@ID: s48238690
+
 '''
 
 import torch

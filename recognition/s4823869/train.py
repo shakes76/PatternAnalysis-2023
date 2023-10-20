@@ -1,3 +1,17 @@
+"""
+Generative Adversarial Network (GAN) Training Script
+
+This script trains a Progressive Growing GAN (PGGAN) using the provided modules
+for a given dataset. It implements both the generator and discriminator
+training steps, including the calculation of the gradient penalty for the
+Wasserstein GAN with Gradient Penalty (WGAN-GP) loss. The training is done
+in a progressive manner, starting from a low resolution and gradually
+increasing the image size.
+
+@author: Yash Mittal
+@ID: s48238690
+"""
+
 import torch
 from torch import optim
 import os
@@ -8,7 +22,9 @@ import numpy as np
 import modules
 import dataset
 
+# Clear any previously cached data by Memory Persistence Service
 torch.mps.empty_cache()
+
 # Choose device ('mps' for Memory Persistence Service, 'cpu' if unavailable)
 DEVICE = 'mps' if torch.backends.mps.is_available() else 'cpu'
 
@@ -17,25 +33,39 @@ Z_DIM = 512
 W_DIM = 512
 LAMBDA_GP = 10
 BATCH_SIZES = [256, 128, 64, 32, 16, 8]
-PROGRESSIVE_EPOCHS = [1] * (len(BATCH_SIZES)-5)
+PROGRESSIVE_EPOCHS = [1] * (len(BATCH_SIZES) - 5)
 IN_CHANNELS = 512
 CHANNELS_IMG = 3
 LR_GEN = 1e-3
 LR_CRITIC = 5e-4
 START_TRAIN_IMG_SIZE = 4
 
-gen_losses = []
-critic_losses = []
+gen_losses = []  # List to store generator losses
+critic_losses = []  # List to store critic losses
 
 # Function to calculate gradient penalty
 def calculate_gradient_penalty(critic, real, fake, alpha, step, device):
+    """
+    Calculate the gradient penalty for enforcing the Lipschitz constraint.
+
+    Args:
+        critic (nn.Module): The discriminator (critic) network.
+        real (torch.Tensor): Real images.
+        fake (torch.Tensor): Generated fake images.
+        alpha (float): A random value for the interpolation.
+        step (int): The current step in progressive training.
+        device (str): Device for computation ('mps' or 'cpu').
+
+    Returns:
+        torch.Tensor: The gradient penalty.
+
+    """
     batch_size, _, _, _ = real.shape
     beta = torch.rand((batch_size, 1, 1, 1)).to(device)
     interpolated_images = real * beta + fake.detach() * (1 - beta)
     interpolated_images.requires_grad_(True)
 
     mixed_scores = critic(interpolated_images, alpha, step)
-
 
     gradients = torch.autograd.grad(
         inputs=interpolated_images,
@@ -50,6 +80,22 @@ def calculate_gradient_penalty(critic, real, fake, alpha, step, device):
 
 # Train function
 def train(critic, gen, loader, step, alpha, opt_critic, opt_gen):
+    """
+    Training loop for both the discriminator (critic) and the generator.
+
+    Args:
+        critic (nn.Module): The discriminator (critic) network.
+        gen (nn.Module): The generator network.
+        loader (DataLoader): DataLoader for training data.
+        step (int): The current step in progressive training.
+        alpha (float): A value for controlling the fading of layers.
+        opt_critic (optim.Optimizer): Optimizer for the critic.
+        opt_gen (optim.Optimizer): Optimizer for the generator.
+
+    Returns:
+        float: Updated alpha value for layer fading.
+
+    """
     for batch_idx, real in enumerate(loader):
         real = real.to(DEVICE)
         cur_batch_size = real.shape[0]
@@ -86,8 +132,6 @@ def train(critic, gen, loader, step, alpha, opt_critic, opt_gen):
 
     return alpha
 
-
-# Model initialization
 # Model initialization
 gen = modules.Generator(Z_DIM, W_DIM, IN_CHANNELS, CHANNELS_IMG).to(DEVICE)
 critic = modules.Discriminator(IN_CHANNELS, CHANNELS_IMG).to(DEVICE)
@@ -97,9 +141,6 @@ gen_params = [{'params': [param for name, param in gen.named_parameters() if 'ma
 gen_params += [{'params': gen.map.parameters(), 'lr': 1e-5}]
 opt_gen = optim.Adam(gen_params, lr=LR_GEN, betas=(0.0, 0.99))
 opt_critic = optim.Adam(critic.parameters(), lr=LR_CRITIC, betas=(0.0, 0.99))
-
-# Rest of the code (training loop and progressive training) remains the same
-
 
 # Set training mode
 gen.train()
