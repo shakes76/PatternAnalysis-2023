@@ -20,7 +20,7 @@ Dataset source: [ISIC 2018](https://challenge.isic-archive.com/data/#2018)
 The images in the test set did not have masks and are therefore not part of any of the logged metrics. For these, the training and validation sets were used.
 
 ### UNET Architecture
-The UNET architecture is based on the architecture proposed by a paper () published in (). The network was originally used to do 3D image segmentation on the BRATS 2017 dataset (link), but has been restructured in accordance with the task at hand. It consists of four downsampling blocks, one bottom layer and four upsampling blocks:
+The UNET architecture is based on the architecture proposed by [ISIC_paper](https://arxiv.org/pdf/1802.10508v1.pdf). The network was originally used to do 3D image segmentation on the BRATS 2017 dataset, but has been restructured in accordance with the task at hand. It consists of four downsampling blocks, one bottom layer and four upsampling blocks:
 
 #### Downsamling block
 - Stride convolution: doubles the amount of features in the map and downsamples the image by a factor of two.
@@ -37,10 +37,10 @@ The UNET architecture is based on the architecture proposed by a paper () publis
 The resulting network has two pathways: a context pathway that extracts increasingly complex features from the dataset, and a localization pathway that localizes where those features can be found within the original images. In the localization pathway, deep supervision is employed to make sure no information from the feature maps from lower layers are lost. If trained for an appropriate number of epochs, this architecture should produce segmented versions of the image training set, which can be used to identify lesions on later patients' skin.
 
 ### Training procedure
-As proposed in the paper [], a dice similarity loss function is used to train the network. The dice function uses how much the predicted image overlaps with the masked image to quantify how similar the two images are. Pytorch enables training the network on GPUs. To utilize this UQ's Rangpur Cluster (link) was used. However, due to the number of jobs in queue for GPU training the results in this report were obtained using the GPU provided by Google Colab.
+As proposed in the paper, a dice similarity loss function is used to train the network. The dice function uses how much the predicted image overlaps with the masked image to quantify how similar the two images are. Pytorch enables training the network on GPUs. To utilize this UQ's Rangpur Cluster was used. However, due to the number of jobs in queue for GPU training the results in this report were obtained using the GPU provided by Google Colab.
 
 ### Results
- Due to the limitation in training and a batch size of 32 the results here are obtained from the 8 epochs of training. The metrics used to evaluate the model were dice score, dice loss and the accuracy of the model. The accuracy is computed by accepting the predicted image as a 1.0 where the prediction is > 0.5. After 18 epochs, this was how the models prediction compared to the actual mask:
+ Due to the limitation in training and a batch size of 16 the results here are obtained from the 30 epochs of training. The metrics used to evaluate the model were dice score, dice loss and the accuracy of the model. The accuracy is computed by accepting the predicted image as a 1.0 where the prediction is > 0.5. After 18 epochs, this was how the models prediction compared to the actual mask:
 
 <p align="center">
   <img src="images/loss19epoch29.png" alt="Dice_score=0.8" width="700"/>
@@ -55,6 +55,9 @@ As proposed in the paper [], a dice similarity loss function is used to train th
   <img src="images/acc.svg" alt="acc_plot" width="700"/>
 </p>
 
+Max dice score: 0.8024
+Min loss: 0.1976
+Max accuracy: 0.911 (in hindsight this is not as useful a metric)
 
 ### Dependencies
 - python 3.11.4
