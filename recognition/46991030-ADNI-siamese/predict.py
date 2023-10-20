@@ -22,16 +22,8 @@ classifier = tf.keras.models.load_model(
 # Sample some images from the test set
 
 AD, NC, AD_processed, NC_processed = dataset.load_samples(
-    f"{constants.DATASET_PATH}/train", 20
+    f"{constants.DATASET_PATH}/train"
 )
-
-"""
-AD_shuffled = AD_processed.copy()
-np.random.shuffle(AD_shuffled)
-
-NC_shuffled = NC_processed.copy()
-np.random.shuffle(NC_shuffled)
-"""
 
 # Compare their similarity using the Siamese Network
 AD_both_encoded = snn([AD_processed, np.flip(AD_processed)])
@@ -42,7 +34,7 @@ NC_mixed_encoded = snn([np.flip(NC_processed), np.flip(AD_processed)])
 # Plot pairs of images and their similarity
 
 fig, axs = plt.subplots(2, 2)
-fig.suptitle("AD/NC Similarity")
+fig.suptitle("AD/NC Similarity, 0 = Same, 1 = Different")
 
 axs[0, 0].axis("off")
 axs[0, 0].imshow(np.concatenate((AD[0], AD[-1]), axis=1), cmap="gray")
@@ -64,20 +56,20 @@ plt.show()
 AD_predicted = classifier.predict(AD_processed)
 NC_predicted = classifier.predict(NC_processed)
 
-fig, axs = plt.subplots(8, 5)
-fig.suptitle("AD/NC Classification")
+fig, axs = plt.subplots(2, 5)
+fig.suptitle("AD/NC Classification, 0 = AD, 1 = NC")
 
-for i in range(40):
+for i in range(10):
     axs[i // 5, i % 5].axis("off")
-    if i < 20:
+    if i < 5:
         axs[i // 5, i % 5].imshow(AD[i], cmap="gray")
         axs[i // 5, i % 5].set_title(
             f"Predicted: {round(AD_predicted[i][0])}, Actual: 0"
         )
     else:
-        axs[i // 5, i % 5].imshow(NC[i - 20], cmap="gray")
+        axs[i // 5, i % 5].imshow(NC[i - 5], cmap="gray")
         axs[i // 5, i % 5].set_title(
-            f"Predicted: {round(NC_predicted[i - 20][0])}, Actual: 1"
+            f"Predicted: {round(NC_predicted[i - 5][0])}, Actual: 1"
         )
 
 plt.show()
