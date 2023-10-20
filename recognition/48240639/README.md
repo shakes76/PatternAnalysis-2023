@@ -11,13 +11,13 @@
 3. [Reproducibility](#3-reproducibility)
 4. [Description](#4-dependencies)
 5. [Siamese Network](#5)
-6. [Resnet18 Architecture](#2-project-structure)
-7. [Dataset](#3-reproducibility)
-9. [Model Training](#4-dependencies)
-10. [Model Testing](#1-introduction)
-11. [Performance Summary](#2-project-structure)
-12. [Future Improvements](#3-reproducibility)
-12. [Refrences](#3-reproducibility)
+6. [Resnet18 Architecture](#6)
+7. [Dataset](#7)
+8. [Model Training](#8)
+9. [Model Testing](#9)
+10. [Performance Summary](#10)
+11. [Future Improvements](#11)
+12. [Refrences](#12)
 
 ## 1. Introduction
 The main aim of this project is to create a network that can classify Alzheimers disease by distinguishing between patients and those, with AD. To accomplish this we will use the ADNI brain dataset. Target an accuracy level of 0.8.
@@ -104,6 +104,7 @@ Within this architecture, Resnet18 undertakes the task of handling two input ima
 ## 7.Dataset
 
 - The dataset employed in this project originates from the publicly available ADNI brain dataset, which can be conveniently acquired by accessing ADNI. This dataset encompasses a grand total of 4,424 brain MRI scans, where 2,315 scans are associated with AD patients, and the remaining 2,109 scans correspond to NC individuals.
+
 AD Image 
 
 ![Alt text](Images_Report/AD.jpeg)
