@@ -134,7 +134,7 @@ The best result obtained over numerous trials is 80.5% test accuracy on test set
 | Resnet18 as back bone of SNN + classifier                   |         73.5% |
 | SNN(contrastive loss(1.0)) + classifier + data augmentation |         80.5% |
 
-
+![test_acc.png](images_for_README%2Ftest_acc.png)
 
 ## Discussion
 During first successful attempt, the classifier
