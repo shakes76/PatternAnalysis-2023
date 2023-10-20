@@ -59,7 +59,9 @@ The Adam optimizer varies the network weights accordingly. The learning decay op
 ### Problems and Potential Improvements
 The segmentation masks produced never quite get rid of the fuzziness around the edges. Since the segmentation masks are between 0 and 1, a fix could be rounding up, which comes with the risk of identifying regular skin as lesion, or rounding down, which runs the risk of not identifying the full lesion. For medical professionals, the former would be ideal, as getting rid of dangerous lesions is more important than keeping healthy skin.
 
-IUNet 
+Even though IUNet may generate very good first segmentations, more processing steps are frequently required to improve the outcomes and eliminate false positives. The segmentation pipeline becomes more intricate as a result, which could increase processing power, dangerous especially in a situation where real-time accurate processing is imperative.
+
+This IUNet may struggle to find proper segmentation masks of people with different skin colours, as the vast majority of most samples are of caucausian descent. This may impact minorities unfairly in a medical setting, which can be fixed with mroe diversified data.
 ## References
 [^1]: Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., & Maier-Hein, K. H. (2018). Brain Tumor Segmentation and Radiomics Survival Prediction:     
   Contribution to the BRaTS 2017 Challenge. doi:10.48550/arXiv.1802.10508

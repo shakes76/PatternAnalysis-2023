@@ -60,7 +60,7 @@ def main():
                 runningloss += loss.item()
                 losslist.append(loss.item())
                 if i % 10 == 0:
-                    print(f"Training: Epoch {epoch + 1}/{epochs}, Images {i}/55")
+                    print(f"Training: Epoch {epoch + 1}/{epochs}, Images {i }/55")
             elif i in range(56, 81):
                 # Disables gradient calculations for increased performance
                 with torch.no_grad():
@@ -74,7 +74,7 @@ def main():
                     dice_score = 1 - m.dice_loss(modelled_images, segments) # The dice score is the complement of the dice loss function, so +1
                     test_set_dice_list.append(dice_score.item())
                 if i % 10 == 0:
-                    print(f"Validating: Epoch {epoch + 1}/{epochs}, Images {i}/22")
+                    print(f"Validating: Epoch {epoch + 1}/{epochs}, Images {i - 25}/25")
             else:
                 # This is the comparison of different masks made for different inputs at the end of the epoch
                 figure, axis = plt.subplots(4, 3, figsize=(15,5*5))
@@ -86,7 +86,7 @@ def main():
                     # Putting the tensors in the formatting necessary for matplotlib.pyplot
                     image = input[0].cpu()[row].permute(1,2,0).numpy()
                     ground_truth = input[1].cpu()[row][0].numpy()
-                    modelled_image = model(input[0].to(device)).cpu()[row][0][0].numpy()
+                    modelled_image = model(input[0].to(device))[0].cpu()[row][0].detach().numpy()
 
                     axis[row][0].imshow(image)
                     axis[row][0].xaxis.set_visible(False)
