@@ -2,9 +2,9 @@ wandb: Currently logged in as: isakow (ai_in_brissy). Use `wandb login --relogin
 wandb: wandb version 0.15.12 is available!  To upgrade, please run:
 wandb:  $ pip install wandb --upgrade
 wandb: Tracking run with wandb version 0.15.10
-wandb: Run data is saved locally in /home/Student/s4820129/PatternAnalysis-2023/lesion_segmentation_s4820129/wandb/run-20231020_124847-eylcxhjw
+wandb: Run data is saved locally in /home/Student/s4820129/PatternAnalysis-2023/lesion_segmentation_s4820129/wandb/run-20231020_162610-yb3ie52v
 wandb: Run `wandb offline` to turn off syncing.
 wandb: Syncing run last_run
 wandb: ⭐️ View project at https://wandb.ai/ai_in_brissy/Lesion_detection_rangpur_gpu
-wandb: 🚀 View run at https://wandb.ai/ai_in_brissy/Lesion_detection_rangpur_gpu/runs/eylcxhjw
-slurmstepd: error: *** JOB 94151 ON vgpudev-0 CANCELLED AT 2023-10-20T13:09:07 DUE TO TIME LIMIT ***
+wandb: 🚀 View run at https://wandb.ai/ai_in_brissy/Lesion_detection_rangpur_gpu/runs/yb3ie52v
+slurmstepd: error: *** JOB 94209 ON vgpudev-0 CANCELLED AT 2023-10-20T16:46:08 DUE TO TIME LIMIT ***

@@ -28,7 +28,7 @@ class ISICdataset(Dataset):
 
       image = transforms.ToTensor()(image)
       truth = transforms.ToTensor()(truth)
-      #image = transforms.Normalize([0,0,0],[1,1,1])(image)#[0.7084, 0.5822, 0.5361], [0.0948, 0.1099, 0.1240])(image)
+      image = transforms.Normalize([0.7084, 0.5822, 0.5361], [0.0948, 0.1099, 0.1240])(image)
       return image, truth
 
     def __len__(self):

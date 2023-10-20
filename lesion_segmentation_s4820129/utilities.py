@@ -2,15 +2,14 @@ import os
 import zipfile
 import torch
 
-def accuracy(criterion, preds, truths):
+def accuracy(preds, truths):
   with torch.no_grad():
     preds = (preds > 0.5).float()
     correct = (preds==truths).sum()
     pixels = torch.numel(preds)
-    dice_score = criterion(preds, truths)+1
-    accuracy = correct / pixels*100 + 1e-8
+    accuracy = correct / pixels + 1e-8
 
-  return accuracy, dice_score.item()
+  return accuracy
 
 #compute mean and standard deviation of the custom dataset
 def get_statistics(dataset):
