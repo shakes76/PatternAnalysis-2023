@@ -10,6 +10,27 @@ Unet was originally created in 2015 with the intended purpose of applying image 
 
 The architecture of the Improved Unet model works by having multiple context layers that shrinks the data down, leaving behind only the most relevant features which is then passed through the localisation layers that reconstructs the features into an output. During all this, skip connections (dotted horizontal lines above) connect equivalent layers to be concatenated together so that the high resolutions details aren’t lost in the process. This is all eventually passed through a softmax layer to normalise the distribution of the outputs. This may not be necessary for this task though due to the binary nature of the outcome.
 
+## How it works (setup and installs)
+Create a new conda environment in miniconda3 with the needed libraries by using the following commands.
+```bash
+Conda create –name comp3710
+Conda activate comp3710
+conda install pytorch torchvision torchaudio pytorch-cuda=11.8 -c pytorch -c nvidia
+conda install matplotlib
+conda install tqdm
+```
+
+Python     = 3.9.16
+
+pytorch    = 2.1.0
+
+matplotlib = 3.7.2
+
+tqdm       = 4.65.0
+
+Once everything is installed, make sure to change the file paths in train.py (line 26-29) and predict.py (line 17-18) to where your data is installed.
+
+In terms of preprocessing the data, it was already separated into training, validation and test before it was downloaded and left in those splits
 
 ## inputs and outputs
 ![gif of the 30 epoch progress](https://github.com/valensmith/PatternAnalysis-2023/blob/topic-recognition/recognition/Project/images/ezgif.com-gif-maker.gif)
