@@ -20,8 +20,8 @@ relative_test_path = 'recognition/Normal_Difficulty/AD_NC/test'
 
 dir_train = Path(os.path.join(current_directory, relative_train_path))
 dir_test = Path(os.path.join(current_directory, relative_test_path))
-crop_size = 300
-upscale_factor = 3
+crop_size = 240
+upscale_factor = 4
 input_size = crop_size // upscale_factor
 batch_size = 8
 
@@ -54,14 +54,14 @@ def scaling(input_image):
 train_ds = train_ds.map(scaling)
 valid_ds = valid_ds.map(scaling)
 
-dataset = os.path.join(dir_train, "images")
-test_path = os.path.join(dataset, "test")
+# dataset = os.path.join(dir_train, "images")
+# test_path = os.path.join(dataset, "test")
 
 test_img_paths = sorted(
     [
-        os.path.join(test_path, fname)
-        for fname in os.listdir(test_path)
-        if fname.endswith(".jpg")
+        os.path.join(dir_test, fname)
+        for fname in os.listdir(dir_test)
+        if fname.endswith(".jpeg")
     ]
 )
 

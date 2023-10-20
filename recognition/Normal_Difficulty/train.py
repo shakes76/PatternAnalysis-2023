@@ -1,5 +1,6 @@
 from dataset import *
 from utils import *
+from modules import *
 
 
 class ESPCNCallback(keras.callbacks.Callback):
@@ -22,7 +23,7 @@ class ESPCNCallback(keras.callbacks.Callback):
 
 early_stopping_callback = keras.callbacks.EarlyStopping(monitor="loss", patience=10)
 
-checkpoint_filepath = "/tmp/checkpoint"
+checkpoint_filepath = Path(os.path.join(current_directory,"/saved_model/checkpoint/"))
 
 model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
     filepath=checkpoint_filepath,
