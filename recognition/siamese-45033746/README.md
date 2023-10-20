@@ -4,7 +4,20 @@
 The model comprises a triple siamese convolutional neural network and a binary classifier. The model is trained to 
 classify 2D images slices of brain scans as Alzheimer's disease (AD) and normal cognitive (NC)
 
+The siamese network consists of three convolutional neural networks, each with shared weights and structure. Of the CNN's, one is an anchor, one is a positive and one is a negative.
+They take in a triplet of images, one of which is the anchor, one which is a positive match and one which is a negative match. For example, 
+for Alzheimer's if the anchor is AD, then the positive image is also AD, and the negative is NC. 
+
+During training, a contrastive loss function takes in the features of the network output and calculates loss to maximise 
+the loss between the anchor and the negative, and minimise the loss between the anchor and the positive.
+
+Once training is completed on the siamese network, we can use the siamese embeddings on the image input to another convolutional neural network,
+this a binary classifier.
+
+[Siamese triplet diagram](recognition/siamese-45033746/assets/triplet_siamese.jpg)
 ### Data Pre-Processing
+#### Transforms
+
 
 ### Project Structure
 
