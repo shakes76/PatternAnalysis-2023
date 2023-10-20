@@ -57,10 +57,6 @@ model.compile(loss='binary_crossentropy', # As we are using Sigmoid activation
               optimizer=Adam(learning_rate=0.005),
               metrics=['accuracy'])
 
-num_batches = 538
-batch_size = 40
-epoch = 5
-
 for b in range(50):
     X_train_pairs, ys_train = create_pairs(X_train[b], y_train[b])
     X_test_pairs, ys_test = create_pairs(X_test[b], y_test[b])

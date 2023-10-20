@@ -59,7 +59,7 @@ def check_same_class(input_A, input_B):
 correct = 0
 incorrect = 0
 
-for i in range(20):
+for i in range(25):
     for j in range(40):
         input_A, input_B = X_test[i][j], X_test[i+1][j]
         label_A, label_B = y_test[i][j], y_test[i+1][j]

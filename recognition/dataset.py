@@ -7,18 +7,17 @@ img_width = 256
 
 train = image_dataset_from_directory(
     os.getcwd() + "/AD_NC/train",
-    #"D:/COMP3710 Project/Siamese/recognition/AD_NC/train",
     labels="inferred",
     image_size=(img_height, img_width),
-    batch_size=40)
+    batch_size=40,
+    seed=720)
 
 test = image_dataset_from_directory(
     os.getcwd() + "/AD_NC/test",
-    #"D:/COMP3710 Project/Siamese/recognition/AD_NC/test",
     labels="inferred",
     image_size=(img_height, img_width),
-    batch_size=40)
-
+    batch_size=40,
+    seed=880)
 
 # Function to apply rgb_to_grayscale and random_flip_left_right
 def preprocess_training_images(image, label):
@@ -43,7 +42,7 @@ def preprocess_test_images(image, label):
     # Make the images smaller
     image = tf.image.resize(image, (75,80), preserve_aspect_ratio=True)
     
-    # Normalize pixel values to be between 0 and 1
+    # Normalise pixel values to be between 0 and 1
     image = tf.cast(image, tf.float32) / 255.0
     
     return image, label
