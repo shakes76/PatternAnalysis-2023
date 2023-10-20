@@ -224,7 +224,7 @@ def filter_boxes(pred):
     Returns highest confidence box that has detected something
     """
     best_box = None
-    highest_conf = 0.8
+    highest_conf = 0
     for i in range(pred.size(0)):
         box = pred[i,:]
         if box[4] >= highest_conf:

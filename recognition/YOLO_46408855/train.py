@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torch.nn.functional as F 
 import time
 
@@ -27,7 +26,7 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 #Model
 model = YOLO()
 model.to(device)
-checkpoint_path = "C:\Users\charl\git\PatternAnalysis-2023\recognition\YOLO_46408855\checkpoints"
+checkpoint_path = "/content/drive/MyDrive/Uni/COMP3710/model.pt"
 
 #optimizer and loss
 optimizer = torch.optim.Adam(model.parameters(), learning_rate)

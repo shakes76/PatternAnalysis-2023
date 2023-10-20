@@ -48,7 +48,7 @@ def predict(path, model):
     plot_boxes(image, box)
 
 model = YOLO()
-checkpoint_path = "C:\Users\charl\git\PatternAnalysis-2023\recognition\YOLO_46408855\checkpoints"
+checkpoint_path = "/content/drive/MyDrive/Uni/COMP3710/model.pt"
 image_path = ""
 checkpoint = torch.load(checkpoint_path)
 model.load_state_dict(checkpoint['model_state_dict'])
