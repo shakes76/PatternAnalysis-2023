@@ -18,6 +18,8 @@ Before we jump into how the algorithm works and some of the components in the mo
 
 **Make sure to use these or newer versions of these libraries**
 
+Before we begin it should be noted that the data was shrunk. This was to make training faster and easier, but also because Siamese networks have the ability to learn with smaller amount's of data.
+
 Now to get started the first important feature of a Siamese network is a custom dataset. This Siamese network take's two images from the dataset to compare, and thus the dataset should return two images as well as a label. The label is not the class of image 1 or 2 but instead informs if the two images are from the same class. Let's take a look at the code
 ```
 class Siamese_dataset(Dataset):
@@ -115,3 +117,22 @@ class ContrastiveLoss(torch.nn.Module):
         #if label is 1, returns distance, else if label is 0 returns reverse distance
         return torch.mean(torch.pow(reverse_dist, 2) * (abs(label-1)) + ((torch.pow(distance, 2)) * label))
 ```
+
+Now on to training the model. In order to train the model, you will need to load two image's and their label. Train the model using those two images and take the output and the given label and run it through the loss function and backpropagate it. This will help train the model and hopefully improve it. With the use of the contrastive loss function, differences between two different classes should be highlightsed more and similarities between the same class should be highlighted more.
+
+### Example usage of train function
+```
+layer = "VGG16"
+    in_channels = 1
+    classes = 2
+    epochs = 5
+    learning_rate = 1e-5  
+
+    model = md.Siamese(layers=layer, in_channels=in_channels, classes=classes).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
+
+    tr.model_train(model, optimizer, epochs)
+```
+
+
+
