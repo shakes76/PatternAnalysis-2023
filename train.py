@@ -57,7 +57,7 @@ class Train:
                 #print(f"Epoch {epoch + 1}/{self.num_epochs}, Iteration {iteration}, Loss: {dice.item()}")
 
             average_dice = total_dice / len(self.train_loader)
-            print(f"Epoch {epoch + 1}/{self.num_epochs}, Average Loss: {average_dice}")
+            print(f"Epoch {epoch + 1}/{self.num_epochs}, Average Dice Coefficient: {average_dice}")
 
         # Save the complete model after training
         self.save_model()
@@ -89,19 +89,18 @@ class DiceLoss(nn.Module):
 
 
 if __name__ == '__main__':
-    train_input_dir = r"C:\Users\sam\Downloads\ISIC2018_Task1-2_SegmentationData_x2\ISIC2018_Task1-2_Training_Input_x2"
-    train_mask_dir = r"C:\Users\sam\Downloads\ISIC2018_Task1-2_SegmentationData_x2\ISIC2018_Task1_Training_GroundTruth_x2"
+    train_input_dir = r"training input images directory here"
+    train_mask_dir = r"training input masks directory here"
     batch_size = 4
-    num_workers = 4
-    learning_rate = 0.9
+    learning_rate = 0.01
     num_epochs = 10
-    save_path = r"C:\Users\sam\OneDrive\Desktop\COMP\Lab-Report"  # Set the desired save path
+    save_path = r"location to save model here"
 
     # Create the data loader using your CustomDataset and get_loader
     transform = transforms.Compose([
         transforms.ToTensor()
     ])
-    train_loader = get_loader(train_input_dir, train_mask_dir, batch_size, num_workers, transform=transform)
+    train_loader = get_loader(train_input_dir, train_mask_dir, batch_size, transform=transform)
 
     model = UNet(3, 1)
 
