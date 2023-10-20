@@ -4,13 +4,15 @@ from train import (get_data_loaders, initialize_model,
                                 train_one_epoch, validate_one_epoch,
                                 save_sample_images, plot_training_progress)
 
-# Constants
-output_dir = "C:/users/lombo/Desktop"
-image_dir = "C:/Users/lombo/Desktop/3710_report/ISIC2018_Task1-2_Test_Input/ISIC2018_Task1-2_Test_Input"
-mask_dir = "C:/Users/lombo/Desktop/3710_report/ISIC2018_Task1_Test_GroundTruth"
+# Directories 
+output_dir = "C:/users/lombo/Desktop" # Output directory
+image_dir = "C:/Users/lombo/Desktop/3710_report/ISIC2018_Task1-2_Test_Input/ISIC2018_Task1-2_Test_Input" # Image directory
+mask_dir = "C:/Users/lombo/Desktop/3710_report/ISIC2018_Task1_Test_GroundTruth" # Mask directory
+
+# Parameters
 n_batch = 128
 learning_rate = 0.001
-n_epochs = 10
+n_epochs = 1
 
 # Make sure output directory exists
 os.makedirs(output_dir, exist_ok=True)
