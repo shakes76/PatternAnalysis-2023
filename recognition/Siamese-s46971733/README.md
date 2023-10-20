@@ -6,6 +6,10 @@ having an accuracy of around 0.8 on the test set."
 
 As such, the ADNI dataset was chosen for classification. 
 
+![AD and NC Images](./Images/ADNC.png)
+<p align="center">
+    <em> Figure 1: AD and NC ADNI Images  </em>
+</p>
 
 ## ADNI Dataset 
 ___
@@ -37,6 +41,22 @@ As seen below in Figure 2, after training the negative moves further from the an
 ![Showcasing how Triplet Loss changes with training](./Images/TripletLossTraining.png)
 <p align="center">
     <em> Figure 2: Triplet Loss Training  </em>
+</p>
+
+Regarding the specific task, if the anchor image is 'AD', the positive would be 'AD' and the negative 'NC', and vice versa for an 'NC' anchor. 
+
+## Model and Training
+
+The 'backbone' model implemented is a custom 3D resnet that takes 64 input channels and eventually outputs 1000 features. The classifier then takes these 1000 features, passes
+them through some fully connected layers and produces 1 output channel which can then be used to classify the image as either 1 representing 'AD' or 0 representing 'NC'. 
+
+
+
+Using the triplet loss function mentioned before and the 3D resnet model, the data visualisation shown in Figure 3 was produced after training the resnet for 30 epochs. 
+
+![Visualisation of Features](./Images/data_plot_30Epocha100.png)
+<p align="center">
+    <em> Figure 3: Feature Visualisation -- 30 Epochs  </em>
 </p>
 
 ## References:
