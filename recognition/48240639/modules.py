@@ -28,22 +28,22 @@ class SiameseNN(nn.Module):
         """
         super(SiameseNN, self).__init__()
 
-        # Obtain a ResNet model
+        # ResNet18 model
         self.resnet = torchvision.models.resnet18(weights=None)
 
-        # Overwrite the first convolutional layer to accommodate grayscale images
-        # ResNet-18 expects (3,x,x) input, while ADNI images are (1,x,x) for gray-scale
+        # Modify the first convolutional layer to accommodate grayscale images
+        # As ResNet-18 expects (3,x,x) input, whereas ADNI images are grayscale (1,x,x)
         self.resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
         self.fc_in_features = self.resnet.fc.in_features
 
-        # Remove the last layer of ResNet-18 (linear layer before avgpool)
+        # Discard the last layer of ResNet-18 (the linear layer before avgpool)
         self.resnet = torch.nn.Sequential(*(list(self.resnet.children())[:-1]))
 
-        # Add linear layers to compare features from two input images
-        self.fc = nn.Sequential(
-            nn.Linear(self.fc_in_features * 2, 256),
-            nn.ReLU(inplace=True),
-            nn.Linear(256, 1),
+        # Introduce linear layers for comparing features from two input images
+        self.fc = nn.Sequential(    # Create a sequential neural network for feature comparison
+            nn.Linear(self.fc_in_features * 2, 256),  # Linear layer to process concatenated features from two input images
+            nn.ReLU(inplace=True),  # Apply ReLU activation function for non-linearity
+            nn.Linear(256, 1),# Linear layer to produce a single output for similarity comparison
         )
 
         self.sigmoid = nn.Sigmoid()
