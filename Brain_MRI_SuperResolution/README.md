@@ -46,8 +46,7 @@ Representative figures are used for testing purposes.
 - Matplotlib
 - PIL (from the Image and ImageOps imports)
 
-**Constants.py**: Contains all constants utilized by the Super-resolution CNN model.
-
+Constants:
 - WIDTH = 256
 - HEIGHT = 240
 - DOWNSCALE_FACTOR = 4
