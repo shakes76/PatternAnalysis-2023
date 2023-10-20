@@ -4,9 +4,17 @@ StyleGAN is a variation of a generative adversarial network (GAN) - which works 
 ![StyleGAN generator architecture](https://machinelearningmastery.com/wp-content/uploads/2019/06/Summary-of-the-StyleGAN-Generator-Model-Architecture.png)
 
 ## Dependencies
-
-## Reproducability of results
+Pytorch (https://pytorch.org/)
+Numpy (https://numpy.org/)
 
 ## Example usage
+To train the generator, simply run train.py until completion.
+Once the model has been trained, to show results of the completed generator, run predict.py, remembering to change MODEL_PATH to the path of the latest generator.pt file.
+## Example output
 
 ## Training
+
+## Reference
+https://github.com/NVlabs/stylegan
+https://blog.paperspace.com/implementation-stylegan-from-scratch/
+https://adni.loni.usc.edu/
