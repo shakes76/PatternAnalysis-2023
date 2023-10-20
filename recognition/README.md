@@ -106,8 +106,31 @@ The average loss of the MLP was plotted against the number of epochs as shown he
 
 
 
-## How to run code i.e. description of file.
-run predict.py with ...
+## How to Run the SNN Classifier
+The script to run the SNN Classifier is found in <i>predict.py</i>, to run an image through the classifier, enter the following commmand into the terminal.
+> NOTE: Ensure you are in the same directory as predict.py, and that your environment is setup with the dependencies shown below.
+
+
+```
+python predict.py <path-to-image>
+```
+
+The script will output two things: the predicted class (0 - Normal Cognition or 1 - Alzheimer's Disease) as well as the raw output from the MLP. 
+
+<b>Example Usage</b><br>
+Input:
+```
+python predict.py ADNI\AD_NC\test\NC\1182968_94.jpeg
+```
+
+Output:
+```
+Predicted Class: 0
+Raw Output: 0.48585471510887146
+```
+
+
+
 
 ## Dependencies
 This project has the following dependencies:
