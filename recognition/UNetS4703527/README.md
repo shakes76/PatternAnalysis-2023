@@ -5,3 +5,5 @@ The task is to preform image segmentaion on the ISIC 2017/8 dataset. The impleme
 
 ### ISIC 2017/8 dataset
 The dataset consits of 2000 lesion images and 2000 ground truth masks
+
+![alt text](files/dataset images/first masks.png)
