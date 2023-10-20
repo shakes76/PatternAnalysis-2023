@@ -55,10 +55,15 @@ The generated code and image are as follows:
 <image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/547967dd50082d3618473d6ab722719a44fecb63/recognition/VQ-VAE-46495408/Images/pixel_test_image_4.png" width="300">
 
 ## Future Outlook
-The training results of VQVAE are quite noticeable, and the reconstructed photos are relatively high-quality. However, the photos generated using PixelCNN have significant differences from real ones. I suspect this is a result of suboptimal training. There are several possible remedies to try:
+The training results of VQ-VAE are quite noticeable, and the reconstructed photos are relatively high-quality. However, the photos generated using PixelCNN have significant differences from real ones. I suspect this is a result of suboptimal training. There are several possible remedies to try:
 1. Convergence is slow with each epoch, so you can try increasing the learning rate of the optimizer.
 2. Increase the number of training epochs to improve the weight accuracy through extensive training.
 3. Change the size of the input photos. Here, I used full-sized 256 * 256 photos, which are relatively large. You can compress them to speed up training.
+
+## Usage
+* `dataset.py`: There are 3 functions using `tf.keras.utils.image_dataset_from_directory()` to load data from folders. Use `preveiw_images()` to inspect the dataset. You can also resize images, but remeber to change the input size of models.
+* `train.py`: `train_vavae()` and `train_pixelcnn()` are training functions. For the results, use `plot_vqvae_history()` and `plot_pixelcnn_history()` functions to visualize. `visualize_vqvae_results()` generates reconstructed images using test dataset.
+* `predict.py`: Generates priors and uses decoder to generate fake images according to the codebook.
 
 ## Dependencies
 * `numpy` - 1.26.0
@@ -67,6 +72,7 @@ The training results of VQVAE are quite noticeable, and the reconstructed photos
 * `matplotlib` - 3.7.2
 
 ## References
-* Oord, A. van den, Vinyals, O., &amp; Kavukcuoglu, K. (2018a, May 30). Neural Discrete Representation Learning. arXiv.org. https://arxiv.org/abs/1711.00937v2 
+* Oord, A. van den, Vinyals, O., &amp; Kavukcuoglu, K. (2018, May 30). Neural Discrete Representation Learning. arXiv.org. https://arxiv.org/abs/1711.00937v2
+* Oord, A. van den, Kalchbrenner, N., &amp; Kavukcuoglu, K. (2016, August 19). Pixel recurrent neural networks. arXiv.org. https://arxiv.org/abs/1601.06759v3 
 * Team, K. (n.d.). Keras documentation: Vector-quantized variational autoencoders. https://keras.io/examples/generative/vq_vae/ 
-* Team, K. (n.d.-a). Keras Documentation: Pixelcnn. https://keras.io/examples/generative/pixelcnn/ 
+* Team, K. (n.d.-a). Keras Documentation: Pixelcnn. https://keras.io/examples/generative/pixelcnn/
