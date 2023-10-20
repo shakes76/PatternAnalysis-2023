@@ -63,6 +63,7 @@ The Vector Quantized Variational Autoencoder (VQ-VAE) is a variant of the standa
 </caption>
 
 <br>
+<br>
 
 The VQ-VAE model consists of an encoder, decoder and an added vector quantisation layer. The encoder network parameterises the distribution of the data to convert it to an encoding vector, with each dimension a learned attribute of the data<sup>[5]</sup>. The vector quantiser then discretises this encoding vector from continuous to produce a discrete latent representation. The decoder then reconstructs the data from the discrete latent representation. The vector quantiser is trained to minimise the distance between the input and output of the encoder and decoder, and the encoder and decoder are trained to minimise the distance between the input and output of the vector quantiser<sup>[1]</sup>. 
 
@@ -76,6 +77,7 @@ The initial model for the VQ-VAE employed an autoregressive encoder via a PixelC
     <strong>Figure 2:</strong> DCGAN Architecture
 </caption>
 
+<br>
 <br>
 
 The GAN network trains a generator and discriminator in competition. The discriminator is a binary classification network, which classifies an input/image  as being derived from the generator distribution or data distribution. The generator then aims to maximise the probability of the discriminator incorrectly classifying the output<sup>[4]</sup>.
@@ -139,6 +141,7 @@ Training for the VQVAE was performed for 5 epochs, and a learning rate of 0.001 
 </caption>
 
 <br>
+<br>
 
 Figure 3 shows that the loss function was dominated for the quantisation loss - which is the loss for embedding the latent space of the features to create a representation of the image. The loss rapidly converges after the first few iterations. Hence, the additional epochs were redundant for training as a local minima was already attained. The loss function was not observed to increase after this point, and so the model was not overfitting. The model was saved at the end of training.
 
@@ -149,6 +152,7 @@ The Generator and Discriminator networks were trained in competition, as is thei
     <strong>Figure 4:</strong> Generator and discriminator training loss.
 </caption>
 
+<br>
 <br>
 
 The loss of the generator does not converge, and diverges as the training progresses. This is a function of the discriminator rapidly improving, attaining virtually 0 loss. This results in the generator loss increasing as the discriminator is able to easily classify the generated images as fake. 
@@ -163,6 +167,7 @@ Validation was performed through a reconstruction process of the test set, to ob
 </caption>
 
 <br>
+<br>
 
 The output of the GAN at each stage was also tracked to observe the progression of the model. Figure 6 below shows the output of the GAN near the end of training.
 
@@ -173,6 +178,7 @@ The output of the GAN at each stage was also tracked to observe the progression 
 </caption>
 
 <br>
+<br>
 
 ### Generation
 The model produces images by taking the codebook from the VQVAE, and encoding the indices based on the most probabilistic from the GAN. The GAN then acts as the generator from the latent space. A generated image from the GAN is shown below:
@@ -182,6 +188,7 @@ The model produces images by taking the codebook from the VQVAE, and encoding th
 </caption>
 
 <br>
+<br>
 
 This image is then passed to the `generate_vqvae` function, which quantizes the data using the codebook and then decodes the quantized data to reconstruct the image.
 
@@ -190,6 +197,7 @@ This image is then passed to the `generate_vqvae` function, which quantizes the 
     <strong>Figure 8:</strong> VQVAE reconstructed image using the indice from the GAN.
 </caption>
 
+<br>
 <br>
 
 Compared to an actual image from the dataset.
@@ -201,6 +209,7 @@ Compared to an actual image from the dataset.
     <strong>Figure 9:</strong> Example image from the test set (label is Alzeimer's Disease).
 </caption>
 
+<br>
 <br>
 
 We see that the structure is highly similar. However, the VQVAE-produced image is unable to generate granular or fine details like those in an actual image. This could be attributed to not enough epochs to learn the requires indices in the codebook, or a poor generation of the indices from the GAN. The generated image is very clearly fake, and hence, this may explain the divergence of the generator loss. The discriminator loss approached zero as the training progressed, as it was always able to classify the generated image as fake due to the inability of the models to learn the indices with sufficient detail.
