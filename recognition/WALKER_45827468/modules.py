@@ -127,7 +127,7 @@ class ImprovedUNet(nn.Module):
         self.upscale = nn.Upsample(scale_factor=2)
         
         # soft max
-        self.sigmoid = nn.Sigmoid()
+        self.softmax = nn.Softmax(dim=3)
         
          
     def forward(self, input):
