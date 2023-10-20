@@ -125,3 +125,4 @@ class Predict() :
         max_ssim = max(ssim_scores)
         print(f"Average SSIM: {avg_ssim:.4f}\nMax SSIM: {max_ssim:.4f}")
         self.ssim_score = max_ssim
+        return self.ssim_score

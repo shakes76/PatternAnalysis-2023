@@ -65,12 +65,10 @@ The Vector Quantized Variational Autoencoder (VQ-VAE) is a variant of the standa
 <br>
 <br>
 
-The VQ-VAE model consists of an encoder, decoder and an added vector quantisation layer. The encoder network parameterises the distribution of the data to convert it to an encoding vector, with each dimension a learned attribute of the data<sup>[5]</sup>. The vector quantiser then discretises this encoding vector from continuous to produce a discrete latent representation. The decoder then reconstructs the data from the discrete latent representation. The vector quantiser is trained to minimise the distance between the input and output of the encoder and decoder, and the encoder and decoder are trained to minimise the distance between the input and output of the vector quantiser<sup>[1]</sup>. 
-
-The loss function for training the VQVAE is comprised of the embedding loss and reconstruction loss.
+The VQ-VAE model consists of an encoder, decoder and an added vector quantisation layer. The encoder network parameterises the distribution of the data to convert it to an encoding vector, with each dimension a learned attribute of the data<sup>[5]</sup>. The vector quantiser then discretises this encoding vector from continuous to produce a discrete latent representation. The decoder then reconstructs the data from the discrete latent representation. The vector quantiser is trained to minimise the distance between the input and output of the encoder and decoder, and the encoder and decoder are trained to minimise the distance between the input and output of the vector quantiser<sup>[1]</sup>. The loss function for training the VQVAE is the sum of the embedding loss and reconstruction loss.
 
 #### Prior
-The initial model for the VQ-VAE employed an autoregressive encoder via a PixelCNN for the generation of images. The generative model used as the prior is a generative adversarial network, or simply GAN/DCGAN, which can be used to take the encoded indices from the VQ-VAE to generate images based on the discrete space representation of the codebook.
+A prior network in a VQVAE is used to model the prior distribution of the latent space, as the encoding vector otherwise may not be responsive to random noise. The initial model for the VQ-VAE employed an autoregressive encoder as the prior  via a PixelCNN for the generation of images, following the paper Neural Discrete Representation Learning<sup>[1]</sup>. However, this was substituted with a DCGAN due to familiarity. The generative adversarial network, or simply GAN/DCGAN, is used to take the encoded indices from the VQ-VAE to generate images based on the discrete space representation of the codebook.
 
 <img src="images/background/gan_architecture.png" alt="GAN Architecture" style="float: left; width: 100%;">
 <caption>
@@ -80,9 +78,7 @@ The initial model for the VQ-VAE employed an autoregressive encoder via a PixelC
 <br>
 <br>
 
-The GAN network trains a generator and discriminator in competition. The discriminator is a binary classification network, which classifies an input/image  as being derived from the generator distribution or data distribution. The generator then aims to maximise the probability of the discriminator incorrectly classifying the output<sup>[4]</sup>.
-
-
+The GAN network trains a generator and discriminator in competition. The discriminator is a binary classification network, which classifies an input/image  as being derived from the generator distribution or data distribution. The generator then aims to maximise the probability of the discriminator incorrectly classifying the output<sup>[4]</sup>. 
 
 ## Dependencies
 The package dependencies used for the project are:
@@ -93,10 +89,10 @@ The package dependencies used for the project are:
 | torchvision | 0.14.1 |
 | numpy | 1.21.5 |
 | matplotlib | 3.5.3 |
-| skimage | 0.22 |
+| skimage | 0.22.0 |
 
 ## Usage
-The code is bundled using the `utils.py` file into `main.py` which is an directly executable script. All files other than these two define the architecture, training, testing, dataset and prediction segments of the problem.
+The code is bundled and parametrised using the `utils.py` file into `main.py`, which is the driver for the training and prediction sequence. All other files define the architecture, training, testing, dataset and prediction segments of the problem.
 
 Parameters can be edited in `utils.py` to modify the architecture or system. However, components of the code can also be modified to produce custom networks and/or change the models.
 
@@ -118,6 +114,7 @@ gan_trainer = TrainGAN(gan, dataset)
 We can then train the model using the trainer and save the state dictionary containing the network weights to a selected directory and filename:
 ```console
 vqvae_trainer.train()
+vqvae_trainer.validate()
 vqvae_trainer.save()
 gan_trainer.train()
 gan_trainer.save()
@@ -126,14 +123,14 @@ gan_trainer.save()
 With the model trained, predictions can be performed using a child class of `Predict`. The predict class is implemented specifically to use the prior model (GAN) to generate images using the codebook of the VQVAE. Usage is as follows:
 ```
 predict = Predict(vqvae, gan, dataset)
-predict.generate()
+predict.generate_vqvae()
 ```
 
-It is highly recommended to use the `main.py` file to execute the code as desired, with the parameters predefined in `utils.py`.
+It is highly recommended to use the `main.py` file to execute the code as desired, with the parameters predefined in `utils.py` being modified to reflect the running environment.
 
 ## Results
 ### Training
-Training for the VQVAE was performed for 5 epochs, and a learning rate of 0.001 on the full training set. The training set was not split, as the problem was generation and so added data is beneficial, and was segmented with a batch size of 32. The loss function used was the embedding (quantised) loss added with mean-squared error of the output defined as the reconstruction loss. The loss function was plotted at each batch, this time unit was defined as an iteration denoted as batch by epoch. The loss over training is shown in Figure _ below.
+Training for the VQVAE was performed for 5 epochs, with a learning rate of 0.001 on the full training set. The training set was not split, as the problem is a generative one and so the full dataset is beneficial. A batch size of 32 to prevent issues with memory limits. The loss function used was the embedding (quantised) loss added with mean-squared error of the output defined as the reconstruction loss. The loss function was plotted at each batch, this time unit was defined as an iteration denoted as batch by epoch. The loss over training is shown in Figure 3 below.
 
 <img src="images/results/vqvae_train_loss.png" alt="VQVAE loss" style="float: left;">
 <caption>
@@ -143,9 +140,9 @@ Training for the VQVAE was performed for 5 epochs, and a learning rate of 0.001 
 <br>
 <br>
 
-Figure 3 shows that the loss function was dominated for the quantisation loss - which is the loss for embedding the latent space of the features to create a representation of the image. The loss rapidly converges after the first few iterations. Hence, the additional epochs were redundant for training as a local minima was already attained. The loss function was not observed to increase after this point, and so the model was not overfitting. The model was saved at the end of training.
+Figure 3 shows that the loss function was dominated by the quantisation loss - which is the loss for embedding the latent space of the features to create a representation of the image. The loss rapidly converges after the first few iterations. Hence, the additional epochs were redundant for training as a local minima was already attained. The model was saved at the end of training.
 
-The Generator and Discriminator networks were trained in competition, as is their architecture. The generator was trained for 50 epochs, with a learning rate of 0.001. The discriminator was trained for 50 epochs, with a learning rate of 0.001. The loss function used was the binary cross-entropy loss. The loss over training is shown in Figure 4 below.
+The Generator and Discriminator networks were trained in competition, as is their architecture, using the VQVAE model to derive the dataset. The generator was trained for 50 epochs, with a learning rate of 0.001. The discriminator was trained for 50 epochs, with a learning rate of 0.001. The loss function used was the binary cross-entropy loss. The loss over training is shown in Figure 4 below.
 
 <img src="images/results/gan_train_loss.png" alt="GAN Losses" style="float: left;">
 <caption>
@@ -155,7 +152,7 @@ The Generator and Discriminator networks were trained in competition, as is thei
 <br>
 <br>
 
-The loss of the generator does not converge, and diverges as the training progresses. This is a function of the discriminator rapidly improving, attaining virtually 0 loss. This results in the generator loss increasing as the discriminator is able to easily classify the generated images as fake. 
+The loss of the generator does not converge, and diverges as the training progresses. This is a function of the discriminator rapidly improving, as it approaches a loss of zero. This results in the generator loss increasing as the discriminator is able to classify the generated images as fake or real with complete accuracy. 
 
 
 ### Validation
@@ -181,7 +178,7 @@ The output of the GAN at each stage was also tracked to observe the progression 
 <br>
 
 ### Generation
-The model produces images by taking the codebook from the VQVAE, and encoding the indices based on the most probabilistic from the GAN. The GAN then acts as the generator from the latent space. A generated image from the GAN is shown below:
+The model produces images by taking the codebook from the VQVAE, and encoding the indices based on the probabilies from the GAN. The GAN then acts as the generator from the latent space. A generated image from the GAN is shown below:
 <img src="images/results/generated_gan.png" alt="GAN Generated image" style="float: left;">
 <caption>
     <strong>Figure 7:</strong> Encoded indices for a single output of the generator from the trained GAN.
@@ -225,10 +222,10 @@ The generated image was compared using this metric to the entire testset, to com
 The SSIM index defines 1.0 as identical, and a value of 0 as having no correlation. Hence, it can be stated that the generated model did have a similar structure to the testset but can be distinguished - as viewed. Thus, the model had reasonable performance.
 
 ## Conclusion
-The generated images had a structural similarity index above 0.5, indicating that there is distinct similarities between the images. However, visually and using this metric, this is not sufficient to deceive an outside observer that the generated image is real. The VQ-VAE was validated, and could reconstruct images from the testing set with loss approaching zero. The GAN was trained on the encoded indices of the VQ-VAE, and was able to classify the generated images as fake with a loss approaching zero. However, the generator loss diverged as the discriminator was able to easily classify the generated images as fake. This is a function of the discriminator rapidly improving, attaining virtually 0 loss. This results in the generator loss increasing as the discriminator is able to easily classify the generated images as fake. Hence, to achieve more realistic results, the autoregressive prior model must be better tuned or a different model must be used.
+The generated images had a structural similarity index above 0.6, indicating that there are distinct similarities between the image structures. However, visually and using this metric, this is not sufficient to deceive an outside observer that the generated image is real. The VQ-VAE was validated, and could reconstruct images from the testing set with loss approaching zero. The GAN was trained on the encoded indices of the VQ-VAE, and was able to classify the generated images as fake with a loss approaching zero. However, the generator loss diverged as the discriminator was able to easily classify the generated images as fake. This is a function of the discriminator rapidly improving, attaining virtually 0 loss. This results in the generator loss increasing as the discriminator is able to easily classify the generated images as fake. Hence, to achieve more realistic results, the autoregressive prior model must be better tuned or a different model must be used.
 
 ## Documentation
-Documentation for all classes, documenting their associated public methods and parameters is provided below. The implementation of the software flow is class-based, and hence, is not executable directly as a script. Executable implementation is provided in `main.py`, with all parameters defined in `utils.py`.
+Documentation for all classes, including their associated public methods and parameters is provided below. The implementation of the software flow is class-based, and hence, is not executable directly as a script. Driver implementation is provided in `main.py`, with all parameters defined in `utils.py`.
 
 ### `dataset.py`
 #### Class `Loader()`
@@ -419,21 +416,16 @@ The Predict class is specific to the VQVAE with Prior model. It handles the gene
 
 **Methods**
 `generate_vqvae() -> None`
-Generate an image directly from the VQVAE model and visualise the image.
+Generate a reconstruction of an image using the latent space from the GAN, and display it using Matplotlib.
+
+`quantise() -> Tensor`
+Quantise the latent space using the codebook from the VQVAE. It will return the quantised result.
 
 `generate_gan() -> None`
-Generate an image by using the VQVAE encoding indices through the GAN and visualise the result.
+Using random noise, generate the encoded indices of the dataset and set a single output of the batch to the class.
 
-`vqvae_encoded() -> None`
-Create the encoding indices using the VQVAE.
-
-`visualise() -> None`
-Plotting helper method to visualise the images. If called standalone, it will visualise the most recent image generated.
-
-`ssim(model='vqvae') -> float`
-- __model__ The model to use to compute the SSIM, if none provided or does not match, use vqvae
-
-Compute and print the max and average structural similarity index of the generated images compared to the testset of the provided dataset.
+`ssim() -> float`
+Compute and print the max and average structural similarity index of a single generated image, compared to the testset of the provided dataset.
 
 ### `train.py`
 #### Abstract Class `Trainer(ABC)`
@@ -471,6 +463,9 @@ Trainer specific for the defined VQVAE module. It uses the Adam optimiser by def
 **Methods**
 `train() -> None`
 Training is done in batches from the dataset. The loss is saved to the model via `self.losses` for future plotting. This must be run to train the model.
+
+`validate() -> None`
+Use the testset to reconstruct the images using the quantizer and decoder for visualisation.
 
 `plot(save = True) -> None`
 Implementing of the abstract plot method. It will plot the losses at each iteration computed during training. If save is true, then the figure will be saved to the savepath.
