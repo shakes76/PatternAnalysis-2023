@@ -117,7 +117,6 @@ def mean_ssim(data, data_size, model):
 # VQ-VAE Model
 vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM,
               beta=BETA, num_channels=num_channels)
-print('Model created')
 # Create directories if they do not already exist
 if not exists(VQVAE_WEIGHTS_PATH):
     mkdir(VQVAE_WEIGHTS_PATH)
@@ -269,7 +268,10 @@ pixelCNN.load_weights(PIXEL_WEIGHTS_PATH + "trained_model_weights")
 
 # Plot losses
 def plot_pixel_train_val_results(epoch_results):
-    """ Plots and saves the train/val losses of the PixelCNN """
+    """
+    Plots and saves the train/val losses of the PixelCNN
+    FLAG: I actually did not end up using these plots, and instead created my own using training.log fata
+    """
     # Total losses
     plt.figure()
     plt.plot(epoch_results['loss'], label='Training loss')

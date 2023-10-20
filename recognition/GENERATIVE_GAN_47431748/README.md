@@ -146,7 +146,7 @@ ignored. I.e. the model is trained on both Alzheimers disease (AD), and Cognitiv
 * `modules.py` - To use the model pre-trained. Assumes weights are downloaded.
 
 For hyper-parameter tuning resort to lines 39-48 in `train.py`. Furthermore, `modules.py` details source code
-for the mode
+for the mode. To generate novel images, one can also simply run `predict.py`. 
 
 ### 5. 1 Dependencies
 * Tensorflow >= 2.10.0
