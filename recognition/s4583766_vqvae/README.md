@@ -26,9 +26,9 @@ python3 train.py
 ```
 This will train the model and create a new directory `/gen_imgs/x` where `x` was the date and time that the run started. This directory will contain the images generated in training, as well as the best model checkpoint (saved as a `.pth` file), and the training and validation losses and metrics (saved as `.png` files).
 
-To evalute training results, the [predict.py](predict.py) script can be used. This script will load the best model checkpoint and generate images from the test set. To run this script, run the following command, passing the path to the model checkpoint as an argument:
+To evalute training results, the [predict.py](predict.py) script can be used. This script will load the best VQVAE model checkpoint and generate images from the test set. To run this script, run the following command, passing the path to the model checkpoint as an argument (the path should be relative to the `gen_img/` directory, i.e. ``):
 ```bash
-python3 predict.py --path /path/to/model.pth
+python3 predict.py /path/to/model.pth
 ```
 This will generate testing plots and images in a new directory. 
 
@@ -139,9 +139,15 @@ After 6 epochs:
 
 ![Reconstructed images (after 6 epochs)](resources/epoch_6.png)
 
-It is clear from these images that the reconstructions became clearer with training, however they did converge very quickly. 
+It is clear from these images that the reconstructions became clearer with training, however they did converge very quickly. A clearer comparison is shown below:
 
-The following images show a single image comparison of the before, codebook embedding, and reconstruction:
+<p align="center">
+  <img src="resources/epoch_0_single.png" width="30%" />
+  <img src="resources/epoch_1_single.png" width="30%" /> 
+  <img src="resources/epoch_6_single.png" width="30%" />
+</p>
+
+The following images show a single image comparison of the input image -> codebook embedding representation of the image -> and decoded reconstruction from the codebook:
 
 <!-- ![Single image comparison](resources/codebook_comparison.png) 
 
@@ -150,9 +156,12 @@ The following images show a single image comparison of the before, codebook embe
 ![Single image comparison](resources/decoded.png) -->
 
 <p align="center">
-  <img src="resources/codebook_comparison.png" width="30%" />
-  <img src="resources/codebook.png" width="30%" /> 
-  <img src="resources/decoded.png" width="30%" />
+  <figure>
+    <figcaption style="max-width: 100%;">Figure 1: Comparison of input image, codebook embedding, and decoded reconstruction.</figcaption>
+    <img src="resources/codebook_comparison.png" width="30%" />
+    <img src="resources/codebook.png" width="30%" /> 
+    <img src="resources/decoded.png" width="30%" />
+  </figure>
 </p>
 
 
@@ -192,9 +201,44 @@ TODO: plot goes here.
 
 
 ## 5. Testing procedure
-The [predict.py](predict.py) module contains the testing procedure, used to evaluate the models that were generated during training.
+The [predict.py](predict.py) module contains the script for model evaluation, which calculates the Structural Similarity (SSIM) metrics over all training data. It loads in and evaluates any VQVAE model checkpoint. 
+
+### VQ-VAE
+
+#### Results
+
+The output from evaluation was as follows:
+
+```
+SSIM mean: 0.7041
+Min SSIM score: 0.5730
+Max SSIM score: 0.7698
+Number of images with SSIM >= 0.6: 535, 98.35%.
+```
+
+The plot of the SSIM scores is shown below:
+
+![SSIM scores](resources/test_vqvae/test_ssim_scores.png)
+
+The highest SSIM score, 0.7698, was observed for the following image:
+
+<p align="center">
+  <!-- <figure> -->
+    <!-- <figcaption style="max-width: 100%;">Figure 1: Before and after encoding and reconstruction.</figcaption> -->
+    <img src="resources/test_vqvae/best_recon_before.png" width="48%" />
+    <img src="resources/test_vqvae/best_recon.png" width="48%" /> 
+  <!-- </figure> -->
+</p>
 
 
+The lowest SSIM score, 0.5730, was observed for the following image:
+
+<p align="center">
+	<img src="resources/test_vqvae/worst_recon_before.png" width="48%" />
+	<img src="resources/test_vqvae/worst_recon.png" width="48%" /> 
+</p>
+
+Overall, the SSIM scores were quite high, with 535 out of the 544 images (98.35%) in the dataset being above the miniminum threshold of 0.6. This indicates that the VQ-VAE model was able to reconstruct the images with a high degree of accuracy. Also, importantly, these scores showed that the model has decent generalisability and isn't overfitting, being only <!-- TODO --> lower than the training SSIM scores. 
 
 ## 6. Analysis
 
