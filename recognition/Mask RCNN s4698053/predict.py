@@ -12,11 +12,11 @@ def check_cuda():
     return device
 
 def main():
-    model = YoloV1(split_size=7, num_boxes=1, num_classes=2)
+    model = YoloV1(split_size=1, num_boxes=1, num_classes=2)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
     load_checkpoint(torch.load(LOAD_MODEL_FILE), model, optimizer)
 
-    #evaluate(model)
+    evaluate(model)
     predict(model)
 
 

@@ -28,7 +28,7 @@ def collate_split(data):
     return (found_items, empty_items)
 
 class ISICDataloader(Dataset):
-    def __init__(self, classify_file, photo_dir, mask_dir, mask_empty_dim=image_size, S=7, B=1, C=2, transform=None) -> None:
+    def __init__(self, classify_file, photo_dir, mask_dir, mask_empty_dim=image_size, S=1, B=1, C=2, transform=None) -> None:
         self.device = self.check_cuda()
         self.csv_df = pd.read_csv(classify_file)
         self.photo_dir = photo_dir

@@ -17,7 +17,7 @@ def check_cuda():
 
 
 def main():
-    model = YoloV1(split_size=7, num_boxes=1, num_classes=2)
+    model = YoloV1(split_size=1, num_boxes=1, num_classes=2)
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, factor=0.1, patience=3, mode='max', verbose=True)
     loss_fn = YoloLoss()

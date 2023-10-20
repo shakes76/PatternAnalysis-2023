@@ -14,7 +14,7 @@ torch.manual_seed(torch_seed)
 
 architecture_config = [
     #Tuple: (kernel_size, number of filters, strides, padding)
-    (7, 64, 2, 3),
+    (1, 64, 2, 3),
     #"M" = Max Pool Layer
     "M",
 
@@ -52,7 +52,10 @@ class CNNBlock(nn.Module):
         self.leakyRelu = nn.LeakyReLU(0.1) # 0.1 default in yolov1
 
     def forward(self, x):
-        return self.leakyRelu(self.batchNorm(self.conv(x)))
+        x = self.conv(x)
+        x = self.batchNorm(x)
+        x = self.leakyRelu(x)
+        return x
     
 class YoloV1(nn.Module):
     def __init__(self, in_channels=3, **kwargs) -> None:
@@ -61,10 +64,12 @@ class YoloV1(nn.Module):
         self.in_channels = in_channels
         self.darknet = self._create_conv_layers(self.architecture)
         self.fcs = self._create_fcs(**kwargs)
+        self.gap = nn.AdaptiveAvgPool2d(1)
 
     def forward(self, x):
         x1 = self.darknet(x)
-        return self.fcs(torch.flatten(x1, start_dim=1))
+        x2 = self.gap(x1)
+        return self.fcs(torch.flatten(x2, start_dim=1))
 
     def _create_conv_layers(self, architecture):
         layers = []
@@ -93,10 +98,10 @@ class YoloV1(nn.Module):
         S, B, C = split_size, num_boxes, num_classes
         return nn.Sequential(
             nn.Flatten(), 
-            nn.Linear(1024 * S * S, 496), 
+            nn.Linear(1024 * S * S, 2048), 
             nn.Dropout(0.0), 
             nn.LeakyReLU(0.1), 
-            nn.Linear(496, S * S * (C + B * 5))
+            nn.Linear(2048, S * S * (C + B * 5))
         )
 
 def intersection_over_union(boxes_preds, boxes_labels, box_format='midpoint'):
@@ -345,7 +350,7 @@ def get_bboxes(
 
 
 
-def convert_cellboxes(predictions, S=7, C=2):
+def convert_cellboxes(predictions, S=1, C=2):
     """
     Converts bounding boxes output from Yolo with
     an image split size of S into entire image ratios
@@ -358,12 +363,12 @@ def convert_cellboxes(predictions, S=7, C=2):
 
     predictions = predictions.to("cpu")
     batch_size = predictions.shape[0]
-    predictions = predictions.reshape(batch_size, 7, 7, C + 5)
+    predictions = predictions.reshape(batch_size, 1, 1, C + 5)
     bboxes1 = predictions[..., C + 1:C + 5]
     scores = predictions[..., C].unsqueeze(0)
     best_box = scores.argmax(0).unsqueeze(-1)
     best_boxes = bboxes1 * (1 - best_box)
-    cell_indices = torch.arange(7).repeat(batch_size, 7, 1).unsqueeze(-1)
+    cell_indices = torch.arange(1).repeat(batch_size, 1, 1).unsqueeze(-1)
     x = 1 / S * (best_boxes[..., :1] + cell_indices)
     y = 1 / S * (best_boxes[..., 1:2] + cell_indices.permute(0, 2, 1, 3))
     w_y = 1 / S * best_boxes[..., 2:4]
@@ -378,7 +383,7 @@ def convert_cellboxes(predictions, S=7, C=2):
 
     return converted_preds
 
-def cellboxes_to_boxes(out, S=7):
+def cellboxes_to_boxes(out, S=1):
     converted_pred = convert_cellboxes(out).reshape(out.shape[0], S * S, -1)
     converted_pred[..., 0] = converted_pred[..., 0].long()
     all_bboxes = []
@@ -406,7 +411,7 @@ class YoloLoss(nn.Module):
     Calculate the loss for yolo (v1) model
     """
 
-    def __init__(self, S=7, B=1, C=2):
+    def __init__(self, S=1, B=1, C=2):
         super(YoloLoss, self).__init__()
         self.mse = nn.MSELoss(reduction="sum")
 
