@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.optim as optim
 import torch.nn.functional as F 
 import time
 
@@ -26,6 +27,7 @@ train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True
 #Model
 model = YOLO()
 model.to(device)
+checkpoint_path = "C:\Users\charl\git\PatternAnalysis-2023\recognition\YOLO_46408855\checkpoints"
 
 #optimizer and loss
 optimizer = torch.optim.Adam(model.parameters(), learning_rate)
@@ -40,27 +42,33 @@ scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,max_lr=learning_rate,
 model.train()
 start = time.time()
 for epoch in range(epochs):
-  for i, (images, labels) in enumerate(train_dataloader):
-    images = images.to(device)
-    labels = labels.to(device)
+    for i, (images, labels) in enumerate(train_dataloader):
+        images = images.to(device)
+        labels = labels.to(device)
 
-    #Forward pass
-    outputs = model(images)
-    total_loss = 0
-    for a in range(batch_size):
-        loss = criterion(outputs[a], labels[a])
-        total_loss += loss
+        #Forward pass
+        outputs = model(images)
+        total_loss = 0
+        for a in range(batch_size):
+            loss = criterion(outputs[a], labels[a])
+            total_loss += loss
 
-    #Backwards and optimize
-    optimizer.zero_grad()
-    total_loss.requires_grad = True
-    total_loss.backward()
-    optimizer.step()
+        #Backwards and optimize
+        optimizer.zero_grad()
+        total_loss.requires_grad = True
+        total_loss.backward()
+        optimizer.step()
 
-    if (i+1) % 50 == 0:
-      print("Epoch [{}/{}], Step[{},{}] Loss: {:.5f}".format(epoch+1, epochs, i+1, total_step, total_loss.item()))
+        if (i+1) % 50 == 0:
+            print("Epoch [{}/{}], Step[{},{}] Loss: {:.5f}".format(epoch+1, epochs, i+1, total_step, total_loss.item()))
+            torch.save({
+               'epoch': epoch,
+               'model_state_dict': model.state_dict(),
+               'optimizer_state_dict': optimizer.state_dict(),
+               'loss': total_loss,
+               }, checkpoint_path)
 
-    scheduler.step()
+        scheduler.step()
 end = time.time()
 elapsed = end - start
 print("Training took {} secs or {} mins.".format(elapsed, elapsed/60))
