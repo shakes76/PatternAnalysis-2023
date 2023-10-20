@@ -155,7 +155,7 @@ Numerous permutations of hyperparameters were experimented with and adjusted, gu
 ### Model 1
 This model was initially trained with the following hyperparameters:
 
-'''
+```
 IMG_SIZE = 128
 PATCH_SIZE = 8
 BATCH_SIZE = 32
@@ -167,22 +167,22 @@ TRANSF_LAYERS = 5 # No. of transformer-encoder-blocks
 DROPOUT_RATE = 0.2
 ATTENTION_HEADS = 5
 MLP_HEAD_UNITS = [256, 128]
-'''
+```
 
 these parameters give 65,729,926 trainable parameters. The loss and accuracy plots of training and validation for this model were as follows:
 
 <p align="center">
-    <img src="resources/model1_accuracy.png" alt="Model 1 Accuracy Plot">
+    <img src="resources/accuracy.png" alt="Model 1 Accuracy Plot">
 </p>
 
 <p align="center">
-    <img src="resources/model1_losses.png" alt="Model 1 Loss Plot">
+    <img src="resources/losses.png" alt="Model 1 Loss Plot">
 </p>
 
 The confusion matrix for the test set is presented. In this matrix, the label '0' corresponds to brains afflicted with Alzheimer's Disease, whereas '1' corresponds to brains with Normal Cognitive function.
 
 <p align="center">
-    <img src="resources/model1_confusion_matrix.png" alt="Model 1 Confusion Matrix">
+    <img src="resources/confusion_matrix.png" alt="Model 1 Confusion Matrix">
 </p>
 
 From the plots above, it is evident that the model is greatly overfitting in only 10 epochs. When training the model for more epochs, overfitting would worsen. Evaluating the test set on this model resulted in a 64.65% accuracy, not meeting the 80% accuracy goal.
@@ -190,7 +190,7 @@ From the plots above, it is evident that the model is greatly overfitting in onl
 ### Model 2
 
 In a subsequent effort to train the model and mitigate the observed overfitting from the previous outcome, alterations were made to the hyperparameters, resulting in the following configuration:
-'''
+```
 IMG_SIZE = 128
 PATCH_SIZE = 8
 BATCH_SIZE = 32
@@ -202,12 +202,12 @@ TRANSF_LAYERS = 3 # No. of transformer-encoder-blocks
 DROPOUT_RATE = 0.4
 ATTENTION_HEADS = 5
 MLP_HEAD_UNITS = [64, 32]
-'''
+```
 
 This specific set of parameters results in 3,445,764 trainable parameters. Notably, the model's complexity was substantially reduced, aiming to make it more challenging for the model to overfit during training. The outcome of this model was a testing accuracy of 62.68%. Below, you can find the representations of the loss and accuracy curves, as well as the confusion matrix.
 
 <p align="center">
-    <img src="resources/model2_accuracy.png" alt="Model 2 Accuracy">
+    <img src="resources/accuracy (1).png" alt="Model 2 Accuracy">
 </p>
 
 <p align="center">
@@ -223,7 +223,8 @@ The visual representations make it apparent that the overfitting issue remains u
 
 ### Model 3
 
-`A final model, characterized by substantially reduced complexity, was trained using the subsequent parameters:
+A final model, characterized by substantially reduced complexity, was trained using the subsequent parameters:
+```
 IMG_SIZE = 128
 PATCH_SIZE = 8
 BATCH_SIZE = 32
@@ -235,6 +236,7 @@ TRANSF_LAYERS = 1 # No. of transformer-encoder-blocks
 DROPOUT_RATE = 0.3
 ATTENTION_HEADS = 2
 MLP_HEAD_UNITS = [16, 8]
+```
 
 This particular model comprises a mere 90,418 trainable parameters and achieved a testing accuracy of 57.96%. Below, you will find the visualizations of the accuracy and loss curves, along with the confusion matrix.
 
