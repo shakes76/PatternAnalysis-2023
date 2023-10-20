@@ -17,7 +17,7 @@ Dataset source: [ISIC 2018](https://challenge.isic-archive.com/data/#2018)
 - Validation set: 519
 - Test set: 1000
 
-The images in the test set did not have masks and are therefore not part of any of the logged metrics. For these, the training and validation sets were used.
+The images in the test set did not have masks and are therefore not part of any of the logged metrics. For these, the training and validation sets were used. Based on lectures in COMP3710, the split between training and validation set seems reasonable.
 
 ### UNET Architecture
 The UNET architecture is based on the architecture proposed by [ISIC_paper](https://arxiv.org/pdf/1802.10508v1.pdf). The network was originally used to do 3D image segmentation on the BRATS 2017 dataset, but has been restructured in accordance with the task at hand. It consists of four downsampling blocks, one bottom layer and four upsampling blocks:
