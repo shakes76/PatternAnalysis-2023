@@ -28,16 +28,16 @@ Then the ADNI dataset is transferred to use PyTorch tensors and then normalised 
 
 ## Overview
 
-Existing methods of super-resolution are currently performed in the High-Resolution (HR) space, this would be very computationally expensive which
+Existing methods of super-resolution are currently performed in the High-Resolution (HR) space, this would be computationally expensive which
 would lead to a general decrease in performance and speed of super-resolution, making pre-existing methods of super-resolution very inefficient.
 
 The Efficient Sub-Pixel Convolutional Neural Network (ESPCN) is a neural network model created to overcome the weakness of current super-resolution
 methods by extracting feature maps in Low-Resolution (LR) space, in essence, images are first downsampled and then feature extraction is performed. 
 
 In ESPCN, upscaling is handled by final layer of network, meaning each LR image is directly fed into the network and feature extraction occurs through
-nonlinear convolutions in LR space. Due to reduced input res, a smaller filter size can be effectively used to integrate same information while 
-maintaining a given contextual area. The resolution and filter size reduction lowers the computational cost substantially enough to allow super-res of 
-HD videos in real-time.
+nonlinear convolutions in LR space. Due to reduced input resolution, a smaller filter size can be effectively used to integrate same information while 
+maintaining a given contextual area. The resolution and filter size reduction lowers the computational cost substantially enough to allow 
+super-resolution of HD videos in real-time.
 
 ![Alt text](flow.png)
 
