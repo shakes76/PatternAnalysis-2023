@@ -49,11 +49,13 @@ model.save(constants.SIAMESE_MODEL_PATH, save_format="tf")
 
 # Classifier Training
 
+print("Creating classifier model")
 twin = model.get_layer("sequential")
 twin.trainable = False
 
 classifier = modules.snn_classifier(twin)
 
+print("Training classifier model")
 history = classifier.fit(
     class_train_ds,
     epochs=30,
@@ -68,6 +70,8 @@ history = classifier.fit(
 
 plot_training_history(history, "classifier")
 
+print("Testing classifier model")
 classifier.evaluate(class_test_ds, verbose=1)
 
+print("Saving classifier model")
 classifier.save(constants.CLASSIFIER_MODEL_PATH, save_format="tf")
