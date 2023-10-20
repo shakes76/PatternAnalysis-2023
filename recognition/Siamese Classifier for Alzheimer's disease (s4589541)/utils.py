@@ -85,3 +85,13 @@ def plot_losses(train_losses, valid_losses):
     
     plt.tight_layout()
     plt.savefig(f"./results/losses_{datetime.datetime.now().strftime('%H-%M-%S')}")
+
+def plot_test_loss(test_losses):
+    fig, ax = plt.subplots()
+    ax.hist(test_losses, bins=25, color="r")
+    ax.set_title("Loss over test dataset")
+    ax.set_xlabel("Testing loss")
+    ax.set_xlabel("Count of Samples")
+    plt.tight_layout()
+    plt.savefig(f"./results/test_loss_{datetime.datetime.now().strftime('%H-%M-%S')}")
+
