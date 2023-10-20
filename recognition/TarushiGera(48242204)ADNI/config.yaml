@@ -1,10 +1,10 @@
 data:
-  train_data_dir: "/content/data2/train"
-  val_data_dir: "/content/data2/test"  
-  test_data_dir: "/content/data2/test" 
+  train_data_dir: "/content/data2/train" # Path to training data on Google Colab
+  val_data_dir: "/content/data2/test"  # Path to validation data on Google Colab
+  test_data_dir: "/content/data2/test" #  Path to testing data on Google Colab
 
 model:
-  num_classes: 2
+  num_classes: 2 # Number of classes for binary classification
 
 training:
   is_train: true
