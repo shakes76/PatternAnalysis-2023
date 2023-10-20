@@ -68,3 +68,8 @@ The provided dataset comprises 2,594 images of lesions, each paired with a corre
 
 All preprocessing required for the ISIC 2018 dataset is completed within the dataset.py, utils.py and train.py files, so to reproduce the model you just have to split the dataset into sets of validation, test and training images as you please. Once split the data needs to be placed into the corresponding directories within the data directory. The number of epochs and batch size can be modified within the train.py file by changing the value assigned to NUM_EPOCHS and BATCH_SIZE.
 
+## references
+
+- https://arxiv.org/pdf/1802.10508v1.pdf
+- https://github.com/aladdinpersson/Machine-Learning-Collection/tree/master/ML/Pytorch/image_segmentation/semantic_segmentation_unet
+- https://challenge.isic-archive.com/data/#2018
