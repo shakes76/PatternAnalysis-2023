@@ -80,10 +80,10 @@ def test_one_twin():
 def test_entire_net():
     net = SiameseNeuralNet()
     print(net)
-    input1 = torch.rand(2, 3, 240, 256)
-    input2 = torch.rand(2, 3, 240, 256)
-    x = net(input1, input2)
-    print(x.shape)
+    input1 = torch.rand(2, 3, 240, 240)
+    input2 = torch.rand(2, 3, 240, 240)
+    x, y = net(input1, input2)
+    print(x.shape, y.shape)
     print(x)
 
 if __name__ == "__main__":
