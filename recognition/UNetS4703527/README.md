@@ -18,3 +18,14 @@ The dataset consits of 2000 lesion images and 2000 ground truth masks. Preview o
 
 ![u-net-architecture](https://github.com/mraula/PatternAnalysis-2023/assets/96328895/14b488d2-e7bd-477e-a1b9-846d7e157e10)
 
+#### Encoder Block
+
+The encoder block has two 3x3 convolution layers with a ReLU then a max pooling. The encoder block is used to store features aswell as lower the dimentions of the image. The copy and crop is used as skip features in the decoder block from the stored features.
+
+#### Bridging Block
+
+The bridging block applies the two  two 3x3 convolution layers with a ReLU.
+
+#### Decoder Block 
+
+The decoder block has two 3x3 convolution layers with a ReLU then a up conv 2x2. The 4 encoder outputs are used as skip features in each decoder block. The Decoder tires to recunstruct based on the imput and skip features given.
