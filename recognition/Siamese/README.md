@@ -160,4 +160,21 @@ As you can see from the code, pairwise distance is used to find the dissimilarit
 ### Example usage
 
 Now we run some of our code and see how it does. First ill run the training and plot the loss function to see if our model is actuall learning. 
+![Figure_2](https://github.com/Picayune1/PatternAnalysis-2023/assets/141021565/2c109f32-0c53-42fb-92b8-8e6287fc48c8)
+
+The fact that the loss does not change may be due to not enough data or the model not being strong enought to hansle the data, the model used was 
+```
+layer = "VGG16"
+    in_channels = 1
+    classes = 2
+    epochs = 5
+    learning_rate = 1e-5  
+
+    model = md.Siamese(layers=layer, in_channels=in_channels, classes=classes).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
+```
+
+That being said, the code did porduce and accuracy of 60%. This may either be due to random chance, or that the default model with no training could already spot some differences in the images with AD compared to those without. 
+
+
 
