@@ -14,18 +14,35 @@ siamese_network.eval()
 # Define a classifier that takes Siamese network embeddings and performs classification
 class Classifier(nn.Module):
     def __init__(self, input_size, hidden_size, num_classes):
+        """
+        Initialize a classifier for image classification.
+
+        Args:
+            input_size (int): The input feature size (embedding size).
+            hidden_size (int): The size of the hidden layer.
+            num_classes (int): The number of classes for classification.
+        """
         super(Classifier, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.fc2 = nn.Linear(hidden_size, num_classes)
 
     def forward(self, x):
+        """
+        Forward pass through the classifier.
+
+        Args:
+            x (Tensor): Input tensor with Siamese network embeddings.
+
+        Returns:
+            Tensor: Output tensor representing class scores.
+        """
         x = torch.relu(self.fc1(x))
         x = self.fc2(x)
         return x
 
 
 # Hyperparameters
-input_size = 2  # Change this to the actual size of your Siamese network embeddings
+input_size = 2  
 hidden_size = 128
 num_classes = 2  # 2 classes: Normal and AD
 batch_size = 32
@@ -44,7 +61,7 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(classifier.parameters(), lr=1e-4)
 
 # Training loop for the classifier
-num_epochs = 45  # You may need to adjust this based on your dataset and results
+num_epochs = 45  # This can be adjusted
 for epoch in range(num_epochs):
     classifier.train()
     for images, _, labels in classify_data_loader:

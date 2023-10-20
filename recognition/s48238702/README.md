@@ -153,7 +153,7 @@ class Classifier(nn.Module):
         
         return x
 ```
-This model is trained using the adam optimiser with a 0.0001 learning rate. Given we are doing binary classification (0 or 1), binary cross entropy loss function is used.
+This model is trained using the adam optimiser with a 1e-4 learning rate. Given we are doing binary classification (0 or 1), binary cross entropy loss function is used.
 </P>
 
 ## 🐍 Results <a name = "results"></a>
