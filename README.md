@@ -9,7 +9,7 @@ Alzheimer’s disease (AD) is one of the most common causes of neurodegenerative
 The accumulation of plaque and neurofibrillary tangles make several changes in brain structures. These changes could be used as a biomarker for the classification of MCI progression and are clearly analyzed by structural MRI (sMRI). Three planes of view are there in sMRI known as the axial, sagittal, and coronal planes
 
 
-
+ ![image](https://github.com/JivalX/PatternAnalysis-2023/assets/104201585/996a6e7e-9616-4e53-88ea-2976b0ac229d)
 
 
 
@@ -96,7 +96,7 @@ The validation set is a subset of the training dataset.
 
 ### Sample Input-
 
-
+ ![image](https://github.com/JivalX/PatternAnalysis-2023/assets/104201585/26fea2b7-994a-4f31-84c3-a11d068f8e83)
 
 
 
@@ -113,6 +113,12 @@ Transformers were designed to solve problems where non-local correlation is pres
 ViT is an architecture for image classification that employs a Transformer-like architecture over patches of the image and can outperform common CNN architectures when trained on large amounts of image data. The concept of vision transformers is described as follows:
 
  
+![image](https://github.com/JivalX/PatternAnalysis-2023/assets/104201585/75db8f20-0485-4322-81ec-cef9f7040449)
+
+
+
+
+
 
 
 
@@ -160,7 +166,7 @@ The model predicts the class labels for the test dataset. The predictions are th
 ### Accuracy-
  
 
-
+![image](https://github.com/JivalX/PatternAnalysis-2023/assets/104201585/9879262a-4d94-4495-aa19-e58a2f993f9f)
 
 
 
