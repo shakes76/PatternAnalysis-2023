@@ -30,15 +30,21 @@ The dataset structure is as follows:
         - *.png
       - NC
         - *.png
+    - validation
+      - AD
+        - *.png
+      - NC
+        - *.png
 
 As the Siamese neural network requires two inputs, `dataset.py` contain a data loader function which return 
 two different images, and labeling them 1 if the classes are the same, 0 if the classes are different. For example,
 ((AD,AD),1) , ((AD,NC),0), ((NC,AD),0), etc.
 
 As ADNI dataset is patient-level specific, therefore when splitting validation set from training set have be performed 
-cautiously to prevent data leakage. An alternative is to split validation set from test set. As there are no identical
-patient images exists in both train set and test set, there should be no data leakage for using part of test set
-as validation set.
+cautiously to prevent data leakage. As there are 20 images per patient, `torch.utils.data.random_split` will
+most likely cause data leakage. Therefore, validation set is manually select from train set, extracting around 20% images from both
+classes, while ensuring images from the same patient do not coexist in the training set, validation set, and testing set at 
+the same time.
 
 Images are pre-processed by a number of pytorch transform function to facilitate training process. Specific
 transform used is discussed in the discussion section.
@@ -49,7 +55,7 @@ transform used is discussed in the discussion section.
 The model is defined in `modules.py`. The model consists of a several sequences of convolutional layers, batch normalization layers,
 ReLU activation function, and pooling layers. Then followed by several fully connected layer with ReLU activation function in between.
 
-### Training
+### Training Siamese Neural Network
 In `train.py`, the model is trained with the training dataset prepared in `dataset.py`. 
 
 Contrastive loss is used for the training:
@@ -72,27 +78,32 @@ the training progress can also be visualised in the vector space.
 Epoch 1:
 
 
-### Prediction
-After training, the model can be used in predicting the class of an image. The performance of the model is evaluated in
-`predict.py`, where images from the test dataset is inputted into the model. The Siamese Neural Network outputs the embeddings
+### Training classifier 
+The Siamese Neural Network outputs the embeddings
 of the input, and a classifier is build to inference the embeddings, and determine the respective class of the images. The classifier structure
 looks like this:
+![img_2.png](images_for_README%2Fimg_2.png)
 
+which is just 2 dense layers converting the embeddings into 2 outputs. Cross Entropy loss is used.
+![Accuracy_plot.png](images_for_README%2FAccuracy_plot.png)
+![loss_plot_classifier.png](images_for_README%2Floss_plot_classifier.png)
 
-
-which is just a dense layer converting the embeddings into 2 outputs. Cross Entropy loss is used.
+As the validation loss is pretty stable around 0.25 loss, the classifier at 30 Epochs is used for prediction
+### Prediction
+After training, the model can be used in predicting the class of an image. The performance of the model is evaluated in
+`predict.py`, where images from the test dataset is inputted into the classifier. 
 
 ## Result
-The best result obtained over numerous trial is 79.8% test accuracy on test set, which is around 80%
+The best result obtained over numerous trial is 80.5% test accuracy on test set, which meets the project aim
 
-| model combination and settings            | Test accuracy |
-|-------------------------------------------|--------------:|
-| Just classifier                           |           67% |
-| SNN(triplet loss) + classifier            |           71% |
-| SNN(Contrastive loss(2.0)) + classifier   |           72% |
-| SNN(Contrastive loss(1.0)) + classifier   |           72% |
-| Resnet18 as back bone of SNN + classifier |         73.5% |
-| SNN + classifier + data augmentation      |         79.8% |
+| model combination and settings                              | Test accuracy |
+|-------------------------------------------------------------|--------------:|
+| Just classifier                                             |           67% |
+| SNN(triplet loss) + classifier                              |           71% |
+| SNN(Contrastive loss(2.0)) + classifier                     |           72% |
+| SNN(Contrastive loss(1.0)) + classifier                     |           72% |
+| Resnet18 as back bone of SNN + classifier                   |         73.5% |
+| SNN(contrastive loss(1.0)) + classifier + data augmentation |         80.5% |
 
 
 
@@ -123,16 +134,25 @@ The major improvement comes from data augmentation. Different data augmentations
 | RandomCrop                                      |         +5% |
 | RandomRotation                                  |         +2% |
 | RandomPerspective                               |         +1% |
-| RandomCrop + RandomRotation                     |         +6% |
+| RandomCrop + RandomRotation                     |         +7% |
 | RandomCrop + RandomRotation + RandomPerspective |         +6% |
 
+With the data augmentation, the classifier is able to achieve 80.5% accuracy on the test set. However, compare to ~90% validation accuracy,
+the test accuracy is a bit subpar. This indicates that there are possibly some difficult images in the test set, or there may be some
+data leakage. However, for this project, the goal is met.
 
+### Potential improvement
+As the test set is patient-level specific, i.e. there are 20 images from each patient in the test set, it is possible
+to make a prediction based on the average classification result on all images from a patient.  
 
+Another potential improvement is to prepare validation set with code. This will eliminate any risk of train-test contamination.
 
-
-potential improvement:
 
 ## Requirement
+matplotlib == 3.7.2
+python >=3.9.0
+pytorch == 2.1.0
+torchsummary == 1.5.1
 
 ## Reference
 [1] Chicco, Davide (2020), "Siamese neural networks: an overview", Artificial Neural Networks, Methods in Molecular Biology, vol. 2190 (3rd ed.), New York City, New York, USA: Springer Protocols, Humana Press, pp. 73–94, doi:10.1007/978-1-0716-0826-5_3, ISBN 978-1-0716-0826-5, PMID 32804361, S2CID 221144012
