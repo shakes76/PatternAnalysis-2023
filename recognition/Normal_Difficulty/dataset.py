@@ -54,3 +54,38 @@ def scaling(input_image):
 train_ds = train_ds.map(scaling)
 valid_ds = valid_ds.map(scaling)
 
+dataset = os.path.join(dir_train, "images")
+test_path = os.path.join(dataset, "test")
+
+test_img_paths = sorted(
+    [
+        os.path.join(test_path, fname)
+        for fname in os.listdir(test_path)
+        if fname.endswith(".jpg")
+    ]
+)
+
+# Use TF Ops to process.
+def process_input(input, input_size, upscale_factor):
+    input = tf.image.rgb_to_yuv(input)
+    last_dimension_axis = len(input.shape) - 1
+    y, u, v = tf.split(input, 3, axis=last_dimension_axis)
+    return tf.image.resize(y, [input_size, input_size], method="area")
+
+
+def process_target(input):
+    input = tf.image.rgb_to_yuv(input)
+    last_dimension_axis = len(input.shape) - 1
+    y, u, v = tf.split(input, 3, axis=last_dimension_axis)
+    return y
+
+
+train_ds = train_ds.map(
+    lambda x: (process_input(x, input_size, upscale_factor), process_target(x))
+)
+train_ds = train_ds.prefetch(buffer_size=32)
+
+valid_ds = valid_ds.map(
+    lambda x: (process_input(x, input_size, upscale_factor), process_target(x))
+)
+valid_ds = valid_ds.prefetch(buffer_size=32)
