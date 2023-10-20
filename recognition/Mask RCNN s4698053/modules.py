@@ -13,6 +13,13 @@ from CONFIG import *
 torch.manual_seed(torch_seed)
 
 """
+Acknowledgements
+Model based of original YoloV1
+Base util functions and some util inspired from Aladdin Persson https://www.youtube.com/watch?v=n9_XyCGr-MI
+"""
+
+
+"""
 See README.md for image of this architecture
 """
 architecture_config = [
