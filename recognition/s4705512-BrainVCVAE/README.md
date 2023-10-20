@@ -26,7 +26,7 @@ A VAE is a type of generative model that falls under the umbrella of autoencoder
  The VQ-VAE model archictecture consists of three parts, the encoder, the Vector Quantization layer, and the decoder. 
  
 <p align="center">
-	<img src="Images/vqvae2.png" width=800>
+	<img src="Images/VQVAE2.png" width=800>
 	<p>
     <em>Figure 1: Left: The Encoder, Middle: the Vector Quantization layer, Right: the Decoder</em>
 		
