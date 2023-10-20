@@ -224,7 +224,7 @@ class Encoder(nn.Module):
 ```
 
 ## How to Train the Model
-Ensure the ADNI brain dataset is in this folder. Run ```utils.py``` to spit the train dataset appropriately.
+Ensure the ADNI brain dataset is in this folder. Run ```utils.py``` to split the train dataset appropriately.
 ```bash
 python utils.py
 ```
@@ -392,6 +392,6 @@ The model was still overfitting but the changes have decreased the losses in the
 ![alt text](images/losses4.png)
 ![alt text](images/accuracy4.png)
 
-The model is still overfitting. At this point, I decided to take a different approach. As there is significantly less data in the dataset than a usual deep learning model is trained on, I decided to make the model more simple. All regularisation (dropout and weight decay) was removed, the number of encoder layers was decreased to 4, the image patch size was decreased to 4, the MLP dimension was decreased to 128, and the MLP head dimension was decreased to 512. On top of this, at this point I realised the code may be experiencing some data leakage, so I cleaned this up. The results of this changed produced the model which performed with ```69%``` test accuracy.
+The model is still overfitting. At this point, I decided to take a different approach. As there is significantly less data in the dataset than a usual deep learning model is trained on, I decided to make the model more simple. All regularisation (dropout and weight decay) was removed, the number of encoder layers was decreased to 4, the image patch size was decreased to 4, the MLP dimension was decreased to 128, and the MLP head dimension was decreased to 512. On top of this, at this point I realised the code may be experiencing some data leakage, so I cleaned this up. The results of this changed produced the model which performed with ```67.65%``` test accuracy.
 
 
