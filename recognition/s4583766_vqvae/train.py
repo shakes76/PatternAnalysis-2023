@@ -15,12 +15,12 @@ import numpy as np
 import torch
 from dataset import get_dataloaders
 from modules import VQVAE, Discriminator, Generator
+from predict import validate_batch
+from skimage.metrics import structural_similarity as ssim
 from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torchvision.utils import make_grid, save_image
-from skimage.metrics import structural_similarity as ssim
-
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -33,6 +33,7 @@ FILE_SAVE_PATH = PATH + 'recognition/s4583766_vqvae/gen_img/'
 BASE_DATA_PATH = '/home/groups/comp3710/OASIS/'
 TRAIN_DATA_PATH = BASE_DATA_PATH + 'keras_png_slices_train/'
 TEST_DATA_PATH = BASE_DATA_PATH + 'keras_png_slices_test/'
+VAL_DATA_PATH = BASE_DATA_PATH + 'keras_png_slices_validate/'
 
 # Create new unique directory for this run
 time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -41,12 +42,13 @@ os.makedirs(RUN_IMG_OUTPUT, exist_ok=True)
 
 # Hyper-parameters
 BATCH_SIZE = 32
-BATCH_SIZE_GAN = 256
-EPOCHS = 3
-EPOCHS_GAN = 20
+BATCH_SIZE_GAN = 32
+EPOCHS = 1
+EPOCHS_GAN = 1
+LATENT_SIZE_GAN = 128
 
 # Taken from paper and YouTube video
-N_HIDDEN_LAYERS = 128
+N_HIDDEN_LAYERS = 64
 N_RESIDUAL_HIDDENS = 32
 N_RESIDUAL_LAYERS = 2
 
@@ -61,8 +63,9 @@ LR_GAN = 2e-4
 def gen_imgs(images, model, device):
     with torch.no_grad():
         images = images.to(device)
-        _, x_hat, _ = model(images)
-        return x_hat
+        _, reconstructed_x, _, _ = model(images)
+
+        return reconstructed_x
     
 def gen_encodings(model: VQVAE, image):
     with torch.no_grad():
@@ -107,18 +110,10 @@ def visualise_embeddings(model: VQVAE, test_dl):
     plt.axis("off")
     plt.savefig(RUN_IMG_OUTPUT + "decoded.png", bbox_inches="tight", pad_inches=0)
 
-def train_vqvae(train_dl):
-    vqvae = VQVAE(
-        n_hidden_layers=N_HIDDEN_LAYERS, 
-        n_residual_hidden_layers=N_RESIDUAL_HIDDENS, 
-        n_embeddings=N_EMBEDDINGS,
-        embeddings_dim=EMBEDDINGS_DIM, 
-        beta=BETA
-    )
-    vqvae = vqvae.to(device)
+def train_vqvae(vqvae, train_dl, val_dl):
     optimizer = torch.optim.Adam(vqvae.parameters(), lr=LEARNING_RATE)
     recon_losses = []
-    print(vqvae)    
+    # print(vqvae)    
     
     # Store the original images for comparison
     og_imgs = next(iter(train_dl))
@@ -130,31 +125,34 @@ def train_vqvae(train_dl):
     # Initialise the best loss to be updated in loop
     best_loss = float("-inf")
 
-    vqvae.train()
-
     # flush the standard out print
     sys.stdout.flush()
 
+    avg_train_losses = []
+    avg_valid_ssim_losses = []
     # Run training
     for epoch in range(EPOCHS):
+        # ssim_losses = []
+
+        vqvae.train()
         # print("Epoch: {}".format(epoch+1))
         print("Epoch: ", epoch + 1, "\n")
         train_loss = []
-        avg_train_loss = 0
         train_steps = 0
         for data in train_dl:
             data = data.to(device)
             optimizer.zero_grad()
 
-            vq_loss, x_hat, z_q = vqvae(data)
+            embedding_loss, reconstructed_x, z_q, encodings = vqvae(data)
 
-            recons_error = F.mse_loss(x_hat, data)
+            recons_error = F.mse_loss(reconstructed_x, data)
 
-            loss = vq_loss + recons_error
+            loss = embedding_loss + recons_error
             loss.backward()
             optimizer.step()
 
             train_loss.append(recons_error.item())
+            avg_train_losses.append(recons_error.item())
 
             if train_steps % 100 == 0:
                 print(
@@ -163,7 +161,32 @@ def train_vqvae(train_dl):
                     )
                 )
             train_steps += 1
+        
+        vqvae.eval()
+        
+        # Save the model if the average loss is the best we've seen so far.
+        avg_train_loss = np.mean(train_loss)
 
+        if avg_train_loss > best_loss:
+            best_loss = avg_train_loss
+            torch.save(vqvae.state_dict(), RUN_IMG_OUTPUT + "vqvae.pth")
+
+        print("Training loss: {}".format(avg_train_loss))
+
+        # validation 
+        ssim_losses_val = validate_batch(vqvae, val_dl)
+        avg_ssim_loss = np.mean(ssim_losses_val)
+        max_ssim_loss = max(ssim_losses_val)
+        min_ssim_loss = min(ssim_losses_val)
+
+        print("Validation avg. SSIM loss: {}".format(avg_ssim_loss))
+        print("Max SSIM loss: {}".format(max_ssim_loss))
+        print("Min SSIM loss: {}".format(min_ssim_loss))
+
+        avg_valid_ssim_losses.append(avg_ssim_loss)
+        # avg_train_losses.append(avg_train_loss)
+
+        # Save generated image from fixed latent vector
         gen_img = gen_imgs(og_imgs, vqvae, device)
         grid = make_grid(gen_img.cpu(), nrow=8)
         # grid = make_grid(og_imgs, nrow=8)
@@ -173,23 +196,31 @@ def train_vqvae(train_dl):
         print("Saving", img_name)
         sys.stdout.flush()
 
-        # Save the model if the average loss is the best we've seen so far.
-        avg_train_loss = sum(train_loss) / len(train_loss)
+    # Plot the SSIM losses
+    plt.plot(avg_valid_ssim_losses)
+    plt.title("SSIM Losses for validation data")
+    plt.xlabel("Epoch no.")
+    plt.ylabel("SSIM score")
+    plt.savefig(os.path.join(RUN_IMG_OUTPUT + "train_ssim_scores.png"))
 
-        if avg_train_loss > best_loss:
-            best_loss = avg_train_loss
-            torch.save(vqvae.state_dict(), RUN_IMG_OUTPUT + "vqvae.pth")
+    plt.clf()
+    # Plot the training losses
+    plt.plot(avg_train_losses)
+    plt.title("Training reconstruction Losses")
+    plt.xlabel("Batch no.")
+    plt.ylabel("Reconstruction loss")
+    plt.savefig(os.path.join(RUN_IMG_OUTPUT + "train_recon_losses.png"))
 
-        recon_losses.append(avg_train_loss)
-        print("Recon loss: {}".format(avg_train_loss))
+    return vqvae
 
-def train_gan(model, train_dl):
+
+def train_gan(vqvae, train_dl):
     # define dataset
 
     # Create ds and dl
-    transform = tfs.Compose([tfs.ToTensor()])
-    gan_ds = GanData(model, transform)
-    gan_dl = DataLoader(gan_ds, batch_size=BATCH_SIZE_GAN)
+    # transform = tfs.Compose([tfs.ToTensor()])
+    # gan_ds = GanData(model, transform)
+    # gan_dl = DataLoader(gan_ds, batch_size=BATCH_SIZE_GAN)
     generator = Generator()
     discriminator = Discriminator()
 
@@ -200,14 +231,17 @@ def train_gan(model, train_dl):
     generator = generator.to(device)
     discriminator = discriminator.to(device)
 
-    fixed_latent = torch.randn(BATCH_SIZE_GAN, 100, 1, 1, device=device)
+    fixed_latent = torch.randn(64, 128, 1, 1, device=device)
     # save_samples(0, fixed_latent)
+    # fixed_latent = torch.randn(BATCH_SIZE_GAN, LATENT_SIZE_GAN, 1, 1, device=device)
+    
 
     # og_imgs = next(iter(train_dl))
     # og_imgs = og_imgs.to(device)
 
     # create new subfolder thats title is the current time
-    og_imgs = generator(fixed_latent)
+    og_img_latent = generator(fixed_latent)
+    og_imgs = vqvae.decoder(og_img_latent)
     save_image(og_imgs, RUN_IMG_OUTPUT + "gan_epoch_0.png")
     # print("Saving", img_name)
     torch.cuda.empty_cache()
@@ -224,6 +258,7 @@ def train_gan(model, train_dl):
     opt_g = torch.optim.Adam(generator.parameters(), lr=LR_GAN, betas=(0.5, 0.999))
 
     for epoch in range(EPOCHS_GAN):
+        print(f"Epoch: {epoch+1}\n ************************************************")
         for real_images in train_dl:
             real_images = real_images.to(device)
             # Train discriminator
@@ -241,7 +276,7 @@ def train_gan(model, train_dl):
 
             # Generate fake images. Latent space = representation of compressed data.
             # Use the same seed every time, so we can compare the generated images.
-            latent = torch.randn(BATCH_SIZE_GAN, 100, 1, 1, device=device)
+            latent = torch.randn(BATCH_SIZE_GAN, LATENT_SIZE_GAN, 1, 1, device=device)
             fake_images = generator(latent)
 
             # Pass Fake images through discriminator
@@ -258,8 +293,8 @@ def train_gan(model, train_dl):
 
             opt_g.zero_grad()
 
-            # Generate a batch of fake images.
-            latent = torch.randn(BATCH_SIZE_GAN, 100, 1, 1, device=device)
+            # Generate a batch of fake images. TODO: remove this second one?
+            latent = torch.randn(BATCH_SIZE_GAN, LATENT_SIZE_GAN, 1, 1, device=device)
             fake_images = generator(latent)
 
             # Try to fool the discriminator
@@ -290,12 +325,14 @@ def train_gan(model, train_dl):
         # save_samples(epoch+start_idx, fixed_latent, show=False)
         # save_image(denorm(fake_images), os.path.join(sample_dir, fake_fname), nrow=8)
         checkpoint_img = generator(fixed_latent)
-        save_image(denorm(checkpoint_img), RUN_IMG_OUTPUT + f"gan_epoch_{epoch}.png")
+        vqvae.eval()
+        checkpoint_img_dec = vqvae.decoder(checkpoint_img)
+        save_image(checkpoint_img_dec, RUN_IMG_OUTPUT + f"gan_epoch_{epoch}.png")
 
     return losses_g, losses_d, real_scores, fake_scores
 
 
-def calc_ssim(model, test_dl):
+def calc_ssim(model: VQVAE, test_dl):
     # Calculate SSIM for two images
     test_img = next(iter(test_dl))
 
@@ -329,32 +366,42 @@ def calc_ssim(model, test_dl):
     print(ssim_score)
 
 def main():
-    train_dl, test_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, BATCH_SIZE)
-    train_vqvae(train_dl=train_dl)
-
     model = VQVAE(
-        n_hidden_layers=N_HIDDEN_LAYERS,
-        n_residual_hidden_layers=N_RESIDUAL_HIDDENS,
+        n_hidden_layers=N_HIDDEN_LAYERS, 
+        n_residual_hidden_layers=N_RESIDUAL_HIDDENS, 
         n_embeddings=N_EMBEDDINGS,
-        embeddings_dim=EMBEDDINGS_DIM,
-        beta=BETA,
+        embeddings_dim=EMBEDDINGS_DIM, 
+        beta=BETA
     )
-    ## load in the saved gan model stored at path + 'best-gan.pth'
+    model = model.to(device)
+    train_dl, test_dl, val_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, VAL_DATA_PATH, BATCH_SIZE)
+    vqvae = train_vqvae(model, train_dl=train_dl, val_dl=val_dl)
+
+    torch.save(vqvae.state_dict(), RUN_IMG_OUTPUT + "vqvae.pth")
+    
+    # model = VQVAE(
+    #     n_hidden_layers=N_HIDDEN_LAYERS,
+    #     n_residual_hidden_layers=N_RESIDUAL_HIDDENS,
+    #     n_embeddings=N_EMBEDDINGS,
+    #     embeddings_dim=EMBEDDINGS_DIM,
+    #     beta=BETA,
+    # )
+    # ## load in the saved gan model stored at path + 'best-gan.pth'
     # model = Generator()
-    model.to(device)
-    model.load_state_dict(
-        torch.load(
-            FILE_SAVE_PATH + "2023-10-21_13-26-21/vqvae.pth",
-            map_location=torch.device("cpu"),
-        )
-    )
-    model.eval()
+    # model.to(device)
+    # model.load_state_dict(
+    #     torch.load(
+    #         FILE_SAVE_PATH + "2023-10-22_20-46-12/vqvae.pth",
+    #         map_location=torch.device("cpu"),
+    #     )
+    # )
+    vqvae.eval()
 
-    visualise_embeddings(model, test_dl)
+    # visualise_embeddings(model, test_dl)
 
-    train_gan(model, train_dl)
+    train_gan(vqvae=vqvae, train_dl=train_dl)
 
-    calc_ssim(model, test_dl)
+    # calc_ssim(model, test_dl)
 
 
 if __name__ == '__main__':

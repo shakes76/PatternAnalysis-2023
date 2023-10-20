@@ -4,6 +4,18 @@ Sophie Bates, 45837663.
 
 ## Project overview
 
+### File structure
+The modules contained in this project are as follows:
+
+| **Module** | **Description** |
+|---|---|
+| [dataset.py](dataset.py) | Loads the data and preprocesses it for use by the train loaders. |
+| [modules.py](modules.py) | Core components of the model required for the pattern recognition task, includes VQVAE and GAN models. |
+| [predict.py](predict.py) | Example usage of the trained model, generates results and provides visualisations. |
+| [README.md](README.md) | This file! |
+| [train.py](train.py) | Training script for the VQVAE and GAN models, including validation, testing, and saving of the model, and plotting losses and metrics observed during training. |
+
+
 ### Dependencies
 This is a python project that requires at least Python 3.11.x. Miniconda3 was used for package and dependency management. The dependencies (and their version numbers) required for running this project are as follows:
 | **Dependency** | **Version** |
@@ -20,28 +32,17 @@ conda env create -f environment.yml
 ```
 
 ### Reproducing training and testing results
-The entrypoint to the project is [train.py](train.py). To train the model, run the following command:
+The entrypoint to the project is [train.py](train.py). This assumes you are in the PatternAnalysis-2023 root directory. To train the model, run the following command:
 ```bash
-python3 train.py
+python3 python3 recognition/s4583766_vqvae/train.py
 ```
 This will train the model and create a new directory `/gen_imgs/x` where `x` was the date and time that the run started. This directory will contain the images generated in training, as well as the best model checkpoint (saved as a `.pth` file), and the training and validation losses and metrics (saved as `.png` files).
 
 To evalute training results, the [predict.py](predict.py) script can be used. This script will load the best VQVAE model checkpoint and generate images from the test set. To run this script, run the following command, passing the path to the model checkpoint as an argument (the path should be relative to the `gen_img/` directory, i.e. ``):
 ```bash
-python3 predict.py /path/to/model.pth
+python3 recognition/s4583766_vqvae/predict.py path/vqvae.pth
 ```
 This will generate testing plots and images in a new directory. 
-
-### File structure
-The modules contained in this project are as follows:
-
-| **Module** | **Description** |
-|---|---|
-| [dataset.py](dataset.py) | Loads the data and preprocesses it for use by the train loaders. |
-| [modules.py](modules.py) | Core components of the model required for the pattern recognition task, includes VQVAE and GAN models. |
-| [predict.py](predict.py) | Example usage of the trained model, generates results and provides visualisations. |
-| [README.md](README.md) | This file! |
-| [train.py](train.py) | Training script for the VQVAE and GAN models, including validation, testing, and saving of the model, and plotting losses and metrics observed during training. |
 
 ### Other notes
 [Conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) were used to structure commit messages in this project. 
@@ -54,13 +55,12 @@ The modules contained in this project are as follows:
 1. [Model architecture](#3-model-architecture)
 1. [Training procedure](#4-training-procedure)
 1. [Testing procedure](#5-testing-procedure)
-1. [Analysis](#6-analysis)
 
 ## 1. Data preparation
 
 The data preparation methods are contained in the [dataset.py](dataset.py) file.
 
-The dataset used for this project was the OASIS-3 dataset, from the Open Access Series of Imaging Studies (OASIS) [[1]](https://www.oasis-brains.org/). The dataset contains approximately 11,000 MRI scans of different brains, given as PNG images of dimension 256 x 256. To train the models, the OASIS dataset was split into training, testing, and validation datasets as follows:
+The dataset used for this project was the OASIS-3 dataset, from the Open Access Series of Imaging Studies (OASIS) [[1]](https://www.oasis-brains.org/). The dataset contains approximately 11,000 MRI scans of different brains, given as grayscale PNG images of dimension 1 x 256 x 256. To train the models, the OASIS dataset was split into training, testing, and validation datasets as follows:
 
 | Dataset | No. images |
 |---|---|
@@ -90,15 +90,74 @@ The goal is to use the VQ-VAE as a generative model, where the latent space is u
 Previously, the latent space in a VAE was continuous, and the prior was a standard Gaussian. The VQ-VAE uses a discrete latent space, and the prior is a learned distribution (where the DCGAN comes in).
 
 For this dataset, (1 channel etc. )
+
+The model was created using PyTorch, and the architecture was adapted from the paper [Neural Discrete Representation Learning](https://arxiv.org/pdf/1711.00937.pdf). 
 <!-- TODO -->
+
+<details>
+<summary>VQ-VAE Model structure (click me)</summary>
+<br>
+<pre>
+VQVAE(
+  (encoder): Encoder(
+    (layers): Sequential(
+      (0): Conv2d(1, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+      (1): ReLU(inplace=True)
+      (2): Conv2d(64, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+      (3): ResidualBlock(
+        (_residual_block): Sequential(
+          (0): ReLU()
+          (1): Conv2d(128, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (2): ReLU()
+          (3): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        )
+      )
+      (4): ResidualBlock(
+        (_residual_block): Sequential(
+          (0): ReLU()
+          (1): Conv2d(128, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (2): ReLU()
+          (3): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        )
+      )
+    )
+  )
+  (conv1): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1))
+  (vector_quantizer): VectorQuantizer(
+    (embedding): Embedding(512, 64)
+  )
+  (decoder): Decoder(
+    (layers): Sequential(
+      (0): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (1): ResidualBlock(
+        (_residual_block): Sequential(
+          (0): ReLU()
+          (1): Conv2d(128, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (2): ReLU()
+          (3): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        )
+      )
+      (2): ResidualBlock(
+        (_residual_block): Sequential(
+          (0): ReLU()
+          (1): Conv2d(128, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (2): ReLU()
+          (3): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+        )
+      )
+      (3): ConvTranspose2d(128, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+      (4): ReLU(inplace=True)
+      (5): ConvTranspose2d(64, 1, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+    )
+  )
+)
+</pre>
+</details>
 
 ### DCGAN
 
 The Deep Convolutional Generative Adversarial Network (DCGAN) is a generative model that uses convolutional layers to generate images.
 
-## Model Architecture
-
-Taken from [Neural Discrete Representation Learning paper](https://arxiv.org/pdf/1711.00937.pdf).
 
 ## 4. Training procedure
 <!-- Hyper-parameters etc.  -->
@@ -122,29 +181,29 @@ Loss function: Mean-squared error loss of the original image vs the reconstructe
 Optimizer: Adam, with learning rate = 1e-3. 
 
 #### Training procedure
-At each epoch, the the VQVAE model was trained by feeding real images through the entire model (encoder, vector quantizer, decoder). For each omage, the embedding and reconstruction losses were calculated and backpropagated through the model to update weights. 
+At each epoch, the the VQVAE model was trained by feeding real images through the entire model (encoder, vector quantizer, decoder). For each image, the embedding and reconstruction losses were calculated and backpropagated through the model to update weights. At each model update, the validation set was used to calculate the average Structural Similarity (SSIM) score. The model with the highest SSIM score was saved as the best model checkpoint.
 
 #### Results
 To visualise the training results, the following plots show a fixed batch of images before training:
 
 <!-- insert file from resources/ -->
 
-![Batch of training images before training](resources/epoch_0.png)
+![Batch of training images before training](resources/train_vqvae/epoch_0.png)
 
 The same batch of images being passed through the VQ-VAE (after the first epoch):
 
-![Reconstructed images (after 1 epoch)](resources/epoch_1.png)
+![Reconstructed images (after 1 epoch)](resources/train_vqvae/epoch_1.png)
 
-After 6 epochs:
+After 12 epochs:
 
-![Reconstructed images (after 6 epochs)](resources/epoch_6.png)
+![Reconstructed images (after 12 epochs)](resources/train_vqvae/epoch_12.png)
 
 It is clear from these images that the reconstructions became clearer with training, however they did converge very quickly. A clearer comparison is shown below:
 
 <p align="center">
-  <img src="resources/epoch_0_single.png" width="30%" />
-  <img src="resources/epoch_1_single.png" width="30%" /> 
-  <img src="resources/epoch_6_single.png" width="30%" />
+  <img src="resources/train_vqvae/epoch_0_single.png" width="25%" />
+  <img src="resources/train_vqvae/epoch_1_single.png" width="25%" /> 
+  <img src="resources/train_vqvae/epoch_12_single.png" width="25%" />
 </p>
 
 The following images show a single image comparison of the input image -> codebook embedding representation of the image -> and decoded reconstruction from the codebook:
@@ -156,19 +215,33 @@ The following images show a single image comparison of the input image -> codebo
 ![Single image comparison](resources/decoded.png) -->
 
 <p align="center">
-  <figure>
-    <figcaption style="max-width: 100%;">Figure 1: Comparison of input image, codebook embedding, and decoded reconstruction.</figcaption>
-    <img src="resources/codebook_comparison.png" width="30%" />
-    <img src="resources/codebook.png" width="30%" /> 
-    <img src="resources/decoded.png" width="30%" />
-  </figure>
+    <img src="resources/codebook_comparison.png" width="25%" />
+    <img src="resources/codebook.png" width="25%" /> 
+    <img src="resources/decoded.png" width="25%" />
 </p>
 
+For each epoch, the training reconstruction losses were calculated and plotted. Additionally, the average Structural Similarity (SSIM) loss was calculated over the entire validation set for each iteration of the model. The epoch with the highest average SSIM was epoch 12, with the following results:
 
-The SSIM and MSE loss were also calculated for each epoch. The following plots show the results of these metrics:
+```bash
+Epoch: 12
+Training loss: 0.0019006850286571939
+Validation avg. SSIM loss: 0.8407445546841268
+Max SSIM loss: 0.8716488444340117
+Min SSIM loss: 0.7713548554737547
+```
+
+The plots below show the training SSIM scores and reconstruction losses for each epoch:
 
 <!-- TODO: plots here -->
 
+<p align="center">
+    <img src="resources/train_vqvae/train_ssim_scores.png" width="49%" />
+    <img src="resources/train_vqvae/train_recon_losses.png" width="49%" /> 
+    <!-- <img src="resources/decoded.png" width="25%" /> -->
+</p>
+
+<!-- ![SSIM scores](resources/train_vqvae/train_ssim_scores.png)
+![Reconstruction losses](resources/train_vqvae/train_recon_losses.png) -->
 
 ### DCGAN training
 

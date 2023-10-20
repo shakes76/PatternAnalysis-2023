@@ -38,12 +38,12 @@ os.makedirs(RUN_IMG_OUTPUT, exist_ok=True)
 
 # Hyper-parameters
 BATCH_SIZE = 32
-BATCH_SIZE_GAN = 256
+BATCH_SIZE_GAN = 32
 EPOCHS = 3
 EPOCHS_GAN = 20
 
 # Taken from paper and YouTube video
-N_HIDDEN_LAYERS = 128
+N_HIDDEN_LAYERS = 64
 N_RESIDUAL_HIDDENS = 32
 N_RESIDUAL_LAYERS = 2
 
@@ -53,6 +53,44 @@ N_EMBEDDINGS = 512 # Size of the codebook (number of embeddings)
 BETA = 0.25
 LEARNING_RATE = 1e-3
 LR_GAN = 2e-4
+
+def validate_batch(model, dl):
+    # used for either testing or validation results
+    # returns SSIM
+    ssim_total = 0
+    loss_total = 0
+    ssim_list = []
+    loss_list = []
+    
+
+    with torch.no_grad():
+        for batch in dl:
+            for data in batch:
+                sys.stdout.flush()
+                data = data.to(device)
+                data = data.unsqueeze(0)
+                vq_loss, x_hat, z_q, _ = model(data)
+                recons_error = F.mse_loss(x_hat, data)
+                # print(recons_error)
+                # print(vq_loss)
+                loss = recons_error + vq_loss
+
+                img1 = data[0][0].cpu().detach().numpy()
+                img2 = x_hat[0][0].cpu().detach().numpy()
+
+                ssim_score = ssim(img1, img2, data_range=img2.max() - img2.min())
+                # loss = ssim + mse
+                ssim_total += ssim_score.item()
+                # mse_total += mse.item()
+                loss_total += loss.item()
+
+                ssim_list.append(ssim_score.item())
+                # mse_list.append(mse.item())
+                loss_list.append(loss.item())
+                # Store 
+
+    return ssim_list#,
+       
 
 def evaluate_model(args):
     # load the trained model
@@ -72,14 +110,12 @@ def evaluate_model(args):
     model.eval()
 
     # get the test data loader
-    _, test_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, BATCH_SIZE)
+    _, test_dl, val_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, BATCH_SIZE)
 
     # evaluate the SSIM results of the model
     ssim_total = 0
-    mse_total = 0
     loss_total = 0
     ssim_list = []
-    mse_list = []
     loss_list = []
     count = 0
     best_recon_before = None 

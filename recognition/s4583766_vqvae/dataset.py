@@ -61,24 +61,22 @@ def show_images(img, epoch):
 
 # show_batch(train_dl)
 
-def get_dataloaders(data_path_training, data_path_testing, batch_size):
+def get_dataloaders(data_path_training, data_path_testing, data_path_validation, batch_size):
     """
     Loads the dataset and returns the training data loaders.
     """
-
-    # Perform tranformations on the data
-    transform_train = transforms.Compose([
-        transforms.ToTensor()
-    ])
     train_ds = OasisDataset(data_path_training)
     train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
 
     test_ds = OasisDataset(data_path_testing)
     test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=True)
 
+    val_ds = OasisDataset(data_path_validation)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, shuffle=True)
+
     # show_batch(train_dl)
     # Calculate the variance of the data
     # data_variance = np.var(train_ds[0][0].numpy())
     # print(data_variance)
 
-    return train_dl, test_dl
+    return train_dl, test_dl, val_dl
