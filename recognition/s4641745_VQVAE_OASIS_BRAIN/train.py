@@ -100,7 +100,7 @@ save_image(test_quantized, 'quantized-single-sample.png')
 # ========== TRAIN GAN ==========
 
 # GAN Hyper params
-LR_GAN = 4e-4
+LR_GAN = 1e-4
 BATCH_SIZE_GAN = 256
 MAX_EPOCHS_GAN = 20
 Z_DIM_GAN = 100
