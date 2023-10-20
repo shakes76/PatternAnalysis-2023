@@ -1,34 +1,38 @@
-# Recognition Tasks
-Various recognition tasks solved in deep learning frameworks.
-
-Tasks may include:
-* Image Segmentation
-* Object detection
-* Graph node classification
-* Image super resolution
-* Disease classification
-* Generative modelling with StyleGAN and Stable Diffusion
-
 # Classify Alzheimer's disease of ADNI brain data with perceiver transformer
-For this project, I am using the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset to classify MRI scans of brains that have alzheimers. This project aims to create a perceiver transformer that can detect and classify MRI scans and with over 80% accuracy determine if it has alzheimers. The ADNI dataset has images or the scans with a resolution of 256x240. The model completes a binary classification of the images as a brain can either have or not have alzheimers.
+For this project, I use the Alzheimer's Disease Neuroimaging Initiative (ADNI) dataset to classify MRI scans of brains with Alzheimer's. This project aims to create a perceiver transformer that can detect and classify MRI scans and, with over 80% accuracy, determine if it has Alzheimer's. The ADNI dataset has images or scans with a resolution of 256x240. The model completes a binary classification of the images as a brain can either have or not have Alzheimer's.
 
-The Perceiver Transformer was proposed in the paper Attention Is All You Need by a team working at the Google https://arxiv.org/pdf/1706.03762.pdf. The Perceiver Transformer was developed with the aim of addressing the limitations of the transformer which was designed for natural languagge processing tasks. The Perceiver Transformer is developed upon the base transformer and it can be given a wider range of datasets to work on from different modalities. The other limitation of the Transform that the Perceiver Transformer build upon is that the quadratic bottleneck which is done through the use of the query, key and values.
+The Perceiver Transformer was proposed in the paper Attention Is All You Need by a team working at Google https://arxiv.org/pdf/1706.03762.pdf. The Perceiver Transformer was developed to address the limitations of the transformer, which was designed for natural language processing tasks. The Perceiver Transformer is developed upon the base transformer and can be given a wider range of datasets to work on from different modalities. The other limitation of the Transform that the Perceiver Transformer build upon is that the quadratic bottleneck is done through the use of the query, key and values.
 
-Additionally, the Perceiver Transformer utilises a variant of the transformers self attention which results in better training and generalisation.
+Additionally, the Perceiver Transformer utilises a variant of the transformers self attention, resulting in better training and generalisation.
 
 This is the diagram on the overall architecture of the Perceiver Transformer.
 
+![Perceiver Architecture](./plots/architecture.png)
 
-The ADNI dataset contains many images of the same patient. This means that the images can have similarity as the patients images can be scattered across the testing and the training datasets. This could cause potentially overfitting of the model from it learning to identify the brain of the same patient rather then detecting the Alzheimers. 
+The ADNI dataset contains many images of the same patient. This means the images can have similarities as the patients' images can be scattered across the testing and training datasets. This could cause potential overfitting of the model from its learning to identify the same patient's brain rather than detecting Alzheimer's. 
 
-# Perceiver Transformer Achitecture
-![Perceiver Architecture] ("./plots/architecture.png")
 
-# Implmentation
+# Implementation
+LATENT_DIMENTIONS = 128
+
+EMBEDDED_DIMENTIONS = 32
+
+CROSS_ATTENTION_HEADS = 1
+
+SELF_ATTENTION_HEADS = 4
+
+SELF_ATTENTION_DEPTH = 4
+
+MODEL_DEPTH = 4
+
+EPOCHS = 2
+
+BATCH_SIZE = 5
+
+LEARNING_RATE = 0.0004 
+
 The loss function used was the Cross Entropy Loss function.
-
-For the Optimiser the Adam optimiser was used. This is because of its general purpose functionality and efficiency. This also reduces the risk of the model being overfitted to the training data set. 
-
+For the Optimiser, the Adam optimiser was used. This is because of its general purpose, functionality and efficiency. This also reduces the risk of the model being overfitted to the training data set. 
 The model was run for 40 epochs for training.
 The cross attention module ran with a single head according to the original paper.
 The self attention module ran four heads and performed self attention four times per head. This was done based on values from the original paper.
@@ -38,38 +42,48 @@ The batch size was 5. This was due to hardware limitations I was training the mo
 The model depth was 4 meaning that it performed cross attention and the latent transform 4 times
 The learning rate used was 0.0004. Originally I had set 0.004 but the model was not accurate during testing with this parameter so the learning rate was reduced and the accuracy improved.
 
-LATENT_DIMENTIONS = 128
-EMBEDDED_DIMENTIONS = 32
-CROSS_ATTENTION_HEADS = 1
-SELF_ATTENTION_HEADS = 4
-SELF_ATTENTION_DEPTH = 4
-MODEL_DEPTH = 4
-EPOCHS = 2
-BATCH_SIZE = 5
-LEARNING_RATE = 0.0004 
 
-![40 Epoch accuracy on testing dataset] ("./plots/40epochaccuracyprediction.png")
-![40 Epoch training loss] ("./plots/40epochlossoverepochs.png")
-![40 Epoch accuracy on training dataset] ("./plots/40epochaccuracyprediction.png")
-![40 Epoch accuracy on testing dataset] ("./plots/40epochpredictingaccuracy.png")
-![40 Epoch training accuracy] ("./plots/40epochtrainingaccuracy.png")
+
 
 
 # File Structure
-The dataset.py file contains the class ADNI which fetches and performs the augmentation and transformations on the datasets. This is used for getting both the training and testing datasets. It reads the images from the ADNI/AD_NC/ file path and goes to either the test or train subfolders. 
+The dataset.py file contains the class ADNI, which fetches and performs the augmentation and transformations on the datasets. This is used for getting both the training and testing datasets. It reads the images from the ADNI/AD_NC/ file path and goes to the test or train subfolders. 
 
-The modules.py file contains the Perceiver Transformer model. Within this file there are any classes which build key aspects of the model. The class nomenclature is based upon its functionality within the model itself. The key classes are Perceiver which constructs the final architecture of the model. The Block class contains the cross attention and the latest transformer steps of the Perceiver Transformer model. The LatestTransformer contains the self attention functionality. 
+The modules.py file contains the Perceiver Transformer model. Within this file, many classes build key aspects of the model. The class nomenclature is based on its functionality within the model itself. The key classes are Perceiver, which constructs the final architecture of the model. The Block class contains the cross attention and the latest transformer steps of the Perceiver Transformer model. The LatestTransformer contains the self-attention functionality. 
 
-The predict.py file is where the saved model is tested against the testing dataset. The model is saved during training and used here. This file displays various statistics and graphs about the accuracy of the model on the testing dataset.
+The predict.py file is where the saved model is tested against the testing dataset. The model is saved during training and used here. This file displays various statistics and graphs about the model's accuracy on the testing dataset.
 
-The train.py file is where the training of the model occurs. The hyperparameters are set here and passed into the model for usage. The main trainging loop is here too which runs for the specified number of epochs.
+The train.py file is where the training of the model occurs. The hyperparameters are set here and passed into the model for usage. The main training loop runs for the specified number of epochs designated in the hyperparameters.
+
+# Reproducability
+To run this model, the path to the downloaded ADNI dataset must be provided in the dataset.py file so the ADNI class can find it. Within the ADNI dataset, there should be a test and train subfolder. To train the model, the hyperparameters below can be used or you can specify your own. The Perceiver class takes those hyperparameters it trained within the main loop in train.py. The predict.py file tests the saved model from training and runs is against the testing dataset. During the training and testing, various plots are produced showing the results and details of the model.
 
 # Results
-After training the model for 40 Epochs it achieved 51% accuracy on the testing set but appears to be random guessing of whether the image is of Alzheimers or not. To resolve this problem I attempt to resolve it by changing the transforms I was using as initially I was randomcropping which could be giving partial segments of the brain however this only slightly improved the accuracy. I also altered the hyperparameters used but this had little effect on the outcome. 
 
+After training the model for 40 Epochs, it achieved 51% accuracy on the testing set but appears to be random guessing of whether the image is of Alzheimer's or not. To resolve this problem, I attempted to resolve it by changing the transforms I was using as initially I was randomcropping, which could be giving partial segments of the brain; however, this only slightly improved the accuracy. I also altered the hyperparameters used, which had little effect on the outcome. 
 
+# Loss During Training Results
+![40 Epoch training loss](./plots/40epochlossoverepochs.png)
 
-The loss during training fluctuates around 50% and does not change much during the training. 
+The loss during training fluctuates around 50% and does not change much during the training. The change in the loss seems to remain constant, with the change being very little throughout training. 
 
-The accuracy of the model is poor being 50% and after further investigation the model appears to be always guessing that the image is an Alzheimers image. This explains why the accuracy is poor as it is always guessing the same result regardless of the image. I could not deduce the exact reason for the model to be producing such inaccurate results. I thought it may be related to there being no positional encoding of the pixel positions for the images however i tested this theory and discovered that there was no difference between having the positional embedding and not.
+# Accuracy During Training Results
 
+![40 Epoch accuracy on training dataset](./plots/40epochaccuracyprediction.png)
+
+The model's accuracy is poor, 50%, and after further investigation, the model appears to be always guessing that the image is an Alzheimer's image. This explains why the accuracy is poor, as it is always guessing the same result regardless of the image. I could not deduce why the model produced such inaccurate results. It may be related to no positional encoding of the pixel positions for the images; however, I tested this theory and discovered no difference between having the positional embedding and not.
+
+# Accuracy of model during testing
+![40 Epoch training accuracy](./plots/40epochtrainingaccuracy.png)
+This plot shows that the accuracy of the model does increase, however slowly. It plateaus after around 10 epochs. The model does not seem to learn anything after this point. The increase in accuracy in very gradual on the learning increase in the first 10 epochs, going from 51.3% to 51.6%. The model appears only to guess randomly and not learn the Alzheimer's detection. 
+
+# Accuracy of model for entire testing set
+![40 Epoch accuracy on testing dataset](./plots/40epochpredictingaccuracy.png)
+The model initially appears to have an extremely high accuracy but quickly drops to just above 50%. This is possibly due to the having lucky early on in testing or from the first testing batch having mainly brains with Alzheimer's as the model seemed to predict Alzheimer's more commonly. Then, the model fluctuates around 53% accuracy. 
+
+# References
+[1]	A. Vaswani et al., "Attention is all you need," presented at the Proceedings of the 31st International Conference on Neural Information Processing Systems, Long Beach, California, USA, 2017.
+
+[2]	C. Tigges, "The Annotated Perceiver," 2022. [Online]. Available: https://medium.com/@curttigges/the-annotated-perceiver-74752113eefb.
+
+[3] G. Klein et all., "The Annotated Transformer," 2018. [Online]. Available: https://nlp.seas.harvard.edu/2018/04/03/attention.html#attention
