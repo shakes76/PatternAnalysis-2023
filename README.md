@@ -2,6 +2,7 @@
 Problem 6: Classify Alzheimer's disease (normal or Alzheimer's Disease) of the ADNI brain dataset using a visual transformer. The goal is to achieve a 0.8 accuracy or higher on the test set.
 
 
+
  # Introduction
 
 Alzheimer’s disease (AD) is one of the most common causes of neurodegenerative disease affecting over 50 million people worldwide. However, most AD diagnosis occurs in the moderate to late stage, which means that the optimal time for treatment has already passed. Mild cognitive impairment (MCI) is an intermediate state between cognitively normal people and AD patients. Therefore, the accurate prediction in the conversion process of MCI to AD may allow patients to start preventive intervention to slow the progression of the disease.
@@ -12,15 +13,10 @@ The accumulation of plaque and neurofibrillary tangles make several changes in b
  ![image](https://github.com/JivalX/PatternAnalysis-2023/assets/104201585/996a6e7e-9616-4e53-88ea-2976b0ac229d)
 
 
-
-
 As part of this endeavour, we are tasked with developing a comprehensive open-source solution. This involves not only creating the model but also documenting the entire process, from data collection and preprocessing to model development and testing. Additionally, it would be required to collaborate with an existing open-source project by forking the repository and submitting your contributions through a pull request. The central objective of this project is to create a Visual Transformer model that excels in Alzheimer's disease detection.
 
 
 The MRI scans dataset used for this project is a processed version of the original dataset that originates from the ADNI database. The ADNI was initiated in 2003 by Principal Investigator Michael W. Weiner, MD to test whether magnetic resonance imaging (MRI), positron emission tomography (PET), other biological markers, and clinical and neuropsychological tests can be incorporated to measure the development of MCI and early AD.
-
-
-
 
 
 
@@ -38,7 +34,6 @@ Python serves as the core programming language for this project, providing the f
 - keras  		2.13.0
 - sklearn 	1.0.2
 - numpy 	1.24.1
-
 
 
 
@@ -101,7 +96,6 @@ The validation set is a subset of the training dataset.
 
 
 
-
 # Description of Model
 
 The Visual Transformer model employed in this project is designed for Alzheimer's disease detection from brain images. It leverages a patch-based approach, multi-head self-attention, and multi-layer perceptrons (MLPs) for robust feature extraction. Data augmentation techniques enhance the model's generalization. Trained with an AdamW optimizer, it's evaluated using binary cross-entropy loss and accuracy. This model is optimized for the specific needs of Alzheimer's disease classification, making it a valuable tool for healthcare applications.
@@ -114,16 +108,6 @@ ViT is an architecture for image classification that employs a Transformer-like 
 
  
 ![image](https://github.com/JivalX/PatternAnalysis-2023/assets/104201585/75db8f20-0485-4322-81ec-cef9f7040449)
-
-
-
-
-
-
-
-
-
-
 
 
 
@@ -170,6 +154,7 @@ The model predicts the class labels for the test dataset. The predictions are th
 
 
 
+
 ## Results
 
 Testing accuracy was 67.2% which was below the accuracy which both the training and validation datasets achieved. This is partially due to the fact that the training set had around 20000 images, which is quite small when training a visual transformer. Also, the number of different images in training dataset were just over 1000 as each brain scan was sliced and distributed 20 times. Also, this can be due to the reduction factor being too high or the patience too low.
@@ -180,9 +165,9 @@ This code can be re-run in Rangpur server with an even large number of epochs to
 
 ## Future Enhancements- 
 
-
 Fine-tuning of the hyperparameters of the Visual Transformer model to further improve its performance. This includes adjusting learning rates, batch sizes, and the number of attention heads and layers.
 Explore additional data augmentation techniques to increase the diversity of the dataset, which can lead to better generalization. Techniques like elastic deformations and intensity transformations can be applied.
+
 
 
 
@@ -195,8 +180,4 @@ Explore additional data augmentation techniques to increase the diversity of the
 3.	R. Johnson et al., "Machine Learning Applications in Medical Imaging," National Center for Biotechnology Information, Apr. 2020. [Online]. Available: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10133493/.
 
 4.	A. Researcher, "ADNI Brain Dataset," CloudStor. [Online]. Available: https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI.
-
-5.	OpenAI, "OpenAI ChatGPT," Chat OpenAI. [Online]. Available: https://chat.openai.com/.
-
-
 
