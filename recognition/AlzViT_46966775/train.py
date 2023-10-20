@@ -145,7 +145,7 @@ def train_and_validate(
 
 
 def test_model(model, test_loader, criterion):
-    print("Testing Best Performing Epoch Weights on Training Set..")
+    print("Testing Best Performing Epoch Weights on Training Set...")
     # Check if the specified model weights file exists
     if not os.path.exists("trained_model_weights.pth"):
         raise FileNotFoundError(
@@ -156,7 +156,7 @@ def test_model(model, test_loader, criterion):
     print("Loading Model Weights...")
     model.load_state_dict(torch.load("trained_model_weights.pth"))
     model.eval()
-    print("Model ready.")
+    print("Model ready.\n")
 
     model.eval()
     total_loss, total_correct, total_samples = 0, 0, len(test_loader.dataset)
@@ -210,7 +210,7 @@ if __name__ == "__main__":
         model,
         train_loader,
         val_loader,
-        num_epochs=1,
+        num_epochs=50,
         criterion=criterion,
         optimizer=optimizer,
         scheduler=scheduler,

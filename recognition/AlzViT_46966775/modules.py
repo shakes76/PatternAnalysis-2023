@@ -92,7 +92,7 @@ class PatchEmbedding(nn.Module):
 
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, emb_size: int = 1536, num_heads: int = 12, dropout: float = 0.1):
+    def __init__(self, emb_size: int = 1536, num_heads: int = 8, dropout: float = 0.1):
         """
         Initialize the multi-head attention layer.
 
