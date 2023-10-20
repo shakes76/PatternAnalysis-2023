@@ -21,7 +21,8 @@ This is the diagram on the overall architecture of the Perceiver Transformer.
 
 The ADNI dataset contains many images of the same patient. This means that the images can have similarity as the patients images can be scattered across the testing and the training datasets. This could cause potentially overfitting of the model from it learning to identify the brain of the same patient rather then detecting the Alzheimers. 
 
-# Image here
+# Perceiver Transformer Achitecture
+![Perceiver Architecture] ("./plots/architecture.png")
 
 # Implmentation
 The loss function used was the Cross Entropy Loss function.
@@ -47,6 +48,13 @@ EPOCHS = 2
 BATCH_SIZE = 5
 LEARNING_RATE = 0.0004 
 
+![40 Epoch accuracy on testing dataset] ("./plots/40epochaccuracyprediction.png")
+![40 Epoch training loss] ("./plots/40epochlossoverepochs.png")
+![40 Epoch accuracy on training dataset] ("./plots/40epochaccuracyprediction.png")
+![40 Epoch accuracy on testing dataset] ("./plots/40epochpredictingaccuracy.png")
+![40 Epoch training accuracy] ("./plots/40epochtrainingaccuracy.png")
+
+
 # File Structure
 The dataset.py file contains the class ADNI which fetches and performs the augmentation and transformations on the datasets. This is used for getting both the training and testing datasets. It reads the images from the ADNI/AD_NC/ file path and goes to either the test or train subfolders. 
 
@@ -58,7 +66,8 @@ The train.py file is where the training of the model occurs. The hyperparameters
 
 # Results
 After training the model for 40 Epochs it achieved 51% accuracy on the testing set but appears to be random guessing of whether the image is of Alzheimers or not. To resolve this problem I attempt to resolve it by changing the transforms I was using as initially I was randomcropping which could be giving partial segments of the brain however this only slightly improved the accuracy. I also altered the hyperparameters used but this had little effect on the outcome. 
-# Images here
+
+
 
 The loss during training fluctuates around 50% and does not change much during the training. 
 
