@@ -33,7 +33,7 @@ def downsample_image(img, factor=4):
 def process_images(input_folder, output_folder, factor=4, display_sample=True):
     """Process and downsample the images in the given input folder and save them to the output folder."""
 
-    # Create output directory if not exists
+    # Create output directory if not exist
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
 
@@ -66,8 +66,8 @@ def process_images(input_folder, output_folder, factor=4, display_sample=True):
 
 
 if __name__ == "__main__":
-    process_images("train", "train_down sampled")
-    process_images("test", "test_down sampled")
+    process_images("AD_NC/train", "AD_NC/train_down sampled")
+    process_images("AD_NC/test", "AD_NC/test_down sampled")
 
 
 def load_images_from_category(base_dir, data_type, category, target_size=(100, 100)):
