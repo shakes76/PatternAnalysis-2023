@@ -16,7 +16,7 @@ from utils import (
 )
 
 # Hyperparameters etc.
-LEARNING_RATE = 1e-4
+LEARNING_RATE = 5e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 32
 NUM_EPOCHS = 20
@@ -36,13 +36,15 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
     for batch_idx, (data, targets) in enumerate(loop):
         data = data.to(device=DEVICE)
         targets = targets.float().unsqueeze(1).to(device=DEVICE)
-        targets = targets / 254.0
+        
+        #print("Min target value:", targets.min().item())
+        #print("Max target value:", targets.max().item())
 
         # forward
         with torch.cuda.amp.autocast():
             predictions = model(data)
-            predictions = (predictions + 1)/2
             #print(predictions)
+            predictions = torch.sigmoid(predictions)
             loss = loss_fn(predictions, targets)
 
         # backward
@@ -53,7 +55,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
 
         # update tqdm loop
         loop.set_postfix(loss=loss.item())
-
+    print(loss)
 
 def main():
     train_transform = A.Compose(
