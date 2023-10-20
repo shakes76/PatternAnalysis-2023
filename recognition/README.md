@@ -4,17 +4,25 @@ StyleGAN is a variation of a generative adversarial network (GAN) - which works 
 ![StyleGAN generator architecture](https://machinelearningmastery.com/wp-content/uploads/2019/06/Summary-of-the-StyleGAN-Generator-Model-Architecture.png)
 
 ## Dependencies
-Pytorch (https://pytorch.org/)
-Numpy (https://numpy.org/)
+- Pytorch (https://pytorch.org/)
+- Numpy (https://numpy.org/)
+- MatPlotLib (https://matplotlib.org/)
 
 ## Example usage
 To train the generator, simply run train.py until completion.
 Once the model has been trained, to show results of the completed generator, run predict.py, remembering to change MODEL_PATH to the path of the latest generator.pt file.
+
 ## Example output
+Below are some generated outputs of the trained model.
+![](https://github.com/Ashom2/CSS3710_lab_report/blob/topic-recognition/recognition/images/img_0.png)
+![](https://github.com/Ashom2/CSS3710_lab_report/blob/topic-recognition/recognition/images/img_2.png)
+![](https://github.com/Ashom2/CSS3710_lab_report/blob/topic-recognition/recognition/images/img_4.png)
+![](https://github.com/Ashom2/CSS3710_lab_report/blob/topic-recognition/recognition/images/img_6.png)
 
 ## Training
+#![](https://github.com/Ashom2/CSS3710_lab_report/blob/topic-recognition/recognition/images/losses.PNG)
 
-## Reference
-https://github.com/NVlabs/stylegan
-https://blog.paperspace.com/implementation-stylegan-from-scratch/
-https://adni.loni.usc.edu/
+## References
+- StyleGAN paper https://github.com/NVlabs/stylegan
+- ADNI Brain dataset https://adni.loni.usc.edu/
+Much of the code was based off the styleGAN implementation found at https://blog.paperspace.com/implementation-stylegan-from-scratch/.
