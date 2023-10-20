@@ -77,39 +77,31 @@ def snn():
                 (10, 10),
                 activation="relu",
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
-                kernel_initializer="he_uniform",
-                padding="same",
             ),
-            tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2), padding="same"),
+            tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2)),
             tf.keras.layers.Conv2D(
                 128,
                 (7, 7),
                 activation="relu",
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
-                kernel_initializer="he_uniform",
-                padding="same",
             ),
-            tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2), padding="same"),
+            tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2)),
             tf.keras.layers.Conv2D(
                 128,
                 (4, 4),
                 activation="relu",
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
-                kernel_initializer="he_uniform",
-                padding="same",
             ),
-            tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2), padding="same"),
+            tf.keras.layers.MaxPooling2D((2, 2), strides=(2, 2)),
             tf.keras.layers.Conv2D(
                 256,
                 (4, 4),
                 activation="relu",
                 kernel_regularizer=tf.keras.regularizers.l2(1e-3),
-                kernel_initializer="he_uniform",
-                padding="same",
             ),
             tf.keras.layers.Flatten(),
             tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Dense(2048, activation="relu"),
+            tf.keras.layers.Dense(128, activation="relu"),
         ]
     )
 
@@ -144,7 +136,7 @@ def snn_classifier(model: tf.keras.Model):
         [
             input,
             model,
-            tf.keras.layers.Dense(1024, activation="relu"),
+            tf.keras.layers.Dense(96, activation="relu"),
             tf.keras.layers.Dense(64, activation="relu"),
             tf.keras.layers.Dense(1, activation="sigmoid"),
         ]
