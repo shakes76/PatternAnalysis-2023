@@ -23,6 +23,7 @@ class Net(nn.Module):
     def forward(self, x):
         x = self.pool(torch.relu(self.conv1(x)))
         x = self.pool(torch.relu(self.conv2(x)))
+
         x = self.adaptive_pool(x)
         x = x.view(x.size(0), -1)
         x = torch.relu(self.fc1(x))
@@ -50,9 +51,16 @@ loss_values = []
 test_loss_values = []
 data_accuracies = []
 test_accuracies = []
+
+# Initialize variables to keep track of previous losses
+prev_loss = None
+prev_test_loss = None
+
 # Training the PyTorch model
 for epoch in range(10):
     running_loss = 0.0
+    running_test_loss = 0.0  # Initialize test loss for this epoch
+
     for i, data in enumerate(data_loader, 0):
         inputs, labels = data
         optimizer.zero_grad()
@@ -61,40 +69,53 @@ for epoch in range(10):
         loss.backward()
         optimizer.step()
         running_loss += loss.item()
+
+    # Calculate training loss and store it
     average_loss = running_loss / len(data_loader)
-    print(f'Epoch {epoch+1}, Loss: {average_loss}')
     loss_values.append(average_loss)
 
-    # Evaluate the model on the test set
+    # Evaluate the model on the test set and calculate test loss
     model.eval()
     correct = 0
     total = 0
-    running_test_loss = 0.0
-    with torch.no_grad():
-        for data in test_data_loader:
-            inputs, labels = data
-            outputs = model(inputs)
-            loss = criterion(outputs, labels)
-            running_test_loss += loss.item()
-            _, predicted = torch.max(outputs.data, 1)
-            total += labels.size(0)
-            correct += (predicted == labels).sum().item()
-    
+
+    for data in test_data_loader:
+        inputs, labels = data
+        outputs = model(inputs)
+        loss = criterion(outputs, labels)
+        running_test_loss += loss.item()
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+    if total == 0:
+        data_accuracy = 0.0  # Set accuracy to 0 if the test dataset is empty
+    else:
+        data_accuracy = 100 * correct / total
+
+    data_accuracies.append(data_accuracy)
+
     average_test_loss = running_test_loss / len(test_data_loader)
     test_loss_values.append(average_test_loss)
 
-    data_accuracy = 100 * correct / total
-    data_accuracies.append(data_accuracy)
+    # Check if the testing loss is higher than the training loss and plot if they cross
+    if prev_loss is not None and prev_test_loss is not None:
+        if average_test_loss > average_loss and prev_test_loss < prev_loss:
+            print(f'Testing loss crossed training loss at epoch {epoch + 1}')
+
+    # Update previous losses for the next iteration
+    prev_loss = average_loss
+    prev_test_loss = average_test_loss
 
     print(f'Epoch {epoch+1}, Data Loss: {average_loss:.4f}, Test Loss: {average_test_loss:.4f}, Test Accuracy: {data_accuracy:.2f}%')
 
 print('Finished Training')
 
-# Plot the training and test loss
+# Plot the training and test loss with the same range of epochs
 plt.figure(figsize=(10, 4))
 plt.subplot(1, 2, 1)
-plt.plot(range(1, 11), loss_values, label='Train')
-plt.plot(range(1, 11), test_loss_values, label='Test')
+plt.plot(range(1, 11), loss_values, label='Train', color='blue')  # Training loss in blue
+plt.plot(range(1, 11), test_loss_values, label='Test', color='red')  # Testing loss in red
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.title('Training and Test Loss')
@@ -110,6 +131,7 @@ plt.grid(True)
 
 plt.tight_layout()
 
+# Save and show the plot
 plt.savefig('training_testing_loss.png')
 plt.savefig('training_accuracy.png')
 
