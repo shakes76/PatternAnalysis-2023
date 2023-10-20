@@ -179,8 +179,11 @@ Another potential improvement is to prepare validation set with code. This shoul
 
 ## Requirement
 matplotlib == 3.7.2
+
 python >=3.9.0
+
 pytorch == 2.1.0
+
 torchsummary == 1.5.1
 
 ## Reference
