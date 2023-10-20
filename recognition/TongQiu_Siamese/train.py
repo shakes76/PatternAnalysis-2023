@@ -74,8 +74,6 @@ def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
 
         # Compute pairwise distance using F.pairwise_distance
         dists = F.pairwise_distance(embedding_1, embedding_2)
-        print(dists.shape)
-        print(dists)
 
         # Use the criterion's margin as the threshold for predictions
         threshold = criterion.margin
