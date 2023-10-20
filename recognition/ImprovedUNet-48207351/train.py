@@ -36,7 +36,6 @@ if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
 
-
 def train_unet_with_dice_loss(data, labels, num_epochs=300, batch_size=2, lr_init=5e-4, weight_decay=1e-5):
     # Create a DataLoader for the dataset
     dataloader = DataLoader(val_loader, batch_size=batch_size, shuffle=True)
@@ -60,11 +59,4 @@ def train_unet_with_dice_loss(data, labels, num_epochs=300, batch_size=2, lr_ini
             optimizer.step()
 
             print(f"Epoch [{epoch}/{num_epochs}] Batch [{batch_idx}/{len(dataloader)}] Loss: {loss.item()}")
-
-if __name__ == "__main__":
-    # Load your data and labels here
-    data = np.random.randn(300, 1, 128, 128, 128)  # Replace with your actual data
-    labels = np.random.randint(0, 2, (300, 1, 128, 128, 128))  # Replace with your actual labels
-
-    train_unet_with_dice_loss(data, labels)
 
