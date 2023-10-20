@@ -14,25 +14,32 @@ The GCN is a type of neural network that operates directly on graphs. It uses th
 
 ## Usage
 1. Train the model:
+
 ![Train.PY](TrainPY.png)
 
 2. Predict with the trained model:
+
 ![Predict.py](Predictjpg.jpg)
 
-##Data Preprocessing
+## Data Preprocessing
 The node features are normalized using `StandardScaler` from `sklearn`. The dataset is split into 70% training and 30% testing. The process also involves creating train/test split and convert them to boolean masks. This is a way to segment the data so that the model can learn from one subset and be evaluated on another, ensuring a fair assessment of its performance.
 ![Dataset.py](Dataset.jpg)
 
 ## Results
 The model achieves an accuracy of 94% on the test set.
+
 ![Results](TrainResult.png)
 
 ## Example output
+
 ![Predict Output](PredictOutput.png)
+
 0, 1, and 2 represents different facebook page category.
 
 ## t-SNE visualization
+
 ![t-SNE of GCN embeddings](tSNE.png)
+
 t-SNE (t-distributed Stochastic Neighbor Embedding) is a dimensionality reduction technique used to visualize high-dimensional data in a 2D or 3D space. It's particularly good at preserving local structure, which means data points that are close to each other in the high-dimensional space will likely be close in the 2D/3D visualization.
 
 ## Insights
