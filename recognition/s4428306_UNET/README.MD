@@ -35,7 +35,7 @@ Finally, instead of a softmax layer, this implemenation uses a sigmoidal activat
 There are some other differences between this implementation and the one in [^2]:
 - The model is trained with a dice loss function for one class.
 - Padding was applied evenly to the edges of input in each convolution to ensure the inputs and outputs had the same size.
-- The model was trained for 20 epochs with a batch size of 64.
+- The model was trained for 10 epochs with a batch size of 64.
 - The Adam optimizer used had the default settings given by `tensorflow.keras.optimizers.Adam()`.
 - No l2 weight decay was used.
 
@@ -83,10 +83,11 @@ This model is run using `python test_driver.py`. The model keras file, plots and
 - pillow 9.4.0
 - matplotlib 3.7.2
 
+# Apologies
+Git commits were overloaded towards the end because I was trying to fix code while simultaneously training the model.
+
 # References
 [^1]: U-Net: Convolutional Networks for Biomedical Image Segmentation (arXiv:1505.04597)
 [^2]: Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge (arXiv:1802.10508)
 [^3]: CNN-based Segmentation of Medical Imaging Data (arXiv:1701.03056)
 
-# Apologies
-Git commits were overloaded towards the end because I was trying to fix code while simultaneously training the model.
