@@ -86,7 +86,26 @@ git clone https://github.com/LeSnack/PatternAnalysis-2023-46966775.git
 cd PatternAnalysis-2023-46966775/recognition/AlzViT_46966775
 ```
 
-2. Train the model:
+2. Download the data:
+
+Download the ADNI dataset and place into the AlzViT_46966775 folder, ensure it has the following folder structure:
+
+```
+ data/
+    ├── test/
+    │   ├── AD/
+    │   └── NC/
+    ├── train/
+    │   ├── AD/
+    │   └── NC/
+    └── val/
+        ├── AD/
+        └── NC/
+```
+
+**_Please Note: The validation folder was manually sorted whereby 10% of the training dataset from the ADNI data was used as the validation set. _**
+
+3. Train the model:
 
 ```
 python train.py
@@ -98,7 +117,7 @@ Performance on the test dataset will also be recorded on the best performing epo
 
 For the model used within the results the model was trained for 50 Epochs.
 
-3. Predict Disease:
+4. Predict Disease:
 
 ```
 python predict.py --model_path /path/to/model_weights.pth --image_path /path/to/image.png
@@ -109,7 +128,7 @@ You can customize predictions using the following optional arguments:
 -   `--image_path`: Path to a a image for prediction.
 -   `--output_folder`: Path for saving prediction results (default is current directory).
 
-4. Review Results
+5. Review Results
 
 Predictions are saved as images to the output folder, see below for an example output.
 
