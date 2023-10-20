@@ -29,34 +29,6 @@ class ContrastiveLoss(nn.Module):
 
         return loss
 
-def contrastive_loss(x1:torch.Tensor, x2:torch.Tensor, label:torch.Tensor, margin:float=1.0):
-    
-    difference = F.pairwise_distance(x1, x2)
-    loss = (label * torch.pow(difference, 2) + 
-            (1-label) * torch.max(torch.zeros_like(difference), margin-torch.pow(difference, 2)))
-    loss = torch.mean(loss)
-    return loss
-
-def test_loss():
-    cont_loss = ContrastiveLoss()
-    input1 = torch.rand(2, 4096)
-    input2 = torch.rand(2, 4096)
-    
-    labels = torch.Tensor([1,0])
-    old_loss = contrastive_loss(input1, input2, labels)
-    new_loss = cont_loss(input1, input2, labels)
-    print(old_loss)
-    print(new_loss)
-
-# def weights_initialisation(model:nn.Module):
-#     classname = model.__class__.__name__
-#     if classname.find('Conv') != -1:
-#         nn.init.normal_(model.weight.data, 0.0, 0.01)
-#         nn.init.normal_(model.bias.data)
-#     elif classname.find('Linear') != -1:
-#         nn.init.normal_(model.weight.data, 0.0, 0.2)
-
-
 def initialise_Siamese_training():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     print("Device: ", device)
@@ -371,6 +343,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     plt.ylim(0,1)
     plt.legend()
     plt.savefig(CONSTANTS.RESULTS_PATH + f"Classifier_Accuracy_after_{total_epochs}_epochs.png")
+    
     return classifier
 
 if __name__ == "__main__":
@@ -378,11 +351,12 @@ if __name__ == "__main__":
     # sequential training workflow
     net = Siamese_training(15, 35) # Model saving options available by uncommenting code in this function
     classifier = classifier_training(net.backbone, 20, 35) # comment out this line to train classifier based on last saved Siamese model
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
+    make_predictions(classifier, net.backbone, device, random_seed=35)
+    visualise_sample_predictions(classifier, net.backbone, device, random_seed=35, save_name='Predictions')
 
     # training classifier from existing Siamese model workflow
     # checkpoint = "SiameseNeuralNet_checkpoint.tar"
     # siamese_net, criterion, optimiser, device = initialise_Siamese_training()
     # start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
-
     # classifier_training(siamese_net.backbone, 20, 35)
-

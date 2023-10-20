@@ -2,7 +2,6 @@ import torch
 import torch.utils.data
 import torchvision.datasets as dset
 import torchvision.transforms.v2 as transforms
-# import torchvision.utils as vutils
 import numpy as np
 import matplotlib.pyplot as plt
 import random
@@ -13,8 +12,6 @@ import CONSTANTS
 # global variables
 batch_size = 32
 workers = 0
-
-# TODO: deterministic pairing for validation set
 
 # alias for testing on different machines
 LOCAL = -1
@@ -35,25 +32,17 @@ else:
 # transforms
 Siamese_train_transforms = transforms.Compose([
     transforms.ToTensor(),
-    # transforms.CenterCrop(240),
     transforms.RandomCrop(240, 20, padding_mode='constant'),
-    # transforms.RandomHorizontalFlip(),
-    # transforms.RandomVerticalFlip(),
-    # transforms.RandomRotation(15)
-    # transforms.ElasticTransform(50.,5.)
 ])
 
 classifier_train_transforms = transforms.Compose([
     transforms.ToTensor(),
-    # transforms.CenterCrop(240),
     transforms.RandomCrop(240, 20, padding_mode='constant'),
-    # transforms.RandomRotation(15)
 ])
 
 test_transforms = transforms.Compose([
     transforms.ToTensor(),
     transforms.CenterCrop(240),
-    # transforms.RandomCrop(240, 25, padding_mode='constant'),
 ])
 
 
@@ -97,15 +86,6 @@ class PairedDataset(torch.utils.data.Dataset):
 
             filepath1 = self.imagefolder.imgs[self.dataset.indices[index]][0]
             filepath2 = self.imagefolder.imgs[self.dataset.indices[choice]][0]
-
-            # start, end = filepath1.rfind('/') + 1, filepath1.rfind('_')
-            # patient_id1 = filepath1[start:end]
-            # start, end = filepath2.rfind('/') + 1, filepath2.rfind('_')
-            # patient_id2 = filepath2[start:end]
-
-            # only pair up different patients
-            # if patient_id1 == patient_id2:
-            #     continue
 
             img2, label2 = self.dataset[choice]
             if similarity == 1:
@@ -158,9 +138,6 @@ def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.
 
     indices_to_be_included = []
 
-    # print("all patients: ", patient_ids)
-    # print("chosen patients: ", patients)
-
     for i in range(len(source)):
         filepath = source.imgs[i][0]
         start, end = filepath.rfind(os.path.sep) + 1, filepath.rfind('_')
@@ -168,7 +145,6 @@ def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.
 
         if patient_id in patients:
             indices_to_be_included.append(i)
-            # print(filepath)
     
     source = torch.utils.data.Subset(source, indices_to_be_included)
 
@@ -229,18 +205,6 @@ def load_test_data(Siamese:bool, random_seed=None) -> torch.utils.data.DataLoade
 #
 # basic tests
 #
-def test_load_data_basic():
-    dataloader = load_data(training=True, Siamese=True, train_proportion=0.8)
-    dataloader.dataset.debug_mode = True
-
-    # print(dataloader.dataset.image_folder[0])
-
-    # onepair = dataloader.dataset.__getitem__(0)
-    # print(f'filepath 1 = {onepair[3]}, filepath 2 = {onepair[4]}')
-
-    # next_batch = next(iter(dataloader))
-    # print(next_batch[0][0].shape)
-
 def test_visualise_data_MLP():
     # Plot some training images
     dataloader = load_data(training=False, Siamese=False, train_proportion=0.99)
@@ -298,46 +262,9 @@ def test_visualise_data_Siamese():
     else: 
         plt.show()
 
-def test_paired_dataset():
-    source = dset.ImageFolder(root=train_path,
-                                transform=Siamese_train_transforms
-                            )
-    test = PairedDataset(source, show_debug_info=True)
-    print(len(test))
-    print(len(source))
-    visualise_paired_data(test)
-
-def visualise_paired_data(dataset: PairedDataset):
-    if not dataset.showing_debug_info():
-        raise NotImplementedError("PairedDataset must be initialised with show_debug_info=True")
-
-    testloader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
-                                            shuffle=True, num_workers=workers)
-        
-    next_batch = next(iter(testloader))
-    print(next_batch[0][0].shape)
-    print(next_batch[0][1].shape)
-
-    cols, rows = 3, 3
-    fig, axs = plt.subplots(rows, cols * 2)
-    labels_map = {0: 'diff', 1: 'same'}
-
-    for i in range(rows):
-        for j in range(cols):
-            axs[i,j*2].imshow(np.transpose(next_batch[0][i*rows+j].squeeze(), (1,2,0)), cmap="gray")
-            axs[i,j*2+1].imshow(np.transpose(next_batch[1][i*rows+j].squeeze(), (1,2,0)), cmap="gray")
-            axs[i,j*2].set_title(f"""{labels_map[next_batch[2][i*rows+j].tolist()]}, {next_batch[3][i*rows+j]}""")
-            axs[i,j*2+1].set_title(next_batch[4][i*rows+j])
-            axs[i,j*2].axis("off")
-            axs[i,j*2+1].axis("off")
-    if machine == GLOBAL:
-        plt.savefig(f"{savepath}/data_for_siamese_2.png")
-    else: 
-        plt.show()
-
 def test_data_leakage():
     trainloader = load_data(training=True, Siamese=True, random_seed=89, train_proportion=0.8)
-    testloader  = load_data(training=False, Siamese=True, random_seed=64, train_proportion=0.8)
+    testloader  = load_data(training=False, Siamese=True, random_seed=89, train_proportion=0.8)
 
     train_subset = trainloader.dataset.dataset
     test_subset = testloader.dataset.dataset
@@ -364,50 +291,6 @@ if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     print("Device: ", device)
 
-    # test_load_data_basic()
-    # test_visualise_data_MLP()
-    # test_visualise_data_Siamese()
-    # test_paired_dataset()
+    test_visualise_data_MLP()
+    test_visualise_data_Siamese()
     test_data_leakage()
-
-
-#
-# deprecated code below
-#
-def load_train_Siamese() -> torch.utils.data.DataLoader:
-
-    train_source = dset.ImageFolder(root=train_path, transform=Siamese_train_transforms)
-
-    trainset = PairedDataset(train_source, show_debug_info=False)
-    trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size,
-                                            shuffle=True, num_workers=workers)
-    
-    return trainloader
-
-def load_test_Siamese() -> torch.utils.data.DataLoader:
-    # loading paired testing data for the Siamese neural net
-    # testloader is of format [img1, img2, similarity]
-    test_source = dset.ImageFolder(root=test_path, transform=test_transforms)
-
-    testset = PairedDataset(test_source, show_debug_info=False)
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                            shuffle=True, num_workers=workers)
-    
-    return testloader
-
-
-def load_train() -> torch.utils.data.DataLoader:
-    # loading unitary training data for the MLP
-    train_source = dset.ImageFolder(root=train_path, transform=Siamese_train_transforms)
-
-def load_test() -> torch.utils.data.DataLoader:
-    # load the testset
-    testset = dset.ImageFolder(root=test_path,
-                            transform=test_transforms
-                            )
-    print(f'testset has classes {testset.class_to_idx} and {len(testset)} images')
-
-    testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size,
-                                            shuffle=True, num_workers=workers)
-    
-    return testloader
