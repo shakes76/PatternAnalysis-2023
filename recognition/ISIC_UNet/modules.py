@@ -8,12 +8,9 @@ import torch.nn.functional as funk
 
 
 class pre_act(nn.Module):
-    expansion=1
     
-    def __init__(self,in_channels,out_channels,name):
+    def __init__(self,in_channels,out_channels):
         super(pre_act,self).__init__()
-        self.output=0
-        self.name=name
         self.bn1=nn.BatchNorm2d(in_channels)
         self.conv1=nn.Conv2d(in_channels,out_channels,kernel_size=3,stride=1,padding=1,bias=False)
         self.dropout=nn.Dropout(p=0.3)
@@ -51,10 +48,10 @@ class local(nn.Module):
 
 
 class down_samp(nn.Module):
-    def __init__(self,in_channels,out_channels,name):
+    def __init__(self,in_channels,out_channels):
         super(down_samp,self).__init__()
         self.bn1=nn.BatchNorm2d(in_channels)
-        self.context_down=nn.Sequential(nn.Conv2d(in_channels,out_channels,kernel_size=3,stride=2,padding=1,bias=False), pre_act(out_channels,out_channels,name))
+        self.context_down=nn.Sequential(nn.Conv2d(in_channels,out_channels,kernel_size=3,stride=2,padding=1,bias=False), pre_act(out_channels,out_channels))
 
     def forward(self,x):
         out=self.bn1(x)
@@ -96,12 +93,12 @@ class UNet(nn.Module):
         super(UNet,self).__init__()
         self.bn1=nn.BatchNorm2d(3)
         self.conv1=nn.Conv2d(3,16,stride=1,kernel_size=3,padding=1,bias=False)
-        self.down1=pre_act(16, 16, "1_down")
+        self.down1=pre_act(16, 16)
 
-        self.down2=down_samp(16, 32, "2_down")
-        self.down3=down_samp(32, 64, "3_down")
-        self.down4=down_samp(64, 128, "4_down")
-        self.down5=down_samp(128, 256, "5_down")
+        self.down2=down_samp(16, 32)
+        self.down3=down_samp(32, 64)
+        self.down4=down_samp(64, 128)
+        self.down5=down_samp(128, 256)
 
         self.up1=up_scale(256,128)
         self.local1=local(256,128)
@@ -156,9 +153,7 @@ class UNet(nn.Module):
         segm3=self.segm3(out)
         segm3=torch.add(segm2,segm3)
         
-        #out=self.softmax(segm3)
         out=self.sigmoid(segm3)
-        #out=funk.relu(segm3)
         return out
 
 

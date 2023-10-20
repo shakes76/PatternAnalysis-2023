@@ -2,12 +2,10 @@ import torch
 from dataset import CustomDataset
 from torch.utils.data import DataLoader
 from torchvision import transforms
-import torch
-import torchvision.transforms as transforms
 from modules import UNet
+from torchvision.utils import save_image
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
-from torchvision.utils import save_image
 from sklearn.model_selection import train_test_split
 from utils import RandomTransform
 
@@ -18,7 +16,7 @@ if not torch.cuda.is_available():
 
 NUM_EPOCHS = 50
 LR=0.00009
-SPLIT=0.1
+SPLIT=0.05
 
 
 ## Data
@@ -31,13 +29,6 @@ transform_train = transforms.Compose([ #Transforms for training data normal imag
     transforms.RandomResizedCrop(512, scale=(0.9, 1.5), ratio=(0.75, 1.333), interpolation=2),   #Randomly resized and crops the image
     transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.15, hue=(-0.4,0.4))        #Randomly changes brightness, contrast, saturation and hue of image
 ])
-transform_train_seg = transforms.Compose([ #Transforms for truth images
-    transforms.ToTensor(),
-    transforms.RandomHorizontalFlip(),
-    transforms.RandomRotation(90),
-    transforms.RandomResizedCrop(512, scale=(0.9, 1.5), ratio=(0.75, 1.333), interpolation=2),
-])
-
 
 data = CustomDataset(root_dir='/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2', transform=transform_norm) #Loads data, resizes and converts to tensor.
 trainset,testset=train_test_split(data,test_size=SPLIT,shuffle=False)                                                        #Splits normal dataset into training and test 
@@ -48,7 +39,7 @@ seg_trainset,seg_testset=train_test_split(segmset,test_size=SPLIT,shuffle=False)
 
 trainset_trans=[] #New list for transfomations
 to_pil = transforms.ToPILImage() #Function for converting tensor to PIL image
-random_transform= RandomTransform(transform=transform_train,transform_seg=transform_train_seg) #Innit randomtransform class
+random_transform= RandomTransform(transform=transform_train,transform_seg=transform_train) #Innit randomtransform class
 
 #Runs through the split data set lists. Converst back to PIL img and preforms transform on the images.
 for pic,truth in zip(trainset,seg_trainset):
@@ -85,7 +76,7 @@ def dice_loss(model_out,segm_map):
 
 
 optimizer = optim.Adam(model.parameters(), lr=LR)   #Adam optimizer for loss calculation
-scheduler = StepLR(optimizer, step_size=50, gamma=0.95) # SetpLR for LR-scheduler
+scheduler = StepLR(optimizer, step_size=total_step, gamma=0.95) # SetpLR for LR-scheduler
 
 
 #Training
