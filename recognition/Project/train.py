@@ -33,6 +33,7 @@ def init():
     validDataloader = DataLoader(validDataSet, batch_size=batchSize, shuffle=False)
     trainDataSet = dataset.ISIC2018DataSet(trainImagesPath, trainLabelsPath, dataset.img_transform(), dataset.label_transform())
     trainDataloader = DataLoader(trainDataSet, batch_size=batchSize, shuffle=True)
+    modelPath = "model.pt"
 
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -54,16 +55,256 @@ def main():
     model = modules.Improved2DUnet()
     model = model.to(device)
 
-# training
+    # training and validating
+    train_and_validate(dataLoaders, model, device)
+
+    # saving
+    torch.save(model.state_dict(), modelPath)
+
+def train_and_validate(dataLoaders, model, device):
+    """
+    Implements training and validation with loss functions, optimizer and scheduler as specified in 
+    “Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge,”, with hyper parameters specified above.
+    Saves plot of loss and coefficient metrices curve.
+
+    dataloaders: dictionary of PyTorch DataLoader objects
+    model: Model of type nn.module
+    device: Device being used for training.
+    return: none   
+    """
+    # Define optimization parameters and loss according to Improved Unet Paper.
+    criterion = dice_loss
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=10**-5)
+    scheduler = optim.lr_scheduler.ExponentialLR(optimizer=optimizer, gamma=learning_rate_decay)
+
+    losses_training = list()
+    dice_similarities_training = list()
+    losses_valid = list()
+    dice_similarities_valid = list()
+
+    print("Training and Validation Commenced:")
+    start = time.time()
+    epochNumber = 0
+
+    for epoch in range(num_epochs):
+        epochNumber += 1
+        train_loss, train_coeff = train(dataLoaders["train"], model, device, criterion, optimizer, scheduler)
+        valid_loss, valid_coeff = validate(dataLoaders["valid"], model, device, criterion, epochNumber)
+
+        losses_training.append(train_loss)
+        dice_similarities_training.append(train_coeff)
+        losses_valid.append(valid_loss)
+        dice_similarities_valid.append(valid_coeff)
 
 
-# validating
+        print ("Epoch [{}/{}], Training Loss: {:.5f}, Training Dice Similarity {:.5f}".format(epoch+1, num_epochs, losses_training[-1], dice_similarities_training[-1]))
+        print('Validation Loss: {:.5f}, Validation Average Dice Similarity: {:.5f}'.format(get_average(losses_valid) ,get_average(dice_similarities_valid)))
+        
+    
+    end = time.time()
+    elapsed = end - start
+    print("Training & Validation Took " + str(elapsed/60) + " Minutes")
+
+    save_list_as_plot(trainList=losses_training, valList=losses_valid, type="Loss", path="LossCurve.png")
+    save_list_as_plot(trainList=dice_similarities_training, valList=dice_similarities_valid, type="Dice Coefficient", path="DiceCurve.png")
 
 
-# testing
+def train(dataLoader, model, device, criterion, optimizer, scheduler):
+    """
+    Completes one epoch of training.
+
+    dataloader: PyTorch DataLoader object
+    model: Model of type nn.Module
+    device: Device being used for training.
+    criterion: function returning a function for calculating loss.
+    optimizer: torch.optim object
+    scheduler: torch.optim.scheduler object
+    return: average loss and dice coefficient once completed current epoch   
+    """
+
+    model.train()
+
+    losses = list()
+    coefficients = list()
+
+    for images, labels in dataLoader:
+        images = images.to(device)
+        labels = labels.to(device)
+
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        losses.append(loss.item())
+        coefficients.append(dice_coefficient(outputs, labels).item())
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        
+    scheduler.step()
+
+    return get_average(losses), get_average(coefficients)
+
+def validate(dataLoader, model, device, criterion, epochNumber):
+    
+    """
+    Completes one epoch of training.
+
+    dataloader: PyTorch DataLoader object
+    model: Model of type nn.Module
+    device: Device being used for training.
+    criterion: function returning a function for calculating loss.
+    epochNumber: current epoch
+    return: average loss and dice coefficient once completed current epoch   
+    """
+
+    losses = list()
+    coefficients = list()
+
+    model.eval()
+    with torch.no_grad():
+        for step, (images, labels) in enumerate(dataLoader):
+            images = images.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            losses.append(loss.item())
+            coefficients.append(dice_coefficient(outputs, labels).item())
+
+            if (step == 0):
+                save_segments(images, labels, outputs, 9, epochNumber)
+    
+    return get_average(losses), get_average(coefficients)
 
 
-# saving
+# Variable numList must be a list of number types only
+def get_average(numList):
+    """
+    Calculates Averages of a list of number types.
+
+    numList: a List object containing only number types
+    return: number type (float, int, etc...)
+    """
+    size = len(numList)
+    count = 0
+    for num in numList:
+        count += num
+    
+    return count / size
+
+def dice_loss(outputs, labels):
+    """
+    Calculates binary dice loss given predicted outputs and ground truth labels.
+
+    outputs: torch array of predicted outputs
+    labels: torch array of ground truth labels
+    return: binary dice loss
+    """
+    return 1 - dice_coefficient(outputs, labels)
+
+def dice_coefficient(outputs, labels, epsilon=10**-8):
+    """
+    Calculates binary dice coefficient given predicted outputs and ground truth labels.
+
+    outputs: torch array of predicted outputs
+    labels: torch array of ground truth labels
+    epsilon: small value to prevent 0 division error, this value should not be changed unless you have reasons to.
+    return: binary dice coefficient
+    """
+
+    intersection = (outputs * labels).sum()
+    denom = (outputs + labels).sum() + epsilon
+    diceCoefficient = (2. * intersection) / denom
+    return diceCoefficient
+
+def print_model_info(model):
+    """
+    Provides information about nn.Module object.
+
+    model: nn.Module
+    """
+    print("Model No. of Parameters:", sum([param.nelement() for param in model.parameters()]))
+    print(model)
+
+def save_segments(images, labels, outputs, numComparisons, epochNumber=num_epochs, test=False):
+    """
+    Saves the first numComparisons images with corresponding ground truth labels and predicted labels for easy and succinct visualization.
+
+    images: torch array of images.
+    outputs: torch array of predicted outputs.
+    labels: torch array of ground truth labels.
+    numComparisons: number of image, ground truth and predictions to save for comparison.
+    epochNumber: epoch number of corresponding segments.
+    test: True if saving segments for test set, false for training or validation.
+    """
+
+    if numComparisons > batchSize:
+        numComparisons = batchSize
+    
+    images=images.cpu()
+    labels=labels.cpu()
+    outputs=outputs.cpu()
+
+    fig, axs = plt.subplots(numComparisons, 3)
+    axs[0][0].set_title("Image")
+    axs[0][1].set_title("Ground Truth")
+    axs[0][2].set_title("Predicted")
+    for row in range(numComparisons):
+        img = images[row]
+        img = img.permute(1,2,0).numpy()
+        label = labels[row]
+        label = label.permute(1,2,0).numpy()
+        pred = outputs[row]
+        pred = pred.permute(1,2,0).numpy()
+        axs[row][0].imshow(img)
+        axs[row][0].xaxis.set_visible(False)
+        axs[row][0].yaxis.set_visible(False)
+
+        axs[row][1].imshow(label, cmap="gray")
+        axs[row][1].xaxis.set_visible(False)
+        axs[row][1].yaxis.set_visible(False)
+
+        axs[row][2].imshow(pred, cmap="gray")
+        axs[row][2].xaxis.set_visible(False)
+        axs[row][2].yaxis.set_visible(False)
+    
+    if (not test):
+        fig.suptitle("Validation Segments Epoch: " + str(epochNumber))
+        #fig.tight_layout()
+        plt.savefig("ValidationSegmentsEpoch" + str(epochNumber))
+    else:
+        fig.suptitle("Test Segments")
+        #fig.tight_layout()
+        plt.savefig("TestSegments")
+    plt.close()
+
+def save_list_as_plot(trainList, valList, type, path):
+    """
+    Saves a plot of two lists of type to path, each entry pair corresponds to an epoch.
+
+    trainList: list of number type and same size as valList
+    valList: list of number type and same size as trainList
+    type: the type of data stored in the lists
+    path: path to save plot to
+    """
+    if (len(trainList) != len(valList)):
+        print("ERROR: Cannot display!")
+    
+    length = len(trainList)
+    xList = list()
+    x = 1
+    for i in range(length):
+        xList.append(x)
+        x += 1
+
+    plt.xticks(np.arange(min(xList), max(xList)+1, 1.0))
+    plt.plot(xList, trainList, label="Training " + type)
+    plt.plot(xList, valList, label="Validation " + type)
+    plt.legend()
+    plt.title("Training and Validation " + type + " Over Epochs")
+    plt.savefig(fname=path)
+    plt.close()
+
 
 
 
