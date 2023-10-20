@@ -7,7 +7,7 @@
 
 Alzheimer's disease is a neurodegenerative condition affecting millions worldwide, making early and accurate diagnosis critical for patient care and research. Extracting meaningful features from medical images is challenging due to the subtlety of disease-related patterns. The Swin Transformer, a state-of-the-art deep learning architecture, excels at capturing fine-grained details and long-range dependencies within images. This capability significantly enhances the accuracy of Alzheimer's disease classification, contributing to early diagnosis and research efforts. The Swin Transformer's hierarchical structure allows it to efficiently process the large and complex medical images commonly used in this field.
 
-![Swin Transformer](TarushiGera(48242204)ADNI/images/swin_transformer.png)
+![Swin Transformer](/images/swin_transformer.png)
 
 ## Working
 ### Data Preprocessing
@@ -15,19 +15,19 @@ Alzheimer's disease is a neurodegenerative condition affecting millions worldwid
 Data preprocessing plays a pivotal role in preparing input images for classification. The key steps include:
 
 1. **Background Removal**: Eliminating undesirable background elements by generating a binary mask that isolates the object of interest while eliminating surrounding gray or dark regions. This process is adaptable to both grayscale and color images.
-![Input Image](TarushiGera(48242204)ADNI/images/crop_image.png)
+![Input Image](/images/crop_image.png)
 
 2. **Color Space Conversion**: Ensuring uniformity and compatibility by converting input images to the RGB color space.
 
 3. **Gaussian Noise (Optional)**: An optional step that introduces Gaussian noise to images. While this can enhance model robustness by adding variability to the training data, it is currently commented out and can be enabled as needed.
-![Input Image](TarushiGera(48242204)ADNI/images/gaussian_blur.png)
+![Input Image](/images/gaussian_blur.png)
 
 We used 19520 samples for training, 2000 for validation, and 9000 for testing.
 
 ## Example Input and Output
 
 Following are the example input images where **AD** means Alzheimer Disease and **NC** means No Disease.
-![Input Image](TarushiGera(48242204)ADNI/images/example_input.png)
+![Input Image](/images/example_input.png)
 
 
 ## Requirements
@@ -93,4 +93,4 @@ We evaluated our model on testing data. The results indicate the following:
 
 **F1 Score (0.732):** The F1 score is the harmonic mean of precision and recall. It provides a balance between these two metrics. An F1 score of 0.732 indicates a reasonable balance between precision and recall.
 
-![Input Image](TarushiGera(48242204)ADNI/results/cm_plot.png)
+![Input Image](/results/cm_plot.png)
