@@ -11,6 +11,11 @@ import torchvision.transforms as transforms
 
 
 def plot_samples(train_dataset):
+    """gets samples from the training dataset and plots them with their label
+
+    Args:
+        train_dataset (_type_): the training dataset
+    """
     num_rows = 5
     num_cols = num_rows
 
@@ -40,8 +45,46 @@ def plot_samples(train_dataset):
 
     # Display the plot
     plt.show()
+
+def plot_accuracies_and_losses(training_accuracies, training_losses, validation_accuracies, validation_losses, epochs):
+    """plots the accuracy and loss for training and validation in two subplots
+
+    Args:
+        training_accuracies (list): training accuracies
+        training_losses (list): training losses
+        validation_accuracies (list): validation accuracies
+        validation_losses (list): validation losses
+        epochs (int): the number of epochs used to train the model
+    """
+    plt.figure(figsize=(12, 4))
+    plt.subplot(1, 2, 1)
+    plt.plot(range(1, epochs + 1), training_losses, label='Training Loss', marker='o')
+    plt.plot(range(1, epochs + 1), training_accuracies, label='Training Accuracy', marker='o')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss / Accuracy')
+    plt.title('Training Loss and Accuracy')
+    plt.legend()
+
+    # Plot Validation Losses and Accuracies
+    plt.subplot(1, 2, 2)
+    plt.plot(range(1, epochs + 1), validation_losses, label='Validation Loss', marker='o')
+    plt.plot(range(1, epochs + 1), validation_accuracies, label='Validation Accuracy', marker='o')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss / Accuracy')
+    plt.title('Validation Loss and Accuracy')
+    plt.legend()
+
+    plt.tight_layout()
+    plt.show()
     
 def calc_std_and_mean(root, batch_size, train=True):
+    """calculates the mean and standard deviation of the either the training or testing data
+
+    Args:
+        root (string): path to dataset root directory
+        batch_size (int): the size of the batch used for training
+        train (bool, optional): changes dataset to run calculations on. Defaults to True.
+    """
     if train:
         path = root + 'test'
     else:
@@ -67,4 +110,3 @@ def calc_std_and_mean(root, batch_size, train=True):
     
     print(mean)
     print(std)
-
