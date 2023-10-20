@@ -17,7 +17,10 @@ this a binary classifier.
 ![Siamese triplet diagram](https://github.com/tweeeb/PatternAnalysis-2023/tree/topic-recognition/recognition/siamese-45033746/assets/triplet_siamese.jpg?raw=true)
 ### Data Pre-Processing
 #### Transforms
+Data is pre-proccessed with transforms such as random rotation, and horizontal flip to diversify data and prevent overfitting.
 
+### Data partitions
+Data is partitioned by patient to prevent data leakage. This is to prevent the model from seeing data from the same patient in the validation set or in the test set while being trained.
 
 ### Project Structure
 
