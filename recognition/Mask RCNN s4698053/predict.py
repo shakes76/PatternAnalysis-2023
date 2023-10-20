@@ -16,7 +16,7 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
     load_checkpoint(torch.load(LOAD_MODEL_FILE), model, optimizer)
 
-    evaluate(model)
+    #evaluate(model)
     predict(model)
 
 

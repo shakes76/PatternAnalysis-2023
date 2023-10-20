@@ -7,27 +7,19 @@ from PIL import Image
 from torchvision.transforms import v2
 from CONFIG import *
 
-def collate_split(data):
-    found_items = ([], [])
-    empty_items = ([], [])
-    for image, target in data:
-        if len(target['labels']) > 0:
-            found_items[0].append(image)
-            found_items[1].append(target)
-        else:
-            empty_items[0].append(image)
-            empty_items[1].append(target)
-    if len(found_items[0]) == 0:
-        found_items = (None, None)
-    else:
-        found_items = (torch.stack(found_items[0], dim=0), found_items[1])
-    if len(empty_items[0]) == 0:
-        empty_items = (None, None)
-    else:
-        empty_items = (torch.stack(empty_items[0], dim=0), empty_items[1])
-    return (found_items, empty_items)
-
 class ISICDataloader(Dataset):
+    """
+    Creates the Dataloader from the ISIC dataset
+
+    Parameters:
+        classify_file (string): Path to the csv file containning image names and classification
+        photo_dir (string): Path to original images
+        mask_dir (string): Path to the segmentation masks
+        mask_empty_dim (tuple): HxW tuple for empty masks, (deprecanted)
+        S (int): The amount of SxS cells to split the data into, strongly recommended don't change
+        B (int): The amount of bounding boxes to predict in each cell for multiple objects
+        C (int): The number of classes, i.e. melanoma and seborrheic_keratosis
+    """
     def __init__(self, classify_file, photo_dir, mask_dir, mask_empty_dim=image_size, S=1, B=1, C=2, transform=None) -> None:
         self.device = self.check_cuda()
         self.csv_df = pd.read_csv(classify_file)
@@ -47,12 +39,18 @@ class ISICDataloader(Dataset):
         ])
         self.class_dictionary = {0: 'melanoma', 1: 'seborrheic_keratosis'}
 
+    """
+    Open cuda, do not run at all if can't use gpu
+    """
     def check_cuda(self):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         if not torch.cuda.is_available():
             exit("Warning CUDA not Found. Using CPU")
         return device
     
+    """
+    Turn a mask (HxW) into a bounding box of x1, y1, x2, y2
+    """
     def mask_to_bbox(self, mask):
         non_zero_coords = torch.nonzero(mask)
         min_coords = non_zero_coords.min(axis=0)
@@ -60,6 +58,10 @@ class ISICDataloader(Dataset):
         return (min_coords.values[1].item(), min_coords.values[0].item(), 
                 max_coords.values[1].item(), max_coords.values[0].item())
     
+    """
+    Used to turn a bounding box of x1, y1, x2, y2 to a centred bounding box
+    of x, y, w, h. To be used with mask_to_bbox.
+    """
     def bbox_to_XYWH(self, bbox):
         x1 = bbox[0]
         y1 = bbox[1]
@@ -74,15 +76,6 @@ class ISICDataloader(Dataset):
     def __len__(self):
         return self.length
     
-    def _empty_bbox(self):
-        return torch.empty((0, 4), dtype=torch.float32)
-    
-    def _empty_labels(self):
-        return torch.empty(0, dtype=torch.int64)
-
-    def _empty_masks(self):
-        return torch.empty((0, self.empty_H, self.empty_W), dtype=torch.uint8)    
-    
     def __getitem__(self, index):
         # Need boxes, labels and masks
         row = self.csv_df.iloc[index]
@@ -90,11 +83,13 @@ class ISICDataloader(Dataset):
         img_pth = pathJoin(self.photo_dir, row['image_id'])
         #print(row['image_id'])
         class_label = -1
+        # Find which class label for object
         for key, value in self.class_dictionary.items():
             if row[value] == 1:
                 class_label = key
                 break
 
+        # Find bounding boxes or empty if none
         if class_label >= 0:
             masks = Image.open(mask_pth + '_segmentation.png').convert('L')
             masks = self.defaultTransform(masks).to(self.device) / 255.0
@@ -108,7 +103,7 @@ class ISICDataloader(Dataset):
         if self.transform:
             image = self.transform(image)
         
-        # Convert To Cells
+        # Find bounding box for each cell
         label_matrix = torch.zeros((self.S, self.S, (self.C + 5) * self.B))
         for box in bboxes:
             class_label, x, y, width, height = box.tolist()

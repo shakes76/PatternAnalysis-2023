@@ -12,6 +12,9 @@ from CONFIG import *
 
 torch.manual_seed(torch_seed)
 
+"""
+See README.md for image of this architecture
+"""
 architecture_config = [
     #Tuple: (kernel_size, number of filters, strides, padding)
     (7, 64, 2, 3),
@@ -42,7 +45,9 @@ architecture_config = [
     #Doesnt include fully connected layers
 ]
 
-
+"""
+Each Convolution layer has Conv, batchNorm, leakyRelu used to simplify YoloV1 creation.
+"""
 class CNNBlock(nn.Module):
     def __init__(self, in_channels, out_channels, **kwargs) -> None:
         super(CNNBlock, self).__init__()
@@ -56,7 +61,10 @@ class CNNBlock(nn.Module):
         x = self.batchNorm(x)
         x = self.leakyRelu(x)
         return x
-    
+
+"""
+See README.md for image of this architecture. 
+"""
 class YoloV1(nn.Module):
     def __init__(self, in_channels=3, **kwargs) -> None:
         super(YoloV1, self).__init__()
@@ -64,17 +72,22 @@ class YoloV1(nn.Module):
         self.in_channels = in_channels
         self.darknet = self._create_conv_layers(self.architecture)
         self.fcs = self._create_fcs(**kwargs)
-        self.gap = nn.AdaptiveAvgPool2d(1)
+        self.gap = nn.AdaptiveAvgPool2d(1) # Used to turn 7x7 -> 1x1 cells
 
     def forward(self, x):
         x1 = self.darknet(x)
         x2 = self.gap(x1)
         return self.fcs(torch.flatten(x2, start_dim=1))
 
+    """
+    Creates convolutional layers from architecture_config without full conncted layers.
+    """
     def _create_conv_layers(self, architecture):
         layers = []
         in_channels = self.in_channels
 
+        # Read configuration and process, tuples are CNNBlocks, 
+        # strings (with M) is pooling layers, and lists contain repeat CNNBlocks
         for x in architecture:
             if type(x) == tuple:
                 layers += [CNNBlock(in_channels, x[1], kernel_size=x[0], stride=x[2], padding=x[3])]
@@ -86,6 +99,8 @@ class YoloV1(nn.Module):
                 conv2 = x[1] #Tuple
                 repeats = x[2] #Int
 
+                # For each of the tuple repeating tuples create layers equal to repeats
+                # Same as if type(x) == tuple
                 for _ in range(repeats):
                     layers += [CNNBlock(in_channels, conv1[1], kernel_size=conv1[0], stride=conv1[2], padding=conv1[3])]
                     in_channels = conv1[1]
@@ -94,6 +109,9 @@ class YoloV1(nn.Module):
                     in_channels = conv2[1]
         return nn.Sequential(*layers)
 
+    """
+    Fully connected layer after convolutional layers.
+    """
     def _create_fcs(self, split_size, num_boxes, num_classes):
         S, B, C = split_size, num_boxes, num_classes
         return nn.Sequential(
@@ -104,21 +122,23 @@ class YoloV1(nn.Module):
             nn.Linear(2048, S * S * (C + B * 5))
         )
 
+"""
+Calculates intersection over union
+
+Parameters:
+    boxes_preds (tensor): Predictions of Bounding Boxes (BATCH_SIZE, 4)
+    boxes_labels (tensor): Correct labels of Bounding Boxes (BATCH_SIZE, 4)
+    box_format (str): midpoint/corners, if boxes are (x,y,w,h) or (x1,y1,x2,y2) respectively.
+
+Returns:
+    tensor: Average intersection over union for all examples
+"""
 def intersection_over_union(boxes_preds, boxes_labels, box_format='midpoint'):
-    """
-    Calculates intersection over union
-    
-    Parameters:
-        boxes_preds (tensor): Predictions of Bounding Boxes (BATCH_SIZE, 4)
-        boxes_labels (tensor): Correct labels of Bounding Boxes (BATCH_SIZE, 4)
-        box_format (str): midpoint/corners, if boxes are (x,y,w,h) or (x1,y1,x2,y2) respectively.
-    
-    Returns:
-        tensor: Intersection over union for all examples
-    """
+
     # boxes_preds shape is (N, 4) where N is the number of bboxes
-    #boxes_labels shape is (n, 4)
+    # boxes_labels shape is (n, 4)
     
+    # x, y, w, h
     if box_format == 'midpoint':
         box1_x1 = boxes_preds[..., 0:1] - boxes_preds[..., 2:3] / 2
         box1_y1 = boxes_preds[..., 1:2] - boxes_preds[..., 3:4] / 2
@@ -129,6 +149,7 @@ def intersection_over_union(boxes_preds, boxes_labels, box_format='midpoint'):
         box2_x2 = boxes_labels[..., 0:1] + boxes_labels[..., 2:3] / 2
         box2_y2 = boxes_labels[..., 1:2] + boxes_labels[..., 3:4] / 2
 
+    # x1, y1, x2, y2
     elif box_format == 'corners':
         box1_x1 = boxes_preds[..., 0:1]
         box1_y1 = boxes_preds[..., 1:2]
@@ -154,19 +175,18 @@ def intersection_over_union(boxes_preds, boxes_labels, box_format='midpoint'):
     # avoid / zero error, 1e-6
     return intersection / (box1_area + box2_area - intersection + 1e-6)
 
+"""
+Does Non Max Suppression given bboxes
+Parameters:
+    bboxes (list): list of lists containing all bboxes with each bboxes
+    specified as [class_pred, prob_score, x1, y1, x2, y2]
+    iou_threshold (float): threshold where predicted bboxes is correct
+    threshold (float): threshold to remove predicted bboxes (independent of IoU) 
+    box_format (str): "midpoint" or "corners" used to specify bboxes
+Returns:
+    list: bboxes after performing NMS given a specific IoU threshold
+"""
 def non_max_suppression(bboxes, iou_threshold, threshold, box_format="corners"):
-    """
-    Does Non Max Suppression given bboxes
-    Parameters:
-        bboxes (list): list of lists containing all bboxes with each bboxes
-        specified as [class_pred, prob_score, x1, y1, x2, y2]
-        iou_threshold (float): threshold where predicted bboxes is correct
-        threshold (float): threshold to remove predicted bboxes (independent of IoU) 
-        box_format (str): "midpoint" or "corners" used to specify bboxes
-    Returns:
-        list: bboxes after performing NMS given a specific IoU threshold
-    """
-
     assert type(bboxes) == list
 
     # Filter only confident boxes by threshold
@@ -195,21 +215,22 @@ def non_max_suppression(bboxes, iou_threshold, threshold, box_format="corners"):
 
     return bboxes_after_nms
 
+"""
+Calculates mean average precision 
+Parameters:
+    pred_boxes (list): list of lists containing all bboxes with each bboxes
+    specified as [train_idx, class_prediction, prob_score, x1, y1, x2, y2]
+    true_boxes (list): Similar as pred_boxes except all the correct ones 
+    iou_threshold (float): threshold where predicted bboxes is correct
+    box_format (str): "midpoint" or "corners" used to specify bboxes
+    num_classes (int): number of classes
+Returns:
+    float: mAP value across all classes given a specific IoU threshold 
+"""
 def mean_average_precision(
     pred_boxes, true_boxes, iou_threshold=0.5, box_format="midpoint", num_classes=20
 ):
-    """
-    Calculates mean average precision 
-    Parameters:
-        pred_boxes (list): list of lists containing all bboxes with each bboxes
-        specified as [train_idx, class_prediction, prob_score, x1, y1, x2, y2]
-        true_boxes (list): Similar as pred_boxes except all the correct ones 
-        iou_threshold (float): threshold where predicted bboxes is correct
-        box_format (str): "midpoint" or "corners" used to specify bboxes
-        num_classes (int): number of classes
-    Returns:
-        float: mAP value across all classes given a specific IoU threshold 
-    """
+
 
     # list storing all AP for respective classes
     average_precisions = []
@@ -232,14 +253,6 @@ def mean_average_precision(
             if true_box[1] == c:
                 ground_truths.append(true_box)
 
-        # find the amount of bboxes for each training example
-        # Counter here finds how many ground truth bboxes we get
-        # for each training example, so let's say img 0 has 3,
-        # img 1 has 5 then we will obtain a dictionary with:
-        # amount_bboxes = {0:3, 1:5}
-        # We then go through each key, val in this dictionary
-        # and convert to the following (w.r.t same example):
-        # ammount_bboxes = {0:torch.tensor[0,0,0], 1:torch.tensor[0,0,0,0,0]}
         amount_bboxes = {}
         for index, gt in enumerate(ground_truths):
             amount_bboxes[index] = torch.zeros(gt[0])
@@ -349,18 +362,16 @@ def get_bboxes(
     return all_pred_boxes, all_true_boxes
 
 
-
+"""
+Converts bounding boxes output from Yolo with
+an image split size of S into entire image ratios
+rather than relative to cell ratios. Tried to do this
+vectorized, but this resulted in quite difficult to read
+code... Use as a black box? Or implement a more intuitive,
+using 2 for loops iterating range(S) and convert them one
+by one, resulting in a slower but more readable implementation.
+"""
 def convert_cellboxes(predictions, S=1, C=2):
-    """
-    Converts bounding boxes output from Yolo with
-    an image split size of S into entire image ratios
-    rather than relative to cell ratios. Tried to do this
-    vectorized, but this resulted in quite difficult to read
-    code... Use as a black box? Or implement a more intuitive,
-    using 2 for loops iterating range(S) and convert them one
-    by one, resulting in a slower but more readable implementation.
-    """
-
     predictions = predictions.to("cpu")
     batch_size = predictions.shape[0]
     predictions = predictions.reshape(batch_size, 1, 1, C + 5)
@@ -406,11 +417,10 @@ def load_checkpoint(checkpoint, model, optimizer):
     model.load_state_dict(checkpoint["state_dict"])
     optimizer.load_state_dict(checkpoint["optimizer"])
 
+"""
+Calculate the loss for yolo (v1) model using IOU and MSE
+"""
 class YoloLoss(nn.Module):
-    """
-    Calculate the loss for yolo (v1) model
-    """
-
     def __init__(self, S=1, B=1, C=2):
         super(YoloLoss, self).__init__()
         self.mse = nn.MSELoss(reduction="sum")
