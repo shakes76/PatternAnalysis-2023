@@ -41,11 +41,11 @@ This is the structuring that was used for the modules, these were similar to the
 
 ### Input (True) Mask
 
-![Input Mask](saved_test_images\0.png)
+![Input Mask](saved_test_images/0.png)
 
 ### Output (Predicted) Mask
 
-![Output Mask](saved_test_images\pred_0.png)
+![Output Mask](saved_test_images/pred_0.png)
 
 ---
 
