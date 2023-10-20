@@ -1,9 +1,7 @@
 import torch 
 import torch.nn as nn
 import torch.nn.functional as F 
-from torch.autograd import Variable
 import numpy as np
-import tensorflow as tf
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -71,7 +69,9 @@ class YOLO(nn.Module):
 
     def predict_transform(self, prediction, inp_dim, anchors, num_classes):
         """
-        This is everything I need to understand but don't
+        Decodes the output from the convolution layers and arranges the information into a usable format. 
+        The below reference was used for a base for this function.
+        REFERENCE: refer to reference 2 in README.
         """
         batch_size = prediction.size(0)
         stride =  inp_dim // prediction.size(2)
@@ -79,15 +79,16 @@ class YOLO(nn.Module):
         bbox_attrs = 5 + num_classes
         num_anchors = len(anchors)
         
+        #Rearranges the feature map to (batch_size, number of boxes, box_attributes)
         prediction = prediction.view(batch_size, bbox_attrs*num_anchors, grid_size*grid_size)
         prediction = prediction.transpose(1,2).contiguous()
         prediction = prediction.view(batch_size, grid_size*grid_size*num_anchors, bbox_attrs)
         anchors = [(a[0]/stride, a[1]/stride) for a in anchors]
-         #Sigmoid the  centre_X, centre_Y. and object confidencce
+        #Get the centre_X, centre_Y and object confidence between 1 and 0
         prediction[:,:,0] = torch.sigmoid(prediction[:,:,0])
         prediction[:,:,1] = torch.sigmoid(prediction[:,:,1])
         prediction[:,:,4] = torch.sigmoid(prediction[:,:,4])
-         #Add the center offsets
+        #Add the center offsets 
         grid = np.arange(grid_size)
         a,b = np.meshgrid(grid, grid)
 
@@ -100,10 +101,12 @@ class YOLO(nn.Module):
         x_y_offset = torch.cat((x_offset, y_offset), 1).repeat(1,num_anchors).view(-1,2).unsqueeze(0)
 
         prediction[:,:,:2] += x_y_offset
-        #log space transform height and the width
+        #log space transform height and the width 
+        #so that all boxes are on the same scale
         anchors = torch.FloatTensor(anchors)
         anchors = anchors.to(device)
 
+        #arrange the  probabilities of the classes
         anchors = anchors.repeat(grid_size*grid_size, 1).unsqueeze(0)
         prediction[:,:,2:4] = torch.exp(prediction[:,:,2:4])*anchors
         prediction[:,:,5: 5 + num_classes] = torch.sigmoid((prediction[:,:, 5 : 5 + num_classes]))
@@ -142,7 +145,9 @@ def calculate_iou(pred, label):
 
 class YOLO_loss(nn.Module):
     """
-    Given one batch at a time, the loss of the predictions is calculated
+    Given one batch at a time, the loss of the predictions is calculated.
+    The formulas used to calculate loss are from the reference below.
+    REFERENCE: refer to reference 3 in README.
     """
     def __init__(self):
       super(YOLO_loss, self).__init__()
