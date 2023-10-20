@@ -225,9 +225,9 @@ class VQVAE(nn.Module):
     def forward(self, x):
         x = self.encoder(x)
         x = self.conv1(x)
-        embedding_loss, x_quantized, _, _ = self.vector_quantizer(x)
+        embedding_loss, x_quantized, _, encodings = self.vector_quantizer(x)
         x_reconstructed = self.decoder(x_quantized)
-        return embedding_loss, x_reconstructed, x_quantized
+        return embedding_loss, x_reconstructed, x_quantized, encodings
 
 class MaskedConv2d(nn.Conv2d):
     def __init__(self, mask_class, in_channels, out_channels, kernel_size, padding):
@@ -273,7 +273,7 @@ class PixelCNN(nn.Module):
             MaskedConv2d('A', self.in_channels, self.embedded_layers, 7, 3),
             nn.ReLU(True),
             MaskedResidual(self.embedded_layers),
-            nn.ReLU(),
+            nn.ReLU(True),
             #MaskedResidual(self.embedded_layers),
             #nn.ReLU(),
             #nn.BatchNorm2d(self.embedded_layers),
@@ -281,15 +281,58 @@ class PixelCNN(nn.Module):
             #nn.ReLU(),
             #nn.BatchNorm2d(self.embedded_layers),
             MaskedConv2d("B", self.embedded_layers, self.embedded_layers, 1, 1),
+            nn.ReLU(True),
+            MaskedConv2d("B", self.embedded_layers, self.embedded_layers, 2, 1),
+            nn.ReLU(True),
+            nn.Conv2d(self.embedded_layers, self.embedded_layers, 4, 2, 1),
             nn.ReLU(),
-            nn.Conv2d(self.embedded_layers, self.out_channels, 3),
-            nn.Conv2d(self.in_channels, self.out_channels, 4, 2, 1),
-            nn.ReLU(),
-            nn.Conv2d(self.in_channels, 128, 4, 2, 1)
+            nn.Conv2d(self.embedded_layers, self.embedded_layers, 4, 2, 1),
         )
 
     def forward(self, x):
         return self.model(x)
+
+class GAN(nn.Module):
+    def __init__(self):
+        super(GAN, self).__init__()
+        self.discriminator = self._make_discriminator()
+        self.generator = self._make_generator()
+
+    def _make_generator_block(self, in_planes, planes, stride=2, padding=1):
+        layers = []
+        layers.append(nn.ConvTranspose2d(in_planes, planes, kernel_size=4, stride=stride, padding=padding, bias=False))
+        layers.append(nn.BatchNorm2d(planes))
+        layers.append(nn.ReLU(True))
+        return layers
+    
+    def _make_generator(self):
+        blocks = []
+        blocks.extend(self._make_generator_block(128, 512, 1, 0))
+        blocks.extend(self._make_generator_block(512, 256, 2, 1))
+        blocks.extend(self._make_generator_block(256, 128, 2, 1))
+        blocks.extend(self._make_generator_block(128, 64, 2, 1))
+        blocks.append(nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1, bias=False))
+        blocks.append(nn.Tanh())
+        return nn.Sequential(*blocks)
+
+
+    def _make_discriminator_block(self, in_planes, planes, stride=2):
+        layers = []
+        layers.append(nn.Conv2d(in_planes, planes, kernel_size=4, stride=stride, padding=1, bias=False))
+        layers.append(nn.BatchNorm2d(planes))
+        layers.append(nn.LeakyReLU(0.2, inplace=True))
+        return layers
+    
+    def _make_discriminator(self):
+        blocks = []
+        blocks.extend((self._make_discriminator_block(64, 32, 2)))
+        blocks.extend((self._make_discriminator_block(32, 64, 2)))
+        blocks.extend((self._make_discriminator_block(64, 128, 2)))
+        blocks.extend((self._make_discriminator_block(128, 256, 2)))
+        blocks.append(nn.Conv2d(256, 1, kernel_size=4, stride=1, padding=0, bias=False))
+        blocks.append(nn.Flatten())
+        blocks.append(nn.Sigmoid())
+        return nn.Sequential(*blocks)
 
 
 
