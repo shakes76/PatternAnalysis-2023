@@ -3,7 +3,7 @@ import tensorflow as tf
 
 from keras.optimizers import Adam
 from keras.callbacks import ModelCheckpoint, EarlyStopping
-from models.modules import sub_pixel_cnn
+from model.modules import sub_pixel_cnn
 from utils.data_loader import load_images_from_category
 
 # Configuring TensorFlow to run functions eagerly for debugging and development
@@ -50,7 +50,7 @@ def train_model():
                                  mode='min')
     early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 
-    history = model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=15,
+    history = model.fit(x_train, y_train, validation_data=(x_valid, y_valid), epochs=100,
                         callbacks=[checkpoint, early_stopping])
 
     model.save('saved_models/sub_pixel_cnn_model.h5')
@@ -62,12 +62,12 @@ if __name__ == "__main__":
     print("Setting base directory...")
     x_train_AD = load_images_from_category(base_dir, 'train', 'AD', target_size=(100, 100))
     y_train_AD = load_images_from_category(base_dir, 'train', 'AD', target_size=(400, 400))
-    x_train_AD, y_train_AD = subset_data(x_train_AD, y_train_AD, fraction=1)
+    x_train_AD, y_train_AD = subset_data(x_train_AD, y_train_AD, fraction=0.0001)
 
     print("Loading NC images for training...")
     x_train_NC = load_images_from_category(base_dir, 'train', 'NC', target_size=(100, 100))
     y_train_NC = load_images_from_category(base_dir, 'train', 'NC', target_size=(400, 400))
-    x_train_NC, y_train_NC = subset_data(x_train_NC, y_train_NC, fraction=1)
+    x_train_NC, y_train_NC = subset_data(x_train_NC, y_train_NC, fraction=0.0001)
 
     print("Concatenating AD and NC images...")
     # Concatenating AD and NC images to create the training dataset
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     plt.xlabel('Epochs')
     plt.ylabel('Loss Value')
     plt.legend()
-    plt.savefig("training_plot.png")
+    plt.savefig("Images/training_plot.png")
 
     plt.subplot(1, 2, 2)
     plt.plot(history.history['psnr_metric'], label='Training PSNR', color='blue')
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     plt.xlabel('Epochs')
     plt.ylabel('PSNR Value')
     plt.legend()
-    plt.savefig("PSNR.png")
+    plt.savefig("Images/PSNR.png")
 
 plt.tight_layout()
 plt.show()

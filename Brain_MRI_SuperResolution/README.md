@@ -14,7 +14,7 @@ Then, during the non-linear mapping phase, the network harnesses its capacity to
 Lastly, in the reconstruction phase, the final layer of the SRCNN is dedicated to generating the high-resolution image from the acquired feature maps.The filters within this layer are meticulously trained to collate the information from these feature maps, ensuring the output is a finely upscaled image.               
 SRCNN models have various implementations across different domains. They offer a more feasible approach to obtaining high-resolution images than relying on the availability of high-cost sensors and advanced optics manufacturing technology. The medical field greatly benefits from SRCNN due to its ability to enhance image quality, which is pivotal for precise diagnostics and treatments.  
 
-![Model Visualization](Brain_MRI_SuperResolution/Images/model.png)
+![Model Visualization](Images/model.png)
 
 
 ### Working :
@@ -54,8 +54,8 @@ Representative figures are used for testing purposes.
 
 ### Inputs: 
 
-- **Input1**: ![Input1](Input_output_samples/input1.png)
-- **Input2**: ![Input2](Input_output_samples/input2.png)
+- **Input1**: ![Input1](Input_output_samples/Input1.png)
+- **Input2**: ![Input2](Input_output_samples/Input2.png)
 
 
 ### Outputs: 
