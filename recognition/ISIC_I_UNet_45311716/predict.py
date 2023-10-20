@@ -25,6 +25,17 @@ image_height = 512
 image_width = 512
 batch_size = 16
 
+# Following function is from github:
+# Reference: https://github.com/pytorch/pytorch/issues/1249#issuecomment-305088398
+def dice_loss(input, target):
+    smooth = 1.
+
+    iflat = input.view(-1)
+    tflat = target.view(-1)
+    intersection = (iflat * tflat).sum()
+
+    return 1 - ((2. * intersection + smooth) / (iflat.sum() + tflat.sum() + smooth))
+
 # Load trained model
 model = torch.load(model_path)
 # Get test data loader
@@ -41,6 +52,10 @@ with torch.no_grad:
 
         torchvision.utils.save_image(pred, f"{image_path}Prediction_{i}.png")
         torchvision.utils.save_image(mask, f"{image_path}Actual_{i}.png")
+        
+        dice_score = 1 - dice_loss(pred, mask)
+
+        print(f"Dice Score of Prediction {i}: {dice_score}")
 
         if i > 4:
             break
