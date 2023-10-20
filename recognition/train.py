@@ -12,22 +12,17 @@ from itertools import product
 train, test = dataset.get_data()
 model = modules.get_model()
 
-
 # Extract X and y from the train dataset
 X_train = [X for X, _ in train]
 y_train = [y for _, y in train]
 X_train = np.array(X_train)
 y_train = np.array(y_train)
 
-print("X_train.shape", X_train.shape)
-print("y_train.shape", y_train.shape)
-
 # Do the same in test
 X_test = [X for X, _ in test]
 y_test = [y for _, y in test]
 X_test = np.array(X_test)
 y_test = np.array(y_test)
-
 
 def create_pairs(X, y):
     X_pairs, ys = [], []
@@ -49,12 +44,15 @@ def create_pairs(X, y):
     return X_pairs, ys
 
 # Specify checkpoint paths
-checkpoint_path = "./Checkpoint/cp.ckpt"
+checkpoint_path = "./Checkpoint/cp_p100.ckpt"
 
 # Create a callback that saves the model's weights
 cp_callback = tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path,
                                                  save_weights_only=True,
                                                  verbose=1)
+
+# Load existing checkpoint
+model.load_weights("./Saved/cp.ckpt")
 
 model.compile(loss='binary_crossentropy', # As we are using Sigmoid activation
               optimizer=Adam(learning_rate=0.005),
@@ -72,5 +70,5 @@ for b in range(50):
           y=ys_train,
           validation_data=([X_test_pairs[:, 0, :, :], X_test_pairs[:, 1, :, :]], ys_test),
           batch_size=None,
-          steps_per_epoch=20,
+          steps_per_epoch=40,
           callbacks=[cp_callback])
