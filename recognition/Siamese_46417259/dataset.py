@@ -108,70 +108,75 @@ class PairedDataset(torch.utils.data.Dataset):
         return self.debug_mode
 
 
-def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.8) -> torch.utils.data.DataLoader:
+def load_data(Siamese:bool, random_seed=None, train_proportion=0.8) -> torch.utils.data.DataLoader:
     """
     Function used to load training and validation data
-    this operation is not deterministic even if a random seed is provided, 
-    as the casting from set to list is not deterministic
+    this operation is deterministic if a random seed is provided
     args:
-        training: True loads training data, False loads validation data
         Siamese: True loads paired data for the Siamese Neural Network, False loads unitary data for the MLP
         random_seed: random seed to reduce randomness
         train_proportion: proportion of the dataset to be assigned to the training set.
             based on the number of unique patients in the dataset
     """
     path = train_path
-    if training:
-        if Siamese:
-            transforms = Siamese_train_transforms
-        else:
-            transforms = classifier_train_transforms
+    if Siamese:
+        train_transforms = Siamese_train_transforms
     else:
-        # validation set uses the same transforms as the test set
-        transforms = test_transforms
+        train_transforms = classifier_train_transforms
 
     if random_seed is not None:
         random.seed(random_seed)
         torch.random.manual_seed(random_seed)
 
-    source = dset.ImageFolder(root=path, transform=transforms)
-    patient_ids = set()
+    train_source = dset.ImageFolder(root=path, transform=train_transforms)
+    validation_source = dset.ImageFolder(root=path, transform=test_transforms)
+    patient_ids = {} # in Python 3.11.4 map is ordered in insertion order 
     
     # get a list of unique patient IDs
-    for i in range(len(source)):
-        filepath = source.imgs[i][0]
+    for i in range(len(train_source)):
+        filepath = train_source.imgs[i][0]
         # finds the patient ID from the filepath - specific to the ADNI dataset
         start, end = filepath.rfind(os.path.sep) + 1, filepath.rfind('_') 
         patient_id = filepath[start:end]
-        patient_ids.add(patient_id)
+        patient_ids[patient_id] = 0
     
-    patient_ids = list(patient_ids) # not deterministic
+    patient_ids = list(patient_ids.keys())
+    random.shuffle(patient_ids)
     split_point = int(train_proportion*len(patient_ids))
 
-    if training:
-        patients = patient_ids[:split_point]
-    else: 
-        patients = patient_ids[split_point:]
+    train_patients = patient_ids[:split_point]
 
-    indices_to_be_included = []
+    train_indices_to_be_included = []
+    validate_indices_to_be_included = []
 
-    # only include images from the selected patients
-    for i in range(len(source)):
-        filepath = source.imgs[i][0]
+    # separate images of the training patients and the validation patients
+    for i in range(len(train_source)):
+        filepath = train_source.imgs[i][0]
         start, end = filepath.rfind(os.path.sep) + 1, filepath.rfind('_')
         patient_id = filepath[start:end]
 
-        if patient_id in patients:
-            indices_to_be_included.append(i)
+        if patient_id in train_patients:
+            train_indices_to_be_included.append(i)
+        else:
+            validate_indices_to_be_included.append(i)
     
-    source = torch.utils.data.Subset(source, indices_to_be_included)
+    train_source = torch.utils.data.Subset(train_source, train_indices_to_be_included)
+    validation_source = torch.utils.data.Subset(validation_source, validate_indices_to_be_included)
 
-    images = source.dataset.imgs
-    image_paths = [images[i][0] for i in indices_to_be_included]
+    images = train_source.dataset.imgs
+    image_paths = [images[i][0] for i in train_indices_to_be_included]
+    print(f'train dataset has classes {train_source.dataset.class_to_idx} and {len(train_source)} images')
+    
+    # some statistics to cross-check that there is a roughly even split between AD and NC images
+    img_AD = [index for (index, item) in enumerate(image_paths) if item.find('AD' + os.path.sep) != -1]
+    print(f'AD images count: {len(img_AD)}')
+    img_NC = [index for (index, item) in enumerate(image_paths) if item.find(os.path.sep + 'NC') != -1]
+    print(f'NC images count: {len(img_NC)}')
 
-    print(f'loading {"training" if training else "validation"} data with a training split of {train_proportion}')
-    print(f'dataset has classes {source.dataset.class_to_idx} and {len(source)} images')
-
+    images = validation_source.dataset.imgs
+    image_paths = [images[i][0] for i in validate_indices_to_be_included]
+    print(f'validation dataset has classes {validation_source.dataset.class_to_idx} and {len(validation_source)} images')
+    
     # some statistics to cross-check that there is a roughly even split between AD and NC images
     img_AD = [index for (index, item) in enumerate(image_paths) if item.find('AD' + os.path.sep) != -1]
     print(f'AD images count: {len(img_AD)}')
@@ -182,17 +187,23 @@ def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.
         # loading paired data for the Siamese neural net
         # each data point is of format [img1, img2, similarity]
         # where similarity is 1 if the two images are of the same class and 0 otherwise
-        dataset = PairedDataset(source, False, random_seed=random_seed)
-        loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+        dataset = PairedDataset(train_source, False, random_seed=random_seed)
+        train_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
+                                            shuffle=True, num_workers=workers)
+        
+        dataset = PairedDataset(validation_source, False, random_seed=random_seed)
+        validation_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                             shuffle=True, num_workers=workers)
     else:
         # loading unitary training data for the MLP
         # each data point is of format [img, label]
         # where label is 1 if the image is of class AD and 0 otherwise
-        loader = torch.utils.data.DataLoader(source, batch_size=2*batch_size,
+        train_loader = torch.utils.data.DataLoader(train_source, batch_size=2*batch_size,
+                                            shuffle=True, num_workers=workers)
+        validation_loader = torch.utils.data.DataLoader(validation_source, batch_size=2*batch_size,
                                             shuffle=True, num_workers=workers)
     
-    return loader
+    return train_loader, validation_loader
 
 def load_test_data(Siamese:bool, random_seed=None) -> torch.utils.data.DataLoader:
     """
@@ -231,9 +242,9 @@ def load_test_data(Siamese:bool, random_seed=None) -> torch.utils.data.DataLoade
 # basic tests
 #
 def test_visualise_data_MLP():
-    # Plot some training images
-    dataloader = load_data(training=False, Siamese=False, train_proportion=0.99)
-    next_batch = next(iter(dataloader))
+    # Plot some validation images
+    train, validate = load_data(Siamese=False, train_proportion=0.99)
+    next_batch = next(iter(validate))
     print(next_batch[0][0].shape)
 
     # the following data visualisation code is modified based on code at
@@ -260,10 +271,10 @@ def test_visualise_data_MLP():
 
 def test_visualise_data_Siamese():
     # Plot some training images
-    dataloader = load_data(training=True, Siamese=True)
-    dataloader.dataset.debug_mode = True
+    train, validate = load_data(Siamese=True)
+    train.dataset.debug_mode = True
 
-    next_batch = next(iter(dataloader))
+    next_batch = next(iter(train))
     print(next_batch[0][0].shape)
     print(next_batch[0][1].shape)
 
@@ -288,11 +299,11 @@ def test_visualise_data_Siamese():
         plt.show()
 
 def test_data_leakage():
-    trainloader = load_data(training=True, Siamese=True, random_seed=89, train_proportion=0.8)
-    testloader  = load_data(training=False, Siamese=True, random_seed=89, train_proportion=0.8)
+    trainloader, testloader= load_data(Siamese=True, random_seed=89, train_proportion=0.8)
+    mlptrain, mlptest = load_data(Siamese=False, random_seed=89, train_proportion=0.8)
 
     train_subset = trainloader.dataset.dataset
-    test_subset = testloader.dataset.dataset
+    test_subset = mlptest.dataset
 
     training_images = train_subset.dataset.imgs
     testing_images = test_subset.dataset.imgs

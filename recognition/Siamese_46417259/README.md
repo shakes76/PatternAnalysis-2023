@@ -1,4 +1,6 @@
 # Identification of Alzheimer's Disease in Brain Scans Using a Siamese Neural Network
+Report Version 1.1
+
 Project by Minhao Sun. 
 
 This project is a part of the University of Queensland's COMP3710: Pattern Recognition and Analysis course in Semester 2, 2023.
@@ -91,7 +93,6 @@ The project uses the Alzheimer’s Disease Neuroimaging Initiative (ADNI) brain 
 > [!NOTE]
 > The file paths to the dataset are configurable via `CONSTANTS.py`.
 
-
 ## Training / Validation / Test Split
 The ADNI dataset is provided in two subfolders: `train` (21520 images) and `test` (9000 images). 
 The images in the `test` folder form the project's testing set. 
@@ -132,11 +133,8 @@ The training and validation of the models are implemented in `train.py`. Two dif
 * A sequential training workflow where the Siamese network is trained for a specified number of epochs, then the embedding network at the last epoch is used to train the classifier
 * A modular training workflow where the classifer is trained based on any pretrained and saved embedding network.
 
-> [!IMPORTANT]
-> All plots in this section were produced with a seed of 35 for both python's `random` module and Pytorch's inbuilt pseudo-random number generator. 
-> Despite efforts to reduce randomness in the training process, training runs with the same random seed are not deterministic. 
-> This is because in handling the training and validation set split, the project casts a Set of patient IDs to a List, and this operation is not deterministic.
-> Accordingly, these plots may not be exactly reproducible.
+> [!NOTE]
+> All plots in this section were produced by calling the functions `Siamese_training` and `classifier_training` with a seed of 42.
 
 ## Siamese Training for the Embedding Network 
 ### Loss Function
@@ -152,7 +150,7 @@ Adam was used as the optimiser for the Siamese network with a learning rate of 0
 ### Results
 The Siamese network is trained with a batch size of 32. As the dataset for the Siamese network supplies paired images, the batch size of 32 corresponds to 64 images in the GPU at any one time.
 Ultimately, it was found that 15 epochs of Siamese training for the embedding network resulted in the best classifier accuracy regardless of the number of epochs used to train the classifier.
-This is despite the fact that the Siamese network appears to overfit the training data after 9 to 11 epochs of training in the loss plot below (note that the x-axis of the plot is 0-indexed). 
+The training and validation loss plot is shown below.
 
 ![Training and validation loss plot for the overall Siamese network, showing validation loss diverging from training loss from around epochs 9 to 11](assets/Siamese_loss_after_15_epochs.png)
 <sub>Training and validation loss plot for the overall Siamese network</sub>
@@ -176,21 +174,18 @@ In contrast, the validation loss has a greater range of variation over the 20 ep
 
 The classifier's accuracy for both the validation set and the test set is shown below. 
 The accuracy of the classifier for both datasets appears to remain stable throughout all epochs. 
-**The best classification accuracy on the test set ever achieved by the model is 79.26%. Typically, over a single run of 20 classifier epochs, the model achieves a classification accuracy on the test set of approximately 77% in the best epoch.**
+**The best classification accuracy on the test set ever achieved by the model is 79.26%. Over a single run of 20 classifier epochs, the model typically achieves a classification accuracy on the test set of approximately 77% in the best epoch.**
 
 ![Plot of the classifier's accuracy on the validation and test datasets, showing both accuracies to remain relatively stable throughout all 20 epochs](assets/Classifier_Accuracy_after_20_epochs.png)
 <sub>Plot of the classifier's accuracy on the validation and test datasets</sub>
 
 ## Discussion
-The process of training and tuning the models raised several interesting observations. 
-First, given its loss plots, it appears that the Siamese network was overfitting the training data from around epoch 8 to epoch 10 onwards. 
-Interestingly, despite the apparent overfitting, training the Siamese network for 15 epochs resulted in a better final classifier accuracy. 
-Other attempts were made where the Siamese network was trained for 5, 8 or 10 epochs, and in all those cases, the final classifier performed worse compared to 15 epochs of Siamese network training.
-This suggests that the Siamese network might not be overfitting the training data as early as suggested by the loss plot. 
-Overall, the project can be further improved by the implementation of N-fold cross-validation, which might offer more insight into the model's fit to the training data.
+An interesting observation raised in the process of training and tuning the models is that there appears to be no correlation between the number of epochs of classifier training and the accuracy of the classifier. 
+This absence of correlation appears consistently across all training runs, regardless of the number of epochs of training that the Siamese backbone received. 
 
-A second interesting observation is that there appears to be no correlation between the number of epochs of classifier training and the accuracy of the classifier. This absence of correlation appears consistently across several training runs, regardless of the number of epochs of training that the Siamese backbone received. A potential explanation for this behaviour is the fact that the Siamese embedding network architecture used in this project closely follows the architecture proposed by Koch, Zemel and Salakhutdinov<sup>1</sup>. 
+A potential explanation for this behaviour is the fact that the Siamese embedding network architecture used in this project closely follows the architecture proposed by Koch, Zemel and Salakhutdinov<sup>1</sup>. 
 The original paper by Koch, Zemel and Salakhutdinov was concerned with solving a one-shot image recognition task where, after the Siamese embedding network is trained, the classification network only observes a single example of each possible class before making a prediction about a test instance. 
+
 In contrast, in the present project with a training split of 80%, the classifier is permitted to observe approximately 8400 images of the class AD and approximately 8800 images of the class NC in one epoch of training before making a prediction about a test instance.
 Ultimately, given that the embedding network architecture was optimised for a one-shot recognition task, it appears reasonable that the classifier was able to achieve a testing accuracy close to the final (best) accuracy within the first epoch of training. 
 

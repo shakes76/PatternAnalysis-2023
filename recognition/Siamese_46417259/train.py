@@ -263,7 +263,7 @@ def eval_classifier_one_epoch(model: nn.Module,
 def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     """
     overall handler for training the Siamese network
-    this operation is not deterministic due to the call to load_data()
+    this operation is deterministic if a random seed is provided
     args:
         total_epochs: the epoch number to end training at. if resuming from a checkpoint, 
             this should be the number of epochs to train for in total, not the number of epochs to train for after resuming
@@ -277,8 +277,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
 
     Siamese_checkpoint_filename = checkpoint
 
-    train_loader = load_data(training=True, Siamese=True, random_seed=random_seed)
-    validation_loader = load_data(training=False, Siamese=True, random_seed=random_seed)
+    train_loader, validation_loader = load_data(Siamese=True, random_seed=random_seed)
     # validation_loader = load_test_data(Siamese=True, random_seed=random_seed)
     siamese_net, criterion, optimiser, device = initialise_Siamese_training()
 
@@ -331,7 +330,7 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
 def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=None, checkpoint=None):
     """
     overall handler for training the classifier
-    this operation is not deterministic due to the call to load_data()
+    this operation is deterministic if a random seed is provided
     args:
         backbone: the embedding network to be used
         total_epochs: the epoch number to end training at. if resuming from a checkpoint, 
@@ -346,8 +345,7 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
 
     classifier_checkpoint_filename = checkpoint
 
-    train_loader = load_data(training=True, Siamese=False, random_seed=random_seed)
-    validation_loader = load_data(training=False, Siamese=False, random_seed=random_seed)
+    train_loader, validation_loader = load_data(Siamese=False, random_seed=random_seed)
     test_loader = load_test_data(Siamese=False, random_seed=random_seed)
 
     classifier, criterion, optimiser, device = initialise_classifier_training()
@@ -429,9 +427,9 @@ if __name__ == "__main__":
     # sequential training workflow
     net = Siamese_training(15, 35) # Model saving options available by uncommenting code in this function
     classifier = classifier_training(net.backbone, 20, 35) # comment out this line to train classifier based on last saved Siamese model
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
 
     # if formal testing output is required
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     make_predictions(classifier, net.backbone, device, random_seed=35)
     visualise_sample_predictions(classifier, net.backbone, device, random_seed=35, save_name='Predictions')
 
