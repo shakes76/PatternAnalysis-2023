@@ -3,20 +3,20 @@
 # Filepath to the training data
 # Expected directory structure:
 # /AD
-#     /filename.png
+#     /[PatientID]_[imageID].jpeg
 #     ...
 # /NC
-#     /filename.png
+#     /[PatientID]_[imageID].jpeg
 #     ...
 TRAIN_PATH = '/home/groups/comp3710/ADNI/AD_NC/train/'
 
 # Filepath to the test data
 # Expected directory structure:
 # /AD
-#     /filename.png
+#     /[PatientID]_[imageID].jpeg
 #     ...
 # /NC
-#     /filename.png
+#     /[PatientID]_[imageID].jpeg
 #     ...
 TEST_PATH = '/home/groups/comp3710/ADNI/AD_NC/test/'
 

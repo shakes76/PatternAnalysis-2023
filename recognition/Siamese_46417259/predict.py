@@ -10,6 +10,12 @@ from modules import SiameseTwin, SimpleMLP, SiameseNeuralNet
 from utils import load_from_checkpoint
 
 def load_backbone(filename:str):
+    """
+    loads a trained overall Siamese network and extracts the backbone
+    args:
+        filename: the name of the checkpoint file only. Do not include the path.
+            the filepath should be defined in CONSTANTS.py
+    """
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     print("Loading classifier to device: ", device)
 
@@ -26,6 +32,13 @@ def load_backbone(filename:str):
     return backbone, device
 
 def load_trained_classifier(filename:str):
+    """
+    loads a trained classifier network
+    args:
+        filename: the name of the checkpoint file only. Do not include the path.
+            the filepath should be defined in CONSTANTS.py
+    """
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
     print("Loading classifier to device: ", device)
     
@@ -41,6 +54,16 @@ def load_trained_classifier(filename:str):
     return classifier, device
 
 def make_predictions(classifier, backbone, device, random_seed=None):
+    """
+    applies the trained models to predict the entire test set and provides a text-based summary of the results
+    this operation is deterministic if a random seed is provided
+    args:
+        classifier: the trained classifier network
+        backbone: the trained embedding network
+        device: the device to run the inferencing on
+        random_seed: the random seed to use for reproducibility
+    """
+
     # For reproducibility if desired. RNG seeding is handled in load_test_data()
     if random_seed is not None:
         torch.use_deterministic_algorithms(True)
@@ -80,6 +103,17 @@ def make_predictions(classifier, backbone, device, random_seed=None):
     print(f"Test Accuracy (rounded): {round(100 * correct / total, 4)} %")
 
 def visualise_sample_predictions(classifier, backbone, device, random_seed=None, save_name=None):
+    """
+    applies the trained models to predict a sample of the test set and provides a visualisation of the results
+    this operation is deterministic if a random seed is provided
+    args:
+        classifier: the trained classifier network
+        backbone: the trained embedding network
+        device: the device to run the inferencing on
+        random_seed: the random seed to use for reproducibility
+        save_name: the name of the file to save the visualisation to. do not include the path.
+            the filepath should be defined in CONSTANTS.py. if None, the visualisation will be shown instead of saved
+    """
     # For reproducibility if desired. RNG seeding is handled in load_test_data()
     if random_seed is not None:
         torch.use_deterministic_algorithms(True)

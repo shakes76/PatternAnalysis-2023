@@ -32,12 +32,12 @@ else:
 # transforms
 Siamese_train_transforms = transforms.Compose([
     transforms.ToTensor(),
-    transforms.RandomCrop(240, 20, padding_mode='constant'),
+    transforms.RandomCrop(240, 20, padding_mode='constant'), # augmentation
 ])
 
 classifier_train_transforms = transforms.Compose([
     transforms.ToTensor(),
-    transforms.RandomCrop(240, 20, padding_mode='constant'),
+    transforms.RandomCrop(240, 20, padding_mode='constant'), # augmentation
 ])
 
 test_transforms = transforms.Compose([
@@ -47,8 +47,13 @@ test_transforms = transforms.Compose([
 
 
 class PairedDataset(torch.utils.data.Dataset):
+    """
+    Custom dataset for the Siamese Neural Network
+    Pairs up two images, and assigns a label of 1 if the two images are of the same class, or 0 otherwise
+    """
+
     def __init__(self, 
-                dataset:torch.utils.data.Dataset, 
+                dataset:torch.utils.data.Subset, 
                 show_debug_info:bool, 
                 random_seed=None) -> None:
         super().__init__()
@@ -104,7 +109,17 @@ class PairedDataset(torch.utils.data.Dataset):
 
 
 def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.8) -> torch.utils.data.DataLoader:
-    
+    """
+    Function used to load training and validation data
+    this operation is not deterministic even if a random seed is provided, 
+    as the casting from set to list is not deterministic
+    args:
+        training: True loads training data, False loads validation data
+        Siamese: True loads paired data for the Siamese Neural Network, False loads unitary data for the MLP
+        random_seed: random seed to reduce randomness
+        train_proportion: proportion of the dataset to be assigned to the training set.
+            based on the number of unique patients in the dataset
+    """
     path = train_path
     if training:
         if Siamese:
@@ -122,13 +137,15 @@ def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.
     source = dset.ImageFolder(root=path, transform=transforms)
     patient_ids = set()
     
+    # get a list of unique patient IDs
     for i in range(len(source)):
         filepath = source.imgs[i][0]
-        start, end = filepath.rfind(os.path.sep) + 1, filepath.rfind('_')
+        # finds the patient ID from the filepath - specific to the ADNI dataset
+        start, end = filepath.rfind(os.path.sep) + 1, filepath.rfind('_') 
         patient_id = filepath[start:end]
         patient_ids.add(patient_id)
     
-    patient_ids = list(patient_ids)
+    patient_ids = list(patient_ids) # not deterministic
     split_point = int(train_proportion*len(patient_ids))
 
     if training:
@@ -138,6 +155,7 @@ def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.
 
     indices_to_be_included = []
 
+    # only include images from the selected patients
     for i in range(len(source)):
         filepath = source.imgs[i][0]
         start, end = filepath.rfind(os.path.sep) + 1, filepath.rfind('_')
@@ -154,6 +172,7 @@ def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.
     print(f'loading {"training" if training else "validation"} data with a training split of {train_proportion}')
     print(f'dataset has classes {source.dataset.class_to_idx} and {len(source)} images')
 
+    # some statistics to cross-check that there is a roughly even split between AD and NC images
     img_AD = [index for (index, item) in enumerate(image_paths) if item.find('AD' + os.path.sep) != -1]
     print(f'AD images count: {len(img_AD)}')
     img_NC = [index for (index, item) in enumerate(image_paths) if item.find(os.path.sep + 'NC') != -1]
@@ -176,7 +195,13 @@ def load_data(training:bool, Siamese:bool, random_seed=None, train_proportion=0.
     return loader
 
 def load_test_data(Siamese:bool, random_seed=None) -> torch.utils.data.DataLoader:
-
+    """
+    function used to load testing data
+    this operation is deterministic if a random seed is provided
+    args:
+        Siamese: True loads paired data for the Siamese Neural Network, False loads unitary data for the MLP
+        random_seed: random seed to reduce randomness
+    """
     if random_seed is not None:
         random.seed(random_seed)
         torch.random.manual_seed(random_seed)
@@ -189,7 +214,7 @@ def load_test_data(Siamese:bool, random_seed=None) -> torch.utils.data.DataLoade
         # loading paired data for the Siamese neural net
         # each data point is of format [img1, img2, similarity]
         # where similarity is 1 if the two images are of the same class and 0 otherwise
-        source = torch.utils.data.Subset(source, range(len(source))) # wrapper class for compatiability with PairedDataset
+        source = torch.utils.data.Subset(source, range(len(source))) # wrapper to ensure compatiability with PairedDataset
         dataset = PairedDataset(source, False, random_seed=random_seed)
         loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size,
                                             shuffle=True, num_workers=workers)

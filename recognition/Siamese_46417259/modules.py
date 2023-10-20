@@ -4,6 +4,7 @@ import torch.nn.functional as F
 
 # images are size [3, 240, 240]
 class SiameseTwin(nn.Module):
+    # the backbone / embedding network of the Siamese Neural Network
     def __init__(self) -> None:
         super(SiameseTwin, self).__init__()
 
@@ -30,6 +31,7 @@ class SiameseTwin(nn.Module):
         return out
     
 class SiameseNeuralNet(nn.Module):
+    # the overall Siamese Neural Network
     def __init__(self) -> None:
         super(SiameseNeuralNet, self).__init__()
 
@@ -44,18 +46,17 @@ class SiameseNeuralNet(nn.Module):
         return self.backbone
 
 class SimpleMLP(nn.Module):
+    # the classifier network
+    # works in conjunction with the embedding network, input is the embedding network's output
     def __init__(self) -> None:
         super(SimpleMLP, self).__init__()
         
         self.mlp = nn.Sequential(
             nn.Linear(4096, 1024),
-            # nn.BatchNorm1d(1024),
             nn.ReLU(),
             nn.Linear(1024, 128),
-            # nn.BatchNorm1d(128),
             nn.ReLU(),
             nn.Linear(128, 16),
-            # nn.BatchNorm1d(16),
             nn.ReLU(),
             nn.Linear(16, 1),
             nn.Sigmoid()

@@ -18,6 +18,12 @@ from predict import make_predictions, visualise_sample_predictions
 
 # Loss Functions and Optimizers -----------------------------------
 class ContrastiveLoss(nn.Module):
+    """
+    Contrastive loss function
+    partially adopted from Anurag Singh Choudhary, Introduction and Implementation of Siamese Networks
+    https://www.analyticsvidhya.com/blog/2023/08/introduction-and-implementation-of-siamese-networks/
+    """
+
     def __init__(self, margin=1.0):
         super(ContrastiveLoss, self).__init__()
         self.margin = margin
@@ -58,6 +64,15 @@ def train_siamese_one_epoch(model: SiameseNeuralNet,
                             optimiser: optim.Optimizer, 
                             device: torch.device,
                             train_loader: torch.utils.data.DataLoader):
+    """
+    Trains the Siamese network for one epoch
+    args:
+        model: the Siamese network
+        criterion: the loss function
+        optimiser: the optimizer
+        device: the device to train on
+        train_loader: the training data
+    """
     model.train()
     start = time.time()
     num_batches = len(train_loader)
@@ -82,6 +97,7 @@ def train_siamese_one_epoch(model: SiameseNeuralNet,
 
         total_loss += loss.item()
         
+        # deprecated, loss_list is returned but never used 
         if (i+1) % (num_batches // 10) == 0:
             loss_list.append(loss.item())
 
@@ -95,6 +111,15 @@ def eval_siamese_one_epoch(model: SiameseNeuralNet,
                             criterion: nn.Module,
                             device: torch.device,
                             test_loader: torch.utils.data.DataLoader):
+    """
+    Evaluates the Siamese network for one epoch
+    Can be used for validation or testing, depending on the dataloader passed in as test_loader
+    args:
+        model: the Siamese network
+        criterion: the loss function
+        device: the device to train on
+        test_loader: the test data
+    """
     model.eval()
     start = time.time()
     num_batches = len(test_loader)
@@ -114,6 +139,7 @@ def eval_siamese_one_epoch(model: SiameseNeuralNet,
 
             total_loss += loss.item()
 
+            # deprecated, loss_list is returned but never used 
             if (i+1) % (num_batches // 10) == 0:
                 loss_list.append(loss.item())
         
@@ -130,6 +156,16 @@ def train_classifier_one_epoch(model: nn.Module,
                                 optimiser: optim.Optimizer,
                                 device: torch.device,
                                 train_loader: torch.utils.data.DataLoader):
+    """
+    Trains the classifier for one epoch
+    args:
+        model: the classifier model
+        backbone: the embedding network
+        criterion: the loss function
+        optimiser: the optimizer
+        device: the device to train on
+        train_loader: the training data
+    """
     model.train()
     backbone.eval()
     start = time.time()
@@ -159,6 +195,7 @@ def train_classifier_one_epoch(model: nn.Module,
 
         total_loss += loss.item()
 
+        # deprecated, loss_list is returned but never used 
         if (i+1) % (num_batches // 10) == 0:
             loss_list.append(loss.item())
 
@@ -173,6 +210,16 @@ def eval_classifier_one_epoch(model: nn.Module,
                                 criterion: nn.Module,
                                 device: torch.device,
                                 test_loader: torch.utils.data.DataLoader):
+    """
+    Evaluates the classifier for one epoch
+    Can be used for validation or testing, depending on the dataloader passed in as test_loader
+    args:
+        model: the classifier model
+        backbone: the embedding network
+        criterion: the loss function
+        device: the device to train on
+        test_loader: the test data
+    """
     model.eval()
     backbone.eval()
     start = time.time()
@@ -199,6 +246,7 @@ def eval_classifier_one_epoch(model: nn.Module,
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
 
+            # deprecated, loss_list is returned but never used 
             if (i+1) % (num_batches // 10) == 0:
                 loss_list.append(loss.item())
 
@@ -213,6 +261,17 @@ def eval_classifier_one_epoch(model: nn.Module,
     return loss_list, mean_loss, elapsed, accuracy
 
 def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
+    """
+    overall handler for training the Siamese network
+    this operation is not deterministic due to the call to load_data()
+    args:
+        total_epochs: the epoch number to end training at. if resuming from a checkpoint, 
+            this should be the number of epochs to train for in total, not the number of epochs to train for after resuming
+        random_seed: random seed to reduce variability in training
+        checkpoint: if resuming training from a checkpoint, the file name of that the checkpoint. Do not include the path.
+            the filepath should be defined in CONSTANTS.py
+    """
+
     if random_seed is not None:
         torch.use_deterministic_algorithms(True)
 
@@ -245,15 +304,18 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
         print(f'Validating Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 
         if avg_eval_loss < previous_best_loss:
+            # uncomment to save a checkpoint if loss improves
             # save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
             previous_best_loss = avg_eval_loss
             print(f"loss improved in epoch {epoch + 1}")
 
+    # uncomment to save a checkpoint at the end of the last epoch 
     # save_checkpoint(epoch + 1, siamese_net, optimiser, training_losses, eval_losses)
     end = time.time()
     elapsed = end - start
     print("Siamese Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
 
+    # plotting statistics
     plt.figure(figsize=(10,5))
     plt.title("Training and Validation Loss During SiameseNeuralNet Training")
     plt.plot(training_losses, label="Train")
@@ -267,6 +329,18 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     return siamese_net
 
 def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=None, checkpoint=None):
+    """
+    overall handler for training the classifier
+    this operation is not deterministic due to the call to load_data()
+    args:
+        backbone: the embedding network to be used
+        total_epochs: the epoch number to end training at. if resuming from a checkpoint, 
+            this should be the number of epochs to train for in total, not the number of epochs to train for after resuming
+        random_seed: random seed to reduce variability in training
+        checkpoint: if resuming training from a checkpoint, the file name of that the checkpoint. Do not include the path.
+            the filepath should be defined in CONSTANTS.py
+    """
+
     if random_seed is not None:
         torch.use_deterministic_algorithms(True)
 
@@ -309,20 +383,24 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
         print(f'Testing Epoch {epoch+1} took {elapsed:.1f} seconds. Average loss: {avg_eval_loss:.4f}')
 
         if avg_eval_loss < best_loss:
+            # uncomment to save a checkpoint if testing loss improves
             # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
             best_loss = avg_eval_loss
             print(f"loss improved in epoch {epoch + 1}")
 
         if accuracy > best_accuracy:
+            # uncomment to save a checkpoint if testing accuracy improves
             # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
             best_accuracy = accuracy
             print(f"accuracy improved in epoch {epoch + 1}")
 
+    # uncomment to save a checkpoint at the end of the last epoch
     # save_checkpoint(epoch + 1, classifier, optimiser, training_losses, eval_losses)
     end = time.time()
     elapsed = end - start
     print("Classifier Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
 
+    # plotting statistics
     plt.figure(figsize=(10,5))
     plt.title("Training and Validation Loss During Classifier Training")
     plt.plot(training_losses, label="Train")
@@ -347,11 +425,13 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     return classifier
 
 if __name__ == "__main__":
-    os.environ["CUBLAS_WORKSPACE_CONFIG"]=":4096:8"
+    os.environ["CUBLAS_WORKSPACE_CONFIG"]=":4096:8" # required for torch to use deterministic operations
     # sequential training workflow
     net = Siamese_training(15, 35) # Model saving options available by uncommenting code in this function
     classifier = classifier_training(net.backbone, 20, 35) # comment out this line to train classifier based on last saved Siamese model
     device = torch.device("cuda:0" if torch.cuda.is_available() else "mps")
+
+    # if formal testing output is required
     make_predictions(classifier, net.backbone, device, random_seed=35)
     visualise_sample_predictions(classifier, net.backbone, device, random_seed=35, save_name='Predictions')
 
