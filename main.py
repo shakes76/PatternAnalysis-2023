@@ -1,8 +1,11 @@
 from parameters import *
 from modules import *
+from torchvision import datasets, transforms as T
+from train import *
 
 
 def main():
+    train_model()
     ######
     # Example ADaIN
     ######
@@ -49,11 +52,14 @@ def main():
     ######
     # Example Generator network
     ######
-    gen = StyleGANGenerator(128, 128, 4)
-    noise = torch.randn(1, 128, 4, 4)
-    z_vec = torch.randn(1, 1, 1, 128)
+    # gen = StyleGANGenerator(128, 128, 4)
+    # noise = torch.randn(5, 128, 4, 4)
+    # z_vec = torch.randn(5, 1, 1, 128)
+    # 
+    # result = gen(z_vec)
+    # print(result)
 
-    print(gen(z_vec))
+    # train_dataset = datasets.CelebA(root, "train", download=True)
 
 
 if __name__ == "__main__":

@@ -2,14 +2,23 @@
 # PARAMETER CONSTANTS FOR PROJECT #
 ###################################
 
+# Project directory root
+root = "."
+
+# Normalizing dataset parameter
+norm_mean, norm_sd = (0.5, 0.5, 0.5), (0.5, 0.5, 0.5)
+
 # Number of epochs in training
 epochs = 150
 
 # Batch size for loader
-batch = 32
+batch_size = 32
 
 # Learning Rate
 lr = 0.001
+
+# Beta1 hyper-parameter for Adam optimizer
+beta1 = 0.5
 
 # Image size (nxn)
 image_size = 128
@@ -30,3 +39,16 @@ z_dim = 128
 
 # Dimension of the hidden layer of the mapping network
 hidden_dim = 512
+
+# StyleGAN NETWORK PARAMETERS #
+# Initial number of channels
+init_channels = 128
+
+# Initial resolution to be scaled
+init_resolution = 4
+
+######
+# Discriminator MODEL PARAMETERS
+######
+# Size of the feature map
+feature_map_size = 64
