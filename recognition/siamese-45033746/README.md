@@ -1,9 +1,12 @@
 # Siamese network to classify Alzheimer's disease
 
+### Algorithm Logic
 The model comprises a triple siamese convolutional neural network and a binary classifier. The model is trained to 
-classify 2D images slices of brain scans as Alzheimer's disease (AD) and normal cognitive (NC).
+classify 2D images slices of brain scans as Alzheimer's disease (AD) and normal cognitive (NC)
 
-## Project Structure
+### Data Pre-Processing
+
+### Project Structure
 
 ### Dependencies
 
@@ -16,7 +19,6 @@ Install project requirements by running the following command
 ```
 conda install --yes --file requirements.txt
 ```
-
 ### File Structure
 
 This project uses the ADNI dataset for Alzheimer's disease. Please format the data under the directory AD_NC in 
@@ -54,7 +56,4 @@ siamese-45033746
                         .
                         .
                         .
-
-
 ```
-## Data Pre-Processing
