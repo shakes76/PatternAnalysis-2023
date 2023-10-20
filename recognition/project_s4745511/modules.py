@@ -4,8 +4,23 @@ import keras.backend as kb
 
 
 def create_siamese_network(height: int, width: int):
-
+    """
+    Function: create_siamese_network
+    Input Parameters:
+    - height (int): The height of the input images.
+    - width (int): The width of the input images.
+    Returns:
+    - siamese_model (tf.keras.models.Model): A Siamese network model for similarity learning.
+    """
     def create_distance_layer(im1_feature, im2_feature):
+      """
+      Function: Based on euclidean distance - https://keras.io/examples/vision/siamese_contrastive/
+      Input Parameters:
+        - im1_feature (Tensor): Feature vector for the first image.
+        - im2_feature (Tensor): Feature vector for the second image.
+      Returns:
+        - normalized_distance (Tensor): The normalized distance between the image feature vectors.
+      """
       tensor = kb.sum(kb.square(im1_feature - im2_feature), axis=1, keepdims=True)
       return kb.sqrt(kb.maximum(tensor, kb.epsilon()))
 
@@ -37,6 +52,14 @@ def create_siamese_network(height: int, width: int):
     return siamese_model
 
 def create_cnn_network(height, width):
+    """
+    Function: create_cnn_network
+    Input Parameters:
+    - height (int): The height of the input images.
+    - width (int): The width of the input images.
+    Returns:
+    - subnet (tf.keras.models.Model): A CNN-based neural network model for feature extraction.
+    """
     # Define the input layer
     input_layer = kl.Input(shape=(height, width, 1))
 
@@ -60,17 +83,54 @@ def create_cnn_network(height, width):
     return subnet
 
 def create_classification_model(subnet):
+    """
+    Function: create_classification_model
+    Input Parameters:
+    - subnet (tf.keras.models.Model): The CNN-based neural network model for feature extraction.
+    Returns:
+    - classifier (tf.keras.models.Model): A classification model using the feature extraction subnet.
+    """
+    # Create an input layer for images of size 128x128 with a single channel (grayscale).
     image_input = kl.Input((128, 128, 1))
+    
+    # Pass the input through the feature extraction subnet.
     feature = subnet(image_input)
+    
+    # Apply batch normalization to normalize feature vectors.
     feature = kl.BatchNormalization()(feature)
+    
+    # Add an output layer for binary classification with a sigmoid activation function.
     output_layer = kl.Dense(units=1, activation='sigmoid')(feature)
+    
+    # Create a classification model with the given input and output layers.
     classifier = tf.keras.models.Model([image_input], output_layer)
+    
+    # Define the optimizer (Adam) with a specified learning rate.
     optimizer = tf.optimizers.Adam(learning_rate=0.0001)
+    
+    # Compile the model with binary cross-entropy loss and accuracy metric.
     classifier.compile(loss='binary_crossentropy', metrics=['accuracy'], optimizer=optimizer)
+    
+    # Return the created classification model.
     return classifier
 
-# Define the contrastive loss function
 def create_contrastive_loss(y, y_pred):
+    """
+    Function: create_contrastive_loss
+    Input Parameters:
+    - y (Tensor): True labels indicating whether two images are similar (0 for dissimilar, 1 for similar).
+    - y_pred (Tensor): Predicted distances between image features.
+    Returns:
+    - loss (Tensor): The computed contrastive loss.
+    """
+    # Compute the square of predicted distances.
     square = tf.math.square(y_pred)
+    
+    # Compute the margin loss by taking the square of the maximum of (1 - predicted distances, 0).
     margin = tf.math.square(tf.math.maximum(1 - y_pred, 0))
-    return tf.math.reduce_mean((1 - y) * square + (y) * margin)
+    
+    # Calculate the final contrastive loss using true labels and computed squares.
+    loss = tf.math.reduce_mean((1 - y) * square + (y) * margin)
+    
+    # Return the computed contrastive loss.
+    return loss
