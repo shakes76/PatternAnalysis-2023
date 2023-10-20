@@ -16,11 +16,11 @@ def encoder_block(inputs, num_filters):
     x = Conv2D(num_filters, 3, padding="same")(inputs)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
-
+    # Second conv layer
     x = Conv2D(num_filters, 3, padding="same")(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
-    # Pooling layer
+    # Max Pooling layer
     p = MaxPool2D((2, 2))(x)
     return x, p
 
@@ -36,15 +36,15 @@ def decoder_block(inputs, skip_features, num_filters):
     Returns:
     Tensor: Output tensor after the decoder block.
     """
-    # Transposed convolution layer
+    # Transposed convolution layer (up conv)
     x = Conv2DTranspose(num_filters, (2, 2), strides=2, padding="same")(inputs)
+    # Copy and crop
     x = Concatenate()([x, skip_features])
-
     # Conv layer
     x = Conv2D(num_filters, 3, padding="same")(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
-
+    # Second Conv layer
     x = Conv2D(num_filters, 3, padding="same")(x)
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
@@ -61,7 +61,7 @@ def Unet(input_shape):
     Model: The U-Net model.
     """
     inputs = Input(input_shape)
-    # Encoder Blocks
+    # 4 Encoder Blocks
     s1, p1 = encoder_block(inputs, 64)
     s2, p2 = encoder_block(p1, 128)
     s3, p3 = encoder_block(p2, 256)
@@ -76,12 +76,13 @@ def Unet(input_shape):
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
 
-    # Decoder blocks
+    # 4 Decoder blocks
     d1 = decoder_block(x, s4, 512)
     d2 = decoder_block(d1, s3, 256)
     d3 = decoder_block(d2, s2, 128)
     d4 = decoder_block(d3, s1, 64)
 
+    # Conv 1x1
     outputs = Conv2D(1, 1, padding="same", activation="sigmoid")(d4)
 
     model = Model(inputs, outputs)
