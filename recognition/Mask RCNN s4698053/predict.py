@@ -43,12 +43,16 @@ def test(test_dataloder, model):
             pred_boxes, target_bboxes, iou_threshold=0.5, box_format="midpoint"
     )
 
-    count = 0
-    IOUs = []
+    pred_boxes_labelled = []
+    target_boxes_labelled = []
     for pred_box, target_bbox in zip(pred_boxes, target_bboxes):
         if target_bbox[2] == 1.0:
-            intersection_over_union()
-    print("Mean average precision is:")
+            pred_boxes_labelled.append(pred_box[3:])
+            target_boxes_labelled.append(target_bbox[3:])
+            
+    average_IOU = intersection_over_union(torch.Tensor(pred_boxes_labelled), torch.Tensor(target_boxes_labelled))
+    print(f"Mean average precision is: {mean_avg_prec}")
+    print(f"Mean IOU is: {torch.mean(average_IOU)}")
 
 
 

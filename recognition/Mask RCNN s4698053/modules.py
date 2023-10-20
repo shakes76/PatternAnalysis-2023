@@ -237,7 +237,7 @@ def mean_average_precision(
         # ammount_bboxes = {0:torch.tensor[0,0,0], 1:torch.tensor[0,0,0,0,0]}
         amount_bboxes = {}
         for index, gt in enumerate(ground_truths):
-            amount_bboxes[index] = torch.zeroes(gt[0])
+            amount_bboxes[index] = torch.zeros(gt[0])
 
         # sort by box probabilities which is index 2
         detections.sort(key=lambda x: x[2], reverse=True)
@@ -271,11 +271,8 @@ def mean_average_precision(
                     best_gt_idx = idx
 
             if best_iou > iou_threshold:
-                # only detect ground truth detection once
-                if amount_bboxes[detection[0]][best_gt_idx] == 0:
-                    # true positive and add this bounding box to seen
+                if detection[1] == ground_truth_img[0][1]:
                     TP[detection_idx] = 1
-                    amount_bboxes[detection[0]][best_gt_idx] = 1
                 else:
                     FP[detection_idx] = 1
 

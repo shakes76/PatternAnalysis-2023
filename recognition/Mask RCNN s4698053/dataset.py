@@ -65,10 +65,10 @@ class ISICDataloader(Dataset):
         y1 = bbox[1]
         x2 = bbox[2]
         y2 = bbox[3]
-        x = (x1 + x2) / 2 / image_size[0]
-        y = (y1 + y2) / 2 / image_size[1]
-        w = abs(x1 - x2) / image_size[0]
-        h = abs(y1 - y2) / image_size[1]
+        x = (x1 + x2) / 2 / image_size[1]
+        y = (y1 + y2) / 2 / image_size[0]
+        w = abs(x1 - x2) / image_size[1]
+        h = abs(y1 - y2) / image_size[0]
         return x, y, w, h
 
     def __len__(self):
@@ -109,7 +109,7 @@ class ISICDataloader(Dataset):
             image = self.transform(image)
         
         # Convert To Cells
-        label_matrix = torch.zeros((self.S, self.S, self.C + 5 * self.B))
+        label_matrix = torch.zeros((self.S, self.S, (self.C + 5) * self.B))
         for box in bboxes:
             class_label, x, y, width, height = box.tolist()
             class_label = int(class_label)

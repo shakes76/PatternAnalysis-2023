@@ -1,7 +1,7 @@
 #--------------
 # Train config
 LEARNING_RATE = 2e-5
-NUM_EPOCHS=1
+NUM_EPOCHS = 8
 BATCH_SIZE = 16
 WEIGHT_DECAY = 0
 NUM_WORKERS = 2
