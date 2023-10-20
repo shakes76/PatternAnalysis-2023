@@ -62,7 +62,7 @@ transform used is discussed in the discussion section.
 The model is defined in `modules.py`. The model consists of a several sequences of convolutional layers, batch normalization layers,
 ReLU activation function, and pooling layers. Then followed by several fully connected layer with ReLU activation function in between.
 
-![螢幕擷取畫面 2023-10-20 212307.png](images_for_README%2F%BF%C3%B9%F5%C2%5E%A8%FA%B5%65%AD%B1%202023-10-20%20212307.png)
+![SNN.png](images_for_README%2FSNN.png)
 
 ### Training Siamese Neural Network
 In `train.py`, the model is trained with the training dataset prepared in `dataset.py`. 
@@ -109,7 +109,7 @@ The Siamese Neural Network outputs the embeddings
 of the input, and a classifier is build to inference the embeddings, and determine the respective class of the images. The classifier structure
 looks like this:
 
-![螢幕擷取畫面 2023-10-20 211403.png](images_for_README%2F%BF%C3%B9%F5%C2%5E%A8%FA%B5%65%AD%B1%202023-10-20%20211403.png)
+![CNN.png](images_for_README%2FCNN.png)
 
 which is just 2 dense layers converting the embeddings into 2 outputs. Cross Entropy loss is used.
 
