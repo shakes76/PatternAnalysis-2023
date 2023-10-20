@@ -13,7 +13,7 @@ import torchvision
 import torchvision.transforms as transforms
 import time
 
-
+# Add your own paths here
 testImagesPath = "isic_data/ISIC2018_Task1-2_Test_Input"
 testLabelsPath = "isic_data/ISIC2018_Task1_Test_GroundTruth"
 
