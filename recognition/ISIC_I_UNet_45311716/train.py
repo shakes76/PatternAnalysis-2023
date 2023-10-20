@@ -14,12 +14,13 @@ if not torch.cuda.is_available():
 
 # Path to images
 path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/ISIC2018/'
-save_path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/'
+save_path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/ImprovedUNet.pt'
 # Hyper-parameters
 num_epochs = 15
 learning_rate = 1e-3
 image_height = 512 
 image_width = 512
+batch_size = 16
 
 # Following function is from github:
 # Reference: https://github.com/pytorch/pytorch/issues/1249#issuecomment-305088398
@@ -53,8 +54,6 @@ def validation(model, valid_data):
     valid_loss = 0 # total validation loss
 
     model.eval() # model to evaluation mode
-
-    #loss_fn = nn.BCEWithLogitsLoss() # get validation loss
     
     # disable gradient calculations
     with torch.no_grad():
@@ -63,8 +62,7 @@ def validation(model, valid_data):
             mask = mask.to(device) 
 
             # model prediction in binary form
-            pred = torch.sigmoid(model(image))
-            pred = (pred > 0.5).float()
+            pred = model(image)
             
             total_correct += (pred == mask).sum() 
             total_pixels += torch.numel(pred)
@@ -85,13 +83,12 @@ def main():
     model = ImprovedUNet(in_channels=3, out_channels=1).to(device)   
 
     # Training data
-    data = UNetData(path=path, height=image_height, width=image_width)
-    train_data = data.train_loader
-    valid_data = data.valid_data
+    data = UNetData(path=path, height=image_height, width=image_width, batch=batch_size)
+    train_data = data.get_train_loader()
+    valid_data = data.get_valid_loader()
 
-    # Binary class. loss function and Adam optimizer
-    #loss_fn = nn.BCEWithLogitsLoss()
-    optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+    # Adam optimizer
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
 
     total_step = len(train_data)
     # Cosine annealing w/ warm restarts lr scheduler

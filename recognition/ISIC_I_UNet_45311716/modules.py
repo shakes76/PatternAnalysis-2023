@@ -71,6 +71,6 @@ class ImprovedUNet(nn.Module):
             skip_x = torch.cat((skip_connection, x), dim=1) # concatinate skip and sample along 2-D
             x = self.up_samples[i+1](skip_x) # upsample sample
 
-        # return single channel output
-        return self.last_conv(x)
+        # return single channel output binary mask
+        return torch.sigmoid(self.last_conv(x))
     
