@@ -4,6 +4,8 @@ dataset.py: Functions to load the dataset
 import numpy as np
 import tensorflow as tf
 
+SCALING_FACTOR = 1.0 / 255.0
+
 
 @tf.function
 def load_jpeg(path: str) -> tf.Tensor:
@@ -18,8 +20,9 @@ def load_jpeg(path: str) -> tf.Tensor:
     Returns:
         tf.Tensor: The JPEG image as a tensor.
     """
-    return tf.image.per_image_standardization(
+    return (
         tf.cast(tf.io.decode_jpeg(tf.io.read_file(path), channels=1), dtype=tf.float32)
+        * SCALING_FACTOR
     )
 
 
