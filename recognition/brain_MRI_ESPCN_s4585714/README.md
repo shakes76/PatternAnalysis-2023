@@ -13,14 +13,14 @@ The model takes low-resolution images, created by downsampling from high resolut
 ![training_loss](https://github.com/zharbutt/PatternAnalysis-2023/assets/141378636/536b0d45-c34d-4e1d-a4ce-24044f32dd0d)
 
 ## Dependencies
-Python 3.10
-pytorch 2.01 
-pytorch-cuda 11.7
-torchvision 0.15.2
-matplotlib 3.7.2
-numpy 1.25.2
-scikit-image 0.20.0
-Pillow 9.4.0
+Python 3.10  
+pytorch 2.01  
+pytorch-cuda 11.7  
+torchvision 0.15.2  
+matplotlib 3.7.2  
+numpy 1.25.2  
+scikit-image 0.20.0  
+Pillow 9.4.0  
 
 ## References
 [Image Super-Resolution using an Efficient Sub-Pixel CNN](https://keras.io/examples/vision/super_resolution_sub_pixel/#image-superresolution-using-an-efficient-subpixel-cnn)  
