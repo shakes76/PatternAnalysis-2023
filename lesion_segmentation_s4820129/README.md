@@ -45,7 +45,7 @@ As proposed in the paper [], a dice similarity loss function is used to train th
  Due to the limitation in training and a batch size of 32 the results here are obtained from the 8 epochs of training. The metrics used to evaluate the model were dice score, dice loss and the accuracy of the model. The accuracy is computed by accepting the predicted image as a 1.0 where the prediction is > 0.5. After 18 epochs, this was how the models prediction compared to the actual mask:
 
  ![Dice_score=0.8](images/loss19epoch29.png)
- ![Model_inference_on_batch](grid_plot.png)
- ![dice_score_plot](dice.svg)
- ![loss_score_plot](loss.svg)
- ![acc_plot](acc.svg)
+ ![Model_inference_on_batch](images/grid_plot.png)
+ ![dice_score_plot](images/dice.svg)
+ ![loss_score_plot](images/loss.svg)
+ ![acc_plot](images/acc.svg)
