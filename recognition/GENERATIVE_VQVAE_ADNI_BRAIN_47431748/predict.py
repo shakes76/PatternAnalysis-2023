@@ -11,11 +11,10 @@ TRAINING_PIXELCNN = False
 
 vqvae = VQVAE(tr_var=var_pixel_train, num_encoded=NUM_EMBEDDINGS, latent_dim=LATENT_DIM,
               num_channels=NUM_CHANNELS)
-print('loading weights')
 vqvae.load_weights(VQVAE_WEIGHTS_PATH + 'trained_model_weights')
-print('weights correctly loaded')
-# Generate and plot some VQ-VAE reconstructions from test set
 
+
+# Generate and plot some VQ-VAE reconstructions from test set
 def generate_vqvae_images(images):
     """
     Plot + saves input, codebook
@@ -67,6 +66,7 @@ def generate_vqvae_images(images):
             print(f"Test Image {i} and Reconstruction SSIM: ", ssim)
             sys.stdout = main_stdout
 
+
 for sample_batch in test_data.take(1).as_numpy_iterator():
     sample_batch = sample_batch[:NUM_IMAGES_TO_SHOW]
     generate_vqvae_images(sample_batch)
@@ -82,6 +82,7 @@ pixelCNN.load_weights(PIXEL_WEIGHTS_PATH + "trained_model_weights")
 Generation via Codebook Sampling for novel Image generation
 ref: https://keras.io/examples/generative/vq_vae/
 """
+
 # Create a mini sampler model
 inputs = layers.Input(shape=pixelCNN.input_shape[1:])
 outputs = pixelCNN(inputs)

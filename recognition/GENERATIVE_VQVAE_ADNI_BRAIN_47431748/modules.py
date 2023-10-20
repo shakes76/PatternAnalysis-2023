@@ -1,5 +1,5 @@
 """
-Contains the source code for the model
+Contains the source code for VQVAE, PixelCNN and sub-models (Decoder, Encoder, VQ)
 JACK CASHMAN - 47431748
 """
 
@@ -10,33 +10,28 @@ import numpy as np
 
 class VQ(layers.Layer):
     """
-    Vector-Quantiser later of VQ-VAE
+    Vector-Quantiser later for VQ-VAE - Quantises vectors into laten space
     """
     def __init__(self, num_encoded, latent_dim, beta=0.25, name="vq"):
         super(VQ, self).__init__(name=name)
         self._latent_dim = latent_dim
         self._num_encoded = num_encoded
+
+        # As per the origin VQVAE paper, beta should be in [0.25, 2]
         self._beta = beta
 
+        # Initialise the embeddings
         runif_initialiser = tf.random_uniform_initializer()
         encoded_shape = self._latent_dim, self._num_encoded
         self._encoded = tf.Variable(initial_value=runif_initialiser(shape=encoded_shape,
                                                                     dtype='float32'))
 
     def get_encoded(self):
-        """
-        Return the encoded vectors
-        :return: The encoded vectors
-        """
+        """ Return the encoded vectors """
         return self._encoded
 
     def get_codebook_indices(self, inputs):
-        """
-        Return codebook indices of the encoding. Used in PCNN + VQVAE
-        :param encoded: Encoded vectors
-        :param inputs: Inputs, flattened
-        :return:  Index of closest codebook vector
-        """
+        """ Return 'closest' codebook vector index to the input vector."""
         norms = (
                 tf.reduce_sum(inputs ** 2, axis=1, keepdims=True) +
                 tf.reduce_sum(self._encoded ** 2, axis=0, keepdims=True) -
@@ -46,7 +41,7 @@ class VQ(layers.Layer):
 
     def call(self, inputs):
         """
-        Forward computation handler
+        Forward computation handler for vector quantiser
         :param inputs: Inputs into layer
         :return: Outputs of layer
         """
@@ -60,7 +55,7 @@ class VQ(layers.Layer):
         quantised = tf.reshape(
             tf.linalg.matmul(onehot_indices, self._encoded, transpose_b=True), original_shape)
 
-        # Calculates VQ loss from **insert ref**
+        # Calculates VQ loss from original VQVAE paper
         quantised_loss = tf.reduce_mean((quantised - tf.stop_gradient(inputs)) ** 2)
         commitment_loss = tf.reduce_mean((tf.stop_gradient(quantised) - inputs) ** 2)
         self.add_loss(self._beta * commitment_loss + quantised_loss)   # total loss in train loop
@@ -70,10 +65,7 @@ class VQ(layers.Layer):
 
 class Encoder(Model):
     def __init__(self, latent_dim=16, name='encoder'):
-        """
-        Defined Encoder for VQ-VAE
-        :return: None
-        """
+        """ Defines Encoder for VQ-VAE """
         super(Encoder, self).__init__(name=name)
         self._latent_dim = latent_dim
 
@@ -82,11 +74,7 @@ class Encoder(Model):
         self.conv3 = layers.Conv2D(self._latent_dim, 1, padding='same')
 
     def call(self, inputs):
-        """
-        Forward computation
-        :param inputs: Inputs of the block
-        :return: Outputs of the block
-        """
+        """ Forward computation handler for the Encoder """
         hidden = self.conv1(inputs)
         hidden = self.conv2(hidden)
         return self.conv3(hidden)
@@ -94,10 +82,7 @@ class Encoder(Model):
 
 class Decoder(Model):
     def __init__(self, name='decoder', num_channels=1, **kwargs):
-        """
-        Defined decoder portion of VQ-VAE
-        :return: None
-        """
+        """ Defines decoder model of VQ-VAE """
         super(Decoder, self).__init__(name=name, **kwargs)
         self._num_channels = num_channels
         self.conv_t1 = layers.Conv2DTranspose(64, 3, activation='relu', strides=2, padding='same')
@@ -105,11 +90,7 @@ class Decoder(Model):
         self.conv_t3 = layers.Conv2DTranspose(self._num_channels, 3, padding='same')
 
     def call(self, inputs):
-        """
-        Forward computation for block
-        :param inputs: Inputs to the block
-        :return: Outputs of the block
-        """
+        """ Forward computation for the Decoder block """
         hidden = self.conv_t1(inputs)
         hidden = self.conv_t2(hidden)
         return self.conv_t3(hidden)
@@ -118,10 +99,7 @@ class Decoder(Model):
 class VQVAE(Model):
     def __init__(self, tr_var, num_encoded=64, latent_dim=16, beta=0.25, num_channels=3,
                  name='vq_vae', **kwargs):
-        """
-        Defines VQVAE
-        :return: None
-        """
+        """ Defines VQVAE """
         super(VQVAE, self).__init__(name=name, **kwargs)
         self._tr_var = tr_var
         self._num_encoded = num_encoded
@@ -138,11 +116,7 @@ class VQVAE(Model):
         self._reconstruction_loss = metrics.Mean(name='reconstruction_loss')
 
     def call(self, inputs):
-        """
-        Forward computation handler
-        :param inputs: Inputs to the model
-        :return: Outputs of the model
-        """
+        """ Forward computation handler for VQVAE. i.e. Inputs -> Encoder -> Quantiser -> Decoder -> Output"""
         enc = self._encoder(inputs)
         quant = self._vq(enc)
         decoded = self._decoder(quant)
@@ -150,9 +124,9 @@ class VQVAE(Model):
 
     def train_step(self, data):
         """
-        Performs a single iteration of training and returns loss
+        Performs a single iteration of training and returns loss metrics
         :param data: Input data
-        :return: Loss vals
+        :return: Total, VQ and Reconstruction loss of the input data through the VQVAE
         """
         with tf.GradientTape() as tape:
             recon = self(data)
@@ -177,19 +151,12 @@ class VQVAE(Model):
         }
 
     def test_step(self, data):
-        """
-        Performs single iteration of evaluation and returns losses
-        :param data: Input data
-        :return: Loss values
-        """
+        """ Performs single iteration of evaluation and returns losses """
         return self.train_step(data)
 
     @property
     def metrics(self):
-        """
-        Return metrics
-        :return: Metrics
-        """
+        """ Return the loss metrics """
         return [
             self._total_loss,
             self._vq_loss,
@@ -197,30 +164,16 @@ class VQVAE(Model):
         ]
 
     def get_encoder(self):
-        """
-        Returns encoder
-        :return: Encoder of the VQVAE
-        """
+        """ Returns Encoder block of the VQVAE """
         return self._encoder
 
     def get_vq(self):
-        """
-        Returns VQ Layer
-        :return: VQ Layer
-        """
+        """ Returns VQ Layer of the VQVAE """
         return self._vq
 
     def get_decoder(self):
-        """
-        Returns decoder
-        :return: Decoder
-        """
+        """ Returns decoder block of the VQVAE """
         return self._decoder
-
-
-"""
-Pixel CNN Implementation
-"""
 
 
 class PixelConv(layers.Layer):
@@ -269,11 +222,7 @@ class PixelResidualBlock(layers.Layer):
                                     padding="same")
 
     def call(self, inputs):
-        """
-        Forward computation handler of this layer
-        :param inputs: Inputs to the layer
-        :return: Outputs of the layer
-        """
+        """ Forward computation handler for PCNN layer """
         hidden = self._conv1(inputs)
         hidden = self._pixel_conv(hidden)
         hidden = self._conv2(hidden)
@@ -282,9 +231,7 @@ class PixelResidualBlock(layers.Layer):
 
 
 class PixelCNN(Model):
-    """
-    PixelCNN generative model
-    """
+    """ PixelCNN generative model """
     def __init__(self, num_res=2, num_pixel_B=2, num_encoded=128, num_filters=128,
                  kernel_size=7, activation='relu', name='pixel_cnn'):
         super(PixelCNN, self).__init__(name=name)
@@ -306,11 +253,7 @@ class PixelCNN(Model):
         self._conv = layers.Conv2D(filters=self._num_encoded, kernel_size=1)
 
     def call(self, inputs):
-        """
-        Forward computation of this model
-        :param inputs: Inputs to the model
-        :return: Outputs of the model
-        """
+        """ Forward computation of this model """
         inputs = tf.cast(inputs, dtype=tf.int32)
         inputs = tf.one_hot(inputs, self._num_encoded)
         hidden = self._pixel_A(inputs)
@@ -322,7 +265,7 @@ class PixelCNN(Model):
 
     def train_step(self, data):
         """
-        Performs single iter of training
+        Performs single iteration of training and reports loss metrics
         :param data: Input data
         :return: Loss values
         """
@@ -340,9 +283,5 @@ class PixelCNN(Model):
         }
 
     def test_step(self, data):
-        """
-        Performs one iteration of evaluation and returns loss values
-        :param data: Input data
-        :return: Loss values
-        """
+        """ Performs one iteration of evaluation and returns loss metrics"""
         return self.train_step(data)
