@@ -9,6 +9,7 @@
 <p align="center">
   <img src="images/grid_plot.png" alt="Model_inference_on_batch" width="700"/>
 </p>
+Batch of images sent through the model side by side with original images.
 
 ### Dataset
 The ISIC 2018 dataset used for this project is part of a public data repository. This dataset includes training data in the form of png and jpg images of skin lesions as well as their ground-truth segmentation. The training data has been preprocessed by resizing the images to 256x256, followed by a normalization with the data's respective mean and standard deviation (which had to be calculated).
