@@ -1,6 +1,8 @@
 # COMP3710 Project: Siamese network Classifier for ADNI data
 **Student Number:** 48240639
+
 **Name:** Aniket Gupta 
+
 **Description:** The Submitted Project contains the files for COMP3710 project report for the Year 2023
 
 ## Table of Contents
@@ -8,7 +10,7 @@
 2. [Project structure](#2-project-structure)
 3. [Reproducibility](#3-reproducibility)
 4. [Description](#4-dependencies)
-5. [Siamese Network](#1-introduction)
+5. [Siamese Network](#5)
 6. [Resnet18 Architecture](#2-project-structure)
 7. [Dataset](#3-reproducibility)
 9. [Model Training](#4-dependencies)
@@ -62,13 +64,13 @@ These dependencies are crucial for running the project successfully, and the spe
 Siamese Networks operate using a structured framework, as depicted in the diagram:
 ![Alt text](Images_Report/Siamese.png)
 
-1.	Input Phase: Two distinct inputs are processed through identical subnetworks, which share the same parameters and weights.
-2.	Feature Extraction: Each subnetwork extracts relevant features from its respective input.
-3.	Distance Measurement: A distance function, like Euclidean distance or cosine similarity, is applied to compare the extracted features.
-4.	Outcome: The network produces a similarity score indicating the likeness between the two input items.
+1.	**Input Phase:** Two distinct inputs are processed through identical subnetworks, which share the same parameters and weights.
+2.	**Feature Extraction:** Each subnetwork extracts relevant features from its respective input.
+3.	**Distance Measurement:** A distance function, like Euclidean distance or cosine similarity, is applied to compare the extracted features.
+4.	**Outcome:** The network produces a similarity score indicating the likeness between the two input items.
 
 Siamese Networks find utility in diverse applications, including:
-Applications:
+**Applications:**
 - Face Verification: Discerning whether two facial images belong to the same person.
 - Image Retrieval: Locating the most analogous image in a database to a given one.
 - Signature Verification: Confirming whether two signatures originate from the same individual.
@@ -78,13 +80,13 @@ Applications:
 - Speaker Verification: Confirming if two voice samples belong to the same speaker.
 - Gesture Recognition: In human-computer interaction to identify similar hand or body gestures.
 
-Advantages:
+**Advantages:**
 - Parameter Sharing: Shared parameters between subnetworks reduce the total model parameters.
 - Training Efficiency: The parameter-sharing design facilitates faster convergence.
 - Versatility: They can be adapted for one-to-one comparisons and readily expanded for one-to-many or many-to-many comparisons.
 - Small Data Support: Effective for tasks with limited data, such as signature verification.
 
-Disadvantages:
+**Disadvantages:**
 - Data Imbalance: Acquiring suitable positive and negative samples can pose challenges in specific use cases.
 - Complex Configuration: Setting up the network and defining the contrastive loss function can be intricate.
 - Resource Intensive: Training deep Siamese Networks may require substantial computational resources.
@@ -102,6 +104,13 @@ Within this architecture, Resnet18 undertakes the task of handling two input ima
 ## 7.Dataset
 
 - The dataset employed in this project originates from the publicly available ADNI brain dataset, which can be conveniently acquired by accessing ADNI. This dataset encompasses a grand total of 4,424 brain MRI scans, where 2,315 scans are associated with AD patients, and the remaining 2,109 scans correspond to NC individuals.
+AD Image 
+
+![Alt text](Images_Report/AD.jpeg)
+
+NC Image 
+
+![Alt text](Images_Report/NC.jpeg)
 
 - To ensure consistency and facilitate the subsequent processing and analysis, the dataset underwent a preprocessing phase. This entailed standardizing all images to a uniform 256x240 pixel resolution and converting them to grayscale. Furthermore, a systematic naming convention was enforced, where all filenames adhere to the "1182968_94.jpeg" format. 
 
@@ -123,10 +132,10 @@ The presented module encapsulates the core elements of our project description, 
 - The training outcomes for the 50 epochs are thoughtfully documented and complemented by informative visual representations. Two significant graphical representations are pivotal in understanding the model's training journey:
 
 
-1.	Training Accuracy: 
+**1.	Training Accuracy:**
 ![Alt text](Images_Report/Train_Accuracy_Plot.png)
  
-2.	Training Loss: 
+**2.	Training Loss:**
  ![Alt text](Images_Report/Train_Loss_Plot.png)
 
 The Training Accuracy chart vividly showcases the convergence of the model's training process. Over the course of 1,200 training steps, we observe substantial improvements in accuracy.
@@ -137,17 +146,23 @@ The Training Accuracy chart vividly showcases the convergence of the model's tra
 
 - The testing results for both the 50-epoch model and the truncated 10-epoch model are diligently presented. These results offer valuable insights into the model's performance on the test dataset.
 
-Testing Results (50 Epochs):  
+**Testing Results (50 Epochs):** 
+
 Additionally, we provide a concise evaluation of the model trained for only 10 epochs, albeit without the detailed log data:
+
  ![Alt text](Images_Report/50_Test.png)
 
 
-Testing Results (10 Epochs):  
+**Testing Results (10 Epochs):**  
+
 These thorough training and testing phases form the backbone of our project report, and concurrently, they validate the efficacy of our approach in distinguishing AD and NC brain images.
+
  ![Alt text](Images_Report/10_Test.png)
 
-Testing Results (25 Epochs):  
+**Testing Results (25 Epochs):**  
+
 The comprehensive training and testing stages are the cornerstone of our project report, affirming the effectiveness of our method in discerning between AD and NC brain images.
+
 ![Alt text](Images_Report/25_Test.png)
  
 
