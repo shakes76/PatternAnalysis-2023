@@ -8,38 +8,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torchvision
 import torchvision.transforms as transforms
-from sklearn import manifold
-tsne = manifold.TSNE(n_components=2, init='pca')
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning VUDA not Found. Using CPU")
+
+#For visualization
 ADNI_class = ['0', '1']
 colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728',
           '#9467bd', '#8c564b', '#e377c2', '#7f7f7f',
           '#bcbd22', '#17becf']
-transform = transforms.Compose([
-    transforms.Grayscale(num_output_channels=1),
-    transforms.Resize((128, 128)),
-    transforms.ToTensor(),
-    transforms.Normalize(0.5, 0.5),
 
-])
 batch_size = 16
-train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
-test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
-trainset = torchvision.datasets.ImageFolder(root=train_path, transform=transform)
-trainset, validationset = torch.utils.data.random_split(trainset,[int(len(trainset)*0.8),len(trainset)-int(len(trainset)*0.8)])
-testset = torchvision.datasets.ImageFolder(root=test_path, transform=transform)
-train = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
-valid = torch.utils.data.DataLoader(validationset, batch_size=batch_size, shuffle=True)
-test = torch.utils.data.DataLoader(testset, batch_size=batch_size,shuffle=True)
+
 
 import matplotlib
 
 matplotlib.use('TkAgg')
 
 plt.ion()
-def plot_embeddings(embeddings, targets, plot_number,plot_name, xlim=None, ylim=None):
+def plot_embeddings(embeddings, targets, plot_number, plot_name, xlim=None, ylim=None):
     plt.figure(figsize=(10, 10))
     for i in range(2):
         inds = np.where(targets == i)[0]
@@ -49,7 +37,7 @@ def plot_embeddings(embeddings, targets, plot_number,plot_name, xlim=None, ylim=
     if ylim:
         plt.ylim(ylim[0], ylim[1])
     plt.legend(ADNI_class)
-    plt.savefig(f"./graphs/{plot_name}_{plot_number+1}.png")
+    plt.savefig(f"./graphs/{plot_name}_{plot_number + 1}.png")
     plt.close()
 
 
@@ -73,8 +61,6 @@ def extract_embeddings(dataloader, model):
     return embeddings, labels
 
 
-
-
 class ContrastiveLoss(nn.Module):
     """
     Contrastive loss
@@ -84,29 +70,12 @@ class ContrastiveLoss(nn.Module):
     def __init__(self, margin):
         super(ContrastiveLoss, self).__init__()
         self.margin = margin
-        self.eps = 1e-9
+        self.eps = 1e-9 # add a small constant to prevent numerical instability when square root
 
     def forward(self, output1, output2, target, size_average=True):
         distances = (output2 - output1).pow(2).sum(1)  # squared distances
         losses = 0.5 * (target.float() * distances +
                         (1 + -1 * target).float() * F.relu(self.margin - (distances + self.eps).sqrt()).pow(2))
-        return losses.mean() if size_average else losses.sum()
-
-
-class TripletLoss(nn.Module):
-    """
-    Triplet loss
-    Takes embeddings of an anchor sample, a positive sample and a negative sample
-    """
-
-    def __init__(self, margin):
-        super(TripletLoss, self).__init__()
-        self.margin = margin
-
-    def forward(self, anchor, positive, negative, size_average=False):
-        distance_positive = (anchor - positive).pow(2).sum(1)  # .pow(.5)
-        distance_negative = (anchor - negative).pow(2).sum(1)  # .pow(.5)
-        losses = F.relu(distance_positive - distance_negative + self.margin)
         return losses.mean() if size_average else losses.sum()
 
 
@@ -118,19 +87,16 @@ num_epoch = 90
 learning_rate = 0.0001
 
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
+validation_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/validation"
 test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
 
-# load_data2() for BCELoss or contrastive loss load_data3() for tripletLoss
-train_loader, validation_loader, test_loader = dataset.load_data2(train_path, test_path)
-model = modules.Siamese()
-#model = modules.ResNet18()
-model = model.to(device)
-# from pytorch_metric_learning import losses, miners
-# miner = miners.MultiSimilarityMiner()
-# criterion = losses.TripletMarginLoss()
-criterion = ContrastiveLoss(1.0)
 
-# criterion = TripletLoss(1.0)
+train_loader, validation_loader, test_loader = dataset.load_data2(train_path, validation_path, test_path)
+model = modules.Siamese()
+model = model.to(device)
+
+#loss and optimizer choice
+criterion = ContrastiveLoss(1.0)
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-3)
 
 total_steps = len(train_loader)
@@ -154,7 +120,7 @@ for epoch in range(num_epoch):
     # #for contrastive loss
     for i, ((images1, images2, images3), labela, labelb, test_label) in enumerate(train_loader):
 
-        # contrastive loss
+        # First train the model with a pair of training image and positive image
         optimizer.zero_grad()
         images1 = images1.to(device)
         images2 = images2.to(device)
@@ -165,6 +131,7 @@ for epoch in range(num_epoch):
         optimizer.step()
         total_loss_this_epoch.append(loss.item())
 
+        # then train the model with a pair of training image and negative iamge
         optimizer.zero_grad()
         images1 = images1.to(device)
         images3 = images3.to(device)
@@ -174,36 +141,15 @@ for epoch in range(num_epoch):
         loss.backward()
         optimizer.step()
 
-        # images1 = images1.to(device)
-        # test_label = test_label.to(device)
-        # optimizer.zero_grad()
-        # embeddings = model.forward_once(images1)
-        # hard_pairs = miner(embeddings, test_label)
-        # loss = criterion(embeddings, test_label, hard_pairs)
-        # loss.backward()
-        # optimizer.step()
 
-
-        #average loss in this epoch
+        # average loss in this epoch
         total_loss_this_epoch.append(loss.item())
         if (i + 1) % 100 == 0:
-                print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} "
-                      .format(epoch + 1, num_epoch, i + 1, total_steps,sum(total_loss_this_epoch)/len(total_loss_this_epoch)))
+            print("Epoch [{}/{}], Step[{}/{}] Loss: {:.5f} "
+                  .format(epoch + 1, num_epoch, i + 1, total_steps,
+                          sum(total_loss_this_epoch) / len(total_loss_this_epoch)))
 
-
-    training_loss.append(sum(total_loss_this_epoch)/len(total_loss_this_epoch))
-
-
-
-    train_embeddings_cl, train_labels_cl = extract_embeddings(train_loader, model)
-    plot_embeddings(train_embeddings_cl, train_labels_cl,epoch,"resnet_training")
-
-    train_embeddings_cl, train_labels_cl = extract_embeddings(validation_loader, model)
-    plot_embeddings(train_embeddings_cl, train_labels_cl, epoch, "resnet_validation")
-
-    test_embeddings_cl, test_labels_cl = extract_embeddings(test_loader, model)
-    plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "resnet_test")
-
+    training_loss.append(sum(total_loss_this_epoch) / len(total_loss_this_epoch))
 
     # contrastive loss validation
     model.eval()
@@ -213,12 +159,12 @@ for epoch in range(num_epoch):
     total = 0
 
     with torch.no_grad():
-        for i, ((images1,images2,images3), labela,labelb,test_label) in enumerate(validation_loader):
+        for i, ((images1, images2, images3), labela, labelb, test_label) in enumerate(validation_loader):
             images1 = images1.to(device)
             images2 = images2.to(device)
             labela = labela.to(device)
-            x,y = model(images1,images2)
-            val_loss = criterion(x,y, labela.float())
+            x, y = model(images1, images2)
+            val_loss = criterion(x, y, labela.float())
             total_val_loss_this_epoch.append(val_loss.item())
 
             images1 = images1.to(device)
@@ -228,40 +174,192 @@ for epoch in range(num_epoch):
             val_loss = criterion(x, y, labelb.float())
             total_val_loss_this_epoch.append(val_loss.item())
 
-            # images1 = images1.to(device)
-            # test_label = test_label.to(device)
-            # embeddings = model.forward_once(images1)
-            # val_loss = criterion(embeddings, test_label)
-            # total_val_loss_this_epoch.append(val_loss.item())
+            if (i + 1) % 100 == 0:
+                print("Epoch [{}/{}], Step[{}/{}] Validation Loss: {:.5f} "
+                      .format(epoch + 1, num_epoch, i + 1, len(validation_loader),
+                              sum(total_val_loss_this_epoch) / len(total_val_loss_this_epoch)))
+
 
     print(
-        f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {sum(total_loss_this_epoch)/len(total_loss_this_epoch):.4f}, validation_loss: {sum(total_val_loss_this_epoch)/len(total_val_loss_this_epoch):.4f}"
+        f"Epoch [{epoch + 1}/{num_epoch}], training_loss: {sum(total_loss_this_epoch) / len(total_loss_this_epoch):.4f}, validation_loss: {sum(total_val_loss_this_epoch) / len(total_val_loss_this_epoch):.4f}"
     )
 
-    validation_loss.append(sum(total_val_loss_this_epoch)/len(total_val_loss_this_epoch))
+    validation_loss.append(sum(total_val_loss_this_epoch) / len(total_val_loss_this_epoch))
 
-    torch.save(model,f"C:\\Users\\wongm\\Desktop\\COMP3710\\project\\siamese_dropout_epoch_{epoch+1}.pth")
+    torch.save(model, f"C:\\Users\\wongm\\Desktop\\COMP3710\\project\\siamese_epoch_{epoch + 1}.pth")
 
+    #plot embeddings
+    train_embeddings_cl, train_labels_cl = extract_embeddings(train_loader, model)
+    plot_embeddings(train_embeddings_cl, train_labels_cl, epoch, "training")
+
+    train_embeddings_cl, train_labels_cl = extract_embeddings(validation_loader, model)
+    plot_embeddings(train_embeddings_cl, train_labels_cl, epoch, "validation")
+
+    test_embeddings_cl, test_labels_cl = extract_embeddings(test_loader, model)
+    plot_embeddings(test_embeddings_cl, test_labels_cl, epoch, "test")
+
+    epochs = list(range(0, epoch + 1))
+    # Plot both training and validation loss
+    plt.figure(figsize=(8, 6))
+    plt.plot(epochs, training_loss, linestyle='-', label='Training Loss')
+    plt.plot(epochs, validation_loss, linestyle='-', label='Validation Loss')
+    plt.title('Training and Validation Loss Over Epochs')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.savefig(f"loss_plot_epoch_{epoch}.png")
+    plt.close()
+
+#Train a classifier
+import torch
+import torch.nn as nn
+import torchvision
+import torchvision.transforms as transforms
+import modules
+import matplotlib.pyplot as plt
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+from torchsummary import summary
+if not torch.cuda.is_available():
+    print("Warning VUDA not Found. Using CPU")
+
+# data augmentation
+train_transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
+    transforms.Resize((128, 128)),
+    transforms.RandomCrop(128, 16),
+    transforms.RandomRotation(degrees=(-20, 20)),
+    transforms.ToTensor(),
+    transforms.Normalize(0.5, 0.5),
+])
+test_transform = transforms.Compose([
+    transforms.Grayscale(num_output_channels=1),
+    transforms.Resize((128, 128)),
+    transforms.ToTensor(),
+    transforms.Normalize(0.5, 0.5),
+])
+#Hyperparameters
+batch_size = 64
+learning_rate = 0.00005
+#Paths
+train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
+validation_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/validation"
+test_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/test"
+
+#create data loaders
+trainset = torchvision.datasets.ImageFolder(root=train_path, transform=train_transform)
+validationset = torchvision.datasets.ImageFolder(root=validation_path, transform=test_transform)
+testset = torchvision.datasets.ImageFolder(root=test_path, transform=test_transform)
+
+train_loader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
+validation_loader = torch.utils.data.DataLoader(validationset, batch_size=batch_size, shuffle=True)
+test_loader = torch.utils.data.DataLoader(testset, batch_size=batch_size, shuffle = True)
+
+
+
+#load Siamese neural network to get the embeddings
+model = torch.load(f"C:/Users/wongm/Desktop/COMP3710/project/siamese_1.5_epoch_49.pth")
+model = model.to(device)
+model.eval()
+
+#create a classifier instance
+classifier = modules.Classifier()
+classifier = classifier.to(device)
+
+#loss and optimizer selection
+classifier_loss = nn.CrossEntropyLoss()
+classifier_optimizer = torch.optim.Adam(classifier.parameters(), lr=learning_rate, weight_decay=1e-3)
+
+correct = 0
+total = 0
+num_epoch = 30
+classifier.train()
+
+#print out the classifier structure
+summary(classifier, input_size=(1,128), batch_size=64)
+print("classifier training start")
+training_loss = []
+training_accuracy = []
+validation_loss = []
+validation_accuracy = []
+for epoch in range(num_epoch):
+    c_correct = 0
+    c_total = 0
+    t_correct = 0
+    t_total = 0
+    classifier.train()
+    c_loss = 0
+    tc_loss = 0
+    train_acc = 0
+    test_acc = 0
+    total_loss_this_epoch = []
+    total_val_loss_this_epoch = []
+    for i,(image,label) in enumerate(train_loader):
+        image=image.to(device)
+        label=label.to(device)
+        # train classifier
+        classifier_optimizer.zero_grad()
+        test_label = label.to(device)
+        embeddings = model.forward_once(image)
+        output = classifier(embeddings).squeeze()
+        c_loss = classifier_loss(output, label)
+        c_loss.backward()
+        classifier_optimizer.step()
+
+        _, pred = torch.max(output.data, 1)
+        c_correct += (pred == label).sum().item()
+        c_total += label.size(0)
+        train_acc = 100 * c_correct / c_total
+        total_loss_this_epoch.append(c_loss.item())
+
+        if (i + 1) % 100 == 0:
+                print("Epoch [{}/{}], Step[{}/{}] Training accuracy: {}% "
+                      .format(epoch + 1, num_epoch, i + 1, len(train_loader), train_acc))
+    training_accuracy.append(train_acc)
+    training_loss.append(sum(total_loss_this_epoch) / len(total_loss_this_epoch))
+    classifier.eval()
+    with torch.no_grad():
+        for i, (test_image, test_label) in enumerate(validation_loader):
+            test_image = test_image.to(device)
+            test_label = test_label.to(device)
+            embeddings = model.forward_once(test_image)
+            output = classifier(embeddings).squeeze()
+            tc_loss = classifier_loss(output,test_label)
+
+            _, pred = torch.max(output.data, 1)
+            t_correct += (pred == test_label).sum().item()
+            t_total += test_label.size(0)
+            test_acc = (100 * t_correct / t_total)
+            total_val_loss_this_epoch.append(tc_loss.item())
+            if (i + 1) % 100 == 0:
+                print("Epoch [{}/{}], Step[{}/{}] test Accuracy: {}% "
+                      .format(epoch + 1, num_epoch, i + 1, len(validation_loader), test_acc))
+    validation_accuracy.append(test_acc)
+    validation_loss.append(sum(total_val_loss_this_epoch) / len(total_val_loss_this_epoch))
+    print("Epoch [{}/{}], Training Loss: {:.5f} Training Accuracy: {:.5f}% Testing Loss: {:.5f} Validation accuracy: {:.5f}%"
+          .format(epoch + 1, num_epoch, c_loss.item(), train_acc, tc_loss.item(),test_acc))
+    torch.save(classifier, f"C:\\Users\\wongm\\Desktop\\COMP3710\\project\\classifier_{epoch + 1}.pth")
 
 epochs = list(range(1, num_epoch + 1))
+
+# Plot both training and validation Accuracy
+plt.figure(figsize=(8, 6))
+plt.plot(epochs, training_accuracy, linestyle='-', label='Training Accuracy')
+plt.plot(epochs, validation_accuracy, linestyle='-', label='Validation Accuracy')
+plt.title('Training and Validation Accuracy Over Epochs')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.legend()
+plt.savefig(f"Accuracy_plot.png")
+plt.show(block=True)
+
 # Plot both training and validation loss
 plt.figure(figsize=(8, 6))
-plt.plot(epochs, training_loss,linestyle='-', label='Training Loss')
-plt.plot(epochs, validation_loss, linestyle='-', label='Validation Loss')
-plt.title('Training and Validation Loss Over Epochs')
+plt.plot(epochs, training_loss, linestyle='-', label='Training loss')
+plt.plot(epochs, validation_loss, linestyle='-', label='Validation loss')
+plt.title('Training and Validation loss Over Epochs')
 plt.xlabel('Epoch')
 plt.ylabel('Loss')
 plt.legend()
-plt.savefig(f"loss_plot.png")
+plt.savefig(f"Loss_plot.png")
 plt.show(block=True)
-
-#TODO
-# try follow 46272784 -> binary cross entropy
-# try another more complex CNN structure
-# try online contrastive loss
-# try data augmentation / centercrop / randomcrop
-# try normalization
-# RESULT
-# metric 1.0 aruond 72% accuarcy, 2.0 around 73%, no significant different
-# triplet loss and contrastive loss no significant different ~ 72%
-# try SGD optimizer
