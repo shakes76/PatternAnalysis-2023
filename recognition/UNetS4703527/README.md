@@ -32,14 +32,33 @@ The decoder block has two 3x3 convolution layers with a ReLU then a up conv 2x2.
 
 ### Results
 
-show epoch progress here
 #### Training 
+<img width="549" alt="training results" src="https://github.com/mraula/PatternAnalysis-2023/assets/96328895/4460d766-f2af-4a20-b876-93f993f8044f">
 
-The data reached a val_dice_coef of > 0.8 after 13 epoch. As seen the val_dice_coef and val_precision grew with the num of epochs.
+The data reached a val_dice_coef of > 0.8 after 13 epoch. As seen the val_dice_coef grew and val_loss droped with the num of epochs.
 
 #### Evaluation
-show result table here mean and per image
 
+
+| Metric            | Score     |
+|-------------------|-----------|
+| Accuracy          | 0.95067   |
+| Precision         | 0.90967   |
+| Dice Coefficient  | 0.83335   |
 #### Image results
+<div style="display:flex;justify-content:space-between">
+  <img width="400" alt="ISIC_0000001" src="https://github.com/mraula/PatternAnalysis-2023/assets/96328895/a0bf3090-ef88-423e-ac65-eba66be9800c">
+  <img width="400" alt="ISIC_0000003" src="https://github.com/mraula/PatternAnalysis-2023/assets/96328895/2ff2892f-94a9-4acf-a1d2-6c48a1b1a293">
+</div>
 
-add first 5 images
+<div style="display:flex;justify-content:space-between">
+  <img width="400" alt="ISIC_0000011" src="https://github.com/mraula/PatternAnalysis-2023/assets/96328895/b0f62873-4900-4926-860e-b5ffd30be4ad">
+  <img width="400" alt="ISIC_0000027" src="https://github.com/mraula/PatternAnalysis-2023/assets/96328895/03e8575b-ea40-47a7-964d-24726347bbb9">
+</div>
+
+<div style="display:flex;justify-content:space-between">
+  <img width="400" alt="ISIC_0000093" src="https://github.com/mraula/PatternAnalysis-2023/assets/96328895/a77bb5bb-3a42-40b2-8724-f0fff51996dc">
+  <img width="400" alt="ISIC_0000150" src="https://github.com/mraula/PatternAnalysis-2023/assets/96328895/84fa5471-f227-4b1d-a2a3-9d0034ba3865">
+</div>
+
+The results are shown as the Original image then the Groundtruth mask and finally the models Predicted mask.
