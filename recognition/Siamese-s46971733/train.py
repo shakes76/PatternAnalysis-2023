@@ -16,9 +16,6 @@ from sklearn.manifold import TSNE
 import seaborn as sns
 import numpy as np
 
-# Select a100.
-# squeue.
-
 # Toggles.
 all_train = 1   # If 0 Disables all training.
 train = 1       # Enables/Disables Resnet Training
@@ -45,7 +42,6 @@ batch_size_clas = 3
 learning_rate = 0.005
 res_learning_rate = 0.0001
 
-
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("No CUDA Found. Using CPU")
@@ -61,7 +57,6 @@ trainset_clas = get_dataset(train=1, clas=1)
 validset = get_dataset(valid=1, clas=0)
 validset_clas = get_dataset(valid=1, clas=1)
 
-
 trainloader = torch.utils.data.DataLoader(trainset, batch_size=batch_size, shuffle=True)
 testloader = torch.utils.data.DataLoader(testset, batch_size=batch_size_clas, shuffle=False)
 validloader = torch.utils.data.DataLoader(validset, batch_size=batch_size, shuffle=False)
@@ -74,9 +69,6 @@ trainloader_tsne= torch.utils.data.DataLoader(trainset_clas, batch_size=len(trai
 for i, data in enumerate(trainloader_tsne, 0):
     features_tsne = data[0].to(device)
     labels_tsne = data[1].to(device).cpu().numpy()
-
-
-
 
 # Model.
 #resnet = Resnet().to(device)
@@ -206,7 +198,6 @@ if all_train == 1:
                         #print(f"[V] Anchor Size is: {anchor.size(dim=0)}, Divided: {loss / anchor.size(dim=0)}")
                         val_running_loss = 0.0
 
-                    #valid_loss_list.append(loss.item())
                     valid_loss_list.append(loss.item())
 
 
