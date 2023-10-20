@@ -19,6 +19,8 @@ from torch import nn
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
 from torchvision.utils import make_grid, save_image
+from skimage.metrics import structural_similarity as ssim
+
 
 # Device configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -105,8 +107,6 @@ def visualise_embeddings(model: VQVAE, test_dl):
     plt.axis("off")
     plt.savefig(RUN_IMG_OUTPUT + "decoded.png", bbox_inches="tight", pad_inches=0)
 
-
-
 def train_vqvae(train_dl):
     vqvae = VQVAE(
         n_hidden_layers=N_HIDDEN_LAYERS, 
@@ -186,6 +186,10 @@ def train_vqvae(train_dl):
 def train_gan(model, train_dl):
     # define dataset
 
+    # Create ds and dl
+    transform = tfs.Compose([tfs.ToTensor()])
+    gan_ds = GanData(model, transform)
+    gan_dl = DataLoader(gan_ds, batch_size=BATCH_SIZE_GAN)
     generator = Generator()
     discriminator = Discriminator()
 
@@ -291,6 +295,38 @@ def train_gan(model, train_dl):
     return losses_g, losses_d, real_scores, fake_scores
 
 
+def calc_ssim(model, test_dl):
+    # Calculate SSIM for two images
+    test_img = next(iter(test_dl))
+
+    # load dataset
+    test_img = next(iter(test_dl))
+    # test_img = test_img
+    print(test_img.shape)
+    test_img = test_img.to(device)
+    test_img = test_img[0]
+    test_img = test_img.unsqueeze(0)
+    print(test_img.shape)
+    test_img.to(device)
+
+    z_q, embeddings = gen_encodings(model, test_img)
+    out = embeddings.view(64, 64)
+
+    # decoded
+    decoded = model.decoder(z_q)
+    # print(decoded.shape)
+    # plt.imshow(decoded[0][0].detach().cpu().numpy())
+    # plt.axis('off')
+    # plt.savefig(RUN_IMG_OUTPUT + 'decoded.png', bbox_inches='tight', pad_inches=0)
+
+    image_1 = test_img[0][0].detach().cpu().numpy()
+    image_2 = decoded[0][0].detach().cpu().numpy()
+
+    # calculate ssim
+    ssim_score = ssim(
+        image_1, image_2, data_range=image_2.max() - image_2.min(), multichannel=True
+    )
+    print(ssim_score)
 
 def main():
     train_dl, test_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, BATCH_SIZE)
@@ -317,6 +353,8 @@ def main():
     visualise_embeddings(model, test_dl)
 
     train_gan(model, train_dl)
+
+    calc_ssim(model, test_dl)
 
 
 if __name__ == '__main__':
