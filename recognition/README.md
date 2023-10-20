@@ -34,8 +34,10 @@ Figure 1(above), Our design was inspired by the U-Net. Top level data is gathere
 The Dice Similarity Coefficient (DSC) was used to evaluate the model. DSC is a statistic used to compare the similarity of two sets, most commonly use when comparing two images in biomedical image processing.  
 
 ### Training DSC and Loss Plots over Epochs:
-![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/6ad6ed69-5483-4f55-89ce-1cad501deb80)
-Average Dice Similarity Coefficient: 0.7197
+![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/80bd011b-f776-4c41-a9ae-3dd136d01a19)
+
+Average Training Dice Similarity Coefficient: 0.71
+Average Validation Dice Similarity Coefficient: 0.70
 
 ### Visual PLot:  
 ![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/c86cf3c5-f823-4d6d-a033-f3da4214a490)  
