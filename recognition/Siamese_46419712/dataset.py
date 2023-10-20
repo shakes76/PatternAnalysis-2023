@@ -70,7 +70,7 @@ class LoadData():
 
         # data loader hyper parameter
         self.image_size = 224
-        self.batch_size = 32
+        self.batch_size = 64
         self.num_worker = 0
 
         # train and validate ratio
@@ -172,23 +172,14 @@ class LoadData():
             path = TRAIN_PATH
             transform = transforms.Compose([
                 transforms.Resize(self.image_size),  # Resize to a common resolution
-                transforms.RandomHorizontalFlip(),  # Random horizontal flip
-                transforms.ToTensor(),  # Convert to tensor
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+                transforms.ToTensor(),
+                transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
             ])
-
-            if not self.siamese:
-                transform = transforms.Compose([
-                    transforms.Resize(self.image_size),  # Resize to a common resolution
-                    transforms.ToTensor(),  # Convert to tensor
-                    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
-                ])
         else:
             path = TEST_PATH
             transform = transforms.Compose([
                 transforms.Resize(self.image_size),
                 transforms.ToTensor(),
-                transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
             ])
 
         image = torchvision.datasets.ImageFolder(root=path, transform=transform)

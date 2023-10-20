@@ -61,13 +61,9 @@ class BinaryModelClassifier(nn.Module):
         self.binary_layer = nn.Sequential(
             nn.Linear(4096, 1024),
             nn.ReLU(),
-            nn.Linear(1024, 256),
+            nn.Linear(1024, 128),
             nn.ReLU(),
-            nn.Linear(256, 64),
-            nn.ReLU(),
-            nn.Linear(64, 16),
-            nn.ReLU(),
-            nn.Linear(16,1),
+            nn.Linear(128, 1),
             nn.Sigmoid()
         )
 
@@ -84,7 +80,7 @@ class ContrastiveLossFunction(nn.Module):
     """
     def __init__(self):
         super(ContrastiveLossFunction, self).__init__()
-        self.margin = 0.2
+        self.margin = 1.0
 
     def forward(self, output1, output2, label): 
         output = F.pairwise_distance(output1, output2)

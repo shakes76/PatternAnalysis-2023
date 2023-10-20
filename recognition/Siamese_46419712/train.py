@@ -301,10 +301,10 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
 
     # hyper parameters for classifier
     num_epochs = 40
-    learning_rate = 0.001
+    learning_rate = 0.005
 
     criterion = nn.BCELoss()
-    optimizer = torch.optim.Adam(cModel.parameters(), lr=learning_rate)
+    optimizer = torch.optim.Adam(cModel.parameters(), lr=learning_rate, betas=(0.5, 0.999))
 
     # training
     classifier_loss_list = []
@@ -331,7 +331,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     # train classifier
     for epoch in range(num_epochs):
         print ("Epoch [{}/{}]".format(epoch + 1, num_epochs))
-        if epoch + 1 == num_epochs:
+        if epoch + 2 == num_epochs:
             cModel, t_accuracy = train_classifier(sModel, cModel, train_loader_classifier, criterion, optimizer, classifier_loss_list, True)
             accuracy = validate_classifier(sModel, cModel, val_loader_classifier, criterion, classifier_val_loss_list, True)
         else:
