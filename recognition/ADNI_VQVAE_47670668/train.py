@@ -4,9 +4,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from pytorch_msssim import ssim
 from sklearn.cluster import KMeans
-from tqdm import tqdm
 
-from dataset import train_dataloader, val_dataloader, test_loader
+from dataset import train_dataloader, val_dataloader
 from modules import *
 
 
@@ -196,56 +195,3 @@ for epoch in range(num_epochs):  # Added epoch loop
     model.train()  # Switch back to training mode
 
 
-def get_discrete_latents(model, images):
-    with torch.no_grad():
-        z_e_x = model._encoder(images)
-
-        z_e_x = model._pre_vq_conv1(z_e_x).permute(0, 2, 3, 1)
-
-        vq_output = model._vq(z_e_x)
-        quantize = vq_output["quantize"]
-        encoding_indices = vq_output["encoding_indices"].squeeze(-1)
-
-        return quantize, encoding_indices
-    
-
-# Train PixelCNN
-pixelcnn = PixelCNN().to(device)
-optimizer = torch.optim.Adam(pixelcnn.parameters(), lr=1e-3)
-criterion = nn.CrossEntropyLoss()
-
-num_epochs = 10
-
-for epoch in range(num_epochs):
-    epoch_loss = 0
-    progress_bar = tqdm(train_dataloader, desc=f"Epoch {epoch}", leave=False)
-    
-    for batch_idx, (images, _) in enumerate(progress_bar):
-        # Move images to appropriate device
-        images = images.to(device)
-        
-        # Obtain discrete latents and encoding indices
-        quantize, encoding_indices = get_discrete_latents(model, images)
-        quantize = quantize.permute(0, 3, 1, 2)
-        
-        # Zero the optimizer gradients
-        optimizer.zero_grad()
-        
-        # Get predictions from PixelCNN
-        logits = pixelcnn(quantize)
-        
-        # Calculate loss
-        loss = criterion(logits, encoding_indices)
-
-        predictions = torch.argmax(logits, dim=1)
-        correct = (predictions == encoding_indices).float()
-        accuracy = correct.mean().item()
-        
-        # Backpropagation
-        loss.backward()
-        optimizer.step()
-        
-        epoch_loss += loss.item()
-        progress_bar.set_postfix(loss=epoch_loss / (batch_idx + 1), accuracy=accuracy)
-
-    print(f"Epoch {epoch}, Average Loss {epoch_loss / len(train_dataloader)}")
