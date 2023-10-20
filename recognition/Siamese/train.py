@@ -12,24 +12,13 @@ from PIL import Image
 import dataset as ds
 import module as md
 
-if __name__ == '__main__':
+#device configuration
+device = torch.device("cuda")
 
-    #device configuration
-    device = torch.device("cuda")
-
-    #Define parameters for model
-    layer = "VGG2"
-    in_channels = 1
-    classes = 2
-    epochs = 3
-    learning_rate = 1e-5  
-
-    model = md.Siamese(layers=layer, in_channels=in_channels, classes=classes).to(device)
-    optimizer = torch.optim.Adam(model.parameters(), lr = learning_rate)
-    criterion = md.ContrastiveLoss()
-    
-    #start training the model
+#start training the model
+def model_train(model, optimizer, epochs):
     model.train()
+    criterion = md.ContrastiveLoss()
     for epoch in range(epochs):
         print("epoch", epoch+1)
         for count, (img1, img2, label) in enumerate(ds.trainloader):
@@ -45,9 +34,11 @@ if __name__ == '__main__':
             optimizer.step()
             if count % 10 == 0:
                 print(f"Epoch number {epoch+1}\n Current loss {loss.item()}\n")
-    
-    #Now test the model
+
+#Now test the model
+def model_test(model):
     model.eval()
+    print("begin testing")
     correct = 0
     total = 0
     for (img1, img2, label) in ds.testloader:
