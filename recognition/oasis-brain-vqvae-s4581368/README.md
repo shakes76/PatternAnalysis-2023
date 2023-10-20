@@ -60,7 +60,7 @@ After training and validation, the GAN can be trained on the quantized output of
 
 As seen, the images are quite blurry and contain some amounts of noise, due to the untuned hyperparameters of the GAN. A subplot of four images is shown below for more visual granularity.
 
-![](./images/novel_brains.png)
+![](./images/higher_qual_zoomed.png)
 
 ## Reproduction 
 To generate the images shown above, ensure the OASIS data path is either specified or in the working directory, and run ```train.py```. This will generate the ```log``` and ```model``` directories in the workspace, which save the various models, logs and tensorboard logfiles for each time the training script is run.
