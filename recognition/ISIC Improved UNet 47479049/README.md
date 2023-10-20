@@ -4,10 +4,10 @@ This reports the usage of the improved Unet on the idetification of skin lesions
 ## Preprocessed ISIC Data set
 The data set contains 2,594 images of skin lesions along wwith a mask that contains pixel values of 0 (white) and (255) black. The white represetns the area that the skin lession is in and the black is where it does not contain the skin lession.
 
-![segmented](data\ISIC2018_Task1-2_Training_Input_x2\ISIC_0000000.jpg)
+![segmented](ISIC_0000000.jpg)
 Figure 1: Origional image for ISIC_0000000
 
-![segmented](data\ISIC2018_Task1_Training_GroundTruth_x2\ISIC_0000000_segmentation.png)
+![segmented](ISIC_0000000_segmentation.png)
 Figure 2: Origional image for ISIC_0000000_segmentation
 
 ### Data pre processing
