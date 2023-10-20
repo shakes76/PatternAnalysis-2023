@@ -154,4 +154,4 @@ def create_tensors():
     test_labels_tensor = torch.LongTensor(node_labels[test_mask, 1]).to(device)
     train_tensor = torch.BoolTensor(train_mask).to(device)
     test_tensor = torch.BoolTensor(test_mask).to(device)
-    return all_features_tensor, train_labels_tensor, test_labels_tensor, train_tensor, test_tensor
+    return all_features_tensor, train_labels_tensor, test_labels_tensor, train_tensor, test_tensor, test_mask
