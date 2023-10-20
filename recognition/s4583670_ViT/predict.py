@@ -69,7 +69,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Load the model in
-    model = torch.load('model_69.pt')
+    model = torch.load('model.pt')
     model.eval()
 
     # Get the test dataset 

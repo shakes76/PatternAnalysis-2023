@@ -17,7 +17,7 @@ Parameters:
     valid_dir - new validation file directory
     file_limit - number of files to store in validation directory
 '''
-def move_files(directory, valid_dir):
+def create_train_val_split(directory, valid_dir):
     files = defaultdict(set)
     file_limit = int(len(os.listdir(directory)) * 0.2)
     print(file_limit)
@@ -54,5 +54,5 @@ if __name__ == "__main__":
     valid_NC_dir = os.path.join(data_dir, "valid/NC")
 
     # Move the files
-    move_files(train_AD_dir, valid_AD_dir)
-    move_files(train_NC_dir, valid_NC_dir)
+    create_train_val_split(train_AD_dir, valid_AD_dir)
+    create_train_val_split(train_NC_dir, valid_NC_dir)

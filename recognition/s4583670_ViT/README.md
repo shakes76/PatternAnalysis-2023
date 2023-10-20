@@ -238,12 +238,12 @@ python train.py --hide-plots true
 ```
 
 ## Results
-After the training and hyperparameter tuning process, the trained vision transformer performed with a test accuracy of ```69.65%```. 
+After the training and hyperparameter tuning process, the trained vision transformer performed with a test accuracy of ```67.65%```. 
 
 ![alt text](images/losses5.png)
 ![alt text](images/accuracy5.png)
 
-The training and validation accuracy of the model lies at about ```80%``` and ```63%``` respectively. This is indicative of some overfitting to the training data. It was particularly hard to reduce this overfitting effect due to the small size of the dataset. In order to improve the model, more data is needed (need more samples or higher dimensional data). 
+The training and validation accuracy of the model lies at about ```85%``` and ```75%``` respectively. This is indicative of some overfitting to the training data. It was particularly hard to reduce this overfitting effect due to the small size of the dataset. In order to improve the model, more data is needed (need more samples or higher dimensional data). 
 
 ### Example Usage of Model
 ```predict.py``` shows an example use of the trained model by taking a random batch of the test dataset, showing this batch, and then predicting the classes to test accuracy. The script relies on the ```model.pt``` file that is saved after training the model. To use this script please run:
@@ -350,13 +350,13 @@ Target Class NC - Predicted Class NC
 Sample 31:
 Target Class NC - Predicted Class NC
 
-Test Accuracy 75.00
+Test Accuracy 68.04
 Test CE Loss 0.69
 ```
-So, for this particular batch of data, the model performed admirably at ```75%```.
+So, for this particular batch of data, the model performed admirably at ```68.04%```.
 
 ### Reproducibility
-Running ```predict.py``` several times to test the reproducibility of the model produced similar results. Accuracies of ```71.88%```, ```65.62%```, and ```75.08%``` were achieved over several runs. These results suggest the results of the model are reproducible once trained. In terms of training the model again and getting the same results, tests indicated that a retrained model produces similar results with full test dataset accuracies ```71%``` and ```68%``` being achieved.
+Running ```predict.py``` several times to test the reproducibility of the model produced similar results. Accuracies of ```63.88%```, ```65.62%```, and ```75.08%``` were achieved over several runs. These results suggest the results of the model are reproducible once trained. In terms of training the model again and getting the same results, tests indicated that a retrained model produces similar results with full test dataset accuracies ```71%``` and ```68%``` being achieved.
 
 ## Training and Hyperparameter Tuning
 This section describes the methodology and thought process behind the training and hyperparameter tuning process.
@@ -392,6 +392,6 @@ The model was still overfitting but the changes have decreased the losses in the
 ![alt text](images/losses4.png)
 ![alt text](images/accuracy4.png)
 
-The model is still overfitting. At this point, I decided to take a different approach. As there is significantly less data in the dataset than a usual deep learning model is trained on, I decided to make the model more simple. All regularisation (dropout and weight decay) was removed, the number of encoder layers was decreased to 4, the image patch size was decreased to 4, the MLP dimension was decreased to 128, and the MLP head dimension was decreased to 512. The results of this changed produced the model which performed with ```69%``` test accuracy.
+The model is still overfitting. At this point, I decided to take a different approach. As there is significantly less data in the dataset than a usual deep learning model is trained on, I decided to make the model more simple. All regularisation (dropout and weight decay) was removed, the number of encoder layers was decreased to 4, the image patch size was decreased to 4, the MLP dimension was decreased to 128, and the MLP head dimension was decreased to 512. On top of this, at this point I realised the code may be experiencing some data leakage, so I cleaned this up. The results of this changed produced the model which performed with ```69%``` test accuracy.
 
 
