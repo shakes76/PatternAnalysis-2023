@@ -27,7 +27,7 @@ class Siamese(nn.Module):
         self.in_channels = in_channels
         self.classes = classes
         self.features = self.make_layers(cfg(layers), self.in_channels)
-        self.classifier = nn.Linear(28672, self.classes)
+        self.classifier = nn.Linear(8192, self.classes)
     
     def make_layers(self, cfg, in_channels):
         layers = []
@@ -53,7 +53,7 @@ class Siamese(nn.Module):
         return output1, output2
 
 class ContrastiveLoss(torch.nn.Module):
-    def __init__(self, margin=2.0):
+    def __init__(self, margin=1.0):
         super(ContrastiveLoss, self).__init__()
         self.margin = margin
     
