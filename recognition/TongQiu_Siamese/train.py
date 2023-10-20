@@ -93,8 +93,8 @@ def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
 
     # Adjust the margin if too many negative pairs are below it
     proportion_negative_below_margin = negative_pairs_below_margin / (total_negative_pairs + 1e-10)
-    if proportion_negative_below_margin > 0.3:  # Example threshold, adjust as needed
-        criterion.margin *= 0.95  # Reduce the margin by 5%
+    if proportion_negative_below_margin > 0.3 :  # Example threshold, adjust as needed
+        criterion.margin *= 0.9  # Reduce the margin by 5%
 
     # Print the information.
     print(
