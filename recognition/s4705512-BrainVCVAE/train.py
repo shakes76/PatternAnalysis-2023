@@ -1,6 +1,7 @@
 """
 train.py
 Author: Francesca Brzoskowski
+s4705512
 
 Contains the source code for training, validating, testing and saving the model. The model
 should is imported from “modules.py” and the data loader is imported from “dataset.py”. 

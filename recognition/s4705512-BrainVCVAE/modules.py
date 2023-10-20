@@ -1,6 +1,7 @@
 """
 modules.py
 Author: Francesca Brzoskowski
+s4705512
 Containing the source code of the components of your model. Each component is
 implementated as a class or a function
 Based on implementation from: https://keras.io/examples/generative/vq_vae/

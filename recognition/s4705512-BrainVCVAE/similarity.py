@@ -1,7 +1,8 @@
 """
 similarity.py
-adapted from https://saturncloud.io/blog/how-to-use-pytorch-ssim-loss-function-in-your-model/
 Author: Francesca Brzoskowski
+s4705512
+adapted from https://saturncloud.io/blog/how-to-use-pytorch-ssim-loss-function-in-your-model/
 """
 
 import os

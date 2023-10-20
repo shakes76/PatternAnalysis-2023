@@ -1,7 +1,7 @@
 """
 predict.py
 Author: Francesca Brzoskowski
-
+s4705512
 Shows example usage of the trained model. 
 """
 import os
