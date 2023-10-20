@@ -79,18 +79,18 @@ for epoch in range(0,Config.train_number_epochs):
         scheduler.step()
 
     #test the network after finish each epoch, to have a brief training result.
-    correct_val = 0
-    total_val = 0
-    with torch.no_grad():
-        for img, label in test_loader:
-            img, label = img.to(device) , label.to(device)
-            output, _ = model(img, img)
-            _, predicted = torch.max(output.data, 1)
-            total_val += label.size(0)
-            correct_val += (predicted == label).sum().item()
+    # correct_val = 0
+    # total_val = 0
+    # with torch.no_grad():
+    #     for img, label in test_loader:
+    #         img, label = img.to(device) , label.to(device)
+    #         output, _ = model(img, img)
+    #         _, predicted = torch.max(output.data, 1)
+    #         total_val += label.size(0)
+    #         correct_val += (predicted == label).sum().item()
 
-    print('Accuracy of the network on the', total_val, ': %d %%' % (100 * correct_val / total_val))
-    show_plot(counter, loss_history)
+    # print('Accuracy of the network on the', total_val, ': %d %%' % (100 * correct_val / total_val))
+    # show_plot(counter, loss_history)
 
 
 torch.save(model.state_dict(), "model.pt")
@@ -115,5 +115,5 @@ with torch.no_grad():
 end = time.time()
 elapsed = end - start
 print("Testing took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
-
+show_plot(counter, loss_history)
 print('END')
