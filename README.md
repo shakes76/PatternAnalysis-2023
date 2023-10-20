@@ -30,16 +30,16 @@ The training process is defined in the `train.py` file. Key components of the tr
 
 The project's primary output is the segmentation of medical images, which is saved in the `predictions` directory. These predictions can be further evaluated and utilized for various medical applications. The training results produced:
 
-Epoch 1/10, Average Dice Coefficient: 0.2782156467437744
-Epoch 2/10, Average Dice Coefficient: 0.19667883217334747
-Epoch 3/10, Average Dice Coefficient: 0.16954968869686127
-Epoch 4/10, Average Dice Coefficient: 0.15880490839481354
-Epoch 5/10, Average Dice Coefficient: 0.14603781700134277
-Epoch 6/10, Average Dice Coefficient: 0.14193236827850342
-Epoch 7/10, Average Dice Coefficient: 0.1289714127779007
-Epoch 8/10, Average Dice Coefficient: 0.1291133463382721
-Epoch 9/10, Average Dice Coefficient: 0.12223245203495026
-Epoch 10/10, Average Dice Coefficient: 0.12053724378347397
+- Epoch 1/10, Average Dice Coefficient: 0.2782156467437744
+- Epoch 2/10, Average Dice Coefficient: 0.19667883217334747
+- Epoch 3/10, Average Dice Coefficient: 0.16954968869686127
+- Epoch 4/10, Average Dice Coefficient: 0.15880490839481354
+- Epoch 5/10, Average Dice Coefficient: 0.14603781700134277
+- Epoch 6/10, Average Dice Coefficient: 0.14193236827850342
+- Epoch 7/10, Average Dice Coefficient: 0.1289714127779007
+- Epoch 8/10, Average Dice Coefficient: 0.1291133463382721
+- Epoch 9/10, Average Dice Coefficient: 0.12223245203495026
+- Epoch 10/10, Average Dice Coefficient: 0.12053724378347397
 
 Images produced by `predict.py` are grey images, with no black and or white and therefore the `predict.py` code does not work as expected.
 
