@@ -1,5 +1,7 @@
 import torch
 from modules import GCN
+import matplotlib.pyplot as plt
+from sklearn.manifold import TSNE
 from dataset import load_data
 
 # Load data
@@ -27,6 +29,24 @@ def test():
     correct = pred[graph_data.test_mask].eq(graph_data.y[graph_data.test_mask]).sum().item()
     acc = correct / graph_data.test_mask.sum().item()
     return acc, pred
+
+# Visualizing Using t-SNE
+
+
+model.eval()
+with torch.no_grad():
+    embeddings = model(graph_data.x, graph_data.edge_index)
+
+# Adjust t-SNE parameters
+embeddings_2d = TSNE(n_components=2, perplexity=30, n_iter=250).fit_transform(embeddings.detach().numpy())
+
+plt.figure(figsize=(10, 8))
+for class_id in set(target):
+    indices = [i for i, t in enumerate(target) if t == class_id]
+    plt.scatter(embeddings_2d[indices, 0], embeddings_2d[indices, 1], label=f"Class {class_id}")
+plt.legend()
+plt.title("t-SNE visualization of GCN embeddings")
+plt.show()
 
 if __name__ == "__main__":
     for epoch in range(200):
