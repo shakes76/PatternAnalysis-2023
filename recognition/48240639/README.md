@@ -10,14 +10,14 @@
 2. [Project structure](#2-project-structure)
 3. [Reproducibility](#3-reproducibility)
 4. [Description](#4-dependencies)
-5. [Siamese Network](#5)
-6. [Resnet18 Architecture](#6)
-7. [Dataset](#7)
-8. [Model Training](#8)
-9. [Model Testing](#9)
-10. [Performance Summary](#10)
-11. [Future Improvements](#11)
-12. [Refrences](#12)
+5. [Siamese Network](#5-siamese-network)
+6. [Resnet18 Architecture](#6-resnet18-architecture)
+7. [Dataset](#7-dataset)
+8. [Model Training](#8-model-training)
+9. [Model Testing](#9-model-testing)
+10. [Performance Summary](#10-performance-summary)
+11. [Future Improvements](#11-future-improvements)
+12. [References](#12-references)
 
 ## 1. Introduction
 The main aim of this project is to create a network that can classify Alzheimers disease by distinguishing between patients and those, with AD. To accomplish this we will use the ADNI brain dataset. Target an accuracy level of 0.8.
@@ -94,14 +94,14 @@ Siamese Networks find utility in diverse applications, including:
 
 In this project, the Siamese structure employs the ResNet-18, a deep convolutional neural network consisting of 18 layers. ResNet-18 serves as the subnetwork, responsible for feature extraction from the input images. It's worth mentioning that my colleague and I consistently utilized the ResNet-18 model for enhancing the feature extraction process during our collaboration.
 
-## 6.Resnet18 Architecture
+## 6. Resnet18 Architecture
 ![Alt text](Images_Report/Resnet18.png)
 
 Resnet18 Architecture serves as the backbone of this project, playing a vital role in processing and analyzing the images effectively. It belongs to the Residual Network (ResNet) family, which is renowned for its competence in training deep neural networks. The architecture is particularly well-suited for intricate image-related tasks, making it a suitable choice for the complexity of classifying Alzheimer's disease (AD) and normal control (NC) brain images.
 
 Within this architecture, Resnet18 undertakes the task of handling two input images, diligently extracting crucial features from each. Its deep structure, composed of 18 layers, empowers the network to discern intricate details within the images. The deep layers are instrumental in recognizing patterns, textures, and other visual attributes essential for distinguishing between AD and NC brain images.
 
-## 7.Dataset
+## 7. Dataset
 
 - The dataset employed in this project originates from the publicly available ADNI brain dataset, which can be conveniently acquired by accessing ADNI. This dataset encompasses a grand total of 4,424 brain MRI scans, where 2,315 scans are associated with AD patients, and the remaining 2,109 scans correspond to NC individuals.
 
@@ -119,7 +119,7 @@ NC Image
 
 The presented module encapsulates the core elements of our project description, meticulously conveying the salient details for incorporation into our project report.
 
-## 8.Model Training
+## 8. Model Training
 - The training procedure involves a two-phase approach, each pivotal in shaping the model's proficiency.
 
 - In the first phase, we employ a pre-trained Resnet18 architecture. This pre-trained model serves as a potent feature extractor, significantly expediting the extraction of salient features from the input data. We've meticulously fine-tuned the Resnet18 model to make it harmonious with our specific task, ensuring that it excels at feature extraction.
@@ -141,7 +141,7 @@ The presented module encapsulates the core elements of our project description, 
 
 The Training Accuracy chart vividly showcases the convergence of the model's training process. Over the course of 1,200 training steps, we observe substantial improvements in accuracy.
 
-## 9.Model Testing
+## 9. Model Testing
 
 - The testing phase mirrors the training phase in many aspects, albeit with a different goal: assessing performance. This phase is dedicated to evaluating the Siamese network's ability to generalize to unseen data.
 
@@ -168,7 +168,7 @@ The comprehensive training and testing stages are the cornerstone of our project
  
 
 
-## 10.Performance Summary
+## 10. Performance Summary
 
 - After rigorous training for 25 epochs using the Adam optimizer, the model achieved a commendable accuracy of 85%(Highest Achieved) on the test dataset. This outcome is promising and indicates the model's potential .
 
@@ -178,12 +178,12 @@ The comprehensive training and testing stages are the cornerstone of our project
 3.	50 Epochs – Accuracy = 82%
 
 
-## 11.Future Improvements 
+## 11. Future Improvements 
 
 In the realm of future work, several avenues present themselves. It's essential to explore network structure optimization to enhance model performance further. Additionally, efforts can be directed towards minimizing training costs, which can make the model more accessible and practical. Furthermore, investigating more efficient data loading techniques can streamline the workflow, potentially leading to improved efficiency. These potential directions pave the way for further advancements in this project.
 
 
-## 12.References
+## 12. References
 
 - Chopra, Sumit & Hadsell, Raia & Lecun, Yann. (2005). Learning a similarity metric discriminatively, with application to face verification. Proc. Computer Vision and Pattern Recognition. 1. 539- 546 vol. 1. 10.1109/CVPR.2005.202.
 - https://pyimagesearch.com/2020/11/30/siamese-networks-with-keras-tensorflow-and-deep-learning/
