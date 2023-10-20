@@ -8,8 +8,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 from torchvision import transforms
-from dataset import preprocess_image
-from modules import SwinTransformer 
+from dataset import preprocess_image # Import dataset class from dataset.py
+from modules import SwinTransformer # Import Swin transformer model from modules.py
 
 
 class Tester:
