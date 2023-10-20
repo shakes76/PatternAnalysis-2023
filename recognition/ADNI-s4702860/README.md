@@ -56,8 +56,8 @@ pip install umap-learn
 ### **IMPORTANT**
 Before running any programs, make sure the file path for the train and test set 
 in dataset.py is set to the correct path. It has been assumed that the "AD_NC" folder
-whih contains all of the data is in the current working directory. However, if the data path is not
-in the current working directory, change the path variable on lines 25 and 33. 
+which contains all of the data is in the current working directory. However, if the data path is not
+in the current working directory, change the path variable on lines 25 and 33 in dataset.py.
 
 ```
 
@@ -68,6 +68,8 @@ Program that trains both the siamese neural network and the classification model
 training of the siamese network, anchor, pos, neg triples need to be created. The current 
 working device was able to do up to 1000 data points before the limit of the hardware was reached. 
 If the number of data points needs to be changed, in the main method, edit lines 109-110, and lines 113-114. 
+Upon completing the training, triple loss curves for each of the three inputs will be displayed for both the train 
+and validation set for the siamese model, whereas train and validation accuracy plots for the classifier. 
 
 ```
 Run this file before predict.py
@@ -75,18 +77,29 @@ Run this file before predict.py
 
 ### predict.py
 Program that runs to make predictions, and evaluate the model trained in train.py. 
+Upon running this program, the weights created in predict.py will be loaded into a model, UMAC
+curves will be displayed both before and after the embedding in order to display how the siamese neural network
+aids in classifying. Simiiarly, the test accuracy will be printed as well across the test set. 
 
-Upon running this program, the weights created in predict.py will be loaded into a model, 
-and various plots will be displayed to show the effect of using the Siamese model.
-
-line 42
 ## Example Use
-The main task of this is to attempt to classify the ADNI dataset as either AD (Alzeimers disease) or NC 
-(normal cognition). Initially, there does not appear to be any pattern to the image. 
+
+The main task of this project is to attempt to classify the ADNI dataset as either AD (Alzeimers disease) or NC 
+(normal cognition) when using siamese embeddings. The plot below shows the class regions before the siamese embeddings. 
 
 ![UMAP before classifier](Figures/UMAP_BEFORE.png)
 
-However, lets see if the data can be classified using the siamese model. 
+Observations clearly demonstrate that there is no structure to the data and there are no class-specific regions. 
+However, lets demonstrate the power of the siamese neural network. 
+### 0. Preprocessing
+This step involves loading up all of the data using:
+```
+train_gen, test_gen = load_dataset()
+train_triples, train_labels = load_data_triplets(train_gen, n)
+test_triples, test_labels = load_data_triplets(test_gen, n)
+```
+For some value n, where n is the number of data points to be used for training. From here, it is as simple as running
+train.py in order to get the weightings for the siamese neural network.
+
 
 Assuming the model has already been trained, to classify this data first:
 ### 1. Load Anchor Embeddings
@@ -125,13 +138,10 @@ in the sense that it is in a circular line, no class has any specific region. Th
 accuracy curves ![Validation curves for classifier](Figures/Classification_Accuracy.png)
 
 
-
-
 ## Preprocessing and Data Augumentation
 Image data generators were chosen as not only are they computationally cheap, they also allow
 for data Augumentation quite easily. 
 Typically the data was normalized, however, it also allowed for random variences such as pizel dimension, rotation etc.
-
 Attempts were made to try and load the data generator into the model. Results found that the model
 while training on the dataset would take substancial time per iteration. 
-As such, only a subset of features were trained and tested upon. 
+As such, only a subset of features were trained and tested upon [IDG](https://www.tensorflow.org/api_docs/python/tf/keras/preprocessing/image/ImageDataGenerator). 
