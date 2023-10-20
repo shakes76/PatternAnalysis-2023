@@ -148,6 +148,7 @@ where $Y$ is the label indicating whether the two images are of the same class, 
 Adam was used as the optimiser for the Siamese network with a learning rate of 0.0001 and betas of (0.5, 0.999). During testing, this confirguration was found to deliver the best performance in terms of loss and final accuracy. Weight decay and learning rate schedulers were tested, but were found to not improve the performance of the model.
 
 ### Results
+The Siamese network is trained with a batch size of 32. As the dataset for the Siamese network supplies paired images, the batch size of 32 corresponds to 64 images in the GPU at any one time.
 Ultimately, it was found that 15 epochs of Siamese training for the embedding network resulted in the best classifier accuracy regardless of the number of epochs used to train the classifier.
 This is despite the fact that the Siamese network appears to overfit the training data after 9 to 11 epochs of training in the loss plot below (note that the x-axis of the plot is 0-indexed). 
 
@@ -162,6 +163,7 @@ As the classifier is performing a binary classification task, binary cross-entro
 Adam was used as the optimiser for the classifier with a learning rate of 0.001 and betas of (0.5, 0.999). During testing, this confirguration was found to deliver the best performance in terms of loss and final accuracy. Weight decay and learning rate schedulers were tested, but were found to not improve the performance of the model.
 
 ### Results
+The classifier is trained with a batch size of 64, which corresponds to 64 images in the GPU at any one time.
 The classifier was trained for 20 epochs. 
 The training and validation loss plot is shown below. 
 The training loss appears to stabilise in the second epoch (epoch 1) and remain at approximately the same level throughout all remaining epochs. 
