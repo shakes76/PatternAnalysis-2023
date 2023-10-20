@@ -1,0 +1,96 @@
+# Alzheimer's Disease Classification with Swin Transformer
+<p align="center"> Name: <b>TARUSHI GERA</b><br>Student ID: <b>48242204</b>
+    <br> 
+</p>
+
+### Description
+
+Alzheimer's disease is a neurodegenerative condition affecting millions worldwide, making early and accurate diagnosis critical for patient care and research. Extracting meaningful features from medical images is challenging due to the subtlety of disease-related patterns. The Swin Transformer, a state-of-the-art deep learning architecture, excels at capturing fine-grained details and long-range dependencies within images. This capability significantly enhances the accuracy of Alzheimer's disease classification, contributing to early diagnosis and research efforts. The Swin Transformer's hierarchical structure allows it to efficiently process the large and complex medical images commonly used in this field.
+
+![Swin Transformer](TarushiGera(48242204)ADNI/images/swin_transformer.png)
+
+## Working
+### Data Preprocessing
+
+Data preprocessing plays a pivotal role in preparing input images for classification. The key steps include:
+
+1. **Background Removal**: Eliminating undesirable background elements by generating a binary mask that isolates the object of interest while eliminating surrounding gray or dark regions. This process is adaptable to both grayscale and color images.
+![Input Image](TarushiGera(48242204)ADNI/images/crop_image.png)
+
+2. **Color Space Conversion**: Ensuring uniformity and compatibility by converting input images to the RGB color space.
+
+3. **Gaussian Noise (Optional)**: An optional step that introduces Gaussian noise to images. While this can enhance model robustness by adding variability to the training data, it is currently commented out and can be enabled as needed.
+![Input Image](TarushiGera(48242204)ADNI/images/gaussian_blur.png)
+
+We used 19520 samples for training, 2000 for validation, and 9000 for testing.
+
+## Example Input and Output
+
+Following are the example input images where **AD** means Alzheimer Disease and **NC** means No Disease.
+![Input Image](TarushiGera(48242204)ADNI/images/example_input.png)
+
+
+## Requirements
+
+Make sure you have the following dependencies installed:
+
+- Python >= 3.7
+- PyTorch
+- timm
+
+    ```bash
+    pip install -r requirements.txt
+
+## Configuration File
+
+You can customize the model, data, and training settings using the configuration file config.yaml. Update the configuration to match your dataset and training requirements.
+    
+    ```bash
+    data:
+      train_data_dir: "./data/train"  # Replace with the path to your training data
+      val_data_dir: "./data/val"      # Replace with the path to your validation data
+      test_data_dir: "./data/test"    # Replace with the path to your testing data
+
+    model:
+      num_classes: 2                  # Number of classes for binary classification
+
+    training:
+      is_train: true                  # Whether to train the model
+      device: 'cuda'                  # Use cuda for gpu else cpu
+      image_size: [224, 224]          # Input Image size
+      batch_size: 32                  # Batch Size
+      learning_rate: 1e-5             # Learning Rate
+      epochs: 15                      # Number of epochs to train
+      save_dir: './results'           # Directory for saving logs
+
+    testing:
+      is_test: true                   # Whether to test the model
+      model_path: #'./results/swin_transformer_model.pth'   # Path to the checkpoint
+
+
+## How to Run
+
+1. For training, set is_train = true in config.yaml
+   
+   ```bash
+   python train.py
+   
+2. For testing, set is_train = false and is_test = true in config.yaml
+   
+   ```bash
+   python train.py
+
+
+## Model Evaluation
+
+We evaluated our model on testing data. The results indicate the following:
+
+**Accuracy (0.7227):** This metric tells us that the model correctly predicts the class of about 81.2% of the instances. It represents the overall ability of the model to classify samples correctly.
+
+**Precision (0.714):** Precision measures the ability of the model to correctly classify positive cases. In this context, it indicates that when the model predicts Alzheimer's Disease (AD), it's correct about 71.4% of the time.
+
+**Recall (0.750):** Recall, also known as sensitivity, measures the ability of the model to correctly identify positive cases out of all actual positive cases. In this context, it indicates that the model correctly identifies 75.0% of the actual AD cases.
+
+**F1 Score (0.732):** The F1 score is the harmonic mean of precision and recall. It provides a balance between these two metrics. An F1 score of 0.732 indicates a reasonable balance between precision and recall.
+
+![Input Image](TarushiGera(48242204)ADNI/results/cm_plot.png)
