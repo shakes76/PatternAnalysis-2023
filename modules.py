@@ -3,15 +3,21 @@ import torch.nn as nn
 import math
 
 class Block(nn.Module):
+    """
+    A simple block module that comprises Layer Normalization, two convolution layers, and the SiLU (swish) activation function.
+    """
     def __init__(self, shape, in_channel, out_channels, kernel_size=3, stride=1, padding=1):
         super(Block, self).__init__()
-        self.ln = nn.LayerNorm(shape)
+        self.ln = nn.LayerNorm(shape)  # Layer normalization
         self.conv1 = nn.Conv2d(in_channel, out_channels, kernel_size, stride, padding)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size, stride, padding)
-        self.activation = nn.SiLU()
+        self.activation = nn.SiLU()  # SiLU activation function (also known as swish)
 
     def forward(self, x):
-        out = self.ln(x) 
+        """
+        Forward pass through the block.
+        """
+        out = self.ln(x)
         out = self.conv1(out)
         out = self.activation(out)
         out = self.conv2(out)
@@ -20,15 +26,19 @@ class Block(nn.Module):
 
     
 class UNet(nn.Module):
+    """
+    A U-Net architecture with time embeddings.
+    This U-Net takes an image and a time step as inputs and produces a denoised version of the image.
+    """
     def __init__(self, num_steps=1000, time_emb_dim=100):
         super(UNet, self).__init__()
 
-        # Sinusoidal embedding
+        # Sinusoidal time embedding
         self.time_embed = nn.Embedding(num_steps, time_emb_dim)
         self.time_embed.weight.data = self._sinusoidal_embedding(num_steps, time_emb_dim)
-        self.time_embed.requires_grad_(False)
+        self.time_embed.requires_grad_(False)  # Disable training for sinusoidal embeddings
 
-        # Encoder
+        # Encoder layers
         self.enc1 = self._make_time_embedding(time_emb_dim, 1)
         self.block1 = nn.Sequential(
             Block((1, 224, 224), 1, 10),
@@ -60,14 +70,14 @@ class UNet(nn.Module):
         )
         self.down5 = nn.Conv2d(160, 320, 4, 2, 1)
 
-        # Bottleneck
+        # Bottleneck layer
         self.enc_mid = self._make_time_embedding(time_emb_dim, 320)
         self.block_mid = nn.Sequential(
             Block((320, 7, 7), 320, 320),
             Block((320, 7, 7), 320, 320),
         )
 
-        # Decoder
+        # Decoder layers
         self.up1 = nn.ConvTranspose2d(320, 160, 4, 2, 1)
         self.dec1 = self._make_time_embedding(time_emb_dim, 320)
         self.block6 = nn.Sequential(
@@ -98,9 +108,12 @@ class UNet(nn.Module):
             Block((20, 224, 224), 20, 10),
         )
 
-        self.conv_out = nn.Conv2d(10, 1, 3, 1, 1)
+        self.conv_out = nn.Conv2d(10, 1, 3, 1, 1) # Final output convolution
 
     def forward(self, x, t):
+        """
+        Forward pass of the U-Net, taking both the input image `x` and time step `t`.
+        """
         t = self.time_embed(t)
         n = len(x)
 
@@ -147,10 +160,11 @@ class UNet(nn.Module):
 class DDPM_UNet(nn.Module):
     """
     Diffusion Denoising Probabilistic Model (DDPM) with a U-Net architecture.
+    This class offers methods to introduce noise to an image and denoise it.
     """
     def __init__(self, network, num_steps=1000, min_beta=1e-4, max_beta=0.02, image_shape=(1, 224, 224), device=None,):
         super(DDPM_UNet, self).__init__()
-        
+        # Define properties like number of steps, device, image shape, and the neural network model.
         self.num_steps = num_steps
         self.device = device
         self.image_shape = image_shape
