@@ -16,13 +16,13 @@ from utils import (
 )
 
 # Hyperparameters etc.
-LEARNING_RATE = 3e-4
+LEARNING_RATE = 1e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 8
+BATCH_SIZE = 32
 NUM_EPOCHS = 20
 NUM_WORKERS = 2
-IMAGE_HEIGHT = 384
-IMAGE_WIDTH = 511
+IMAGE_HEIGHT = 192
+IMAGE_WIDTH = 255
 PIN_MEMORY = True
 LOAD_MODEL = False
 TRAIN_IMG_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/train_images"
@@ -36,11 +36,13 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
     for batch_idx, (data, targets) in enumerate(loop):
         data = data.to(device=DEVICE)
         targets = targets.float().unsqueeze(1).to(device=DEVICE)
-        targets /= 255.0
+        targets = targets / 254.0
 
         # forward
         with torch.cuda.amp.autocast():
             predictions = model(data)
+            predictions = (predictions + 1)/2
+            #print(predictions)
             loss = loss_fn(predictions, targets)
 
         # backward

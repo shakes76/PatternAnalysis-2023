@@ -187,4 +187,4 @@ class UNET(nn.Module):
         if final_conv_out2.shape != final_conv_out3.shape:
             final_conv_out2 = TF.resize(x, final_conv_out3.shape[2:])
         final_conv_out3 = final_conv_out3 + final_conv_out2
-        return self.final_norm(self.final_conv(final_conv_out3))
+        return self.final_conv(final_conv_out3)
