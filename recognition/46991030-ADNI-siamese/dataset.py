@@ -4,6 +4,8 @@ dataset.py: Functions to load the dataset
 import numpy as np
 import tensorflow as tf
 
+import constants
+
 SCALING_FACTOR = 1.0 / 255.0
 
 
@@ -307,3 +309,43 @@ def load_dataset(
         classify_validate_ds,
         classify_test_ds,
     )
+
+
+def load_samples(
+    path: str, n: int = 5
+) -> tuple[list[str], list[str], np.ndarray, np.ndarray]:
+    """
+    Loads some sample data from the given path of the test set.
+
+    Args:
+        path (str): The path to the test set.
+        n (int, optional): The number of samples to load for each class. Defaults to 5.
+
+    Returns:
+        tuple[np.ndarray, np.ndarray]: The AD and NC samples.
+    """
+    AD, NC = get_jpegs(f"{path}/AD"), get_jpegs(f"{path}/NC")
+
+    AD_samples = np.random.choice(AD, n)
+    NC_samples = np.random.choice(NC, n)
+
+    load_jpeg_raw = lambda p: tf.keras.utils.img_to_array(
+        tf.keras.utils.load_img(
+            p,
+            color_mode="grayscale",
+            target_size=constants.IMAGE_INPUT_SHAPE[:2],
+        )
+    )
+
+    AD_samples = np.array(
+        [load_jpeg_raw(AD_samples[i]) for i in range(len(AD_samples))]
+    )
+
+    NC_samples = np.array(
+        [load_jpeg_raw(NC_samples[i]) for i in range(len(NC_samples))]
+    )
+
+    AD_samples_processed = AD_samples * SCALING_FACTOR
+    NC_samples_processed = NC_samples * SCALING_FACTOR
+
+    return AD_samples, NC_samples, AD_samples_processed, NC_samples_processed
