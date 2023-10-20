@@ -106,13 +106,13 @@ def load_dataset(
     train_patient_ids = patient_ids[len(patient_ids) // 5 :]
     validate_patient_ids = patient_ids[: len(patient_ids) // 5]
 
-    train_both_AD, train_both_NC = create_pairs(train_AD, train_AD, 0), create_pairs(
-        train_NC, train_NC, 0
-    )
+    train_both_AD, train_both_NC = create_pairs(
+        train_AD.copy(), train_AD.copy(), 0
+    ), create_pairs(train_NC.copy(), train_NC.copy(), 0)
 
-    train_mixed_AD, train_mixed_NC = create_pairs(train_AD, train_NC, 1), create_pairs(
-        train_NC, train_AD, 1
-    )
+    train_mixed_AD, train_mixed_NC = create_pairs(
+        train_AD.copy(), train_NC.copy(), 1
+    ), create_pairs(train_NC.copy(), train_AD.copy(), 1)
 
     train = np.concatenate(
         (train_both_AD, train_both_NC, train_mixed_AD, train_mixed_NC)
@@ -132,13 +132,13 @@ def load_dataset(
 
     test_AD, test_NC = get_jpegs(f"{path}/test/AD"), get_jpegs(f"{path}/test/NC")
 
-    test_both_AD, test_both_NC = create_pairs(test_AD, test_AD, 0), create_pairs(
-        test_NC, test_NC, 0
-    )
+    test_both_AD, test_both_NC = create_pairs(
+        test_AD.copy(), test_AD.copy(), 0
+    ), create_pairs(test_NC.copy(), test_NC.copy(), 0)
 
-    test_mixed_AD, test_mixed_NC = create_pairs(test_AD, test_NC, 1), create_pairs(
-        test_NC, test_AD, 1
-    )
+    test_mixed_AD, test_mixed_NC = create_pairs(
+        test_AD.copy(), test_NC.copy(), 1
+    ), create_pairs(test_NC.copy(), test_AD.copy(), 1)
 
     test = np.concatenate((test_both_AD, test_both_NC, test_mixed_AD, test_mixed_NC))
 
