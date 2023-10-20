@@ -11,7 +11,7 @@ import os.path
 import CONSTANTS
 
 # global variables
-batch_size = 16
+batch_size = 32
 workers = 0
 
 # TODO: deterministic pairing for validation set

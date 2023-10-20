@@ -6,6 +6,7 @@ import torch.optim as optim
 import torch.utils.data
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
+import numpy as np
 import os
 
 import CONSTANTS
@@ -282,13 +283,14 @@ def Siamese_training(total_epochs:int, random_seed=None, checkpoint=None):
     print("Siamese Training and Validation took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
 
     plt.figure(figsize=(10,5))
-    plt.title("Training and Evaluation Loss During Training")
+    plt.title("Training and Validation Loss During SiameseNeuralNet Training")
     plt.plot(training_losses, label="Train")
-    plt.plot(eval_losses, label="Eval")
+    plt.plot(eval_losses, label="Validation")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
+    plt.xticks(np.arange(0, epoch + 1, step=1))
     plt.legend()
-    plt.savefig(CONSTANTS.RESULTS_PATH + f"DSiamese_train_and_eval_loss_after_{total_epochs}_epochs.png")
+    plt.savefig(CONSTANTS.RESULTS_PATH + f"Siamese_loss_after_{total_epochs}_epochs.png")
 
     return siamese_net
 
@@ -355,15 +357,18 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
     plt.plot(eval_losses, label="Validation")
     plt.xlabel("Epochs")
     plt.ylabel("Loss")
+    plt.xticks(np.arange(0, epoch + 1, step=1))
     plt.legend()
     plt.savefig(CONSTANTS.RESULTS_PATH + f"Classifier_loss_after_{total_epochs}_epochs.png")
 
     plt.figure(figsize=(10,5))
-    plt.title("Testing and Validation Accuracy")
+    plt.title("Validation and Testing Accuracy of Classifier")
     plt.plot(validation_accuracy, label="Validation Accuracy")
     plt.plot(test_accuracy, label="Testing Accuracy")
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")
+    plt.xticks(np.arange(0, epoch + 1, step=1))
+    plt.ylim(0,1)
     plt.legend()
     plt.savefig(CONSTANTS.RESULTS_PATH + f"Classifier_Accuracy_after_{total_epochs}_epochs.png")
     return classifier
@@ -371,13 +376,13 @@ def classifier_training(backbone: SiameseTwin, total_epochs:int, random_seed=Non
 if __name__ == "__main__":
     os.environ["CUBLAS_WORKSPACE_CONFIG"]=":4096:8"
     # sequential training workflow
-    net = Siamese_training(20, 42) # Model saving options available by uncommenting code in this function
-    classifier = classifier_training(net.backbone, 20, 42) # comment out this line to train classifier based on last saved Siamese model
+    net = Siamese_training(15, 35) # Model saving options available by uncommenting code in this function
+    classifier = classifier_training(net.backbone, 20, 35) # comment out this line to train classifier based on last saved Siamese model
 
     # training classifier from existing Siamese model workflow
-    checkpoint = "SiameseNeuralNet_checkpoint.tar"
-    siamese_net, criterion, optimiser, device = initialise_Siamese_training()
-    start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
+    # checkpoint = "SiameseNeuralNet_checkpoint.tar"
+    # siamese_net, criterion, optimiser, device = initialise_Siamese_training()
+    # start_epoch, siamese_net, optimiser, training_losses, eval_losses = load_from_checkpoint(checkpoint, siamese_net, optimiser)
 
-    classifier_training(siamese_net.backbone, 20, 35)
+    # classifier_training(siamese_net.backbone, 20, 35)
 
