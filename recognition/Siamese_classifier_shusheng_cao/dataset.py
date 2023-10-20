@@ -82,6 +82,6 @@ class ADNIDataset(Dataset):
             item = self.ad_images[idx - len(self.normal_images)]
             label = 1
         if self.transform:
-            return self.transform(item)
+            return self.transform(item), label
         else:
             return item, label

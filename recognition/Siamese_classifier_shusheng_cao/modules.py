@@ -88,7 +88,7 @@ class Classifier(nn.Module):
         super(Classifier, self).__init__()
         self.resnet = ResNet(BasicBlock, 64, [2, 2, 2, 2])
         self.fc = nn.Sequential(
-            nn.Linear(512, 256),
+            nn.Linear(28672, 256),
             nn.ReLU(),
             nn.Linear(256, num_classes)
         )

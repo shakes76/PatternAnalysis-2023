@@ -65,7 +65,8 @@ def train_siamese(data_dir, output_path):
 
     torch.save(model.state_dict(), output_path)
 
-def train_classifier(data_dir, siamese_model, output_path):
+
+def train_classifier(data_dir, siamese_model_path, output_path):
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1155,), (0.2254,))
@@ -77,9 +78,10 @@ def train_classifier(data_dir, siamese_model, output_path):
     trainloader = torch.utils.data.DataLoader(classifier_trainset, batch_size=32, shuffle=True, pin_memory=True)
     valloader = torch.utils.data.DataLoader(classifier_valset, batch_size=32, shuffle=True, pin_memory=True)
     print("Data loaded")
-
+    siamese_model = SiameseNetwork()
+    siamese_model.load_state_dict(torch.load(siamese_model_path))
     model = Classifier(2)
-    model.load_state_dict(siamese_model)
+    model.resnet.load_state_dict(siamese_model.resnet.state_dict())
     model = model.to(device)
 
     scaler = GradScaler()
@@ -111,12 +113,12 @@ def train_classifier(data_dir, siamese_model, output_path):
             scaler.update()
 
             running_loss += loss.item()
-            print("loss: ", loss.item())
 
         print(f"Epoch {epoch + 1}, Loss: {running_loss / len(trainloader)}")
         print(f"Epoch {epoch + 1}, Accuracy: {evaluate_classifier(model, valloader)}")
 
     torch.save(model.state_dict(), output_path)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="The file to train the model")

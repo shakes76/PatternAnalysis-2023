@@ -23,7 +23,6 @@ def evaluate_siamese(model, loader, threshold=0.6):
             correct += (similarity_positive > threshold).sum().item()
             correct += (similarity_negative < threshold).sum().item()
             total += 2 * anchor.size(0)
-            print(correct / total)
     return correct / total
 
 def predict_siamese(data_dir, model_path):
