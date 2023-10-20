@@ -55,11 +55,10 @@ Below there have been provided some example inputs, predictions and ground thrut
 ![](Report_img/output_early2.png)
 
 Below is a image of the dice values of the trained model on the training set. The mean is at 0.79.
+
 ![](Report_img/dice_plot.png)
 
-
-##Running the code
-If you want to create your own UNet model. First download the ISIC2018 dataset. Set the path to the image folders in train.py
+It is clear that this model does not fully solve the task. This could be due to many things such as optimizing parameters, lacking transformations or wrongs in the model architecture.
 
 
 Refrences:
