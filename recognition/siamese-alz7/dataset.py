@@ -1,7 +1,24 @@
 import os
 import random
 import torch
+import numpy as np
+import math
+from torch.utils.data import Dataset, DataLoader
+import torchvision
 
+class SiameseDataSet(Dataset):
+
+    def __init__(self):
+        #data loading
+        pass
+
+    def __getitem__(self, item):
+        #indexing
+        pass
+
+    def __len__(self):
+        # return n_samples
+        pass
 
 def get_patients(path: str) -> [str]:
     uids = []
