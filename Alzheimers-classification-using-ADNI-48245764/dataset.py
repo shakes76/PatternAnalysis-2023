@@ -4,12 +4,6 @@ import matplotlib.pyplot as plt
 from IPython.display import HTML
 
 
-BATCH_SIZE = 32
-IMAGE_SIZE = 256
-CHANNELS=3
-EPOCHS=50
-
-
 dataset = tf.keras.preprocessing.image_dataset_from_directory(
     'AD_NC/train',
     seed=123,
