@@ -28,23 +28,20 @@ class DiceLoss(nn.Module):
         loss = dice_coefficient(predicted, target, self.smooth)
         return loss
 
-# Define your U-Net model
+# Define U-Net model
 model = UNet(n_class=1)  # Adjust the number of classes according to your task
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 model.to(device)
 
-# Define your loss function and optimizer
-criterion = DiceLoss()  # Use appropriate loss for your task
+# Define loss function and optimizer
+criterion = nn.MSELoss() # Use appropriate loss for your task
 
 optimizer = optim.Adam(model.parameters(), lr=0.001)
 
 # Define data loading and augmentation
 transform = transforms.Compose([])
-batch_size = 2
+batch_size = 10
 
-# Assuming you have your data organized in a directory structure like this:
-# dir_img contains input images
-# dir_mask contains corresponding masks
 current_directory = os.getcwd()
 relative_img_path = 'recognition/easy/datasmall/image/'
 relative_mask_path = 'recognition/easy/datasmall/mask/'
@@ -63,7 +60,7 @@ dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=False)
 
 
 # Training loop
-num_epochs = 1  # Adjust as needed
+num_epochs = 10  # Adjust as needed
 
 model = model.to(device)
 for epoch in range(num_epochs):
@@ -71,7 +68,7 @@ for epoch in range(num_epochs):
     running_loss = 0.0
     for i, data in enumerate(dataloader, 0):
         
-        print(i)
+        # print(i)
         inputs, masks = data
         inputs, masks = inputs.to(device), masks.to(device)
         # print(inputs.shape)
@@ -81,7 +78,7 @@ for epoch in range(num_epochs):
         # print(masks.shape)
         # print(masks.unique())
 
-        print("loss", dice_coefficient(inputs, masks))
+        # print("loss", dice_coefficient(inputs, masks))
         optimizer.zero_grad()
 
         # Forward pass
@@ -94,6 +91,7 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         running_loss += loss.item()
+        # print(running_loss,loss.item())
 
     print(f"Epoch [{epoch + 1}/{num_epochs}] Loss: {running_loss / len(dataloader)}")
 
