@@ -55,7 +55,7 @@ with torch.no_grad:
         
         dice_score = 1 - dice_loss(pred, mask)
 
-        print(f"Dice Score of Prediction {i}: {dice_score}")
+        print(f"Dice Score of Prediction {i}: " + "{:.4f}".format(dice_score))
 
         if i > 4:
             break
