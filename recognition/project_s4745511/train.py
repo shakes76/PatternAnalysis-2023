@@ -11,7 +11,13 @@ from tensorflow.keras.models import load_model
 SNN_PATH = '/SNN.h5'
 CLASSIFIER_PATH = '/Classifier.h5'
 
-def training(epochs_snn=1, epochs_classifier=1):
+def training(epochs_snn=40, epochs_classifier=20):
+    """
+    Function: training the siamese model and classifier and plotting the accuracy and loss
+    Input Parameters:
+    - epochs_snn (int): Number of training epochs for the Siamese Network (default is 1).
+    - epochs_classifier (int): Number of training epochs for the Classification Model (default is 1).
+    """
     # Load the Siamese model data
     siamese_train, siamese_val = siamese_data_loader()
 
