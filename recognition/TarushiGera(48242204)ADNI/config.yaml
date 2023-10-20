@@ -17,4 +17,4 @@ training:
   
 testing:
   is_test: true
-  model_path: "./results/model_7.pth"
+  model_path: './results/swin_transformer_model_72.27.pth'
