@@ -22,7 +22,7 @@ This is the structuring that was used for the modules, these were similar to the
 - The segmentation layers feature both a 3x3 residual block and a 1x1 residual block, with the latter outputting a single channel.
 
 
-![Model](URL_TO_YOUR_IMAGE)
+![Model](Model.PNG)
 
 ---
 
@@ -61,5 +61,5 @@ This is the structuring that was used for the modules, these were similar to the
 
 ---
 
-_Write additional paragraphs or information here._
+The provided dataset comprises 2,594 images of lesions, each paired with a corresponding mask that depicts the ideal segmentation. This dataset was divided randomly into 85 validation images, 85 test images, and 2,424 training images. These proportions were selected to ensure that the majority of the images were utilized for model training, enhancing its performance. At the same time, a sufficient number of test and validation images were retained to provide a comprehensive evaluation of the model during both testing phases and upon the training's conclusion. As illustrated in the accompanying graphs, the validation data achieved a dice score exceeding 0.8 by the 16th epoch. Training concluded at the 20th epoch, with a final validation dice score of 0.8127 and a closely matching test set dice score of 0.8139. The loss value seemed to plateau, not going below 0.6. This indicates that there's potential for further refinement, suggesting that extended training or modifications to the model might lead to significant improvements.
 
