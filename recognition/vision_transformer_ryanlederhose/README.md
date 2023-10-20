@@ -229,7 +229,7 @@ python train.py
 ```
 
 ## Results
-After hyperparameter tuning, the trained vision transformer performed with a test accuracy of ```69.65%```. 
+After the training and hyperparameter tuning process, the trained vision transformer performed with a test accuracy of ```69.65%```. 
 
 ![alt text](images/losses5.png)
 ![alt text](images/accuracy5.png)
@@ -237,12 +237,11 @@ After hyperparameter tuning, the trained vision transformer performed with a tes
 The training and validation accuracy of the model lies at about ```80%``` and ```63%``` respectively. This is indicative of some overfitting to the training data. It was particularly hard to reduce this overfitting effect due to the small size of the dataset. In order to improve the model, more data is needed (need more samples or higher dimensional data). 
 
 ### Example Usage of Model
-```predict.py``` shows an example use of the trained model by taking a random batch of the test dataset, showing this batch, and then predicting the classes to test accuracy.
-
-The batch of data to be tested is:
-![alt text](images/predict_batch.png)
-
-The predictions and accuracy is:
+```predict.py``` shows an example use of the trained model by taking a random batch of the test dataset, showing this batch, and then predicting the classes to test accuracy. The script relies on the ```model.pt``` file that is saved after training the model. To use this script please run:
+```bash
+python predict.py
+```
+An example run of this script is as such:
 ```bash
 Using batch 2
 
@@ -348,7 +347,7 @@ Test CE Loss 0.69
 So, for this particular batch of data, the model performed admirably at ```75%```.
 
 ### Reproducibility
-
+Running ```predict.py``` several times to test the reproducibility of the model produced similar results. Accuracies of ```71.88%```, ```65.62%```, and ```75.08%``` were achieved over several runs. These results suggest the results of the model are reproducible once trained. In terms of training the model again and getting the same results, tests indicated that a retrained model produces similar results with full test dataset accuracies ```71%``` and ```68%``` being achieved.
 
 ## Training and Hyperparameter Tuning
 This section describes the methodology and thought process behind the training and hyperparameter tuning process.
