@@ -101,7 +101,7 @@ def snn():
             ),
             tf.keras.layers.Flatten(),
             tf.keras.layers.BatchNormalization(),
-            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(2048, activation="relu"),
         ]
     )
 
@@ -136,7 +136,7 @@ def snn_classifier(model: tf.keras.Model):
         [
             input,
             model,
-            tf.keras.layers.Dense(96, activation="relu"),
+            tf.keras.layers.Dense(512, activation="relu"),
             tf.keras.layers.Dense(64, activation="relu"),
             tf.keras.layers.Dense(1, activation="sigmoid"),
         ]
