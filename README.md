@@ -268,9 +268,9 @@ Another viable strategy for enhancing accuracy involves leveraging pre-trained V
 
 
 ## References
-[1] Shifted Patch Tokenization and Locality Self Attention, https://keras.io/examples/vision/vit_small_ds/
+[1] Shifted-Patch-Tokenization and Locality-Self-Attention, https://keras.io/examples/vision/vit_small_ds/
 
-[2] Vision Transformer for Small-Size Datasets Paper, https://arxiv.org/abs/2112.13492
+[2] Vision Transformer for Small-Size-Datasets, https://arxiv.org/abs/2112.13492
 
 [3] Vision Transformer Implementation, https://keras.io/examples/vision/image_classification_with_vision_transformer/
 
