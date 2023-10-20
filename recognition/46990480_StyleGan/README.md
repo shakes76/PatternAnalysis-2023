@@ -14,6 +14,7 @@ An implementation of StyleGAN2 for generating images of the human brain based on
       - [Dataloader Pre-processing](#dataloader-pre-processing)
     - [Predict/Image Generation Implementation](#predictimage-generation-implementation)
   - [Training & Results](#training--results)
+    - [Figure 3 - Training Results (w_dim = 512) and (training epochs = 300)](#figure-3---training-results-w_dim--512-and-training-epochs--300)
   - [Code Structure](#code-structure)
   - [Usage/Try it yourself](#usagetry-it-yourself)
     - [Requirements](#requirements)
@@ -60,19 +61,14 @@ growing nature used within the generator network.
 ![Traditional GAN vs StyleGAN Generation Architecture](./assets/StyleGAN%20general%20architecture.PNG)
 
 To resolve these issues, the StyleGAN2 architecture was developed. The details of the 
-revised StyleGan2 architecture can be viewed in Figure x. The revised architecture 
+revised StyleGan2 architecture can be viewed in Figure 2. The revised architecture 
 removed the mean normalisation step in the *AdaIN* layer in order to prevent the 
 blob-like artifacts from appearing in generated images. Additionally, in order to 
 produce more predictable results, the addition of the bias and the gaussian noise was 
 moved so it is added after the data is normalised. The StyleGAN2 also introduces a new 
-*Weight Modulation* step, which combines the modulation and the convolutions 
+*Weight Modulation* step, which combines the modulation and the convolution 
 operations so the convolutional kernel weights are scaled with the style vector. This 
 allows for full controllability whilst still removing the blob-like artifacts. 
-
-TODO: Add progressive growing
-To resolve the strong location preference occurring within the generated images, 
-
-StyleGAN2 replaced the progressive growing 
 
 #### *Figure 2 - Revised StyleGAN2 Architecture*
 ![Revised StyleGAN2 Architecture](./assets/styleGAN2%20architecture.PNG)
@@ -156,8 +152,13 @@ dataset augmentation was implemented. Upon import a random horizontal flip trans
 the images to account for this. Additionally, upon import the images were all normalised.
 
 ### Predict/Image Generation Implementation
-The predict functionality was utilised to generate a grid of images from the trained latent space of the Generator model.
+The `predict.py` functionality was utilised to generate a grid of images from the trained latent space of the Generator model. Every time this script is executed, a new subset of randomly generated images will be displayed in the grid since the new randomised style vectors ($w$) are being used to generate the outputs.
 
+## Training & Results
+The following results ([Figure 3](#figure-3---training-results-w_dim--512-and-training-epochs--300)) were obtained when testing with the model. These results meet the requirement of generating *reasonably clear images* of brains using the styleGAN2 architecture.
+
+#### *Figure 3 - Training Results (w_dim = 512) and (training epochs = 300)*
+![Training Results](./assets/generatedImagesExample.png)
 
 ## Code Structure
 Here is a summary of how the code base is structured.
@@ -166,6 +167,7 @@ Here is a summary of how the code base is structured.
 - `train.py` -> a training script for the StyleGAN2 model
 - `predict.py` -> an inference script which can be used to generate new images from the trained generator
 - `config.py` -> a hyper-parameter tuning configuration file to control the outputs of training and prediction
+- `environment.yml` -> a YAML file which details the contents of the conda environment
 - `README.md` -> (the file you are currently reading) the documentation surrounding the project
 
 ## Usage/Try it yourself
@@ -177,23 +179,35 @@ The main dependencies required for this project are as follows:
     - matplotlib 3.7.2
     - tqdm 4.66.1
 
-A full list of the dependencies I have utilised can be seen in my conda environment .yml file [available here]().
+A full list of the dependencies I have utilised can be seen in my conda environment `.yml` file [available here](environment.yml).
 
 ### Getting Started
-To get started and try the code on your own machine use the following steps:
-       
-1. Download the dataset and configure the folder structure as detailed above in the [Dataset](#dataset) section.
-2. Configure the config.py script with your dataset & save paths. Here you can also tweak any of the other parameters associated with the model.
-3. Run the training script with the command `python train.py`. This will create a folder `./saved_examples_{MODEL_NAME}/` where sample images after every 50 epochs of training will be saved. A copy of your training loss plot will also be saved here to this folder. A few folder called `./Models` will also be created where you can find your exported trained Generator, Discriminator & Mapping Network models.
-4. Run inference on your trained models and generate some images from your trained generator and mapping networks by running the command `python predict.py`. By default this will create a plot with 64 images generated by the Generator model.
+To get started and try the code on your own machine, start by going through the following steps:
+1. Clone this repository to your local machine. 
+2. Install [miniconda](https://docs.conda.io/projects/miniconda/en/latest/miniconda-install.html) if you do not already have it installed on your machine.
+3. Change to the `PatternAnalysis-2023/recognition/46990480_StyleGan2` directory & run the following commands to create the required conda environment from the provided `.yml` file.
+    ```
+    conda env create --name {ENV_NAME} --file=environment.yml
+    ```
+    *NOTE: change the `ENV_NAME` to any environment name you wish.*
+4. Activate your newly python environment by running -
+    ```
+    conda activate ENV_NAME
+    ```
+5. Download the dataset and configure the folder structure as detailed above in the [Dataset](#dataset) section.
+6. Create a new folder to store the outputs of the models `./PatternAnalysis-2023/recognition/46990480_StyleGan2/Models`
+6. Your workspace is now configured to run the provided code.
 
 ### Training a Model
-
+1. Configure the `config.py` script with your desired dataset & save paths. Here you can also tweak any of the other training hyper-parameters if you so wish.
+2. Run the training script with the command `python train.py`. This will create a folder `./saved_examples_{MODEL_NAME}/` where sample images after every 50 epochs of training will be saved. A copy of your training loss plot will also be saved here to this folder. A few folder called `./Models` will also be created where you can find your exported trained Generator, Discriminator & Mapping Network models.
+3. Run inference on your trained models and generate some images from your trained generator and mapping networks by running the command `python predict.py`. By default this will create a plot with 64 images generated by the Generator model.
 
 ### Generating New Images
 The `predict.py` script also serves as a command line tool to run inference on your model & train it at the same time.
 
-
-
 ## References & Acknowledgements
 - https://www.oasis-brains.org/
+- https://arxiv.org/abs/1812.04948
+- https://arxiv.org/abs/1912.04958
+- https://blog.paperspace.com/implementation-stylegan2-from-scratch/#models-implementation
