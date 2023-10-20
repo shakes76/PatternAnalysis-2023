@@ -1,10 +1,25 @@
 import os
 import zipfile
 import torch
+from torch import nn
+
+class DiceLoss(nn.Module):
+  def __init__(self, smooth = 0.001):
+    super(DiceLoss, self).__init__()
+    self.smooth = smooth
+
+  def forward(self, pred, truth):
+    #flatten the tensors for multiplication
+    pred_f = pred.view(-1) 
+    truth_f = truth.view(-1)
+
+    overlap = (pred_f*truth_f).sum()
+    dice = (2*overlap+self.smooth)/(pred_f.sum()+truth_f.sum()+self.smooth)
+    return 1-dice
 
 def accuracy(preds, truths):
   with torch.no_grad():
-    preds = (preds > 0.5).float()
+    preds = (preds > 0.5).float() #if a pixel has value > 0.5, we accept it as a skin lesion
     correct = (preds==truths).sum()
     pixels = torch.numel(preds)
     accuracy = correct / pixels + 1e-8
@@ -22,6 +37,7 @@ def get_statistics(dataset):
 
   mask_mean = 0
   mask_std = 0
+
   for idx in range(len(dataset)):
     print(idx)
     image, mask = dataset[idx]

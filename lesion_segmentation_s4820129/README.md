@@ -42,5 +42,6 @@ The resulting network has two pathways: a context pathway that extracts increasi
 As proposed in the paper [], a dice similarity loss function is used to train the network. The dice function uses how much the predicted image overlaps with the masked image to quantify how similar the two images are. Pytorch enables training the network on GPUs. To utilize this UQ's Rangpur Cluster (link) was used. However, due to the number of jobs in queue for GPU training all training in this report is done on the test node. 
 
 ### Results
- Due to the limitation in training and a batch size of 32 the results here are obtained from the 8 epochs of training. The metrics used to evaluate the model were dice score, average loss per epoch and the accuracy of the model. The accuracy is computed by accepting the predicted image where the prediction is > 0.5. 
+ Due to the limitation in training and a batch size of 32 the results here are obtained from the 8 epochs of training. The metrics used to evaluate the model were dice score, average loss per epoch and the accuracy of the model. The accuracy is computed by accepting the predicted image as a 1.0 where the prediction is > 0.5. After 18 epochs, this was how the models prediction compared to the actual mask:
+
  ![alt text](images/loss46epoch19.png)

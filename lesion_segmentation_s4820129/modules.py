@@ -122,19 +122,5 @@ def stride_layer(in_channels, out_channels):
     return nn.Sequential(
         nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=2, padding=1)
     )
-
-class DiceLoss(nn.Module):
-  def __init__(self, smooth = 0.001):
-    super(DiceLoss, self).__init__()
-    self.smooth = smooth
-
-  def forward(self, pred, truth):
-    #flatten the tensors for multiplication
-    pred_f = pred.view(-1) 
-    truth_f = truth.view(-1)
-
-    overlap = (pred_f*truth_f).sum()
-    dice = (2*overlap+self.smooth)/(pred_f.sum()+truth_f.sum()+self.smooth)
-    return 1-dice
     
 
