@@ -18,6 +18,11 @@ between the predicted class probabilities and the true class labels.
 Uses the Adam optimiser as it is the most versatile, and performs well enough
 for this problem.
 
+Code partially inspired by the dgl node classification tutorials 
+found at:
+https://docs.dgl.ai/tutorials/blitz/1_introduction.html#sphx-glr-tutorials-blitz-1-introduction-py
+
+
 graph: dgl.Graph variable containing the preprocessed data
 train_mask: numpy array stating which values are for the training dataset
 test_mask: numpy array stating which values are for the testing dataset
@@ -27,19 +32,26 @@ learning_rate: learning rate of the model
 '''
 def train_model(graph, train_mask, test_mask, model, epochs, learning_rate):
     # Define loss function and optimizer
-    criterion = pt.nn.CrossEntropyLoss()
+    loss_function = pt.nn.CrossEntropyLoss()
     optimizer = pt.optim.Adam(model.parameters(), lr=learning_rate)
     
     # Training loop
     for epoch in range(epochs):
         model.train()
         logits = model(graph, graph.ndata['Features'])
-        loss = criterion(logits[train_mask], graph.ndata['Target'][train_mask])
+        loss = loss_function(logits[train_mask], graph.ndata['Target'][train_mask])
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
 
-        predict.evaluate(model, graph, test_mask, epoch, loss)
+        # Evaluate the model on the test set
+        model.eval()
+        with pt.no_grad():
+            logits = model(graph, graph.ndata['Features'])
+            predictions = logits.argmax(1)
+            accuracy = ((predictions[test_mask] == graph.ndata['Target'][test_mask]).float()).mean()
+
+        predict.print_results(accuracy, epoch, loss)
     
     predict.show_graph(graph, model)
 
@@ -57,4 +69,5 @@ def start():
     #Train the model
     train.train_model(graph, train_mask, test_mask, model, 100, 0.01)
 
-start()
+if __name__ == "__main__":
+    start()

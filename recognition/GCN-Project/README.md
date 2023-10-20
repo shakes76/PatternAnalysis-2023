@@ -1,5 +1,5 @@
 # GCN-Project
-This project seeks to create a suitable multi-layer GCN model to carry out a semi supervised multi-class node classification using the [Facebook Large Page-Page Network dataset](https://snap.stanford.edu/data/facebook-large-page-page-network.html). To perform this a [Partially processed dataset](https://graphmining.ai/datasets/ptg/facebook.npz) was used where the features are in the form of 128 dim vectors.
+This project seeks to create a suitable multi-layer GCN model to carry out a semi supervised multi-class node classification using the [Facebook Large Page-Page Network dataset](https://snap.stanford.edu/data/facebook-large-page-page-network.html). To perform this a [Partially processed dataset](https://graphmining.ai/datasets/ptg/facebook.npz) are used where the features are in the form of 128 dim vectors.
 
 ## Data and Preprocessing
 After the data is loaded in from the [Partially processed dataset](https://graphmining.ai/datasets/ptg/facebook.npz), the [Deep Graph Library](https://docs.dgl.ai/) is used to create a graph containing the edges, features and target information to be used in training the model. This library was used as it provided the most convenient way of storing and accessing the variables for use by pytorch. The dataset also determines which values will be used for training and which for testing via creating two numpy arrays of boolean values whose position corresponds to which values are for testing and which are for training. 
@@ -11,11 +11,14 @@ This model uses a Graph Convolution Network (GCN). GCN's are good for interpreti
 
 The graph convolution layer aggregates information from the nodes neighbours and updates the node's feature representation. The graph's convolution operation is based on a weighted aggregation of the features of neighbouring nodes. The final layer is a linear classifier that maps the output of the last GCN layer to class scores.
 
-![ExampleResults](ExampleResults.png)
+## Predicting
+The loss function and accuracy of the model overtime was printed for each epoch of the model. An example of the output is provided.
+
+![ExampleResults1](ExampleResults1.png)
+![ExampleResults2](ExampleResults2.png)
 
 When it comes to reproduction of these results, while the nature of the model means extreme cases can occur rarely, the complexity of the model and a seeded random number generator means these events are unlikely, and results should be similar to the above picture with little variance.
 
-## Predicting
 a [UMAP](https://umap-learn.readthedocs.io/en/latest/plotting.html) embeddings plot with ground truth in colours was used to create a 2d representation of the model. UMAP is used to convert a high-dimensional dataset to a low-dimensional graph while still retaining most of the original information. UMAP works by calculating the distances between each pair of datapoints in the dataset. Using these calculations, UMAP then places the datapoints on the graph relative to these distances. It then uses the placements on this graph to calculate simmilarity scores depending on how many neighbours you want each point to have (In our case, 15). It then repeats this for every datapoint until you have a final graph. This helps to maintain information about clustering of relationships between datapoints.
 
 ![UMAP model](Model.png)

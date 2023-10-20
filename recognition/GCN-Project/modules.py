@@ -20,6 +20,17 @@ them during training.
 
 The final layer is a linear classifier that maps the output of the last 
 GCN layer to class scores.
+
+This class was partially inspired from Gayan Kulatilleke's lecture on GNN's 
+available at: https://github.com/gayanku/SCGC/blob/main/models.py
+
+
+This class was also partially inspired by the dgl node classification tutorials 
+found at:
+https://docs.dgl.ai/tutorials/blitz/1_introduction.html#sphx-glr-tutorials-blitz-1-introduction-py
+
+
+
 '''
 class GCN(pt.nn.Module):
 

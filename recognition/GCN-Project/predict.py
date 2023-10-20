@@ -25,7 +25,7 @@ def show_graph(graph, model):
     umap_embeddings = umap.UMAP(n_neighbors=15, min_dist=0.1, n_components=2).fit_transform(embeddings)
     true_labels = graph.ndata['Target'].numpy()
 
-    # Create a UMAP embeddings plot with ground truth labels in colors
+    # Create a UMAP embeddings plot with ground truth labels in colours
     plt.scatter(umap_embeddings[:, 0], umap_embeddings[:, 1], c=true_labels, cmap='viridis', s=10)
     plt.colorbar()
     
@@ -33,22 +33,12 @@ def show_graph(graph, model):
     #plt.show()
 
 '''
-evaluate(model, graph, test_mask, epoch, loss):
-Prints out the epoch, loss and accuracy of the model by 
-evaluating it against the test set.
+print_results(model, graph, test_mask, epoch, loss):
+Prints out the epoch, loss and accuracy of the model.
 
-model: model being evaluated
-graph: dgl graph representing the dataset
-test_mask: numpy array stating which values are for testing
+accuracy: current accuracy of the model
 epoch: epoch number the model is on
-loss: the loss function
+loss: current loss function of the model
 '''
-def evaluate(model, graph, test_mask, epoch, loss):
-    # Evaluate the model on the test set
-    model.eval()
-    with pt.no_grad():
-        logits = model(graph, graph.ndata['Features'])
-        predictions = logits.argmax(1)
-        accuracy = ((predictions[test_mask] == graph.ndata['Target'][test_mask]).float()).mean()
-
+def print_results(accuracy, epoch, loss):
     print(f'Epoch {epoch}: Loss {loss.item()}, Test Accuracy {accuracy.item()}')
