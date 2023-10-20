@@ -3,17 +3,21 @@ from modules import *
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.metrics import Precision
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, ReduceLROnPlateau, TensorBoard
-from utils import dice_coef, DiceThresholdStop
+from utils import dice_coef, DiceThresholdStop, parse_args
 
 # Initalise variables needed
-dataset_path = r"C:\Users\raulm\Desktop\Uni\Sem2.2023\Patterns\ISIC-2017_Training_Data"
 model_path = "files/model.h5"
 csv_path = "files/data.csv"
 batch_size = 4
 lr = 1e-4
 num_epoch = 25
+split = 0.2
+
 
 if __name__ == "__main__":
+    args = parse_args()
+    dataset_path = args.path
+
     # list of all systems gpus
     physical_devices = tf.config.list_physical_devices('GPU') 
     if physical_devices:
@@ -23,7 +27,7 @@ if __name__ == "__main__":
         print("Warning: No GPU found, using CPU")
     
     # Load the data to a tf dataset
-    (train_x, train_y), (valid_x, valid_y), (test_x, test_y) = load_data(dataset_path)
+    (train_x, train_y), (valid_x, valid_y), (test_x, test_y) = load_data(dataset_path, split)
     train_dataset = tf_dataset(train_x, train_y, batch_size)
     valid_dataset = tf_dataset(valid_x, valid_y, batch_size)
     
