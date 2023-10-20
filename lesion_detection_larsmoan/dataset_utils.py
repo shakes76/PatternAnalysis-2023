@@ -197,7 +197,7 @@ def copy_txt_files(source_folder, destination_folder):
 
 
 #Used to download and unzip compressed dataset from google drive if the dataset folder doesn't exist
-def download_and_unzip(dataset_folder, download_url="https://drive.google.com/uc?id=1YI3pwanX35i7NCIxKnfXBozXiyQZcGbL"):
+def download_dataset(dataset_folder, download_url="https://drive.google.com/uc?id=1YI3pwanX35i7NCIxKnfXBozXiyQZcGbL"):
     if not os.path.exists(dataset_folder):
         print(f"Folder {dataset_folder} does not exist. Downloading the zip file...")
         
@@ -217,9 +217,13 @@ def download_and_unzip(dataset_folder, download_url="https://drive.google.com/uc
         print(f"Folder {dataset_folder} already exists.")
 
 if __name__ == "__main__":
-    #download_and_unzip("/home/Student/s4827064/PatternAnalysis-2023/lesion_detection_larsmoan/data/")
+    #Download the preprocessed version of ISIC2017 that has YOLO labels and correct structure
+    path_to_dset = "/home/Student/s4827064/PatternAnalysis-2023/lesion_detection_larsmoan/data/"
+    download_datset(path_to_dset)
+
+    #Download pretrained YOLOV7 weights (COCO) for transfer learning purposes
     weights_url = "https://drive.google.com/uc?id=1mAu29ZlOTn3csjnZ5fmro10kY3XxAddC"
     yolov7_weights_out = "yolov7_training.pt"
-    #gdown.download(weights_url, yolov7_weights_out, quiet=False)
+    gdown.download(weights_url, yolov7_weights_out, quiet=False)
    
     

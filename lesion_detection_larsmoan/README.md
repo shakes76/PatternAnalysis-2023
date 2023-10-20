@@ -14,6 +14,9 @@
 
 ### Installation
 - Prerequisites: python=3.10.12 && cuda=11.7
+
+**A GPU cluster is used for this project, more specifically rangpur @ UQ. Therefore a lot of the training and inference scripts are based on slurm jobs. If needed this can easily be converted to run locally.**
+
 ```
 git clone git@github.com:larsmoan/PatternAnalysis-2023.git
 git submodule init 
@@ -22,7 +25,6 @@ pip install -r requirements.txt
 ```
 
 ## Dataset
-
 **Source**: [ISIC 2017 Dataset](https://challenge.isic-archive.com/data/#2017)
 
 ### Overview
@@ -50,6 +52,7 @@ Steps include:
 2. Fit a bounding box around this region.
 3. Assign the class based on the label provided in the associated CSV file.
 
+More information can be found in the file: [dataset_utils.py](./dataset_utils.py)
 
 The dataset itself also needs to be refactored a bit to work with YOLOV7, therefore the structure is changed to the following:
 ```
@@ -93,27 +96,23 @@ https://drive.google.com/uc?id=1YI3pwanX35i7NCIxKnfXBozXiyQZcGbL or from [datase
 - Train the model:
   Using rangpur cluster:
   ```
-  bash run_custom_train.sh
+  sbatch run_custom_train.sh
   ```
-  Using Google Colab GPU:
+  Or using Google Colab:
   [isic_train.ipynb](./isic_train.ipynb)
-- Run inference on testset
+- Run inference on testset:
   ```
-  bash 
+  sbatch run_test.sh
   ```
 
 ### Model Architecture: open source [YOLOV7 Model](https://github.com/WongKinYiu/yolov7)
 
 ### Training
-Training the yolov7 model on the dataset can be done in two different ways:
-1. Using the isic_train.ipynb script
-- This utilizes the free GPU provided by google-colab for training.
-
-2. Using the rangpur cluster.
-- Training can then be done using the run_custom_train.sh script. Here you can specify the number of epochs, batch size etc etc. Statistics from the training will be logged to the runs/ folder and wandb if that is enabled beforehand.
+Training was mainly done on the rangpur cluster, 
 
 - Details about the training process.
-- Hyperparameters used.
+- Hyperparameters used:
+  - Both p5 and p6 models were trained. 
 - Training time, hardware details (if relevant).
 
 ### Results
