@@ -60,10 +60,14 @@ The modules contained in this project are as follows:
 
 The data preparation methods are contained in the [dataset.py](dataset.py) file.
 
-The dataset used for this project was the OASIS-3 dataset, from the Open Access Series of Imaging Studies (OASIS) [[1]](https://www.oasis-brains.org/). The dataset contains approximately 11,000 png images that are MRI scans of different brains. To train the models, the OASIS dataset was split into training, testing, and validation datasets as follows:
-* Training: 9664 images
-* Validation: 1120 images
-* Testing: 544 images
+The dataset used for this project was the OASIS-3 dataset, from the Open Access Series of Imaging Studies (OASIS) [[1]](https://www.oasis-brains.org/). The dataset contains approximately 11,000 MRI scans of different brains, given as PNG images of dimension 256 x 256. To train the models, the OASIS dataset was split into training, testing, and validation datasets as follows:
+
+| Dataset | No. images |
+|---|---|
+| Training | 9664 |
+| Validation | 1120 |
+| Testing | 544
+
 
 These splits correspond to roughly 85%, 10%, and 5% of the dataset respectively. It was important that there were sufficient images in the testing set to ensure that the models were able to generalise to unseen data adequately. 
 
@@ -77,20 +81,134 @@ No augmentation was performed to the images in the dataset, given it was of a su
 
 The [modules.py](modules.py) module contains the model architecture for the VQVAE and GAN models.
 
+### VQ-VAE 
+
+The Vector Quantized Variational Autoencoder (VQ-VAE) is an extension of the regular auto-encoder architecture that contains an additional vector quantization layer between the encoder and decoder. The vector quantization layer is used to discretize the latent space, which allows for the model to learn a discrete latent representation of the data. 
+
+The goal is to use the VQ-VAE as a generative model, where the latent space is used to generate novel images. This is achieved by imposing structure into the latent space. 
+
+Previously, the latent space in a VAE was continuous, and the prior was a standard Gaussian. The VQ-VAE uses a discrete latent space, and the prior is a learned distribution (where the DCGAN comes in).
+
+For this dataset, (1 channel etc. )
+<!-- TODO -->
+
+### DCGAN
+
+The Deep Convolutional Generative Adversarial Network (DCGAN) is a generative model that uses convolutional layers to generate images.
+
+## Model Architecture
+
+Taken from [Neural Discrete Representation Learning paper](https://arxiv.org/pdf/1711.00937.pdf).
+
 ## 4. Training procedure
-Hyper-parameters etc. 
+<!-- Hyper-parameters etc.  -->
 
 The [train.py](train.py) module contains the training procedure. The training module contains two main functions: `train_vqvae` and `train_gan`. These functions are responsible for training the VQVAE and GAN models respectively.
 
+### VQ-VAE training
+
+The VQ-VAE is an implementation of the description provided the original paper on VQ-VAEs [[3]](#references). The core of the training functionality was adapted from [[2]](#references), including the hyper-parameters. The goal of the VQ-VAE training is to minimise the reconstruction error between a real image and the same image that has been fed through the VQ-VAE's encoder, vector quantizer, and then decoder.
+
+#### Model parameters
+* BATCH_SIZE = 32
+* EPOCHS = 6
+* EMBEDDINGS_DIM = 64  # Dimension of each embedding in the codebook (embeddings vector)
+* N_EMBEDDINGS = 512  # Size of the codebook (number of embeddings)
+* BETA = 0.25
+* LEARNING_RATE = 1e-3
+
+Loss function: Mean-squared error loss of the original image vs the reconstructed image. 
+
+Optimizer: Adam, with learning rate = 1e-3. 
+
+#### Training procedure
+At each epoch, the the VQVAE model was trained by feeding real images through the entire model (encoder, vector quantizer, decoder). For each omage, the embedding and reconstruction losses were calculated and backpropagated through the model to update weights. 
+
+#### Results
+To visualise the training results, the following plots show a fixed batch of images before training:
+
+<!-- insert file from resources/ -->
+
+![Batch of training images before training](resources/epoch_0.png)
+
+The same batch of images being passed through the VQ-VAE (after the first epoch):
+
+![Reconstructed images (after 1 epoch)](resources/epoch_1.png)
+
+After 6 epochs:
+
+![Reconstructed images (after 6 epochs)](resources/epoch_6.png)
+
+It is clear from these images that the reconstructions became clearer with training, however they did converge very quickly. 
+
+The following images show a single image comparison of the before, codebook embedding, and reconstruction:
+
+<!-- ![Single image comparison](resources/codebook_comparison.png) 
+
+![Single image comparison](resources/codebook.png) 
+
+![Single image comparison](resources/decoded.png) -->
+
+<p align="center">
+  <img src="resources/codebook_comparison.png" width="30%" />
+  <img src="resources/codebook.png" width="30%" /> 
+  <img src="resources/decoded.png" width="30%" />
+</p>
+
+
+The SSIM and MSE loss were also calculated for each epoch. The following plots show the results of these metrics:
+
+<!-- TODO: plots here -->
+
+
+### DCGAN training
+
+The goal of this step is to train a DCGAN model that can generate the priors for the VQ-VAE. 
+
+#### Model parameters
+* LEARNING_RATE = 2e-4
+* BATCH_SIZE = 256
+* EPOCHS = 20
+
+Loss function: binary cross entropy loss.
+
+Optimizer: Adam, with betas = (0.5, 0.999)
+
+#### Training procedure
+
+The traing procedure for the DCGAN model was adapted from the [DCGAN tutorial](https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html) provided by PyTorch. In general, training a DCGAN employs elements from Game Theory to simultaneously train both the discriminator and generator models. At each epoch, the following steps are performed over each batch in the training set:
+1. A batch of real images are fed through the discriminator, and the loss is calculated. 
+1. Using a randomly sampled latent, the generator produces a batch of fake images.
+1. The generated fake images are fed through the discriminator, and the loss is calculated. 
+	1. The discriminator loss for each training step is the sum of the loss for the real and fake images: `log(D(x)) + log(1 - D(G(z)))`, where `D(x)` is the discriminator output for the real image, and `D(G(z))` is the discriminator output for the fake image.
+	1. The generator loss for each training step is just the loss of the fake images: `log(D(G(z)))`. 
+1. The losses for each model is backpropagated through the model, and the parameters are updated.
+
+#### Results
+
+The following plot shows the loss results from training the DCGAN model. The loss for the discriminator and generator are shown in blue and orange respectively.
+
+TODO: plot goes here. 
+
+
 ## 5. Testing procedure
 The [predict.py](predict.py) module contains the testing procedure, used to evaluate the models that were generated during training.
+
+
 
 ## 6. Analysis
 
 Results here from evaluation
 
 ## Future work
+
+## Applications of this work
+* Discretized = smaller images, so can be used for compression. 
+
 ## References
-* [1] https://www.oasis-brains.org/
+* [1] OASIS brain MRI dataset: https://www.oasis-brains.org/
+* [2] VQ-VAEs: Neural Discrete Representation Learning: https://www.youtube.com/watch?v=VZFVUrYcig0.
+* [3] Paper: *Neural Discrete Representation Learning*, Aaron van den Oord, Oriol Vinyals, Koray Kavukcuoglu, 2017. https://arxiv.org/abs/1711.00937
+* [4] DCGAN tutorial by Pytorch: https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html.
 * [Sonnet VQ-VAE implementation](https://github.com/google-deepmind/sonnet/blob/v1/sonnet/examples/vqvae_example.ipynb)
-* [Video](https://www.youtube.com/watch?v=VZFVUrYcig0)
+
