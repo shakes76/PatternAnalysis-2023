@@ -2,10 +2,12 @@
 
 In this report, a VQVAE will be developed in Pytorch to generate new images using the OASIS dataset (grayscale MRI images of the brain).
 A VQVAE (Vector-Quantised Variational Autoencoder) is a neural network architecture, which learns discrete latent space representations of the input. It reconstructs the original input from these representations. Discretising the latent space gives VQVAEs many advantages over the conventional VAEs, making the representations more compact and interpretable. Using an autoregressive neural network to learn the space of discrete representations, new plausible outputs are constructed by sampling from this learned space.
+
 **Hyperparameters:**
 
 The hyperparameters were tuned throughout the report. The learning rate which yielded the best outcome for the VQVAE was found to be 5e-4, and the batch size, 128. Scheduling was considered however wasn’t necessary for the models.
 The number of embeddings was chosen to be 256, and the initial embedding dimension as 32. The embedding dimension, however, was increased, as the low embedding dimension was found to be insufficient in capturing the fine details of the dataset, bottlenecking the model. This caused the loss plateauing at roughly 0.3, with the model not yet achieving the desired sharpness due to this limiting factor.
+
 **Results:**
 
 The results of the report are shown below, the model generates plausible images, albeit extremely blurry, with much room for improvement. After 60 epochs, the VQVAE was able to produce accurate, albeit blurry, reconstructions. A graph of the losses is shown below. The individual losses (codebook loss, commitment loss and reconstruction loss) were checked numerous times to ensure expected behaviour. 
@@ -52,6 +54,7 @@ show_generated_output() shows a new generated image. Again, the masked_indices v
 **Data Processing:**
  	
 In the dataset class, the data is loaded into datasets. The transforms applied to all data is conversion to a tensor and normalisation, based on the mean and standard deviation of the entire dataset. The number of images in the train, validation, and test dataset was of the approximate ratio 20:2:1.
+
 **Models Overview:**
 
 Note – the VQVAE model described contains 32 embedding dimensions. This was the original model, but this has since been increased.
@@ -97,7 +100,8 @@ The neural network then learns to predict future indices. A number of classes we
 The PixelCNN scales all of the indices to a range between 0 and 1. It performs the initial convolutions (which mask the centre pixel), and then a number of gated-masked convolutions. It applies a non-linear activation function, and reshapes the output to (Batch, Classes, Channels, Height, Width). This allows for the Cross-entropy loss between the actual indices and the generated indices to be found. Note that for this model, the loss is given by the bpd (bits per dimension), which is calculated based on the cross-entropy, but is more suitable for the model.
 The model also contains a function called ‘sample’. This takes an input of indices, with any indices to generate replaced with ‘-1’. It iterates through the pixels and channels and uses Softmax to predict which indices are likely. For full image generation, the indices can be replaced entirely with ‘-1’s.
 
-References
+**References**
+
 1.	Lippe, P. (no date) Tutorial 12: Autoregressive Image modelling, Tutorial 12: Autoregressive Image Modelling - UvA DL Notebooks v1.2 documentation. Available at: https://uvadlc-notebooks.readthedocs.io/en/latest/tutorial_notebooks/tutorial12/Autoregressive_Image_Modeling.html (Accessed: 09 October 2023)
 2.	Aaron van den Oord, Oriol Vinyals, Koray Kavukcuoglu (30/05/2018), Neural Discrete Representation Learning.
 
