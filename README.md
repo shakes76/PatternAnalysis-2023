@@ -75,6 +75,7 @@ To make predictions using the trained model, run predict. This script loads the 
 ## Dataset
 we can download the original dataset from the ADNI website. To specify the data source path, modify the DATA_LOAD_DEST constant in parameters. The data is expected to adhere to the following file structure:
 
+```
 train/
     AD/
         images
@@ -89,6 +90,8 @@ test/
     NC/
         images
         ...
+
+```
 
 Given that this dataset exclusively contains two categories, it is loaded using binary encoding. In this scheme, the value 0 represents the AD class for brains afflicted with Alzheimer's Disease, and 1 is assigned to NC, signifying brains with normal cognitive function.
 
@@ -211,11 +214,11 @@ This specific set of parameters results in 3,445,764 trainable parameters. Notab
 </p>
 
 <p align="center">
-    <img src="resources/model2_losses.png" alt="Model 2 Loss Plot">
+    <img src="resources/losses (1).png" alt="Model 2 Loss Plot">
 </p>
 
 <p align="center">
-    <img src="resources/model2_confusion_matrix.png" alt="Model 2 Confusion Matrix">
+    <img src="resources/confusion_matrix (1).png" alt="Model 2 Confusion Matrix">
 </p>
 
 
@@ -241,15 +244,15 @@ MLP_HEAD_UNITS = [16, 8]
 This particular model comprises a mere 90,418 trainable parameters and achieved a testing accuracy of 57.96%. Below, you will find the visualizations of the accuracy and loss curves, along with the confusion matrix.
 
 <p align="center">
-    <img src="resources/model3_accuracy.png" alt="Model 3 Accuracy">
+    <img src="resources/accuracy (2).png" alt="Model 3 Accuracy">
 </p>
 
 <p align="center">
-    <img src="resources/model3_losses.png" alt="Model 3 Loss Plot">
+    <img src="resources/losses (2).png" alt="Model 3 Loss Plot">
 </p>
 
 <p align="center">
-    <img src="resources/model3_confusion_matrix.png" alt="Model 3 Confusion Matrix">
+    <img src="resources/confusion_matrix (2).png" alt="Model 3 Confusion Matrix">
 </p>
 
 Once more, it is evident that the model displays noticeable overfitting characteristics. Furthermore, this less intricate model resulted in a reduction in accuracy compared to the initial Model 1. Consequently, the determination was made that training less complex models would not effectively address the overfitting problem and would, in fact, lead to more significant declines in testing accuracy.
