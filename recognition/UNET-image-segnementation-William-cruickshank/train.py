@@ -29,6 +29,8 @@ TRAIN_IMG_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/
 TRAIN_MASK_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/train_masks/"
 VAL_IMG_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/val_images/"
 VAL_MASK_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/val_masks/"
+TEST_IMG_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/test_images/"
+TEST_MASK_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/test_masks/"
 
 def train_fn(loader, model, optimizer, loss_fn, scaler):
     loop = tqdm(loader)
@@ -87,13 +89,15 @@ def main():
 
     model = UNET(in_channels=3, out_channels=1).to(DEVICE)
     loss_fn = nn.BCEWithLogitsLoss()
-    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-5)
 
-    train_loader, val_loader = get_loaders(
+    train_loader, val_loader, test_loader = get_loaders(
         TRAIN_IMG_DIR,
         TRAIN_MASK_DIR,
         VAL_IMG_DIR,
         VAL_MASK_DIR,
+        TEST_IMG_DIR,
+        TEST_MASK_DIR,
         BATCH_SIZE,
         train_transform,
         val_transforms,
@@ -123,9 +127,12 @@ def main():
 
         # print some examples to a folder
         save_predictions_as_imgs(
-            val_loader, model, folder="saved_images/", device=DEVICE
+            val_loader, model, folder="saved_test_images/", device=DEVICE
         )
-
+    check_accuracy(test_loader, model, device=DEVICE)
+    save_predictions_as_imgs(
+            test_loader, model, folder="saved_test_images/", device=DEVICE
+        )
 
 if __name__ == "__main__":
     main()
