@@ -73,7 +73,7 @@ def get_decoder(latent_dim=16):
     decoder_outputs = layers.Conv2DTranspose(1, 3, padding="same")(x)
     return keras.Model(latent_inputs, decoder_outputs, name="decoder")
 
-def get_vqvae(latent_dim=16, num_embeddings=64):
+def get_vqvae(latent_dim=16, num_embeddings=128):
     vq_layer = VectorQuantizer(num_embeddings, latent_dim, name="vector_quantizer")
     encoder = get_encoder(latent_dim)
     decoder = get_decoder(latent_dim)
@@ -153,9 +153,9 @@ class PixelConvLayer(layers.Layer):
         if self.mask_type == "B":
             self.mask[kernel_shape[0] // 2, kernel_shape[1] // 2, ...] = 1.0
         
-        def call(self, inputs):
-            self.conv.kernel.assign(self.conv.kernel * self.mask)
-            return self.conv(inputs)
+    def call(self, inputs):
+        self.conv.kernel.assign(self.conv.kernel * self.mask)
+        return self.conv(inputs)
         
 class ResidualBlock(keras.layers.Layer):
     def __init__(self, filters, **kwargs):
