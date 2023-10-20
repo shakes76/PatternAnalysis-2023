@@ -42,7 +42,13 @@ For the classifier, the embedded network is used to extract features from the im
 
 ![Classifier Architecture](./images/classifier_architecture.png)
 
-## Loss functions
+### Custom distance layer
+
+Since a Siamese network is used to determine the similarity between a pair of inputs, a custom distance layer is used to calculate the distance between the two embedded vectors.
+
+For this task, I implemented the `L2` norm distance function in a custom `DistanceLayer`, which can be found in `modules.py`.
+
+### Loss functions
 
 The loss function used for the Siamese network is the `contrastive_loss`. This loss function is from [Image similarity estimation using a Siamese Network with a contrastive loss](https://keras.io/examples/vision/siamese_contrastive/#define-the-contrastive-loss) by the Keras team.
 
