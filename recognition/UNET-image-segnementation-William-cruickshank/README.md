@@ -63,3 +63,8 @@ This is the structuring that was used for the modules, these were similar to the
 
 The provided dataset comprises 2,594 images of lesions, each paired with a corresponding mask that depicts the ideal segmentation. This dataset was divided randomly into 85 validation images, 85 test images, and 2,424 training images. These proportions were selected to ensure that the majority of the images were utilized for model training, enhancing its performance. At the same time, a sufficient number of test and validation images were retained to provide a comprehensive evaluation of the model during both testing phases and upon the training's conclusion. As illustrated in the accompanying graphs, the validation data achieved a dice score exceeding 0.8 by the 16th epoch. Training concluded at the 20th epoch, with a final validation dice score of 0.8127 and a closely matching test set dice score of 0.8139. The loss value seemed to plateau, not going below 0.6. This indicates that there's potential for further refinement, suggesting that extended training or modifications to the model might lead to significant improvements.
 
+---
+## How to run the model
+
+All preprocessing required for the ISIC 2018 dataset is completed within the dataset.py, utils.py and train.py files, so to reproduce the model you just have to split the dataset into sets of validation, test and training images as you please. Once split the data needs to be placed into the corresponding directories within the data directory. The number of epochs and batch size can be modified within the train.py file by changing the value assigned to NUM_EPOCHS and BATCH_SIZE.
+
