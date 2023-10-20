@@ -6,6 +6,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+import torch
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 """Create Adjacency matrix from the musae_facebook_edges.csv file"""
@@ -13,7 +15,7 @@ def create_adjacency_matrix():
     data = []
 
     # Read the CSV data from musae_facebook_edges.csv file
-    with open('../../../facebook_large/musae_facebook_edges.csv', 'r') as file:
+    with open('facebook_large/musae_facebook_edges.csv', 'r') as file:
         reader = csv.reader(file, delimiter=',')
         next(reader)
         data = list(reader)
@@ -58,7 +60,7 @@ adjacency_normed = normalise_adjacency_matrix(create_adjacency_matrix())
  Hence I will create an n-dimensional bag of words feature vector for each node"""
 def create_feature_vectors():
     # Load data from a JSON file
-    with open('../../../facebook_large/musae_facebook_features.json', 'r') as file:
+    with open('facebook_large/musae_facebook_features.json', 'r') as file:
         data = json.load(file)
 
     # Convert string keys to integers
@@ -103,7 +105,7 @@ def convert_labels():
     processed_data = []
 
     # Read the CSV data
-    with open('../../../facebook_large/musae_facebook_target.csv', 'r', encoding='utf-8') as file:
+    with open('facebook_large/musae_facebook_target.csv', 'r', encoding='utf-8') as file:
         reader = csv.DictReader(file)
         
         for row in reader:
