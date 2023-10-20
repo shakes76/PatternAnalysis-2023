@@ -2,11 +2,11 @@ import torch
 import torch.nn as nn
 
 class Block(nn.Module):
-    def __init__(self, shape, in_c, out_c, kernel_size=3, stride=1, padding=1):
+    def __init__(self, shape, in_channel, out_channels, kernel_size=3, stride=1, padding=1):
         super(Block, self).__init__()
         self.ln = nn.LayerNorm(shape)
-        self.conv1 = nn.Conv2d(in_c, out_c, kernel_size, stride, padding)
-        self.conv2 = nn.Conv2d(out_c, out_c, kernel_size, stride, padding)
+        self.conv1 = nn.Conv2d(in_channel, out_channels, kernel_size, stride, padding)
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size, stride, padding)
         self.activation = nn.SiLU()
 
     def forward(self, x):
@@ -19,12 +19,12 @@ class Block(nn.Module):
 
     
 class UNet(nn.Module):
-    def __init__(self, n_steps=1000, time_emb_dim=100):
+    def __init__(self, num_steps=1000, time_emb_dim=100):
         super(UNet, self).__init__()
 
         # Sinusoidal embedding
-        self.time_embed = nn.Embedding(n_steps, time_emb_dim)
-        self.time_embed.weight.data = self._sinusoidal_embedding(n_steps, time_emb_dim)
+        self.time_embed = nn.Embedding(num_steps, time_emb_dim)
+        self.time_embed.weight.data = self._sinusoidal_embedding(num_steps, time_emb_dim)
         self.time_embed.requires_grad_(False)
 
         # Encoder
@@ -134,21 +134,29 @@ class UNet(nn.Module):
             nn.SiLU(),
             nn.Linear(dim_out, dim_out)
         )
+    @staticmethod
+    def _sinusoidal_embedding(n, d):
+        position = torch.arange(n).unsqueeze(1)
+        div_term = torch.exp(torch.arange(0, d, 2) * -(math.log(10000.0) / d))
+        embedding = torch.zeros(n, d)
+        embedding[:, 0::2] = torch.sin(position * div_term)
+        embedding[:, 1::2] = torch.cos(position * div_term)
+        return embedding
       
 class DDPM_UNet(nn.Module):
     """
     Diffusion Denoising Probabilistic Model (DDPM) with a U-Net architecture.
     """
-    def __init__(self, network, n_steps=200, min_beta=1e-4, max_beta=0.02, image_shape=(1, 224, 224), device=None,):
+    def __init__(self, network, num_steps=200, min_beta=1e-4, max_beta=0.02, image_shape=(1, 224, 224), device=None,):
         super(DDPM_UNet, self).__init__()
         
-        self.n_steps = n_steps
+        self.num_steps = num_steps
         self.device = device
         self.image_shape = image_shape
         self.network = network.to(device)
         
         # Compute the betas and alphas based on the given min and max betas
-        self.betas = torch.linspace(min_beta, max_beta, n_steps).to(device)
+        self.betas = torch.linspace(min_beta, max_beta, num_steps).to(device)
         self.alphas = 1 - self.betas
         
         # Compute cumulative product of alphas
