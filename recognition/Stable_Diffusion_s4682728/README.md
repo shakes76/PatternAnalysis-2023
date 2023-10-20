@@ -13,13 +13,6 @@ In this project, a generative model based on the Diffusion algorithm has been de
 - [Training](#training)
 - [Usage](#usage)
 - [References](#references)
-
-  ### Some Javascript
-  ```js
-  function logSomething(something) {
-    console.log('Something', something);
-  }
-  ```
 </details>
 
 ## Dependencies
@@ -91,35 +84,41 @@ optimizer = optim.Adam(model.parameters(), lr=1e-3)
 loss = F.smooth_l1_loss(noise, predicted_noise)
 ```
 
-![Training Loss](/images/training_loss.png)
+![Training Loss](/images/training_loss100.png)
 
 ## Usage
-1. In the `dataset.py` file, adapt the `process_dataset` function to partition the data into training, testing, and validation sets. To verify that the data has been successfully loaded, uncomment and execute the code in the `main` block.
+1. To configure the training, testing, and validation datasets, please modify the `process_dataset` function in the `dataset.py` file. To verify that the data is loaded correctly, uncomment the code block under the `if __name__ == '__main__':` section and execute the script.
 
 ```python
+# configure datasets
 def process_dataset(batch_size=8, is_validation=False,
-                    train_dir="WRITE ME", 
-                    test_dir="WRITE ME", 
-                    val_dir="WRITE ME"):
+                    train_dir="WRITE ME", # directory for training set
+                    test_dir="WRITE ME", # directory for test set
+                    val_dir="WRITE ME"): # directory for validation set
+```
+```python
+# verify data loading
+if __name__ == '__main__':
+    image_dir = os.path.expanduser('WRITE ME') # directory for input images
+    save_dir = os.path.expanduser('WRITE ME')  # directory for saved images
 ```
 
 2. Execute the `train.py` script to train and save the model. You can customize the training process by adjusting parameters such as `epochs` and `batch_size`. Additionally, specify the target directory for storing the generated plot by modifying the appropriate variable at the end of the script. Upon successful execution, the output should resemble the example provided [here](#training).
 
 ```python
-save_dir = os.path.expanduser("WRITE ME")
+save_dir = os.path.expanduser("WRITE ME") # directory for saved plots
 ```
 
 3. Execute the `predict.py` script to generate synthetic brain images from pure noise. To specify a different directory for storing the generated images, modify the designated section at the end of the script.
 
 ```python
- save_dir = os.path.expanduser("WRITE ME")
+ save_dir = os.path.expanduser("WRITE ME") # directory for saved images
 ```
 
 <br>
-The following sample output was generated after training the model for 51 epochs on the OASIS Brain dataset. The reasonable clarity and fidelity of these images serve as a testament to the model's performance capabilities.
+The following sample output was generated after training the model for 100 epochs on the OASIS Brain dataset. The reasonable clarity and fidelity of these images serve as a testament to the model's performance capabilities.
 
-![](/images/result_process.png)
-![](/images/image_grid.png)
+![](/images/image_grid100.png)
 
 ## References
 - [OASIS Brain Dataset](https://www.oasis-brains.org/)
