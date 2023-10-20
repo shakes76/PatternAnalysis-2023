@@ -9,7 +9,7 @@ Report details the implementation of a Brain MRI super-resolution network traine
 ### Description :
                    
 The Super-Resolution Convolutional Neural Network (SRCNN) is used for single image super resolution (SR). Network operates in distinct phases to upscale images.
-Firstly, through a process of patch extraction and representation, it extracts patches from the low-resolution images.
+Firstly , through a process of patch extraction and representation, it extracts patches from the low-resolution images.
 Then, during the non-linear mapping phase, the network harnesses its capacity to learn intricate patterns and details from the data.
 Lastly, in the reconstruction phase, the final layer of the SRCNN is dedicated to generating the high-resolution image from the acquired feature maps.The filters within this layer are meticulously trained to collate the information from these feature maps, ensuring the output is a finely upscaled image.               
 SRCNN models have various implementations across different domains. They offer a more feasible approach to obtaining high-resolution images than relying on the availability of high-cost sensors and advanced optics manufacturing technology. The medical field greatly benefits from SRCNN due to its ability to enhance image quality, which is pivotal for precise diagnostics and treatments.  
@@ -60,10 +60,10 @@ Representative figures are used for testing purposes.
 
 ### Outputs: 
 
-- **Output1**: ![Output1](Input_output_samples/Output1.png)
-- **Output1 (Gray)**: ![Output1 Gray](Input_output_samples/Output1gray.png)
-- **Output2**: ![Output2](Input_output_samples/Output2.png)
-- **Output2 (Gray)**: ![Output2 Gray](Input_output_samples/Output2gray.png)
+- **Output1**: ![Output1](Input_output_samples/Output2.png)
+- **Output1 (Gray)**: ![Output1 Gray](Input_output_samples/Output2gray.png)
+- **Output2**: ![Output2](Input_output_samples/Output1.png)
+- **Output2 (Gray)**: ![Output2 Gray](Input_output_samples/Output1gray.png)
 - **PSNR**: ![PSNR](Images/PSNR.png)
 - **Training vs Validation**: ![Training vs Validation](Images/training_plot.png)
 
