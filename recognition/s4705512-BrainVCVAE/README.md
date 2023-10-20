@@ -3,7 +3,7 @@
 
 OASISVQ is a project dedicated to advancing brain image generation using the Vector Quantized Variational Autoencoder (VQVAE) deep learning model. This README provides an overview of the project and its goals.
 
-# Ploblem Overview
+# Problem Overview
 Brain image generation is a crucial task in neuroimaging research, aiding in the study of brain structure, function, and various neurological conditions. OASISVQ aims to utilize the capabilities of VQVAE, a powerful variant of Variational Autoencoders, to enhance the generation of brain images from the OASIS Brain dataset.
 
 # Objectives
@@ -28,7 +28,7 @@ A VAE is a type of generative model that falls under the umbrella of autoencoder
 <p align="center">
 	<img src="Images/vqvae2.png" width=800>
 	<p>
-    <em>Left: The Encoder, Middle: the Vector Quantization layer, Right: the Decoder</em>
+    <em>Figure 1: Left: The Encoder, Middle: the Vector Quantization layer, Right: the Decoder</em>
 		
 
 
@@ -50,50 +50,93 @@ The VQ layer operates in six key steps, illustrated in Figure 2. Initially, a Re
 ######Decoding layer
  The decoder in a VQ-VAE is typically a neural network responsible for generating data samples from the latent representations produced by the encoder. In the context of a VQ-VAE, the decoder is responsible for reconstructing the data, such as images or audio, from the discrete latent variables learned during the encoding process.
 
-
+<p align="center">
+	<img src="Images/Encoded.png" width=800>
+	<em>Figure 2: Encoded, Quantisation and Decoded Scans</em>
+</p>
 ---
 
 # Models and HyperParameters 
 
-###### Generated Images 
+#### VQ-VAE
+| Layer Name         | Layer Type        | Output Shape       | Hyperparameters/Info |
+|--------------------|-------------------|--------------------|-----------------------|
+| Input              | Input             | (128, 128, 1)      | Input image shape    |
+| Encoder            | Conv2D            | (64, 64, 32)       | Filters: 32, Kernel: 3x3, Strides: 2, Activation: ReLU, Padding: Same |
+| Encoder            | Conv2D            | (32, 32, 32)       | Filters: 32, Kernel: 3x3, Strides: 2, Activation: ReLU, Padding: Same |
+| Encoder            | Conv2D            | (16, 16, 64)       | Filters: 64, Kernel: 3x3, Strides: 2, Activation: ReLU, Padding: Same |
+| Encoder            | Conv2D            | (8, 8, 64)         | Filters: 64, Kernel: 3x3, Strides: 2, Activation: ReLU, Padding: Same |
+| Encoder            | Conv2D            | (8, 8, 128)        | Filters: 128, Kernel: 3x3, Activation: ReLU, Padding: Same |
+| Vector Quantizer   | Custom Layer      | (8, 8, 16)         | Number of Embeddings: 16, Beta: 0.25 |
+| Decoder            | Conv2DTranspose    | (8, 8, 128)        | Filters: 128, Kernel: 3x3, Activation: ReLU, Padding: Same |
+| Decoder            | Conv2DTranspose    | (16, 16, 64)       | Filters: 64, Kernel: 3x3, Strides: 2, Activation: ReLU, Padding: Same |
+| Decoder            | Conv2DTranspose    | (32, 32, 64)       | Filters: 64, Kernel: 3x3, Strides: 2, Activation: ReLU, Padding: Same |
+| Decoder            | Conv2DTranspose    | (64, 64, 32)       | Filters: 32, Kernel: 3x3, Strides: 2, Activation: ReLU, Padding: Same |
+| Decoder            | Conv2DTranspose    | (128, 128, 32)     | Filters: 32, Kernel: 3x3, Strides: 2, Activation: ReLU, Padding: Same |
+| Output             | Conv2DTranspose    | (128, 128, 1)      | Filters: 1, Kernel: 3x3, Padding: Same |
+
+
 
 #### Pixel-Cnn
-PixelConvLayer:
-
 The PixelConvLayer is a custom layer used in your PixelCNN model. It is designed to implement pixel-wise convolutions with specific mask types, which are commonly used in autoregressive models like PixelCNN for image generation.
 
-| Attributes | Information |
-|------------|-------|
-mask_type: |This attribute specifies the type of mask applied to the layer. In autoregressive models, different masks are used for different layers to ensure that each pixel in the output depends only on previously generated pixels. There are two common mask types: "A" and "B."
-conv: | This attribute is an instance of the Keras Conv2D layer, which is used to perform convolution operations.
-build(input_shape): | This method is responsible for building the layer by initializing the kernel variables. It creates a mask based on the specified mask_type, which restricts the convolution's receptive field.
-call(inputs): | This method performs the forward pass of the layer. It applies the convolution operation with the configured mask to the input tensor. The mask ensures that each output pixel depends only on previously generated pixels according to the autoregressive constraints.
+| Layer Name           | Layer Type           | Output Shape       | Hyperparameters/Info                                 |
+|----------------------|----------------------|--------------------|-------------------------------------------------------|
+| Input                | Input                | (8, 8)             | Input shape: (8, 8)                                  |
+| PixelConv Layer 1   | PixelConvLayer       | (8, 8, 128)        | Mask Type: "A", Filters: 128, Kernel: 7x7, Activation: ReLU, Padding: Same |
+| Residual Block 1     | ResidualBlock        | (8, 8, 128)        | Filters: 128, Kernel 1: 1x1, Kernel 2: 3x3, Activation: ReLU |
+| PixelConv Layer 2   | PixelConvLayer       | (8, 8, 128)        | Mask Type: "B", Filters: 128, Kernel: 1x1, Activation: ReLU, Padding: Valid |
+| Residual Block 2     | ResidualBlock        | (8, 8, 128)        | Filters: 128, Kernel 1: 1x1, Kernel 2: 3x3, Activation: ReLU |
+| PixelConv Layer 3   | PixelConvLayer       | (8, 8, 128)        | Mask Type: "B", Filters: 128, Kernel: 1x1, Activation: ReLU, Padding: Valid |
+| Residual Block 3     | ResidualBlock        | (8, 8, 128)        | Filters: 128, Kernel 1: 1x1, Kernel 2: 3x3, Activation: ReLU |
+| PixelConv Layer 4   | PixelConvLayer       | (8, 8, 128)        | Mask Type: "B", Filters: 128, Kernel: 1x1, Activation: ReLU, Padding: Valid |
+| Residual Block 4     | ResidualBlock        | (8, 8, 128)        | Filters: 128, Kernel 1: 1x1, Kernel 2: 3x3, Activation: ReLU |
+| Output               | Conv2D                | (8, 8, 128)        | Filters: 128, Kernel: 1x1, Activation: None, Padding: Valid |
 
-
-The ResidualBlock is a building block used in your model. It's a common architectural component in many deep learning models, and in this context, it's used within the PixelCNN model.
-
-| Attributes | Information |
-|------------|-------|
-filters: | This attribute specifies the number of filters (output channels) used in the convolutional layers within the block.
-Methods:
-call(inputs): | This method performs the forward pass of the residual block. It consists of several layers:
-conv1: A 1x1 convolution layer with filters filters and ReLU activation.
-pixel_conv: |An instance of the PixelConvLayer, which performs convolution with a specific mask type.
-conv2: | Another 1x1 convolution layer with filters filters and ReLU activation.
-The output of this block is obtained by adding the input inputs to the result of the final convolution. This is a common practice in residual networks to help with gradient flow and mitigate vanishing gradient problems.
-In summary, the PixelConvLayer implements pixel-wise convolutions with specific masks for autoregressive image generation, and the ResidualBlock is a building block with convolutional layers and residual connections used to learn features in the PixelCNN model. These components contribute to the model's ability to generate images with autoregressive constraints.
 
 ---
+# Training Images and Reconstructed Brains
+In the context of medical image analysis, the OASIS dataset has been instrumental in advancing our comprehension of brain structure and functionality. This section presents a series of ten training images extracted from the OASIS dataset, with each image representing a distinct cross-section of the human brain.
+These images serve as the foundational dataset for the training of a state-of-the-art VQ-VAE (Vector Quantized Variational Autoencoder) model. The VQ-VAE architecture is purposefully designed for capturing intricate patterns and structures within medical imaging data.
+Let us take a glimpse into this dataset, revealing the original brain images and their respective reconstructions generated by the trained VQ-VAE model. The VQ-VAE excels in compressing high-dimensional brain data into a concise latent space, subsequently reconstructing it while preserving critical anatomical details essential for in-depth medical analysis.
 
-###### Generated Images 
+The following showcases a subset of this process, presenting the original brain images and their corresponding reconstructions:
 
-<p align="center">
-	<img src="Images/Encoded.png" width=800>
+<p float="left">
+  <img src="Images/training_images/Figure_1.png" width="20%" />
+  <img src="Images/training_images/Figure_2.png" width="20%" />
+  <img src="Images/training_images/Figure_3.png" width="20%" />
 </p>
+
+<p float="left">
+  <img src="Images/training_images/Figure_4.png" width="20%" />
+  <img src="Images/training_images/Figure_5.png" width="20%" />
+  <img src="Images/training_images/Figure_6.png" width="20%" />
+</p>
+
+<p float="left">
+  <img src="Images/training_images/Figure_7.png" width="20%" />
+  <img src="Images/training_images/Figure_8.png" width="20%" />
+  <img src="Images/training_images/Figure_9.png" width="20%" />
+
+  <em>Figure 3: Figures of Training Images and Reconstructed Brain</em>
+</p>
+
+# Generated Images 
+One of the remarkable capabilities of the VQ-VAE model is its capacity to generate novel sample images, offering a glimpse into the realm of possibilities within the medical imaging domain. These generated images can be invaluable for various applications, including research, diagnosis, and training.
+
+To obtain generated sample images from the VQ-VAE model, follow these steps:
+
+1. Load the Trained VQ-VAE Model: Ensure that the VQ-VAE model has been trained on your dataset and is loaded into your Python environment.
+2. Generate Sample Latent Codes: To create new brain images, you'll need to sample latent codes from the VQ-VAE's latent space. This process involves random sampling or choosing specific codes of interest.
+3. Decode Latent Codes: Using the trained VQ-VAE model, decode the sampled latent codes to produce reconstructed brain images. 
+4. Visualize the Generated Images: 
+
 
 
 <p align="center">
 	<img src="Images/Reconstructed.png" width=800>
+	<em>Figure 4: Generated Samples from Prediction</em>
 </p>
 
 
@@ -106,18 +149,22 @@ Reconstruction Loss (reconstruction_loss): This loss measures the dissimilarity 
 
 <p align="center">
 	<img src="Images/ VQVAE.png" width=800>
+	<em>Figure 6: Loss Functions of Reconstruction, VQ-VAE and Epoch</em>
 </p>
 
 Sparse Categorical Crossentropy Loss (keras.losses.SparseCategoricalCrossentropy): This loss function is commonly used for models that generate discrete outputs, such as image generation with PixelCNN. It measures the dissimilarity between the predicted probability distribution (logits) and the ground truth discrete values (in this case, the codebook indices). The goal is to minimize this loss, encouraging the model to generate pixel values that match the target distribution.
 
 <p align="center">
 	<img src="Images/PixelCNN.png" width=800>
+	<em>Figure 7: Pixel CNN loss over Epoch</em>
+	
 </p>
 
 The Structural Similarity Index (SSIM) is a metric used to measure the similarity between two images. It was designed to assess the perceived quality of images by considering both structural information and luminance. SSIM is widely used in image processing and computer vision tasks, including image compression, denoising, and quality assessment. 
 
 <p align="center">
 	<img src="Images/Ssim.png" width=800>
+	<em>Figure 8: Structual Similarity Measureshowing convergence towards 0.7</em>
 </p>
 
 | SSIM Range | Interpretation |
