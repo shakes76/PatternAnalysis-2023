@@ -65,6 +65,7 @@ class InputEmbedding(nn.Module):
         # Add the positional embeddings to the input embeddings and class token
         linearProjection += self.positionalEmbedding[:linearProjection.shape[0], :linearProjection.shape[1] + 1, :]
         return linearProjection
+    
 '''
 Encoder
 
@@ -146,7 +147,6 @@ class ViT(nn.Module):
         for layer in self.encoders:
             encoderOut = layer(encoderOut)
 
-        # Output of MLP head is classification result
-        # out = self.MLP(encoderOut[:, 0])
+        # Output of MLP head is classification resul
         out = self.MLP(torch.mean(encoderOut, dim=1))
         return out

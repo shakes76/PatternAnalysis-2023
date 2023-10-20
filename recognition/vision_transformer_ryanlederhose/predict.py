@@ -69,7 +69,7 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Load the model in
-    model = torch.load('model.pt')
+    model = torch.load('model_69.pt')
     model.eval()
 
     # Get the test dataset 
@@ -78,7 +78,7 @@ def main():
 
     # Pick a random batch between 0 and 15
     idx = random.randint(0, 15)
-    print(f'Using batch {idx}')
+    print(f'Using batch {idx}\r\n')
 
     # Predict
     accuracy, loss = check_accuracy(testloader, model, device, idx, dl, nn.CrossEntropyLoss())
