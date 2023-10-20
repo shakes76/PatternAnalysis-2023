@@ -64,7 +64,9 @@ Representative figures are used for testing purposes.
 - **Output1 (Gray)**: ![Output1 Gray](Input_output_samples/Output1gray.png)
 - **Output2**: ![Output2](Input_output_samples/Output2.png)
 - **Output2 (Gray)**: ![Output2 Gray](Input_output_samples/Output2gray.png)
+- 
 - **PSNR**: ![PSNR](Images/PSNR.png)
+- 
 - **Training vs Validation**: ![Training vs Validation](Images/training_plot.png)
 
 ### Results: 
