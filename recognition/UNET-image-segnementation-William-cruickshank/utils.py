@@ -16,6 +16,8 @@ def get_loaders(
     train_maskdir,
     val_dir,
     val_maskdir,
+    test_dir,
+    test_maskdir,
     batch_size,
     train_transform,
     val_transform,
@@ -49,8 +51,23 @@ def get_loaders(
         pin_memory=pin_memory,
         shuffle=False,
     )
+    
+    test_ds = ISICDataset(
+        image_dir=test_dir,
+        mask_dir=test_maskdir,
+        transform=val_transform,
+    )
 
-    return train_loader, val_loader
+    test_loader = DataLoader(
+        test_ds,
+        batch_size=batch_size,
+        num_workers=num_workers,
+        pin_memory=pin_memory,
+        shuffle=False,
+    )
+
+    return train_loader, val_loader, test_loader
+
 
 def check_accuracy(loader, model, device="cuda"):
     num_correct = 0
@@ -81,6 +98,7 @@ def check_accuracy(loader, model, device="cuda"):
     )
     print(f"Dice score: {dice_score/len(loader):.4f}")
     model.train()
+    return dice_score/len(loader)
 
 def save_predictions_as_imgs(
     loader, model, folder="saved_images/", device="cuda"

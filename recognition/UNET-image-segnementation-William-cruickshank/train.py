@@ -21,8 +21,8 @@ DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 32
 NUM_EPOCHS = 20
 NUM_WORKERS = 2
-IMAGE_HEIGHT = 192
-IMAGE_WIDTH = 255
+IMAGE_HEIGHT = 192 # 384
+IMAGE_WIDTH = 255 # 511
 PIN_MEMORY = True
 LOAD_MODEL = False
 TRAIN_IMG_DIR = "recognition/UNET-image-segnementation-William-cruickshank/data/train_images"
@@ -57,7 +57,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
 
         # update tqdm loop
         loop.set_postfix(loss=loss.item())
-    print(loss)
+    return loss
 
 def main():
     train_transform = A.Compose(
@@ -111,9 +111,12 @@ def main():
 
     check_accuracy(val_loader, model, device=DEVICE)
     scaler = torch.cuda.amp.GradScaler()
-
+    
+    losses = []
+    dices = []
+    
     for epoch in range(NUM_EPOCHS):
-        train_fn(train_loader, model, optimizer, loss_fn, scaler)
+        losses.append(train_fn(train_loader, model, optimizer, loss_fn, scaler))
 
         # save model
         checkpoint = {
@@ -123,12 +126,14 @@ def main():
         save_checkpoint(checkpoint)
 
         # check accuracy
-        check_accuracy(val_loader, model, device=DEVICE)
+        dices.append(check_accuracy(val_loader, model, device=DEVICE))
 
         # print some examples to a folder
         save_predictions_as_imgs(
             val_loader, model, folder="saved_test_images/", device=DEVICE
         )
+        print(losses)
+        print(dices)
     check_accuracy(test_loader, model, device=DEVICE)
     save_predictions_as_imgs(
             test_loader, model, folder="saved_test_images/", device=DEVICE
