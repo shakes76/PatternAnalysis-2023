@@ -26,18 +26,19 @@ The model uses deep supervision wich helps mitigate the vanishing gradient probl
 intermediate loss signals into the output. This allows for more efficient flow of gradients during backpropegation. \
 As with general UNet arcitecture; skip connections are also used for their ability to improve segmentation quality. 
 
+The convolution and context layers in the encoder allows for more feature extraction during downsizing.
+The upsampling block upsamples the low resolution feature maps, 
+After concatination of the upsampled features and the skip connection the loacaliztion module recombines these features together.
+
+### input/output
 The network takes a RGB channeled image as input, and outputs a binary segmentation map.
+
+![model arcitecture](images/model_arcitecture.png)
 
 [^3]: https://paperswithcode.com/task/semantic-segmentation
 [^4]: https://arxiv.org/abs/1802.10508v1
 
-![model arcitecture](images/model_arcitecture.png)
-
-## example segmentation
-As you can see in the picture below. The image segmentation works well in some cases, and not so good in other ca
-![example of image segmentation](images/segmentation_example.png)
-
-## preprocessing and training
+## preprocessing
 The image sizes in the dataset varey. This causes problems when loading the data from the pytorch dataloader.
 As a work around fo this issue a standard image size can be specified in the macro *IMAGE_SIZE* in ***dataset.py*** .
 The path of the dataset should be specified in the following macros in ***dataset.py***:
@@ -47,8 +48,7 @@ TRAIN_TRUTH_PATH = "Path/to/your/dataset"
 TEST_TRUTH_PATH = "Path/to/your/dataset"
 TEST_TRAIN_PATH = "Path/to/your/dataset"
 ```
-
-While training on rangpur[^3] the test dataset had no corresponding groundtruth images. 
+While training on the computing cluster[^5] the test dataset had no corresponding groundtruth images. 
 As a work around for this The *ISICDataset* class in ***dataset.py*** can be specified with a split ratio as well as a boolean train statement. 
 This allows the user to specify wich part of the directory he/she wishes 
 to use for both training and testing.
@@ -59,32 +59,46 @@ train_data = ISICDataset(img_dir=TRAIN_DATA_PATH, truth_dir=TRAIN_TRUTH_PATH ,sp
 val_data = ISICDataset(img_dir=TRAIN_DATA_PATH, truth_dir=TRAIN_TRUTH_PATH, split_ratio=0.9,transform=transform, train=False)
 ```
 
-In this example the train data will be allocated the first 90% of the directory. 
-And the valuation data will be allocated the last 10%.
+In this example the train data will be allocated the first 90% of the directory,
+and the valuation data will be allocated the last 10%.
+
+## Training
+The Network was trained with an initial learning rate of *5e-4* and a linear step scheduler with stepsize of 4 and
+a gamma value of 0.985. The network trained for 60 epochs. Due to high traffic on the computing cluster[^5] the images was rezised to
+64 x 64 pixels to allow for training on the cpu on a computer. (The final product should be reprodusable for higher image qualities as well).
+
+[^5]: https://rcc.uq.edu.au/high-performance-computing
+## example segmentation
+![example of image segmentation](images/segmentation_example.png)
 
 ## loss function
 The dice loss function is used during training on this dataset.
 The dice loss is the inverse of the dice coefficent which checks 
 for pixel-wise agreement between a predicted segmentation and its groundtruth. 
 a small dice loss will therefore correspond with a good segmentation.
+While training the network seemed to give lower priority to segmentations with low dice scores.
+To fix this issue a smoothing parameter was added. This parameter allows for more control of
+sensitivity between small differences between the prediction and target. This seemed to refocuse the network on
+improving the segmentations with the worst dice scores.
 The code for this custom loss function is gotten from [Dice Loss Class](https://www.kaggle.com/code/bigironsphere/loss-function-library-keras-pytorch?fbclid=IwAR3q7bjIDoKFlc5IDGpd24TW8QhQdzbxh2TrIP6FCXb7A8FaluU_HhTqmHA). \
 code:
 ```
 class DiceLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, smooth=1.0):
         super(DiceLoss, self).__init__()
+        self.smooth = smooth
 
     def forward(self, predict, target):
         predict = predict.view(-1)
         target = target.view(-1)
 
         intersect = (predict * target).sum()
-        dice = (2*intersect)/(predict.sum() + target.sum())
+        dice = (2*intersect + self.smooth)/(predict.sum() + target.sum() + self.smooth)
         return 1 - dice
 ```
 
 ## dependencies
-* pytorch (2.1.0) for dataset creation, data loading and torchvision functionality
+* pytorch (2.1.0) for dataset creation, data loading and torchvision functionality and training
 * pillow (10.0.1) for image loading
 * matplotlib (3.7.2) for plotting
 
