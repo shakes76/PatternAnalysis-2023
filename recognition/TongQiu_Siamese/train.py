@@ -281,14 +281,14 @@ if __name__ == '__main__':
     dataloader_tr = DataLoader(
         dataset=train_dataset,
         shuffle=True,
-        batch_size=3,
+        batch_size=32 ,
         num_workers=1,
         drop_last=True
     )
     dataloader_val = DataLoader(
         dataset=val_dataset,
         shuffle=True,
-        batch_size=3,
+        batch_size=32,
         num_workers=1,
         drop_last=True
     )
