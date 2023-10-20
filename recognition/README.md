@@ -6,7 +6,7 @@ Course Code: COMP3710<br>
 Submission Date: 20/10/2023
 
 ## Problem Description:
-The ADNI (Alzheimer's Disease Neuroimaging Initiative) Brain Dataset includes both MRI (Magnetic Resonance Imaging) and PET (Positron Emission Tomography) scans. By analysing these scans using deep learning models, we can effectively detect whether a patient has Alzheimer's disease. In this project, a Siamese Neural Network will be utilised to assist in the classification of brain scans into one of two categories: Alzheimer's Disease (AD) or Normal Cognitive Ability (NC).
+The ADNI (Alzheimer's Disease Neuroimaging Initiative) Brain Dataset includes both MRI (Magnetic Resonance Imaging) and PET (Positron Emission Tomography) scans. By analysing these scans using deep learning models, we can effectively detect whether a patient has Alzheimer's disease. In this project, a Siamese Neural Network will be utilised to assist in the classification of brain scans into one of two categories: Alzheimer's Disease (AD) or Normal Cognitive ability (NC).
 
 ## Description of Algorithm: 
 A Siamese network consists of two identical neural networks with the same weights and parameters, each of which takes in an input images. The main objective of an SNN is to differentiate between two images i.e. provide a measure of similarity between the inputs. The outputs of the networks are 128-dimensional feature vectors which are fed into a contrastive loss function, which calculates a similarity measure between the two images. The siamese network should effectively be trained to distinguish between a brain scan which shows AD and NC, the embeddings for a certain class should be groups together and separated for different classes. To classify an image into one of two classes, a Multi Layer Perceptron was trained to take in the feature embedding from the Siamese Neural Network and classify it into one of two classes: Alzheimer's Disease (AD) or Normal Cognitive Ability (NC).
@@ -14,9 +14,18 @@ A Siamese network consists of two identical neural networks with the same weight
 ## Diagram of Siamese Neural Network Classifier
 The classifier is made up of two separate stages, the first is the Siamese Neural Network, which takes in a 3 x 128 x 128 image and outputs a 1D feature vector embedding of size 128. The second stages is the multi-layer perceptron, which takes in an embedding and classifies it. Both these architectures can be found in the <i>modules.py</i> file.
 
+
 ![](siamese_diagram.png) Imaged sourced from [1]
+* The inputs to the Siamese Neural Network are pairs of images and a label corresponding to if the images belong to the same class.
+* The outputs of the Siamese Neural Network are embeddings of the input images.
+
+<br>
 
 ![](MLP_Diagram.png)
+
+* The inputs to the MLP is an embedding vector of size 128 x 1 and label corresponding to it's class.
+* The output of the MLP is a single value between 0 and 1.
+
 
 ## Dataset Structure
 The ADNI dataset is currently stored on the Rangpur HPC and has the following file structure.
@@ -43,6 +52,7 @@ A transform was also applied to the images, which crops them to 128x128, convert
 ![](Sample_Data.png)
 
 ## Training and Results
+### Training
 First, the Siamese Neural Network was trained for 10 epochs with the following criterion and optimiser:
 ```
 criterion = ContrastiveLoss(margin=2.0)
@@ -70,14 +80,14 @@ The average loss of the SNN was plotted against the number of epochs as shown he
 
 ![](Siamese_loss.png)
 
-The MLP was trained with the following criterion and optimiser:
+The MLP was also trained for 10 epochs with the following criterion and optimiser. Binary cross entropy loss is a widely used loss function for binary classification problems.
 
 ```
 criterion = nn.BCELoss()
 optimizer = optim.SGD(mlp.parameters(), lr=1e-3)
 ```
 
-
+The training output log for the MLP is shown below:
 ```
 Starting Training MLP...
 Epoch number: 0 -> Average loss: 0.6921
@@ -98,13 +108,8 @@ The average loss of the MLP was plotted against the number of epochs as shown he
 
 ![](mlp_loss.png)
 
-
-
-## How it Works:
-* The inputs to the Siamese Neural Network are pairs of images and a label corresponding to if the images belong to the same class.
-* The outputs of the Siamese Neural Network are embeddings of the input images.
-
-
+### Testing
+The classifier was tested using the calculate_accuracy function located the predict.py file. The test dataloader was used to identify the accuracy of the model and the ouput was ~60%. This accuracy is reasonable, however, could be improved by using a larger proportion of the training dataset as well as training for more epochs.
 
 ## How to Run the SNN Classifier
 The script to run the SNN Classifier is found in <i>predict.py</i>, to run an image through the classifier, enter the following commmand into the terminal.
