@@ -70,7 +70,7 @@ class LoadData():
 
         # data loader hyper parameter
         self.image_size = 224
-        self.batch_size = 128
+        self.batch_size = 32
         self.num_worker = 0
 
         # train and validate ratio

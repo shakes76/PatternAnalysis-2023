@@ -77,7 +77,7 @@ def plot_tsne(fv, label, name, file):
     plt.savefig(file)
     plt.close()
 
-def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_list):
+def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_list, lastEpoch=False):
     sModel.eval() # siamese
     cModel.train() # classifier
 
@@ -90,7 +90,8 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
         optimizer.zero_grad()
 
         fv1 = sModel(img)
-        plot_tsne(fv1, label, "t-SNE train", utils.tsne_train)
+        if lastEpoch:
+            plot_tsne(fv1, label, "t-SNE train", utils.tsne_train)
         output = cModel(fv1)
         loss = criterion(output.view(-1), label)
 
@@ -111,7 +112,7 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
     accuracy = 100 * correct_predict / total_test
     return cModel, accuracy
 
-def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list):
+def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list, lastEpoch=False):
     sModel.eval()
     cModel.eval()
 
@@ -124,7 +125,8 @@ def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list):
 
             fv = sModel(img) 
             output = cModel(fv)
-            plot_tsne(output, label, "t-SNE validate", utils.tsne_validate)
+            if lastEpoch:
+                plot_tsne(output, label, "t-SNE validate", utils.tsne_validate)
             output = output.view(-1)
             loss = criterion(output, label)
             val_loss_list.append(loss.item())
@@ -329,8 +331,12 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     # train classifier
     for epoch in range(num_epochs):
         print ("Epoch [{}/{}]".format(epoch + 1, num_epochs))
-        cModel, t_accuracy = train_classifier(sModel, cModel, train_loader_classifier, criterion, optimizer, classifier_loss_list)
-        accuracy = validate_classifier(sModel, cModel, val_loader_classifier, criterion, classifier_val_loss_list)
+        if epoch + 1 == num_epochs:
+            cModel, t_accuracy = train_classifier(sModel, cModel, train_loader_classifier, criterion, optimizer, classifier_loss_list, True)
+            accuracy = validate_classifier(sModel, cModel, val_loader_classifier, criterion, classifier_val_loss_list, True)
+        else:
+            cModel, t_accuracy = train_classifier(sModel, cModel, train_loader_classifier, criterion, optimizer, classifier_loss_list)
+            accuracy = validate_classifier(sModel, cModel, val_loader_classifier, criterion, classifier_val_loss_list)
         
         accuracy_list.append(accuracy)
         train_accuracy_list.append(t_accuracy)
