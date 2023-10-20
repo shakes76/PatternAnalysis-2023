@@ -2,6 +2,7 @@ import os
 from torchvision import transforms
 from torch.utils.data import Dataset
 from PIL import Image
+from torchvision.transforms import InterpolationMode
 import numpy as np
 import random
 
@@ -37,7 +38,7 @@ class ISICDataLoader(Dataset):
     
     transform = transforms.Compose([
         transforms.ToPILImage(),
-        transforms.Resize(128, 128),
+        transforms.Resize((128, 128), interpolation=InterpolationMode.BILINEAR),
         transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
         transforms.ToTensor()]
