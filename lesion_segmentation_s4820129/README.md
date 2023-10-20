@@ -43,4 +43,4 @@ As proposed in the paper [], a dice similarity loss function is used to train th
 
 ### Results
  Due to the limitation in training and a batch size of 32 the results here are obtained from the 8 epochs of training. The metrics used to evaluate the model were dice score, average loss per epoch and the accuracy of the model. The accuracy is computed by accepting the predicted image where the prediction is > 0.5. 
- ![alt text](https://github.com/isak-ow/PatternAnalysis-2023/tree/topic-recognition/lesion_segmentation_s4820129/images#:~:text=..-,Batch%20test%20after%202%20epochs.png,-(File))
+ ![alt text](images/loss46epoch19.png)
