@@ -91,3 +91,13 @@ losses = pd.DataFrame()
 losses['TRAIN'] = loss_train
 losses['VALID'] = loss_valid
 losses.to_csv('lossesval.csv')
+
+# plot losses
+import matplotlib.pyplot as plt
+plt.figure()
+plt.plot(loss_train, label="training loss")
+plt.plot(loss_valid, label="validation loss")
+plt.xlabel("Epoch")
+plt.ylabel("Loss (BCE)")
+plt.legend()
+plt.savefig("lossgraph.jpg")

@@ -42,9 +42,11 @@ Segmentation occurs at multiple levels, reducing the feature map back into one f
 # Results
 Due to the model size and difficulties in accessing the Rangpur computing cluster, this model was difficult to train. This necessitated some changes: BCELoss() was used instead of DiceLoss due to Dice's relatively slow convergence, and the recommended 300 epochs was not feasible. With more time and computing power, the results are obviously expected to improve.
 
-To get some initial results, the model was simply trained on the validation dataset, purely due to its reduced size. Two sample outputs are given below after 50 epochs of training, demonstrating some feasibility in the model - it does detect some of the mole's shape.
+To get some initial results, the model was simply trained on the validation dataset, purely due to its reduced size. Two sample outputs are given below after 50 epochs of training, demonstrating some feasibility in the model - it does detect some of the mole's shape. As such, with a larger dataset and more epochs, it is believed that these predictions will improve further.
 ![Res1](res1.jpg)
 ![Res2](res2.jpg)
 
+
+
 # References
-[1] Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., and Maier-Hein, K. "Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge". Feb 28, 2018. Accessed from <https://arxiv.org/pdf/1802.10508v1.pdf>
+[1] Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., and Maier-Hein, K. "Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge". Feb 28, 2018 [Online]. Accessed from <https://arxiv.org/pdf/1802.10508v1.pdf>

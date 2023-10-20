@@ -32,6 +32,13 @@ test_loader = DataLoader(test, batch_size=BATCH_SIZE)
 ImpUNET = torch.load("impUNetMODEL.pth")
 ImpUNET.to(device)
 
+def calc_dice_coeff(pred,mask):
+    union = torch.sum(pred) + torch.sum(mask) 
+    intersect = torch.sum(pred * mask)
+    # calculate dice coefficient, add 1 to avoid dividing by 0
+    dice = (2.0 * intersect + 1.0) / (union + 1.0)
+    return dice
+
 # run test set through model, get predictions
 images = []
 masks = []
@@ -48,6 +55,8 @@ with torch.no_grad():
         
         
 # find dice coefficient
+dice = calc_dice_coeff(prediction,masks)
+print("MIN:", min(dice), "MAX:", max(dice))
 
 # plot example
 fig,ax = plt.subplots(1, 3, figsize=(10,10))
