@@ -26,10 +26,15 @@ def train(model, train_loader, val_loader, criterion=nn.CrossEntropyLoss(), n_ep
 			model.train()
 			correct, total = 0, 0
 			train_loss = 0.0
+			# Iterate for each batch
 			for batch in tqdm(train_loader, desc=f"Epoch {epoch + 1} in training", leave=False):
+					# Format batch
 					x, y = batch
 					x, y = x.type(torch.FloatTensor).to(device), y.to(device)
+					# Get prediction
 					y_hat = model(x)
+
+					# Calculate loss, accuracy, and backpropagate
 					loss = criterion(y_hat, y)
 
 					train_loss += loss.detach().cpu().item() / len(train_loader)
@@ -50,10 +55,16 @@ def train(model, train_loader, val_loader, criterion=nn.CrossEntropyLoss(), n_ep
 			with torch.no_grad():
 					correct, total = 0, 0
 					val_loss = 0.0
+					# Iterate for each batch
 					for batch in tqdm(val_loader, desc="Validation"):
+							# Format batch
 							x, y = batch
 							x, y = x.type(torch.FloatTensor).to(device), y.to(device)
+       
+							# Get prediction
 							y_hat = model(x)
+       
+							# Calculate loss, accuracy
 							loss = criterion(y_hat, y)
 							val_loss += loss.detach().cpu().item() / len(val_loader)
 
@@ -63,11 +74,12 @@ def train(model, train_loader, val_loader, criterion=nn.CrossEntropyLoss(), n_ep
 					val_accs.append(val_acc)
 					print(f"Val loss: {val_loss:.2f}")
 					print(f"Val accuracy: {correct / total * 100:.2f}%")
-					
+			# Save model
 			torch.save(model, f"models/{version_prefix}_model_{epoch + 1}_{val_acc}.pth")
 			train_losses.append(train_loss)
 			val_losses.append(val_loss)
-			
+	
+	# Generate Train and Validation, Loss and Accuracy plots
 	if gen_plots:
 		plt.plot(train_losses, label="Train loss")
 		# label the plot
@@ -115,14 +127,21 @@ def train(model, train_loader, val_loader, criterion=nn.CrossEntropyLoss(), n_ep
 def test(model, test_loader):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     criterion = CrossEntropyLoss()
-
+	
+	# Evaluate model on test set
     with torch.no_grad():
         correct, total = 0, 0
         test_loss = 0.0
+        # Iterate for each batch
         for batch in tqdm(test_loader, desc="Testing"):
+            # Format batch
             x, y = batch
             x, y = x.type(torch.FloatTensor).to(device), y.to(device)
+            
+            # Calculate prediction
             y_hat = model(x)
+       
+			# Calculate loss, accuracy
             loss = criterion(y_hat, y)
             test_loss += loss.detach().cpu().item() / len(test_loader)
 

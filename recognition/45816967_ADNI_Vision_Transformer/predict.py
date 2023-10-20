@@ -8,6 +8,7 @@ from dataset import generate_adni_datasets
 def predict(model, dataloader, dim=(2, 5), version_prefix="vit", save_fig=True):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     
+    # Define labels
     labels = ["CN", "AD"]
 
     model.eval()
@@ -21,9 +22,9 @@ def predict(model, dataloader, dim=(2, 5), version_prefix="vit", save_fig=True):
         # plot images in a grid with labels above each image
         fig, axs = plt.subplots(dim[0], dim[1], figsize=(2*dim[1], 2*dim[0]))
         fig.suptitle(f"{version_prefix} Predictions")
-        # fig.tight_layout(pad=0.3)
         for i in range(dim[0]):
             for j in range(dim[1]):
+                # Plot each image in grid with true and predicted labels
                 idx = i * dim[1] + j
                 axs[i, j].imshow(data[idx].permute(1, 2, 0).cpu(), cmap="gray")
                 axs[i, j].set_title(f'Label: {labels[target[idx].item()]}, Pred: {labels[preds[idx].item()]}')
@@ -41,17 +42,20 @@ def main():
     parser.add_argument("--model_dir", nargs='?', default=None, type=str)
     parser.add_argument("--dim", nargs='?', default=4, type=int)
     args = parser.parse_args()
-       
+    
+    # Check if model directory is specified
     if args.model_dir is None:
         raise("Must specify model directory")
     else:
         print("model_dir: ", args.model_dir, "dim: ", args.dim)
+        # Load Data and model
         train_set, val_set, test_set = generate_adni_datasets(datasplit=0.1)
-        
         model = torch.load(args.model_dir)
 
+        # Create dataloader
         test_loader = DataLoader(test_set, shuffle=True, batch_size=args.dim**2 + 1)
-    
+        
+        # Run predictions
         predict(model, dataloader=test_loader, dim=(args.dim, args.dim), version_prefix="vit")
 
 if __name__ == "__main__":

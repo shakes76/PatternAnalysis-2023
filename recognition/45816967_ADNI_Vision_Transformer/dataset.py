@@ -7,7 +7,6 @@ from PIL import Image
 from glob import glob
 
 
-# standardTransform = Compose([ToTensor(), Resize([128, 128], antialias=True), Normalize(0.5, 0.5, 0.5)])
 standardTransform = Compose([ToTensor(), CenterCrop(224), Normalize(0.11553987, 0.22542113)])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 class ADNIDataset(Dataset):  
@@ -39,14 +38,18 @@ def load_images_from_directories(dirs, datasplit=0., verbose=False):
 	val_paths = []
 	train_images = []
 	val_images = []
+	# Iterate through each directory in list
 	for dir in dirs:
 		temp_image_paths = []
+		# Get all image paths in directory
 		for filename in glob(dir[0], recursive=True):
 			temp_image_paths.append(filename)
 			image_paths.append(filename)
+		# Sort image paths by patient id
 		temp_image_paths = sorted(temp_image_paths)
 		curr_patient = ""
 		count = 0
+		# Load data and split into train and validation set
 		for filename in temp_image_paths:
 			patient_id = filename.split("/")[-1].split("_")[0]
 			if (curr_patient != patient_id):
@@ -56,11 +59,13 @@ def load_images_from_directories(dirs, datasplit=0., verbose=False):
 				if (count % (round(1/datasplit)) == 0):
 					count = 0
 				if (count == 0):
+					# Add to validation
 					val_paths.append(filename)
 					img = Image.open(filename)
 					val_images.append([img.copy(), dir[1]])
 					img.close()
 				else:
+					# Add to train
 					train_paths.append(filename)
 					img = Image.open(filename)
 					train_images.append([img.copy(), dir[1]])
@@ -72,6 +77,7 @@ def load_images_from_directories(dirs, datasplit=0., verbose=False):
 				img.close()
 			
 	if verbose:
+		# Logging for debugging purposes
 		print("Set1: ", train_paths[:2])
 		print("Set2: ", val_paths[:2])
 		for ip in image_paths[:10]:
@@ -95,7 +101,8 @@ def load_adni_images(datasplit = 0.2, verbose=False, local=True):
 	"""
 	train_dirs = []
 	test_dirs = []
-
+ 
+	# If training on local machine
 	if local:
 		base_dir = "C:/Users/Jun Khai/Documents/Uni/Year 5 Sem 2/PatternAnalysis-2023/recognition/45816967_ADNI_Vision_Transformer/"
 
@@ -104,6 +111,7 @@ def load_adni_images(datasplit = 0.2, verbose=False, local=True):
 		test_dirs.append((f'{base_dir}data/ADNI_AD_NC_2D/AD_NC/test/AD/*', 1))
 		test_dirs.append((f'{base_dir}data/ADNI_AD_NC_2D/AD_NC/test/NC/*', 0))
 	
+	# If training on Rangpur
 	else:
 		base_dir = "/home/groups/comp3710/ADNI/AD_NC/"
 
@@ -126,21 +134,34 @@ def generate_adni_datasets(datasplit = 0.2, verbose = False, local=True, test=Fa
 	Returns:
 		(torch.utils.data.Dataset, torch.utils.data.Dataset, torch.utils.data.Dataset)): _description_
 	"""
+ 	# Load images
 	train_imgs, test_imgs = load_adni_images(datasplit=datasplit, verbose = verbose, local=local)
 	
+ 	# Generate fake images
 	if test:
 		tensor2pil = ToPILImage()
 		train_imgs = [[[tensor2pil(torch.randn(1, 224, 224)), 0], [tensor2pil(torch.randn(1, 224, 224)), 1]], [[torch.randn(1, 224, 224), 0], [torch.randn(1, 224, 224), 1]]]
 		test_imgs = [[[tensor2pil(torch.randn(1, 224, 224)), 0], [tensor2pil(torch.randn(1, 224, 224)), 1]], [[torch.randn(1, 224, 224), 0], [torch.randn(1, 224, 224), 1]]]
+	
+	# Create datasets
 	train_set = ADNIDataset(train_imgs[0], transform=standardTransform)
 	val_set = ADNIDataset(train_imgs[1], transform=standardTransform)
 	test_set = ADNIDataset(test_imgs[0], transform=standardTransform)
 	return train_set, val_set, test_set
 
 def get_normalise_constants():
+	""" Get mean and standard deviation of the train set
+
+	Returns:
+		(double, double): mean and standard deviation of the train set
+	"""
+	# Load images
 	train_imgs, test_imgs, = load_adni_images(datasplit=0)
 	transform = ToTensor()
-	# print([transform(imgset[0]).squeeze(0).numpy() for imgset in train_imgs[0]])
+	
+	# Convert images from PIL to numpy array
 	imgs = np.array([transform(imgset[0]).squeeze(0).numpy() for imgset in train_imgs[0]])
 	print(imgs.mean(), imgs.std())
+	
+	# Calculate mean and standard deviation
 	return imgs.mean(), imgs.std()
