@@ -13,6 +13,11 @@ torchvision
 matplotlib
 pandas
 ```
+This model consists of four files:
+* `dataset.py` loads the data for processing
+* `modules.py` creates the Improved UNet structure, with required blocks
+* `train.py` trains the model when run
+* `predict.py` visualises the results and tests the model
 
 # Model
 This section explains the general structure of Improved UNet, along with the motivation behind it.
