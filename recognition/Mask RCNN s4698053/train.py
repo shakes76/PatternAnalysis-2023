@@ -22,9 +22,9 @@ def main():
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer=optimizer, factor=0.1, patience=3, mode='max', verbose=True)
     loss_fn = YoloLoss()
 
-    transforms = torchTransforms.Compose([
+    """transforms = torchTransforms.Compose([
         torchTransforms.Normalize(mean=[0.7079, 0.5916, 0.5469], std=[0.0925, 0.1103, 0.1247]),
-    ])
+    ])"""
 
 
     data = ISICDataloader(classify_file=classify_file, 
@@ -39,7 +39,11 @@ def main():
     test_dataloader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     train(train_dataloader, model, optimizer, loss_fn)
-    save_checkpoint(model, SAVE_MODEL_FILE)
+    checkpoint = {
+            "state_dict": model.state_dict(),
+            "optimizer": optimizer.state_dict(),
+    }
+    save_checkpoint(checkpoint, SAVE_MODEL_FILE)
 
 def train(train_dataloader: DataLoader, model, optimizer, loss_fn):
     #--------------
