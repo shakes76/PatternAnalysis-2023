@@ -28,20 +28,34 @@ The OASIS dataset I'm using has training, validation, and test samples already o
 ### Results
 I trained for a total of 50 epochs, and around the 20th epoch, it was nearing convergence, at which point the SSIM reached 0.9.
 
-<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/2d260f327f05eb556d3f7971ac45dad1023ca8b9/recognition/VQ-VAE-46495408/Images/vqvae_training_loss.png" width="400">
-  
+<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/2d260f327f05eb556d3f7971ac45dad1023ca8b9/recognition/VQ-VAE-46495408/Images/vqvae_training_loss.png" width="300">
+
 Through encoding and reconstruction, SSIM achieved an average of 0.6 or higher on the test data.
-<image src="" width="">
+<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/547967dd50082d3618473d6ab722719a44fecb63/recognition/VQ-VAE-46495408/Images/vqvae_test_images.png" width="500">
 
 ## Pixel CNN Model
+PixelCNN is a type of deep neural network autoregressive model that captures the distribution of dependencies between pixels in its parameters. It generates one pixel at a time in an ordered sequence along two spatial dimensions in an image. Using convolutional operations, PixelCNN can simultaneously learn the distribution of all pixels in an image.
+
+<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/547967dd50082d3618473d6ab722719a44fecb63/recognition/VQ-VAE-46495408/Images/PixelCNN_Principle.png" width="500">
+
 ### Architecture
+I uses two residual block layers and two 2D convolutional layers.
+
 <image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/2d260f327f05eb556d3f7971ac45dad1023ca8b9/recognition/VQ-VAE-46495408/Images/PixelCNN_Structure.png" width="300">
 
 ### Results
-<image src="" width="">
+The convergence is very slow when training at around 100 epochs, and the subsequent loss is also around 0.7, with an accuracy of around 0.75.
+
+<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/547967dd50082d3618473d6ab722719a44fecb63/recognition/VQ-VAE-46495408/Images/pixelcnn_loss.png" width="300">
+<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/547967dd50082d3618473d6ab722719a44fecb63/recognition/VQ-VAE-46495408/Images/pixelcnn_accuracy.png" width="300">
+
+The generated code and image are as follows:
+
+<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/547967dd50082d3618473d6ab722719a44fecb63/recognition/VQ-VAE-46495408/Images/pixel_test_image_3.png" width="300">
+<image src="https://github.com/MandalorianForce/PatternAnalysis-2023/blob/547967dd50082d3618473d6ab722719a44fecb63/recognition/VQ-VAE-46495408/Images/pixel_test_image_4.png" width="300">
 
 ## Future Outlook
-The training results of VQVAE are quite noticeable, and the generated photos are relatively high-quality. However, the photos generated using PixelCNN have significant differences from real ones. I suspect this is a result of suboptimal training. There are several possible remedies to try:
+The training results of VQVAE are quite noticeable, and the reconstructed photos are relatively high-quality. However, the photos generated using PixelCNN have significant differences from real ones. I suspect this is a result of suboptimal training. There are several possible remedies to try:
 1. Convergence is slow with each epoch, so you can try increasing the learning rate of the optimizer.
 2. Increase the number of training epochs to improve the weight accuracy through extensive training.
 3. Change the size of the input photos. Here, I used full-sized 256 * 256 photos, which are relatively large. You can compress them to speed up training.
