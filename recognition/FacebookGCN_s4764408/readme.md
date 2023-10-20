@@ -34,7 +34,10 @@ The model achieves an accuracy of 94% on the test set.
 
 Below is a plot displaying the accuracy and loss throughout training.
 
-![Loss and Acurracy Plot based on number of Epochs](LossAndAcc.png)
+![Loss Plot based on number of Epochs](LossAndAcc.png)
+
+![Accuracy Plot based on number of Epochs](accuracy.png)
+
 
 ## Example output
 
@@ -47,6 +50,8 @@ Below is a plot displaying the accuracy and loss throughout training.
 ![t-SNE of GCN embeddings](tSNE.png)
 
 t-SNE (t-distributed Stochastic Neighbor Embedding) is a dimensionality reduction technique used to visualize high-dimensional data in a 2D or 3D space. It's particularly good at preserving local structure, which means data points that are close to each other in the high-dimensional space will likely be close in the 2D/3D visualization.
+
+The t-SNE plot demonstrates reasonably clear groupings, indicating that the model has effectively learned substantial data representations in reduced dimensions. However, it's worth noting that there is substantial overlap, especially near the plot's center. The model's average accuracy hovers between 90 and 92%. This aligns with the above interpretations from the t-SNE plot.
 
 ## Insights
 -	Well-separated clusters of a single color indicate that the GCN has learned to differentiate that class effectively from others.
