@@ -3,24 +3,12 @@
 import torch
 import torch.nn as nn
 
-# Hyper parameters for Improved 2D-Unet as specified in paper “Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge,”
-# can adjust these to affect loss and dice coefficients of training and test of model. 
-# These parameters achieve the target goal of >0.8 dice coefficient average on test set.
+# Hyper parameters
 negativeSlope = 10**-2
 pDrop = 0.3
 
 class Improved2DUnet(nn.Module):
-    """
-    Implements a class object represent Improved 2D-UNet inheriting from nn.Module.
-    """
     def __init__(self, in_channels = 3, out_channels = 1, features = [16, 32, 64, 128, 256]):
-        """
-        Defines and stores all layers that will be required to build model architecture.
-
-        in_channels: number of channels for images in dataset.
-        out_channels: number of desired channels for output of model.
-        features: list describing output features of each context layer, ie: index 0 -> outputs features of context layer 1, index 1 -> outputs features of context layer 2
-        """
 
         super(Improved2DUnet, self).__init__()
         self.in_channels = in_channels
@@ -66,12 +54,6 @@ class Improved2DUnet(nn.Module):
         self.deep_segment_3_conv = nn.Conv2d(self.features_reversed[2], self.out_channels, kernel_size=1, stride=1, padding=0, bias=False)
 
     def up_sample(self, feat_in, feat_out):
-        """
-        Up Sampling layer as described in Improved Unet Paper.
-
-        feat_in: number of features into layer.
-        feat_out: desired number of feature out of layer.
-        """
         return nn.Sequential(
             nn.InstanceNorm2d(feat_in),
             self.lrelu,
@@ -82,12 +64,6 @@ class Improved2DUnet(nn.Module):
         )
 
     def context(self, conv1, conv2):
-        """
-        Contextualization layer as described in Improved Unet Paper.
-
-        conv1: first 2D convolution of this context layer.
-        conv2: second 2D convolution of this context layer.
-        """
         return nn.Sequential(
             conv1,
             self.dropout,
@@ -95,48 +71,24 @@ class Improved2DUnet(nn.Module):
         )
 
     def norm_lrelu_conv(self, feat_in, feat_out):
-        """
-        2D convlution followed by instance 2D normalization followed by leaky relu activation with specificed negative slope in hyper parameters above.
-
-        feat_in: number of features into layer.
-        feat_out: desired number of feature out of layer.
-        """
         return nn.Sequential(
 			nn.Conv2d(feat_in, feat_out, kernel_size=3, stride=1, padding=1, bias=False),
 			nn.InstanceNorm2d(feat_out),
 			self.lrelu)
 
     def norm_lrelu(self, feat):
-        """
-        Instance 2D normalization followed by leaky relu activation with specificed negative slope in hyper parameters above.
-
-        feat: number of features of current layer.
-        """
         return nn.Sequential(
             nn.InstanceNorm2d(feat),
             self.lrelu
         )
 
     def conv_norm_lrelu(self, feat_in, feat_out):
-        """
-        2D convlution followed by instance 2D normalization followed by leaky relu activation with specificed negative slope in hyper parameters above.
-
-        feat_in: number of features into layer.
-        feat_out: desired number of feature out of layer.
-        """
         return nn.Sequential(
 			nn.Conv2d(feat_in, feat_out, kernel_size=3, stride=1, padding=1, bias=False),
 			nn.InstanceNorm2d(feat_out),
 			nn.LeakyReLU())
     
     def forward(self, x):
-        """
-        Outlines architecture of model for a forward pass, as described in Improved UNet Paper.
-        Since this ISIC2017 2D-Unet outputs a binary segmention mask, torch.sigmoid is used as final layer instead of softmax.
-
-        x: PyTorch Array
-        return: PyTorch Array of same size as x, applying a forward pass on x.
-        """
         residuals = dict()
         skips = dict()
         out = x
