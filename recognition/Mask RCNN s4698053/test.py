@@ -43,7 +43,7 @@ class ManualTest():
         self.test_dataloader()
     
     def test_dataloader(self):
-        generator = torch.Generator().manual_seed(42)
+        generator = torch.Generator().manual_seed(torch_seed)
         train_dataset, test_dataset = random_split(self.dataloader, [train_size, test_size], generator=generator)
 
         fig, axes = plt.subplots(2, 3, figsize=(12, 8))

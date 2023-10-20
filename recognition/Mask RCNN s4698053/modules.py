@@ -14,7 +14,7 @@ torch.manual_seed(torch_seed)
 
 architecture_config = [
     #Tuple: (kernel_size, number of filters, strides, padding)
-    (1, 64, 2, 3),
+    (7, 64, 2, 3),
     #"M" = Max Pool Layer
     "M",
 
