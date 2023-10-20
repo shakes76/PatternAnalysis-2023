@@ -22,8 +22,7 @@ def transform(name: str) -> transforms.Compose:
     """
     if name == 'train':
         return transforms.Compose(
-                [transforms.RandomHorizontalFlip(), # Effectively doubles the amount of data that can be used while training.
-                 transforms.Resize((256,256), antialias=True), # Resizes the image to a convenient format.
+                [transforms.Resize((256,256), antialias=True), # Resizes the image to a convenient format.
                 ])
     elif name == 'seg':
         return transforms.Compose(

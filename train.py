@@ -82,28 +82,29 @@ def main():
                 axis[0][1].set_title("Ground Truth")
                 axis[0][2].set_title("Modelled Mask")
 
-                for row in range(5):
-                    # Putting the tensors in the formatting necessary for matplotlib.pyplot
-                    image = input[0].cpu()[row].permute(1,2,0).numpy()
-                    ground_truth = input[1].cpu()[row][0].numpy()
-                    modelled_image = model(input[0].to(device))[0].cpu()[row][0].detach().numpy()
+                for row in range(4):
+                    with torch.no_grad():
+                        # Putting the tensors in the formatting necessary for matplotlib.pyplot
+                        image = input[0].cpu()[0].permute(1,2,0).numpy()
+                        ground_truth = input[1].cpu()[0][0].numpy()
+                        modelled_image = model(input[0].to(device))[0].cpu()[0][0].numpy()
 
-                    axis[row][0].imshow(image)
-                    axis[row][0].xaxis.set_visible(False)
-                    axis[row][0].yaxis.set_visible(False)
+                        axis[row][0].imshow(image)
+                        axis[row][0].xaxis.set_visible(False)
+                        axis[row][0].yaxis.set_visible(False)
 
-                    axis[row][1].imshow(ground_truth, cmap="gray")
-                    axis[row][1].xaxis.set_visible(False)
-                    axis[row][1].yaxis.set_visible(False)
+                        axis[row][1].imshow(ground_truth, cmap="gray")
+                        axis[row][1].xaxis.set_visible(False)
+                        axis[row][1].yaxis.set_visible(False)
 
-                    axis[row][2].imshow(modelled_image, cmap="gray")
-                    axis[row][2].xaxis.set_visible(False)
-                    axis[row][2].yaxis.set_visible(False)
+                        axis[row][2].imshow(modelled_image, cmap="gray")
+                        axis[row][2].xaxis.set_visible(False)
+                        axis[row][2].yaxis.set_visible(False)
 
-                    figure.suptitle(f"Validation Phase: Epoch {epoch + 1}")
-                    # Saving the figure
-                    plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/GroupedResultsComparison_Epoch{epoch + 1} ")
-                    plt.close()
+                        figure.suptitle(f"Validation Phase: Epoch {epoch + 1}")
+                        # Saving the figure
+                        plt.savefig(f"/home/Student/s4742286/PatternAnalysis-2023/outputs/GroupedResultsComparison_Epoch{epoch + 1} ")
+                        plt.close()
 
 
         # Easier to imagine epochs if they are 1-indexed instead of 0-indexed
