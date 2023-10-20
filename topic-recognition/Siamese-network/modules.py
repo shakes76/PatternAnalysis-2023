@@ -1,3 +1,5 @@
+# modules.py containing the source code of the components of the model.
+
 import tensorflow as tf
 import tensorflow.keras as k
 import keras.layers as kl
