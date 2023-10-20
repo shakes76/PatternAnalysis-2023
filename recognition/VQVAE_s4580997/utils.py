@@ -22,10 +22,10 @@ CHANNELS = 3
 W = 256
 H = 256
 BETA = 0.25
-FRACTION = 0.1
+FRACTION = 1.0
 
 # Running Parameters
-VQVAE_RETRAIN = False
+VQVAE_RETRAIN = True
 GAN_RETRAIN = True
 PREDICT = True
 
@@ -38,7 +38,7 @@ VQVAE_EMBEDDING_DIM = VQVAE_HIDDEN // 2
 # VQVAE Hyperparameters
 VQVAE_LR = 1e-3
 VQVAE_WD = 1e-5
-VQVAE_EPOCHS = 2
+VQVAE_EPOCHS = 1
 BATCH_SIZE = 32
 
 # VQVAE Paths
@@ -55,7 +55,7 @@ NOISE = 100
 # GAN Hyperparameters
 GAN_LR = 1e-3
 GAN_WD = 1e-5
-GAN_EPOCHS = 20
+GAN_EPOCHS = 50
 GAN_SAVEPATH = os.path.join(os.getcwd(), 'models/gan')
 DISCRIMINATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_discriminator.pth')
 GENERATOR_MODEL_PATH = os.path.join(os.getcwd(), 'models/gan/gan_generator.pth')

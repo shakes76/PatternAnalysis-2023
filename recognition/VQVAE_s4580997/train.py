@@ -103,7 +103,7 @@ class TrainVQVAE(Trainer) :
         of the test set, with validation confirmed manually by sight.
         """
         x, label = next(iter(self.dataset.get_test()))
-        x = x.to(self.device)
+        x = x.to(DEVICE)
         x = self.model.encoder(x)
         x = self.model.conv(x)
         _, x_hat, _, embeddings, _ = self.model.quantizer(x)

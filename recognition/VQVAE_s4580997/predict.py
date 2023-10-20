@@ -63,7 +63,7 @@ class Predict() :
         img = np.clip(img, 0, 1)
         plt.title('GAN Output')
         plt.imshow(img, cmap='gray')
-        plt.savefig("./models/predictions/generate_gan.png")
+        plt.savefig(self.savepath + '_gan.png')
 
     def quantise(self, input) :
         """
@@ -97,8 +97,7 @@ class Predict() :
         plt.figure(figsize=(10, 5))
         plt.title("Generated Image")
         plt.imshow(out, cmap='gray')
-        plt.savefig("./models/predicted/generated_vqvae.png")
-
+        plt.savefig(self.savepath + '_vqvae.png')
     
     def ssim(self):
         """
@@ -113,7 +112,7 @@ class Predict() :
         
         ssim_scores = []
         for i, (data, _) in enumerate(self.dataset.get_test()):
-            real = data[0].cpu().detach().numpy()
+            real = data[0][0].cpu().detach().numpy()
             ssim = structural_similarity(
                 fake,
                 real,

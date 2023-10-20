@@ -11,7 +11,6 @@ import utils
 from dataset import Dataset, ModelDataset
 from train import TrainVQVAE, TrainGAN
 from predict import Predict
-import other
 
 if __name__ == '__main__':
     # Models
