@@ -34,7 +34,7 @@ embeddings of the negative  (Mandal, S)[^1].
 
 As seen below in Figure 2, after training the negative moves further from the anchor while the positive moves closer.
 
-![Showcasing how Triplet Loss changes with training](/TripletLossTraining.png)
+![Showcasing how Triplet Loss changes with training](/Images/TripletLossTraining.png)
 <p align="center">
     <em> Figure 2: Triplet Loss Training  </em>
 </p>
