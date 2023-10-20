@@ -24,14 +24,14 @@ TRAIN_TRANSFORM = transforms.Compose([
     transforms.RandomCrop(224),
     transforms.RandomHorizontalFlip(),
     transforms.RandomVerticalFlip(),
-    #transforms.Grayscale(num_output_channels=3),
+    transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
 ])
 
 # Testing image transforms
 TEST_TRANSFORM = transforms.Compose([
     transforms.CenterCrop(224),
-    #transforms.Grayscale(num_output_channels=3),
+    transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
 ])
 

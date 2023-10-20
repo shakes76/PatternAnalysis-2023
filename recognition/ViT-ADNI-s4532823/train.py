@@ -5,7 +5,7 @@ Train the model and perform testing.
 from dataset import get_dataloader
 import torch
 import time
-from modules import ViT, VisionTransformer
+from modules import ViT
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 
