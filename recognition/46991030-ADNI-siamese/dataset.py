@@ -12,7 +12,7 @@ def load_jpeg(path: str) -> tf.Tensor:
     """
     Loads a JPEG image from the given path and converts it to a tensor.
 
-    The image is also standardised using `tf.image.per_image_standardization`.
+    The image is also normalized by dividing each pixel value by 255.
 
     Args:
         path (str): The path to the JPEG image.
