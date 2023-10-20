@@ -15,7 +15,7 @@ def euclidean_distance(feature1, feature2):
 
 
 def contrastive_loss(y, y_pred):
-     ### Reference: https://keras.io/examples/vision/siamese_contrastive/ 
+    ### Reference: https://keras.io/examples/vision/siamese_contrastive/ 
     """Calculates the contrastive loss.
 
         Arguments:
@@ -46,8 +46,8 @@ def siamese_network(height, width):
             kl.BatchNormalization(),
             kl.Conv2D(128, (4, 4), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)),
             kl.Flatten(),
-            kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
-            kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
+            # kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
+            # kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
     ], name='cnn')
 
     image1 = tf.keras.Input((height, width, 1))
@@ -80,8 +80,8 @@ def cnn (height, width):
             kl.BatchNormalization(),
             kl.Conv2D(128, (4, 4), activation='relu', kernel_regularizer=tf.keras.regularizers.l2(1e-3)),
             kl.Flatten(),
-            kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
-            kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
+            # kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01)),
+            # kl.Dense(512, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.01))
     ], name='cnn')
 
 

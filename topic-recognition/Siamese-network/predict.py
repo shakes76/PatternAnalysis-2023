@@ -1,3 +1,6 @@
+# predict.py showing example usage of the trained model. 
+# Print out any results 
+
 import os
 import numpy as np
 from PIL import Image

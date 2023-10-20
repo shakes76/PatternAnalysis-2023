@@ -1,20 +1,18 @@
+# dataset.py containing the data loader for loading and preprocessing your data
+
 import os
 import random
 import keras as k
 import numpy as np
 import tensorflow as tf
-import keras.layers as kl
-import keras.backend as kb
 from PIL import Image
-from matplotlib import image
-from matplotlib import pyplot
 from keras.models import Model
 from xmlrpc.client import Boolean
-import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
 from sklearn.model_selection import train_test_split
 
 
+# Paths to the dataset folder
 AD_PATH = '/Users/jollylogan/TryTry/AD_NC/train/AD'
 NC_PATH = '/Users/jollylogan/TryTry/AD_NC/train/NC'
 
