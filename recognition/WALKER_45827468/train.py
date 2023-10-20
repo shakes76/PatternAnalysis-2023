@@ -41,7 +41,7 @@ valid_loader = DataLoader(valid, batch_size=BATCH_SIZE)
 ImpUNET = ImprovedUNet()
 ImpUNET.to(device)
 
-lossFunc = DiceLoss()
+lossFunc = nn.BCELoss()
 opt = torch.optim.Adam(ImpUNET.parameters(), lr=LEARNING_RATE)
 
 ImpUNET.train()

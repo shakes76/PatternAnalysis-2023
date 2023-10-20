@@ -188,7 +188,7 @@ class ImprovedUNet(nn.Module):
         out = torch.add(out, seg2)                          # combine seg layers
         
         # softmax
-        out = self.sigmoid(out)
+        out = self.softmax(out)
         return out
     
 class DiceLoss(nn.Module):
