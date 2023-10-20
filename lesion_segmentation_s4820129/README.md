@@ -55,9 +55,9 @@ As proposed in the paper, a dice similarity loss function is used to train the n
   <img src="images/acc.svg" alt="acc_plot" width="700"/>
 </p>
 
-Max dice score: 0.8024
-Min loss: 0.1976
-Max accuracy: 0.911 (in hindsight this is not as useful a metric)
+- Max dice score: 0.8024
+- Min loss: 0.1976
+- Max accuracy: 0.911 (in hindsight this is not as useful a metric)
 
 ### Dependencies
 - python 3.11.4
