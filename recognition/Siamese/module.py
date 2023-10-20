@@ -17,6 +17,8 @@ def cfg(layer):
         return [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M']
     if layer == 'VGG16' :
         return [64, 64, 'M', 128, 128 , 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M']
+    if layer == 'VGG19' :
+        return [64, 64, "M", 128, 128, "M", 256, 256, 256, 256, "M", 512, 512, 512, 512, "M", 512, 512, 512, 512, "M"]
 
 #define Siamese model
 class Siamese(nn.Module):
@@ -25,7 +27,7 @@ class Siamese(nn.Module):
         self.in_channels = in_channels
         self.classes = classes
         self.features = self.make_layers(cfg(layers), self.in_channels)
-        self.classifier = nn.Linear(491520, self.classes)
+        self.classifier = nn.Linear(28672, self.classes)
     
     def make_layers(self, cfg, in_channels):
         layers = []
@@ -43,9 +45,9 @@ class Siamese(nn.Module):
     #Forward takes two input images to compare similarity
     def forward(self, x1, x2):
         output1 = self.features(x1)
-        output2 = self.features(x2)
         output1 = output1.view(output1.size(0), -1)
         output1 = self.classifier(output1)
+        output2 = self.features(x2)
         output2 = output2.view(output2.size(0), -1)
         output2 = self.classifier(output2)
         return output1, output2
