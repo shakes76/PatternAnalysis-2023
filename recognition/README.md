@@ -5,6 +5,13 @@ My project aims to fulfill task no. 7, that is to classify Alzheimer's disease i
 In general, the workflow can be visualised as follows:
 ![Alt text](image.png)
 
+## Dependencies
+The versions required are as follows:
+- Keras: 2.10.0
+- Tensorflow: 2.10.0
+- Python: 3.10.12
+- Numpy: 1.25.0
+
 ## dataset.py
 This file loads the ADNI dataset, assumed to be in the same folder as these files, using Tensorflow (with seeds having been set for reproducibility of results). The test set will be used as the validation set as the test set images appear to already have been split at the patient-level from the training set. This file preprocesses them by following these steps:
 1. Convert every image to grayscale to reduce the colour channels and save space.
