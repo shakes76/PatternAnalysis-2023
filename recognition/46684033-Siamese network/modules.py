@@ -60,7 +60,6 @@ class Classifier(nn.Module):
         self.relu = nn.ReLU()
         self.linear2 = nn.Linear(64,2)
 
-
     def forward(self, y):
         x = self.linear1(y)
         x = self.relu(x)

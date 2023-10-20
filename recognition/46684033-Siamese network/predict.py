@@ -22,6 +22,7 @@ test_transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.Normalize(0.5, 0.5),
 ])
+
 batch_size = 64
 train_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/train"
 validation_path = r"C:/Users/wongm/Downloads/ADNI_AD_NC_2D/AD_NC/validation"

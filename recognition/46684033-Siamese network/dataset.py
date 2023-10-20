@@ -80,10 +80,6 @@ class SiameseDatset_contrastive(torch.utils.data.Dataset):
         while label1 == label3:
             idx3 = random.randint(0, self.num_samples - 1)
             image3, label3 = self.dataset[idx3]
-        # if label1 == label2:
-        #     label = 1
-        # else:
-        #     label = 0
         labela = 1
         labelb = 0
 

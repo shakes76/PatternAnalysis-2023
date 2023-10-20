@@ -317,6 +317,7 @@ for epoch in range(num_epoch):
                       .format(epoch + 1, num_epoch, i + 1, len(train_loader), train_acc))
     training_accuracy.append(train_acc)
     training_loss.append(sum(total_loss_this_epoch) / len(total_loss_this_epoch))
+
     classifier.eval()
     with torch.no_grad():
         for i, (test_image, test_label) in enumerate(validation_loader):
