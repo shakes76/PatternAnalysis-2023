@@ -3,19 +3,22 @@ from torch.utils.data import DataLoader
 from dataset import TestDataset
 import matplotlib.pyplot as plt
 import torchvision
+from modules import ImprovedUNET
 
 #small script that will show how the model will segment a test image
 test_dir = '/home/groups/comp3710/ISIC2018/'
 device = 'cuda' if torch.cuda.is_available() else 'cpu'
-
-model = torch.load('path')
+model = ImprovedUNET(3,1)
+model = torch.load('checkpoints/checkpoint5.pth')
 model.eval()
 dataset = TestDataset(test_dir)
 dataloader = DataLoader(TestDataset, batch_size=8)
 model.to(device)
 for image in dataloader():
     image.to(device)
-    out = model
+    out = model(image)
+    print(out.shape)
+    break
     out_grid_img = torchvision.utils.make_grid(out.cpu(), nrow=4)
     image_grid = torchvision.utils.make_grid(image.cpu(), nrow=4)
     fig = plt.figure()

@@ -1,7 +1,8 @@
 import os
-import zipfile
 import torch
 from torch import nn
+import gdown
+import zipfile
 
 class DiceLoss(nn.Module):
   def __init__(self, smooth = 0.001):
@@ -56,4 +57,18 @@ def get_statistics(dataset):
 
   return [image_mean_R/len(dataset), image_mean_G/len(dataset), image_mean_B/len(dataset)], [image_std_R/len(dataset), image_std_B/len(dataset), image_std_G/len(dataset)], mask_mean/len(dataset), mask_std/len(dataset)
 
+#to get dataset to colab
+def get_data_from_url(destination_dir, google_drive_id):
+
+  if not os.path.exists(destination_dir):
+    compressed_data = 'ISIC_data.zip'
+    url = f'https://drive.google.com/uc?id={google_drive_id}'
+    gdown.download(url, compressed_data, quiet=False)
+
+    with zipfile.ZipFile(compressed_data, 'r') as zip_ref:
+      zip_ref.extractall()
+    os.remove(compressed_data)
+
+  else:
+    print('Data already loaded')
 
