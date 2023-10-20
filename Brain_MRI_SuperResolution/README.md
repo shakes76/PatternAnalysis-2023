@@ -67,6 +67,12 @@ Representative figures are used for testing purposes.
 - **PSNR**: ![PSNR](Images/PSNR.png)
 - **Training vs Validation**: ![Training vs Validation](Images/training_plot.png)
 
+### Results: 
+
+Analyzing the graph of the training PSNR over epochs, we notice a consistent increase in the PSNR values, indicating an improvement in the quality of the super-resolved images. In the initial epochs, the PSNR initially start from a lower value, indicating that the model's predictions are quite different from the ground truth high-resolution images. However, as the training progresses, the network learns to make better predictions, resulting in a higher PSNR.
+The steady growth in PSNR indicates that the model is effectively learning the patterns and structures from the training images. It's capturing the necessary details to upscale the lower-resolution images to their high-resolution counterparts towards the end it started to plateaued.
+Accompanied by small increase in PSNR for validation that represents the model is generating or reconstructing higher quality images as it continues to train and generalizing well to unseen data.
+The training loss decreasing significantly while validation loss shows only a marginal decrease suggests that the model is becoming proficient at fitting to the training data, possibly capturing noise and outliers
 
 ### References:
 
