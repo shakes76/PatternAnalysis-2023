@@ -47,10 +47,8 @@ Here, the Siamese model underlying the classifier is trained on the ADNI dataset
 5. For a given training and test set batch, create pairs of the input images and fit the model onto them, saving it as a checkpoint once done.
 
 As mentioned above, the training had already been done once with a previous version of the model for 4 batches. The results of this training are as follows:
-![Alt text](image-1.png)
-![Alt text](image-3.png)
-![Alt text](image-4.png)
-![Alt text](image-5.png)
+![Alt text](image-6.png)
+![Alt text](image-7.png)
 As can be seen in the 4 graphs above, no improvement had been made. These results can also be found in greater detail in s4663144-siamese-a100_out.txt in my GitHub pull request.
 
 Even after tweaking the model by adding L2 Regularisation and some Dropout layers, no improvement had been forthcoming, with training after one batch resulting in loss: 11.5370 - accuracy: 0.5013 - val_loss: 3.2825 - val_accuracy: 0.5000. Further training was then stopped due to lack of time on my part.
