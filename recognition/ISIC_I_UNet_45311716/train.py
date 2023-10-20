@@ -1,8 +1,6 @@
 import torch
-import torch.nn as nn
 import torch.optim as optim
 import time
-import numpy as np
 import matplotlib.pyplot as plt
 from modules import ImprovedUNet
 from dataset import UNetData
@@ -12,9 +10,13 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
-# Path to images
-path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/ISIC2018/'
+# Path to image directory
+data_path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/ISIC2018/' 
+# Location to save trained model
 save_path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/ImprovedUNet.pt'
+# Location to save training and validation loss plot
+plot_path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/Train_and_Valid_Loss_Plot.png'
+
 # Hyper-parameters
 num_epochs = 15
 learning_rate = 1e-3
@@ -46,7 +48,7 @@ def print_plot(train_loss, valid_loss):
     plt.ylim(0,1)
     plt.legend()
 
-    plt.savefig("train_and_valid_loss.png")
+    plt.savefig(plot_path)
 
 def validation(model, valid_data):
     total_correct = 0 # total number of correct pixels
@@ -59,10 +61,10 @@ def validation(model, valid_data):
     with torch.no_grad():
         for image, mask in valid_data:
             image = image.to(device)
-            mask = mask.to(device) 
+            mask = mask.float().to(device) 
 
             # model prediction in binary form
-            pred = model(image)
+            pred = (model(image) > 0.5).float()
             
             total_correct += (pred == mask).sum() 
             total_pixels += torch.numel(pred)
@@ -83,7 +85,7 @@ def main():
     model = ImprovedUNet(in_channels=3, out_channels=1).to(device)   
 
     # Training data
-    data = UNetData(path=path, height=image_height, width=image_width, batch=batch_size)
+    data = UNetData(path=data_path, height=image_height, width=image_width, batch=batch_size)
     train_data = data.get_train_loader()
     valid_data = data.get_valid_loader()
 
@@ -91,9 +93,6 @@ def main():
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
 
     total_step = len(train_data)
-    # Cosine annealing w/ warm restarts lr scheduler
-    scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(optimizer, T_0=total_step, 
-                                                                    eta_min=num_epochs, verbose=True)
 
     print(" - - Start Training - - ")
     start = time.time()
@@ -136,8 +135,6 @@ def main():
     print(f"Total time: {elapsed/60} min")
 
     print_plot(train_loss, valid_loss)
-    
-
 
 if __name__ == "__main__":
     main()

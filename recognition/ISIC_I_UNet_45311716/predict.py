@@ -1,10 +1,5 @@
 import torch
 import torchvision
-import torch.nn as nn
-import torch.optim as optim
-import time
-import numpy as np
-import matplotlib.pyplot as plt
 from modules import ImprovedUNet
 from dataset import UNetData
 
@@ -13,17 +8,17 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
-# Path to images
-path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/ISIC2018/'
+# Path to image directory
+data_path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/ISIC2018/' 
+# Path to trained model
 model_path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/ImprovedUNet.pt'
-image_path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/images/'
+# Location to save predicted and actual masks
+image_path = 'C:/Users/mlamt/OneDrive/UNI/2023/Semester 2/COMP3710/Code/data/predict_images/'
 
 # Hyper-parameters
-num_epochs = 15
-learning_rate = 1e-3
 image_height = 512 
 image_width = 512
-batch_size = 16
+batch_size = 8
 
 # Following function is from github:
 # Reference: https://github.com/pytorch/pytorch/issues/1249#issuecomment-305088398
@@ -37,25 +32,31 @@ def dice_loss(input, target):
     return 1 - ((2. * intersection + smooth) / (iflat.sum() + tflat.sum() + smooth))
 
 # Load trained model
-model = torch.load(model_path)
+try:
+    model = torch.load(model_path)
+except:
+    print("Model couldn't be found!")
+    model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
+
 # Get test data loader
-test_data = UNetData.get_test_loader()
+test_data = UNetData(path=data_path, height=image_height, width=image_width, batch=batch_size).get_test_loader()
 
 print(' - - Start Predictions - - ')
 model.eval()
-with torch.no_grad:
+with torch.no_grad():
     for i, (image, mask) in enumerate(test_data):
         image = image.to(device)
         mask = mask.to(device)
 
-        pred = model(image)
+        pred = (model(image) > 0.5).float()
+        mask = (mask.float())
 
-        torchvision.utils.save_image(pred, f"{image_path}Prediction_{i}.png")
-        torchvision.utils.save_image(mask, f"{image_path}Actual_{i}.png")
-        
         dice_score = 1 - dice_loss(pred, mask)
 
         print(f"Dice Score of Prediction {i}: " + "{:.4f}".format(dice_score))
 
-        if i > 4:
+        torchvision.utils.save_image(pred, f"{image_path}Prediction_batch_{i}.png")
+        torchvision.utils.save_image(mask, f"{image_path}Actual_batch_{i}.png")
+
+        if i > 0:
             break

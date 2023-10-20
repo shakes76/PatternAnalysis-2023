@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as TF
-
+import torchvision
 # Double Convelution Module
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels):
@@ -41,7 +41,7 @@ class ImprovedUNet(nn.Module):
             self.up_samples.append(nn.ConvTranspose2d(feature*2, feature, kernel_size=2, stride=2)) # transposed convolution to upsample
             self.up_samples.append(DoubleConv(feature*2, feature))
 
-        # Last convolution layer (get single out channel)
+        # Segmentation layer (get single out channel)
         self.last_conv = nn.Conv2d(features[0], out_channels, kernel_size=1)
 
         # max pool module
@@ -71,6 +71,5 @@ class ImprovedUNet(nn.Module):
             skip_x = torch.cat((skip_connection, x), dim=1) # concatinate skip and sample along 2-D
             x = self.up_samples[i+1](skip_x) # upsample sample
 
-        # return single channel output binary mask
-        return torch.sigmoid(self.last_conv(x))
-    
+        # return single channel output binary mask (segmentation layer)
+        return self.last_conv(x)
