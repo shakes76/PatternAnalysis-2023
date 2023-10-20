@@ -258,13 +258,11 @@ The hyper-parameters for this model are specified below and incorporated through
 ---
 ## References
 
-[1] https://shashank7-iitd.medium.com/understanding-vector-quantized-variational-autoencoders-vq-vae-323d710a888a
-[2] https://keras.io/examples/generative/vq_vae/
-[3] https://en.wikipedia.org/wiki/Structural_similarity
-[4] https://keras.io/examples/generative/pixelcnn/
-[5] https://arxiv.org/abs/2101.08052
-[6] OASIS-1: Cross-Sectional: Principal Investigators: D. Marcus, R, Buckner, J, Csernansky J. Morris; P50 AG05681, P01 AG03991, P01 AG026276, R01 AG021910, P20 MH071616, U24 RR021382. https://www.oasis-brains.org/#data
-[7] OASIS-2: Longitudinal: Principal Investigators: D. Marcus, R, Buckner, J. Csernansky, J. Morris; P50 AG05681, P01 AG03991, P01 AG026276, R01 AG021910, P20 MH071616, U24 RR021382.https://www.oasis-brains.org/#data
-
-
+1. [Understanding Vector Quantized Variational Autoencoders (VQ-VAE)](https://shashank7-iitd.medium.com/understanding-vector-quantized-variational-autoencoders-vq-vae-323d710a888a)
+2. [Keras VQ-VAE Example](https://keras.io/examples/generative/vq_vae/)
+3. [Structural Similarity (SSIM) on Wikipedia](https://en.wikipedia.org/wiki/Structural_similarity)
+4. [Keras PixelCNN Example](https://keras.io/examples/generative/pixelcnn/)
+5. [Original Paper: "Improved Techniques for Training GANs" (2016)](https://arxiv.org/abs/2101.08052)
+6. OASIS-1: Cross-Sectional: Principal Investigators: D. Marcus, R, Buckner, J, Csernansky J. Morris; P50 AG05681, P01 AG03991, P01 AG026276, R01 AG021910, P20 MH071616, U24 RR021382. [OASIS-1 Data](https://www.oasis-brains.org/#data)
+7. OASIS-2: Longitudinal: Principal Investigators: D. Marcus, R, Buckner, J. Csernansky, J. Morris; P50 AG05681, P01 AG03991, P01 AG026276, R01 AG021910, P20 MH071616, U24 RR021382. [OASIS-2 Data](https://www.oasis-brains.org/#data)
 
