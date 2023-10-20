@@ -57,15 +57,21 @@ for epoch in range(num_epochs):
 
     for i, (image, truth) in enumerate(validation_dataloader):
         model.eval()
+        image = image.to(device)
+        truth = truth.to(device)
         pred = model(image)
-        acc = accuracy(pred, truth)
 
-        epoch_loss += loss.item()
-        epoch_acc += acc
-        epoch_dice += 1-loss.item()
+        with torch.no_grad():
+            loss = criterion(pred,truth)
+
+            acc = accuracy(pred, truth)
+
+            epoch_loss += loss.item()
+            epoch_acc += acc
+            epoch_dice += 1-loss.item()
+            
+            wandb.log({'Batch loss': loss.item(), 'Batch accuracy': acc, 'Batch dice_score': 1-loss.item()})
         
-        wandb.log({'Batch loss': loss.item(), 'Batch accuracy': acc, 'Batch dice_score': 1-loss.item()})
-    
     scheduler.step()
     torch.save(model.state_dict(), f'checkpoints/checkpoint{epoch}.pth')
     wandb.log({'Epoch loss': epoch_loss/len(train_dataloader), 'Epoch accuracy': epoch_acc/len(train_dataloader), 'Epoch dice score': epoch_dice/len(train_dataloader)}) 
