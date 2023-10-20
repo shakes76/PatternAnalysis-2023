@@ -75,9 +75,6 @@ class Encoder(nn.Module):
     return self._residual_stack(h3)
 
 
-
-
-
 class Decoder(nn.Module):
     def __init__(self, num_hiddens, num_residual_layers, num_residual_hiddens, input_channels):
         super(Decoder, self).__init__()
@@ -201,3 +198,40 @@ class VQVAEModel(nn.Module):
             'x_recon': x_recon,
             'vq_output': vq_output
         }
+    
+
+class MaskedConv2d(nn.Conv2d):
+    def __init__(self, mask_type, *args, **kwargs):
+        super(MaskedConv2d, self).__init__(*args, **kwargs)
+        assert mask_type in ('A', 'B')
+        self.register_buffer('mask', self.weight.data.clone())
+        _, _, h, w = self.weight.size()
+        self.mask.fill_(1)
+        self.mask[:, :, h // 2, w // 2 + (mask_type == 'B'):] = 0
+        self.mask[:, :, h // 2 + 1:] = 0
+
+    def forward(self, x):
+        self.weight.data *= self.mask
+        return super(MaskedConv2d, self).forward(x)
+
+class PixelCNN(nn.Module):
+    def __init__(self, n_filters=128, kernel_size=3, num_embeddings=512):
+        super(PixelCNN, self).__init__()
+        
+        # Initial convolution with 'A' type mask
+        self.conv = MaskedConv2d('A', 64, n_filters, kernel_size, padding=kernel_size // 2)
+
+        # Stack of masked convolutions with 'B' type mask
+        self.layers = nn.ModuleList([
+            MaskedConv2d('B', n_filters, n_filters, kernel_size, padding=kernel_size // 2) for _ in range(3)
+        ])
+
+        # Output layer
+        self.out = nn.Conv2d(n_filters, num_embeddings, kernel_size, padding=kernel_size // 2)
+
+    def forward(self, x):
+        x = self.conv(x)
+        for layer in self.layers:
+            x = torch.relu(x)
+            x = layer(x)
+        return self.out(x)
