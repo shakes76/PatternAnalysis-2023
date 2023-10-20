@@ -165,8 +165,7 @@ class Generator:
             n_filters = n_filters // 2
 
         # Apply the final convolutional layer
-        x = layers.Conv2D(1, kernel_size=3, padding="same",
-                          activation="sigmoid")(x)
+        x = layers.Conv2D(1, kernel_size=3, padding="same", activation="sigmoid")(x)
         return tf.keras.Model([input, z_inputs, noise_inputs], x)
 
 

@@ -46,7 +46,7 @@ class StyleGAN(keras.Model):
             learning_rate=0.0000125)
 
         # initialise the loss function
-        self.loss = tf.keras.losses.BinaryCrossentropy()
+        self.loss_fn = tf.keras.losses.BinaryCrossentropy()
 
         # initialise the metrics
         self.generator_loss_metric = tf.keras.metrics.Mean(name="generator_loss")
@@ -59,7 +59,7 @@ class StyleGAN(keras.Model):
         """
         return [self.discriminator_loss_metric, self.generator_loss_metric]
 
-    def plot(self, epoch_history, filepath):
+    def plot_loss(self, epoch_history, filepath):
         """
         Visualise the loss values of the StyleGAN model by plotting the
         losses of the discriminator and generator against the number of epochs.
@@ -115,8 +115,8 @@ class StyleGAN(keras.Model):
         epoch_history = self.fit(images, epochs=self.epochs,
                                  callbacks=callbacks)
 
-        if plot:
-            self.plot(epoch_history, result_image_path)
+        if plot_loss:
+            self.plot_loss(epoch_history, result_image_path)
 
     @tf.function
     def train_step(self, real_images):
@@ -155,7 +155,7 @@ class StyleGAN(keras.Model):
             labels = tf.zeros([self.batch_size, 1])
 
             # Calculate the generator's loss.
-            generator_loss = self.loss(labels, predictions)
+            generator_loss = self.loss_fn(labels, predictions)
 
             # Get the trainable variables of the generator and calculate
             # the gradients of the generator's loss with respect to the
@@ -180,21 +180,20 @@ class StyleGAN(keras.Model):
 
         # Create labels for the fake and real images and combine them.
         images = tf.concat([generated_images, real_images], axis=0)
-        labels = tf.concat([tf.zeros([self.batch_size, 1]),
-                            tf.ones([self.batch_size, 1])], axis=0)
+        labels = tf.concat([tf.ones([self.batch_size, 1]),
+                            tf.zeros([self.batch_size, 1])], axis=0)
 
         # Start recording operations for automatic differentiation.
         with tf.GradientTape() as d_tape:
             # Get the discriminator's predictions for the combined
             # batch of images and calculate the loss.
             predictions = self.discriminator(images)
-            discriminator_loss = self.loss(labels, predictions)
+            discriminator_loss = self.loss_fn(labels, predictions)
 
             # Get the trainable variables of the discriminator and calculate
             # the gradients of the discriminator loss with respect to them.
             gradients = d_tape.gradient(discriminator_loss, self.discriminator.trainable_variables)
-            self.discriminator_optimizer.apply_gradients(zip(gradients,
-                                                             self.discriminator.trainable_variables))
+            self.discriminator_optimizer.apply_gradients(zip(gradients, self.discriminator.trainable_variables))
 
         return discriminator_loss
 

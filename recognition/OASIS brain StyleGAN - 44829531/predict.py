@@ -51,7 +51,8 @@ def main():
     style_gan = StyleGAN(epochs=EPOCHS, batch_size=BATCH_SIZE)
 
     # Load the pre-trained model when weights are provided
-    if INPUT_GENERATOR_WEIGHTS_PATH and INPUT_DISCRIMINATOR_WEIGHTS_PATH:
+    if INPUT_GENERATOR_WEIGHTS_PATH != "" and \
+            INPUT_DISCRIMINATOR_WEIGHTS_PATH != "":
         style_gan.built = True
 
         generator_filepath = os.path.join(directory_name,
