@@ -49,3 +49,4 @@ As proposed in the paper [], a dice similarity loss function is used to train th
  ![dice_score_plot](images/dice.svg)
  ![loss_score_plot](images/loss.svg)
  ![acc_plot](images/acc.svg)
+ <img src="images/acc.svg" alt="accuracy plot" width="400"/>
