@@ -16,7 +16,7 @@ import module as md
 device = torch.device("cuda")
 
 #start training the model
-def model_train(model, optimizer, epochs):
+def model_train(model, optimizer, epochs, loss_list, counter):
     model.train()
     criterion = md.ContrastiveLoss()
     for epoch in range(epochs):
@@ -34,6 +34,8 @@ def model_train(model, optimizer, epochs):
             optimizer.step()
             if count % 10 == 0:
                 print(f"Epoch number {epoch+1}\n Current loss {loss.item()}\n")
+                loss_list.append(loss.item())
+                counter.append(count + (epoch * 40))
 
 #Now test the model
 def model_test(model):
