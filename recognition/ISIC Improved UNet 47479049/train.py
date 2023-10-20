@@ -3,14 +3,15 @@ import torch.nn as nn
 import torch.optim as optim
 import torchvision
 import torchvision.transforms as transforms
+import matplotlib.pyplot as plt
 from modules import UNet
 from dataset import get_loaders
 
 # Hyperparameters
 learning_rate = 1e-4
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-batch_size = 16
-num_epochs = 32
+batch_size = 2
+num_epochs = 16
 num_workers = 4
 image_height = 96
 image_width = 128
@@ -19,8 +20,11 @@ test_out_dir = "data\ISIC2018_Task1-2_Test_Output"
 train_dir = "data\ISIC2018_Task1-2_Training_Input_x2"
 mask_dir = "data\ISIC2018_Task1_Training_GroundTruth_x2"
 
-def train(loader, val_loader, test_loader, model, optimizer, criterion, num_epochs):
+def train(loader, val_loader, model, optimizer, criterion, num_epochs):
     print("Training Start")
+    validation_loss_history = []
+    loss_history = []
+
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0
@@ -42,47 +46,61 @@ def train(loader, val_loader, test_loader, model, optimizer, criterion, num_epoc
 
         avg_loss = total_loss / len(loader)
 
-        img = next(iter(test_loader))
-        img = img.to(device)
-        img = model(img)
-        torchvision.utils.save_image(img, f"Epoch_{epoch}.png")
+        total_validation_loss = 0
+        for data, mask in val_loader:
+            data = data.to(device)
+            mask = mask.to(device)
 
-        print(f"Epoch [{epoch + 1}/{num_epochs}] - Loss: {avg_loss:.4f}")
+            predictions = model(data)
+            validation_loss = criterion(predictions, mask)
 
-        check_accuracy(val_loader, model, epoch, device=device)
+            total_validation_loss += validation_loss.item()
+
+        total_validation_loss = total_validation_loss/len(val_loader)
+
+        print(f"Epoch [{epoch + 1}/{num_epochs}] - Loss: {avg_loss:.4f}, Total Validation Loss: {total_validation_loss:.4f}")
+        validation_loss_history.append(total_validation_loss)
+        loss_history.append(avg_loss)
+
+    return validation_loss_history, loss_history
 
 
-def check_accuracy(loader, model, epoch, device="cuda"):
-    dice_score = 0
+class diceloss(torch.nn.Module):
+    def init(self):
+        super(diceloss, self).__init__()
+    def forward(self, pred, target):
+        smooth = 1
+        iflat = pred.contiguous().view(-1)
+        tflat = target.contiguous().view(-1)
+        intersection = (iflat * tflat).sum()
+        A_sum = torch.sum(iflat*iflat).sum()
+        B_sum = torch.sum(tflat*tflat).sum()
+        return 1 - ((2. * intersection + smooth)/ (A_sum + B_sum + smooth))
+    
 
+def loss_graph(results, results_val, num_epochs):
+    plt.plot(range(1, num_epochs+1), results, 'k', label="Training")
+    plt.plot(range(1, num_epochs+1), results_val, 'r', label="Validation")
+    plt.title('Loss Graph')
+    plt.xlabel("Epochs")
+    plt.ylabel("Loss")
+    plt.savefig("Lossgraph.jpg")
+    plt.legend()
+    plt.show()
+
+
+def create_mask(loader, model, max_pics, device=device):
     model.eval()
-    with torch.no_grad():
-        for x, y in loader:
-            x = x.to(device)
-            y = y.to(device)
-            pred = model(x)
-            pred = (pred > 0.5).float()
 
-            dice_score += (2*(pred*y).sum()) / ((pred+y).sum()+1e-8)
-
-    print(f"Dice Score: {dice_score/len(loader)}")
-
-    model.train()
-
-
-
-def create_mask(loader, model, num_pics, device=device, folder="/"):
-    model.eval()
-
-    for idx, x in enumerate(loader):
-        if idx > num_pics:
+    for idx, (x,y) in enumerate(loader):
+        if idx > max_pics:
             break
         x = x.to(device=device)
         with torch.no_grad():
             pred = model(x)
             pred = (pred>0.5).float()
         torchvision.utils.save_image(
-            pred, f"{folder}/pred_{idx}.png"
+            pred, f"{y}"
         )
         
 
@@ -97,23 +115,23 @@ def main():
     ])
 
     model = UNet(3, 1).to(device)
-    criterion = nn.BCELoss()
+    criterion = diceloss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 
-    train_loader, val_loader, test_loader = get_loaders(
+    train_loader, val_loader = get_loaders(
         train_dir,
         mask_dir,
-        test_dir,
         batch_size,
         train_transforms,
     )
 
 
-    train(train_loader, val_loader, test_loader, model, optimizer, criterion, num_epochs)
-        
+    validation_loss_history, loss_history = train(train_loader, val_loader, model, optimizer, criterion, num_epochs)
     torch.save(model.state_dict(), "model")
-    create_mask(test_loader, model, 2, device=device, folder=test_out_dir)
+
+    loss_graph(validation_loss_history, loss_history, num_epochs)
+
 
 if __name__ == "__main__":
     main()

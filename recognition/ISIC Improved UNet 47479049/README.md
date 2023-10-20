@@ -5,10 +5,12 @@ This reports the usage of the improved Unet on the idetification of skin lesions
 The data set contains 2,594 images of skin lesions along wwith a mask that contains pixel values of 0 (white) and (255) black. The white represetns the area that the skin lession is in and the black is where it does not contain the skin lession.
 
 ![segmented](ISIC_0000000.jpg)
-Figure 1: Origional image for ISIC_0000000
+
+Figure 1: Original image for ISIC_0000000
 
 ![segmented](ISIC_0000000_segmentation.png)
-Figure 2: Origional image for ISIC_0000000_segmentation
+
+Figure 2: Original image for ISIC_0000000_segmentation
 
 ### Data pre processing
 Images are scaled down to 96 x 128 comapred to the origional 511 x 384 this way it saves on computer processing time while also fitting the model so that no extra resizes are needed in the model. The mask is then mapped to 0 or 1 where if the pixel values is greater than 128 it is maped to 1 and 0 if it is below 128.
@@ -38,8 +40,19 @@ Download the dataset place the files within the data folder you chould have the 
 remove the txt files inside run train then run predict
 
 ## Results
+![segmented](Lossgraph.jpg)
+Figure 4: loss curve
 
 The model Achived a dice score of 0.88 after a batch of 16 and 64 epochs however the data set seemed to have stagnated around the 20th epoch so 64 was not needed
+
+![segmented](ISIC_0000001.jpg)
+Figure 5: Original ISIC image
+
+![segmented](ISIC_0000001_segmentation.png)
+figure 6: Original ISIC Mask
+
+![segmented](ISIC_0000001_segmentation_from_model.png)
+figure 6: ISIC Mask From model
 
 
 # Dependecies 
@@ -47,6 +60,7 @@ The model Achived a dice score of 0.88 after a batch of 16 and 64 epochs however
 - Pyroch
 - PIL
 - numpy
+- matplotlib
 - Dataset(https://filesender.aarnet.edu.au/?s=download&token=d93a02ff-5b61-465f-9cba-fc1566613384)
 
 
