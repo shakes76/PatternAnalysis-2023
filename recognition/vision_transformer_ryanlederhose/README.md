@@ -227,6 +227,10 @@ Simply call ```train.py``` as such:
 ```bash
 python train.py
 ```
+If you want to hide the losses and accuracy plots use:
+```bash
+python train.py --hide-plots true
+```
 
 ## Results
 After the training and hyperparameter tuning process, the trained vision transformer performed with a test accuracy of ```69.65%```. 
