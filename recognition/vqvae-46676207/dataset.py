@@ -175,10 +175,10 @@ def load_data(batch_size=BATCH_SIZE,
         valid_sampler = SubsetRandomSampler(valid_idx)
 
         train_loader = DataLoader(      # initialize the training dataloader
-            train_dataset, batch_size=batch_size, sampler=train_sampler, num_workers=2
+            train_dataset, batch_size=batch_size, sampler=train_sampler, num_workers=14
         )
         valid_loader = DataLoader(      # initialize the validating dataloader
-            valid_dataset, batch_size=batch_size, sampler=valid_sampler, num_workers=2
+            valid_dataset, batch_size=batch_size, sampler=valid_sampler, num_workers=14
         )
 
         return train_loader, valid_loader
