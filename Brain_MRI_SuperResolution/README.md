@@ -14,7 +14,7 @@ Then, during the non-linear mapping phase, the network harnesses its capacity to
 Lastly, in the reconstruction phase, the final layer of the SRCNN is dedicated to generating the high-resolution image from the acquired feature maps.The filters within this layer are meticulously trained to collate the information from these feature maps, ensuring the output is a finely upscaled image.               
 SRCNN models have various implementations across different domains. They offer a more feasible approach to obtaining high-resolution images than relying on the availability of high-cost sensors and advanced optics manufacturing technology. The medical field greatly benefits from SRCNN due to its ability to enhance image quality, which is pivotal for precise diagnostics and treatments.  
 
-![Model Visualization](Images/model.png)
+![Model Visualization](Images/Model.png)
 
 
 ### Working :
@@ -23,7 +23,7 @@ On a large dataset. First,on running data_loader preprocessing of the the images
 For training,mixed preprocessed samples from different categories are divided into training and validation groups. During training, model uses a PSNR metric, the Adam optimizer, and try to minimize the mean squared error. The best version of the model is saved based on validation results and stop training if no progress is seen after several attempts. Once training is done, we use charts to show how training went.
 For predictions, a function called displayPredictions takes a test image, resizes it, and makes a low-quality version of it.Both of the original and low-quality image are displayed. Then, using our trained model, upgradation the low-quality image to high-resolution takes place. The model is loaded from a specific place on our computer, and we finish by showing how good the model is with a test image.
 
-refer to image (Images/SRCNN.png)
+![Model Working](Images/SRCNN.png)
 
 ### Problem Adressed :
 
