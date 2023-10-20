@@ -1,0 +1,14 @@
+name: comp3710
+channels:
+  - defaults
+dependencies:
+  - python=3.11
+  - torchaudio
+  - torchvision
+  - cpuonly
+  - pytorch
+  - matplotlib
+  - tqdm
+  - ipykernel
+  - imageio
+prefix: /home/astra/miniconda3/envs/comp3710
