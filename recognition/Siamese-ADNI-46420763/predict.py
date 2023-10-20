@@ -48,8 +48,6 @@ def main():
     AD_query = AD_query[:, None, :, :]
     NC_query = NC_query[:, None, :, :]
     
-    print(AD_query.shape)
-    
     ###################  
     #   Prediction:   #
     ###################
@@ -90,7 +88,7 @@ def main():
     axsLeft[1].axis("off")
     axsLeft[0].set_title("Input Image")
     axsLeft[1].set_title("AD Query Image")
-    subfigs[0].suptitle("AD Similarity: " + "{:.5f}".format(AD_sim.item()), fontsize=20)
+    subfigs[0].suptitle("AD Distance: " + "{:.5f}".format(AD_sim.item()), fontsize=20)
     
     # Plot NC Prediction
     axsRight[0].matshow(image[0][0], cmap = plt.cm.binary_r)
@@ -99,7 +97,7 @@ def main():
     axsRight[1].axis("off")
     axsRight[0].set_title("Input Image")
     axsRight[1].set_title("NC Query Image")
-    subfigs[1].suptitle("NC Similarity: " + "{:.5f}".format(NC_sim.item()), fontsize=20)
+    subfigs[1].suptitle("NC Distance: " + "{:.5f}".format(NC_sim.item()), fontsize=20)
     
     fig.suptitle("True: " + classes[label] + ", Prediction: " + classes[int(pred)], fontsize=30)
     plt.show()
