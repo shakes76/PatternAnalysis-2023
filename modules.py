@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import math
 
 class Block(nn.Module):
     def __init__(self, shape, in_channel, out_channels, kernel_size=3, stride=1, padding=1):
@@ -147,7 +148,7 @@ class DDPM_UNet(nn.Module):
     """
     Diffusion Denoising Probabilistic Model (DDPM) with a U-Net architecture.
     """
-    def __init__(self, network, num_steps=200, min_beta=1e-4, max_beta=0.02, image_shape=(1, 224, 224), device=None,):
+    def __init__(self, network, num_steps=1000, min_beta=1e-4, max_beta=0.02, image_shape=(1, 224, 224), device=None,):
         super(DDPM_UNet, self).__init__()
         
         self.num_steps = num_steps
