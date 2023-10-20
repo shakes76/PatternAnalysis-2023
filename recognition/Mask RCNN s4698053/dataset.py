@@ -96,9 +96,9 @@ class ISICDataloader(Dataset):
                 break
 
         if class_label >= 0:
-            mask = Image.open(mask_pth + '_segmentation.png').convert('L')
-            mask = self.defaultTransform(mask).to(self.device) / 255.0
-            bboxes = torch.tensor([class_label, *self.bbox_to_XYWH(self.mask_to_bbox(mask))]).unsqueeze(0)
+            masks = Image.open(mask_pth + '_segmentation.png').convert('L')
+            masks = self.defaultTransform(masks).to(self.device) / 255.0
+            bboxes = torch.tensor([class_label, *self.bbox_to_XYWH(self.mask_to_bbox(masks[0]))]).unsqueeze(0)
         else:
             bboxes = torch.empty(0, 5)
         
