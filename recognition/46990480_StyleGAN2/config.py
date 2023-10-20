@@ -9,7 +9,7 @@ if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
 # Path Parameters
-modelName = "QuickTesting2"
+modelName = "OASIS_With_Preprocessing_A100_512_lat"
 # data_path_root = "./data/OASIS/" # Rangpur
 data_path_root = "/Datasets/keras_png_slices_data/" # Desktop
 output_path = "./"

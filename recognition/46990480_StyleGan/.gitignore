@@ -1,8 +1,0 @@
-# For development purposes so model/training files are not committed by accident
-# TODO: remove before opening PR
-data/
-outputs/
-Models/
-
-# Playground Directory for Development purposes
-test/

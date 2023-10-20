@@ -74,7 +74,7 @@ allows for full controllability whilst still removing the blob-like artifacts.
 ![Revised StyleGAN2 Architecture](./assets/styleGAN2%20architecture.PNG)
 
 ## Dataset
-The dataset utilised for training the model is the [OASIS brains](https://www.oasis-brains.org/). You can find a download link for the data [here](). After downloading the data you will notice that it has the following directory structure -
+The dataset utilised for training the model is the [OASIS brains](https://www.oasis-brains.org/). You can find a download link for the data [here](https://cloudstor.aarnet.edu.au/plus/s/tByzSZzvvVh0hZA). After downloading the data you will notice that it has the following directory structure -
 
     ├── keras_png_slices_data 
     │   ├── keras_png_slices_seg_test  
@@ -110,7 +110,7 @@ The data is now ready for use with the dataloader within this project.
 ## Implementation
 As mentioned, the StyleGAN2 model was implemented with the objective to generate reasonable clear 
 images of the brain. The models utilised within this project (found in the `modules.py` directory) 
-were based on the original [StyleGAN]() & [StyleGAN2]() papers as well as this [light weight StlyeGAN2 implementation]() found online. This StyleGAN2 implementation wa then modified and re-tuned 
+were based on the original [StyleGAN](https://arxiv.org/pdf/1912.04958.pdf?ref=blog.paperspace.com) & [StyleGAN2](https://arxiv.org/pdf/1912.04958.pdf) papers as well as this [light weight StlyeGAN2 implementation](https://blog.paperspace.com/implementation-stylegan2-from-scratch/) found online. This StyleGAN2 implementation wa then modified and re-tuned 
 to run on the OASIS brains dataset. One critical parameter which had to be re-tuned was the latent 
 space dimensions. The original paper utilised a style vector ($w$) dimension of 512. As such the 
 models were modified to accommodate this new latent dimension. 
