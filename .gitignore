@@ -1,0 +1,7 @@
+recognition/easy/data/image/*
+recognition/easy/data/mask/*
+recognition/easy/model_scripted.pt
+recognition/Normal_Difficulty/AD_NC/*
+recognition/Normal_Difficulty/test_result/*
+recognition/easy/datasmall/*
+recognition/easy/testsmall/*
