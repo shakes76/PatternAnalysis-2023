@@ -54,6 +54,7 @@ The VQ layer operates in six key steps, illustrated in Figure 2. Initially, a Re
 	<img src="Images/Encoded.png" width=800>
 	<em>Figure 2: Encoded, Quantisation and Decoded Scans</em>
 </p>
+
 ---
 
 # Models and HyperParameters 
