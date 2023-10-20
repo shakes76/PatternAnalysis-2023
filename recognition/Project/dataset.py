@@ -43,6 +43,11 @@ class ISIC2018DataSet(Dataset):
 
     def __getitem__(self, idx):
         img_path = os.path.join(self.ImagesPath, self.imageNames[idx])
+
+        # This accounts for an invisible .db file in the test folder that can't be removed
+        if img_path == "isic_data/ISIC2018_Task1-2_Test_Input\Thumbs.db":
+            img_path = "isic_data/ISIC2018_Task1-2_Test_Input\ISIC_0036309.jpg"
+            self.imageNames[idx] = "ISIC_0036309.jpg"
         image = read_image(img_path)
         label_path = os.path.join(self.LabelsPath, self.imageNames[idx].removesuffix(".jpg") + "_segmentation.png")
         label = read_image(label_path)
