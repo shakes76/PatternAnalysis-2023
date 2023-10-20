@@ -56,7 +56,7 @@ A quantized sample output is shown below, which represents a given quantized ima
 
 After training and validation, the GAN can be trained on the quantized output of the VQ-VAE. The generated images are shown below.
 
-![](./images/images-0009.png)
+![](./images/images-0015.png)
 
 As seen, the images are quite blurry and contain some amounts of noise, due to the untuned hyperparameters of the GAN. A subplot of four images is shown below for more visual granularity.
 
