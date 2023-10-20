@@ -91,9 +91,52 @@ To do this move all of the images within each directory into an additional sub-f
 
 The data is now ready for use with the dataloader within this project.
 
-## Requirements
+## Implementation
+As mentioned, the StyleGAN2 model was implemented with the objective to generate reasonable clear 
+images of the brain. The models utilised within this project (found in the `modules.py` directory) 
+were based on the original [StyleGAN]() & [StyleGAN2]() papers as well as this [light weight StlyeGAN2 implementation]() found online. This StyleGAN2 implementation wa then modified and re-tuned 
+to run on the OASIS brains dataset. One critical parameter which had to be re-tuned was the latent 
+space dimensions. The original paper utilised a style vector ($w$) dimension of 512. As such the 
+models were modified to accommodate this new latent dimension. 
 
-The main dependencies required for this project are:
+To implement the algorithm I started by first writing the dataloader for the OASIS brains dataset, as 
+described [below](#dataloader-implementation). I tested the dataloader was running correctly on both 
+my local machine and on the University Rangpur High Performance Cluster (HPC). After verifying that 
+the dataloader was working, I modified the models to work with the new dataloader. 
+
+The next phase of implementing the solution was to develop the training loop. To train the GAN, a 
+batch of *real* images is first fetched from the data loader. Then a random style ($w$) and gaussian 
+noise vectors were generated, and passed into the Generator model to obtain a batch of fake generated 
+images. Using the Discriminator model each of these fakes would then be assessed to identify if they 
+were classified as real or fake. After this the original batch of real images would also be passed 
+through the discriminator and the loss gradients were then calculated. After computing the loss, back 
+propagation occurs and the weights of the models are updated. Lastly, as per the StyleGAN2 paper it 
+is recommended that path length regularisation is implemented, the `path length penalty` metric is 
+added to the loss every 16 iterations in order to ensure the *"smoothness"* of the latent space 
+manifold being learnt. This process is then repeated for 300 epochs of training. Lastly, training 
+loop utilised `tqdm` to log the progress of the training.
+
+The last component of the implementation was to create a image generation script so visual inference 
+can be done on the latent space. The implementation details regarding this model can be found [here](#predictimage-generation-implementation).
+
+### Dataloader Implementation
+The implementation of the dataloader for the OASIS dataset can be found in the `dataset.py` module. 
+To load and prepare the OASIS dataset for training, the `generateDataLoader` function is utilsed. 
+This data loader will load in the brain slices `train`, `test` & `validate` sets from the dataset. 
+For the purposes of this StyleGAN2 implementation, only the `trainset` will be utilised since there 
+is no technique to utilise the `validate` and `test` data sets within the StyleGAN2 architecture. 
+
+#### Dataloader Pre-processing
+The OASIS brains dataset provided, is already pre-processed, as such no additional pre-processing was 
+**strictly* required, however some basic pre-processing was still included in the event that it was 
+included in the event that a different version of the dataset was being utilised.
+
+Since the size of the dataset is fairly small (9k images), to the reduce the risk of over-fitting 
+dataset augmentation was implemented. Upon import a random horizontal flip transform was applied to 
+the images to account for this. Additionally, upon import the images were all normalised.
+
+### Predict/Image Generation Implementation
+The predict functionality was utilised to generate a grid of images from the trained latent space of the Generator model.
 
     - python 3.11.5
     - pytorch 2.1.0
