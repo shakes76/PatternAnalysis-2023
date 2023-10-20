@@ -6,7 +6,7 @@ import math
 
 class PositionalEncoding(nn.Module):
     """
-    PositionalEncoding layer adapted from the following source:
+    PositionalEncoding layer sourced from the following source:
     https://pytorch.org/tutorials/beginner/transformer_tutorial.html
     """
 
