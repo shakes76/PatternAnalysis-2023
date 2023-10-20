@@ -159,12 +159,15 @@ This model is trained using the adam optimiser with a 1e-4 learning rate. Given 
 ## 🐍 Results <a name = "results"></a>
 
 - For 30 epochs
+
 ![SNN_shot](result-plot/Figure_1.png)
 
 - For 50 epochs
+
 ![SNN_shot](result-plot/Figure_1_50epocs.png)
 
 - Epoch cycle running in terminal
+
 ![epoch_cycle](assets/epochs.png)
 
 <p>The training of the classification model did not have the same success as the siamese model. However, given the main layer of this model, the subnet, was pre trained from SNN, the model saw high validation accuracy from the beginning. Unfortunately, it did not improve too much over the training, only improving by a small percentage. Note in the run shown in this report the model had high validation at the beginning, but the dip at the 5th epoch is more representative of the validation accuracy early in training. 10 epochs were used as this consistently saw the model’s validation accuracy stabilize around 90%. The loss curve again indicated successful training, however due to the subnet being pre trained the loss started low. I suspect if I had trained the subnet less, say < 10 epochs, we would say a higher loss at the beginning of the classifier training.
