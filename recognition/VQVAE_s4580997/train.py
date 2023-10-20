@@ -40,8 +40,28 @@ class Trainer(ABC) :
 
 
 class TrainVQVAE(Trainer) :
-    
+    """
+    Trainer class for the VQVAE model. Implements the Trainer interface.
+    """
     def __init__(self, model: nn.Module, dataset: Dataset, lr=1e-3, wd=0, epochs=10, savepath='./models/vqvae') :
+        """
+        Initialize the trainer for VQVAE.
+
+        Parameters
+        ----------
+        param1 : model
+            Untrained PyTorch VQVAE model as per the modules specification
+        param2 : dataset
+            Dataset containing test and train splits
+        param3: lr
+            Learning rate for the Adam optimiser.
+        param4: wd
+            Weight decay for the Adam optimiser.
+        param5: epochs
+            Number of epochs to train for.
+        param6: savepath
+            Default path to save all output figures
+        """
         super().__init__(model, dataset, lr, wd, epochs, savepath)
         self.optimiser = torch.optim.Adam(self.model.parameters(), lr=self.lr, weight_decay=self.wd)        
         self.total_losses = list()
@@ -50,6 +70,9 @@ class TrainVQVAE(Trainer) :
 
 
     def train(self) -> None :
+        """
+        Train the model for the number of epochs specified in the constructor.
+        """
         if self.dataset.train_unloaded() :
             self.dataset.load_train()
         
@@ -75,6 +98,10 @@ class TrainVQVAE(Trainer) :
         print(f"Total Time for training: {end - start:.2f}s")
 
     def validate(self) -> None :
+        """
+        Validate the model on the test split of the dataset. Validation for the VQVAE is achieved through reconstruction
+        of the test set, with validation confirmed manually by sight.
+        """
         x, label = next(iter(self.dataset.get_test()))
         x = x.to(self.device)
         x = self.model.encoder(x)
@@ -98,6 +125,14 @@ class TrainVQVAE(Trainer) :
             
                 
     def plot(self, save = True) -> None :
+        """
+        Plot the training losses for the VQVAE model. Plots the total loss, reconstruction loss and quantisation loss
+
+        Parameters
+        ----------
+        param1 : save
+            Boolean to determine whether to save the plot or show it.
+        """
         plt.figure(figsize=(10, 5))
         plt.plot(self.recon_loss, label='Reconstruction Loss')
         plt.plot(self.quant_loss, label='Quantisation Loss')
@@ -114,24 +149,55 @@ class TrainVQVAE(Trainer) :
             plt.show()
 
     def save(self, newpath = None) -> None :
+        """
+        Save the model to the path specified in the constructor. If no path is specified, the default path is used.
+        
+        Parameters
+        ----------
+        param1 : newpath
+            Optional parameter to specify a new path to save the model to.
+        """
         if newpath :
             torch.save(self.model.state_dict(), newpath)
         else :
             torch.save(self.model.state_dict(), self.savepath + '/vqvae.pth')
 
 class TrainGAN(Trainer) :
+    """ 
+    Trainer class for the GAN model. Implements the Trainer interface.
+    """
     def __init__(self, model: nn.Module, dataset: Dataset, lr=1e-3, wd=0, epochs=10, savepath='./models/gan') :
+        """
+        Initialize the trainer for VQVAE.
+
+        Parameters
+        ----------
+        param1 : model
+            Untrained PyTorch GAN model as per the modules specification
+        param2 : dataset
+            Dataset containing test and train splits
+        param3: lr
+            Learning rate for the Adam optimiser.
+        param4: wd
+            Weight decay for the Adam optimiser.
+        param5: epochs
+            Number of epochs to train for.
+        param6: savepath
+            Default path to save all output figures
+        """
         super().__init__(model, dataset, lr, wd, epochs, savepath)
 
         self.d_optim = torch.optim.Adam(self.model.discriminator.parameters(), lr = self.lr)
         self.g_optim = torch.optim.Adam(self.model.generator.parameters(), lr = self.lr)
-        # self.criterion = nn.BCEWithLogitsLoss().to(DEVICE)        
         self.criterion = nn.BCELoss().to(DEVICE)
         self.d_losses = list()
         self.g_losses = list()
         self.latent = NOISE
 
     def train(self) -> None :
+        """
+        Train the model for the number of epochs specified in the constructor.
+        """
         if self.dataset.train_unloaded() :
             self.dataset.load_train()
         
@@ -176,9 +242,22 @@ class TrainGAN(Trainer) :
         print(f"Total Time for training: {end - start:.2f}s")
 
     def validate(self) -> None :
+        """
+        Validate the model on the test split of the dataset. No validation is done for GAN.
+        """
         pass
                 
     def plot(self, save = True, show = True) -> None :
+        """
+        Plot the training losses for the GAN model. Plots the discriminator loss and the generator loss.
+
+        Parameters
+        ----------
+        param1 : save
+            Boolean to determine whether to save the plot or show it.
+        param2 : show
+            Boolean to determine whether to show the plot or not.
+        """
         plt.figure(figsize=(10, 5))
         plt.plot(self.d_losses, label='Discriminator Loss')
         plt.plot(self.g_losses, label='Generator Loss')
@@ -193,6 +272,16 @@ class TrainGAN(Trainer) :
             plt.show()
     
     def save(self, discriminator_path = None, generator_path = None) -> None :
+        """
+        Save the discriminator and generator models separately.
+
+        Parameters
+        ----------
+        param1 : discriminator_path
+            Optional parameter to specify a new path to save the discriminator model to.
+        param2 : generator_path
+            Optional parameter to specify a new path to save the generator model to.
+        """
         if discriminator_path and generator_path :
             torch.save(self.model.generator.state_dict(), generator_path)
             torch.save(self.model.discriminator.state_dict(), discriminator_path)

@@ -254,7 +254,7 @@ class VectorQuantizer(nn.Module):
             1. get encoder input (B,C,H,W)
             2. flatten input to (B*H*W,C)
         
-        Sourced from: 
+        Taken directly from: //github.com/MishaLaskin/vqvae/blob/master/models/vqvae.py
         """
         # reshape z -> (batch, height, width, channel) and flatten
         z = z.permute(0, 2, 3, 1).contiguous()

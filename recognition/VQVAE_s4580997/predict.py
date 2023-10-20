@@ -14,6 +14,25 @@ from utils import NOISE
 
 class Predict() :
     def __init__(self, vqvae, gan, dataset, device='cpu', savepath = './models/predictions/', img_size=64) -> None:
+        """
+        The Predict class contains methods specific to the VQVAE problem.
+
+        Parameters
+        ----------
+        param1 : vqvae
+            Trained PyTorch VQVAE model as per the modules specification
+        param2 : gan
+            Trained GAN model as per the modules specification.
+        param3: dataset
+            Dataloader for the test and train splits.
+        param4: device
+            Device to run the model on.
+        param5: savepath
+            Default path to save all output figures
+        param6: img_size
+            Size of the image to be generated.
+        """
+
         self.vqvae = vqvae
         self.gan = gan
         self.dataset = dataset
@@ -26,10 +45,11 @@ class Predict() :
 
         self.img_size=(img_size, img_size)
     
-    """
-    Use the provided GAN to generate an image.
-    """
+    
     def generate_gan(self) :
+        """
+        Use the provided GAN model and defined noise from utils to generate an output for encoding to the VQVAE.
+        """
         self.gan.generator.eval()
         noise = torch.randn(1, NOISE, 1, 1).to(self.device)
         with torch.no_grad():
@@ -46,6 +66,10 @@ class Predict() :
         plt.savefig("./models/predictions/generate_gan.png")
 
     def quantise(self, input) :
+        """
+        Quantisation helper function directly correlating to the quantiser layer to allow for 
+        the VQVAE to be used in the prediction without changing dimensions of outputs.
+        """
         indices = input.unsqueeze(1)
         encoded = torch.zeros(indices.shape[0], self.vqvae.quantizer.n_embeddings, device = self.device)
         encoded.scatter_(1, indices, 1)
@@ -54,6 +78,9 @@ class Predict() :
         return x_hat
 
     def generate_vqvae(self):
+        """
+        Uses the generated GAN output to encode to the VQVAE and reconstruct an image.
+        """
         self.vqvae.eval()
         self.generate_gan()
         indice = torch.flatten(self.generated_images[0][0])
@@ -74,7 +101,9 @@ class Predict() :
 
     
     def ssim(self):
-        
+        """
+        Calculates the SSIM score of the generated image against the test set.
+        """
         if not self.dataset:
             print('Dataset has not been set')
             return
