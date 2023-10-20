@@ -45,15 +45,16 @@ Due to the model size and difficulties in accessing the Rangpur computing cluste
 To get some initial results, the model was simply trained on the validation dataset, purely due to its reduced size. Two sample outputs are given below after 50 epochs of training, demonstrating some feasibility in the model - it does detect some of the mole's shape. As such, with a larger dataset and more epochs, it is believed that these predictions will improve further.
 
 ![Res1](res1.jpg)
-
 ![Res2](res2.jpg)
 
 Due to their differences, the Dice coefficient is not meaningful in this context - there is not much overlap.
 
 This process was repeated on the full training set, but only for 20 epochs. The losses are shown in the plot below (high values since total sum of losses not divided by data length).
+
 ![loss](lossgraph.jpg)
 
 Using this model again to make predictions, the following results are obtained:
+
 ![train1](train1.jpg)
 ![train2](train2.jpg)
 
