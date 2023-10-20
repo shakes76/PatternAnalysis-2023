@@ -2,6 +2,7 @@
 ## Overview
 The algorithm used in this project is YOLO. It is a one stage object detection algorithm. The architecture for this project consists of 12 convolution layers with batch normalisations in between. There are also some maxpooling layers at the beginning. This structure was based on the tiny-YOLO-v3 architecture shown below:
 ![The-network-structure-of-Tiny-YOLO-V3](https://github.com/LazyScribble/PatternAnalysis-2023/assets/141600341/487de0ff-dc86-48df-b19a-aa1b55a35897)
+
 (image from reference 1)
 
 The aim of this algorithm is to detect skin lesions and classify them as either melanoma, or seborrheic keratosis, with an intersection over uniou (IoU) score of 0.8. The datset used is the ISIC 2017 Dataset, refer to reference 4 for more information.
