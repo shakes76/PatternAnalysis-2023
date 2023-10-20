@@ -18,8 +18,17 @@ pandas
 The Improved UNet model was constructed as outlined by [1], diagram given below:
 ![HELLO](modelstructure.png)
 
-## Context
+This required the development of several additional blocks.
 
-## Localisation
+### Context
+This context is described as a pre-activation residual block, basically two convolutions with a dropout layer inbetween.
 
-## Segmentation
+### Localisation
+This localisation block transfers encoded low spatial resolution information into a higher spatial resolution. In essence, it recombines the upsampled features with the saved outputs from the corresponding context block.
+
+### Segmentation
+Segmentation occurs at multiple levels, reducing the feature map back into one feature. This improves the accuracy of the model, as opposed to only performing segmentation on the final output.
+
+
+# References
+[1] Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., and Maier-Hein, K. "Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge". Feb 28, 2018. Accessed from <https://arxiv.org/pdf/1802.10508v1.pdf>
