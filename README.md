@@ -1,3 +1,5 @@
+# COMP3710 Report - VQ-VAE (Brain MRI)
+---
 # Table of Contents
 
 - [**Introduction**](#introduction)
@@ -41,7 +43,7 @@
 
 
 
-# VQ-VAE with PixelCNN for Brain Image Reconstruction and Generation
+# VQ-VAE with PixelCNN for Oasis Brain MRI Image Reconstruction and Generation
 
 ## Introduction
 
