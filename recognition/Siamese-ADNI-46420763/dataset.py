@@ -15,7 +15,7 @@ def train_dataset_transforms():
     """    
     return transforms.Compose([transforms.Grayscale(), 
                                transforms.RandomRotation(30), 
-                               transforms.RandomCrop((240, 256), padding = 8, padding_mode='reflect'),
+                               transforms.RandomCrop((240, 256), padding = 16, padding_mode='reflect'),
                                transforms.ToTensor()])
 
 def test_dataset_transforms():
