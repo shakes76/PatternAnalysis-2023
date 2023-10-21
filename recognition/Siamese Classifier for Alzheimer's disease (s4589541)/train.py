@@ -1,4 +1,6 @@
-# training, validating, testing and saving the model
+"""
+    train.py - training, validating, testing and saving the model
+"""
 import datetime
 import argparse
 from dataset import *
@@ -107,6 +109,77 @@ def test(chkpt_path, model: TripletNetwork, criterion: TripletLoss,
 
     return losses, average_loss, embeddings
 
+
+def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, criterion, 
+                     optimiser: optim.Optimizer, train_loader: DataLoader, 
+                     valid_loader: DataLoader, epochs: int):
+    losses = {
+        "train": [],
+        "valid": []
+    }
+    train_set_size = len(train_loader) # no of batches
+    valid_set_size = len(valid_loader)
+    print(f"Training images: {train_set_size*BATCH_SIZE}")
+    print(f"Number of training batches: {train_set_size}")
+    siamese.eval()
+    try:
+        for epoch in range(epochs):
+            print(f"Epoch {epoch + 1}")
+            # training
+            epoch_train_loss = 0
+            a_embed_t.train()
+            for batch_no, (a_t, label, _, _) in enumerate(train_loader):
+                # move the data to the GPU
+                a_t = a_t.to(device)
+                # zero the gradients
+                optimiser.zero_grad()
+                # input image into siamese model to generate embedding
+                a_embed_t = siamese.single_foward(a_t)
+                # pass into classifier
+                a_out_t = classifier(a_embed_t)
+                # calculate the loss
+                loss_t = criterion(a_out_t, label)
+                # backpropagate
+                loss_t.backward()
+                # step the optimiser
+                optimiser.step()
+                # add the loss
+                epoch_train_loss += loss_t.item()
+
+                print(f"Training Batch {batch_no + 1}, Loss: {loss_t.item()}")
+                # if batch_no > 0:
+                #     break 
+
+            # record average training loss over epoch
+            losses["train"].append(epoch_train_loss/train_set_size)
+
+            # validation
+            epoch_valid_loss = 0
+            classifier.eval()
+            for batch_no, (a_v, label, _, _) in enumerate(valid_loader):
+                # move the data to the GPU
+                a_v = a_v.to(device)
+                # input image into siamese model to generate embedding
+                a_embed_v = siamese.single_foward(a_v)
+                # pass into classifier
+                a_out_v = classifier(a_embed_v)
+                # calculate the loss
+                loss_v = criterion(a_out_v, label)
+                # add the loss
+                epoch_valid_loss += loss_v.item()
+
+                print(f"Validation Batch {batch_no + 1}, Loss: {loss_v.item()}")
+                # if batch_no > 0:
+                #     break 
+
+            # record average training loss over epoch
+            losses["valid"].append(epoch_valid_loss/valid_set_size)
+
+    except Exception as e:
+        print(f"Failed at epoch {epoch}")
+        print(e)
+        
+    return losses
 
 def parse_user_args():
     """Parse user CLI args"""

@@ -1,4 +1,6 @@
-# loading and preprocessing of data
+"""
+    dataset.py - loading and preprocessing of data
+"""
 import random
 import torch
 import torchvision.datasets as datasets

@@ -1,4 +1,6 @@
-# model components
+"""
+    modules.py - model components
+"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as Functional
@@ -27,7 +29,7 @@ class TripletLoss(nn.Module):
         return mean_loss
 
 
-# define the network
+# define the siamese network
 class TripletNetwork(nn.Module):
     """Siamese triplet network architecture."""
     def __init__(self):
@@ -65,9 +67,10 @@ class TripletNetwork(nn.Module):
         l3_h, l3_w = size_after_cnn_pool(l2_h, l2_w, cnn_ker_3, cnn_str_3, 1)
 
         fc_in_1 = cnn_out_3 * l3_h * l3_w
-        fc_out_1 = int(fc_in_1 // 8.5)
+        fc_out_1 = int(fc_in_1 // 16)
         fc_out_2 = int(fc_out_1 // 8)
         fc_out_3 = int(fc_out_2 // 14.5)
+        self.embedding_dim = fc_out_3
 
         self.fc_layers = nn.Sequential(
             # group 1
@@ -122,3 +125,20 @@ class TripletNetwork(nn.Module):
         n_out = self.single_foward(n)
         
         return a_out, p_out, n_out
+    
+
+# define the classifier
+class BinaryClassifier(nn.Module):
+    def __init__(self, in_channels):
+        super().__init__()
+        self.layers = nn.Sequential(
+            nn.Linear(in_channels, 64),
+            nn.ReLU(inplace=True),
+            nn.Dropout(p=0.2),
+            nn.Linear(64, 2),
+            nn.Sigmoid(inplace=True)
+        )
+    
+    def forward(self, input):
+        output = self.layers(input)
+        return output

@@ -1,4 +1,6 @@
-# helper functions
+"""
+    uilts.py - various helper functions
+"""
 import random
 import glob
 import shutil
