@@ -1,26 +1,34 @@
 import os
 import random
-import torch
+import torchvision.datasets as datasets
 import numpy as np
-import math
 from torch.utils.data import Dataset, DataLoader
-import torchvision
-import matplotlib
-import PIL
+
+TRAIN_FILE_ROOT = "./AD_NC/train"
+TRAIN_AD = "./AD_NC/train/AD"
+TRAIN_NC = "./AD_NC/train/NC"
+BATCH_SIZE = 64
+VAL_SIZE = 0.1
+TRAIN_SIZE = 0.9
+
 
 class SiameseDataSet(Dataset):
+    """
+    Class for loading the ADNI dataset and retrieving the triplet image input
+    """
 
-    def __init__(self):
-        #data loading
-        pass
+    def __init__(self, imgset: datasets.ImageFolder, transform=None):
+        self.imgset = imgset
+        self.transform = transform
 
     def __getitem__(self, item):
-        #indexing
+        # indexing
         pass
 
     def __len__(self):
         # return n_samples
         pass
+
 
 def get_patients(path: str) -> [str]:
     uids = []
@@ -30,25 +38,45 @@ def get_patients(path: str) -> [str]:
         substrings = filename.split("_", 2)
         if substrings[0] not in uids:
             uids.append(substrings[0])
+
+    # print(f"{path} : {len(uids)}")
     return uids
 
 
-def partition(l: [str], n: int):
-    random.shuffle(l)
-    return [l[i::n] for i in range(n)]
+def remove_patients(imgset: datasets.ImageFolder, index: int, match_set: []) -> datasets.ImageFolder:
+    folder = ""
+    if index == 0:
+        folder = "AD"
+    else:
+        folder = "NC"
+
+    for patient in match_set:
+        for fname in os.listdir(TRAIN_FILE_ROOT + "/" + folder):
+            if patient in fname:
+                imgset.imgs.remove((TRAIN_FILE_ROOT + "\\" + folder + "\\" + fname, index))
+
+    return imgset
 
 
-def get_validation_sets(num: int) -> [[str]]:
-    """
-        Returns a list of lists containing a non-intersecting list of patient id's to be used for validation sets
-    """
-    partition_ad = partition(get_patients("AD_NC/train/AD"), num)
-    partition_nc = partition(get_patients("AD_NC/train/NC"), num)
+def patient_split() -> (datasets.ImageFolder, datasets.ImageFolder):
+    files = get_patients(TRAIN_AD)
+    random.shuffle(files)
+    train_ad, validate_ad = np.split(files, [int(len(files) * TRAIN_SIZE)])
+    files = get_patients(TRAIN_NC)
+    random.shuffle(files)
+    train_nc, validate_nc = np.split(files, [int(len(files) * TRAIN_SIZE)])
 
-    return partition_ad, partition_nc
+    train_dataset = datasets.ImageFolder(root=TRAIN_FILE_ROOT)
+    validation_dataset = datasets.ImageFolder(root=TRAIN_FILE_ROOT)
+
+    train_dataset = remove_patients(train_dataset, 0, validate_ad)
+    train_dataset = remove_patients(train_dataset, 1, validate_nc)
+
+    validation_dataset = remove_patients(validation_dataset, 0, train_ad)
+    validation_dataset = remove_patients(validation_dataset, 1, train_nc)
+
+    return train_dataset, validation_dataset
 
 
 if __name__ == "__main__":
-    ad, nc = get_validation_sets(30)
-    print(ad)
-    print(nc)
+    patient_split()
