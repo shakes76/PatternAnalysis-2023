@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 """
 Base Line Model
@@ -35,6 +36,14 @@ class Baseline_Contrastive(nn.Module):
         x2 = self.sub_forward(x2)
         return x1, x2
 
+    def euclidean_distance(self, embedding1, embedding2):
+        return F.pairwise_distance(embedding1, embedding2)
+
+    def predict(self, embedding1, embedding2):
+        distances = self.euclidean_distance(embedding1, embedding2)
+        out = torch.sigmoid(distances)
+        return out
+
 
 class Baseline_Triplet(nn.Module):
     def __init__(self):
@@ -66,12 +75,18 @@ class Baseline_Triplet(nn.Module):
         negative = self.sub_forward(negative)
         return anchor, positive, negative
 
+    def predict(self, embedding1, embedding2):
+        distances = F.pairwise_distance(embedding1, embedding2)
+        out = torch.sigmoid(distances)
+        return out
+
 
 # test if the model works properly
 if __name__ == '__main__':
-    model = Baseline_Triplet()
+    model = Baseline_Contrastive()
     test_tensor = torch.ones(3, 1, 240, 256)
-    output = model(test_tensor, test_tensor, test_tensor)
+    output = model(test_tensor, test_tensor)
     print(output[0].shape)
     print(output[1].shape)
-    print(output[2].shape)
+    print(model.euclidean_distance(output[0], output[1]))
+    print(model.predict(output[0], output[1]))

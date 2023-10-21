@@ -72,18 +72,16 @@ def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
         # Record the batch loss
         train_loss_lis = np.append(train_loss_lis, loss.item())
 
-        # Compute pairwise distance using F.pairwise_distance
-        dists = F.pairwise_distance(embedding_1, embedding_2)
-
-        # Use the criterion's margin as the threshold for predictions
-        threshold = criterion.margin
-        predictions = (dists < threshold).float()
-        correct_predictions += (predictions == labels.squeeze().float()).sum().item()
+        # calculate acc
+        probs = model.predict(embedding_1, embedding_2)
+        preds = (probs >= 0.5).float()
+        correct_predictions += (preds == labels.squeeze().float()).sum().item()
         total_samples += labels.size(0)
 
         # Update the count of negative pairs below the margin
         negative_pair_mask = (labels == 0).float()  # 0 for negative pair
         total_negative_pairs += negative_pair_mask.sum().item()
+        dists = model.euclidean_distance(embedding_1, embedding_2)
         negative_dists_below_margin = (dists < criterion.margin).float() * negative_pair_mask.squeeze()
         negative_pairs_below_margin += negative_dists_below_margin.sum().item()
 
@@ -116,12 +114,9 @@ def validate_contrastive(model, val_loader, criterion, epoch, epochs):
             loss = criterion(embedding_1, embedding_2, labels)
 
             total_loss += loss.item()
-
-            # Compute pairwise distance
-            dists = F.pairwise_distance(embedding_1, embedding_2)
-            threshold = criterion.margin
-            predictions = (dists < threshold).float()
-            correct_predictions += (predictions == labels.squeeze().float()).sum().item()
+            probs = model.predict(embedding_1, embedding_2)
+            preds = (probs >= 0.5).float()
+            correct_predictions += (preds == labels.squeeze().float()).sum().item()
             total_samples += labels.size(0)
 
     average_loss = total_loss / len(val_loader)
@@ -257,7 +252,7 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
     return average_loss, val_acc
 
 
-"""
+
 # train with contrastive
 if __name__ == '__main__':
     random.seed(2023)
@@ -302,10 +297,10 @@ if __name__ == '__main__':
     epochs = 100
 
     main_contrastive(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
+
+
+
 """
-
-
-
 # train with Triplet loss
 if __name__ == '__main__':
     random.seed(2023)
@@ -350,3 +345,4 @@ if __name__ == '__main__':
     epochs = 100
 
     main_triplet(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
+"""
