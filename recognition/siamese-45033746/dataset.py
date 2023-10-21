@@ -15,19 +15,39 @@ TRAIN_SIZE = 0.9
 class SiameseDataSet(Dataset):
     """
     Class for loading the ADNI dataset and retrieving the triplet image input
+    Reference : https://github.com/maticvl/dataHacker/blob/master/pyTorch/014_siameseNetwork.ipynb
     """
 
     def __init__(self, imgset: datasets.ImageFolder, transform=None):
         self.imgset = imgset
         self.transform = transform
 
-    def __getitem__(self, item):
-        # indexing
-        pass
+    def __getitem__(self, index: int):
+        anchor_path, anchor_class = self.imgset.samples[index]
+        anchor = self.imgset.loader(anchor_path)
+
+        positive = None
+        negative = None
+
+        while positive is None or negative is None:
+            random_path, random_class = random.choice(self.imgset.imgs)
+            if random_path == anchor_path:
+                continue
+            elif random_class == anchor_class:
+                positive = self.imgset.loader(random_path)
+            else:
+                negative = self.imgset.loader(random_path)
+
+        if self.transform is not None:
+            anchor = self.transform(anchor)
+            positive = self.transform(positive)
+            negative = self.transform(negative)
+
+        return anchor_class, anchor, positive, negative
 
     def __len__(self):
         # return n_samples
-        pass
+        return len(self.imgset.imgs)
 
 
 def get_patients(path: str) -> [str]:
@@ -79,4 +99,6 @@ def patient_split() -> (datasets.ImageFolder, datasets.ImageFolder):
 
 
 if __name__ == "__main__":
-    patient_split()
+    # train, val = patient_split()
+    # TrainDataSet = SiameseDataSet(train)
+    # TrainDataSet.__getitem__(2)
