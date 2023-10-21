@@ -5,9 +5,27 @@
 
 This project aimed to develop a generative model for the OASIS brain [[1]](#references) MRI dataset using a Vector Quantized Variational Autoencoder (VQ-VAE) [[3]](#references). The VQ-VAE was trained to learn a discrete latent representation of the data, which was then used to generate novel images.
 
-VQ-VAEs are a type of Variational Auto-encoder (VAE), however with the addition of the vector quantization layer between the encoder and decoder. Standard VAEs are able to learn a continuous latent representations of data, by training with the goal to reduce the reconstruction loss between the original image and the reconstructed image [[2]](#references). A limitation of VAEs is that they use a Gaussian prior distribution, which is continuous and hence limits the ability to control the outputs. In a VQ-VAE, the vector quantization layer discretizes the latent space, a constraint which results in more meaningful images being decoded. Additionally, [[3]](#references) discusses that regular VAEs suffer from posterior collapse due to the noisiness of the latent space. The VQ-VAE is able to avoid this issue by using a discrete latent space.
+VQ-VAEs are a type of Variational Auto-encoder (VAE), however with the addition of the vector quantization layer between the encoder and decoder. Standard VAEs are able to learn a continuous latent representations of data, by training with the goal to reduce the reconstruction loss between the original image and the reconstructed image [[2]](#references). These can be useful for image compression among other tasks. The paper [[3]](#references) discusses that regular VAEs suffer from posterior collapse due to the noisiness of the latent space. The VQ-VAE is able to avoid this issue by using a discrete latent space. In a VQ-VAE, the vector quantization layer's discretization of the latent space  results in more meaningful images being decoded. Another limitation of VAEs is that they use a Gaussian prior distribution, which is continuous and hence limits the ability to control the outputs. With the control that the discrete latent space provides, the VQ-VAE is able to use a learned prior distribution, which is where the Deep Convolutional Generative Adversarial Network (DCGAN) comes in.
 
-The use of a VQ-VAE in this context has two parts: firstly, the VQ-VAE model must be trained so that it can reconstruct images from the OASIS dataset. Secondly, a DCGAN is used to generate the priors for the VQ-VAE, so that novel, high-quality images can be generated. 
+So, first, the VQ-VAE model must be trained so that it can reconstruct images from the OASIS dataset. Secondly, a DCGAN is used to generate the priors for the VQ-VAE, so that novel, high-quality images can be generated. 
+
+The following image was taken from the original paper that proposed VQ-VAEs [[3]](#references), and shows the model architecture. The encoder and decoder are convolutional neural networks. The encoder encodes an image into a latent space, which is then passed through the vector quantization layer. In the vector quantization layer, the continuous vectors are 'snapped' onto the codebook vector that is closest, based on nearest neighbour look-up. The decoder then decodes the codebook vector to reconstruct the original image. The red arrow in the centre of the image shows the straight-through gradient, which is used to backpropagate the gradients from the decoder to the encoder.
+
+![VQ-VAE model architecture](resources/vqvae-architecture.png)
+
+There are three components to the loss function [[3]](#references):
+
+![VQ-VAE loss function](resources/vqvae-loss.png)
+
+1. Reconstruction loss: optimizes both the encoder and decoder. 
+1. VQ loss: moves embedding vectors to the encoder output. 
+1. Commitment loss: restricts encoder growth. [[5]](#references)
+
+The DCGAN is a generative model that uses convolutional layers to generate images. There are two key components to the DCGAN model: the discriminator and generator. For training, this model utilises the concept of Game Theory to simultaneously train both models. The discriminator is trained to distinguish between real and fake images, while the generator is trained to generate images that are realistic enough to fool the discriminator. The following image shows the DCGAN Generator architecture:
+
+![DCGAN generator architecture](resources/dcgan-architecture.png)
+
+In this case, a latent space of size 100 is used as input to the generator, and then strided convolutional transpose layers are used to upsample the latent space to the size of the original image.
 
 ### Deep learning pipeline - overview
 
@@ -46,19 +64,12 @@ The [modules.py](modules.py) module contains the model architecture for the VQVA
 
 ### VQ-VAE 
 
-The Vector Quantized Variational Autoencoder (VQ-VAE) is an extension of the regular auto-encoder architecture that contains an additional vector quantization layer between the encoder and decoder. The vector quantization layer is used to discretize the latent space, which allows for the model to learn a discrete latent representation of the data. 
+The general architecture of a VQ-VAE was discussed above. The specific architecture used in this project came from the paper [Neural Discrete Representation Learning](https://arxiv.org/pdf/1711.00937.pdf). 
 
-The goal is to use the VQ-VAE as a generative model, where the latent space is used to generate novel images. This is achieved by imposing structure into the latent space. 
-
-Previously, the latent space in a VAE was continuous, and the prior was a standard Gaussian. The VQ-VAE uses a discrete latent space, and the prior is a learned distribution (where the DCGAN comes in).
-
-For this dataset, (1 channel etc. )
-
-The model was created using PyTorch, and the architecture was adapted from the paper [Neural Discrete Representation Learning](https://arxiv.org/pdf/1711.00937.pdf). 
-<!-- TODO -->
+A summary of the model is shown here:
 
 <details>
-<summary>VQ-VAE Model structure (click me)</summary>
+<summary>VQ-VAE model structure (click me!)</summary>
 <br>
 <pre>
 VQVAE(
@@ -119,7 +130,81 @@ VQVAE(
 
 ### DCGAN
 
-The Deep Convolutional Generative Adversarial Network (DCGAN) is a generative model that uses convolutional layers to generate images.
+The Deep Convolutional Generative Adversarial Network (DCGAN) is a generative model that uses convolutional layers to generate images. The architecture used was the same as the one detailed in the paper [[6]](#references), but with minor adjustments so that the input of the generator would be the same size as the latent space of the VQ-VAE.
+
+Additionally, rather than training the GAN to output images, it was trained to generated latent vectors that could be used as priors for the VQ-VAE.
+
+<details>
+<summary>Generator model structure (click me!)</summary>
+<br>
+<pre>
+Generator(
+  (net): Sequential(
+    (0): Sequential(
+      (0): ConvTranspose2d(128, 512, kernel_size=(4, 4), stride=(1, 1), bias=False)
+      (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): ReLU(inplace=True)
+    )
+    (1): Sequential(
+      (0): ConvTranspose2d(512, 512, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+      (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): ReLU(inplace=True)
+    )
+    (2): Sequential(
+      (0): ConvTranspose2d(512, 256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+      (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): ReLU(inplace=True)
+    )
+    (3): Sequential(
+      (0): ConvTranspose2d(256, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+      (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): ReLU(inplace=True)
+    )
+    (4): ConvTranspose2d(128, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+    (5): Tanh()
+  )
+)
+</pre>
+</details>
+
+
+<details>
+<summary>Discriminator model structure (click me!)</summary>
+<br>
+<pre>
+Discriminator(
+  (net): Sequential(
+    (0): Conv2d(1, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+    (1): LeakyReLU(negative_slope=0.2)
+    (2): Sequential(
+      (0): Conv2d(128, 32, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+      (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.2, inplace=True)
+    )
+    (3): Sequential(
+      (0): Conv2d(32, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+      (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.2, inplace=True)
+    )
+    (4): Sequential(
+      (0): Conv2d(64, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+      (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.2, inplace=True)
+    )
+    (5): Sequential(
+      (0): Conv2d(128, 256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+      (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.2, inplace=True)
+    )
+    (6): Conv2d(256, 1, kernel_size=(4, 4), stride=(1, 1), bias=False)
+    (7): Flatten(start_dim=1, end_dim=-1)
+    (8): Sigmoid()
+  )
+)
+</pre>
+</details>
+
+
 
 
 ## 4. Training procedure
@@ -239,11 +324,9 @@ TODO: plot goes here.
 ## 5. Testing procedure
 The [predict.py](predict.py) module contains the script for model evaluation, which calculates the Structural Similarity (SSIM) metrics over all training data. It loads in and evaluates any VQVAE model checkpoint. 
 
-### VQ-VAE
+### VQ-VAE Results
 
-#### Results
-
-The output from evaluation was as follows:
+The output from the evaluations were as follows:
 
 ```
 SSIM mean: 0.7041
@@ -276,16 +359,12 @@ The lowest SSIM score, 0.5730, was observed for the following image:
 
 Overall, the SSIM scores were quite high, with 535 out of the 544 images (98.35%) in the dataset being above the miniminum threshold of 0.6. This indicates that the VQ-VAE model was able to reconstruct the images with a high degree of accuracy. Also, importantly, these scores showed that the model has decent generalisability and isn't overfitting, being only <!-- TODO --> lower than the training SSIM scores. 
 
-
-## Future work
-
-## Applications of this work
-* Discretized = smaller images, so can be used for compression. 
-
 ## References
 * [1] OASIS brain MRI dataset: https://www.oasis-brains.org/
 * [2] VQ-VAEs: Neural Discrete Representation Learning: https://www.youtube.com/watch?v=VZFVUrYcig0.
 * [3] Paper: *Neural Discrete Representation Learning*, Aaron van den Oord, Oriol Vinyals, Koray Kavukcuoglu, 2017. https://arxiv.org/abs/1711.00937
 * [4] DCGAN tutorial by Pytorch: https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html.
+* [5] https://medium.com/analytics-vidhya/an-overview-on-vq-vae-learning-discrete-representation-space-8b7e56cc6337
+* [6] Paper: *Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks*, https://arxiv.org/pdf/1511.06434.pdf.
 * [Sonnet VQ-VAE implementation](https://github.com/google-deepmind/sonnet/blob/v1/sonnet/examples/vqvae_example.ipynb)
 
