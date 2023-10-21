@@ -116,7 +116,12 @@ Training was mainly done on the rangpur cluster,
 - Training time, hardware details (if relevant).
 
 ### Results
+#### Confusion Matrix
+<img src="results/yolov7_b32_p100/confusion_matrix.png" alt="Description" >
 
-- Summarize the results obtained.
-- Any metrics used (e.g., accuracy, F1-score).
-- Visual results (e.g., plots, graphs) if applicable.
+
+### F1 - curve
+<img src="results/yolov7_b32_p100/F1_curve.png" alt="Description">
+
+### Precision - Recall curve
+<img src="results/yolov7_b32_p100/PR_curve.png" alt="Description">
