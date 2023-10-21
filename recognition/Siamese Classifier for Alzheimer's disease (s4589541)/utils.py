@@ -102,7 +102,8 @@ def plot_losses(train_losses, valid_losses):
     ax[1].legend()
     
     plt.tight_layout()
-    plt.savefig(f"./results/losses_{datetime.datetime.now().strftime('%H-%M-%S')}")
+    plt.savefig(f"./results/losses_" + 
+                f"{datetime.datetime.now().strftime('%H-%M-%S')}")
     plt.clf()
 
 def plot_test_loss(test_losses):
@@ -112,7 +113,8 @@ def plot_test_loss(test_losses):
     ax.set_xlabel("Batch Average Testing loss")
     ax.set_ylabel("Count of Batches")
     plt.tight_layout()
-    plt.savefig(f"./results/test_loss_{datetime.datetime.now().strftime('%H-%M-%S')}")
+    plt.savefig(f"./results/test_loss_" + 
+                f"{datetime.datetime.now().strftime('%m-%d_%H-%M-%S')}")
     plt.clf()
 
 def plot_embeddings(embeddings):
@@ -135,11 +137,13 @@ def plot_embeddings(embeddings):
     plt.title("Network embeddings")
     plt.legend()
     plt.tight_layout()
-    plt.savefig(f"./results/embed_plot_{datetime.datetime.now().strftime('%H-%M-%S')}")
+    plt.savefig(f"./results/embed_plot_" + 
+                f"{datetime.datetime.now().strftime('%m-%d_%H-%M-%S')}")
     plt.clf()
 
 def save_embeddings(embeddings):
-    file = open(f"./results/embed_{datetime.datetime.now().strftime('%H-%M-%S')}", "wb")
+    file = open(f"./results/embed_" + 
+                f"{datetime.datetime.now().strftime('%m-%d_%H-%M-%S')}", "wb")
     pickle.dump(embeddings, file)
     file.close()
 

@@ -19,7 +19,7 @@ def train(model: TripletNetwork, criterion: TripletLoss, optimiser: optim.Optimi
     print(f"Number of training batches: {train_set_size}")
     try:
         for epoch in range(epochs):
-            print(f"Epoch {epoch}")
+            print(f"Epoch {epoch + 1}")
             # training
             epoch_train_loss = 0
             model.train()
@@ -145,9 +145,12 @@ if __name__ == '__main__':
     # set up network and hyperparameters
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = TripletNetwork().to(device)
-    criterion = TripletLoss()
+    # criterion = TripletLoss()
+    criterion = torch.nn.TripletMarginLoss()
     optimiser = optim.Adam(model.parameters(), lr=1e-3)
     epochs = 3
+
+    print(model)
 
     if is_training:
         # set up the datasets
