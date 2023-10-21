@@ -58,7 +58,6 @@ class UNET(nn.Module):
         self.downs = nn.ModuleList()
         self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
 
-        #DoubleConv(self.feature_num*8, self.feature_num*16)
         #LAYER 1
         self.first_conv = nn.Conv2d(in_channels, self.feature_num, kernel_size=3, stride=1, padding=1, bias=False)
         self.first_down = ContextLayer(self.feature_num, self.feature_num)
@@ -168,8 +167,9 @@ class UNET(nn.Module):
         concat_skip = torch.cat((skip_connections1, x), dim=1)
         x = self.final_conv_layer(concat_skip)
         self.segment_3 = self.segmentation_3(x)
+        #print(self.segment_1_2_upscaled.shape, self.segment_3.shape)
         self.segment_1_2_3 = torch.add(self.segment_1_2_upscaled, self.segment_3)
-        x = self.final_activation(x)
+        x = self.final_activation(self.segment_1_2_3)
         return x
 
 def test():
