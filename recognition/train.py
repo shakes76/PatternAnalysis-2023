@@ -75,14 +75,14 @@ def train():
 
     # Create data loaders
     train_loader = DataLoader(full_dataset, batch_size=8, shuffle=True)
-    val_loader = DataLoader(test_dataset, batch_size=2, shuffle=False)
+    val_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)
 
     model = ImprovedUNet(in_channels=3, out_channels=1).to(device)
     optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-5)
     scheduler = ReduceLROnPlateau(optimizer, 'min')
 
     # Number of training epochs
-    num_epochs = 15
+    num_epochs = 25
 
     # Lists to keep track of training progress
     train_losses, val_losses = [], []
