@@ -18,12 +18,13 @@ class ImageDataset(Dataset):
         
         return image
 
-def process_dataset(batch_size=8, is_validation=False,
+def process_dataset(batch_size=8, 
+                    is_validation=False, 
+                    pin_memory=False,
                     train_dir="/home/groups/comp3710/OASIS/keras_png_slices_train", 
                     test_dir="/home/groups/comp3710/OASIS/keras_png_slices_test", 
                     val_dir="/home/groups/comp3710/OASIS/keras_png_slices_validate"):
     
-    # Given images are preprocessed with the size of 256 x 256
     image_transforms = Compose([
         Grayscale(),
         ToTensor(), 
@@ -32,16 +33,15 @@ def process_dataset(batch_size=8, is_validation=False,
     
     if is_validation:
         val_data = ImageDataset(directory=val_dir, image_transforms=image_transforms)
-        return DataLoader(val_data, batch_size=batch_size, shuffle=True)
+        return DataLoader(val_data, batch_size=batch_size, shuffle=True, pin_memory=pin_memory)
     
     else:
         train_data = ImageDataset(directory=train_dir, image_transforms=image_transforms)
         test_data = ImageDataset(directory=test_dir, image_transforms=image_transforms)
-
-        # Combine all three datasets into single dataset for training
         combined_data = ConcatDataset([train_data, test_data])
 
-        return DataLoader(combined_data, batch_size=batch_size, shuffle=True)
+        return DataLoader(combined_data, batch_size=batch_size, shuffle=True, pin_memory=pin_memory)
+
 
 ####################################################################### 
 # dataset tester

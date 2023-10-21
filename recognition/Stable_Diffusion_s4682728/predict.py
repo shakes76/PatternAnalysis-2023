@@ -2,14 +2,6 @@ from imports import *
 from dataset import *
 from modules import *
 from utils import *
-from train import epochs
-
-# Load trained model
-model_path = f"diffusion_network{epochs}.pth"
-model = DiffusionNetwork()
-model.load_state_dict(torch.load(model_path))
-model.to(device)
-model.eval()
 
 """
 Taken from https://huggingface.co/blog/annotated-diffusion
@@ -31,31 +23,36 @@ def reverse_diffusion_step(model, x, t, t_index):
         return model_mean + torch.sqrt(posterior_var_t) * noise
 
 @torch.no_grad()
-def reverse_diffusion(model, shape=(1, 1, 256, 256)):
+def image_reconstruction(model, shape=(1, 1, 256, 256), save_path=None):
     device = next(model.parameters()).device
-    fig = plt.figure(figsize=(15, 15))
+
+    fig = plt.figure(figsize=(15,15))
+    fig.patch.set_facecolor('black')
     plt.axis("off")
 
     reverse_transform = Compose([
-        Lambda(lambda t: (t + 1) / 2),
-        Lambda(lambda t: t * 255.),
-    ])
+                    Lambda(lambda t: (t + 1) / 2),
+                    Lambda(lambda t: t * 255.),
+                ])
 
-    rows = 3
+    img = torch.randn(shape, device=device)
+
+    rows = 3**2
     cols = 3
+    stepsize = int(timesteps/1)
     counter = 1
 
-    for i in range(1, rows * cols + 1):
-        img = torch.randn((1, 1, 256, 256)).cuda()
-        t = torch.full((1,), 0, device=device, dtype=torch.long)  # Assuming the last time step
-        with torch.no_grad():
-            img = reverse_diffusion_step(model, img, t, 0)  # Assuming `reverse_diffusion_step` is defined elsewhere
-        ax = plt.subplot(rows, cols, counter)
-        ax.axis("off")
-        plt.imshow(reverse_transform(img[0].permute(1, 2, 0).detach().cpu()), cmap="gray")
-        counter += 1
+    for i in range(1, rows+1):
+        img = torch.randn((1,1,256,256)).cuda()
+        for j in reversed(range(0, timesteps)):
+            t = torch.full((1,), j, device=device, dtype=torch.long)
+            with torch.no_grad():
+                img = reverse_diffusion_step(model, img, t, j)
+            if j % stepsize == 0:
+                ax = plt.subplot(int(math.sqrt(rows)), cols, counter)
+                ax.axis("off")
+                plt.imshow(reverse_transform(img[0].permute(1,2,0).detach().cpu()), cmap="gray")
+                counter+=1
     
-    save_dir = os.path.expanduser("~/demo_eiji/sd/images")
-    full_path = os.path.join(save_dir, "image_visualization.png")
-    plt.savefig(full_path)
-
+    plt.subplots_adjust(wspace=0, hspace=0)
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)  
