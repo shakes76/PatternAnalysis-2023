@@ -10,6 +10,7 @@ import math
 import matplotlib.pyplot as plt
 
 upscale_factor = 4
+loss_plot_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/loss_plot/'
 
 train_loss_history = []
 valid_loss_history = []
@@ -39,8 +40,8 @@ class ESPCNCallback(keras.callbacks.Callback):
         train_psnr_history.append(np.mean(self.psnr))
         valid_psnr_history.append(np.mean(self.psnr))
         
-        if epoch % 20 == 0 and epoch!=0:
-            # Plot loss history after each epoch
+        if epoch % 20 == 0 and epoch!= 0:
+            # Plot loss history after every 20 epoch
             plt.figure(figsize=(10, 6))
             plt.plot(train_loss_history, label='Training Loss', color='blue')
             plt.plot(valid_loss_history, label='Validation Loss', color='red')
@@ -49,19 +50,8 @@ class ESPCNCallback(keras.callbacks.Callback):
             plt.ylabel('Loss')
             plt.legend()
             plt.grid(True)
-            plt.show()
+            plt.savefig(loss_plot_path + 'epoch' + str(epoch+1) + '.png')
 
-            # Plot PSNR history after each epoch
-            plt.figure(figsize=(10, 6))
-            plt.plot(train_psnr_history, label='Training PSNR', color='blue')
-            plt.plot(valid_psnr_history, label='Validation PSNR', color='red')
-            plt.title('Training and Validation PSNR')
-            plt.xlabel('Epoch')
-            plt.ylabel('PSNR (dB)')
-            plt.legend()
-            plt.grid(True)
-            plt.show()
-    
     # Store PSNR value when each test epoch ends
     def on_test_batch_end(self, batch, logs=None):
         self.psnr.append(10 * math.log10(1 / logs["loss"]))
@@ -69,7 +59,8 @@ class ESPCNCallback(keras.callbacks.Callback):
 # Stop training when loss does not improve for 10 consecutive epochs         
 early_stopping_callback = keras.callbacks.EarlyStopping(monitor="loss", patience=10)
 
-# Define path to save model parameters
+# Define 
+# to save model parameters
 checkpoint_filepath = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
 # checkpoint_filepath = "H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
 

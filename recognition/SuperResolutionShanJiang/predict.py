@@ -1,6 +1,8 @@
 from utils import *
 from modules import *
 from dataset import *
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 
 from tensorflow import keras
@@ -26,6 +28,8 @@ prediction_path = sorted(
     ]
 )
 
+predic
+
 
 # Dowansample resolution of iamges by factor of 4, then predict higher resolution image using the model
 total_bicubic_psnr = 0.0 # PSNR of downsampled image
@@ -50,9 +54,35 @@ for index, prediction_img_path in enumerate(prediction_path[0:len(prediction_pat
     display(array_to_img(lowres_img))
     print("prediction")
     display(array_to_img(prediction))
+    # array_to_img(prediction).show()
 
     total_bicubic_psnr += bicubic_psnr
     total_test_psnr += test_psnr
+    
+    image1 = array_to_img(highres_img)
+    image2 = array_to_img(lowres_img)
+    image3 = array_to_img(prediction)
+
+    # Create a figure with three subplots
+    fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+
+    # Display the first image in the first subplot
+    axes[0].imshow(image1)
+    axes[0].set_title('Image 1')
+
+    # Display the second image in the second subplot
+    axes[1].imshow(image2)
+    axes[1].set_title('Image 2')
+
+    # Display the third image in the third subplot
+    axes[2].imshow(image3)
+    axes[2].set_title('Image 3')
+
+    # Adjust spacing between subplots
+    plt.tight_layout()
+
+    # Show the figure
+    plt.show()
 
 print("Avg. PSNR of lowres images is %.4f" % (total_bicubic_psnr / 10))
 print("Avg. PSNR of reconstructions is %.4f" % (total_test_psnr / 10))
