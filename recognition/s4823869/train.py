@@ -185,5 +185,8 @@ def plot_losses(epoch_losses, discriminator_losses):
     plt.legend()
     plt.savefig(save_path)
     plt.show()
+
+if not os.path.exists("output_images"):
+    os.makedirs("output_images")
 save_path = os.path.join("output_images", "LossPlot.png")
 plot_losses(epoch_losses, discriminator_losses)

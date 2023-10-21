@@ -1,8 +1,8 @@
 """
 Generate Images Using a Pre-trained GAN Generator
 
-This script generates images using a pre-trained GAN generator and displays them in a 3x3 grid.
-The generated images are saved in the 'output_images' directory and also displayed on screen.
+This script generates images using a pre-trained GAN generator and displays them in a 8x8 grid.
+The generated images are saved in the 'output_images' directory.
 
 @author: Yash Mittal
 @ID: s48238690
