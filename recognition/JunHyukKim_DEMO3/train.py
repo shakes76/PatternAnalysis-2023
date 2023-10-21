@@ -57,7 +57,7 @@ class diceLoss(torch.nn.Module):
        A_sum = torch.sum(iflat * iflat)
        B_sum = torch.sum(tflat * tflat)
        return 1 - ((2. * intersection + smooth) / (A_sum + B_sum + smooth) )   
-
+#I guess main is still working
 def main():
     train_transform = A.Compose(
         [
