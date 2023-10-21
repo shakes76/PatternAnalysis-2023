@@ -39,16 +39,16 @@ class SegmentationDataset(tf.data.Dataset):
         return self.dataset
 
 def get_dataloaders(batch_size=32):
-    train_dataset = SegmentationDataset("/content/drive/MyDrive/isic/isic-512/resized_train",
-                                        "/content/drive/MyDrive/isic/isic-512/resized_train_gt",
+    train_dataset = SegmentationDataset("/datasets/ISIC2018_Task1-2_Training_Input",
+                                        "/datasets/ISIC2018_Task1-2_Training_Input_GroundTruth",
                                         (572, 572), cache=True) 
 
-    test_dataset = SegmentationDataset("/content/drive/MyDrive/isic/isic-512/resized_test",
-                                       "/content/drive/MyDrive/isic/isic-512/resized_test_gt",
+    test_dataset = SegmentationDataset("/datasets/ISIC2018_Task1-2_Test_Input",
+                                       "/datasets/ISIC2018_Task1-2_Test_Input_GroundTruth",
                                        (572, 572), cache=True)
 
-    valid_dataset = SegmentationDataset("/content/drive/MyDrive/isic/isic-512/resized_valid",
-                                        "/content/drive/MyDrive/isic/isic-512/resized_valid_gt",
+    valid_dataset = SegmentationDataset("/datasets/ISIC2018_Task1-2_Training_Input",
+                                        "/datasets/ISIC2018_Task1-2_Training_Input_GroundTruth",
                                         (572, 572), cache=True)
 
     return train_dataset(batch_size), test_dataset(batch_size), valid_dataset(batch_size)
