@@ -58,7 +58,7 @@ model = Net()
 criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-# Lists to store loss values and accuracy
+# Lists to store loss and accuracy values
 train_losses = []
 test_losses = []
 train_accuracies = []
@@ -81,9 +81,8 @@ for epoch in range(10):
         train_loss += loss.item()
 
         # Calculate training accuracy
-        _, predicted = torch.max(outputs, 1)
         total_train += labels.size(0)
-        correct_train += (predicted == labels).sum().item()
+        correct_train += ((outputs - labels).abs() < 0.1).sum().item()
 
     train_losses.append(train_loss / len(train_loader))
     train_accuracy = 100 * correct_train / total_train
@@ -102,9 +101,8 @@ for epoch in range(10):
             test_loss += loss.item()
 
             # Calculate test accuracy
-            _, predicted = torch.max(outputs, 1)
             total_test += labels.size(0)
-            correct_test += (predicted == labels).sum().item()
+            correct_test += ((outputs - labels).abs() < 0.1).sum().item()
 
     test_losses.append(test_loss / len(test_loader))
     test_accuracy = 100 * correct_test / total_test
@@ -128,11 +126,21 @@ plt.title('Training and Test Loss')
 plt.grid(True)
 plt.legend()
 
+# Plot the training and test accuracy
+plt.subplot(1, 2, 2)
+plt.plot(range(1, len(train_accuracies) + 1), train_accuracies, label='Train', color='blue')
+plt.plot(range(1, len(test_accuracies) + 1), test_accuracies, label='Test', color='red')
+plt.xlabel('Epoch')
+plt.ylabel('Accuracy')
+plt.title('Training and Test Accuracy')
+plt.grid(True)
+plt.legend()
+
 plt.tight_layout()
+
 # Specify the file path where you want to save the image
-image_path = 'loss_plot.png'
+image_path = 'loss_accuracy_plot.png'
 
 # Save the plot as an image
 plt.savefig(image_path)
 plt.show()
-
