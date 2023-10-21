@@ -5,8 +5,6 @@
 #SBATCH --cpus-per-task 1
 #SBATCH --mail-type=All
 #SBATCH --mail-user=l.moan@uqconnect.edu.au
-
-
 #SBATCH --partition=test
 #SBATCH --gres=gpu:1
 

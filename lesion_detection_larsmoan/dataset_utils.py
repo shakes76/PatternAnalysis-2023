@@ -219,7 +219,7 @@ def download_dataset(dataset_folder, download_url="https://drive.google.com/uc?i
 if __name__ == "__main__":
     #Download the preprocessed version of ISIC2017 that has YOLO labels and correct structure
     path_to_dset = "/home/Student/s4827064/PatternAnalysis-2023/lesion_detection_larsmoan/data/"
-    download_datset(path_to_dset)
+    download_dataset(path_to_dset)
 
     #Download pretrained YOLOV7 weights (COCO) for transfer learning purposes
     weights_url = "https://drive.google.com/uc?id=1mAu29ZlOTn3csjnZ5fmro10kY3XxAddC"
