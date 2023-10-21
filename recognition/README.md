@@ -40,7 +40,7 @@ Training Dice Similarity Coefficient: 0.71
 Validation Dice Similarity Coefficient: 0.70
 
 ### Visual PLot:  
-![Image]<img width="332" alt="result" src="https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/50862ba9-3cb9-44da-b4ae-6dfb76239ad2">
+<img width="332" alt="result" src="https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/50862ba9-3cb9-44da-b4ae-6dfb76239ad2">
 
 
 ### Dependencies 
