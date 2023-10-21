@@ -23,6 +23,8 @@ Below are example graphs of training, validation and testing loss.
 
 ![Test loss example](results/test_loss_22-47-21.png)
 
+
+
 ### Dependencies
 
 `conda install --yes --file requirements.txt`

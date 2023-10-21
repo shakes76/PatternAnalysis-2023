@@ -3,7 +3,7 @@ import datetime
 import argparse
 from dataset import *
 from modules import *
-from utils import plot_losses, plot_test_loss
+from utils import plot_losses, plot_test_loss, plot_embeddings, save_embeddings
 import torch
 from torch import optim
 
@@ -78,6 +78,7 @@ def test(chkpt_path, model: TripletNetwork, criterion: TripletLoss,
     model.load_state_dict(torch.load(chkpt_path))
     model.eval()
     losses = []
+    embeddings = []
     total_loss = 0
     print(f"Total batches: {len(test_loader)}")
     try:
@@ -91,6 +92,9 @@ def test(chkpt_path, model: TripletNetwork, criterion: TripletLoss,
             # record the loss
             losses.append(loss.item())
             total_loss += loss.item()
+            # record embedding
+            embeddings.append((label.cpu().detach().numpy(),
+                              a_out.cpu().detach().numpy()))
 
             print(f"Test Batch {batch_no + 1}, Loss: {loss.item()}")
             # if batch_no > 10:
@@ -101,7 +105,7 @@ def test(chkpt_path, model: TripletNetwork, criterion: TripletLoss,
 
     average_loss = total_loss / batch_no + 1
 
-    return losses, average_loss
+    return losses, average_loss, embeddings
 
 
 def parse_user_args():
@@ -143,7 +147,7 @@ if __name__ == '__main__':
     model = TripletNetwork().to(device)
     criterion = TripletLoss()
     optimiser = optim.Adam(model.parameters(), lr=1e-3)
-    epochs = 10
+    epochs = 3
 
     if is_training:
         # set up the datasets
@@ -166,9 +170,9 @@ if __name__ == '__main__':
     test_set = TripletDataset(root="data/test", transform=transform)
     test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
-    test_losses, average_test_loss = test(saved_model_path, model, criterion, test_loader)
+    test_losses, average_test_loss, embeddings = test(saved_model_path, model, 
+                                                      criterion, test_loader)
     plot_test_loss(test_losses)
-
-    
-
-    
+    save_embeddings(embeddings)
+    if False:
+        plot_embeddings(embeddings)

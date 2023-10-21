@@ -2,11 +2,29 @@
 import random
 import glob
 import shutil
+import pickle
 from pathlib import Path
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 import datetime
+
+def size_after_cnn_pool(h, w, k, s, p):
+    """New size of image tensor after CNN and max pool layers.
+
+    Args:
+        h (int): original height
+        w (int): original width
+        k (int): kernel size
+        s (int): stride
+        p (int): pool size
+
+    Returns:
+        tuple: new height, new width
+    """
+    nh = int(((h-k)/s + 1)/p)
+    nw = int(((w-k)/s + 1)/p)
+    return nh, nw
+
 
 def show_image(data: tuple):
     """Shows the image of a sample from a dataset
@@ -85,13 +103,47 @@ def plot_losses(train_losses, valid_losses):
     
     plt.tight_layout()
     plt.savefig(f"./results/losses_{datetime.datetime.now().strftime('%H-%M-%S')}")
+    plt.clf()
 
 def plot_test_loss(test_losses):
     fig, ax = plt.subplots()
     ax.hist(test_losses, bins=25, color="r")
     ax.set_title("Loss over test dataset")
-    ax.set_xlabel("Testing loss")
-    ax.set_xlabel("Count of Samples")
+    ax.set_xlabel("Batch Average Testing loss")
+    ax.set_ylabel("Count of Batches")
     plt.tight_layout()
     plt.savefig(f"./results/test_loss_{datetime.datetime.now().strftime('%H-%M-%S')}")
+    plt.clf()
 
+def plot_embeddings(embeddings):
+    AD = {"x": [], "y": []}
+    NC = {"x": [], "y": []}
+    for batch in embeddings:
+        labels = batch[0]
+        outs = batch[1]
+        for l, o in zip(labels, outs):
+            if l == 0:
+                AD["x"].append(o[0])
+                AD["y"].append(o[1])
+            else:
+                NC["x"].append(o[0])
+                NC["y"].append(o[1])
+    
+    plt.scatter(AD["x"], AD["y"], label="AD")
+    plt.scatter(NC["x"], NC["y"], label="NC")
+    
+    plt.title("Network embeddings")
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(f"./results/embed_plot_{datetime.datetime.now().strftime('%H-%M-%S')}")
+    plt.clf()
+
+def save_embeddings(embeddings):
+    file = open(f"./results/embed_{datetime.datetime.now().strftime('%H-%M-%S')}", "wb")
+    pickle.dump(embeddings, file)
+    file.close()
+
+def load_embeddings(path):
+    file = open(path, "rb")
+    embed = pickle.load(file)
+    return embed

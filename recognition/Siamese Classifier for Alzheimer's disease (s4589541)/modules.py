@@ -2,6 +2,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as Functional
+from utils import size_after_cnn_pool
 
 # define the Triplet Loss function
 class TripletLoss(nn.Module):
@@ -31,25 +32,39 @@ class TripletNetwork(nn.Module):
     """Siamese triplet network architecture."""
     def __init__(self):
         super().__init__()
+        cnn_out_1 = 6
+        cnn_out_2 = 12
+        cnn_out_3 = 24
+        cnn_ker_1 = 5
+        cnn_ker_2 = 5
+        cnn_ker_3 = 3
+        cnn_str_1 = 1
+        cnn_str_2 = 1
+        cnn_str_3 = 1
         self.cnn_layers = nn.Sequential(
             # group 1
-            nn.Conv2d(1, 6, kernel_size=5, stride=1),
+            nn.Conv2d(1, cnn_out_1, kernel_size=cnn_ker_1, stride=cnn_str_1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, stride=2),
 
             # group 2
-            nn.Conv2d(6, 12, kernel_size=5, stride=1),
+            nn.Conv2d(cnn_out_1, cnn_out_2, kernel_size=cnn_ker_2, stride=cnn_str_2),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, stride=2),
 
             # group 3
-            nn.Conv2d(12, 24, kernel_size=3, stride=1),
+            nn.Conv2d(cnn_out_2, cnn_out_3, kernel_size=cnn_ker_3, stride=cnn_str_3),
             nn.ReLU(inplace=True)
             # , nn.MaxPool2d(),
         )
+        oh, ow = 256, 240
+        l1_h, l1_w = size_after_cnn_pool(oh, ow, cnn_ker_1, cnn_str_1, 2)
+        l2_h, l2_w = size_after_cnn_pool(l1_h, l1_w, cnn_ker_2, cnn_str_2, 2)
+        l3_h, l3_w = size_after_cnn_pool(l2_h, l2_w, cnn_ker_3, cnn_str_3, 1)
+
         self.fc_layers = nn.Sequential(
             # group 1
-            nn.Linear(24*59*55, 512),
+            nn.Linear(cnn_out_3 * l3_h * l3_w, 512),
             nn.ReLU(inplace=True),
 
             # group 2
@@ -57,7 +72,7 @@ class TripletNetwork(nn.Module):
             nn.ReLU(inplace=True),
 
             # final
-            nn.Linear(128, 2)
+            nn.Linear(128, 8)
         )
 
     def single_foward(self, img_tensor):
