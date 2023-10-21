@@ -35,7 +35,7 @@ generator.load_state_dict(torch.load('Generator.pth'))
 generator.eval()
 
 # Generate a specified number of sample images
-num_samples = 9
+num_samples = 64
 z_samples = torch.randn(num_samples, X_DIM).to(D)
 with torch.no_grad():
     generated_pictures = generator(z_samples, alpha=1.0, steps=5)
@@ -45,13 +45,13 @@ generated_pictures = (generated_pictures + 1) / 2
 generated_pictures = generated_pictures.cpu().numpy().transpose(0, 2, 3, 1)
 
 # Create a 3x3 grid to display the generated images
-_, ax = plt.subplots(3, 3, figsize=(8, 8))
-plt.suptitle('Generated pictures')
+_, ax = plt.subplots(8, 8, figsize=(8, 8))
+plt.suptitle('Generated images')
 
 # Display the generated images in the grid
-for i in range(3):
-    for j in range(3):
-        idx = i * 3 + j
+for i in range(8):
+    for j in range(8):
+        idx = i * 8 + j
         if idx < len(generated_pictures):
             ax[i][j].imshow(generated_pictures[idx])
 
