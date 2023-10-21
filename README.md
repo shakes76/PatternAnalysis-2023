@@ -9,10 +9,6 @@ The rapidly expanding field of medical imaging leverages deep learning and neura
 ## Vision Transformers
 Conventional Transformers employ the self-attention mechanism to discern the interplay among multiple inputs. Referred to as ViT (Vision Transformers), these models take the original Transformer architecture and adapt the attention mechanism to process 2D images, making them suitable for classification tasks.
 
-<p align="left">
-    <img src="resources/vt.gif" alt="Vision Transformer Architecture">
-</p>
-
 You can input 2D images into the Vision Transformer (ViT), and the images are divided into smaller patches. These patches are then transformed into 1D vectors through linear projections. Learnable class embeddings can be included, and to maintain the patch ordering, positional encodings can be introduced. These flattened patches, enriched with class or positional embeddings, are subsequently processed by conventional Transformer encoders to identify relationships within the image data patches. Finally, a Multi-Layer Perceptron (MLP), a neural network capable of learning relationships, is employed for the classification of inputs.
 Components in a Transformer Encoder are as follows:
 
@@ -21,15 +17,6 @@ Components in a Transformer Encoder are as follows:
 </p>
 
 
-## Project Requirements 
-The following dependencies were likely to provide the most reliable performance:
-
-- Python version 3.10.4
-- Tensorflow version 2.10.0, which is employed for tasks such as data loading, model construction, training, and prediction.
-
-- Tensorflow Addons version 0.18.0, specifically utilized to implement the 'AdamW' optimizer for the model.
-
-- Matplotlib version 3.5.2, used for generating visualizations, including plots for model loss and accuracy, as well as confusion matrices for evaluating test results.
 
 ## Overview of the Repository
 
@@ -73,7 +60,7 @@ After configuring the parameters, execute till train.  Upon completion of traini
 To make predictions using the trained model, run predict. This script loads the model from MODEL_SAVE_DEST and evaluates the test set. A confusion matrix will be automatically generated and saved in the working directory.
 
 ## Dataset
-we can download the original dataset from the ADNI website. To specify the data source path, modify the DATA_LOAD_DEST constant in parameters. The data is expected to adhere to the following file structure:
+we can download the original dataset from the ADNI website. To specify the data source path, modify the DATA_LOAD_DEST constant in parameters. The data has the following file structure:
 
 ```
 train/
