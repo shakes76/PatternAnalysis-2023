@@ -10,6 +10,6 @@
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
-#SBATCH —output=slurm_outputs/%j.out
+#SBATCH —output=./slurm_outputs/%j.out
 conda activate /home/Student/s4589541/miniconda3/envs/venv
 python /home/Student/s4589541/comp3710/report/PatternAnalysis-2023/recognition/Siamese\ Classifier\ for\ Alzheimer\'s\ disease\ \(s4589541\)/train.py --test path
