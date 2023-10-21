@@ -171,11 +171,13 @@ The Inter-section Over Union between bouding boxes is used. The Average precisio
 A detailed visualizaiton could be cound at  https://wandb.ai/baibizhe-s-team/ISIC?workspace=user-baibizhe
 
 Good result:
-![good1.png](good1.png)![good2.png](good2.png)
+
+![good1.png](good1.png)
+![good2.png](good2.png)
 
 
 Bad result:
-![bad1.png](bad1.png)![bad2.png](bad2.png)
+![bad1.png](bad1.png)
+![bad2.png](bad2.png)
 #### Quantitative 
-
-
+The final IOU I've reached is 0.724 and mean accuracy is 0.513 
