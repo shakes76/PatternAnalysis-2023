@@ -1,54 +1,17 @@
-# Generative model using VQ-VAE
-COMP3710 Pattern Recognition Report
-Sophie Bates, 45837663.
+# Generative VQ-VAE model for the OASIS dataset
+**Author:** Sophie Bates, 45837663.
 
 ## Project overview
 
-### File structure
-The modules contained in this project are as follows:
+This project aimed to develop a generative model for the OASIS brain [[1]](#references) MRI dataset using a Vector Quantized Variational Autoencoder (VQ-VAE) [[3]](#references). The VQ-VAE was trained to learn a discrete latent representation of the data, which was then used to generate novel images.
 
-| **Module** | **Description** |
-|---|---|
-| [dataset.py](dataset.py) | Loads the data and preprocesses it for use by the train loaders. |
-| [modules.py](modules.py) | Core components of the model required for the pattern recognition task, includes VQVAE and GAN models. |
-| [predict.py](predict.py) | Example usage of the trained model, generates results and provides visualisations. |
-| [README.md](README.md) | This file! |
-| [train.py](train.py) | Training script for the VQVAE and GAN models, including validation, testing, and saving of the model, and plotting losses and metrics observed during training. |
+VQ-VAEs are a type of Variational Auto-encoder (VAE), however with the addition of the vector quantization layer between the encoder and decoder. Standard VAEs are able to learn a continuous latent representations of data, by training with the goal to reduce the reconstruction loss between the original image and the reconstructed image [[2]](#references). A limitation of VAEs is that they use a Gaussian prior distribution, which is continuous and hence limits the ability to control the outputs. In a VQ-VAE, the vector quantization layer discretizes the latent space, a constraint which results in more meaningful images being decoded. Additionally, [[3]](#references) discusses that regular VAEs suffer from posterior collapse due to the noisiness of the latent space. The VQ-VAE is able to avoid this issue by using a discrete latent space.
 
+The use of a VQ-VAE in this context has two parts: firstly, the VQ-VAE model must be trained so that it can reconstruct images from the OASIS dataset. Secondly, a DCGAN is used to generate the priors for the VQ-VAE, so that novel, high-quality images can be generated. 
 
-### Dependencies
-This is a python project that requires at least Python 3.11.x. Miniconda3 was used for package and dependency management. The dependencies (and their version numbers) required for running this project are as follows:
-| **Dependency** | **Version** |
-|---|---|
-| pytorch | 2.0.1 |
-| numpy | 1.25.0 |
-| matplotlib | 3.7.1 |
-| torchvision | 0.15.2 |
-| scikit-image | 0.20.0 | 
+### Deep learning pipeline - overview
 
-The `.yaml` file [environment.yml](environment.yml) contains the conda environment used for this project, generated on a Linux OS (AlmaLinux release 8.8). To create the environment `conda-torch`, run the following command:
-```bash
-conda env create -f environment.yml
-```
-
-### Reproducing training and testing results
-The entrypoint to the project is [train.py](train.py). This assumes you are in the PatternAnalysis-2023 root directory. To train the model, run the following command:
-```bash
-python3 python3 recognition/s4583766_vqvae/train.py
-```
-This will train the model and create a new directory `/gen_imgs/x` where `x` was the date and time that the run started. This directory will contain the images generated in training, as well as the best model checkpoint (saved as a `.pth` file), and the training and validation losses and metrics (saved as `.png` files).
-
-To evalute training results, the [predict.py](predict.py) script can be used. This script will load the best VQVAE model checkpoint and generate images from the test set. To run this script, run the following command, passing the path to the model checkpoint as an argument (the path should be relative to the `gen_img/` directory, i.e. ``):
-```bash
-python3 recognition/s4583766_vqvae/predict.py path/vqvae.pth
-```
-This will generate testing plots and images in a new directory. 
-
-### Other notes
-[Conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) were used to structure commit messages in this project. 
-
-
-## Deep learning pipeline overview
+The following sections provide an overview of the deep learning pipeline used for this project.
 
 1. [Data preparation](#1-data-preparation)
 1. [Data pipeline](#2-data-pipeline)
@@ -298,8 +261,8 @@ The highest SSIM score, 0.7698, was observed for the following image:
 <p align="center">
   <!-- <figure> -->
     <!-- <figcaption style="max-width: 100%;">Figure 1: Before and after encoding and reconstruction.</figcaption> -->
-    <img src="resources/test_vqvae/best_recon_before.png" width="48%" />
-    <img src="resources/test_vqvae/best_recon.png" width="48%" /> 
+    <img src="resources/test_vqvae/best_recon_before.png" width="25%" />
+    <img src="resources/test_vqvae/best_recon.png" width="25%" /> 
   <!-- </figure> -->
 </p>
 
@@ -307,15 +270,12 @@ The highest SSIM score, 0.7698, was observed for the following image:
 The lowest SSIM score, 0.5730, was observed for the following image:
 
 <p align="center">
-	<img src="resources/test_vqvae/worst_recon_before.png" width="48%" />
-	<img src="resources/test_vqvae/worst_recon.png" width="48%" /> 
+	<img src="resources/test_vqvae/worst_recon_before.png" width="25%" />
+	<img src="resources/test_vqvae/worst_recon.png" width="25%" /> 
 </p>
 
 Overall, the SSIM scores were quite high, with 535 out of the 544 images (98.35%) in the dataset being above the miniminum threshold of 0.6. This indicates that the VQ-VAE model was able to reconstruct the images with a high degree of accuracy. Also, importantly, these scores showed that the model has decent generalisability and isn't overfitting, being only <!-- TODO --> lower than the training SSIM scores. 
 
-## 6. Analysis
-
-Results here from evaluation
 
 ## Future work
 
