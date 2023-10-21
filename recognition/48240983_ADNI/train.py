@@ -1,3 +1,14 @@
+"""
+Created on Thursday 19th Oct
+Alzheimer's disease using PyTorch (ViT Transformer)
+The model architecture consists of three fully connected layers with ReLU activations. 
+The model is trained to minimize the mean squared error loss. 
+ The results are saved to a text file, and training and test loss and accuracy are visualized using Matplotlib,
+ with the plots saved as an image file. 
+
+@author: Gaurika Diwan
+@ID: s48240983
+"""
 from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
@@ -5,6 +16,11 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import random
+"""
+        Initialize the deeper neural network model for regression tasks.
+
+        The model architecture consists of three fully connected layers with ReLU activations.
+        """
 
 # Define a deeper model
 class Net(nn.Module):
@@ -14,7 +30,15 @@ class Net(nn.Module):
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(10, 5)
         self.fc3 = nn.Linear(5, 1)
+    """
+        Forward pass of the model.
 
+        Args:
+            x (torch.Tensor): Input data.
+
+        Returns:
+            torch.Tensor: Model predictions.
+        """
     def forward(self, x):
         x = self.fc1(x)
         x = self.relu(x)
@@ -34,13 +58,28 @@ class CustomDataset(torch.utils.data.Dataset):
         if not self.train:
             # Add random noise to test labels
             self.labels += 0.05 * torch.randn(self.labels.shape)
+    """
+        Get the number of samples in the dataset.
 
+        Returns:
+            int: Number of samples.
+        """
     def __len__(self):
         return len(self.data)
+    """
+        Get an item from the dataset.
+
+        Args:
+            idx (int): Index of the item to retrieve.
+
+        Returns:
+            dict: A dictionary containing the data (input) and label (output).
+        """
 
     def __getitem__(self, idx):
         sample = {'data': self.data[idx], 'label': self.labels[idx]}
         return sample
+    
 
 # Data transformations and loaders
 transform = transforms.Compose([transforms.ToTensor()])
