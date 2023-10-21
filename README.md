@@ -1,5 +1,5 @@
 ADNI_Brain_Visual_Transformer_47306725
-# Visual Transformer for the Classification of Alzheimer's Disease
+# Visual Transformer for the Classification of Alzheimer's Disease of the ADNI brain data
 
 Ritika Rana (Student Noumber : 47306725)
 
@@ -40,18 +40,31 @@ Lastly, "Utils" encompasses functions dedicated to data visualization.
 Prior to initiating model training, make sure to configure the global variables located in parameters.py. The variables that require configuration include:
 
 IMG_SIZE: The height and width of the image.
+
 PATCH_SIZE: The height and width of individual patches.
+
 BATCH_SIZE: The batch size for both training and testing data.
+
 PROJECTION_DIM: The dimensions of the attention layer.
+
 LEARN_RATE: The learning rate for the optimizer.
+
 ATTENTION_HEADS: The number of attention heads.
-DROPOUT_RATE: The fraction of units to drop out in each Dense Layer (expressed as a decimal).
+
+DROPOUT_RATE: The fraction of units to drop out in each Dense Layer.
+
 TRANSFORMER_LAYERS: The quantity of transformer encoders to incorporate.
+
 WEIGHT_DECAY: The weight decay used by the optimizer.
+
 EPOCHS: The number of epochs for model training.
-MLP_HEAD_UNITS: The number of units in the MLP head classifier for feature learning (specified as an array, with each element representing the units in an additional Dense Layer).
-DATA_PATH: The path from which the dataset will be loaded.
+
+MLP_HEAD_UNITS: The number of units in the MLP head classifier for feature learning.
+
+DATA_LOAD_DEST: The path from which the dataset will be loaded.
+
 MODEL_SAVE_DEST: The location to save the model.
+
 The variables INPUT_SHAPE, HIDDEN_UNITS, and NUM_PATCHES are calculated automatically.
 
 ## Build and Train the Model
@@ -115,7 +128,7 @@ Local Self-Attention shares similarities with the conventional Multi-Head Attent
     <img src="resources/localitattention.png" alt="Loaded Brain MRI Image">
 </p>
 
-Furthermore, the class token that was part of the Transformer Encoder in the original paper has been omitted. An author of the original paper argued that the class token is dispensable and not crucial. Consequently, in our model, the classification task is executed by employing an MLP (comprising Dense layers) designed to acquire and learn features.
+Furthermore, in our model, the classification task is executed by employing an MLP (comprising Dense layers) designed to acquire and learn features.
 
 ## Architecture of Vision Transformer 
 Following the initial input layer of the Vision Transformer, the data proceeds to the PatchLayer. Within this layer, the images are divided into patches, each with dimensions defined by the constant PATCH_SIZE. Moreover, Shifted Patch Tokenization is employed on the input images before the patching process. As a result of this operation, the original image is partitioned into patches as follows:
