@@ -149,7 +149,7 @@ if __name__ == '__main__':
     # criterion = TripletLoss()
     criterion = torch.nn.TripletMarginLoss()
     optimiser = optim.Adam(model.parameters(), lr=1e-3)
-    epochs = 3
+    epochs = 10
 
     print(model)
 

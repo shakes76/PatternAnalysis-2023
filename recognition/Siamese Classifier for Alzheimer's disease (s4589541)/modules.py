@@ -46,13 +46,13 @@ class TripletNetwork(nn.Module):
             nn.Conv2d(1, cnn_out_1, kernel_size=cnn_ker_1, stride=cnn_str_1),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, stride=2),
-            nn.Dropout(p=0.15),
+            nn.Dropout2d(p=0.15),
 
             # group 2
             nn.Conv2d(cnn_out_1, cnn_out_2, kernel_size=cnn_ker_2, stride=cnn_str_2),
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, stride=2),
-            nn.Dropout(p=0.15),
+            nn.Dropout2d(p=0.15),
 
             # group 3
             nn.Conv2d(cnn_out_2, cnn_out_3, kernel_size=cnn_ker_3, stride=cnn_str_3),

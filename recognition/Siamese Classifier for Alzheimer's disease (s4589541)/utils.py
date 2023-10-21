@@ -103,7 +103,7 @@ def plot_losses(train_losses, valid_losses):
     
     plt.tight_layout()
     plt.savefig(f"./results/losses_" + 
-                f"{datetime.datetime.now().strftime('%H-%M-%S')}")
+                f"{datetime.datetime.now().strftime('%m-%d_%H-%M-%S')}")
     plt.clf()
 
 def plot_test_loss(test_losses):
