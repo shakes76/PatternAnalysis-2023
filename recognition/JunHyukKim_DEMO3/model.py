@@ -159,7 +159,7 @@ class UNET(nn.Module):
         concat_skip = torch.cat((skip_connections2, x), dim=1)
         x = self.third_local(concat_skip)
         self.segment_2 = self.segmentation_2(x)
-        self.segment_1_2 = torch.cat((self.segment_1_upscaled, self.segment_2), dim=1)
+        self.segment_1_2 = torch.add(self.segment_1_upscaled, self.segment_2)
         self.segment_1_2_upscaled = self.upsample(self.segment_1_2)
         x = self.upsample(x)
         x = self.fourth_upsample_d1(x) 
@@ -168,8 +168,8 @@ class UNET(nn.Module):
         concat_skip = torch.cat((skip_connections1, x), dim=1)
         x = self.final_conv_layer(concat_skip)
         self.segment_3 = self.segmentation_3(x)
-        self.segment_1_2_3 = torch.cat((self.segment_1_2_upscaled, self.segment_3), dim=1)
-        x = self.final_activation(self.segment_1_2_3)
+        self.segment_1_2_3 = torch.add(self.segment_1_2_upscaled, self.segment_3)
+        x = self.final_activation(x)
         return x
 
 def test():
