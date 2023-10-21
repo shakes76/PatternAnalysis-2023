@@ -25,7 +25,7 @@ import time
 class Config():
     training_dir = 'C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\AD_NC\\train'
     testing_dir = 'C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\AD_NC\\test'
-    train_batch_size = 32
+    train_batch_size = 16
     train_number_epochs = 20
 
 def imshow(img,text=None,should_save=False):#for showing the data you loaded to dataloader
@@ -82,7 +82,7 @@ class ResNet(nn.Module):
         self.layer2 = self._make_layer(block, 128, num_blocks[1], stride=2)
         self.layer3 = self._make_layer(block, 256, num_blocks[2], stride=2)
         self.layer4 = self._make_layer(block, 512, num_blocks[3], stride=2)
-        self.linear = nn.Linear(28672*block.expansion, 2) # 28672 6144
+        self.linear = nn.Linear(28672*block.expansion, 6144) # 28672 6144
 
     def _make_layer(self, block, planes, num_blocks, stride):
         strides = [stride] + [1]*(num_blocks-1)
@@ -100,15 +100,24 @@ class ResNet(nn.Module):
         out = self.layer4(out)
         out = F.avg_pool2d(out, 4)
         out = out.view(out.size(0), -1)
-        out = self.linear(out)
+        # out = self.linear(out)
         return out
 
-    def forward(self, input1, input2):
-        # forward pass of input 1
-        output1 = self.forward_once(input1)
-        # forward pass of input 2
-        output2 = self.forward_once(input2)
-        return output1, output2
+    # def forward(self, input1, input2):
+    #     # forward pass of input 1
+    #     output1 = self.forward_once(input1)
+    #     # forward pass of input 2
+    #     output2 = self.forward_once(input2)
+    #     return output1, output2
+    
+    def forward(self, anchor, pos, neg):
+        # forward pass of anchor
+        output_anchor = self.forward_once(anchor)
+        # forward pass of pos
+        output_pos = self.forward_once(pos)
+        # forward pass of neg
+        output_neg = self.forward_once(neg)
+        return output_anchor, output_pos, output_neg
 
 def ResNet18():
     return ResNet(BasicBlock, [2, 2, 2, 2])
@@ -130,3 +139,14 @@ class ContrastiveLoss(torch.nn.Module):
         # if torch.isnan(loss_contrastive):
         #     print("Value is NaN")
         return loss_contrastive
+    
+class TripletLoss(torch.nn.Module):
+    def __init__(self, margin=1.0):
+        super(TripletLoss, self).__init__()
+        self.margin = margin
+    
+    def forward(self, anchor: torch.Tensor, positive: torch.Tensor, negative: torch.Tensor) -> torch.Tensor:
+        distance_positive = F.pairwise_distance(anchor, positive)
+        distance_negative = F.pairwise_distance(anchor, negative)
+        losses = torch.relu(distance_positive - distance_negative + self.margin)
+        return losses.mean()
