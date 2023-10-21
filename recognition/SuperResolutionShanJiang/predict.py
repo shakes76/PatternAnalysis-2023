@@ -18,15 +18,6 @@ checkpoint_filepath= "D:/temporary_workspace/comp3710_project/PatternAnalysis_20
 model = get_model()
 model.load_weights(checkpoint_filepath)
 
-#Get acees to path of each image
-prediction_path = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/prediction"
-prediction_path = sorted(
-    [
-        os.path.join(prediction_path, fname)
-        for fname in os.listdir(prediction_path)
-        if fname.endswith(".jpeg")
-    ]
-)
 
 
 
@@ -35,7 +26,7 @@ prediction_path = sorted(
 total_bicubic_psnr = 0.0 # PSNR of downsampled image
 total_test_psnr = 0.0 # PSNR of model output
 
-for index, prediction_img_path in enumerate(prediction_path[0:len(prediction_path)]):
+for index, prediction_img_path in enumerate(prediction_img_paths()):
     img = load_img(prediction_img_path)
     lowres_input = get_lowres_image(img, upscale_factor) # downsample
     w = lowres_input.size[0] * upscale_factor

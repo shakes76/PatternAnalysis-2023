@@ -120,8 +120,19 @@ test_img_paths = sorted(
     ]
 )
 
-def test_img_paths():
-    return test_img_paths
+#Get acees to path of each image
+prediction_path = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/prediction"
+prediction_path = sorted(
+    [
+        os.path.join(prediction_path, fname)
+        for fname in os.listdir(prediction_path)
+        if fname.endswith(".jpeg")
+    ]
+)
+
+
+def prediction_img_paths():
+    return prediction_img_paths
 
 
 
