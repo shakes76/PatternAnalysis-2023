@@ -255,7 +255,7 @@ I developed a Progressive Growing Generative Adversarial Network (PGGAN) for hig
 
 # <a name="_references"></a>**References**
 
-**[1] Image taken from -**[https://arxiv.org/abs/1812.04948*](https://arxiv.org/abs/1812.04948)
+**[1] Image taken from -**[https://arxiv.org/abs/1812.04948](https://arxiv.org/abs/1812.04948)
 
 **[2] Image taken from -**  [*https://www.youtube.com/watch?v=23XbbdxgdxM&t=310s*](https://www.youtube.com/watch?v=23XbbdxgdxM&t=310s)
 
