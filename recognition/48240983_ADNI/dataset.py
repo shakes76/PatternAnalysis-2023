@@ -1,3 +1,13 @@
+"""
+Created on Wednesday October 18
+Alzheimer's disease using PyTorch (ViT Transformer)
+This code defines a custom dataset (CustomDataset) for a computer vision task using PyTorch.
+It loads images from subdirectories, applies specified data transformations, and stores the image paths 
+along with their corresponding class labels. 
+
+@author: Gaurika Diwan
+@ID: s48240983
+"""
 import os
 from PIL import Image
 import torch
