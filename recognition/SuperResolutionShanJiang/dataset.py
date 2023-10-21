@@ -111,7 +111,7 @@ valid_ds = valid_ds.map(
 valid_ds = valid_ds.prefetch(buffer_size=32)
 
 # Get acees to path of each image
-test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test/AD'
+test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test'
 test_img_paths = sorted(
     [
         os.path.join(test_path, fname)

@@ -14,17 +14,19 @@ import math
 import matplotlib.pyplot as plt
 
 # load the trained model
-checkpoint_filepath= "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
+checkpoint_filepath= "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint_back_up/"
 model = get_model()
 model.load_weights(checkpoint_filepath)
 
-
-
+# Specify path to store prediction result
+prediction_result_path = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/prediction_result/"
 
 
 # Dowansample resolution of iamges by factor of 4, then predict higher resolution image using the model
 total_bicubic_psnr = 0.0 # PSNR of downsampled image
 total_test_psnr = 0.0 # PSNR of model output
+
+
 
 for index, prediction_img_path in enumerate(prediction_img_paths()):
     img = load_img(prediction_img_path)
@@ -72,8 +74,9 @@ for index, prediction_img_path in enumerate(prediction_img_paths()):
     # Adjust spacing between subplots
     plt.tight_layout()
 
-    # Show the figure
-    plt.show()
+    # Save the plot 
+    filename = os.path.basename(img)
+    plt.save(prediction_result_path+filename)
 
 print("Avg. PSNR of lowres images is %.4f" % (total_bicubic_psnr / 10))
 print("Avg. PSNR of reconstructions is %.4f" % (total_test_psnr / 10))
