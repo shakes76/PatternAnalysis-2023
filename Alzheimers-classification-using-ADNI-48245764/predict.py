@@ -1,4 +1,7 @@
 import numpy as np
+import train
+import modules
+import matplotlib.pyplot as plt
 for images_batch, labels_batch in test_ds.take(1):
     
     first_image = images_batch[0].numpy().astype('uint8')
@@ -12,28 +15,34 @@ for images_batch, labels_batch in test_ds.take(1):
     print("predicted label:",class_names[np.argmax(batch_prediction[0])])
 
 
-def predict(model, img):
-    img_array = tf.keras.preprocessing.image.img_to_array(images[i].numpy())
-    img_array = tf.expand_dims(img_array, 0)
+    # Accuracy Graph
+    plt.plot(history.history['accuracy'])
+    plt.plot(history.history['val_accuracy'])
+    plt.title("model accuracy")
+    plt.xlabel("epoch")
+    plt.ylabel("accuracy")
+    plt.legend(['train', 'validation'], loc='upper left')
+    plt.show()
 
-    predictions = model.predict(img_array)
+    # Loss Graph
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title("model loss")
+    plt.xlabel("epoch")
+    plt.ylabel("loss")
+    plt.legend(['train', 'validation'], loc='upper left')
+    plt.show()
+        
 
-    predicted_class = class_names[np.argmax(predictions[0])]
-    confidence = round(100 * (np.max(predictions[0])), 2)
-    return predicted_class, confidence
 
 
-plt.figure(figsize=(15, 15))
-for images, labels in test_ds.take(1):
-    for i in range(9):
-        ax = plt.subplot(3, 3, i + 1)
-        plt.imshow(images[i].numpy().astype("uint8"))
-        
-        predicted_class, confidence = predict(model, images[i].numpy())
-        actual_class = class_names[labels[i]] 
-        
-        plt.title(f"Actual: {actual_class},\n Predicted: {predicted_class}.\n Confidence: {confidence}%")
-        
-        plt.axis("off")
-        
+
+
+def main():
+    model = modules.create_vit()
+
+    history = train.run_model(model)
+
+if __name__ == "__main__":
+    main()
 
