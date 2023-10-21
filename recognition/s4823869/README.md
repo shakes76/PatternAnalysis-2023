@@ -57,7 +57,7 @@ I've introduced a self-attention mechanism within the model to capture long-rang
 
 The StyleGAN model supports conditional image generation. By providing additional input, you can control the characteristics of the generated images, allowing for greater flexibility and customisation.
 
-![RelationalDatabaseVsNoSQLDatabase.png](ReadMe_images/GAN Model explaination image.png)
+![RelationalDatabaseVsNoSQLDatabase.png](ReadMe_images/GAN_Model_explaination_image.png)
 
 *Fig 1: Shows the original demonstration of the Style-Based generator* **[1]**
 
@@ -178,7 +178,7 @@ Following the successful training of my StyleGAN model, I am delighted to presen
 
 During the initial testing phase, I encountered hardware limitations on my MacBook and the absence of GPU capabilities on the Rangpur platform. I made necessary adjustments to the model training parameters to adapt to these constraints. Specifically, I had to reduce the progressive epochs significantly. To work within these limitations, I configured the progressive epoch parameter to be set at 30 minus the length of the batch size minus 2 (30 - (len(BATCH_SIZE)-2)). While these adjustments allowed me to conduct preliminary tests, I am aware that they may have influenced the training process. In subsequent phases, with access to more powerful hardware, I plan to explore longer progressive training epochs to further enhance the model's performance.
 
-![InitialCodeRun.png](ReadMe_images/Initial Code Run.png)
+![InitialCodeRun.png](ReadMe_images/Initial_Code_Run.png)
 
 *Fig 5: Code running in the Initial Phase*
 #
@@ -188,11 +188,11 @@ During the initial testing phase, I encountered hardware limitations on my MacBo
 
 After numerous attempts, I successfully executed a job on the Rangpur platform with a more robust setup in my project. During this run, I extended the number of epochs to 100 and utilised the full batch size, enabling more comprehensive model training. The outcome was notably encouraging, as I obtained a generated image that aligned more closely with my expectations, displaying improved clarity and quality. This success emphasises the significance of adequate computational resources in achieving optimal results in deep learning tasks.
 
-![Final Code Running on Rangpur.png](ReadMe_images%2FFinal%20Code%20Running%20on%20Rangpur.png)
+![Final_Code_Running_on_Rangpur.png](ReadMe_images%2FFinal_Code_Running_on_Rangpur.png)
 
 *Fig 7: Code running on Rangpur with 100 epochs.*
 
-![FinalGeneratedImage.png](ReadMe_images/Final Generated Image.png)
+![FinalGeneratedImage.png](ReadMe_images/Final_Generated_Image.png)
 
 *Fig 8: Final expected generated image output*
 
