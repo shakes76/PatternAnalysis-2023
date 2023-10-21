@@ -51,3 +51,5 @@ Bottom: 0 (No Alzheimer's)
 Triplet loss graph
 
 ![image](https://raw.githubusercontent.com/FinnRobertson15/PatternAnalysis-2023/topic-recognition/train.png)
+
+Classification Accuracy of 65%
