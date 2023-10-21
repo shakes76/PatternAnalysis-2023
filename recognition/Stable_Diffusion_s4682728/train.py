@@ -3,7 +3,7 @@ from dataset import process_dataset
 from modules import *
 from utils import *
 
-def train_diffusion_network(model, optimizer, epochs, batch_size=16, save_path=None, plot_path=None):
+def train_diffusion_network(model, optimizer, epochs, batch_size, save_path=None, plot_path=None):
     # Initialize DataLoader and other variables
     train_dataloader = process_dataset(batch_size=batch_size, is_validation=False, pin_memory=True)
     

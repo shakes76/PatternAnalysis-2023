@@ -10,6 +10,7 @@ from predict import *
 
 # Set the number of training epochs
 EPOCHS = 100
+BATCH_SIZE = 16
 
 # Initialize the Diffusion Network model and setup the optimizer
 model = DiffusionNetwork().to(device)
@@ -26,7 +27,8 @@ save_image_path = os.path.expanduser(f"~/demo_eiji/sd/images/image_visualization
 # Train and save the model
 train_diffusion_network(model, 
                         optimizer, 
-                        epochs=EPOCHS, 
+                        epochs=EPOCHS,
+                        batch_size=BATCH_SIZE, 
                         save_path=save_model_path, 
                         plot_path=save_plot_path)
 
