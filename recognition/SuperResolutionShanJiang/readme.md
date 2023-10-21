@@ -13,6 +13,8 @@ To run dataset.py, follow following steps:
 3. Define the exact directory containing images to be predicted on(directly contains image files) at line ?? by altering the value of variable `prediction_path`. Those images is used to provide a demo of the prediction result of the model in `predict.py`
 4. (optional) change the value of `upscale_factor` at line ?? to downsample your training and validation images by a different ratio
 5. Change the values of `crop_width_size` at line ?? and `crop_height_size` in line ?? to make sure they are less than or equal to the orginal width and height of the images, and is divisible by `upscale_factor`.
+### Building model
+The model structure is defined in `modules.py`. using keras framwork. The
 
        
 

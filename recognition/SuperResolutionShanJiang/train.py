@@ -81,7 +81,7 @@ loss_fn = keras.losses.MeanSquaredError()
 optimizer = keras.optimizers.Adam(learning_rate=0.001)
 
 #Train and validate the model
-epochs = 200
+epochs = 60
 
 model.compile(
     optimizer=optimizer, loss=loss_fn,
@@ -102,7 +102,7 @@ total_bicubic_psnr = 0.0 # PSNR of downsampled image
 total_test_psnr = 0.0 # PSNR of model output
 
 # Dowansample resolution of iamges by factor of 4, then predict higher resolution image using the model
-for index, test_img_path in enumerate(test_img_paths()):
+for index, test_img_path in enumerate(get_test_img_paths()):
     img = load_img(test_img_path)
     lowres_input = get_lowres_image(img, upscale_factor) # downsample
     w = lowres_input.size[0] * upscale_factor
