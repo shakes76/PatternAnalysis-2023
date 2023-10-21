@@ -33,7 +33,21 @@ class ContextLayer(nn.Module):
     def forward(self, x):
         return self.conv(x)
     
+class LocalizationLayer(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(LocalizationLayer, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=1, bias=False),
+            nn.InstanceNorm2d(out_channels),
+            nn.LeakyReLU(inplace=True),
+            nn.Conv2d(out_channels, out_channels, kernel_size=1,  stride=1, bias=False),
+            nn.InstanceNorm2d(out_channels),
+            nn.LeakyReLU(inplace=True),
+        )
 
+    def forward(self, x):
+        return self.conv(x)
+    
 class UNET(nn.Module):
     def __init__(
             self, in_channels=3, out_channels=1, features=[64, 128, 256, 512],
@@ -72,29 +86,21 @@ class UNET(nn.Module):
         self.first_upsample_d1 = nn.Conv2d(self.feature_num*16,self.feature_num*8,kernel_size=1, stride = 1)
 
         #LAYER -4
-        self.first_local = DoubleConv(self.feature_num*16, self.feature_num*8)
+        self.first_local = LocalizationLayer(self.feature_num*16, self.feature_num*8)
         self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
         self.second_upsample_d1 = nn.Conv2d(self.feature_num*8,self.feature_num*4,kernel_size=1, stride = 1)        
 
         #LAYER -3
-        self.second_local = DoubleConv(self.feature_num*8, self.feature_num*4)
+        self.second_local = LocalizationLayer(self.feature_num*8, self.feature_num*4)
         self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
         self.third_upsample_d1 = nn.Conv2d(self.feature_num*4,self.feature_num*2,kernel_size=1, stride = 1)        
-        
-        #self.second_upsam = nn.ConvTranspose2d(self.feature_num*8, self.feature_num*4, kernel_size=2, stride=2)
-
 
         #LAYER -2
-        self.third_local = DoubleConv(self.feature_num*4, self.feature_num*2)
+        self.third_local = LocalizationLayer(self.feature_num*4, self.feature_num*2)
         self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
         self.fourth_upsample_d1 = nn.Conv2d(self.feature_num*2,self.feature_num*1,kernel_size=1, stride = 1)        
-        
-
-        #self.third_upsam = nn.ConvTranspose2d(self.feature_num*4, self.feature_num*2, kernel_size=2, stride=2)
-
 
         #LAYER -1
-        self.fourth_upsam = nn.ConvTranspose2d(self.feature_num*2, self.feature_num*1, kernel_size=2, stride=2)
         self.final_conv_layer = DoubleConv(self.feature_num*2, self.feature_num*2)
         self.final_activation = nn.Sigmoid()
         
@@ -136,35 +142,34 @@ class UNET(nn.Module):
         x = self.first_upsample_d1(x)
 
         #LAYER -4
-        #print(skip_connections4.shape,x.shape)
         concat_skip = torch.cat((skip_connections4, x), dim=1)
         x = self.first_local(concat_skip)
         x = self.upsample(x)
         x = self.second_upsample_d1(x)   
 
         #LAYER -3
-        #print(skip_connections3.shape,x.shape)
         concat_skip = torch.cat((skip_connections3, x), dim=1)
         x = self.second_local(concat_skip)
+        self.segment_1 = self.segmentation_1(x)
+        self.segment_1_upscaled = self.upsample(self.segment_1)
         x = self.upsample(x)
         x = self.third_upsample_d1(x) 
 
         #LAYER -2
-        #print(skip_connections2.shape,x.shape)
         concat_skip = torch.cat((skip_connections2, x), dim=1)
         x = self.third_local(concat_skip)
-        #print(x.shape)
+        self.segment_2 = self.segmentation_2(x)
+        self.segment_1_2 = torch.cat((self.segment_1_upscaled, self.segment_2), dim=1)
+        self.segment_1_2_upscaled = self.upsample(self.segment_1_2)
         x = self.upsample(x)
-        #print(x.shape)
         x = self.fourth_upsample_d1(x) 
-        #print(x.shape)
 
         #LAYER -1
-        #print(skip_connections1.shape,x.shape)
         concat_skip = torch.cat((skip_connections1, x), dim=1)
         x = self.final_conv_layer(concat_skip)
-        x = self.segmentation_3(x)
-        x = self.final_activation(x)
+        self.segment_3 = self.segmentation_3(x)
+        self.segment_1_2_3 = torch.cat((self.segment_1_2_upscaled, self.segment_3), dim=1)
+        x = self.final_activation(self.segment_1_2_3)
         return x
 
 def test():
