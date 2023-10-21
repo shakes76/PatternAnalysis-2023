@@ -7,10 +7,15 @@ class ContextLayer(nn.Module):
     """
     Context Layer that applies two convolutional operations, 
     interspersed with instance normalization and leaky ReLU activation.'
-    Dropout
+    Dropout is applied between the two convolutional layers.
     """
     def __init__(self, in_channels, out_channels):
+        """
+        Initializes the ContextLayer.
         
+        :param in_channels: Number of input channels
+        :param out_channels: Number of output channels
+        """
         super(ContextLayer, self).__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=1, bias=False),
@@ -23,10 +28,26 @@ class ContextLayer(nn.Module):
         )
 
     def forward(self, x):
+        """
+        Forward pass through the context layer.
+
+        :param x: Input tensor
+        :return: Processed tensor after passing through the layer sequence
+        """
         return self.conv(x)
     
 class LocalizationLayer(nn.Module):
+    """
+    A custom localization layer that applies a 3x3 convolution followed by a 1x1 convolution, 
+    interspersed with instance normalization and leaky ReLU activation.
+    """
     def __init__(self, in_channels, out_channels):
+        """
+        Initializes the ContextLayer.
+        
+        :param in_channels: Number of input channels
+        :param out_channels: Number of output channels
+        """
         super(LocalizationLayer, self).__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=1, bias=False),
@@ -38,12 +59,22 @@ class LocalizationLayer(nn.Module):
         )
 
     def forward(self, x):
+        """
+        Forward pass through the localization layer.
+        
+        :param x: Input tensor
+        :return: Processed tensor after passing through the layer sequence
+        """
         return self.conv(x)
     
 class UNET(nn.Module):
-    def __init__(
-            self, in_channels=3, out_channels=1, features=[64, 128, 256, 512],
-    ):
+    """
+    Improved Unet model that is made out of 5 layers. 
+
+    """   
+    def __init__(self, in_channels=3, out_channels=1, features=[64, 128, 256, 512]):
+        """
+        """
         super(UNET, self).__init__()
         self.feature_num = 64
         self.ups = nn.ModuleList()
@@ -139,6 +170,7 @@ class UNET(nn.Module):
         #LAYER -3
         concat_skip = torch.cat((skip_connections3, x), dim=1)
         x = self.second_local(concat_skip)
+
         self.segment_1 = self.segmentation_1(x)
         self.segment_1_upscaled = self.upsample(self.segment_1)
         x = self.upsample(x)
@@ -147,6 +179,7 @@ class UNET(nn.Module):
         #LAYER -2
         concat_skip = torch.cat((skip_connections2, x), dim=1)
         x = self.third_local(concat_skip)
+
         self.segment_2 = self.segmentation_2(x)
         self.segment_1_2 = torch.add(self.segment_1_upscaled, self.segment_2)
         self.segment_1_2_upscaled = self.upsample(self.segment_1_2)
@@ -157,16 +190,6 @@ class UNET(nn.Module):
         concat_skip = torch.cat((skip_connections1, x), dim=1)
         x = self.final_conv_layer(concat_skip)
         self.segment_3 = self.segmentation_3(x)
-        #print(self.segment_1_2_upscaled.shape, self.segment_3.shape)
         self.segment_1_2_3 = torch.add(self.segment_1_2_upscaled, self.segment_3)
         x = self.final_activation(self.segment_1_2_3)
         return x
-
-def test():
-    x = torch.randn((3, 1, 161, 161))
-    model = UNET(in_channels=1, out_channels=1)
-    preds = model(x)
-    assert preds.shape == x.shape
-
-if __name__ == "__main__":
-    test()
