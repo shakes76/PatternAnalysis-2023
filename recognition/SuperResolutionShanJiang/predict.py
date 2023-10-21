@@ -14,7 +14,7 @@ import math
 import matplotlib.pyplot as plt
 
 # load the trained model
-checkpoint_filepath= "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint_back_up/"
+checkpoint_filepath= "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
 model = get_model()
 model.load_weights(checkpoint_filepath)
 
@@ -28,7 +28,7 @@ total_test_psnr = 0.0 # PSNR of model output
 
 
 
-for index, prediction_img_path in enumerate(prediction_img_paths()):
+for index, prediction_img_path in enumerate(get_prediction_img_paths()):
     img = load_img(prediction_img_path)
     lowres_input = get_lowres_image(img, upscale_factor) # downsample
     w = lowres_input.size[0] * upscale_factor
