@@ -10,9 +10,9 @@ The code is organized into various classes, each representing a specific compone
 
 import torch
 import torch.nn.functional as F
-from torch import nn, optim
+from torch import nn
 
-# scaling factors
+# Scaling factors
 factors = [1, 1, 1, 1 / 2, 1 / 4, 1 / 8, 1 / 16, 1 / 32]
 
 
@@ -26,7 +26,6 @@ class StyleMapping(nn.Module):
 
     def __init__(self, z_dim, w_dim):
         super().__init__()
-        # 8 Fully Connected (FC) layers for mapping
         self.mapping = nn.Sequential(
             PixelwiseNormalization(),
             WeightScaledLinear(z_dim, w_dim),
@@ -99,7 +98,7 @@ class WeightScaledConv2d(nn.Module):
     """
 
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
-        super(WeightScaledConv2d, self).__init__()
+        super(WeightScaledConv2d, self).__init__()  # Fixed super() call
         self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding)
         self.scale = (2 / (in_channels * (kernel_size ** 2))) ** 0.5
         self.bias = self.conv.bias
@@ -111,6 +110,7 @@ class WeightScaledConv2d(nn.Module):
 
     def forward(self, x):
         return self.conv(x * self.scale) + self.bias.view(1, self.bias.shape[0], 1, 1)
+
 
 # Adaptive Instance Normalization for style transfer
 class AdaptiveInstanceNorm(nn.Module):
@@ -199,55 +199,50 @@ class GeneratorBlock(nn.Module):
 
 # Generator class
 class Generator(nn.Module):
-    """
-    Generator Network
-
-    This module defines the generator network of the GAN for image generation.
-    """
-
     def __init__(self, z_dim, w_dim, in_channels, img_channels=3):
-        super().__init__()
-        self.starting_cte = nn.Parameter(torch.ones(1, in_channels, 4, 4))
-        self.map = StyleMapping(z_dim, w_dim)
-        self.initial_AdaptiveInstanceNorm1 = AdaptiveInstanceNorm(in_channels, w_dim)
-        self.initial_AdaptiveInstanceNorm2 = AdaptiveInstanceNorm(in_channels, w_dim)
+        super(Generator, self).__init__()
+        self.initial_constant = nn.Parameter(torch.ones(1, in_channels, 4, 4))
+        self.style_mapping = StyleMapping(z_dim, w_dim)
+        self.initial_adain1 = AdaptiveInstanceNorm(in_channels, w_dim)
+        self.initial_adain2 = AdaptiveInstanceNorm(in_channels, w_dim)
         self.initial_noise1 = NoiseInjection(in_channels)
         self.initial_noise2 = NoiseInjection(in_channels)
-        self.initial_conv = nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1)
+        self.initial_conv = WeightScaledConv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1)
         self.leaky = nn.LeakyReLU(0.2, inplace=True)
 
         self.initial_rgb = WeightScaledConv2d(in_channels, img_channels, kernel_size=1, stride=1, padding=0)
-        self.prog_blocks, self.rgb_layers = (
-            nn.ModuleList([]),  # Progressive training blocks
-            nn.ModuleList([self.initial_rgb])  # To generate RGB images
+        self.progressive_blocks, self.rgb_layers = (
+            nn.ModuleList([]),
+            nn.ModuleList([self.initial_rgb])
         )
 
         for i in range(len(factors) - 1):
             conv_in_c = int(in_channels * factors[i])
             conv_out_c = int(in_channels * factors[i + 1])
-            self.prog_blocks.append(GeneratorBlock(conv_in_c, conv_out_c, w_dim))
+            self.progressive_blocks.append(GeneratorBlock(conv_in_c, conv_out_c, w_dim))
             self.rgb_layers.append(WeightScaledConv2d(conv_out_c, img_channels, kernel_size=1, stride=1, padding=0))
 
-    def fade_in(self, alpha, upscaled, generated):
+    def fade_transition(self, alpha, upscaled, generated):
         return torch.tanh(alpha * generated + (1 - alpha) * upscaled)
 
     def forward(self, noise, alpha, steps):
-        w = self.map(noise)
-        x = self.initial_AdaptiveInstanceNorm1(self.initial_noise1(self.starting_cte), w)
+        w = self.style_mapping(noise)
+        x = self.initial_adain1(self.initial_noise1(self.initial_constant), w)
         x = self.initial_conv(x)
-        out = self.initial_AdaptiveInstanceNorm2(self.leaky(self.initial_noise2(x)), w)
+        out = self.initial_adain2(self.leaky(self.initial_noise2(x)), w)
 
         if steps == 0:
             return self.initial_rgb(x)
 
         for step in range(steps):
             upscaled = F.interpolate(out, scale_factor=2, mode='bilinear')
-            out = self.prog_blocks[step](upscaled, w)
+            out = self.progressive_blocks[step](upscaled, w)
 
         final_upscaled = self.rgb_layers[steps - 1](upscaled)
         final_out = self.rgb_layers[steps](out)
 
-        return self.fade_in(alpha, final_upscaled, final_out)
+        return self.fade_transition(alpha, final_upscaled, final_out)
+
 
 # Discriminator class
 class Discriminator(nn.Module):
@@ -284,10 +279,10 @@ class Discriminator(nn.Module):
             WeightScaledConv2d(in_channels, 1, kernel_size=1, padding=0, stride=1),
         )
 
-    def fade_in(self, alpha, downscaled, out):
+    def blend_images(self, alpha, downscaled, out):
         return alpha * out + (1 - alpha) * downscaled
 
-    def minibatch_std(self, x):
+    def compute_minibatch_std(self, x):
         batch_statistics = (torch.std(x, dim=0).mean().repeat(x.shape[0], 1, x.shape[2], x.shape[3]))
         return torch.cat([x, batch_statistics], dim=1)
 
@@ -296,16 +291,16 @@ class Discriminator(nn.Module):
         out = self.leaky(self.rgb_layers[cur_step](x))
 
         if steps == 0:
-            out = self.minibatch_std(out)
+            out = self.compute_minibatch_std(out)
             return self.final_block(out).view(out.shape[0], -1)
 
         downscaled = self.leaky(self.rgb_layers[cur_step + 1](self.avg_pool(x)))
         out = self.avg_pool(self.prog_blocks[cur_step](out))
-        out = self.fade_in(alpha, downscaled, out)
+        out = self.blend_images(alpha, downscaled, out)
 
         for step in range(cur_step + 1, len(self.prog_blocks)):
             out = self.prog_blocks[step](out)
             out = self.avg_pool(out)
 
-        out = self.minibatch_std(out)
+        out = self.compute_minibatch_std(out)
         return self.final_block(out).view(out.shape[0], -1)

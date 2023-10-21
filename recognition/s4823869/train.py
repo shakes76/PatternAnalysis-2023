@@ -33,7 +33,7 @@ Z_DIM = 512
 W_DIM = 512
 LAMBDA_GP = 10
 BATCH_SIZES = [256, 128, 64, 32, 16, 8]
-PROGRESSIVE_EPOCHS = [100] * len(BATCH_SIZES)
+PROGRESSIVE_EPOCHS = [1] * (len(BATCH_SIZES)-4)
 IN_CHANNELS = 512
 CHANNELS_IMG = 3
 LR_GEN = 1e-3
@@ -139,7 +139,7 @@ critic = modules.Discriminator(IN_CHANNELS, CHANNELS_IMG).to(DEVICE)
 
 # Optimizers
 gen_params = [{'params': [param for name, param in gen.named_parameters() if 'map' not in name]}]
-gen_params += [{'params': gen.map.parameters(), 'lr': 1e-5}]
+gen_params += [{'params': gen.style_mapping.parameters(), 'lr': 1e-5}]
 opt_gen = optim.Adam(gen_params, lr=LR_GEN, betas=(0.0, 0.99))
 opt_critic = optim.Adam(critic.parameters(), lr=LR_CRITIC, betas=(0.0, 0.99))
 
@@ -162,6 +162,7 @@ for num_epochs in PROGRESSIVE_EPOCHS[step:]:
     for epoch in range(num_epochs):
         current_epoch_label = epoch + 1
         total_epochs_per_step = PROGRESSIVE_EPOCHS[step]
+        print("Starting next epoch\n")
         train(critic, gen, loader, step, alpha, opt_critic, opt_gen)
 
     epoch_loss_gen = sum(gen_losses) / len(gen_losses)
@@ -184,5 +185,5 @@ def plot_losses(epoch_losses, critic_losses):
     plt.legend()
     plt.savefig(save_path)
     plt.show()
-save_path = os.path.join("output_images", "losses_plot.png")
+save_path = os.path.join("output_images", "LossPlot.png")
 plot_losses(epoch_losses, critic_losses)
