@@ -16,7 +16,13 @@ To run dataset.py, follow following steps:
 4. (optional) change the value of `upscale_factor` at line ?? to downsample your training and validation images by a different ratio
 5. Change the values of `crop_width_size` at line ?? and `crop_height_size` in line ?? to make sure they are less than or equal to the orginal width and height of the images, and is divisible by `upscale_factor`.
 ### Building model
-The model structure is defined in `modules.py`. using keras framwork. The
+The model structure is defined in `modules.py`. using keras framwork. The structure of the model is as following:
+- first layer: A convolutional layer with 64 filters and a kernel size of 5 to extract features.
+- second layer: A convolutional layer with 64 filters and a kernel size of 3 to extract features.
+- third layer: A convolutional layer with 32 filters and a kernel size of 3 to extract features.
+- fourth layer: A convolution layer with `channels * (upscale_factor ** 2)` filters and a kernel size of 3 to increase spatial resolution.
+- depth to space operation: Using TensorFlow's tf.nn.depth_to_space function to perform a depth-to-space upscaling operation specified 'upscale_factor' to produce the super-resolved image with a higher resolution.
+
 
        
 
