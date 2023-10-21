@@ -175,11 +175,11 @@ MLP_HEAD_UNITS = [256, 128]
 these parameters give 65,729,926 trainable parameters. The loss and accuracy plots of training and validation for this model were as follows:
 
 <p align="center">
-    <img src="resources/accuracy.png" alt="Model 1 Accuracy Plot">
+    <img src="resources/accuracy (3).png" alt="Model 1 Accuracy Plot">
 </p>
 
 <p align="center">
-    <img src="resources/losses.png" alt="Model 1 Loss Plot">
+    <img src="resources/losses (3).png" alt="Model 1 Loss Plot">
 </p>
 
 The confusion matrix for the test set is presented. In this matrix, the label '0' corresponds to brains afflicted with Alzheimer's Disease, whereas '1' corresponds to brains with Normal Cognitive function.
