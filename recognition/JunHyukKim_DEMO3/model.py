@@ -2,29 +2,21 @@ import torch
 import torch.nn as nn
 import torchvision.transforms.functional as TF
 
-class DoubleConv(nn.Module):
-    def __init__(self, in_channels, out_channels):
-        super(DoubleConv, self).__init__()
-        self.conv = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=1, bias=False),
-            nn.InstanceNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True),
-            nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, stride=1, bias=False),
-            nn.InstanceNorm2d(out_channels),
-            nn.LeakyReLU(inplace=True),
-        )
-
-    def forward(self, x):
-        return self.conv(x)
     
 class ContextLayer(nn.Module):
+    """
+    Context Layer that applies two convolutional operations, 
+    interspersed with instance normalization and leaky ReLU activation.'
+    Dropout
+    """
     def __init__(self, in_channels, out_channels):
+        
         super(ContextLayer, self).__init__()
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1, stride=1, bias=False),
             nn.InstanceNorm2d(out_channels),
             nn.LeakyReLU(inplace=True),
-            nn.Dropout3d(p=0.3),
+            nn.Dropout2d(p=0.3),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1, stride=1, bias=False),
             nn.InstanceNorm2d(out_channels),
             nn.LeakyReLU(inplace=True),
@@ -79,8 +71,6 @@ class UNET(nn.Module):
         self.fifth_down = ContextLayer(self.feature_num*16, self.feature_num*16)
 
         #LAYER -5
-        self.first_upsam = nn.ConvTranspose2d(self.feature_num*16, self.feature_num*8, kernel_size=2, stride=2)
-
         self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
         self.first_upsample_d1 = nn.Conv2d(self.feature_num*16,self.feature_num*8,kernel_size=1, stride = 1)
 
@@ -100,7 +90,7 @@ class UNET(nn.Module):
         self.fourth_upsample_d1 = nn.Conv2d(self.feature_num*2,self.feature_num*1,kernel_size=1, stride = 1)        
 
         #LAYER -1
-        self.final_conv_layer = DoubleConv(self.feature_num*2, self.feature_num*2)
+        self.final_conv_layer = nn.Conv2d(self.feature_num*2, self.feature_num*2, kernel_size=3, stride=1, padding=1, bias=False)
         self.final_activation = nn.Sigmoid()
         
         self.segmentation_1 = nn.Conv2d(self.feature_num*4, out_channels, kernel_size=1)
