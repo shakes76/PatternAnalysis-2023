@@ -9,7 +9,7 @@ from predict import *
 # SETTING UP
 
 # Set the number of training epochs
-EPOCHS = 10
+EPOCHS = 100
 
 # Initialize the Diffusion Network model and setup the optimizer
 model = DiffusionNetwork().to(device)
@@ -21,7 +21,7 @@ save_plot_path = os.path.expanduser(f"~/demo_eiji/sd/plots/training_loss{EPOCHS}
 save_image_path = os.path.expanduser(f"~/demo_eiji/sd/images/image_visualization{EPOCHS}.png")
 
 ############################################################
-# TRAINING 
+# TRAINING THE MODEL
 
 # Train and save the model
 train_diffusion_network(model, 
@@ -31,7 +31,7 @@ train_diffusion_network(model,
                         plot_path=save_plot_path)
 
 ############################################################
-# RGENERATING
+# GENERATING IMAGES
 
 # Load the trained model parameters
 model = DiffusionNetwork() 
@@ -39,5 +39,5 @@ model.load_state_dict(torch.load(f"diffusion_network{EPOCHS}.pth"))
 model.to(device)
 model.eval()
 
-# Perform image reconstruction and save the result
-image_reconstruction(model, save_path=save_image_path)
+# Generate images and save the result
+image_generation(model, save_path=save_image_path)

@@ -15,13 +15,14 @@ def train_diffusion_network(model, optimizer, epochs, batch_size=16, save_path=N
     
     losses = []
     
-    # Training loop
     model.train()
+    # Training loop
     for epoch in range(epochs):
         for step, batch in enumerate(train_dataloader):
             batch = batch.to(device)
             optimizer.zero_grad()
 
+            # Generate random time indices for each batch
             t = torch.randint(0, timesteps, (batch_size,), device=device).long()
 
             # Backpropagation
@@ -35,17 +36,19 @@ def train_diffusion_network(model, optimizer, epochs, batch_size=16, save_path=N
                 
             losses.append(loss.item())
             
+            # Log the loss value every 100 iterations
             if (step + 1) % 100 == 0:
                 print(f"Epoch {epoch+1}, Iteration {step+1}, Loss: {loss.item()}")
 
     # Save the trained model
     if save_path:
         if torch.cuda.device_count() > 1:
-            torch.save(model.module.state_dict(), save_path)  # Save the state_dict of the inner model
+            # Save the state_dict of the inner model
+            torch.save(model.module.state_dict(), save_path) 
         else:
             torch.save(model.state_dict(), save_path)
 
-    # Plotting loss
+    # Plot and save the training loss
     if plot_path:
         plt.plot(losses)
         plt.xlabel('Iteration')
