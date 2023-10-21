@@ -33,19 +33,32 @@ plt.title("Input Image")
 plt.savefig('input_image.png')
 plt.show()
 
-# Plot and save the confidence scores
+# Enhanced confidence plot without displaying '0.00%'
 labels = ['AD', 'NC']
 scores = [probabilities[0, 1].item() * 100, probabilities[0, 0].item() * 100]
 y_pos = range(len(labels))
 colors = ['red', 'blue']
 
-plt.bar(y_pos, scores, color=colors)
-plt.xticks(y_pos, labels)
-plt.ylabel('Confidence (%)')
-plt.title('Model Confidence Scores')
+fig, ax = plt.subplots()
+bars = ax.bar(y_pos, scores, color=colors)
+ax.set_xticks(y_pos)
+ax.set_xticklabels(labels)
+ax.set_ylabel('Confidence (%)')
+ax.set_title('Model Confidence Scores')
+
+# Highlight the predicted class
+if predicted_class == 'AD':
+    bars[0].set_facecolor('red')
+else:
+    bars[1].set_facecolor('yellow')
+
+# Save the enhanced confidence plot
 plt.savefig('confidence_scores.png')
 plt.show()
 
 print(f"Predicted Class: {predicted_class}")
+
+
+
 
 
