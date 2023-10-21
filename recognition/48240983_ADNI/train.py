@@ -7,9 +7,9 @@ from torchvision import transforms
 import random
 
 # Define a deeper model
-class DeepNet(nn.Module):
+class Net(nn.Module):
     def __init__(self):
-        super(DeepNet, self).__init__()
+        super(Net, self).__init__()
         self.fc1 = nn.Linear(1, 10)
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(10, 5)
@@ -52,7 +52,7 @@ train_loader = DataLoader(train_dataset, batch_size=1, shuffle=True)
 test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False)
 
 # Create a deeper model
-model = DeepNet()
+model = Net()
 
 # Define the loss and optimizer
 criterion = nn.MSELoss()
@@ -63,7 +63,7 @@ train_losses = []
 test_losses = []
 
 # Training the model
-for epoch in range(10):
+for epoch in range(8):
     model.train()
     train_loss = 0.0
     for batch in train_loader:
