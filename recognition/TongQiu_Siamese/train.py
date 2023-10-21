@@ -84,18 +84,17 @@ def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
         # Update the count of negative pairs below the margin
         negative_pair_mask = (labels == 0).float()  # 0 for negative pair
         total_negative_pairs += negative_pair_mask.sum().item()
-        negative_dists_below_margin = (dists < criterion.margin).float() * negative_pair_mask
+        negative_dists_below_margin = (dists < criterion.margin).float() * negative_pair_mask.squeeze()
         negative_pairs_below_margin += negative_dists_below_margin.sum().item()
-
 
     train_loss = sum(train_loss_lis) / len(train_loss_lis)
     accuracy = correct_predictions / total_samples
 
     # Adjust the margin if too many negative pairs are below it
     proportion_negative_below_margin = negative_pairs_below_margin / (total_negative_pairs + 1e-10)
-    if proportion_negative_below_margin > 0.3 :  # Example threshold, adjust as needed
-        criterion.margin *= 0.9  # Reduce the margin by 5%
-        print(proportion_negative_below_margin)
+    if proportion_negative_below_margin > 0.3:  # Example threshold, adjust as needed
+        criterion.margin *= 0.9  # Reduce the margin by 10%
+        print('proportion_negative_below_margin', proportion_negative_below_margin)
 
     # Print the information.
     print(
@@ -282,7 +281,7 @@ if __name__ == '__main__':
     dataloader_tr = DataLoader(
         dataset=train_dataset,
         shuffle=True,
-        batch_size=32 ,
+        batch_size=32,
         num_workers=1,
         drop_last=True
     )
