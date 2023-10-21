@@ -257,7 +257,7 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
     return average_loss, val_acc
 
 
-
+"""
 # train with contrastive
 if __name__ == '__main__':
     random.seed(2023)
@@ -281,14 +281,14 @@ if __name__ == '__main__':
     dataloader_tr = DataLoader(
         dataset=train_dataset,
         shuffle=True,
-        batch_size=8,
+        batch_size=10,
         num_workers=1,
         drop_last=True
     )
     dataloader_val = DataLoader(
         dataset=val_dataset,
         shuffle=True,
-        batch_size=8,
+        batch_size=10,
         num_workers=1,
         drop_last=True
     )
@@ -302,10 +302,10 @@ if __name__ == '__main__':
     epochs = 100
 
     main_contrastive(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
-
-
-
 """
+
+
+
 # train with Triplet loss
 if __name__ == '__main__':
     random.seed(2023)
@@ -329,14 +329,14 @@ if __name__ == '__main__':
     dataloader_tr = DataLoader(
         dataset=train_dataset,
         shuffle=True,
-        batch_size=3,
+        batch_size=8,
         num_workers=1,
         drop_last=True
     )
     dataloader_val = DataLoader(
         dataset=val_dataset,
         shuffle=True,
-        batch_size=3,
+        batch_size=8,
         num_workers=1,
         drop_last=True
     )
@@ -350,4 +350,3 @@ if __name__ == '__main__':
     epochs = 100
 
     main_triplet(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
-"""
