@@ -32,13 +32,13 @@ class TripletNetwork(nn.Module):
     """Siamese triplet network architecture."""
     def __init__(self):
         super().__init__()
-        cnn_out_1 = 6
-        cnn_out_2 = 12
-        cnn_out_3 = 24
-        cnn_ker_1 = 5
+        cnn_out_1 = 84
+        cnn_out_2 = cnn_out_1 * 2
+        cnn_out_3 = cnn_out_2 * 2
+        cnn_ker_1 = 10
         cnn_ker_2 = 5
         cnn_ker_3 = 3
-        cnn_str_1 = 1
+        cnn_str_1 = 2
         cnn_str_2 = 1
         cnn_str_3 = 1
         self.cnn_layers = nn.Sequential(
