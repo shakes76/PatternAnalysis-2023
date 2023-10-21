@@ -33,7 +33,7 @@ Z_DIM = 512
 W_DIM = 512
 LAMBDA_GP = 10
 BATCH_SIZES = [256, 128, 64, 32, 16, 8]
-PROGRESSIVE_EPOCHS = [1] * (len(BATCH_SIZES) - 5)
+PROGRESSIVE_EPOCHS = [100] * len(BATCH_SIZES)
 IN_CHANNELS = 512
 CHANNELS_IMG = 3
 LR_GEN = 1e-3
@@ -128,7 +128,8 @@ def train(critic, gen, loader, step, alpha, opt_critic, opt_gen):
         alpha = min(alpha, 1)
 
         print(
-            f"Step [{step + 1}/{len(PROGRESSIVE_EPOCHS)}] Batch [{batch_idx + 1}/{len(loader)}] loss_gen: {loss_gen:.4f}")
+                f"Epoch [{current_epoch_label}/{total_epochs_per_step}] Batch Sample [{batch_idx + 1}/{len(loader)}] loss_gen: {loss_gen:.4f}"
+            )
 
     return alpha
 
@@ -152,10 +153,15 @@ epoch_losses = []
 
 for num_epochs in PROGRESSIVE_EPOCHS[step:]:
     alpha = 1e-7
-    loader, data = dataset.get_loader(4 * 2 ** step)
+    loader, data = dataset.get_data_loader(4 * 2 ** step)
+    current_step_label = step + 1
+    total_steps = len(PROGRESSIVE_EPOCHS)
     print('Present image size: ' + str(4 * 2 ** step))
+    print(f'Currently Running for Batch {current_step_label}/{total_steps}')
 
     for epoch in range(num_epochs):
+        current_epoch_label = epoch + 1
+        total_epochs_per_step = PROGRESSIVE_EPOCHS[step]
         train(critic, gen, loader, step, alpha, opt_critic, opt_gen)
 
     epoch_loss_gen = sum(gen_losses) / len(gen_losses)
@@ -170,9 +176,9 @@ torch.save(gen.state_dict(), 'Generator.pth')
 # Plot the losses of generator and critic
 def plot_losses(epoch_losses, critic_losses):
     plt.figure(figsize=(10, 5))
-    plt.plot(epoch_losses, label="Generator Loss per Epoch", color="yellow")
-    plt.plot(critic_losses, label="Critic Loss per Batch", color="green")
-    plt.title("Training Losses")
+    plt.plot(epoch_losses, label="Generator's Loss per Epoch", color="yellow")
+    plt.plot(critic_losses, label="Critic's Loss per Batch", color="green")
+    plt.title("Loss Plot")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.legend()
