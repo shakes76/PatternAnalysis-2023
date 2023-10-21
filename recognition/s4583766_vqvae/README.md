@@ -143,24 +143,24 @@ Generator(
     (0): Sequential(
       (0): ConvTranspose2d(128, 512, kernel_size=(4, 4), stride=(1, 1), bias=False)
       (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (2): ReLU(inplace=True)
+      (2): LeakyReLU(negative_slope=0.2, inplace=True)
     )
     (1): Sequential(
-      (0): ConvTranspose2d(512, 512, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
-      (1): BatchNorm2d(512, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (2): ReLU(inplace=True)
-    )
-    (2): Sequential(
       (0): ConvTranspose2d(512, 256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
       (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (2): ReLU(inplace=True)
+      (2): LeakyReLU(negative_slope=0.2, inplace=True)
     )
-    (3): Sequential(
+    (2): Sequential(
       (0): ConvTranspose2d(256, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
       (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
-      (2): ReLU(inplace=True)
+      (2): LeakyReLU(negative_slope=0.2, inplace=True)
     )
-    (4): ConvTranspose2d(128, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+    (3): Sequential(
+      (0): ConvTranspose2d(128, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+      (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+      (2): LeakyReLU(negative_slope=0.2, inplace=True)
+    )
+    (4): ConvTranspose2d(64, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
     (5): Tanh()
   )
 )
@@ -174,31 +174,29 @@ Generator(
 <pre>
 Discriminator(
   (net): Sequential(
-    (0): Conv2d(1, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
-    (1): LeakyReLU(negative_slope=0.2)
-    (2): Sequential(
-      (0): Conv2d(128, 32, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
+    (0): Sequential(
+      (0): Conv2d(64, 32, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
       (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (2): LeakyReLU(negative_slope=0.2, inplace=True)
     )
-    (3): Sequential(
+    (1): Sequential(
       (0): Conv2d(32, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
       (1): BatchNorm2d(64, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (2): LeakyReLU(negative_slope=0.2, inplace=True)
     )
-    (4): Sequential(
+    (2): Sequential(
       (0): Conv2d(64, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
       (1): BatchNorm2d(128, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (2): LeakyReLU(negative_slope=0.2, inplace=True)
     )
-    (5): Sequential(
+    (3): Sequential(
       (0): Conv2d(128, 256, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1), bias=False)
       (1): BatchNorm2d(256, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
       (2): LeakyReLU(negative_slope=0.2, inplace=True)
     )
-    (6): Conv2d(256, 1, kernel_size=(4, 4), stride=(1, 1), bias=False)
-    (7): Flatten(start_dim=1, end_dim=-1)
-    (8): Sigmoid()
+    (4): Conv2d(256, 1, kernel_size=(4, 4), stride=(1, 1), bias=False)
+    (5): Flatten(start_dim=1, end_dim=-1)
+    (6): Sigmoid()
   )
 )
 </pre>
@@ -218,7 +216,7 @@ The VQ-VAE is an implementation of the description provided the original paper o
 
 #### Model parameters
 * BATCH_SIZE = 32
-* EPOCHS = 6
+* EPOCHS = 12
 * EMBEDDINGS_DIM = 64  # Dimension of each embedding in the codebook (embeddings vector)
 * N_EMBEDDINGS = 512  # Size of the codebook (number of embeddings)
 * BETA = 0.25
@@ -233,8 +231,6 @@ At each epoch, the the VQVAE model was trained by feeding real images through th
 
 #### Results
 To visualise the training results, the following plots show a fixed batch of images before training:
-
-<!-- insert file from resources/ -->
 
 ![Batch of training images before training](resources/train_vqvae/epoch_0.png)
 
@@ -256,12 +252,6 @@ It is clear from these images that the reconstructions became clearer with train
 
 The following images show a single image comparison of the input image -> codebook embedding representation of the image -> and decoded reconstruction from the codebook:
 
-<!-- ![Single image comparison](resources/codebook_comparison.png) 
-
-![Single image comparison](resources/codebook.png) 
-
-![Single image comparison](resources/decoded.png) -->
-
 <p align="center">
     <img src="resources/codebook_comparison.png" width="25%" />
     <img src="resources/codebook.png" width="25%" /> 
@@ -280,16 +270,10 @@ Min SSIM loss: 0.7713548554737547
 
 The plots below show the training SSIM scores and reconstruction losses for each epoch:
 
-<!-- TODO: plots here -->
-
 <p align="center">
     <img src="resources/train_vqvae/train_ssim_scores.png" width="49%" />
     <img src="resources/train_vqvae/train_recon_losses.png" width="49%" /> 
-    <!-- <img src="resources/decoded.png" width="25%" /> -->
 </p>
-
-<!-- ![SSIM scores](resources/train_vqvae/train_ssim_scores.png)
-![Reconstruction losses](resources/train_vqvae/train_recon_losses.png) -->
 
 ### DCGAN training
 
@@ -297,8 +281,8 @@ The goal of this step is to train a DCGAN model that can generate the priors for
 
 #### Model parameters
 * LEARNING_RATE = 2e-4
-* BATCH_SIZE = 256
-* EPOCHS = 20
+* BATCH_SIZE = 32
+* EPOCHS = 25
 
 Loss function: binary cross entropy loss.
 
@@ -316,9 +300,21 @@ The traing procedure for the DCGAN model was adapted from the [DCGAN tutorial](h
 
 #### Results
 
-The following plot shows the loss results from training the DCGAN model. The loss for the discriminator and generator are shown in blue and orange respectively.
+The following plot shows the loss results from training the DCGAN model. The loss for the discriminator and generator are shown in blue and orange respectively. There were issues during the DCGAN training whereby the discriminator loss was overpowering the generator. This resulted in the following plot of training losses after 25 epochs, whereby the Generator failed to stabilise and kept increasing. 
 
-TODO: plot goes here. 
+![DCGAN training losses](resources/train_vqvae/gan_losses.png)
+
+The following sample images are from epochs 0, 1, and 2 of the GAN training (generator output):
+
+<p align="center">
+  <!-- <figure> -->
+    <!-- <figcaption style="max-width: 100%;">Figure 1: Before and after encoding and reconstruction.</figcaption> -->
+    <img src="resources/train_vqvae/gan_epoch_0.png" width="25%" />
+    <img src="resources/train_vqvae/gan_epoch_1.png" width="25%" /> 
+    <img src="resources/train_vqvae/gan_epoch_2.png" width="25%" />   <!-- </figure> -->
+</p>
+
+It is clear that the Generator comes close to beginning to stablise by the third image, but is then overpowered by the Discriminator training. With more time, I would love to continue adjusting the model to fix this issue.
 
 
 ## 5. Testing procedure
@@ -357,7 +353,7 @@ The lowest SSIM score, 0.5730, was observed for the following image:
 	<img src="resources/test_vqvae/worst_recon.png" width="25%" /> 
 </p>
 
-Overall, the SSIM scores were quite high, with 535 out of the 544 images (98.35%) in the dataset being above the miniminum threshold of 0.6. This indicates that the VQ-VAE model was able to reconstruct the images with a high degree of accuracy. Also, importantly, these scores showed that the model has decent generalisability and isn't overfitting, being only <!-- TODO --> lower than the training SSIM scores. 
+Overall, the SSIM scores were quite high, with 535 out of the 544 images (98.35%) in the dataset being above the miniminum threshold of 0.6. This indicates that the VQ-VAE model was able to reconstruct the images with a high degree of accuracy. Also, importantly, these scores showed that the model has decent generalisability and isn't overfitting, being similar to the training and validation SSIM scores. 
 
 ## References
 * [1] OASIS brain MRI dataset: https://www.oasis-brains.org/
