@@ -182,7 +182,7 @@ During the initial testing phase, I encountered hardware limitations on my MacBo
 
 *Fig 5: Code running in the Initial Phase*
 #
-![InitialOutput.png](ReadMe_images/Initial Output.png)
+![InitialOutput.png](ReadMe_images/Initial_Output.png)
 
 *Fig 6: Generated output image in the initial phase on a 3x3 subplot*
 
@@ -255,11 +255,11 @@ I developed a Progressive Growing Generative Adversarial Network (PGGAN) for hig
 
 # <a name="_references"></a>**References**
 
-**[1] Image taken from -  *[https://arxiv.org/abs/1812.04948*](https://arxiv.org/abs/1812.04948)***
+**[1] Image taken from -**[https://arxiv.org/abs/1812.04948*](https://arxiv.org/abs/1812.04948)
 
-**[2] Image taken from -  [*https://www.youtube.com/watch?v=23XbbdxgdxM&t=310s*](https://www.youtube.com/watch?v=23XbbdxgdxM&t=310s)**
+**[2] Image taken from -**  [*https://www.youtube.com/watch?v=23XbbdxgdxM&t=310s*](https://www.youtube.com/watch?v=23XbbdxgdxM&t=310s)
 
 
-**Sample for StyleGAN taken from - [*https://arxiv.org/pdf/1812.04948.pdf*](https://arxiv.org/pdf/1812.04948.pdf)**
+**Sample for StyleGAN taken from -** [*https://arxiv.org/pdf/1812.04948.pdf*](https://arxiv.org/pdf/1812.04948.pdf)
 
 For writing code in modules and predit file, I had to take help from Generated AI, although I wrote all piece of code only after understanding and did not copy it blindly.
