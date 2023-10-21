@@ -1,120 +1,87 @@
 import os
-import numpy as np
-import torch
-import torch.nn as nn
-from torchvision import transforms
 from PIL import Image
-from train import Net  # Import the Net class from train.py
+import torch
+from torchvision import transforms
 import matplotlib.pyplot as plt
+import numpy as np
+from modules import VisionModel  # Import your VisionModel module here
 
-model = Net()
-model.load_state_dict(torch.load('model.pth'))
-model.eval()
+# Constants
+MODEL_PATH = '/model.pth'  # Replace with your model path
+IMAGE_PATH = '/recognition/48240983_ADNI/AD_NC/test/AD/388206_79.jpeg'  # Replace with your image path
 
-def load_and_preprocess_data(data_path):
-    data = []
-    filenames = []
+def load_model(model_path, device):
+    model = VisionModel().to(device)
+    model.load_state_dict(torch.load(model_path, map_location=device))
+    model.eval()
+    return model
 
-    for filename in os.listdir(data_path):
-        file_path = os.path.join(data_path, filename)
-        if os.path.isfile(file_path) and file_path.endswith(('.jpg', '.png', '.jpeg')):
-            image = Image.open(file_path).convert('RGB')
-            transform = transforms.Compose([
-                transforms.Resize((150, 150)),
-                transforms.ToTensor(),
-            ])
-            image = transform(image)
-            data.append(image)
-            filenames.append(filename)
+def get_true_label(image_path):
+    return 'AD' if 'AD' in os.path.dirname(image_path) else 'NC'
 
-    data = torch.stack(data)
+def predict_image(image_path, model, device, transform):
+    image = Image.open(image_path).convert('RGB')
+    image_tensor = transform(image).unsqueeze(0).to(device)
 
-    return data, filenames
-
-def plot_confidence_and_loss(train_data_path, test_data_path):
-    train_data, train_filenames = load_and_preprocess_data(train_data_path)
-    test_data, test_filenames = load_and_preprocess_data(test_data_path)
-
-    if len(train_data) == 0 or len(test_data) == 0:
-        print("No valid images found in the train or test directory.")
-        return
-
-    # Make predictions using the PyTorch model for training and testing data
     with torch.no_grad():
-        train_outputs = model(train_data)
-        test_outputs = model(test_data)
+        outputs = model(image_tensor)
+        probabilities = torch.nn.functional.softmax(outputs, dim=1)
+        predicted_class = 'AD' if probabilities[0, 1] > probabilities[0, 0] else 'NC'
 
-    # Ensure you have labels for calculating the loss (define labels accordingly)
-    train_labels = torch.tensor([0, 1] * (len(train_filenames) // 2))  # Example labels, adjust as needed
-    test_labels = torch.tensor([0, 1] * (len(test_filenames) // 2))  # Example labels, adjust as needed
+    return predicted_class, probabilities
 
-    # Apply softmax to the model outputs for training and testing data
-    train_softmax = nn.Softmax(dim=1)
-    test_softmax = nn.Softmax(dim=1)
-    train_predictions = train_softmax(train_outputs)
-    test_predictions = test_softmax(test_outputs)
+def plot_image(image_path, save_path):
+    image = Image.open(image_path).convert('RGB')
+    plt.imshow(image)
+    plt.axis('off')
+    plt.title("Input Image")
+    plt.savefig(save_path)
+    plt.close()  # Close the figure
 
-    # Calculate and display the final accuracy for training and testing data
-    train_correct_predictions = 0
-    test_correct_predictions = 0
-    train_total_predictions = len(train_filenames)
-    test_total_predictions = len(test_filenames)
-    train_confidence_scores = []
-    test_confidence_scores = []
+def plot_confidence_scores(probabilities, predicted_class, save_path):
+    labels = ['AD', 'NC']
+    scores = [probabilities[0, 1].item() * 100, probabilities[0, 0].item() * 100]
+    y_pos = np.arange(len(labels))
 
-    for i, train_prediction in enumerate(train_predictions):
-        filename = train_filenames[i]
-        true_label = filename.split("_")[0]
-        predicted_label = 'AD' if train_prediction[0] > train_prediction[1] else 'NC'
+    bars = plt.bar(y_pos, scores, align='center', alpha=0.75, color=['red', 'blue'])
+    plt.xticks(y_pos, labels)
+    plt.ylabel('Confidence (%)')
+    plt.title('Model Confidence Scores')
 
-        if true_label == predicted_label:
-            train_correct_predictions += 1
+    plt.gca().patches[y_pos[labels.index(predicted_class)]].set_facecolor('yellow')
 
-        # Calculate confidence score for training data
-        confidence = torch.max(train_prediction).item()
-        train_confidence_scores.append(confidence)
+    for bar in bars:
+        yval = bar.get_height()
+        plt.annotate(f'{yval:.2f}%',
+                     xy=(bar.get_x() + bar.get_width() / 2, yval),
+                     textcoords="offset points",
+                     ha='center', va='bottom')
 
-    for i, test_prediction in enumerate(test_predictions):
-        filename = test_filenames[i]
-        true_label = filename.split("_")[0]
-        predicted_label = 'AD' if test_prediction[0] > test_prediction[1] else 'NC'
+    plt.savefig(save_path)
 
-        if true_label == predicted_label:
-            test_correct_predictions += 1
+    plt.show()
 
-        # Calculate confidence score for testing data
-        confidence = torch.max(test_prediction).item()
-        test_confidence_scores.append(confidence)
+# ... (previous code) ...
 
-    train_accuracy = train_correct_predictions / train_total_predictions
-    test_accuracy = test_correct_predictions / test_total_predictions
+if __name__ == '__main':
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    print(f'Training Accuracy: {train_accuracy:.2f}')
-    print(f'Testing Accuracy: {test_accuracy:.2f}')
+    model = load_model(MODEL_PATH, device)
+    true_label = get_true_label(IMAGE_PATH)
+    plot_image(IMAGE_PATH, 'recognition/48240983_ADNI/AD_NC')
 
-    # Create and display bar charts for confidence scores for training and testing data
-    plt.figure(figsize=(12, 6))
-    plt.subplot(1, 2, 1)
-    plt.bar(train_filenames, train_confidence_scores, color='blue')
-    plt.xlabel('Images')
-    plt.ylabel('Confidence Score')
-    plt.title('Training Confidence Scores')
-    plt.grid(True)
-    plt.xticks(rotation=45)
+    transform = transforms.Compose([
+        transforms.Resize((150, 150)),
+        transforms.ToTensor(),
+    ])
 
-    plt.subplot(1, 2, 2)
-    plt.bar(test_filenames, test_confidence_scores, color='blue')
-    plt.xlabel('Images')
-    plt.ylabel('Confidence Score')
-    plt.title('Testing Confidence Scores')
-    plt.grid(True)
-    plt.xticks(rotation=45)
+    predicted_class, probabilities = predict_image(IMAGE_PATH, model, device, transform)
 
-    # Save the confidence scores charts as images
-    plt.savefig('training_confidence_scores.png', bbox_inches='tight')
-    plt.savefig('testing_confidence_scores.png', bbox_inches='tight')
+    print(f"True Label: {true_label}")
+    print(f"Predicted Class: {predicted_class}")
+    print(f"Confidence Scores - AD: {probabilities[0, 1].item() * 100:.2f}%, NC: {probabilities[0, 0].item() * 100:.2f}%")
 
-if __name__ == "__main":
-    train_data_path = './recognition/48240983_ADNI/AD_NC/train'
-    test_data_path = './recognition/48240983_ADNI/AD_NC/test'
-    plot_confidence_and_loss(train_data_path, test_data_path)
+    # plt.ion()  # Deactivate interactive mode
+    plot_confidence_scores(probabilities, predicted_class, 'confidence_scores.png')
+    plt.ioff()  # Deactivate interactive mode
+    plt.show()  # Explicitly display the plot
