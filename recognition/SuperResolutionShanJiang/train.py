@@ -95,22 +95,14 @@ model.fit(
 model.load_weights(checkpoint_filepath)
 
 #Test the model
-# Get acees to path of each image
-test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test/AD'
-test_img_paths = sorted(
-    [
-        os.path.join(test_path, fname)
-        for fname in os.listdir(test_path)
-        if fname.endswith(".jpeg")
-    ]
-)
+
 
 # Testing metrics
 total_bicubic_psnr = 0.0 # PSNR of downsampled image
 total_test_psnr = 0.0 # PSNR of model output
 
 # Dowansample resolution of iamges by factor of 4, then predict higher resolution image using the model
-for index, test_img_path in enumerate(test_img_paths[0:len(test_img_paths)]):
+for index, test_img_path in enumerate(test_img_paths()):
     img = load_img(test_img_path)
     lowres_input = get_lowres_image(img, upscale_factor) # downsample
     w = lowres_input.size[0] * upscale_factor

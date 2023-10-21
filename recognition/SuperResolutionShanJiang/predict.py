@@ -28,7 +28,7 @@ prediction_path = sorted(
     ]
 )
 
-predic
+
 
 
 # Dowansample resolution of iamges by factor of 4, then predict higher resolution image using the model

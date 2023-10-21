@@ -25,7 +25,7 @@ upscale_factor = 4
 input_height_size = crop_height_size // upscale_factor
 input_width_size = crop_width_size // upscale_factor
 batch_size = 8
-data_dir = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/train/AD'
+data_dir = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/train'
 
 
 
@@ -110,12 +110,18 @@ valid_ds = valid_ds.map(
 )
 valid_ds = valid_ds.prefetch(buffer_size=32)
 
-# for batch in train_ds.take(1):
-#     for img in batch[0]:
-#         display(array_to_img(img))
-#     for img in batch[1]:
-#         display(array_to_img(img))
+# Get acees to path of each image
+test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test/AD'
+test_img_paths = sorted(
+    [
+        os.path.join(test_path, fname)
+        for fname in os.listdir(test_path)
+        if fname.endswith(".jpeg")
+    ]
+)
 
+def test_img_paths():
+    return test_img_paths
 
 
 
