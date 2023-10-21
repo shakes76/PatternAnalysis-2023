@@ -3,6 +3,24 @@
 **Name - Yash Mittal**
 
 **UQ ID – 48238690**
+
+### **Table of Contents**
+|                       **Content**                        |
+|:--------------------------------------------------------:|
+|                [Introduction](#_overview)                |
+|        [Key Model Features](#_key_model_features)        |
+|            [Code Structure](#_code_structure)            |
+|    [OASIS Brain MRI Input Images](#_oasis_brain_mri)     |
+|         [Training Dynamics](#_training_dynamics)         |
+|                 [Loss Plot](#_loss_plot)                 |
+|     [Output Image Showcase](#_output_image_showcase)     |
+|     [Challenges Faced By Me](#_challenges_faced_by)      |
+|    [Key Takeaway from Project](#_key_takeaways_from)     |
+|                [How to Use](#_how_to_use)                |
+| [Requirements to run the Project](#_requirements_to_run) |
+|                [Conclusion](#_conclusion)                |
+|                [References](#_references)                |
+
 ## <a name="_overview"></a>**Introduction**
 
 Welcome to the StyleGAN project designed to generate "reasonably clear images" from the OASIS brain dataset. This model is a powerful implementation of the cutting-edge Generative Adversarial Network (GAN) architecture. This project goes beyond the basics of GANs and includes several innovative features to enhance the image generation process.
@@ -39,10 +57,10 @@ I've introduced a self-attention mechanism within the model to capture long-rang
 
 The StyleGAN model supports conditional image generation. By providing additional input, you can control the characteristics of the generated images, allowing for greater flexibility and customisation.
 
-![RelationalDatabaseVsNoSQLDatabase.png](RelationalDatabaseVsNoSQLDatabase.png)
+![RelationalDatabaseVsNoSQLDatabase.png](ReadMe_images/GAN Model explaination image.png)
 
 *Fig 1: Shows the original demonstration of the Style-Based generator* **[1]**
-#
+
 ## <a name="_code_structure"></a>**Code Structure**
 
 1. *dataset.py:*
@@ -126,7 +144,7 @@ My approach adheres to the Wasserstein GAN (WGAN) training framework, known for 
 - *Regularisation Component:* An additional regularisation term, grounded in the square of the scores assigned by the discriminator to real images, adds to the model's overall regularisation. This enhances the model's consistency in producing high-quality images.
 
 
-![GAN_model.png](GAN_model.png)
+![GAN_model.png](ReadMe_images/GAN_model.png)
 
 *Fig 3: Working of GAN Model* **[2]**
 
@@ -143,7 +161,7 @@ There are three curves on the plot corresponding to different loss metrics:
 - In contrast, the red line shows the discriminator loss starting near 0, as the real and generated images are easily distinguishable at first. It then increases to around 1000 as the generator improves, making the discrimination task more challenging.
 - The blue line depicts the total loss, calculated as the sum of generator and discriminator losses. It follows a similar downward trend as the generator loss curve.
 
-![LossPlot.png](LossPlot.png)
+![LossPlot.png](ReadMe_images/LossPlot.png)
 
 *Fig 4: Loss Plot*
 
@@ -160,21 +178,21 @@ Following the successful training of my StyleGAN model, I am delighted to presen
 
 During the initial testing phase, I encountered hardware limitations on my MacBook and the absence of GPU capabilities on the Rangpur platform. I made necessary adjustments to the model training parameters to adapt to these constraints. Specifically, I had to reduce the progressive epochs significantly. To work within these limitations, I configured the progressive epoch parameter to be set at 30 minus the length of the batch size minus 2 (30 - (len(BATCH_SIZE)-2)). While these adjustments allowed me to conduct preliminary tests, I am aware that they may have influenced the training process. In subsequent phases, with access to more powerful hardware, I plan to explore longer progressive training epochs to further enhance the model's performance.
 
-![InitialCodeRun.png](InitialCodeRun.png)
+![InitialCodeRun.png](ReadMe_images/Initial Code Run.png)
 
 *Fig 5: Code running in the Initial Phase*
 #
-![InitialOutput.png](InitialOutput.png)
+![InitialOutput.png](ReadMe_images/Initial Output.png)
 
 *Fig 6: Generated output image in the initial phase*
 
 After numerous attempts, I successfully executed a job on the Rangpur platform with a more robust setup in my project. During this run, I extended the number of epochs to 100 and utilised the full batch size, enabling more comprehensive model training. The outcome was notably encouraging, as I obtained a generated image that aligned more closely with my expectations, displaying improved clarity and quality. This success emphasises the significance of adequate computational resources in achieving optimal results in deep learning tasks.
 
-
+![Final Code Running on Rangpur.png](ReadMe_images%2FFinal%20Code%20Running%20on%20Rangpur.png)
 
 *Fig 7: Code running on Rangpur with 100 epochs.*
 
-![FinalGeneratedImage.png](FinalGeneratedImage.png)
+![FinalGeneratedImage.png](ReadMe_images/Final Generated Image.png)
 
 *Fig 8: Final expected generated image output*
 
