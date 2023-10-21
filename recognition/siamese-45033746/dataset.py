@@ -110,6 +110,3 @@ def compose_transform():
 
 if __name__ == "__main__":
     pass
-    # train, val = patient_split()
-    # TrainDataSet = SiameseDataSet(train)
-    # TrainDataSet.__getitem__(2)
