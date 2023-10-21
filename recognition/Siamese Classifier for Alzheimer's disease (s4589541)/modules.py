@@ -64,17 +64,24 @@ class TripletNetwork(nn.Module):
         l2_h, l2_w = size_after_cnn_pool(l1_h, l1_w, cnn_ker_2, cnn_str_2, 2)
         l3_h, l3_w = size_after_cnn_pool(l2_h, l2_w, cnn_ker_3, cnn_str_3, 1)
 
+        fc_in_1 = cnn_out_3 * l3_h * l3_w
+        fc_out_1 = fc_in_1 // 2.5
+        fc_out_2 = fc_out_1 // 8
+        fc_out_3 = fc_out_2 // 14.5
+
         self.fc_layers = nn.Sequential(
             # group 1
-            nn.Linear(cnn_out_3 * l3_h * l3_w, 512),
+            nn.Linear(fc_in_1, fc_out_1),
             nn.ReLU(inplace=True),
+            nn.Dropout(p=0.15),
 
             # group 2
-            nn.Linear(512, 128),
+            nn.Linear(fc_out_1, fc_out_2),
             nn.ReLU(inplace=True),
+            nn.Dropout(p=0.15),
 
             # final
-            nn.Linear(128, 64)
+            nn.Linear(fc_out_2, fc_out_3)
         )
 
     def single_foward(self, img_tensor):
