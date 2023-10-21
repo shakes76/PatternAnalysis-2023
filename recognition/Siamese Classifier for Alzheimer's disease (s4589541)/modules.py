@@ -72,7 +72,7 @@ class TripletNetwork(nn.Module):
             nn.ReLU(inplace=True),
 
             # final
-            nn.Linear(128, 8)
+            nn.Linear(128, 64)
         )
 
     def single_foward(self, img_tensor):
