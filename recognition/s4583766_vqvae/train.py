@@ -47,8 +47,8 @@ os.makedirs(RUN_IMG_OUTPUT, exist_ok=True)
 #  [2], the DCGAN tutorial [4] or DCGAN paper [6].
 BATCH_SIZE = 32
 BATCH_SIZE_GAN = 32
-EPOCHS = 1
-EPOCHS_GAN = 1
+EPOCHS = 12
+EPOCHS_GAN = 25
 LATENT_SIZE_GAN = 128
 
 N_HIDDEN_LAYERS = 64
@@ -341,7 +341,9 @@ def train_gan(vqvae, train_dl):
     fake_scores = []
 
     for epoch in range(EPOCHS_GAN):
+        sys.stdout.flush()
         print(f"Epoch: {epoch+1}\n ************************************************")
+        train_steps = 0
         for real_images in train_dl:
             real_images = real_images.to(device)
 
@@ -352,10 +354,13 @@ def train_gan(vqvae, train_dl):
             # Clear discriminator gradients
             opt_d.zero_grad()
 
+            # Run the image through the model
+            _, _, z_q, _ = vqvae(real_images)
+            
             # Pass real images through  discriminator, so discriminator can
             # learn what they look like.
-            real_preds = discriminator(real_images)
-            real_targets = torch.ones(real_images.size(0), 1, device=device)
+            real_preds = discriminator(z_q)
+            real_targets = torch.ones(z_q.size(0), 1, device=device)
             real_loss = criterion(real_preds, real_targets)
             real_score = torch.mean(real_preds).item()
 
@@ -408,16 +413,25 @@ def train_gan(vqvae, train_dl):
             loss_g = loss_g.item()
             opt_g.step()
 
+            if train_steps % 100 == 0:
+                print("Epoch: {}, Step: {}, Loss: {}".format(epoch, train_steps, loss_g))
+            train_steps += 1
+
         # Record losses & scores
         losses_g.append(loss_g)
         losses_d.append(loss_d)
         real_scores.append(real_score)
         fake_scores.append(fake_score)
 
+        print(losses_g)
+        print(losses_d)
+        print(real_scores)
+        print(fake_scores)
+
         # Log losses & scores (last batch)
         print(
             "Epoch [{}/{}], loss_g: {:.4f}, loss_d: {:.4f}, real_score: {:.4f}, fake_score: {:.4f}".format(
-                epoch + 1, EPOCHS, loss_g, loss_d, real_score, fake_score
+                epoch + 1, EPOCHS_GAN, loss_g, loss_d, real_score, fake_score
             )
         )
         # Save generated images
@@ -426,7 +440,10 @@ def train_gan(vqvae, train_dl):
         checkpoint_img = generator(fixed_latent)
         vqvae.eval()
         checkpoint_img_dec = vqvae.decoder(checkpoint_img)
-        save_image(checkpoint_img_dec, RUN_IMG_OUTPUT + f"gan_epoch_{epoch}.png")
+        save_image(checkpoint_img_dec, RUN_IMG_OUTPUT + f"gan_epoch_{epoch+1}.png")
+
+        # save model
+        torch.save(generator.state_dict(), RUN_IMG_OUTPUT + "best-g.pth")
 
     return losses_g, losses_d, real_scores, fake_scores
 
@@ -477,31 +494,44 @@ def main():
     )
     model = model.to(device)
     train_dl, test_dl, val_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, VAL_DATA_PATH, BATCH_SIZE)
-    vqvae = train_vqvae(model, train_dl=train_dl, val_dl=val_dl)
+    # vqvae = train_vqvae(model, train_dl=train_dl, val_dl=val_dl)
 
-    torch.save(vqvae.state_dict(), RUN_IMG_OUTPUT + "vqvae.pth")
+    # torch.save(vqvae.state_dict(), RUN_IMG_OUTPUT + "vqvae_good.pth")
     
-    # model = VQVAE(
-    #     n_hidden_layers=N_HIDDEN_LAYERS,
-    #     n_residual_hidden_layers=N_RESIDUAL_HIDDENS,
-    #     n_embeddings=N_EMBEDDINGS,
-    #     embeddings_dim=EMBEDDINGS_DIM,
-    #     beta=BETA,
-    # )
-    # ## load in the saved gan model stored at path + 'best-gan.pth'
-    # model = Generator()
-    # model.to(device)
-    # model.load_state_dict(
-    #     torch.load(
-    #         FILE_SAVE_PATH + "2023-10-22_20-46-12/vqvae.pth",
-    #         map_location=torch.device("cpu"),
-    #     )
-    # )
-    vqvae.eval()
 
-    # visualise_embeddings(model, test_dl)
+    ## load in the saved gan model stored at path + 'best-gan.pth'
+    model.load_state_dict(
+        torch.load(
+            FILE_SAVE_PATH + "2023-10-23_04-23-47/vqvae_good.pth",
+            map_location=torch.device("cpu"),
+        )
+    )
+    model.eval()
 
-    train_gan(vqvae=vqvae, train_dl=train_dl)
+    # # visualise_embeddings(model, test_dl)
+
+    losses_g, losses_d, real_scores, fake_scores = train_gan(vqvae=model, train_dl=train_dl)
+        # def plot_scores(real_scores, fake_scores):
+        # """Plot scores from the discriminator and generator."""
+    plt.plot(real_scores, '-')
+    plt.plot(fake_scores, '-')
+    plt.xlabel('epoch')
+    plt.ylabel('score')
+    plt.legend(['Real', 'Fake'])
+    plt.title('Scores');
+    plt.savefig(RUN_IMG_OUTPUT + 'gan_scores.png', bbox_inches="tight", pad_inches=0)
+    plt.clf()
+    
+    # def plot_losses(losses_d, losses_g):
+    """Plot losses from discriminator and generator."""
+    plt.plot(losses_d, '-')
+    plt.plot(losses_g, '-')
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    plt.legend(['Discriminator', 'Generator'])
+    plt.title('Losses');
+    plt.savefig(RUN_IMG_OUTPUT + 'gan_losses.png', bbox_inches="tight", pad_inches=0)
+    plt.clf()
 
     # TODO: fix this method
     # calc_ssim(model, test_dl)

@@ -224,9 +224,9 @@ class VQVAE(nn.Module):
             beta=beta)
         
         self.decoder = Decoder(
-            n_inputs=embeddings_dim, 
-            n_hidden_layers=n_hidden_layers, 
-            n_residual_hidden_layers=n_residual_hidden_layers)
+            n_inputs=embeddings_dim, # 64
+            n_hidden_layers=n_hidden_layers, # 64
+            n_residual_hidden_layers=n_residual_hidden_layers) #32
     
     def forward(self, z):
         z = self.encoder(z)
@@ -244,13 +244,12 @@ class Discriminator(nn.Module):
     """
     def __init__(self):
         super(Discriminator, self).__init__()
-
         # Layer size values are hard-coded here to customise the problem of 
         # generating latent tensors.
         self.net = nn.Sequential(
-            nn.Conv2d(1, 128, kernel_size=4, stride=2, padding=1), # With a stride of 2, need padding of 1 - prevents downsampling.
-            nn.LeakyReLU(0.2), # Allows 0.2 of the negative
-            self._block(128, 32),
+            # nn.Conv2d(1, 128, kernel_size=4, stride=2, padding=1), # With a stride of 2, need padding of 1 - prevents downsampling.
+            # nn.LeakyReLU(0.2), # Allows 0.2 of the negative
+            self._block(64, 32),
             self._block(32, 64),
             self._block(64, 128),
             self._block(128, 256), 
@@ -284,11 +283,11 @@ class Generator(nn.Module):
         # Input: N x channels_noise x 1 x 1
         self.net = nn.Sequential(
             self._block(128, 512, 1, 0), 
-            self._block(512, 512, 2, 1),
-            self._block(512, 256, 2, 1), 
+            self._block(512, 256, 2, 1),
             self._block(256, 128, 2, 1), 
+            self._block(128, 64, 2, 1), 
             # self._block(128, 3, 2, 1), 
-            nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, bias=False), # N x channels_img x 64 x 64
+            nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1, bias=False), # N x channels_img x 64 x 64
             nn.Tanh() # convert to [-1, 1] 
         )
 
@@ -297,7 +296,7 @@ class Generator(nn.Module):
         return nn.Sequential(
             nn.ConvTranspose2d(in_channels, out_channels, kernel_size=4, stride=stride, padding=padding, bias=False),
             nn.BatchNorm2d(out_channels),
-            nn.ReLU(inplace=True)
+            nn.LeakyReLU(0.2, inplace=True)
         )
 
     def forward(self, x):
