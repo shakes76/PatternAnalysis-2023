@@ -65,7 +65,7 @@ class TripletNetwork(nn.Module):
         l3_h, l3_w = size_after_cnn_pool(l2_h, l2_w, cnn_ker_3, cnn_str_3, 1)
 
         fc_in_1 = cnn_out_3 * l3_h * l3_w
-        fc_out_1 = int(fc_in_1 // 2.5)
+        fc_out_1 = int(fc_in_1 // 8.5)
         fc_out_2 = int(fc_out_1 // 8)
         fc_out_3 = int(fc_out_2 // 14.5)
 
