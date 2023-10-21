@@ -108,12 +108,9 @@ https://drive.google.com/uc?id=1YI3pwanX35i7NCIxKnfXBozXiyQZcGbL or from [datase
 ### Model Architecture: open source [YOLOV7 Model](https://github.com/WongKinYiu/yolov7)
 
 ### Training
-Training was mainly done on the rangpur cluster, 
+Training was mainly done on the rangpur cluster, using the P100 gpu and a batch size of 32
 
-- Details about the training process.
-- Hyperparameters used:
-  - Both p5 and p6 models were trained. 
-- Training time, hardware details (if relevant).
+- Hyperparameters that was used is described in: [hyp.scratch.p6.yaml](./hyp.scratch.p6.yaml)
 
 ### Results
 #### Confusion Matrix
