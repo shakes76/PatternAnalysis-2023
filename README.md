@@ -125,7 +125,7 @@ Shifted Patch Tokenization is a method that involves making slight adjustments t
 Local Self-Attention shares similarities with the conventional Multi-Head Attention (MHA) layer, but it introduces an extra diagonal mask. This mask redirects the Vision Transformer's attention towards relationships between tokens, as opposed to focusing solely on its own tokens. Additionally, a Learnable Temperature Scaling component is integrated into the model, enabling it to autonomously adapt the temperature of the Softmax layer within the MHA layer. This adjustment aids in fine-tuning the score distribution or attention distribution, enhancing the model's performance.
 
 <p align="center">
-    <img src="resources/localitattention.png" alt="Loaded Brain MRI Image">
+    <img src="resources/localitattention.png" alt="Loaded Brain MRI Image" width="600" height="400">
 </p>
 
 Furthermore, in our model, the classification task is executed by employing an MLP (comprising Dense layers) designed to acquire and learn features.
