@@ -144,6 +144,7 @@ if __name__ == '__main__':
 
     # set up network and hyperparameters
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(device)
     model = TripletNetwork().to(device)
     # criterion = TripletLoss()
     criterion = torch.nn.TripletMarginLoss()
