@@ -43,3 +43,57 @@ The StyleGAN model supports conditional image generation. By providing additiona
 
 *Fig 1: Shows the original demonstration of the Style-Based generator* **[1]**
 #
+# <a name="_code_structure"></a>**Code Structure**
+
+1. *dataset.py:*
+
+*Purpose:* This script prepares a dataset from the OASIS dataset for training and testing, including data transformation and providing data loaders. It also displays sample images from the dataset.
+
+*Key Components:*
+
+- CustomImageDataset class: Loads and organises image data for training and testing.
+- Loader functions to load data.
+
+
+2. *modules.py:*
+
+*Purpose:* This module defines neural network modules for a Generative Adversarial Network (GAN), including the Generator and Discriminator networks.
+
+*Key Components:*
+
+- StyleMapping class: Maps the latent noise vector to the intermediate style vector used by the Generator.
+- PixelwiseNormalization class: Performs pixel-wise normalisation.
+- WeightScaledLinear class: Linear layer with weights scaled for training stability.
+- WeightScaledConv2d class: Convolutional layer with scaled weights.
+- AdaptiveInstanceNorm class: Performs adaptive instance normalisation for style transfer.
+- ConvolutionBlock class: Represents a block of convolutional layers in the generator.
+- NoiseInjection class: Injects noise into the input tensor.
+- GeneratorBlock class: Represents a block in the generator with adaptive instance normalisation and noise injection.
+- Generator class: Defines the generator network for image generation.
+- Discriminator class: Defines the discriminator network for image discrimination.
+
+
+3. *train.py:*
+
+*Purpose:* This script trains a Progressive Growing GAN (PGGAN) using the provided modules. It implements both the generator and discriminator training steps, including the calculation of the gradient penalty for the Wasserstein GAN with Gradient Penalty (WGAN-GP) loss.
+
+*Key Components:*
+
+- Training loop for both the discriminator and the generator.
+- calculate\_gradient\_penalty function: Calculates the gradient penalty for enforcing the Lipschitz constraint.
+- Main training loop for progressive training.
+
+
+4. *predict.py:*
+
+*Purpose:* This script generates images using a pre-trained GAN generator and displays them in a 3x3 grid. The generated images are saved in the 'output\_images' directory and displayed on the screen.
+
+*Key Components:*
+
+- Loading a pre-trained generator model.
+- Generating a specified number of sample images.
+- Preparing and visualising the generated images in a 3x3 grid.
+- Saving the generated image grid to a file.
+
+
+These files work together to prepare a dataset, define the GAN architecture, train the GAN, and generate images using the pre-trained generator. The training is performed progressively, starting from a lower resolution, and gradually increasing the image size. The generated images are saved and displayed for evaluation.
