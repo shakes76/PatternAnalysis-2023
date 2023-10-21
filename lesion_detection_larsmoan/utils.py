@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-import pandas as pd
-
 
 # Note: you need a .env file in the root of your repository with REPO_DATA_DIR: "path" for this method to work
 def get_data_dir():
