@@ -1,0 +1,8 @@
+tensorflow
+os
+math
+IPython
+matplotlib
+mpl_toolkits
+PIL
+numpy
