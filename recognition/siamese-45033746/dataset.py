@@ -1,13 +1,15 @@
 import os
 import random
+import torch
 import torchvision.datasets as datasets
+import torchvision.transforms as transforms
 import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
 TRAIN_FILE_ROOT = "./AD_NC/train"
 TRAIN_AD = "./AD_NC/train/AD"
 TRAIN_NC = "./AD_NC/train/NC"
-BATCH_SIZE = 64
+
 VAL_SIZE = 0.1
 TRAIN_SIZE = 0.9
 
@@ -98,7 +100,16 @@ def patient_split() -> (datasets.ImageFolder, datasets.ImageFolder):
     return train_dataset, validation_dataset
 
 
+def compose_transform():
+    return transforms.Compose([
+        transforms.Grayscale(num_output_channels=1),
+        transforms.Resize((256, 240)),
+        transforms.ToTensor()
+    ])
+
+
 if __name__ == "__main__":
+    pass
     # train, val = patient_split()
     # TrainDataSet = SiameseDataSet(train)
     # TrainDataSet.__getitem__(2)
