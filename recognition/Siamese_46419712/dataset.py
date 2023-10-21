@@ -171,14 +171,13 @@ class LoadData():
         if self.train: # transforms parameter for train/set dataset
             path = TRAIN_PATH
             transform = transforms.Compose([
-                transforms.Resize(self.image_size),  # Resize to a common resolution
+                transforms.RandomCrop(self.image_size, 15, padding_mode='reflect'),
                 transforms.ToTensor(),
-                transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
             ])
         else:
             path = TEST_PATH
             transform = transforms.Compose([
-                transforms.Resize(self.image_size),
+                transforms.CenterCrop(self.image_size),
                 transforms.ToTensor(),
             ])
 

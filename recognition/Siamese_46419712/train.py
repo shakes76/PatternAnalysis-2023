@@ -90,7 +90,7 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
         optimizer.zero_grad()
 
         fv1 = sModel(img)
-        if lastEpoch:
+        if lastEpoch and i + 2 == len(train_loader):
             plot_tsne(fv1, label, "t-SNE train", utils.tsne_train)
         output = cModel(fv1)
         loss = criterion(output.view(-1), label)
@@ -125,7 +125,7 @@ def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list, la
 
             fv = sModel(img) 
             output = cModel(fv)
-            if lastEpoch:
+            if lastEpoch and i + 2 == len(val_loader):
                 plot_tsne(output, label, "t-SNE validate", utils.tsne_validate)
             output = output.view(-1)
             loss = criterion(output, label)
@@ -150,18 +150,21 @@ def test_model(model, cModel, test_loader):
     with torch.no_grad(): # disable gradient computation
         correct_predict = 0
         total_test = 0
+        count = 0
         for img, label in test_loader:
             img = img.to(device)
             label = label.to(device).float()
 
             fv = model(img)
-            plot_tsne(fv, label, "t-SNE test", utils.tsne_test)
+            if count + 2 == len(test_loader):
+                plot_tsne(fv, label, "t-SNE test", utils.tsne_test)
             output = cModel(fv)
             output = output.view(-1)
 
             predicted = (output > 0.5).float()
             total_test += label.size(0)
             correct_predict += (predicted == label).sum().item()
+            count += 1
     
     return correct_predict/total_test
 
@@ -236,7 +239,7 @@ def execute_sTrain(train_loader, val_loader):
     model = RawSiameseModel().to(device)
 
     # hyper-parameters
-    num_epochs = 20
+    num_epochs = 15
     learning_rate = 0.0001
 
     criterion = ContrastiveLossFunction()
@@ -300,11 +303,11 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     cModel = BinaryModelClassifier().to(device)
 
     # hyper parameters for classifier
-    num_epochs = 40
-    learning_rate = 0.005
+    num_epochs = 25
+    learning_rate = 0.001
 
     criterion = nn.BCELoss()
-    optimizer = torch.optim.Adam(cModel.parameters(), lr=learning_rate, betas=(0.5, 0.999))
+    optimizer = torch.optim.Adam(cModel.parameters(), lr=learning_rate)
 
     # training
     classifier_loss_list = []
@@ -331,7 +334,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     # train classifier
     for epoch in range(num_epochs):
         print ("Epoch [{}/{}]".format(epoch + 1, num_epochs))
-        if epoch + 2 == num_epochs:
+        if epoch + 1 == num_epochs:
             cModel, t_accuracy = train_classifier(sModel, cModel, train_loader_classifier, criterion, optimizer, classifier_loss_list, True)
             accuracy = validate_classifier(sModel, cModel, val_loader_classifier, criterion, classifier_val_loss_list, True)
         else:
@@ -349,13 +352,13 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
         if best_model is None:
             best_model = cModel.state_dict()
             best_acc = current_classifier_val_loss
-            print(f"Current best accuracy is {current_classifier_val_loss} at epoch {epoch + 1}")
+            print(f"Current best classifier validate loss is {current_classifier_val_loss} at epoch {epoch + 1}")
             save_model(epoch, best_model, criterion, optimizer.state_dict(), 1)
         elif current_classifier_val_loss < best_acc:
             best_model = cModel.state_dict()
-            print(f"The previous best accuracy is {best_acc}")
+            print(f"The previous best classifier validate loss is {best_acc}")
             best_acc = current_classifier_val_loss
-            print(f"Current best validate accuracy is {best_acc} at epoch {epoch + 1}")
+            print(f"Current best classifier validate loss is {best_acc} at epoch {epoch + 1}")
             save_model(epoch, best_model, criterion, optimizer.state_dict(), 1)
         
         classifier_loss_list = []

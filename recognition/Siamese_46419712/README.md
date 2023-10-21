@@ -159,6 +159,54 @@ If the program is successully run, and ```Siamese.pt and Classifier.pt``` exists
 ## 7. Future improvement
 Due to an unfortunate incident that misled the interpretation of the model performance, future work will focus on tuning the parameters and applying mode data augmentation to increase the accuracy of the model. In the future, this project will explore ResNet-18 (CNN) as the as Siamese embedding layer to extract better feature vectors from the data.
 
+### 7.1. Future implementation and result
+For the future improvement, there are a number of hyper-parameter get tuning to enhance the accuracy:
+
+The number of tuning paramaters include:
+
+***For Siamese model***
+
+**Number of epochs**: the number of epoch is reduced to 15 because the loss function is converging too fast.
+
+<img src="Future_result/siamese_loss_plot.png" alt="siamese loss plot" width="50%">
+
+The plot still showed that there are some overfitting in the model itself, this is due to the difference between loss plot for during training phase vs during validation phase.
+
+**Contrastive loss function**: The order of the label in the formula above is reversed. When doing this, the tsne plot of Siamese model exhibits a clear differences between AD and NC. Hence, this mean previously, the loss function may applied incorrectly.
+
+Evidence for this can be found in the following T-SNE,
+
+<div>
+    <img src="Future_result/tsne_train.png" alt="t-SNE train data" width="50%">
+    <img src="Future_result/tsne_test.png" alt="t-SNE test data" width="50%">
+</div>
+
+The images when put through the Siamese model during classifier training phase and classifier testing phase showed that there is some clear separation between the two classes AD and NC.
+
+**Data augmentation**: There are some slight change in data augmentation approach, the primary approach of data augmentation now is using RandomCrop for augmentation, given RandomCrop can provide in depth analysis of the data when it can crop into certain point but still retain the resolution of the data.
+
+***For classifier model***
+
+There are not much change in the classifier model, the primary change is reduce the number of epoch from the original 40 epochs down to 25 epochs. This is because the Siamese model is already return a 4096 feature vectors that extracting distinctive feature between AD and NC data. Hence, the classifier doesn't need to do much and can achieve a high accuracy of 76.04 %.
+
+The classifier loss plot and the accuracy plot is as followed 
+
+<img src="Future_result/classifier_loss_plot.png" alt="classifier loss plot" width="50%">
+
+<img src="Future_result/Accuracy_plot.png" alt="accuracy plot" width="50%">
+
+Both plot showcasing there is a clear overfitting, possible derive from the Siamese model due to a large different between the train vs validating plot.
+
+**Future Result**
+
+For the result, the image generate is as followed
+
+<img src="Future_result/predict_result.png" alt="accuracy plot" width="50%">
+
+The accuracy of this visualisation is much better than before (more similarity between predicted and actual).
+
+Overall, the best accuracy is 76.04%. 
+
 ## 8. References
 [1]	G. Koch, R. Zemel, and R. Salakhutdinov, "Siamese neural networks for one-shot image recognition," in ICML deep learning workshop, 2015, vol. 2, no. 1: Lille. 
 
