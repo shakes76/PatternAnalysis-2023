@@ -56,7 +56,7 @@ class UNET(nn.Module):
         #LAYER 3
         self.third_conv = nn.Conv2d(self.feature_num*2, self.feature_num*4, kernel_size=3, stride=2, padding=1, bias=False)
         self.third_down = ContextLayer(self.feature_num*4, self.feature_num*4)
-        
+
         #LAYER 4
         self.fourth_conv = nn.Conv2d(self.feature_num*4, self.feature_num*8, kernel_size=3, stride=2, padding=1, bias=False)
         self.fourth_down = ContextLayer(self.feature_num*8, self.feature_num*8)
@@ -68,16 +68,30 @@ class UNET(nn.Module):
         #LAYER -5
         self.first_upsam = nn.ConvTranspose2d(self.feature_num*16, self.feature_num*8, kernel_size=2, stride=2)
 
+        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        self.first_upsample_d1 = nn.Conv2d(self.feature_num*16,self.feature_num*8,kernel_size=1, stride = 1)
+
         #LAYER -4
-        self.first_up = DoubleConv(self.feature_num*16, self.feature_num*8)
-        
+        self.first_local = DoubleConv(self.feature_num*16, self.feature_num*8)
+        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        self.second_upsample_d1 = nn.Conv2d(self.feature_num*8,self.feature_num*4,kernel_size=1, stride = 1)        
+
         #LAYER -3
-        self.second_upsam = nn.ConvTranspose2d(self.feature_num*8, self.feature_num*4, kernel_size=2, stride=2)
-        self.second_up = DoubleConv(self.feature_num*8, self.feature_num*4)
+        self.second_local = DoubleConv(self.feature_num*8, self.feature_num*4)
+        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        self.third_upsample_d1 = nn.Conv2d(self.feature_num*4,self.feature_num*2,kernel_size=1, stride = 1)        
+        
+        #self.second_upsam = nn.ConvTranspose2d(self.feature_num*8, self.feature_num*4, kernel_size=2, stride=2)
+
 
         #LAYER -2
-        self.third_upsam = nn.ConvTranspose2d(self.feature_num*4, self.feature_num*2, kernel_size=2, stride=2)
-        self.third_up = DoubleConv(self.feature_num*4, self.feature_num*2)
+        self.third_local = DoubleConv(self.feature_num*4, self.feature_num*2)
+        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        self.fourth_upsample_d1 = nn.Conv2d(self.feature_num*2,self.feature_num*1,kernel_size=1, stride = 1)        
+        
+
+        #self.third_upsam = nn.ConvTranspose2d(self.feature_num*4, self.feature_num*2, kernel_size=2, stride=2)
+
 
         #LAYER -1
         self.fourth_upsam = nn.ConvTranspose2d(self.feature_num*2, self.feature_num*1, kernel_size=2, stride=2)
@@ -118,32 +132,35 @@ class UNET(nn.Module):
         l5_x1 = self.fifth_conv(x)
         l5_x2 = self.fifth_down(l5_x1)
         x = torch.add(l5_x2, l5_x1) 
+        x = self.upsample(x)
+        x = self.first_upsample_d1(x)
 
         #LAYER -4
-        x = self.first_upsam(x)
-        if x.shape != skip_connections4.shape:
-            x = TF.resize(x, size=skip_connections4.shape[2:])
+        #print(skip_connections4.shape,x.shape)
         concat_skip = torch.cat((skip_connections4, x), dim=1)
-        x = self.first_up(concat_skip)
-        
+        x = self.first_local(concat_skip)
+        x = self.upsample(x)
+        x = self.second_upsample_d1(x)   
+
         #LAYER -3
-        x = self.second_upsam(x)
-        if x.shape != skip_connections3.shape:
-            x = TF.resize(x, size=skip_connections3.shape[2:])
+        #print(skip_connections3.shape,x.shape)
         concat_skip = torch.cat((skip_connections3, x), dim=1)
-        x = self.second_up(concat_skip)
+        x = self.second_local(concat_skip)
+        x = self.upsample(x)
+        x = self.third_upsample_d1(x) 
 
         #LAYER -2
-        x = self.third_upsam(x)
-        if x.shape != skip_connections2.shape:
-            x = TF.resize(x, size=skip_connections2.shape[2:])
+        #print(skip_connections2.shape,x.shape)
         concat_skip = torch.cat((skip_connections2, x), dim=1)
-        x = self.third_up(concat_skip)
+        x = self.third_local(concat_skip)
+        #print(x.shape)
+        x = self.upsample(x)
+        #print(x.shape)
+        x = self.fourth_upsample_d1(x) 
+        #print(x.shape)
 
         #LAYER -1
-        x = self.fourth_upsam(x)
-        if x.shape != skip_connections1.shape:
-            x = TF.resize(x, size=skip_connections1.shape[2:])
+        #print(skip_connections1.shape,x.shape)
         concat_skip = torch.cat((skip_connections1, x), dim=1)
         x = self.final_conv_layer(concat_skip)
         x = self.segmentation_3(x)
