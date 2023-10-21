@@ -1,7 +1,7 @@
+from matplotlib import pyplot as plt
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from torchvision import transforms
 import random
@@ -58,14 +58,19 @@ model = Net()
 criterion = nn.MSELoss()
 optimizer = optim.SGD(model.parameters(), lr=0.01)
 
-# Lists to store loss values
+# Lists to store loss values and accuracy
 train_losses = []
 test_losses = []
+train_accuracies = []
+test_accuracies = []
 
 # Training the model
-for epoch in range(8):
+for epoch in range(10):
     model.train()
     train_loss = 0.0
+    correct_train = 0
+    total_train = 0
+
     for batch in train_loader:
         data, labels = batch['data'], batch['label']
         optimizer.zero_grad()
@@ -75,8 +80,20 @@ for epoch in range(8):
         optimizer.step()
         train_loss += loss.item()
 
+        # Calculate training accuracy
+        _, predicted = torch.max(outputs, 1)
+        total_train += labels.size(0)
+        correct_train += (predicted == labels).sum().item()
+
+    train_losses.append(train_loss / len(train_loader))
+    train_accuracy = 100 * correct_train / total_train
+    train_accuracies.append(train_accuracy)
+
     model.eval()
     test_loss = 0.0
+    correct_test = 0
+    total_test = 0
+
     with torch.no_grad():
         for batch in test_loader:
             data, labels = batch['data'], batch['label']
@@ -84,10 +101,21 @@ for epoch in range(8):
             loss = criterion(outputs, labels)
             test_loss += loss.item()
 
-    train_losses.append(train_loss / len(train_loader))
+            # Calculate test accuracy
+            _, predicted = torch.max(outputs, 1)
+            total_test += labels.size(0)
+            correct_test += (predicted == labels).sum().item()
+
     test_losses.append(test_loss / len(test_loader))
+    test_accuracy = 100 * correct_test / total_test
+    test_accuracies.append(test_accuracy)
 
     print(f'Epoch {epoch + 1}, Train Loss: {train_losses[-1]:.4f}, Test Loss: {test_losses[-1]:.4f}')
+
+# Save the training and test accuracy to a file
+with open('accuracy.txt', 'w') as file:
+    file.write(f'Training Accuracies: {train_accuracies}\n')
+    file.write(f'Test Accuracies: {test_accuracies}\n')
 
 # Plot the training and test loss
 plt.figure(figsize=(10, 4))
@@ -107,3 +135,4 @@ image_path = 'loss_plot.png'
 # Save the plot as an image
 plt.savefig(image_path)
 plt.show()
+
