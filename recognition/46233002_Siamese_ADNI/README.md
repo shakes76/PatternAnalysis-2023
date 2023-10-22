@@ -53,34 +53,45 @@ The classifier consists of only two fully connected layers with a ReLU in betwee
 ### Hyperparameters
 
 - Batch size: 16 
-- Learning rates: 0.0001
-- Number of epochs: 12
+- Learning rates: 0.0001 for encoder, 0.001 for classifier 
+- Number of epochs: 24
 
-A batch size of 8, 16, 32, and 64 has been experimented with the model and 16 was the only one with decent performance. While a batch size of 32 and 64 seems to introduce noise, a batch size of 8 seems to cause underfitting. Learning rates from 1e-01 to 1e-04 were attempted and the most commonly used 1e-04 appeared to be the most suitable. The number of epochs was originally over 30 but after the introduction of miners it was significantly reduced to 12. 
+A batch size of 8, 12, 16, 24, 32, and 64 has been experimented with the model and 24 had the best performance. While a batch size of 32 and above seems to introduce noise, a batch size of 16 and under seems to cause underfitting. Learning rates from 1e-01 to 1e-04 were attempted and 1e-04 and 1e-03 appeared to be most suitable for the encoder and classifier respectively.
 
 ### Performance Regulation: Loss functions, Miners, Optimizers, Schedulers
 
 The encoder and the classifier use different loss functions due to their natural differences. 
 
-To optimise embeddings, the encoder uses the 'losses.TripletMarginLoss' function from the 'pytorch_metric_learning' library. The function automatically forms all possible triplets within the batch and computes the loss based on the given labels. The formula of the loss is: L = max(0, d(a, p) - d(a, n) + m) where a, p, n, and m stand for anchor, positive, negative, and margin. The goal of the function is to minimise the distance between anchor and positive and maximise that between anchor and negative. To increase accuracy, a mining function 'miners.BatchHardMiner(pos_strategy=miners.BatchEasyHardMiner.EASY, neg_strategy=miners.BatchEasyHardMiner.SEMIHARD)' is also implemented to generate most efficient triplets to learn from. The parameters were set as suggested in Xuan et al. (2020)[^6] to improve the quality of embeddings. I also experimented with other combinations and this was the one that performed the best and fastest. The args were set as such since during trials we realised the positive labels (AD) appeared to be more difficult to classify. 
+To optimise embeddings, the encoder uses the 'losses.TripletMarginLoss(margin=0.1)' function from the 'pytorch_metric_learning' library. The function automatically forms all possible triplets within the batch and computes the loss based on the given labels. The formula of the loss is: L = max(0, d(a, p) - d(a, n) + m) where a, p, n, and m stand for anchor, positive, negative, and margin. The goal of the function is to minimise the distance between anchor and positive and maximise that between anchor and negative. The margin was set to 0.1 after rounds of testing and proven to be the most effective.
 
-The classifier uses the 'nn.CrossEntropyLoss' function from the 'torch' library. Cross entropy loss is a common loss function for classification tasks. It attempts to minimise the predicted probability (between 0 and 1) from the true labels.
+To increase accuracy, a mining function 'miners.BatchHardMiner(pos_strategy=miners.BatchEasyHardMiner.EASY, neg_strategy=miners.BatchEasyHardMiner.SEMIHARD)' is also implemented to generate most efficient triplets to learn from. As epoch number increases, the difficulty will also be increased through the miner. These settings were set as suggested in Xuan et al. (2020)[^6] to improve the quality of embeddings. The args were set as such since during trials we realised the positive labels (AD) appeared to be more difficult to detect. 
+
+The classifier uses the 'nn.CrossEntropyLos()' function from the 'torch' library. Cross entropy loss is a common loss function for classification tasks. It attempts to minimise the predicted probability (between 0 and 1) from the true labels.
 
 For both encoder and classifier, 'torch.optim.SGD()' is the optimizer and 'torch.optim.lr_scheduler.OneCycleLR' is the scheduler. 
 
 ## Model Performance 
 
-Since this is a binary classification task, the performance of the model mainly relies on accuracy to maximise specificity and sensitivity. With the previously mentioned data preprocessing and hyperparameters, the model was able to achieve approximately 65% accuracy on all test data. 
+Since this is a binary classification task, the performance of the model mainly relies on accuracy to maximise specificity and sensitivity. With the previously mentioned data preprocessing and hyperparameters, the model was able to achieve approximately 72% accuracy on all test data. 
 
-![loss](./lr.png)
+![encoder loss](./EncoderLoss.png)
+
+The bumps in the middle is caused by a change in miner parameters but the bump can be recovered very soon. Although the gap between train and validation loss is not high, we did observe an increase in accuracy as epochs go high. Accuracy of validation usually sits at roughly 75%. 
 
 ## How to Use
 
 Before running, please ensure all dependencies are met (python version, python libraries/packages, datasets and cuda environment (highly recommended).)
 
+### To train, validate, and test models
 ```
 module load cuda/11.8
 python train.py 
+```
+
+## To generate predictions using pretrained models
+```
+module load cuda/11.8
+python predict.py 
 ```
 
 ## Dependencies
