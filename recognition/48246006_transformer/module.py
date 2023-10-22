@@ -3,8 +3,10 @@ from tensorflow.keras.layers import Layer
 from tensorflow.keras import layers
 import math
 
+# PatchLayer extracts patches from the input image
 class PatchLayer(Layer):
     def __init__(self, image_size, patch_size, num_patches, projection_dim, **kwargs):
+        # Initialize PatchLayer
         super(PatchLayer, self).__init__(**kwargs)
         self.image_size = image_size
         self.patch_size = patch_size
@@ -15,7 +17,9 @@ class PatchLayer(Layer):
         self.projection = layers.Dense(units=projection_dim)
         self.layer_norm = layers.LayerNormalization(epsilon=1e-6)
 
+    # Shift images in different directions to capture local context
     def shift_images(self, images, mode):
+        # Shift images in different directions (left-up, left-down, right-up, right-down)
         if mode == 'left-up':
             crop_height, crop_width, shift_height, shift_width = self.half_patch, self.half_patch, 0, 0
         elif mode == 'left-down':
@@ -25,6 +29,7 @@ class PatchLayer(Layer):
         else:
             crop_height, crop_width, shift_height, shift_width = 0, 0, self.half_patch, self.half_patch
 
+        # Crop and shift the images
         crop = tf.image.crop_to_bounding_box(
             images,
             offset_height=crop_height,
@@ -32,7 +37,6 @@ class PatchLayer(Layer):
             target_height=self.image_size - self.half_patch,
             target_width=self.image_size - self.half_patch
         )
-
         shift_pad = tf.image.pad_to_bounding_box(
             crop,
             offset_height=shift_height,
@@ -43,6 +47,7 @@ class PatchLayer(Layer):
         return shift_pad
 
     def call(self, images):
+        # Combine the original and shifted images
         images = tf.concat(
             [images,
              self.shift_images(images, mode='left-up'),
@@ -51,6 +56,8 @@ class PatchLayer(Layer):
              self.shift_images(images, mode='right-down')],
             axis=-1
         )
+
+        # Extract image patches and project them
         patches = tf.image.extract_patches(
             images=images,
             sizes=[1, self.patch_size, self.patch_size, 1],
@@ -63,20 +70,10 @@ class PatchLayer(Layer):
         tokens = self.projection(tokens)
         return (tokens, patches)
 
-    def get_config(self):
-        config = super(PatchLayer, self).get_config()
-        config.update(
-            {
-                'image_size': self.image_size,
-                'patch_size': self.patch_size,
-                'num_patches': self.num_patches,
-                'projection_dim': self.projection_dim
-            }
-        )
-        return config
-
+# EmbedPatch adds positional embeddings to the patches
 class EmbedPatch(Layer):
     def __init__(self, num_patches, projection_dim, **kwargs):
+        # Initialize EmbedPatch
         super(EmbedPatch, self).__init__(**kwargs)
         self.num_patches = num_patches
         self.projection_dim = projection_dim
@@ -85,21 +82,14 @@ class EmbedPatch(Layer):
         )
 
     def call(self, patches):
+        # Create positional embeddings
         positions = tf.range(0, self.num_patches, delta=1)
         return patches + self.position_embedding(positions)
 
-    def get_config(self):
-        config = super(EmbedPatch, self).get_config()
-        config.update(
-            {
-                'num_patches': self.num_patches,
-                'projection_dim': self.projection_dim
-            }
-        )
-        return config
-
+# MultiHeadAttentionLSA is a modified MultiHeadAttention with a trainable temperature parameter
 class MultiHeadAttentionLSA(layers.MultiHeadAttention):
     def __init__(self, **kwargs):
+        # Initialize MultiHeadAttentionLSA
         super(MultiHeadAttentionLSA, self).__init__(**kwargs)
         self.tau = tf.Variable(math.sqrt(float(self._key_dim)), trainable=True)
 
@@ -116,14 +106,16 @@ class MultiHeadAttentionLSA(layers.MultiHeadAttention):
         )
         return attention_output, attention_scores
 
-    def get_config(self):
-        config = super(MultiHeadAttentionLSA, self).get_config()
-        return config
-
+# build_vision_transformer constructs the Vision Transformer model
 def build_vision_transformer(input_shape, image_size, patch_size, num_patches, attention_heads, projection_dim, hidden_units, dropout_rate, transformer_layers, mlp_head_units):
+    # Define input layer
     inputs = layers.Input(shape=input_shape)
+
+    # Use PatchLayer to extract and project patches
     (tokens, _) = PatchLayer(image_size, patch_size, num_patches, projection_dim)(inputs)
     encoded_patches = EmbedPatch(num_patches, projection_dim)(tokens)
+
+    # Create the transformer layers
     for _ in range(transformer_layers):
         layer_norm_1 = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
         diag_attn_mask = 1 - tf.eye(num_patches)
@@ -137,6 +129,7 @@ def build_vision_transformer(input_shape, image_size, patch_size, num_patches, a
             mlp_layer = layers.Dropout(dropout_rate)(mlp_layer, training=False)
         encoded_patches = layers.Add()([mlp_layer, skip_1])
 
+    # Build the output layers
     representation = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
     representation = layers.Flatten()(representation)
     representation = layers.Dropout(dropout_rate)(representation, training=False)
@@ -145,5 +138,7 @@ def build_vision_transformer(input_shape, image_size, patch_size, num_patches, a
         features = layers.Dense(units, activation=tf.nn.gelu)(features)
         features = layers.Dropout(dropout_rate)(features, training=False)
     logits = layers.Dense(1)(features)
+
+    # Create and return the Vision Transformer model
     model = tf.keras.Model(inputs=inputs, outputs=logits)
     return model
