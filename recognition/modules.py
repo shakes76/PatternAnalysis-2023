@@ -144,8 +144,9 @@ class Perceiver(nn.Module):
         self.cross_attention_heads = cross_attention_heads
         self.self_attention_heads = self_attention_heads
         self.classifier = Classifier(embedded_dimensions)
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.perceiver_block_array = nn.ModuleList([Block(self.self_attention_depth, self.latent_dimensions, self.embedded_dimensions, self.cross_attention_heads, self.self_attention_heads) for i in range(self.model_depth)])
-        self.latent = torch.zeros((self.latent_dimensions, 1, self.embedded_dimensions)).to("cuda:0")
+        self.latent = torch.zeros((self.latent_dimensions, 1, self.embedded_dimensions)).to(self.device)
         
     def forward(self, kv):
         """
