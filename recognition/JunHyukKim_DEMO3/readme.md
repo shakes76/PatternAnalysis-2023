@@ -29,21 +29,22 @@ python 3.11.5
 window 11
 
 ### 2.2. Download ISIC 2017 datasets. 
-The dataset is under https://challenge.isic-archive.com/data/#2017. Training data, test data, valid data is required and 
+The dataset is under https://challenge.isic-archive.com/data/#2017. Training data, test data, valid data is required and train ground truth, test ground truth and valid ground truth is also required for the segmenation task.
 The dataset should be positioned in the same folder as the python codes under data, train data images under train_images folder, and train mask data under train_masks folder. Test data should be in the test_images and test_masks and validation should be in val_images and val_masks folder.
 
 ## 3. Usage
 Run the Train.py with python3 this will create the model.pth file.
-this will also create saved.img file if
+This will create predictions for each epochs and will also create the loss graph.
 
 Run predict.py to get the segmentation and the dice coefficient. 
-This file will save all the segmentation predictions under evaluation_folder. T
+This file will save all the segmentation predictions under evaluation_folder. 
 
 ## 4. Description 
 ### 4.1. Brief description of the task
+Lesion segmentation is crucial in medical imaging. The code solution that is created solves the problem of the segmentation of lesion by automating it, which can benefit the medical prefessionals.
 The ISIC 2017 improved Unet segmentation task is implemented.
 The improve Unet is used and the format follows https://arxiv.org/pdf/1802.10508v1.pdf. 
-
+By doing this, the accuracy and speed of segmenation can be increased significantly.
 
 #### 4.2. Reproducibility
 After 10 epochs, the model relably provided dice score arount 80 percent. 
@@ -62,27 +63,26 @@ For every epoch, the validation set is used to test the segmenation.
 ![predict_cmd_result](predict_cmd_result.png)
 
 
-### 4.4 The read me file should be properly formatted using GitHub markdown
-Bold was used to highlight the page.
 
-### 4.5. Describe any specific pre-processing you have used with references if any. Justify your training, 
-#### 4.5.1. pre-processing
+### 4.4. Describe any specific pre-processing you have used with references if any. Justify your training, 
+#### 4.4.1. pre-processing
 I used transformation to increase the number of samples the model is trained on.
 For transformation the albumentations module was used. This makes the transformation much eaiser.
 Transformation used are, rotate, horizontalflip, veritcalflip. Also the values were normalized.
 I also resized the images into 256x256 sizes to increase the performance of training and also because my model works on that sizes. 
 
-#### 4.5.2. Training
+#### 4.4.2. Training
 The training is done in batch size of 16 with 10 epoches.
 The opitmizer used is ADAM and the loss function used is Dice loss function.
 The schaduler was used to reduce the learning rate at the end fo the function.
 The training accuracy and saved predictions are from validation imagesets. 
 GradScaler is used to make the training faster.
 
-#### 4.5.3 Commentation
+#### 4.5 Commentation
 Each class and functions/methods are commented.
 Comment includes a brief description of the function of the class,method or the function and followed by 
 the parameters it recieves and the return values it returns.
+
 ## 5. Algorithm/ImprovedUnet
 This program uses improved Unet to segment the differnt types of skin conditions such as melanoma.
 The improved Unet strucuture explained
