@@ -5,12 +5,10 @@ import torch.nn as nn
 from einops import rearrange
 from einops.layers.torch import Rearrange
 
-""" 
-This file will contain the source code of the model's components.
-Each component of the model will be implemented as a class or function.
-"""
 
 """
+This file contains all of the components required to create a 2D image recognition
+transformer (ViT) used for a binary classification problem.
 ViT for ImageNet: https://arxiv.org/abs/2205.01580
 
 - ViT has a set of tokens + 1 class token
@@ -30,7 +28,30 @@ Einops:
 - Use to perform dot products on particular indices of passed tensors
 using Einstein summation
 - Use to transform from 1D to 2D, patchifying, etc.
+
+
+A rough diagram of required components:
+
+Main sub-component #1: 
+->
+-> Multi-Head Attention -> Add & Layer Norm -> Feed Forward --> Add & Layer Norm ->
+->                               ^                           |         ^  
+---------------------------------|                           |---------|
+
+
+Main sub-component #2: 
+->
+-> Masked Multi-Head Attention -> Add & Layer Norm -> Multi-Head Attention ------> Add & Layer Norm -> Feed Forward --> Add & Layer Norm ->
+->                                      ^                                  ^ ^ |         ^                          |         ^  
+----------------------------------------|                                  | | |---------|                          |---------|
+                                                                           |-|
+                                                                            |
+
+Full ViT:
+Inputs -> Input Embedding -> Positional Encoding -> Main sub-component #1 ------
+Outputs (shifted right) -> Output Embedding -> Positional Encoding -> Main sub-component #2 -> Linear -> Softmax -> Output probabilities
 """
+
 
 """
 Creates the multi-head attention modules used within the ViT network.
@@ -122,3 +143,58 @@ class Attention(nn.Module):
         out = rearrange(out, "b h n d -> b n (h d)")
         # Apply to Linear layer to give flattened linear output
         return self.to_out(out)
+
+
+"""
+A simple feed-forward NN, used within components of the ViT.
+
+Network contains two hidden Linear layers, with an activation function
+between them. Layer normalisation (for 1D data) is also applied to input values.
+
+FeedForward modules are added to the network after multi-head attention modules,
+taking the flattened Linear layer outputs from these modules.
+One FeedForward module will be placed after the multi-head attention module handling
+inputs. A second module will be placed after the chained masked multi-head attention
+and multi-head attention modules handling outputs.
+As there are N complete network components handling inputs and N complete network
+components handling outputs, this means that N FeedForward modules are required
+for inputs and N FeedForward modules are required for outputs.
+"""
+class FeedForward(nn.Module):
+
+    """
+    Create the simple linear layers used within the ViT.
+
+    Params:
+        dimensions (int): the size/dimensions of the input data
+        hidden_layer_dimensions (int): the size/dimensions of the two hidden 
+                                       Linear layers
+    """
+    def __init__(self, dimensions, hidden_layer_dimensions):
+        super().__init__()
+        # Create the network:
+        self.network = nn.Sequential(
+            # Apply 1D layer normalisation (similar to batch norm for 2D data)
+            nn.LayerNorm(dimensions),
+            # Add the first hidden Linear layer
+            nn.Linear(dimensions, hidden_layer_dimensions),
+            # Apply GELU (Gaussian Error Linear Unit) activation fn
+            # TODO why GELU? Try ReLU or other activation fns
+            nn.GELU(),
+            # Add second hidden Linear layer
+            nn.Linear(hidden_layer_dimensions, dimensions)
+        )
+    
+    """
+    Perform one forward pass (forward propagation) on the Feed-Forward NN.
+
+    Params:
+        x: 1D representation of input data
+    Returns:
+        Computed result of attention module (after second Linear layer is applied)
+    """
+    def forward(self, x):
+        return self.network(x)
+
+
+
