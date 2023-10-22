@@ -11,7 +11,7 @@ print(device)
 
 # Path
 path = '/home/groups/comp3710'
-model_path = '/home/Student/s4623300/PatternAnalysis-2023/recognition/46233002_Siamese_ADNI/easysemihard'
+model_path = '/home/Student/s4623300/PatternAnalysis-2023/recognition/46233002_Siamese_ADNI/models'
 
 # Create train/test/validation dataset objects 
 predset = adniPredictionDataset(path + "/ADNI/AD_NC/test/AD")
@@ -20,8 +20,8 @@ pred_loader = DataLoader(predset, shuffle=False, batch_size=32)
 # Construct encoder 
 siamese = Siamese().to(device)
 classifier = Classifier().to(device)
-siamese.load_state_dict(torch.load(model_path + '/siamese.pt'))
-classifier.load_state_dict(torch.load(model_path + '/classifier.pt'))
+siamese.load_state_dict(torch.load(model_path + '/siamese.pt', map_location='cpu'))
+classifier.load_state_dict(torch.load(model_path + '/classifier.pt', map_location='cpu'))
 
 # Generate predictions
 predict(siamese, classifier, pred_loader, device)
