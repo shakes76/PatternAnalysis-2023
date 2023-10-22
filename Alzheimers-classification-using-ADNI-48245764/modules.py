@@ -16,6 +16,17 @@ mlp_units = [2048, 1024]
 input_shape = (140, 140, 3)
 
 
+preprocessing = keras.Sequential(
+    [
+        Normalization(),
+        Resizing(image_size, image_size),
+        RandomFlip("horizontal"),
+        RandomRotation(factor=0.01),
+    ],
+    name="preprocessing"
+)
+
+
 def perceptron(tensor_in, hidden_units, dropout):
     for units in hidden_units:
         tensor_in = Dense(units, activation=tf.nn.gelu)(tensor_in)
