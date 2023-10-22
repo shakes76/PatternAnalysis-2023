@@ -144,7 +144,22 @@ To get a visual understanding of the model's performance, a GIF showcasing the i
 
 This GIF visually represents the model's ability to generate and denoise images throughout its training lifecycle.
 
----
+## Dependencies
+
+To ensure consistent behavior across different setups, it's recommended to use the provided `environment.yml` file with Miniconda. This will create a new conda environment with all necessary dependencies installed.
+
+1. **Install Miniconda or Anaconda**: Download Miniconda from: [Miniconda's official page](https://docs.conda.io/en/latest/miniconda.html) 
+
+2. **Create a new Conda environment**:
+    Navigate to the project directory where the `environment.yml` file is located and run the following command:
+    ```bash
+    conda env create -f environment.yml
+    ```
+
+3. **Activate the new environment**:
+    ```bash
+    conda activate comp3710
+    ```
 
 ## References
 
