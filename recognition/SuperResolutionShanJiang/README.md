@@ -22,6 +22,11 @@ The model structure is defined in `modules.py`. using keras framwork. The struct
 - third layer: A convolutional layer with 32 filters and a kernel size of 3 to extract features.
 - fourth layer: A convolution layer with `channels * (upscale_factor ** 2)` filters and a kernel size of 3 to increase spatial resolution.
 - depth to space operation: Using TensorFlow's tf.nn.depth_to_space function to perform a depth-to-space upscaling operation specified 'upscale_factor' to produce the super-resolved image with a higher resolution.
+Note: for best performance, keep the value of `upscale_factor` parameter (default to 4) in `get_model` the same as the value of `upscale_factor` parameter defined in `dataset.py` and keep the value of `channels` to the default value (1).
+### Utilities
+Two functions are defined in `utils.py`. 
+- `get_lowres_image(img, upscale_factor)` downsamples given `image` by  ratio of given `upscale_factor`. It is later used in train.py to convert testing images to low resolutions images.
+- `upscale_image(model, img)` preprocessed given `image` and use the give `model` to increase its resolution. The preprocessing include convert the image into YCbCr color space and isolate and nomalise(dividing by 255) the Y channel, reshape the Y channel array to shape shape matches the model input shape. The prediction output from the model is demornalised(multiplying by 255) and restored to RGB color space.
 
 
        

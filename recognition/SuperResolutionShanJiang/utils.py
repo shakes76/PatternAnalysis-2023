@@ -4,32 +4,17 @@ from mpl_toolkits.axes_grid1.inset_locator import mark_inset
 import PIL
 import numpy as np
 from keras.utils import img_to_array
+
+# downsamples given image by  ratio of given upscale_factor.
 def get_lowres_image(img, upscale_factor):
-    """Return low-resolution image converted from given image to be fed into model
-
-    Args:
-        img: image to be fed into model
-        upscale_factor (_type_): the ratio the image is downsized by
-
-    Returns:
-        Image: low-resolution image
-    """
     return img.resize(
         (img.size[0] // upscale_factor, img.size[1] // upscale_factor),
         PIL.Image.BICUBIC,
     )
 
 
+# preprocessed given image and use the give model to increase its resolution
 def upscale_image(model, img):
-    """Use given model to predict high resolution version of the given image and it as RGB.
-
-    Args:
-        model: super-resolution network 
-        img (_type_): low resolution image to be converted to high resolution
-
-    Returns:
-        Image: prediction result- high resolution RGB image
-    """
     ycbcr = img.convert("YCbCr")
     y, cb, cr = ycbcr.split()
     y = img_to_array(y)
