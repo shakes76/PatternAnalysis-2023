@@ -6,7 +6,7 @@ from modules import Perceiver, CrossAttention
 from dataset import get_dataloaders
 
 # Constants and hyperparameters
-BATCH_SIZE = 32
+BATCH_SIZE = 5
 EPOCHS = 10
 LR = 0.005
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -25,7 +25,7 @@ loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LR)
 
 # Data Loaders
-train_loader, valid_loader, test_loader = get_dataloaders("C:\\Users\\AK\\Documents\\COMP3710\\AD_NC", batch_size=BATCH_SIZE)
+train_loader, valid_loader, test_loader = get_dataloaders("C:\\Users\\AK\\Documents\\COMP3710\\AlzDataset", batch_size=BATCH_SIZE)
 
 # Training
 train_losses = []

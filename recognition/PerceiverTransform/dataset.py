@@ -7,12 +7,7 @@ from PIL import Image
 
 class AlzheimerDataset(Dataset):
     def __init__(self, root_dir, mode='train', transform=None):
-        """
-        Args:
-            root_dir (string): Directory with all the images.
-            mode (string): Mode in which the dataset operates. Can be 'train' or 'test'.
-            transform (callable, optional): Optional transform to be applied on a sample.
-        """
+
         self.root_dir = os.path.join(root_dir, mode)  # This appends 'train' or 'test' based on mode, effectively separating the datasets.
         self.transform = transform
         self.nc_images = [os.path.join(self.root_dir, 'NC', img) for img in os.listdir(os.path.join(self.root_dir, 'NC')) if img.endswith('.jpeg')]
@@ -29,7 +24,7 @@ class AlzheimerDataset(Dataset):
         img_name = self.total_images[idx]
         image = Image.open(img_name).convert('RGB')
         
-        label = 0 if 'NC' in img_name else 1  # 0 for NC and 1 for AD
+        label = 0 if img_name in self.nc_images else 1  # 0 for NC and 1 for AD
         
         if self.transform:
             image = self.transform(image)
@@ -37,9 +32,7 @@ class AlzheimerDataset(Dataset):
         return image, label
 
 def get_dataloaders(root_dir, batch_size):
-    """
-    Returns train and test dataloaders.
-    """
+
     # Image preprocessing steps: resizing to a common size, converting to tensor, and normalizing.
     # Adjust these transformations based on your specific needs.
     transform = transforms.Compose([
