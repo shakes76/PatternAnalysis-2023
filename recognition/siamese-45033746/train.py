@@ -3,8 +3,9 @@ from torch.utils.data import DataLoader
 from torch import optim
 from torch.nn import TripletMarginLoss
 import torch
-from utils import show_plot, save_plot
+from utils import save_plot
 from dataset import load
+from os.path import exists
 
 MODEL_PATH = "./assets/siamese_model.pth"
 
@@ -40,12 +41,14 @@ def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLo
     return counter, loss
 
 
-def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
-                  trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
+def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, trainDataLoader: DataLoader,
+                  validDataLoader: DataLoader, epochs: int, device):
     train_counter = []
     val_counter = []
     train_loss = []
     val_loss = []
+
+    optimiser = optim.Adam(model.parameters(), lr=0.0005)
 
     print(f"Training images : {len(trainDataLoader) * trainDataLoader.batch_size}")
     print(f"Validation images : {len(validDataLoader) * validDataLoader.batch_size}")
@@ -71,12 +74,14 @@ def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser
     torch.save(model.state_dict(), MODEL_PATH)
 
 
-def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
+def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: TripletMarginLoss,
                  trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
     train_counter = []
     val_counter = []
     train_loss = []
     val_loss = []
+
+    optimiser = optim.Adam(model.parameters(), lr=0.0005)
 
     siamese.eval()
 
@@ -141,6 +146,31 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: Tr
     save_plot(val_counter, val_loss, "binary_validation")
 
 
+def parent_train_siamese(device, train: DataLoader, val: DataLoader):
+    # Send model to gpu
+    net = SiameseNetwork().to(device)
+
+    train_siamese(net, TripletMarginLoss(), train, val, 1, device)
+
+
+# model: BinaryClassifier, siamese: SiameseNetwork, criterion: TripletMarginLoss,
+#                  trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device
+def parent_train_binary(device, train: DataLoader, val: DataLoader):
+    # Send classifier to gpu
+    net = BinaryClassifier().to(device)
+
+    # Check siamese model has been trained
+    siamese_exists = exists(MODEL_PATH)
+    if not siamese_exists:
+        parent_train_siamese(device, train, val)
+
+    siamese_net = SiameseNetwork()
+    siamese_net.load_state_dict(torch.load(MODEL_PATH))
+    siamese_net.to(device)
+
+    train_binary(net, siamese_net, TripletMarginLoss(), train, val, 1, device)
+
+
 def main():
     trainData, valData = load()
     print(f"Data loaded")
@@ -148,13 +178,8 @@ def main():
     # Device configuration
     gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-    # Send model to cpu
-    net = SiameseNetwork().to(gpu)
-
-    adam_optimiser = optim.Adam(net.parameters(), lr=0.0005)
-    epoch_num = 15
-
-    train_siamese(net, TripletMarginLoss(), adam_optimiser, trainData, valData, epoch_num, gpu)
+    # Train binary classifier based on siamese classifier
+    parent_train_binary(gpu, trainData, valData)
 
 
 if __name__ == '__main__':

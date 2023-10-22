@@ -1,5 +1,6 @@
 import torch.nn as nn
 
+SIAMESE_FEATURES = 2
 
 class SiameseNetwork(nn.Module):
     """
@@ -30,7 +31,7 @@ class SiameseNetwork(nn.Module):
             nn.Linear(512, 256),
             nn.ReLU(inplace=True),
 
-            nn.Linear(256, 2)
+            nn.Linear(256, SIAMESE_FEATURES)
         )
 
     def forward_once(self, tensor):
@@ -55,11 +56,11 @@ class SiameseNetwork(nn.Module):
 
 class BinaryClassifier(nn.Module):
 
-    def __init__(self, siamese_embeddings):
+    def __init__(self):
         super().__init__()
 
         self.fc1 = nn.Sequential(
-            nn.Linear(siamese_embeddings, 32),
+            nn.Linear(SIAMESE_FEATURES, 32),
             nn.ReLU(inplace=True),
             nn.Linear(32, 1)
         )
