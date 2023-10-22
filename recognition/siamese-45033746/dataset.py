@@ -110,8 +110,11 @@ def get_patient_split() -> (datasets.ImageFolder, datasets.ImageFolder):
     return train_dataset, validation_dataset
 
 
-def get_test_set():
-    return datasets.ImageFolder(root=TEST_FILE_ROOT)
+def get_test_set() -> DataLoader:
+    return DataLoader(SiameseDataSet(datasets.ImageFolder(root=TEST_FILE_ROOT), compose_transform()),
+                      shuffle=True,
+                      num_workers=2,
+                      batch_size=32)
 
 
 def compose_transform():

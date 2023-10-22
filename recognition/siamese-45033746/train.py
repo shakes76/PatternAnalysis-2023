@@ -10,6 +10,7 @@ import torch.nn as nn
 
 SIAMESE_MODEL_PATH = "./assets/port/siamese_model.pth"
 BINARY_MODEL_PATH = "./assets/binary_model.pth"
+EPOCHS = 1
 
 
 def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt, counter: [],
@@ -75,8 +76,6 @@ def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, trainData
 
     torch.save(model.state_dict(), SIAMESE_MODEL_PATH)
 
-    return model
-
 
 def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn.BCEWithLogitsLoss,
                  trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
@@ -95,7 +94,7 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn
         model.train()
         for i, (label, anchor, _, _) in enumerate(trainDataLoader, 0):
             # Send data to GPU
-            anchor, label = anchor.to(device), label.to(device)
+            anchor, label = anchor.to(device), label.to(device)  # torch.unsqueeze(label.to(device), dim=1).float()
 
             # Zero gradients
             optimiser.zero_grad()
@@ -156,7 +155,8 @@ def parent_train_siamese(device, train: DataLoader, val: DataLoader):
     # Send model to gpu
     net = SiameseNetwork().to(device)
 
-    return train_siamese(net, TripletMarginLoss(), train, val, 50, device)
+    train_siamese(net, TripletMarginLoss(), train, val, EPOCHS, device)
+
 
 def parent_train_binary(device, train: DataLoader, val: DataLoader):
     # Send classifier to gpu
@@ -168,15 +168,16 @@ def parent_train_binary(device, train: DataLoader, val: DataLoader):
     siamese_exists = exists(SIAMESE_MODEL_PATH)
     if not siamese_exists:
         print("No SiameseNet trained model found, training new SiameseNet")
-        siamese_net = parent_train_siamese(device, train, val)
+        parent_train_siamese(device, train, val)
     else:
         print("Trained SiameseNet found, loading now...")
-        siamese_net = torch.load(SIAMESE_MODEL_PATH)
-        siamese_net.to(device)
+
+    siamese_net = SiameseNetwork()
+    siamese_net.load_state_dict(torch.load(SIAMESE_MODEL_PATH))
+    siamese_net.to(device)
 
     crit = nn.BCEWithLogitsLoss()
-
-    train_binary(net, siamese_net, crit, train, val, 50, device)
+    train_binary(net, siamese_net, crit, train, val, EPOCHS, device)
 
 
 def main():
