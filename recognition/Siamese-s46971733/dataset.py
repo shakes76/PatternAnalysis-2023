@@ -15,14 +15,7 @@ import random
 TESTIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/test'
 TRAINIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/train'
 
-# # Local Locations
-# TESTIMAGEPATH = '../ADNI/AD_NC/test'
-# TRAINIMAGEPATH = '../ADNI/AD_NC/train'
-
 # Local Locations
-# TESTIMAGEPATH = '..\\ADNI\\AD_NC\\test'
-# TRAINIMAGEPATH = '..\\ADNI\\AD_NC\\train'
-
 #TESTIMAGEPATH = '../ADNI/AD_NC/test'
 #TRAINIMAGEPATH = '../ADNI/AD_NC/train'
 #TRAINIMAGEPATH = '../ADNI/AD_NC/train_big'
@@ -116,7 +109,6 @@ valid_dirs_full_NC_brain = temp_NC_full_brain[train_len:]
 train_dirs_full_brain.extend(train_dirs_full_NC_brain)
 valid_dirs_full_brain.extend(valid_dirs_full_NC_brain)
 
-
 for i in os.listdir(TESTIMAGEPATH):
     if i == 'AD':
         for s in range(int(test_brain_sets_AD)):
@@ -135,25 +127,8 @@ image_size = 210
 
 random.shuffle(train_dirs_full_brain)
 
-# Transforms to be applied to data loaders.
-# transform = transforms.Compose([transforms.ToPILImage(),
-#                                 transforms.ToTensor(),
-#                                 transforms.Resize((image_size, image_size), antialias=None)
-#                                  ])
-
-# transform = transforms.Compose([transforms.ToTensor(),
-#                                 transforms.Resize((image_size, image_size), antialias=None),
-#                                 transforms.Normalize(0.5, 0.2)
-#                                  ])
-
 transform = transforms.Compose([transforms.ToTensor(),
                                 transforms.Resize((image_size, image_size), antialias=None)
-                                 ])
-
-transform_train = transforms.Compose([transforms.ToTensor(),
-                                transforms.Resize((image_size, image_size), antialias=None),
-                                transforms.RandomHorizontalFlip(p=0.5),
-                                transforms.RandomVerticalFlip(p=0.5)
                                  ])
 
 class ImageDataset(Dataset):
@@ -237,17 +212,49 @@ class ImageDataset3D(Dataset):
         self.label_list = [image[0].split('\\')[-2] for image in self.image_segs]
         self.transform = transform
 
+    # Create transforms randomly to be applied to all 20 slices of a brain.
+    def create_transform(self):
+        random_h = random.randint(0, 1)
+        random_v = random.randint(0, 1)
+
+        if random_h and not random_v:
+            transform_train = transforms.Compose([transforms.ToTensor(),
+                                                  transforms.Resize((image_size, image_size), antialias=None),
+                                                  transforms.RandomHorizontalFlip(p=1)
+                                                  ])
+
+        elif random_v and not random_h:
+            transform_train = transforms.Compose([transforms.ToTensor(),
+                                                  transforms.Resize((image_size, image_size), antialias=None),
+                                                  transforms.RandomVerticalFlip(p=1)
+                                                  ])
+
+        elif random_h and random_v:
+            transform_train = transforms.Compose([transforms.ToTensor(),
+                                                  transforms.Resize((image_size, image_size), antialias=None),
+                                                  transforms.RandomHorizontalFlip(p=1),
+                                                  transforms.RandomVerticalFlip(p=1)
+                                                  ])
+
+        else:
+            transform_train = transforms.Compose([transforms.ToTensor(),
+                                                  transforms.Resize((image_size, image_size), antialias=None)
+                                                  ])
+
+        return transform_train
+
     def __len__(self):
         return len(self.image_segs)
 
     def __getitem__(self, idx):
-        img_path = self.image_segs[idx]
-        # Read image and extract anchor label.
 
+        # Read image and extract anchor label.
+        img_path = self.image_segs[idx]
         anchor_full_data = []
         positive_images = []
         negative_images = []
 
+        # Split path to get label.
         anchor_label = img_path[0].split('\\')[-2]
 
         if not self.clas:
@@ -267,6 +274,10 @@ class ImageDataset3D(Dataset):
             positive = random.choice(positive_list)
             negative = random.choice(negative_list)
 
+        anchortransform = self.create_transform()
+        postransform = self.create_transform()
+        negtransform = self.create_transform()
+
         # For each slice of the brain.
         for i in range(20):
 
@@ -274,9 +285,8 @@ class ImageDataset3D(Dataset):
 
             # If transforms are given.
             if self.transform is not None:
-                # apply the transformations to image
-                # e.g. transform [H, W, n] format to [n, H, W]
-                anchor_data = self.transform(anchor_data)
+                # Apply the transformations to image
+                anchor_data = anchortransform(anchor_data)
 
             anchor_full_data.append(anchor_data)
 
@@ -289,8 +299,8 @@ class ImageDataset3D(Dataset):
 
                 # If transforms are given.
                 if self.transform is not None:
-                    positive_image = self.transform(positive_image)
-                    negative_image = self.transform(negative_image)
+                    positive_image = postransform(positive_image)
+                    negative_image = negtransform(negative_image)
 
                 positive_images.append(positive_image)
                 negative_images.append(negative_image)
@@ -309,12 +319,12 @@ class ImageDataset3D(Dataset):
         else:
             return anchor_full_data, anchor_label
 
-
+# Used in train.py to create datasets for data loader.
 def get_dataset(train=0, clas=0, valid=0):
     if train == 1 and clas == 0:
-        return ImageDataset3D(train_dirs_full_brain, transform=transform_train, clas=0)
+        return ImageDataset3D(train_dirs_full_brain, transform=transform, clas=0)
     elif train == 1 and clas == 1:
-        return ImageDataset3D(train_dirs_full_brain, transform=transform_train, clas=1)
+        return ImageDataset3D(train_dirs_full_brain, transform=transform, clas=1)
     elif valid == 1 and clas == 0:
         return ImageDataset3D(valid_dirs_full_brain, transform=transform, clas=0)
     elif valid == 1 and clas == 1:
