@@ -1,15 +1,38 @@
-# Visual Transformer (ViT) for classifying Alzheimer's Disease
+# Alzheimer's Disease Classification with Visual Transformers (ViT)
 
 ## OVERVIEW:
-This project is dedicated to creating a machine learning model for the classification of Alzheimer's disease (AD) and normal brain scans, employing advanced Visual or Perceiver Transformer models. The primary objective is to achieve a minimum accuracy of 0.8 on the test dataset
-n 2020, the groundbreaking paper titled "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale" demonstrated that traditional Convolutional Neural Networks could be surpassed by Vision Transformers. These Vision Transformers proved capable of delivering outstanding results when compared to state-of-the-art convolutional networks, all while demanding fewer computational resources for training.The adoption of Vision Transformers in this project is driven by the potential to harness their efficiency and accuracy in medical image classification, ultimately contributing to the advancement of Alzheimer's disease diagnosis and enhancing the healthcare landscape.
+This project is dedicated to creating a machine learning model for the classification of Alzheimer's disease (AD) and normal brain scans, utilizing advanced Visual or Perceiver Transformer models. The primary objective is to achieve a minimum accuracy of 0.8 on the test dataset.
+
+In 2020, the groundbreaking paper titled "An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale" demonstrated that traditional Convolutional Neural Networks could be surpassed by Vision Transformers. These Vision Transformers proved capable of delivering outstanding results when compared to state-of-the-art convolutional networks, all while demanding fewer computational resources for training.
+
+The adoption of Vision Transformers in this project is driven by the potential to harness their efficiency and accuracy in medical image classification. This initiative aims to contribute to the advancement of Alzheimer's disease diagnosis and enhance the healthcare landscape.
+
+## Project Goals
+
+- Develop a state-of-the-art machine learning model for Alzheimer's disease classification.
+- Achieve a minimum accuracy of 0.8 on the test dataset.
+- Leverage Vision Transformers to enhance efficiency and accuracy in medical image classification.
 
 ![visual transformer](https://github.com/saakshigupta2002/PatternAnalysis-2023/assets/62831255/579168d1-8dbe-4177-a549-52b8a930319c)
 
 ## MODEL ARCHITECTURE:
-The Visual Transformer (ViT) is an influential neural network architecture for computer vision, adapting the Transformer model from natural language processing to process images. ViT divides images into patches, transforms them into vectors, and employs a multi-head self-attention mechanism to capture complex spatial relationships. It uses stacked layers of self-attention and feedforward networks to extract features and make predictions. ViT excels in tasks like image classification and object detection, thanks to its ability to handle global and local information. However, training ViT models usually requires pre-training on large image datasets due to its high parameter count, yet it has significantly impacted the field of computer vision.
+
+The Visual Transformer (ViT) is an influential neural network architecture designed for computer vision, adapting the Transformer model originally developed for natural language processing to process images. ViT's approach involves the following key components:
+
+- **Patch-Based Representation:** ViT divides images into fixed-size patches, which are treated as the model's inputs. This enables ViT to process images in a structured manner.
+
+- **Embedding and Self-Attention:** Each patch is linearly embedded into vectors, and ViT employs a multi-head self-attention mechanism to capture complex spatial relationships among these patches. This allows ViT to understand the relationships between different parts of the image.
+
+- **Layered Transformation:** ViT utilizes a stack of layers, including self-attention and feedforward networks, to process the image patches. These layers enable ViT to extract hierarchical features from the image and make predictions based on these features.
+
+ViT excels in various computer vision tasks, including image classification and object detection. It is particularly effective in handling both global and local information within images, making it a versatile choice for a wide range of visual recognition tasks.
+
+It's worth noting that training ViT models often requires pre-training on large image datasets due to its high parameter count. Nevertheless, ViT has significantly impacted the field of computer vision, providing a powerful alternative to traditional Convolutional Neural Networks (CNNs).
 
 ## Vision Transformer Model Steps
+
+![image](https://github.com/saakshigupta2002/PatternAnalysis-2023/assets/62831255/c341531f-c5f8-49a5-9781-67980a1c912b)
+
 
 1. **Split Image into Patches:** Divide the input image into fixed-size patches.
 
@@ -25,14 +48,12 @@ The Visual Transformer (ViT) is an influential neural network architecture for c
 
 7. **Classification Head:** Pass the [class] token vector through a classification head to obtain the final output, typically representing class predictions or scores.
 
-
-## Transformer Encoder: 
+### Transformer Encoder: 
 The Transformer Encoder is composed of two main layers: Multi-Head Self-Attention and Multi-Layer Perceptron. Before passing patch embeddings through these two layers, we apply Layer Normalization and right after passing embeddings through both layers, we apply Residual Connection.
 
-<img src="https://github.com/saakshigupta2002/PatternAnalysis-2023/assets/62831255/871fe1ac-dd5c-408a-a6f4-71afb08b3fde" width="800" />
 
 
-## Dependencies:
+## DEPENDENCIES:
 
 
 | Dependency        | Version    | Description                                       |
@@ -43,8 +64,7 @@ The Transformer Encoder is composed of two main layers: Multi-Head Self-Attentio
 | Matplotlib        | 3.5.2      | Data visualization library for creating plots and charts. |
 | Keras             | 2.0.8      | High-level neural networks API running on top of TensorFlow. |
 
-## Repository Overview:
-## Repository Overview
+## REPOSITORY OVERVIEW:
 
 | Module             | Description                                                    |
 |--------------------|----------------------------------------------------------------|
@@ -82,7 +102,8 @@ The dataset comprises 21,500 grayscale images, each with dimensions 256x240, div
 
 
 ## RESULTS:
-The current best model trained reached 57.63% accuracy on the test set, with 60.52% training accuracy. This was achieved using the following parameters:
+- Test Set Accuracy: 57.63%
+- Training Accuracy: 60.52%
 
 ### Model Configuration
 
@@ -118,7 +139,6 @@ The accuracy plot visualizes the model's performance during training:
 
 <img width="512" alt="image" src="https://github.com/saakshigupta2002/PatternAnalysis-2023/assets/62831255/ce35238b-e0eb-41b3-925c-41c1fb0755dd">
 
-In the plot, you can observe the accuracy trends for the training and validation sets, which provide insights into the model's learning process and potential overfitting.
 
 ### Loss Plot:
 
@@ -131,21 +151,19 @@ The loss plot tracks the performance of the model's loss function during trainin
 
 <img width="512" alt="image" src="https://github.com/saakshigupta2002/PatternAnalysis-2023/assets/62831255/3464f7ce-5780-4d51-99e8-dd1b591cb2dc">
 
-In the plot, you can observe the loss trends for both the training and validation sets, providing insights into the model's learning process and the potential occurrence of overfitting.
-
 
 ## CONCLUSIONS:
-Model Improvement Efforts:
+**Model Improvement Efforts:**
 I tried various methods to enhance our model's performance, including adjusting learning rates, weight decay, image sizes, batch sizes, and patch sizes. Unfortunately, none of these adjustments led to substantial improvements. Both the validation and testing accuracies remained below 80% throughout much of the training process.
 
-Challenges in Achieving 80% Accuracy:
+**Challenges in Achieving 80% Accuracy:**
 The original goal was to attain over 80% accuracy on the test data, but this proved to be quite challenging. It would have required meticulous tweaking of numerous model settings to see improvements.
 
-Potential Enhancements:
+**Potential Enhancements:**
 To enhance this project and get closer to the 80% accuracy target, I suggest two key approaches:
 
-1.	Larger Dataset: Using a more extensive dataset could be highly beneficial. More data often leads to better model performance.
-2.	Pre-trained Vision Transformers: Following a strategy similar to the one outlined in the original Vision Transformer paper, we could start with pre-trained Vision Transformers and then fine-tune them with our specific dataset. This approach has the potential to significantly improve the model's accuracy.
+1.	**Larger Dataset:** Using a more extensive dataset could be highly beneficial. More data often leads to better model performance.
+2.	**Pre-trained Vision Transformers:** Following a strategy similar to the one outlined in the original Vision Transformer paper, we could start with pre-trained Vision Transformers and then fine-tune them with our specific dataset. This approach has the potential to significantly improve the model's accuracy.
    
 
 ## REFERENCES:
@@ -159,7 +177,9 @@ Image classification with Vision Transformer
 
 https://keras.io/examples/vision/image_classification_with_vision_transformer/
 
-https://github.com/shakes76/PatternFlow/blob/topic-recognition/recognition/46965611-ADNI-Brain-Visual-Transformer/README.md
+https://github.com/shakes76/PatternFlow/blob/topic-recognition/recognition/46965611-ADNI-Brain-Visual-Transformer
+
+https://medium.com/@faheemrustamy/vision-transformers-vs-convolutional-neural-networks-5fe8f9e18efc
 
 https://github.com/nerminnuraydogan/vision-transformer
 
