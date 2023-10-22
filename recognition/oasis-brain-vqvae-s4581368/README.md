@@ -63,7 +63,7 @@ As seen, the images are quite blurry and contain some amounts of noise, due to t
 ![](./images/higher_qual_zoomed.png)
 
 ## Reproduction 
-To generate the images shown above, ensure the OASIS data path is either specified or in the working directory, and run ```train.py```. This will generate the ```log``` and ```model``` directories in the workspace, which save the various models, logs and tensorboard logfiles for each time the training script is run.
+To generate the images shown above, ensure the OASIS data path is either specified or in the working directory, install all necessary dependencies, ensure that you are in a conda environment, and run ```driver.py```. This will generate the ```log``` and ```model``` directories in the workspace, which save the various models, logs and tensorboard logfiles for each time the training script is run.
 
 ## Model Dependencies
 | **Library** | **Version** |
