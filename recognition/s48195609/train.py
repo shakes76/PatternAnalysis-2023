@@ -1,100 +1,75 @@
 """
 train.py
-Code for training, validating, testing, and saving the model.
+
+Code for training and saving the model.
+
 Author: Atharva Gupta
-Date Created: 20-10-2023
+Date Created: 17-10-2023
 """
 import torch
 import torch.optim as optim
 import torch.nn as nn
 import matplotlib.pyplot as plt
-from datasplit import load_data
-from modules import build_vision_transformer
+
+from datasplit import create_data_loader
+from modules import CustomPerceiver
 from parameter import *
-from torchsummary import summary
-model = build_vision_transformer(INPUT_SHAPE, IMAGE_SIZE, PATCH_SIZE, NUM_PATCHES, NUM_HEADS, PROJECTION_DIM, HIDDEN_UNITS, DROPOUT_RATE, NUM_LAYERS, MLP_HEAD_UNITS, LOCAL_WINDOW_SIZE)
-model.to(device=torch.device("cuda" if torch.cuda.is_available() else "cpu"))
-summary(model, INPUT_SHAPE)
 
-def compile_model():
-    """
-    Builds and compiles the model.
-    """
-    # Build and compile model
-    model = build_vision_transformer(INPUT_SHAPE, IMAGE_SIZE, PATCH_SIZE, NUM_PATCHES, NUM_HEADS, PROJECTION_DIM, HIDDEN_UNITS, DROPOUT_RATE, NUM_LAYERS, MLP_HEAD_UNITS, LOCAL_WINDOW_SIZE)
-    optimizer = optim.AdamW(model.parameters(), lr=LEARNING_RATE, weight_decay=WEIGHT_DECAY)
-    criterion = nn.BCEWithLogitsLoss()
+# Create a data loader for training data
+train_data_loader = create_data_loader(DATA_PATH, BATCH_SIZE)
 
-    return model, optimizer, criterion
+# Check if a GPU is available, if not, use CPU
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def train_model(model, optimizer, criterion, train_data, val_data):
-    """
-    Trains and saves the model.
-    """
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model.to(device)
-    model.train()
+# Initialize the custom Perceiver model
+model = CustomPerceiver(NUM_LATENTS, DIM_LATENTS, DEPTH_LATENT_TRANSFORMER, NUM_CROSS_ATTENDS)
+model.to(device)
 
-    # Define data loaders
-    train_loader = torch.utils.data.DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = torch.utils.data.DataLoader(val_data, batch_size=BATCH_SIZE)
+# Define loss function (cross-entropy) and optimizer (Adam)
+loss_fn = nn.CrossEntropyLoss()
+optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    train_losses = []
-    val_losses = []
+loss_data = []  # List to store average loss for each epoch
+accuracy = []   # List to store training accuracy for each epoch
 
-    for epoch in range(EPOCHS):
-        running_train_loss = 0.0
-        running_val_loss = 0.0
+for epoch in range(EPOCHS):
+    correct = 0
+    total = 0
+    running_loss = 0.0
 
-        for inputs, labels in train_loader:
-            inputs, labels = inputs.to(device), labels.to(device)
+    for i, data in enumerate(train_data_loader, 0):
+        inputs, labels = data
+        inputs = inputs.to(device)
+        labels = labels.to(device)
 
-            optimizer.zero_grad()
+        optimizer.zero_grad()
 
-            outputs = model(inputs)
-            loss = criterion(outputs, labels.view(-1, 1).float())
+        outputs = model(inputs)
 
-            loss.backward()
-            optimizer.step()
+        loss = loss_fn(outputs, labels)
+        loss.backward()
+        optimizer.step()
 
-            running_train_loss += loss.item()
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+        running_loss += loss.item()
 
-        model.eval()
-        with torch.no_grad():
-            for val_inputs, val_labels in val_loader:
-                val_inputs, val_labels = val_inputs.to(device), val_labels.to(device)
+    print(f"Epoch {epoch} completed")
+    loss_data.append(running_loss / len(train_data_loader))
+    accuracy.append(correct / total * 100)
 
-                val_outputs = model(val_inputs)
-                val_loss = criterion(val_outputs, val_labels.view(-1, 1).float())
+# Plot average loss over epochs
+plt.plot(loss_data)
+plt.xlabel('EPOCH')
+plt.ylabel('Average Loss')
+plt.show()
 
-                running_val_loss += val_loss.item()
+# Plot training accuracy over epochs
+plt.plot(accuracy)
+plt.xlabel('EPOCH')
+plt.ylabel('Training Accuracy')
+plt.show()
 
-        model.train()
-
-        train_loss = running_train_loss / len(train_loader)
-        val_loss = running_val_loss / len(val_loader)
-
-        print(f"Epoch [{epoch + 1}/{EPOCHS}] - Train Loss: {train_loss:.4f}, Validation Loss: {val_loss:.4f}")
-
-        train_losses.append(train_loss)
-        val_losses.append(val_loss)
-
-    # Save model
-    torch.save(model.state_dict(), MODEL_SAVE_PATH)
-
-    # Plot and save loss curves
-    plt.plot(train_losses, label='Train Loss')
-    plt.plot(val_losses, label='Validation Loss')
-    plt.xlabel('Epoch')
-    plt.ylabel('Loss')
-    plt.title('Training and Validation Loss')
-    plt.legend()
-    plt.savefig('losses.png')
-
-if __name__ == '__main__':
-    # Load data
-    train, val, test = load_data()
-
-    # Compile and train model
-    model, optimizer, criterion = compile_model()
-    train_model(model, optimizer, criterion, train, val)
+# Save the trained model's state dictionary to the specified path
+torch.save(model.state_dict(), MODEL_PATH)
