@@ -10,36 +10,19 @@ from torch.autograd import Variable
 import matplotlib.pyplot as plt
 import torchvision.utils
 import numpy as np
-from torch.optim import lr_scheduler
 import os
-from PIL import Image
 import torch
-from torch.autograd import Variable
 import torch.nn as nn
-from torch import optim
 import torch.nn.functional as F
-import pandas as pd
-import random
-import time
 
 class Config():
-    training_dir = 'C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\AD_NC\\train'
-    testing_dir = 'C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\AD_NC\\test'
-    train_batch_size = 16
-    train_number_epochs = 20
-
-def imshow(img,text=None,should_save=False):#for showing the data you loaded to dataloader
-    npimg = img.numpy()
-    plt.axis("off")
-    if text:
-        plt.text(75, 8, text, style='italic',fontweight='bold',
-            bbox={'facecolor':'white', 'alpha':0.8, 'pad':10})
-    plt.imshow(np.transpose(npimg, (1, 2, 0)))
-    plt.show()
-
-def show_plot(iteration,loss):# for showing loss value changed with iter
-    plt.plot(iteration,loss)
-    plt.show()
+    # /home/Student/s4533021/siamese_model.pt
+    # C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\AD_NC\\train
+    training_dir = '/home/Student/s4533021/AD_NC/train'
+    testing_dir = '/home/Student/s4533021/AD_NC/test'
+    train_batch_size = 40
+    siamese_number_epochs = 16
+    train_number_epochs = 16
 
 # --------------
 # Model
@@ -102,13 +85,6 @@ class ResNet(nn.Module):
         out = out.view(out.size(0), -1)
         # out = self.linear(out)
         return out
-
-    # def forward(self, input1, input2):
-    #     # forward pass of input 1
-    #     output1 = self.forward_once(input1)
-    #     # forward pass of input 2
-    #     output2 = self.forward_once(input2)
-    #     return output1, output2
     
     def forward(self, anchor, pos, neg):
         # forward pass of anchor
@@ -118,6 +94,40 @@ class ResNet(nn.Module):
         # forward pass of neg
         output_neg = self.forward_once(neg)
         return output_anchor, output_pos, output_neg
+    
+class BinaryClassifier(nn.Module):
+    def __init__(self):
+        super(BinaryClassifier, self).__init__()
+        self.hidden1 = nn.Linear(28672, 1024)
+        self.hidden2 = nn.Linear(1024, 64)
+        # self.hidden3 = nn.Linear(256, 64)
+        self.output = nn.Linear(64, 2)
+        self.relu = nn.ReLU()
+        self.dropout = nn.Dropout(0.5)  # Adding dropout layer
+        self.batch_norm1 = nn.BatchNorm1d(1024)  # Adding batch normalization
+        self.batch_norm2 = nn.BatchNorm1d(64) #256
+        self.batch_norm3 = nn.BatchNorm1d(64)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = self.hidden1(x)
+        x = self.batch_norm1(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+
+        x = self.hidden2(x)
+        x = self.batch_norm2(x)
+        x = self.relu(x)
+        x = self.dropout(x)
+
+        # x = self.hidden3(x)
+        # x = self.batch_norm3(x)
+        # x = self.relu(x)
+        # x = self.dropout(x)
+
+        x = self.output(x)
+        x = self.sigmoid(x)
+        return x
 
 def ResNet18():
     return ResNet(BasicBlock, [2, 2, 2, 2])
@@ -136,8 +146,6 @@ class ContrastiveLoss(torch.nn.Module):
         euclidean_distance = F.pairwise_distance(output1, output2)
         loss_contrastive = torch.mean((1-label) * torch.pow(euclidean_distance, 2) +
                                       (label) * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
-        # if torch.isnan(loss_contrastive):
-        #     print("Value is NaN")
         return loss_contrastive
     
 class TripletLoss(torch.nn.Module):
