@@ -2,6 +2,7 @@
 Swin Transformer Model Architecture-Based Topic Recognition for Alzheimer's Disease Classification
 Name: Tarushi Gera
 Student ID: 48242204
+This script thoroughs a channel to train and test a Swin Transformer Model on the Alzheimer's Dataset, with the advantage of cropping parameters through a YAML configuration file.
 """
 import os
 import yaml
@@ -15,7 +16,7 @@ from dataset import AlzheimerDataset  # Import your dataset class from dataset.p
 from modules import SwinTransformer  # Import your Swin Transformer model from modules.py
 from sklearn.metrics import ConfusionMatrixDisplay, confusion_matrix
 
-
+# Define Trainer class and initialize it 
 class Trainer:
     def __init__(self, config):
         
