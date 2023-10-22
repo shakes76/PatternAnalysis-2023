@@ -20,7 +20,8 @@ def predict_main():
     #test_images = test_batches.map(lambda a, b: a)
     #test_masks = test_batches.map(lambda a, b: b)
     #Load model and evaluate on test set.
-    with tf.keras.utils.custom_object_scope({'Dice': Dice, 'DiceAccuracy': DiceAccuracy}):
+    cos = {'dice_coef': dice_coef, 'Dice': Dice, 'dice_acc': dice_acc}
+    with tf.keras.utils.custom_object_scope(cos):
         iunet_model = tf.keras.saving.load_model("/home/Student/s4428306/report/iunet_model.keras")
     evaluation = iunet_model.evaluate(test_batches, batch_size=64, return_dict=True)
     for name, value in evaluation.items():
@@ -30,7 +31,7 @@ def predict_main():
     test_data = list(test_data.as_numpy_iterator())
     #TODO: Refactor this.
     #Process first example.
-    ex1_ind = 50
+    ex1_ind = 10
     dp1_image_og = test_data[ex1_ind][0]
     dp1_image = dp1_image_og * 255
     #dp1_image = dp1_image.numpy()

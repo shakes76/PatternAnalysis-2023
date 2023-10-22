@@ -159,7 +159,7 @@ def preprocessing(batch_size=64):
     #      preprocessing. See "tensorflow data augmentation". Would have to be layers that are only used in training.
     #train_data = train_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #NOTE: Augmentation is unnecessary here if augment layer is used in model.
-    train_data = train_data.map(augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    #train_data = train_data.map(augment, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #val_data = val_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #test_data = test_data.map(normalize, num_parallel_calls=tf.data.experimental.AUTOTUNE)
     #Create batches for training data.
