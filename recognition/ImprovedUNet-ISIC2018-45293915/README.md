@@ -36,11 +36,25 @@ To ensure the reproducibility of results:
 
 ## Example Inputs and Outputs
 
-**Input**: 
+**1**: 
+![Visaulisation 1](assets/visualisation1.png)
 
-**Output**: 
+**2**: 
 
-**Plot**:
+![Visaulisation 2](assets/visualisation2.png)
+
+**3**:
+![Visaulisation 3](assets/visualisation3.png)
+
+## Evaluation Metrics
+
+### Accuracy and Loss
+
+![Accuracy and Loss](assets/accuracy_loss.png)
+
+### Dice Coefficient
+
+![Dice Coefficient](assets/dice_coefficient.png)
 
 
 ## Data Pre-processing
