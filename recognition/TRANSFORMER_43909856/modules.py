@@ -11,7 +11,8 @@ This file contains all of the components required to create a 2D image recogniti
 transformer (ViT) used for a binary classification problem.
 ViT for ImageNet: https://arxiv.org/abs/2205.01580
 
-- ViT has a set of tokens + 1 class token
+- ViT has a set of tokens + 1 class token. In this model, average pooling of the
+model will be used instead of a class token
 - Uses an average pooling layer at the end of all convolution layers. 
 Generates a 1 dimensional string used for outputting classification of images
 - Image transformers don't use a masked multi-head attention component,
@@ -270,6 +271,9 @@ Params:
     temperature (int): determines the frequencies used by the sinusoids in the
                        positional encoding
     dtype (torch dtype): the data type for the positional encoding to be stored as
+
+Returns:
+    The computed positional encoding
 """
 def create_positonal_encodings(height, width, dimensions, temperature=10000,
                                 dtype=torch.float32):
@@ -287,5 +291,117 @@ def create_positonal_encodings(height, width, dimensions, temperature=10000,
     positional_encoding = torch.cat((x.sin(), x.cos(), y.sin(), y.cos()), dim=1)
     return positional_encoding.type(dtype)
 
+
+"""
+Create a simple ViT as mentioned in this paper: https://arxiv.org/abs/2205.01580
+The created model will be used in a classification problem.
+Using model S/16 (width=384, depth=12, mlp_head_size=1536, n_heads=6)
+"""
+class SimpleViT(nn.Module):
+    """
+    Initialise/create a simple ViT model.
+    Breaks each image up into smaller sized 'patches', which are used as input
+    tokens.
+
+    Params:
+        image_size (tuple(int, int)): the size/dimensions of the input image
+                                      (height x width)
+        patch_size (tuple(int, int)): the size/dimensions of the image patches
+                                      (height x width). The image height should 
+                                      be a multiple of the patch height, and
+                                      the image width should be a multiple of 
+                                      the patch width.
+        n_classes (int): the number of classes in the classification problem
+        dimensions (int):
+        depth (int):
+        n_heads (int):
+        mlp_dimensions (int):
+        n_channels (int): the number of channels in the input image (3 for RGB)
+        head_dimensions (int):
+    """
+    def __init__(self, *, image_size, patch_size, n_classes, dimensions, depth,
+                    n_heads, mlp_dimensions, n_channels, head_dimensions):
+        super().__init__()
+        '''
+        The image height should be a multiple of the patch height, and
+        the image width should be a multiple of the patch width.
+        '''
+        image_height, image_width = image_size
+        patch_height, patch_width = patch_size
+
+        # Get the dimensions of each patch
+        patch_dimensions = n_channels * patch_height * patch_width
+        
+        '''
+        Turn all images into multiple patches ('patchifying'), of the size 
+        (patch height x patch width x num channels). THe patches are 1D tokens.
+        h - height of image
+        w - width of image
+        p1 - patch height
+        p2 - patch width
+        '''
+        self.to_patch_embedding = nn.Sequential(
+            Rearrange("b c (h p1) (w p2) -> (p1 p2 c)", p1=patch_height, p2=patch_width),
+            # Add a layer norm for 1D dat
+            nn.LayerNorm(patch_dimensions),
+            # Embed patches in linear layer
+            nn.Linear(patch_dimensions, dimensions),
+            # Add layer norm after the linear layer
+            nn.LayerNorm(dimensions),
+        )
+
+        # Create the positional embedding (scale image dimensions by the patch size)
+        self.positional_embedding = create_positonal_encodings(
+            height=(image_height // patch_height),
+            width=(image_width // patch_width),
+            dimensions=dimensions
+        )
+
+        # Add the Transformer network
+        self.transformer = Transformer(dimensions=dimensions, depth=depth, n_heads=n_heads,
+                                       head_dimensions=head_dimensions, 
+                                       mlp_dimensions=mlp_dimensions)
+        
+        # Use average pooling for the network (instead of using a class token)
+        self.pooling = "mean"
+
+        # Store the identity to perform skip connections
+        self.to_latent = nn.Identity()
+
+        # Linear layer outputs the model's classifications
+        self.linear_head = nn.Linear(dimensions, n_classes)
+
+    
+    """
+    Perform a forward pass (forward propagation) of the model.
+
+    Creates a patch embedding of the image (converting it to a 1D token),
+    then encodes the patch's position. The model is then trained.
+
+    Params:
+        image: the input image for the model to be trained on
+
+    Returns:
+        The inear output layer (tcontains the model's classifications in
+        a one-hot encoding)
+    """
+    def forward(self, image):
+        # Get the CUDA hardware device
+        device = image.device
+
+        # Get the patch embedding of the image
+        x = self.to_patch_embedding(image)
+        # Get the positonal embedding of the image, send this embedding to the GPU
+        x += self.positional_embedding.to(device, dtype=x.dtype)
+        
+        # Apply the Transformer network to the model
+        x = self.transformer(x)
+        # Perform average pooling on the Transformer network
+        x = x.mean(dim=1)
+
+        # Apply a skip connection to the model
+        x = self.to_latent(x)
+        # Output the model's classifications
+        return self.linear_head(x)
 
 
