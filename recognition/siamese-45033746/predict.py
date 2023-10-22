@@ -49,10 +49,13 @@ def predict(model: BinaryClassifier, net: SiameseNetwork, testDataLoader: DataLo
         # Get siamese embeddings for the input anchor image
         siamese_embeddings = net.forward_once(anchor)
 
-        m = nn.Sigmoid()
-        pred = m(model(siamese_embeddings))
+        """
+        none of this works, apologies, the sigmoid functon would not work to expectations
+        """
+        pred = model(siamese_embeddings)
+        print(pred)
 
-        print(f"pred:{pred}")
+
 
         outcome.append(torch.eq(pred, label))
 

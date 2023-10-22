@@ -16,7 +16,7 @@ load ADNI data sets from dataloader.py and utilise to train siamese cnn and bina
 
 SIAMESE_MODEL_PATH = "assets/siamese_model.pth"
 BINARY_MODEL_PATH = "./assets/binary_model.pth"
-EPOCHS = 1
+EPOCHS = 15
 
 
 def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt, counter: [],
@@ -105,14 +105,14 @@ def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, trainData
     torch.save(model.state_dict(), SIAMESE_MODEL_PATH)
 
 
-def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn.BCEWithLogitsLoss,
+def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn.BCELoss,
                  trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
     """
     Train BinaryClassifier from modules.py to take the SiameseNet's out features and determine Alzheimer's class AD or
     NC. Saves model to ./assets after
     :param model: Instance of BinaryClassifier sent to GPU
     :param siamese: Instance of a trained SiameseNet
-    :param criterion: BCEWithLogitsLoss
+    :param criterion: BCEWithLoss
     :param trainDataLoader: DataLoader containing the batches for the training set
     :param validDataLoader: DataLoader containing the batches for the validation set
     :param epochs: Number of epochs to train for
@@ -219,7 +219,7 @@ def parent_train_binary(device, train: DataLoader, val: DataLoader):
     siamese_net.load_state_dict(torch.load(SIAMESE_MODEL_PATH))
     siamese_net.to(device)
 
-    crit = nn.BCEWithLogitsLoss()
+    crit = nn.BCELoss()
     train_binary(net, siamese_net, crit, train, val, EPOCHS, device)
 
 
