@@ -1,3 +1,9 @@
+"""
+Swin Transformer Model Architecture Based Topic Recognition for Alzheimer's Disease Classification
+Name: Tarushi Gera
+Student ID: 48242204
+This script allows you to customize the parameters for training and testing the model.
+"""
 data:
   train_data_dir: "/content/data2/train" # Path to training data on Google Colab
   val_data_dir: "/content/data2/test"  # Path to validation data on Google Colab
