@@ -69,11 +69,20 @@ class LocalizationLayer(nn.Module):
     
 class UNET(nn.Module):
     """
-    Improved Unet model that is made out of 5 layers. 
+    Improved Unet architecture comprising of 5 encoding (downsampling) layers and 
+    corresponding decoding (upsampling) layers with skip connections. The model 
+    also integrates additional modules like ContextLayer for improved performance.
 
-    """   
+    Attributes:
+    - Various convolutional layers and utilities for each encoding and decoding stage.
+    """
     def __init__(self, in_channels=3, out_channels=1, features=[64, 128, 256, 512]):
         """
+        Initializes the UNET model with the given parameters.
+
+        :param in_channels: Number of input channels. Default is 3 for RGB images.
+        :param out_channels: Number of output channels. Typically 1 for binary segmentation.
+        :param features: List containing the number of features in each layer. Defines the depth and width of the U-Net.
         """
         super(UNET, self).__init__()
         self.feature_num = 64
@@ -129,6 +138,16 @@ class UNET(nn.Module):
         self.segmentation_3 = nn.Conv2d(self.feature_num*2, out_channels, kernel_size=1)
 
     def forward(self, x):
+        """
+        Forward pass through the network, consisting of encoding (downsampling) 
+        and decoding (upsampling) stages with skip connections for U-Net like architecture.
+
+        Parameters:
+        - x (torch.Tensor): Input tensor.
+
+        Returns:
+        - torch.Tensor: Processed tensor after passing through the network.
+        """
         #LAYER 1
         l1_x1 = self.first_conv(x)
         l1_x2 = self.first_down(l1_x1)
