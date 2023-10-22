@@ -8,7 +8,7 @@ import numpy as np
 from parameters import *
 
 # Define hyperparameters
-input_shape = (128, 128, 3)  # Adjust image size as needed
+input_shape = (128, 128, 3)  # Adjust image size 
 epochs = 3
 model_save_path = 'alzheimer_model.h5'
 
@@ -16,8 +16,6 @@ model_save_path = 'alzheimer_model.h5'
 train_data_gen, test_data_gen = load_and_preprocess_data(img_height=128, img_width=128, batch_size=16)
 
 # Build the transformer model
-# Build the transformer model
-#model = transformer_model(input_shape)
 model = build_vision_transformer(
         INPUT_SHAPE,
         IMAGE_SIZE,
@@ -30,7 +28,6 @@ model = build_vision_transformer(
         TRANSFORMER_LAYERS,
         MLP_HEAD_UNITS
     )
-
 
 # Compile the model
 model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
