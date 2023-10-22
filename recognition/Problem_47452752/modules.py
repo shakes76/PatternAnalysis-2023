@@ -40,7 +40,7 @@ class Context(nn.Module):
         return x + shortcut
 
 
-class Upsample(nn.Module):
+class Upsampling(nn.Module):
     """
     Upsampling module used to tranfer information from low resolution feature maps into high resolution fearure maps.
     We use a simple upscale that repeats the feature voxels twice in each spatial dimension, followed by a 3x3x3 convolution
@@ -48,65 +48,76 @@ class Upsample(nn.Module):
     """
 
     def __init__(self, in_channels):
-        super(Upsample, self).__init__()
-        # Instance normalization of the input is used
-        self.norm = nn.InstanceNorm3d(in_channels)
-        # 3x3x3 convolution layer with half number of feature maps
-        self.conv = nn.Conv3d(
+        super(Upsampling, self).__init__()
+        # Upsamping components:
+        self.up_norm = nn.InstanceNorm3d(in_channels)
+        self.up_conv = nn.Conv3d(
             in_channels, in_channels // 2, kernel_size=3, stride=1, padding=1
         )
 
-    def forward(self, x, skip_channels):
-        # Repeat feature voxels twice in each spatial dimension
-        x = F.interpolate(x, scale_factor=2, mode="nearest")
-        # Normalize and introduce non-linearlity
-        x = F.leaky_relu(self.norm(x), negative_slope=1e-2)
-        # Apply a 3x3x3 convolution to halve the number of feature maps
-        x = self.conv(x)
-
-        return torch.cat([x, skip_channels], dim=1)
-
-
-class Localisation(nn.Module):
-    def __init__(self, in_channels):
-        super(Localisation, self).__init__()
-        # We use leakyReLU with negative slope 1e-2
-        self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=False)
-        # We use a 3x3x3 convolution first
-        self.norm1 = nn.InstanceNorm3d(in_channels)
-        self.conv1 = nn.Conv3d(
+        # Localisation components:
+        self.merged_norm = nn.InstanceNorm3d(in_channels)
+        self.merged_conv = nn.Conv3d(
             in_channels, in_channels, kernel_size=3, stride=1, padding=1
         )
-        # We halve the number of feature maps by using a 1x1x1 convolution
-        self.norm2 = nn.InstanceNorm3d(in_channels // 2)
-        self.conv2 = nn.Conv3d(
+        self.half_norm = nn.InstanceNorm3d(in_channels // 2)
+        self.half_conv = nn.Conv3d(
             in_channels, in_channels // 2, kernel_size=3, stride=1, padding=1
         )
 
-    def forward(self, x):
-        x = self.conv1(self.relu(self.norm1(x)))
-        x = self.conv2(self.relu(self.norm2(x)))
-        return x
+    def forward(self, x, skip_features, local: bool = True):
+        """
+        Forward pass of the Upsampling module, with an optional localisation step.
+
+        Parameters:
+        - x (torch.Tensor): Input tensor, representing the activations from a deeper layer.
+        - skip_features (torch.Tensor): Activations from the corresponding encoder layer, for the skip connection.
+        - local (bool, optional): If True, the localisation operations are applied after upsampling. Default is True.
+
+        Returns:
+        - torch.Tensor: Upsampled (and optionally localised) feature map.
+
+        The function first upsamples the input tensor 'x' and then concatenates the result with the 'skip_features'.
+        If 'local' is True, it subsequently applies the localisation steps to refine the feature maps further.
+        """
+        # Upsampling Module
+        upsampled = F.interpolate(x, scale_factor=2, mode="nearest")
+        upsampled = F.leaky_relu(self.up_norm(upsampled), negative_slope=1e-2)
+        upsampled = self.up_conv(upsampled)
+
+        # Concatenate upsampled features with context features
+        merged = torch.cat([upsampled, skip_features], dim=1)
+
+        if local is False:
+            return merged
+
+        # Localisation Module
+        localised = F.leaky_relu(self.merged_norm(merged), negative_slope=1e-2)
+        localised = self.merged_conv(localised)  # First convolutional layer
+
+        localised = F.leaky_relu(self.half_norm(localised), negative_slope=1e-2)
+        localised = self.half_conv(localised)  # Second convolutional layer
+
+        return localised
 
 
 class Segmentation(nn.Module):
     def __init__(self, in_channels, num_classes):
         super(Segmentation, self).__init__()
         self.conv = nn.Conv3d(in_channels, num_classes, kernel_size=1, stride=1)
-        self.upscale = nn.Upsample(scale_factor=2, mode="nearest")
 
     def forward(self, x, other_layer=None):
         x = self.conv(x)
         if other_layer is not None:
             x += other_layer
-        return self.upscale(x)
+        return F.interpolate(x, scale_factor=2, mode="nearest")
 
 
 class UNet(nn.Module):
     def __init__(self, in_channels, num_classes):
         super(UNet, self).__init__()
 
-        # Context modules (encoders)
+        # Context modules
         self.context1 = Context(16)
         self.context2 = Context(32)
         self.context3 = Context(64)
@@ -114,26 +125,21 @@ class UNet(nn.Module):
         self.context5 = Context(256)
 
         # Upsampling modules
-        self.up1 = Upsample(256)
-        self.up2 = Upsample(128)
-        self.up3 = Upsample(64)
-        self.up4 = Upsample(32)
+        self.up1 = Upsampling(256)
+        self.up2 = Upsampling(128)
+        self.up3 = Upsampling(64)
+        self.up4 = Upsampling(32)
 
-        # Localisation modules
-        self.local1 = Localisation(128)
-        self.local2 = Localisation(64)
-        self.local3 = Localisation(32)
+        # Convolutional layer used on input channel
+        self.input_conv = nn.Conv3d(in_channels, 16, kernel_size=3, stride=1, padding=1)
 
-        # Convolution used on input channel
-        self.in_conv = nn.Conv3d(in_channels, 16, kernel_size=3, stride=1, padding=1)
-
-        # Convolutions that connect context modules, used for downsampling
+        # Convolutional layers that connect context modules
         self.conv1 = nn.Conv3d(16, 32, kernel_size=3, stride=2, padding=1)
         self.conv2 = nn.Conv3d(32, 64, kernel_size=3, stride=2, padding=1)
         self.conv3 = nn.Conv3d(64, 128, kernel_size=3, stride=2, padding=1)
         self.conv4 = nn.Conv3d(128, 256, kernel_size=3, stride=2, padding=1)
 
-        # Convolution used at the end of the localization pathway
+        # Convolutional layer for the localisation pathway output
         self.end_conv = nn.Conv3d(32, 32, kernel_size=1)
 
         # Segmentation layers
@@ -143,24 +149,22 @@ class UNet(nn.Module):
 
     def forward(self, x):
         # Context Pathway
-        c1 = self.context1(self.in_conv(x))
-        c2 = self.context2(self.conv1(c1))
-        c3 = self.context3(self.conv2(c2))
-        c4 = self.context4(self.conv3(c3))
-        x = self.context5(self.conv4(c4))
+        cntx_1 = self.context1(self.input_conv(x))
+        cntx_2 = self.context2(self.conv1(cntx_1))
+        cntx_3 = self.context3(self.conv2(cntx_2))
+        cntx_4 = self.context4(self.conv3(cntx_3))
+        cntx_5 = self.context5(self.conv4(cntx_4))
 
-        # Localization Pathway (upsample + localisation)
-        l1 = self.local1(self.up1(x, c4))
-        l2 = self.local2(self.up2(l1, c3))
-        l3 = self.local3(self.up3(l2, c2))
-        end = self.end_conv(self.up4(l3, c1))
+        # Localization Pathway
+        local_1 = self.up1(cntx_5, cntx_4)
+        local_2 = self.up2(local_1, cntx_3)
+        local_3 = self.up3(local_2, cntx_2)
+        local_out = self.end_conv(self.up4(local_3, cntx_1, False))
 
         # Deep Supervision
-        s1 = self.segment1(l2)
-        s2 = self.segment2(l3, s1)
-        s3 = self.segment3(s2, end)
+        seg_1 = self.segment1(local_2, None)
+        seg_2 = self.segment2(local_3, seg_1)
+        seg_3 = self.segment3(seg_2, local_out)
 
-        # Apply softmax
-        out = F.softmax(s3, dim=1)
-
-        return out
+        # Apply softmax and return
+        return F.softmax(seg_3, dim=1)
