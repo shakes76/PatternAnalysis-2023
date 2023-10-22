@@ -27,7 +27,7 @@ The project is divided into three main components:
 3) Training and Prediction: Training the model on preprocessed data and evaluating performance on the held-out test set with the target of achieving a minimum accuracy of 0.8.
 The Vision Transformer takes advantage of self-attention to capture global relationships between image patches, without relying on local connections like convolutional networks. This allows it to efficiently model long-range dependencies in the brain MRI data to distinguish between AD and normal classes. We implement the model in TensorFlow and evaluate its ability to classify Alzheimer's disease from brain images with the goal of supporting early disease detection.
 
-![Vision Transformer { width="800" height="600" style="display: block; margin: 0 auto" }](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/VisionTransformer.png)
+![Vision Transformer { width="800" height="600" style="display: block; margin: 0 auto" }](assets/Siamese-network-for-embedding-the-feature-maps-into-a-constant-vector.png)
 
 ## 👨🏻‍💻 Code Overview <a name = "code_overview"></a>
 
@@ -55,3 +55,45 @@ raining curves are plotted to visualize the learning process. The trained model 
 </p>
 </ol>
 
+
+
+<h3>Data Set:</h3>
+
+![Dataset](assets/data.png)
+<p>The data used to train this model is the ADNI dataset. The dataset consists of a training set, containing ~10000 images of cognitive normal brain scans (or normal controls) and ~10000 images of brain scans of patients with Alzheimer's disease. The test set contains ~4500 of each type. To train the SNN, the train data is split into 80% for training, and 20% for validation. However, the data in its raw form is not suitable for training an SNN, as we need image pairs and labels. Therefore, we must build image pairs when loading the data. This is done in <b>dataset.py</b>, and is well documented in the code. In short, we take all the image paths, create the pairs and labels corresponding to the pair, turn them into tensorflow datasets, and then shuffle the dataset before splitting into 80% train, 20% validation. No test set is generated from the image pairs, as we only evaluate the final classification model. Further given the large amount of data, 20% is a suitable amount of data to validate on.</p>
+<h3>Classification Data:</h3>
+<p>To evaluate and train the classification model we must build a new dataset. One that just contains singular images, and a corresponding label for whether the image is AD or CN (0 or 1). We again use an 80/20 train validation split, and use the entire test set to evaluate the model after training.</p>
+<h3>Model Architecture:</h3>
+<h4>SNN:</h4>
+
+![ADNI](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/ADNI DATASET.png)
+
+
+
+
+## 🐍 Results <a name = "results"></a>
+
+- Epoch cycle running in terminal
+
+![epoch_cycle](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/Model running.png)
+
+
+
+## 🦥 Dependencies <a name = "dependencies"></a>
+<ul>
+<li><b>Tensorflow(tf)</b> - 2.14.0</li>
+<li><b>numpy</b> - 1.22.0</li>
+<li><b>sklearn.model_selection(train_test_split)</b> - 1.0.2</li>
+<li><b>tensorflow.keras.preprocessing.image(load_img,img_to_array)</b> </li>
+
+## 🙏🏽 Conclusion <a name = "conclusion"></a>
+<p>
+In this study, we developed a visual transformer model for classifying Alzheimer's disease using brain imaging data from the ADNI dataset. The model achieved a test accuracy of over 80%, meeting the specified performance threshold.
+The transformer architecture was able to learn discriminative features directly from the raw image data that distinguished between normal and AD brain scans. This demonstrates the model's ability to capture subtle differences indicative of Alzheimer's pathology without relying on manual feature engineering.
+The high test accuracy shows that the model is generalized well and can accurately predict the class of previously unseen brain scans. This suggests it has learned representations that are robust and transferable to new data samples.
+Overall, this project shows that visual transformers are a promising approach for automated Alzheimer's diagnosis from medical images. With further optimization, such deep learning models may help clinicians with early detection and monitoring of the disease. The model developed here could potentially serve as a decision support tool to assist in the evaluation and management of patients.</p>
+
+## 🔗 References <a name = "references"></a>
+
+- [Vision Transformer wiki ](https://en.wikipedia.org/wiki/Vision_transformer)
+- [Vision transformers- a very basic introduction ](https://medium.com/data-and-beyond/vision-transformers-vit-a-very-basic- introduction-6cd29a7e56f3)
