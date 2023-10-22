@@ -7,13 +7,12 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from sys import platform
 
-# for rangpur
-# TRAIN_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/train"
-# TEST_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/test"
-
-# for local
-TRAIN_FILE_ROOT = "./AD_NC/train"
-TEST_FILE_ROOT = "./AD_NC/test"
+if platform == "linux" or platform == "linux2":
+    TRAIN_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/train"
+    TEST_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/test"
+else:
+    TRAIN_FILE_ROOT = "./AD_NC/train"
+    TEST_FILE_ROOT = "./AD_NC/test"
 
 VAL_SIZE = 0.1
 TRAIN_SIZE = 0.9

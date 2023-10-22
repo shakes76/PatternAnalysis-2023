@@ -8,7 +8,7 @@ from dataset import load
 from os.path import exists
 import torch.nn as nn
 
-SIAMESE_MODEL_PATH = "assets/port/siamese_model-95127.pth"
+SIAMESE_MODEL_PATH = "./assets/port/siamese_model.pth"
 BINARY_MODEL_PATH = "./assets/binary_model.pth"
 
 
