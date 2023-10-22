@@ -7,7 +7,8 @@ from utils import save_plot
 from dataset import load
 from os.path import exists
 
-MODEL_PATH = "./assets/siamese_model.pth"
+SIAMESE_MODEL_PATH = "./assets/siamese_model.pth"
+BINARY_MODEL_PATH = "./assets/binary_model.pth"
 
 
 def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt, counter: [],
@@ -71,7 +72,7 @@ def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, trainData
     save_plot(train_counter, train_loss, "siamese_train")
     save_plot(val_counter, val_loss, "siamese_validation")
 
-    torch.save(model.state_dict(), MODEL_PATH)
+    torch.save(model.state_dict(), SIAMESE_MODEL_PATH)
 
     return model
 
@@ -147,12 +148,14 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: Tr
     save_plot(train_counter, train_loss, "binary_train")
     save_plot(val_counter, val_loss, "binary_validation")
 
+    torch.save(model.state_dict(), BINARY_MODEL_PATH)
+
 
 def parent_train_siamese(device, train: DataLoader, val: DataLoader):
     # Send model to gpu
     net = SiameseNetwork().to(device)
 
-    return train_siamese(net, TripletMarginLoss(), train, val, 15, device)
+    return train_siamese(net, TripletMarginLoss(), train, val, 5, device)
 
 
 # model: BinaryClassifier, siamese: SiameseNetwork, criterion: TripletMarginLoss,
@@ -164,17 +167,17 @@ def parent_train_binary(device, train: DataLoader, val: DataLoader):
     siamese_net = None
 
     # Check siamese model has been trained
-    siamese_exists = exists(MODEL_PATH)
+    siamese_exists = exists(SIAMESE_MODEL_PATH)
     if not siamese_exists:
         print("No SiameseNet trained model found, training new SiameseNet")
         siamese_net = parent_train_siamese(device, train, val)
     else:
         print("Trained SiameseNet found, loading now...")
         siamese_net = SiameseNetwork()
-        siamese_net.load_state_dict(torch.load(MODEL_PATH))
+        siamese_net.load_state_dict(torch.load(SIAMESE_MODEL_PATH))
         siamese_net.to(device)
 
-    train_binary(net, siamese_net, TripletMarginLoss(), train, val, 15, device)
+    train_binary(net, siamese_net, TripletMarginLoss(), train, val, 5, device)
 
 
 def main():
@@ -186,7 +189,6 @@ def main():
 
     # Train binary classifier based on siamese classifier
     parent_train_binary(gpu, trainData, valData)
-    #parent_train_siamese(gpu, trainData, valData)
 
 
 if __name__ == '__main__':
