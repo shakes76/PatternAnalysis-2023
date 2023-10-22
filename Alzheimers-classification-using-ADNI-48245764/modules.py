@@ -23,6 +23,37 @@ def perceptron(tensor_in, hidden_units, dropout):
     return tensor_in
 
 
+class Patches(Layer):
+    def __init__(self, patch_size):
+        super().__init__()
+        self.patch_size = patch_size
+
+    def call(self, images):
+        batch_size = tf.shape(images)[0]
+        patches = tf.image.extract_patches(
+            images=images,
+            sizes=[1, self.patch_size, self.patch_size, 1],
+            strides=[1, self.patch_size, self.patch_size, 1],
+            rates=[1, 1, 1, 1],
+            padding="VALID",
+        )
+        patch_dims = patches.shape[-1]
+        patches = tf.reshape(patches, [batch_size, -1, patch_dims])
+        return patches
+
+
+class PatchEncoder(Layer):
+    def __init__(self, patch, dimensions):
+        super().__init__()
+        self.patch = patch
+        self.projection = Dense(units=dimensions)
+        self.position_embedding = Embedding(input_dim=patch, output_dim=dimensions)
+
+    def call(self, patch):
+        positions = tf.range(start=0, limit=self.patch, delta=1)
+        encoded = self.projection(patch) + self.position_embedding(positions)
+        return encoded
+
 def transformer():
     inputs = Input(shape=input_shape)
     augmented_inputs = preprocessing(inputs)
@@ -32,7 +63,6 @@ def transformer():
     for _ in range(vit_layer):
         
         Layer1 = LayerNormalization(epsilon=1e-6)(encoded_patches)
-
         attention_output = MultiHeadAttention(num_heads=num_heads,key_dim=dimensions,dropout=0.1)
         (Layer1, Layer1)
 
@@ -43,12 +73,12 @@ def transformer():
 
         encoded_patches = Add()([Layer3, Layer2])
 
+    
     output = LayerNormalization(epsilon=1e-6)(encoded_patches)
     output = Flatten()(output)
     output = Dropout(0.5)(output)
 
     features = perceptron(output, hidden_units=mlp_units, dropout=0.5)
-
     logits = Dense(num_classes)(features)
     model = keras.Model(inputs=inputs, outputs=logits)
 
