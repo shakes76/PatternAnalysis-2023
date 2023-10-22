@@ -14,7 +14,7 @@ train.py
 load ADNI data sets from dataloader.py and utilise to train siamese cnn and binary classifier nn.
 """
 
-SIAMESE_MODEL_PATH = "./assets/siamese_model.pth"
+SIAMESE_MODEL_PATH = "assets/siamese_model.pth"
 BINARY_MODEL_PATH = "./assets/binary_model.pth"
 EPOCHS = 1
 

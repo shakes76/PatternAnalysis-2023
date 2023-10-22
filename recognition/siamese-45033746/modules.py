@@ -79,7 +79,6 @@ class BinaryClassifier(nn.Module):
             nn.Linear(SIAMESE_FEATURES, 32),
             nn.ReLU(inplace=True),
             nn.Linear(32, 1),
-            nn.Sigmoid()
         )
 
     def forward(self, input):

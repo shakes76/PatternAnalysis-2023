@@ -11,12 +11,18 @@ predict.py
 load trained models and measure accuracy
 """
 
+
 def load():
+    """
+    Load pre-trained SiameseNet and BinaryClassifier models and predict
+    :return:
+    """
     # Device configuration
     gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     if not exists(BINARY_MODEL_PATH) or not exists(SIAMESE_MODEL_PATH):
         print("No trained models available, please run train.py to create trained models")
+        return
 
     bin_net = BinaryClassifier()
     bin_net.load_state_dict(torch.load(BINARY_MODEL_PATH))
@@ -42,15 +48,18 @@ def predict(model: BinaryClassifier, net: SiameseNetwork, testDataLoader: DataLo
         # Get siamese embeddings for the input anchor image
         siamese_embeddings = net.forward_once(anchor)
 
-        pred = model(siamese_embeddings)
+        pred = nn.Sigmoid()model(siamese_embeddings)
 
-        print(f"pred : {pred}, label : {label}, outcome : {torch.eq(pred, label)}")
+        print(f"outcome : {torch.eq(pred, label)}")
         outcome.append(torch.eq(pred, label))
 
 
 def main():
     test = get_test_set()
-    bin, sin, device = load()
+    vals = load()
+    if vals is None:
+        return
+    bin, sin, device = vals
     predict(bin, sin, test, device)
 
 
