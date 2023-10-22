@@ -47,7 +47,7 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
                 'epoch': epoch,
                 'model_state_dict': model.embedding_net.state_dict(),
                 'train_loss': train_batch_loss,
-            }, Config.MODEL_DIR)
+            }, Config.MODEL_DIR_CONTRASTIVE)
         else:
             early_stopping_counter += 1
             print(f"no improvement: loss {best_loss:.5f} --> {val_batch_loss:.5f}")
@@ -169,7 +169,7 @@ def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
                 'model_state_dict': model.state_dict(),
                 'train_loss': train_batch_loss,
                 'val_acc': val_batch_acc
-            }, Config.MODEL_DIR)
+            }, Config.MODEL_DIR_TRIPLET)
         else:
             print(f"no improvement: score {best_score:.5f} --> {val_batch_acc:.5f}")
 
