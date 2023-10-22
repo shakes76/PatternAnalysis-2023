@@ -1,8 +1,28 @@
-
 # DDPM with U-Net for Image Denoising
 
-This repository contains an implementation of a U-Net architecture augmented with time embeddings, designed to work with the Diffusion Denoising Probabilistic Model (DDPM).
+### Theory Behind DDPM Stable Diffusion Generators and U-Net
 
+The Diffusion Denoising Probabilistic Model (DDPM) represents a recent approach for generating high-quality samples. It is based on the idea of simulating the reverse process of diffusion, which entails transitioning from a simple data distribution (like Gaussian noise) to a more complex one (like natural images). The bases for this implementation is derived from the concepts the concepts introduced by Ho et al.[4].
+
+
+
+- **Diffusion Process**: This process is equivalent to adding controlled amounts of Gaussian noise to an image in a series of steps. At each step, a slightly noisier version of the image is produced.
+
+- **Betas and Alphas**: The amount of noise added at each step is controlled by a parameter `beta`, and its counterpart, `alpha = 1 - beta`. The noise added at each step is proportional to the square root of `1-alpha`, and the previous image is scaled by the square root of `alpha`. Over many steps, the image becomes completely noisy.
+
+- **Denoising Process**: The reverse process involves denoising the image, step by step, to recover the original or an approximation of the original image.
+
+### U-Net:
+
+U-Net is a convolutional neural network architecture that was initially designed for biomedical image segmentation. It has an encoder-decoder structure, which gives it its characteristic "U" shape.
+
+- **Encoder**: The encoder is responsible for capturing the context of the input image. It does this by reducing the spatial dimensions of the image while increasing the depth (or number of channels).
+
+- **Decoder**: The decoder upsamples the image to restore its original dimensions. It uses information from both the encoder's output and its own previous outputs.
+
+- **Skip Connections**: One unique feature of the U-Net is its skip connections that pass information directly from the encoder to the decoder. This helps in retaining spatial details.
+
+- **Time Embeddings**: In the provided code, U-Net has been modified to include time embeddings. This means that for each step in the diffusion process, there's a unique set of parameters that guide the denoising. These embeddings are sinusoidally initialized. The time embedding section was derived from the work by Vaswani et al. [3]."
 
 ## Author
 
