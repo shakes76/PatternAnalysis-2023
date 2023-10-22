@@ -6,11 +6,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Modules: {torch.cuda.is_available()}")  # Display whether CUDA is available.
 
 
-# Defining a double convolution block module.
 class DoubleConv(nn.Module):
-    # This class represents a sequence of operations that consist of two convolution layers.
-    # each followed by a batch normalization and ReLU activation.
-    def __init__(self, in_channels, out_channels, middle_channels=None):
+ """Represents a sequence of operations that consist of two convolution layers. Each followed by a batch normalization and ReLU activation."""
+ def __init__(self, in_channels, out_channels, middle_channels=None):
         super().__init__()
         if not middle_channels:
             middle_channels = out_channels  # If no middle channels, make it the same as out_channels.
@@ -24,13 +22,14 @@ class DoubleConv(nn.Module):
             nn.BatchNorm2d(out_channels),  # Batch Normalization for the second conv layer.
             nn.ReLU(inplace=True)  # ReLU activation in-place.
         )
-
-    def forward(self, x):
-        # Defines the computation performed at every call, passing the input through all the layers.
-        return self.double_conv(x)
+        
+        def forward(self, x):
+            # Defines the computation performed at every call, passing the input through all the layers.
+            return self.double_conv(x)
+            
 
 class ImprovedUNet(nn.Module):
-    # This class represents the U-Net like architecture for semantic segmentation.
+    """Represents the U-Net architecture for semantic segmentation."""
     def __init__(self, in_channels=3, out_channels=1):
         super(ImprovedUNet, self).__init__()
 
@@ -70,4 +69,4 @@ class ImprovedUNet(nn.Module):
         d3 = self.dec3(self.up(d2))  # Upsample and pass through decoder block.
         out = self.out_conv(d3)  # Get the final output.
 
-        return out 
+        return out
