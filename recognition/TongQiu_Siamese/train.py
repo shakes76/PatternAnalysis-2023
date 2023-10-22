@@ -61,8 +61,8 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
     val_losses = np.array(val_losses)
 
     # Save the arrays
-    np.save(os.path.join(Config.LOG_DIR, 'contrastive/train_losses.npy'), train_losses)
-    np.save(os.path.join(Config.LOG_DIR, 'contrastive/val_losses.npy'), val_losses)
+    np.save(os.path.join(Config.LOG_DIR_CONTRASTIVE, 'contrastive/train_losses.npy'), train_losses)
+    np.save(os.path.join(Config.LOG_DIR_CONTRASTIVE, 'contrastive/val_losses.npy'), val_losses)
 
 
 def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
@@ -151,7 +151,7 @@ def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
     # Create model
     model = model.to(Config.DEVICE)
     best_score = 0
-    writer = SummaryWriter(log_dir=Config.LOG_DIR)  # for TensorBoard
+    writer = SummaryWriter(log_dir=Config.LOG_DIR_TRIPLET)  # for TensorBoard
 
     for epoch in range(epochs):
 
