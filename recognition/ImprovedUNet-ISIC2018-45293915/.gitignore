@@ -166,4 +166,4 @@ cython_debug/
 /modelenv
 
 # .keras files
-.keras/
+*.keras
