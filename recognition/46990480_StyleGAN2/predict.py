@@ -22,8 +22,7 @@ args = parser.parse_args()
 # Check if training is needed
 if args.train_models == 'TRUE':
     # Train the model
-    pass
-    # trainStyleGAN2()
+    trainStyleGAN2()
 
 # Create the mapping network
 mapping_network = MappingNetwork(z_dim, w_dim).to(device)

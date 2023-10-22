@@ -226,7 +226,7 @@ Use the following command line arguments to customise the output of the `predict
 ### All in One (Training, Inference & Image Generation)
 The `predict.py` script can be used as a driver for the training and image generation stages described above. In order to train a model, generate the loss plot & generate a batch of images in the same operation, use the following command:
 ```
-python predict.py --train_models=TRUE
+python predict.py -train_models=TRUE
 ```
 ## References & Acknowledgements
 - https://www.oasis-brains.org/
