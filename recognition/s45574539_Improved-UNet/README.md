@@ -14,7 +14,18 @@ Student ID: 45574539
 ## Dataset
 
 ### Description
-The International Skin Imaging Collaboration (ISIC) datasets contain dermoscopic images, with challenges being set each year in hope to improve melanoma diagnosis. For this project, the ISIC 2018 challenge dataset has been used. It contains 2594 images of skin lesions of varying size, and 2 separate folders of input and output images. The input images (training) are in JPG format and are dermoscopic images (of skin lesions). The output images (ground truth) are masks for the skin lesion images in PNG format.
+The International Skin Imaging Collaboration (ISIC) datasets contain dermoscopic images, with challenges being set each year in hope to improve melanoma diagnosis. For this project, the ISIC 2018 challenge dataset has been used. It contains 2594 images of skin lesions of varying size, and 2 separate folders of input and output images. The input images (training) are in JPG format and are dermoscopic images (of skin lesions). The output images (ground truth) are masks for the skin lesion images in PNG format. An example of the input and output images is given below:
+
+<div class="row">
+  <div class="column">
+    <h4 style="display:inline;">Image (Input)</h4>
+    <img src="IMG/ISIC_0000000.jpg" height="150px"/>
+  </div>
+  <div class="column">
+    <h4 style="display:inline;">Mask (Output)</h4>
+    <img src="IMG/ISIC_0000000_segmentation.png" height="150px"/>
+  </div>
+</div>
 
 ### Pre-processing
 The image folders were saved and the images shuffled before being split. The training, validation, test split used in this project was a **70%, 15%, 15% ratio** respectively: 1816 training images, 389 testing images, and 389 validation images. This was chosen because it is a widely accepted data split ratio and is suitable because the ISIC 2018 dataset is not too small (> 2000 images). During the pre-processing stage, images were resized to (256px, 256px) to keep them uniform. The dimensions were selected as they were close to equalling some of the smallest images in the set. This allowed for training time to be enhanced while, also, maintaining the quality of the images. Images were then normalized, and saved into tensorflow datasets to be used in the training process.
@@ -27,7 +38,7 @@ The UNet is a convolutional network which is used for image segmentation, with i
 
 <p align="center">
   <kbd>
-  <img src="Screenshot 2023-10-22 235156.png" height="400px"/>
+  <img src="IMG/improvedUnetModel.png" height="400px"/>
   </kbd>
 </p>
 
