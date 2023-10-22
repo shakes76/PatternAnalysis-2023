@@ -15,9 +15,9 @@ class CustomDataset(Dataset):
         """
         Initializes the dataset object with directory paths and transformation.
 
-        :param image_dir: Directory path to the images.
-        :param mask_dir: Directory path to the corresponding masks.
-        :param transform: (Optional) Transformations to be applied.
+        :param image_dir: Directory path to the image folder.
+        :param mask_dir: Directory path to the corresponding masks folder.
+        :param transform: Transformations to be applied.
         """
         self.image_dir = image_dir
         self.mask_dir = mask_dir
@@ -34,13 +34,13 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, index):
         """
-        Fetches and returns the image-mask pair for the given index.
+        returns the image-mask pair for the given index.
 
         :param index: Index for the image-mask pair in the dataset.
         
         :return: A tuple containing the image and its corresponding mask.
         """
-        
+
         img_path = os.path.join(self.image_dir, self.images[index])
         mask_path = os.path.join(self.mask_dir, self.images[index].replace(".jpg", "_segmentation.png"))
         image = np.array(Image.open(img_path).convert("RGB"))

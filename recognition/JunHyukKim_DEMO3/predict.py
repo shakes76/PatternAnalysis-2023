@@ -44,7 +44,7 @@ def main():
     )
 
     FILE = "model.pth"
-    loaded_model = ImprovedUnet(3,1,[64,128,256,512]) 
+    loaded_model = ImprovedUnet(3,1) 
     loaded_model.load_state_dict(torch.load(FILE))
     loaded_model.to(DEVICE)
     loaded_model.eval()

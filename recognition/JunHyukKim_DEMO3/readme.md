@@ -79,6 +79,10 @@ The schaduler was used to reduce the learning rate at the end fo the function.
 The training accuracy and saved predictions are from validation imagesets. 
 GradScaler is used to make the training faster.
 
+#### 4.5.3 Commentation
+Each class and functions/methods are commented.
+Comment includes a brief description of the function of the class,method or the function and followed by 
+the parameters it recieves and the return values it returns.
 ## 5. Algorithm/ImprovedUnet
 This program uses improved Unet to segment the differnt types of skin conditions such as melanoma.
 The improved Unet strucuture explained

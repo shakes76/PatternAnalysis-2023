@@ -15,6 +15,8 @@ class ContextLayer(nn.Module):
         
         :param in_channels: Number of input channels
         :param out_channels: Number of output channels
+
+        :return: None
         """
         super(ContextLayer, self).__init__()
         self.conv = nn.Sequential(
@@ -32,6 +34,7 @@ class ContextLayer(nn.Module):
         Forward pass through the context layer.
 
         :param x: Input tensor
+
         :return: Processed tensor after passing through the layer sequence
         """
         return self.conv(x)
@@ -47,6 +50,8 @@ class LocalizationLayer(nn.Module):
         
         :param in_channels: Number of input channels
         :param out_channels: Number of output channels
+
+        :return: None
         """
         super(LocalizationLayer, self).__init__()
         self.conv = nn.Sequential(
@@ -76,16 +81,18 @@ class ImprovedUnet(nn.Module):
     Attributes:
     - Various convolutional layers and utilities for each encoding and decoding stage.
     """
-    def __init__(self, in_channels=3, out_channels=1, features=[64, 128, 256, 512]):
+    def __init__(self, in_channels=3, out_channels=1, features=64):
         """
         Initializes the UNET model with the given parameters.
 
         :param in_channels: Number of input channels. Default is 3 for RGB images.
         :param out_channels: Number of output channels. Typically 1 for binary segmentation.
-        :param features: List containing the number of features in each layer. Defines the depth and width of the U-Net.
+        :param features: List containing the number of features in each layer.
+        
+        :return: None
         """
         super(ImprovedUnet, self).__init__()
-        self.feature_num = 64
+        self.feature_num = features
         #LAYER 1
         self.first_conv = nn.Conv2d(in_channels, self.feature_num, kernel_size=3, stride=1, padding=1, bias=False)
         self.first_down = ContextLayer(self.feature_num, self.feature_num)

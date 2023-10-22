@@ -8,7 +8,7 @@ def make_folder_if_not_exists(path):
     """
     Checks if a folder exists at the given path. If not, creates the folder.
 
-    :param path: The path to the folder.
+    :param path: The path to the folder to be created.
     """
 
     if not os.path.exists(path):
