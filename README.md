@@ -146,9 +146,9 @@ This GIF visually represents the model's ability to generate and denoise images 
 
 ---
 
-### References
+## References
 
-Implementation adapted from the following articles. They also delves deeper into the theoretical foundation and practical implementation of DDPMs
+Implementation adapted from the following articles. They also delves deeper into the theoretical foundation and practical implementation of DDPMs:
 
 1. **Generating Images with DDPMs: A PyTorch Implementation**:
     - Source: [Medium Article](https://medium.com/mlearning-ai/enerating-images-with-ddpms-a-pytorch-implementation-cef5a2ba8cb1)
@@ -158,3 +158,12 @@ Implementation adapted from the following articles. They also delves deeper into
     - Source: [HuggingFace Blog](https://huggingface.co/blog/annotated-diffusion)
     - A detailed exposition of the diffusion process, this article by HuggingFace demystifies the underlying concepts using annotations.
 
+3. **Attention Is All You Need**:
+    - Authors: Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, Illia Polosukhin
+    - Year: 2023
+    - [arXiv Link](https://arxiv.org/abs/1706.03762)
+
+4. **Denoising Diffusion Probabilistic Models**:
+    - Authors: Jonathan Ho, Ajay Jain, Pieter Abbeel
+    - Year: 2020
+    - [arXiv Link](https://arxiv.org/abs/2006.11239)
