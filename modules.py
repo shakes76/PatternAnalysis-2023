@@ -6,7 +6,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-
 config_params_dict = {
     "general": {
         "num_channels": 3,  # RGB
