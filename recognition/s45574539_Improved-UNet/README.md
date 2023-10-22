@@ -14,7 +14,7 @@ Student ID: 45574539
 ## Dataset
 
 ### Description
-The International Skin Imaging Collaboration (ISIC) datasets contain dermoscopic images, with challenges being set each year in hope to improve melanoma diagnosis. For this project, the ISIC 2018 challenge dataset has been used. It contains 2594 images of skin lesions of varying size, and 2 separate folders of input and output images. The input images (training) are in JPG format and are dermoscopic images (of skin lesions). The output images (ground truth) are masks for the skin lesion images in PNG format. An example of an input image and its corresponding output image is given below.
+The International Skin Imaging Collaboration (ISIC) datasets contain dermoscopic images, with challenges being set each year in hope to improve melanoma diagnosis. For this project, the ISIC 2018 challenge dataset has been used. It contains 2594 images of skin lesions of varying size, and 2 separate folders of input and output images. The input images (training) are in JPG format and are dermoscopic images (of skin lesions). The output images (ground truth) are masks for the skin lesion images in PNG format.
 
 ### Pre-processing
 The image folders were saved and the images shuffled before being split. The training, validation, test split used in this project was a **70%, 15%, 15% ratio** respectively: 1816 training images, 389 testing images, and 389 validation images. This was chosen because it is a widely accepted data split ratio and is suitable because the ISIC 2018 dataset is not too small (> 2000 images). During the pre-processing stage, images were resized to (256px, 256px) to keep them uniform. The dimensions were selected as they were close to equalling some of the smallest images in the set. This allowed for training time to be enhanced while, also, maintaining the quality of the images. Images were then normalized, and saved into tensorflow datasets to be used in the training process.
@@ -24,6 +24,12 @@ The image folders were saved and the images shuffled before being split. The tra
 
 ### Improved UNet [1]
 The UNet is a convolutional network which is used for image segmentation, with its name given because of the U-shaped architecture. It is comprised of encoding and decoding sections. The improved UNet architecture [1] makes use of convolution layers with a stride of 2 between the context modules to allow for more features while encoding. The localization pathway takes feature from deeper levels in the network which have been encoded in lower resolution, and decode them in higher spatial resolution. For this process, it upsamples / upscales, then has a 3x3x3 convolution which halves amount of feature maps. The upsampled features are then recombined with the results from the element-wise sums performed on the context modules on the same level via concatenation. It also makes use of softmax activation for the outputs rather than sigmoid which is used generally in the traditional UNet architecture.
+
+<p align="center">
+  <kbd>
+  <img src="Screenshot 2023-10-22 235156.png" height="400px"/>
+  </kbd>
+</p>
 
 
 ### Dice Similarity Coefficient
@@ -38,9 +44,9 @@ Note: Reference [3] was used as a resource when implementing the function in thi
 <!-- Project Results  -->
 ## Results
 
-### Dice Similarity Metric
+After 10 EPOCHS, the model achieved:
 
-### Accuracy Metric
+accuracy: 0.9325 - dice_similarity: 0.9229 - val_loss: 0.1791 - val_accuracy: 0.9308 - val_dice_similarity: 0.9232
 
 <!-- Usage Instructions -->
 ## Usage
