@@ -1,6 +1,6 @@
 import tensorflow as tf
 from tensorflow import keras
-from keras.layers import Dense, Layer, Flatten, Normalization, Resizing, Dropout, Embedding, RandomFlip, RandomRotation, RandomZoom, Input, LayerNormalization, MultiHeadAttention, Add
+from keras.layers import Dense, Layer, Flatten, Normalization, Resizing, Dropout, Embedding, RandomFlip, RandomRotation, Input, LayerNormalization, MultiHeadAttention, Add
 import os    
 
 num_classes = 2
@@ -23,8 +23,7 @@ preprocessing = keras.Sequential(
         RandomFlip("horizontal"),
         RandomRotation(factor=0.01),
     ],
-    name="preprocessing"
-)
+    name="preprocessing")
 
 
 def perceptron(tensor_in, hidden_units, dropout):
@@ -65,6 +64,7 @@ class PatchEncoder(Layer):
         encoded = self.projection(patch) + self.position_embedding(positions)
         return encoded
 
+
 def transformer():
     inputs = Input(shape=input_shape)
     augmented_inputs = preprocessing(inputs)
@@ -76,9 +76,8 @@ def transformer():
         Layer1 = LayerNormalization(epsilon=1e-6)(encoded_patches)
         attention_output = MultiHeadAttention(num_heads=num_heads,key_dim=dimensions,dropout=0.1)
         (Layer1, Layer1)
-
-        Layer2 = Add()([attention_output, encoded_patches])
         
+        Layer2 = Add()([attention_output, encoded_patches])
         Layer3 = LayerNormalization(epsilon=1e-6)(Layer2)
         Layer3 = perceptron(Layer3,hidden_units=vit_dim,dropout=0.1)
 
