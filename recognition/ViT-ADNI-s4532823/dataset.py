@@ -24,14 +24,12 @@ TRAIN_TRANSFORM = transforms.Compose([
     transforms.RandomCrop(224),
     transforms.RandomHorizontalFlip(),
     transforms.RandomVerticalFlip(),
-    transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
 ])
 
 # Testing image transforms
 TEST_TRANSFORM = transforms.Compose([
     transforms.CenterCrop(224),
-    transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
 ])
 
@@ -103,12 +101,12 @@ def split_train_val(dataset: ADNIDataset, val_proportion: float, keep_proportion
     return dataset, val_dataset
 
 
-def get_dataloader(batch_size, train: bool, val_proportion: float = 0.2, keep_proprtion: float = 1.0):
+def get_dataloader(batch_size, train: bool, val_proportion: float = 0.2, keep_proportion: float = 1.0):
     """
     Returns data loader for either the training (plus validation) set, or the test set.
     """
     train_dataset = ADNIDataset(root_path=ADNI_PATH, train=True, transform=TRAIN_TRANSFORM)
-    train_dataset, val_dataset = split_train_val(dataset=train_dataset, val_proportion=val_proportion, keep_proportion=keep_proprtion)
+    train_dataset, val_dataset = split_train_val(dataset=train_dataset, val_proportion=val_proportion, keep_proportion=keep_proportion)
     loader = (DataLoader(train_dataset, batch_size=batch_size, shuffle=True), DataLoader(val_dataset, batch_size=batch_size, shuffle=True))
     if train == False:
         dataset = ADNIDataset(root_path=ADNI_PATH, train=False, transform=TEST_TRANSFORM)
