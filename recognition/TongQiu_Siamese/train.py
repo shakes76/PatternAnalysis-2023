@@ -61,8 +61,15 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
     val_losses = np.array(val_losses)
 
     # Save the arrays
-    np.save(os.path.join(Config.LOG_DIR_CONTRASTIVE, 'contrastive/train_losses.npy'), train_losses)
-    np.save(os.path.join(Config.LOG_DIR_CONTRASTIVE, 'contrastive/val_losses.npy'), val_losses)
+    save_train_path = os.path.join(Config.LOG_DIR, 'contrastive/train_losses.npy')
+    save_val_path = os.path.join(Config.LOG_DIR, 'contrastive/val_losses.npy')
+
+    # Check if the directory exists, if not create it
+    if not os.path.exists(os.path.dirname(save_train_path)):
+        os.makedirs(os.path.dirname(save_train_path))
+    # save
+    np.save(save_train_path, train_losses)
+    np.save(save_val_path, val_losses)
 
 
 def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
@@ -146,40 +153,58 @@ Training process for Triplet loss
 
 
 def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
-    print('---------Train on: ' + Config.DEVICE + '----------')
+    print('---------Siamese(Triplet) Train on: ' + Config.DEVICE + '----------')
 
     # Create model
     model = model.to(Config.DEVICE)
-    best_score = 0
-    writer = SummaryWriter(log_dir=Config.LOG_DIR_TRIPLET)  # for TensorBoard
+    best_loss = float('inf')
+
+    # Lists for storing metrics
+    train_losses = []
+    val_losses = []
+    early_stopping_counter = 0
 
     for epoch in range(epochs):
 
         # train
-        train_batch_loss, train_batch_acc = train_triplet(model, train_loader, optimizer, criterion, epoch, epochs)
-        # validate
-        val_batch_loss, val_batch_acc = validate_triplet(model, val_loader, criterion, epoch, epochs)
+        train_batch_loss = train_triplet(model, train_loader, optimizer, criterion, epoch, epochs)
+        train_losses.append(train_batch_loss)
 
-        if val_batch_acc > best_score:
-            print(f"model improved: score {best_score:.5f} --> {val_batch_acc:.5f}")
-            best_score = val_batch_acc
+        # validate
+        val_batch_loss = validate_triplet(model, val_loader, criterion, epoch, epochs)
+        val_losses.append(val_batch_loss)
+
+        if val_batch_loss > best_loss:
+            print(f"model improved: score {best_loss:.5f} --> {val_batch_loss:.5f}")
+            best_loss = val_batch_loss
             # Save the best weights if the score is improved
             torch.save({
                 'epoch': epoch,
-                'model_state_dict': model.state_dict(),
+                'model_state_dict': model.embedding_net.state_dict(),
                 'train_loss': train_batch_loss,
-                'val_acc': val_batch_acc
             }, Config.MODEL_DIR_TRIPLET)
         else:
-            print(f"no improvement: score {best_score:.5f} --> {val_batch_acc:.5f}")
+            early_stopping_counter += 1
+            print(f"no improvement: score {best_loss:.5f} --> {val_batch_loss:.5f}")
 
-        # Write loss and score to TensorBoard
-        writer.add_scalar("Training Loss", train_batch_loss, epoch)
-        writer.add_scalar("Training Score", train_batch_acc, epoch)
-        writer.add_scalar("Validation Loss", val_batch_loss, epoch)
-        writer.add_scalar("Validation Score", val_batch_acc, epoch)
+        if early_stopping_counter > 5:
+            print("Early stopping!")
+            break
 
-    writer.close()
+    # Convert lists to numpy arrays
+    train_losses = np.array(train_losses)
+    val_losses = np.array(val_losses)
+
+    # Save the arrays
+    save_train_path = os.path.join(Config.LOG_DIR, 'triplet/train_losses.npy')
+    save_val_path = os.path.join(Config.LOG_DIR, 'triplet/val_losses.npy')
+
+    # Check if the directory exists, if not create it
+    if not os.path.exists(os.path.dirname(save_train_path)):
+        os.makedirs(os.path.dirname(save_train_path))
+    # save
+    np.save(save_train_path, train_losses)
+    np.save(save_val_path, val_losses)
 
 
 def train_triplet(model, train_loader, optimizer, criterion, epoch, epochs):
@@ -211,8 +236,6 @@ def train_triplet(model, train_loader, optimizer, criterion, epoch, epochs):
 def validate_triplet(model, val_loader, criterion, epoch, epochs):
     model.eval()
     total_loss = 0.0
-    correct_predictions = 0
-    total_samples = 0
 
     with torch.no_grad():
         for batch in tqdm(val_loader):
@@ -224,69 +247,14 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
 
             total_loss += loss.item()
 
-            # Compute accuracy
-            dists_p = F.pairwise_distance(embedding_a, embedding_p)
-            dists_n = F.pairwise_distance(embedding_a, embedding_n)
-            pred_diff = (dists_p < dists_n).float()
-            predictions = pred_diff * labels.squeeze() + (1 - pred_diff) * (1 - labels.squeeze())
-            correct_predictions += (predictions == labels.squeeze().float()).sum().item()
-            total_samples += labels.size(0)
-
     average_loss = total_loss / len(val_loader)
-    val_acc = correct_predictions / total_samples
 
     # Print the information.
     print(
-        f"[ Validation | {epoch + 1:03d}/{epochs:03d} ] acc = {val_acc:.5f}, loss = {average_loss:.5f}")
+        f"[ Validation | {epoch + 1:03d}/{epochs:03d} ] loss = {average_loss:.5f}")
 
-    return average_loss, val_acc
+    return average_loss
 
-"""
-# train with Triplet loss
-if __name__ == '__main__':
-    random.seed(2023)
-    model = Baseline_Triplet()
-
-    full_train_data = discover_directory(Config.TRAIN_DIR)
-    train_data, val_data = patient_level_split(full_train_data)  # patient-level split
-
-    tr_transform = tf.Compose([
-        tf.Normalize((0.1160,), (0.2261,)),
-        tf.RandomRotation(10)
-    ])
-    val_transform = tf.Compose([
-        tf.Normalize((0.1160,), (0.2261,)),
-        tf.RandomRotation(10)
-    ])
-
-    train_dataset = TripletDataset(train_data, transform=tr_transform)
-    val_dataset = TripletDataset(val_data, transform=val_transform)
-
-    dataloader_tr = DataLoader(
-        dataset=train_dataset,
-        shuffle=True,
-        batch_size=8,
-        num_workers=1,
-        drop_last=True
-    )
-    dataloader_val = DataLoader(
-        dataset=val_dataset,
-        shuffle=True,
-        batch_size=8,
-        num_workers=1,
-        drop_last=True
-    )
-
-    criterion = torch.nn.TripletMarginLoss()
-
-    lr = 0.005
-    weight_decay = 1e-5
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
-
-    epochs = 50
-
-    main_triplet(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
-"""
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Training script for Contrastive/Triplet network')
@@ -357,6 +325,33 @@ if __name__ == '__main__':
         optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
         main_contrastive(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
+
+    elif args.model == 'Triplet':
+        embedding_net = Embedding_Baseline()
+        model = SiameseTriplet(embedding_net)
+
+        train_dataset = TripletDataset(train_data, transform=tr_transform)
+        val_dataset = TripletDataset(val_data, transform=val_transform)
+
+        dataloader_tr = DataLoader(
+            dataset=train_dataset,
+            shuffle=True,
+            batch_size=args.batch_size,
+            num_workers=args.workers,
+            drop_last=True
+        )
+        dataloader_val = DataLoader(
+            dataset=val_dataset,
+            shuffle=True,
+            batch_size=args.batch_size,
+            num_workers=args.workers,
+            drop_last=True
+        )
+
+        criterion = torch.nn.TripletMarginLoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+        main_triplet(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
 
     else:
         print('model type not included, try Contrastive/Triplet.')
