@@ -9,7 +9,7 @@ from keras.callbacks import Callback
 import time
 
 import modules as layers
-from dataset import pre_process_data
+from dataset import DataLoader
 
 # string modifier for saving output files based on time
 timestr = time.strftime("%Y%m%d-%H%M%S")
@@ -25,6 +25,8 @@ CHANNELS = 3
 STEPS_PER_EPOCH_TRAIN = math.floor(2076 / BATCH_SIZE)
 STEPS_PER_EPOCH_TEST = math.floor(519 / BATCH_SIZE)
 NUMBER_SHOW_TEST_PREDICTIONS = 3
+
+
 
 # Define a callback to calculate Dice coefficient after each epoch
 class DiceCoefficientCallback(Callback):
@@ -91,13 +93,10 @@ def save_dice_coefficient_plot(dice_history):
 def train_model_check_accuracy(train_gen, test_gen):
     model = layers.improved_unet(IMAGE_WIDTH, IMAGE_HEIGHT, CHANNELS)
     model.summary()
-    
     # Define the DiceCoefficientCallback
     dice_coefficient_callback = DiceCoefficientCallback(test_gen, STEPS_PER_EPOCH_TEST)
-    
     model.compile(optimizer=keras.optimizers.Adam(LEARNING_RATE),
                   loss=dice_loss, metrics=['accuracy', dice_coefficient])
-    
     track = model.fit(
         train_gen,
         steps_per_epoch=STEPS_PER_EPOCH_TRAIN,
@@ -105,8 +104,7 @@ def train_model_check_accuracy(train_gen, test_gen):
         shuffle=True,
         verbose=1,
         use_multiprocessing=False,
-        callbacks=[dice_coefficient_callback])  # Add the callback here
-
+        callbacks=[dice_coefficient_callback])  # Add the callback her
     plot_accuracy_loss(track)  # Plot accuracy and loss curves
 
     print("\nEvaluating test images...")
@@ -123,15 +121,17 @@ def train_model_check_accuracy(train_gen, test_gen):
 def test_visualise_model_predictions(model, test_gen):
     test_range = np.arange(0, stop=NUMBER_SHOW_TEST_PREDICTIONS, step=1)
     
-    for i in test_range:
+    for i in test_range: 
         current = next(islice(test_gen, i, None))
         image_input = current[0]  # Image tensor
         mask_truth = current[1]  # Mask tensor
+        # debug statements to check the types of the tensors and find the division by zero
         test_pred = model.predict(image_input, steps=1, use_multiprocessing=False)[0]
         truth = mask_truth[0]
         original = image_input[0]
         probabilities = keras.preprocessing.image.img_to_array(test_pred)
         test_dice = dice_coefficient(truth, test_pred, axis=None)
+
 
         # Create a unique filename for each visualization
         filename = os.path.join(output_dir, f"visualization_{i}_{timestr}.png")
@@ -164,17 +164,46 @@ def test_visualise_model_predictions(model, test_gen):
 
 # Run the test driver.
 def main():
+    # Constants related to preprocessing
+    train_dir = "datasets/training_input"
+    train_groundtruth_dir = "datasets/training_groundtruth"
+    validation_dir = "datasets/validation_input"
+    validation_groundtruth_dir = "datasets/validation_groundtruth"
+    image_mode = "rgb"
+    mask_mode = "grayscale"
+    image_height = 512
+    image_width = 512
+    batch_size = 2
+    seed = 45
+    shear_range = 0.1
+    zoom_range = 0.1
+    horizontal_flip = True
+    vertical_flip = True
+    fill_mode = 'nearest'
+
+    # print number of images in each directory
+    print("Number of images in training_input:", len(os.listdir(train_dir)))
+    print("Number of images in validation_input:", len(os.listdir(validation_dir)))
+    print("Number of images in training_groundtruth:", len(os.listdir(train_groundtruth_dir)))
+    print("Number of images in validation_groundtruth:", len(os.listdir(validation_groundtruth_dir)))
+    test_data = DataLoader(
+        validation_dir, validation_groundtruth_dir, image_mode, mask_mode, image_height, image_width, batch_size, seed,
+        shear_range, zoom_range, horizontal_flip, vertical_flip, fill_mode)
+    test_data = test_data.create_data_generators()
+    train_data = DataLoader(
+        train_dir, train_groundtruth_dir, image_mode, mask_mode, image_height, image_width, batch_size, seed,
+        shear_range, zoom_range, horizontal_flip, vertical_flip, fill_mode)
+    train_data = train_data.create_data_generators()
     print("\nPREPROCESSING IMAGES")
-    train_gen, test_gen = pre_process_data()
     print("\nTRAINING MODEL")
-    model, dice_history = train_model_check_accuracy(train_gen, test_gen)
+    model, dice_history = train_model_check_accuracy(train_data, test_data)
     # Save Dice coefficient
     save_dice_coefficient_plot(dice_history)
     # Save the trained model to a file
     print("\nSAVING MODEL")
     model.save("my_model.keras")
     print("\nVISUALISING PREDICTIONS")
-    test_visualise_model_predictions(model, test_gen)
+    test_visualise_model_predictions(model, test_data)
 
     print("COMPLETED")
     return 0
