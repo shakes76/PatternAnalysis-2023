@@ -1,0 +1,553 @@
+test_out.outBegin loading data
+Finish loading data 
+
+Start training
+Epoch [1/15]
+>>>>> Step [40/269] Loss: 0.26237
+>>>>> Step [80/269] Loss: 0.25269
+>>>>> Step [120/269] Loss: 0.26097
+>>>>> Step [160/269] Loss: 0.26211
+>>>>> Step [200/269] Loss: 0.28128
+>>>>> Step [240/269] Loss: 0.26437
+>>>>> Step [10/68] Validate Loss: 0.24199
+>>>>> Step [20/68] Validate Loss: 0.25752
+>>>>> Step [30/68] Validate Loss: 0.25471
+>>>>> Step [40/68] Validate Loss: 0.24666
+>>>>> Step [50/68] Validate Loss: 0.23260
+>>>>> Step [60/68] Validate Loss: 0.25789
+Current best validate loss is 0.2561306640067521 at epoch 1
+Save model
+Epoch [2/15]
+>>>>> Step [40/269] Loss: 0.24332
+>>>>> Step [80/269] Loss: 0.25461
+>>>>> Step [120/269] Loss: 0.23601
+>>>>> Step [160/269] Loss: 0.24031
+>>>>> Step [200/269] Loss: 0.25133
+>>>>> Step [240/269] Loss: 0.28793
+>>>>> Step [10/68] Validate Loss: 0.29468
+>>>>> Step [20/68] Validate Loss: 0.25141
+>>>>> Step [30/68] Validate Loss: 0.24544
+>>>>> Step [40/68] Validate Loss: 0.26986
+>>>>> Step [50/68] Validate Loss: 0.24206
+>>>>> Step [60/68] Validate Loss: 0.26439
+The previous best validate loss is 0.2561306640067521
+Current best validate loss is 0.2537963243530077 at epoch 2
+Save model
+Epoch [3/15]
+>>>>> Step [40/269] Loss: 0.27083
+>>>>> Step [80/269] Loss: 0.24253
+>>>>> Step [120/269] Loss: 0.22167
+>>>>> Step [160/269] Loss: 0.22771
+>>>>> Step [200/269] Loss: 0.21561
+>>>>> Step [240/269] Loss: 0.23392
+>>>>> Step [10/68] Validate Loss: 0.24720
+>>>>> Step [20/68] Validate Loss: 0.21546
+>>>>> Step [30/68] Validate Loss: 0.22111
+>>>>> Step [40/68] Validate Loss: 0.24292
+>>>>> Step [50/68] Validate Loss: 0.25129
+>>>>> Step [60/68] Validate Loss: 0.26675
+The previous best validate loss is 0.2537963243530077
+Current best validate loss is 0.24238532672033591 at epoch 3
+Save model
+Epoch [4/15]
+>>>>> Step [40/269] Loss: 0.21013
+>>>>> Step [80/269] Loss: 0.26661
+>>>>> Step [120/269] Loss: 0.21960
+>>>>> Step [160/269] Loss: 0.19734
+>>>>> Step [200/269] Loss: 0.20229
+>>>>> Step [240/269] Loss: 0.20624
+>>>>> Step [10/68] Validate Loss: 0.23667
+>>>>> Step [20/68] Validate Loss: 0.21349
+>>>>> Step [30/68] Validate Loss: 0.20142
+>>>>> Step [40/68] Validate Loss: 0.28803
+>>>>> Step [50/68] Validate Loss: 0.21717
+>>>>> Step [60/68] Validate Loss: 0.24267
+The previous best validate loss is 0.24238532672033591
+Current best validate loss is 0.21995502052938237 at epoch 4
+Save model
+Epoch [5/15]
+>>>>> Step [40/269] Loss: 0.19906
+>>>>> Step [80/269] Loss: 0.23478
+>>>>> Step [120/269] Loss: 0.23039
+>>>>> Step [160/269] Loss: 0.21202
+>>>>> Step [200/269] Loss: 0.21645
+>>>>> Step [240/269] Loss: 0.19855
+>>>>> Step [10/68] Validate Loss: 0.23242
+>>>>> Step [20/68] Validate Loss: 0.26890
+>>>>> Step [30/68] Validate Loss: 0.20993
+>>>>> Step [40/68] Validate Loss: 0.24429
+>>>>> Step [50/68] Validate Loss: 0.22549
+>>>>> Step [60/68] Validate Loss: 0.22196
+Epoch [6/15]
+>>>>> Step [40/269] Loss: 0.16854
+>>>>> Step [80/269] Loss: 0.17746
+>>>>> Step [120/269] Loss: 0.17581
+>>>>> Step [160/269] Loss: 0.14333
+>>>>> Step [200/269] Loss: 0.14732
+>>>>> Step [240/269] Loss: 0.12454
+>>>>> Step [10/68] Validate Loss: 0.15547
+>>>>> Step [20/68] Validate Loss: 0.27641
+>>>>> Step [30/68] Validate Loss: 0.17634
+>>>>> Step [40/68] Validate Loss: 0.24015
+>>>>> Step [50/68] Validate Loss: 0.21051
+>>>>> Step [60/68] Validate Loss: 0.18582
+The previous best validate loss is 0.21995502052938237
+Current best validate loss is 0.21116605883135514 at epoch 6
+Save model
+Epoch [7/15]
+>>>>> Step [40/269] Loss: 0.16242
+>>>>> Step [80/269] Loss: 0.14167
+>>>>> Step [120/269] Loss: 0.12054
+>>>>> Step [160/269] Loss: 0.12582
+>>>>> Step [200/269] Loss: 0.11480
+>>>>> Step [240/269] Loss: 0.11536
+>>>>> Step [10/68] Validate Loss: 0.18808
+>>>>> Step [20/68] Validate Loss: 0.30216
+>>>>> Step [30/68] Validate Loss: 0.21387
+>>>>> Step [40/68] Validate Loss: 0.15759
+>>>>> Step [50/68] Validate Loss: 0.14912
+>>>>> Step [60/68] Validate Loss: 0.20897
+The previous best validate loss is 0.21116605883135514
+Current best validate loss is 0.1982566007577321 at epoch 7
+Save model
+Epoch [8/15]
+>>>>> Step [40/269] Loss: 0.10982
+>>>>> Step [80/269] Loss: 0.11604
+>>>>> Step [120/269] Loss: 0.08934
+>>>>> Step [160/269] Loss: 0.09464
+>>>>> Step [200/269] Loss: 0.09397
+>>>>> Step [240/269] Loss: 0.11226
+>>>>> Step [10/68] Validate Loss: 0.21074
+>>>>> Step [20/68] Validate Loss: 0.18746
+>>>>> Step [30/68] Validate Loss: 0.19576
+>>>>> Step [40/68] Validate Loss: 0.16288
+>>>>> Step [50/68] Validate Loss: 0.22629
+>>>>> Step [60/68] Validate Loss: 0.17504
+The previous best validate loss is 0.1982566007577321
+Current best validate loss is 0.18186762424952843 at epoch 8
+Save model
+Epoch [9/15]
+>>>>> Step [40/269] Loss: 0.10493
+>>>>> Step [80/269] Loss: 0.10133
+>>>>> Step [120/269] Loss: 0.06403
+>>>>> Step [160/269] Loss: 0.05368
+>>>>> Step [200/269] Loss: 0.07780
+>>>>> Step [240/269] Loss: 0.05349
+>>>>> Step [10/68] Validate Loss: 0.20871
+>>>>> Step [20/68] Validate Loss: 0.14832
+>>>>> Step [30/68] Validate Loss: 0.17847
+>>>>> Step [40/68] Validate Loss: 0.12101
+>>>>> Step [50/68] Validate Loss: 0.18893
+>>>>> Step [60/68] Validate Loss: 0.16057
+The previous best validate loss is 0.18186762424952843
+Current best validate loss is 0.17989703333553145 at epoch 9
+Save model
+Epoch [10/15]
+>>>>> Step [40/269] Loss: 0.03386
+>>>>> Step [80/269] Loss: 0.06051
+>>>>> Step [120/269] Loss: 0.05363
+>>>>> Step [160/269] Loss: 0.03148
+>>>>> Step [200/269] Loss: 0.04659
+>>>>> Step [240/269] Loss: 0.03655
+>>>>> Step [10/68] Validate Loss: 0.12801
+>>>>> Step [20/68] Validate Loss: 0.14536
+>>>>> Step [30/68] Validate Loss: 0.17259
+>>>>> Step [40/68] Validate Loss: 0.14708
+>>>>> Step [50/68] Validate Loss: 0.16430
+>>>>> Step [60/68] Validate Loss: 0.14965
+The previous best validate loss is 0.17989703333553145
+Current best validate loss is 0.1609407603083288 at epoch 10
+Save model
+Epoch [11/15]
+>>>>> Step [40/269] Loss: 0.05267
+>>>>> Step [80/269] Loss: 0.02783
+>>>>> Step [120/269] Loss: 0.04394
+>>>>> Step [160/269] Loss: 0.04926
+>>>>> Step [200/269] Loss: 0.02603
+>>>>> Step [240/269] Loss: 0.02099
+>>>>> Step [10/68] Validate Loss: 0.15679
+>>>>> Step [20/68] Validate Loss: 0.14490
+>>>>> Step [30/68] Validate Loss: 0.15277
+>>>>> Step [40/68] Validate Loss: 0.16218
+>>>>> Step [50/68] Validate Loss: 0.18440
+>>>>> Step [60/68] Validate Loss: 0.15573
+The previous best validate loss is 0.1609407603083288
+Current best validate loss is 0.1602084062555257 at epoch 11
+Save model
+Epoch [12/15]
+>>>>> Step [40/269] Loss: 0.02823
+>>>>> Step [80/269] Loss: 0.02181
+>>>>> Step [120/269] Loss: 0.02454
+>>>>> Step [160/269] Loss: 0.02896
+>>>>> Step [200/269] Loss: 0.02820
+>>>>> Step [240/269] Loss: 0.01771
+>>>>> Step [10/68] Validate Loss: 0.19859
+>>>>> Step [20/68] Validate Loss: 0.13949
+>>>>> Step [30/68] Validate Loss: 0.13666
+>>>>> Step [40/68] Validate Loss: 0.18246
+>>>>> Step [50/68] Validate Loss: 0.17448
+>>>>> Step [60/68] Validate Loss: 0.20911
+The previous best validate loss is 0.1602084062555257
+Current best validate loss is 0.15036807888570955 at epoch 12
+Save model
+Epoch [13/15]
+>>>>> Step [40/269] Loss: 0.01400
+>>>>> Step [80/269] Loss: 0.03114
+>>>>> Step [120/269] Loss: 0.02133
+>>>>> Step [160/269] Loss: 0.01652
+>>>>> Step [200/269] Loss: 0.01800
+>>>>> Step [240/269] Loss: 0.01779
+>>>>> Step [10/68] Validate Loss: 0.15817
+>>>>> Step [20/68] Validate Loss: 0.20240
+>>>>> Step [30/68] Validate Loss: 0.15331
+>>>>> Step [40/68] Validate Loss: 0.17898
+>>>>> Step [50/68] Validate Loss: 0.16203
+>>>>> Step [60/68] Validate Loss: 0.11673
+Epoch [14/15]
+>>>>> Step [40/269] Loss: 0.01760
+>>>>> Step [80/269] Loss: 0.01936
+>>>>> Step [120/269] Loss: 0.01730
+>>>>> Step [160/269] Loss: 0.01191
+>>>>> Step [200/269] Loss: 0.01706
+>>>>> Step [240/269] Loss: 0.01203
+>>>>> Step [10/68] Validate Loss: 0.11905
+>>>>> Step [20/68] Validate Loss: 0.15146
+>>>>> Step [30/68] Validate Loss: 0.15134
+>>>>> Step [40/68] Validate Loss: 0.16179
+>>>>> Step [50/68] Validate Loss: 0.12819
+>>>>> Step [60/68] Validate Loss: 0.12744
+The previous best validate loss is 0.15036807888570955
+Current best validate loss is 0.14824151050518541 at epoch 14
+Save model
+Epoch [15/15]
+>>>>> Step [40/269] Loss: 0.01533
+>>>>> Step [80/269] Loss: 0.01984
+>>>>> Step [120/269] Loss: 0.01246
+>>>>> Step [160/269] Loss: 0.01025
+>>>>> Step [200/269] Loss: 0.01342
+>>>>> Step [240/269] Loss: 0.01083
+>>>>> Step [10/68] Validate Loss: 0.09488
+>>>>> Step [20/68] Validate Loss: 0.10205
+>>>>> Step [30/68] Validate Loss: 0.17299
+>>>>> Step [40/68] Validate Loss: 0.14905
+>>>>> Step [50/68] Validate Loss: 0.15548
+>>>>> Step [60/68] Validate Loss: 0.15149
+The previous best validate loss is 0.14824151050518541
+Current best validate loss is 0.14720819145441055 at epoch 15
+Save model
+Finish training
+Training took 2228.62065410614 secs of 37.14367756843567 mins in total 
+
+load siamese model from save
+Start classifier training
+Epoch [1/20]
+>>>>> Step [40/269] Loss: 0.54649
+>>>>> Step [80/269] Loss: 0.44439
+>>>>> Step [120/269] Loss: 0.16672
+>>>>> Step [160/269] Loss: 0.03596
+>>>>> Step [200/269] Loss: 0.01532
+>>>>> Step [240/269] Loss: 0.00590
+>>>>> Step [10/68] Classifier Validate Loss: 0.43267
+>>>>> Step [20/68] Classifier Validate Loss: 0.22706
+>>>>> Step [30/68] Classifier Validate Loss: 0.20156
+>>>>> Step [40/68] Classifier Validate Loss: 0.07916
+>>>>> Step [50/68] Classifier Validate Loss: 0.20405
+>>>>> Step [60/68] Classifier Validate Loss: 0.09246
+Validate predict >>>> 91.18055555555556%
+The test accuracy is 76.92222222222222
+Current best classifier validate loss is 0.21395153409856207 at epoch 1
+Save model
+Epoch [2/20]
+>>>>> Step [40/269] Loss: 0.00260
+>>>>> Step [80/269] Loss: 0.00295
+>>>>> Step [120/269] Loss: 0.00140
+>>>>> Step [160/269] Loss: 0.00229
+>>>>> Step [200/269] Loss: 0.00110
+>>>>> Step [240/269] Loss: 0.00088
+>>>>> Step [10/68] Classifier Validate Loss: 0.13688
+>>>>> Step [20/68] Classifier Validate Loss: 0.47965
+>>>>> Step [30/68] Classifier Validate Loss: 0.11911
+>>>>> Step [40/68] Classifier Validate Loss: 0.09395
+>>>>> Step [50/68] Classifier Validate Loss: 0.15864
+>>>>> Step [60/68] Classifier Validate Loss: 0.41051
+Validate predict >>>> 91.18055555555556%
+The test accuracy is 76.9
+Epoch [3/20]
+>>>>> Step [40/269] Loss: 0.00079
+>>>>> Step [80/269] Loss: 0.00072
+>>>>> Step [120/269] Loss: 0.00072
+>>>>> Step [160/269] Loss: 0.00092
+>>>>> Step [200/269] Loss: 0.00083
+>>>>> Step [240/269] Loss: 0.00044
+>>>>> Step [10/68] Classifier Validate Loss: 0.38999
+>>>>> Step [20/68] Classifier Validate Loss: 0.54322
+>>>>> Step [30/68] Classifier Validate Loss: 0.29781
+>>>>> Step [40/68] Classifier Validate Loss: 0.31757
+>>>>> Step [50/68] Classifier Validate Loss: 0.34498
+>>>>> Step [60/68] Classifier Validate Loss: 0.38110
+Validate predict >>>> 90.625%
+The test accuracy is 77.1
+Epoch [4/20]
+>>>>> Step [40/269] Loss: 0.00068
+>>>>> Step [80/269] Loss: 0.00057
+>>>>> Step [120/269] Loss: 0.00016
+>>>>> Step [160/269] Loss: 0.00022
+>>>>> Step [200/269] Loss: 0.00034
+>>>>> Step [240/269] Loss: 0.00013
+>>>>> Step [10/68] Classifier Validate Loss: 0.53371
+>>>>> Step [20/68] Classifier Validate Loss: 0.12200
+>>>>> Step [30/68] Classifier Validate Loss: 0.26262
+>>>>> Step [40/68] Classifier Validate Loss: 0.08951
+>>>>> Step [50/68] Classifier Validate Loss: 0.48936
+>>>>> Step [60/68] Classifier Validate Loss: 0.30904
+Validate predict >>>> 91.20370370370371%
+The test accuracy is 76.94444444444444
+Epoch [5/20]
+>>>>> Step [40/269] Loss: 0.00016
+>>>>> Step [80/269] Loss: 0.07186
+>>>>> Step [120/269] Loss: 0.00027
+>>>>> Step [160/269] Loss: 0.00028
+>>>>> Step [200/269] Loss: 0.00011
+>>>>> Step [240/269] Loss: 0.00124
+>>>>> Step [10/68] Classifier Validate Loss: 0.40735
+>>>>> Step [20/68] Classifier Validate Loss: 0.19747
+>>>>> Step [30/68] Classifier Validate Loss: 0.38188
+>>>>> Step [40/68] Classifier Validate Loss: 0.13163
+>>>>> Step [50/68] Classifier Validate Loss: 0.04873
+>>>>> Step [60/68] Classifier Validate Loss: 0.18989
+Validate predict >>>> 91.71296296296296%
+The test accuracy is 76.6
+Epoch [6/20]
+>>>>> Step [40/269] Loss: 0.00248
+>>>>> Step [80/269] Loss: 0.00004
+>>>>> Step [120/269] Loss: 0.00008
+>>>>> Step [160/269] Loss: 0.00007
+>>>>> Step [200/269] Loss: 0.00028
+>>>>> Step [240/269] Loss: 0.00003
+>>>>> Step [10/68] Classifier Validate Loss: 0.03114
+>>>>> Step [20/68] Classifier Validate Loss: 0.11496
+>>>>> Step [30/68] Classifier Validate Loss: 0.24199
+>>>>> Step [40/68] Classifier Validate Loss: 0.35215
+>>>>> Step [50/68] Classifier Validate Loss: 0.13541
+>>>>> Step [60/68] Classifier Validate Loss: 0.24467
+Validate predict >>>> 91.55092592592592%
+The test accuracy is 76.68888888888888
+Epoch [7/20]
+>>>>> Step [40/269] Loss: 0.00016
+>>>>> Step [80/269] Loss: 0.00009
+>>>>> Step [120/269] Loss: 0.00005
+>>>>> Step [160/269] Loss: 0.00028
+>>>>> Step [200/269] Loss: 0.00359
+>>>>> Step [240/269] Loss: 0.00010
+>>>>> Step [10/68] Classifier Validate Loss: 0.32136
+>>>>> Step [20/68] Classifier Validate Loss: 0.24919
+>>>>> Step [30/68] Classifier Validate Loss: 0.22046
+>>>>> Step [40/68] Classifier Validate Loss: 0.54003
+>>>>> Step [50/68] Classifier Validate Loss: 0.45581
+>>>>> Step [60/68] Classifier Validate Loss: 0.68608
+Validate predict >>>> 91.43518518518519%
+The test accuracy is 76.75555555555556
+Epoch [8/20]
+>>>>> Step [40/269] Loss: 0.00002
+>>>>> Step [80/269] Loss: 0.00004
+>>>>> Step [120/269] Loss: 0.00003
+>>>>> Step [160/269] Loss: 0.00003
+>>>>> Step [200/269] Loss: 0.00017
+>>>>> Step [240/269] Loss: 0.00003
+>>>>> Step [10/68] Classifier Validate Loss: 0.36273
+>>>>> Step [20/68] Classifier Validate Loss: 0.60332
+>>>>> Step [30/68] Classifier Validate Loss: 0.23807
+>>>>> Step [40/68] Classifier Validate Loss: 0.43778
+>>>>> Step [50/68] Classifier Validate Loss: 0.16551
+>>>>> Step [60/68] Classifier Validate Loss: 0.16634
+Validate predict >>>> 91.08796296296296%
+The test accuracy is 77.03333333333333
+Epoch [9/20]
+>>>>> Step [40/269] Loss: 0.00006
+>>>>> Step [80/269] Loss: 0.00007
+>>>>> Step [120/269] Loss: 0.00018
+>>>>> Step [160/269] Loss: 0.00012
+>>>>> Step [200/269] Loss: 0.00003
+>>>>> Step [240/269] Loss: 0.00002
+>>>>> Step [10/68] Classifier Validate Loss: 0.27875
+>>>>> Step [20/68] Classifier Validate Loss: 0.49630
+>>>>> Step [30/68] Classifier Validate Loss: 0.21020
+>>>>> Step [40/68] Classifier Validate Loss: 0.30151
+>>>>> Step [50/68] Classifier Validate Loss: 0.15074
+>>>>> Step [60/68] Classifier Validate Loss: 0.31543
+Validate predict >>>> 91.48148148148148%
+The test accuracy is 76.71111111111111
+Epoch [10/20]
+>>>>> Step [40/269] Loss: 0.00003
+>>>>> Step [80/269] Loss: 0.07098
+>>>>> Step [120/269] Loss: 0.00002
+>>>>> Step [160/269] Loss: 0.00003
+>>>>> Step [200/269] Loss: 0.00060
+>>>>> Step [240/269] Loss: 0.00007
+>>>>> Step [10/68] Classifier Validate Loss: 0.43849
+>>>>> Step [20/68] Classifier Validate Loss: 0.19135
+>>>>> Step [30/68] Classifier Validate Loss: 0.05273
+>>>>> Step [40/68] Classifier Validate Loss: 0.24897
+>>>>> Step [50/68] Classifier Validate Loss: 0.64750
+>>>>> Step [60/68] Classifier Validate Loss: 0.57024
+Validate predict >>>> 91.7824074074074%
+The test accuracy is 76.55555555555556
+Epoch [11/20]
+>>>>> Step [40/269] Loss: 0.00002
+>>>>> Step [80/269] Loss: 0.00003
+>>>>> Step [120/269] Loss: 0.00001
+>>>>> Step [160/269] Loss: 0.00001
+>>>>> Step [200/269] Loss: 0.00010
+>>>>> Step [240/269] Loss: 0.00001
+>>>>> Step [10/68] Classifier Validate Loss: 0.33204
+>>>>> Step [20/68] Classifier Validate Loss: 0.25863
+>>>>> Step [30/68] Classifier Validate Loss: 0.39097
+>>>>> Step [40/68] Classifier Validate Loss: 0.36718
+>>>>> Step [50/68] Classifier Validate Loss: 0.26436
+>>>>> Step [60/68] Classifier Validate Loss: 0.47538
+Validate predict >>>> 91.82870370370371%
+The test accuracy is 76.5111111111111
+Epoch [12/20]
+>>>>> Step [40/269] Loss: 0.00002
+>>>>> Step [80/269] Loss: 0.00004
+>>>>> Step [120/269] Loss: 0.00001
+>>>>> Step [160/269] Loss: 0.00001
+>>>>> Step [200/269] Loss: 0.00003
+>>>>> Step [240/269] Loss: 0.00070
+>>>>> Step [10/68] Classifier Validate Loss: 0.15058
+>>>>> Step [20/68] Classifier Validate Loss: 0.19600
+>>>>> Step [30/68] Classifier Validate Loss: 0.40044
+>>>>> Step [40/68] Classifier Validate Loss: 0.36704
+>>>>> Step [50/68] Classifier Validate Loss: 0.41330
+>>>>> Step [60/68] Classifier Validate Loss: 0.16826
+Validate predict >>>> 91.73611111111111%
+The test accuracy is 74.94444444444444
+Epoch [13/20]
+>>>>> Step [40/269] Loss: 0.00654
+>>>>> Step [80/269] Loss: 0.00002
+>>>>> Step [120/269] Loss: 0.00001
+>>>>> Step [160/269] Loss: 0.00001
+>>>>> Step [200/269] Loss: 0.00001
+>>>>> Step [240/269] Loss: 0.00005
+>>>>> Step [10/68] Classifier Validate Loss: 0.40174
+>>>>> Step [20/68] Classifier Validate Loss: 0.27195
+>>>>> Step [30/68] Classifier Validate Loss: 0.35226
+>>>>> Step [40/68] Classifier Validate Loss: 0.24809
+>>>>> Step [50/68] Classifier Validate Loss: 0.54469
+>>>>> Step [60/68] Classifier Validate Loss: 0.08925
+Validate predict >>>> 91.89814814814815%
+The test accuracy is 75.32222222222222
+Epoch [14/20]
+>>>>> Step [40/269] Loss: 0.00002
+>>>>> Step [80/269] Loss: 0.00051
+>>>>> Step [120/269] Loss: 0.00001
+>>>>> Step [160/269] Loss: 0.00001
+>>>>> Step [200/269] Loss: 0.00001
+>>>>> Step [240/269] Loss: 0.00073
+>>>>> Step [10/68] Classifier Validate Loss: 1.12090
+>>>>> Step [20/68] Classifier Validate Loss: 0.49011
+>>>>> Step [30/68] Classifier Validate Loss: 0.42104
+>>>>> Step [40/68] Classifier Validate Loss: 0.61504
+>>>>> Step [50/68] Classifier Validate Loss: 0.57180
+>>>>> Step [60/68] Classifier Validate Loss: 0.47802
+Validate predict >>>> 89.07407407407408%
+The test accuracy is 77.35555555555555
+Epoch [15/20]
+>>>>> Step [40/269] Loss: 0.00001
+>>>>> Step [80/269] Loss: 0.00001
+>>>>> Step [120/269] Loss: 0.00001
+>>>>> Step [160/269] Loss: 0.00001
+>>>>> Step [200/269] Loss: 0.00001
+>>>>> Step [240/269] Loss: 0.00056
+>>>>> Step [10/68] Classifier Validate Loss: 0.47603
+>>>>> Step [20/68] Classifier Validate Loss: 0.34765
+>>>>> Step [30/68] Classifier Validate Loss: 0.19832
+>>>>> Step [40/68] Classifier Validate Loss: 0.14773
+>>>>> Step [50/68] Classifier Validate Loss: 0.19592
+>>>>> Step [60/68] Classifier Validate Loss: 0.52370
+Validate predict >>>> 91.82870370370371%
+The test accuracy is 75.5111111111111
+Epoch [16/20]
+>>>>> Step [40/269] Loss: 0.00023
+>>>>> Step [80/269] Loss: 0.00001
+>>>>> Step [120/269] Loss: 0.00009
+>>>>> Step [160/269] Loss: 0.00001
+>>>>> Step [200/269] Loss: 0.00001
+>>>>> Step [240/269] Loss: 0.00001
+>>>>> Step [10/68] Classifier Validate Loss: 0.16887
+>>>>> Step [20/68] Classifier Validate Loss: 0.41119
+>>>>> Step [30/68] Classifier Validate Loss: 0.77858
+>>>>> Step [40/68] Classifier Validate Loss: 0.20365
+>>>>> Step [50/68] Classifier Validate Loss: 0.38026
+>>>>> Step [60/68] Classifier Validate Loss: 0.53029
+Validate predict >>>> 90.78703703703704%
+The test accuracy is 77.17777777777778
+Epoch [17/20]
+>>>>> Step [40/269] Loss: 0.00002
+>>>>> Step [80/269] Loss: 0.00001
+>>>>> Step [120/269] Loss: 0.00001
+>>>>> Step [160/269] Loss: 0.06405
+>>>>> Step [200/269] Loss: 0.00017
+>>>>> Step [240/269] Loss: 0.00001
+>>>>> Step [10/68] Classifier Validate Loss: 0.39652
+>>>>> Step [20/68] Classifier Validate Loss: 0.26246
+>>>>> Step [30/68] Classifier Validate Loss: 0.71729
+>>>>> Step [40/68] Classifier Validate Loss: 0.48010
+>>>>> Step [50/68] Classifier Validate Loss: 0.24810
+>>>>> Step [60/68] Classifier Validate Loss: 0.49919
+Validate predict >>>> 91.20370370370371%
+The test accuracy is 77.06666666666666
+Epoch [18/20]
+>>>>> Step [40/269] Loss: 0.00001
+>>>>> Step [80/269] Loss: 0.00000
+>>>>> Step [120/269] Loss: 0.00001
+>>>>> Step [160/269] Loss: 0.00003
+>>>>> Step [200/269] Loss: 0.00001
+>>>>> Step [240/269] Loss: 0.00001
+>>>>> Step [10/68] Classifier Validate Loss: 0.44374
+>>>>> Step [20/68] Classifier Validate Loss: 1.50918
+>>>>> Step [30/68] Classifier Validate Loss: 0.67196
+>>>>> Step [40/68] Classifier Validate Loss: 1.02599
+>>>>> Step [50/68] Classifier Validate Loss: 0.61011
+>>>>> Step [60/68] Classifier Validate Loss: 1.30313
+Validate predict >>>> 85.55555555555556%
+The test accuracy is 77.47777777777777
+Epoch [19/20]
+>>>>> Step [40/269] Loss: 0.00003
+>>>>> Step [80/269] Loss: 0.00001
+>>>>> Step [120/269] Loss: 0.00001
+>>>>> Step [160/269] Loss: 0.00001
+>>>>> Step [200/269] Loss: 0.00002
+>>>>> Step [240/269] Loss: 0.00001
+>>>>> Step [10/68] Classifier Validate Loss: 0.44825
+>>>>> Step [20/68] Classifier Validate Loss: 0.08895
+>>>>> Step [30/68] Classifier Validate Loss: 0.44685
+>>>>> Step [40/68] Classifier Validate Loss: 0.26333
+>>>>> Step [50/68] Classifier Validate Loss: 0.30341
+>>>>> Step [60/68] Classifier Validate Loss: 0.50397
+Validate predict >>>> 91.7824074074074%
+The test accuracy is 76.43333333333334
+Epoch [20/20]
+>>>>> Step [40/269] Loss: 0.00002
+>>>>> Step [80/269] Loss: 0.00001
+>>>>> Step [120/269] Loss: 0.00002
+>>>>> Step [160/269] Loss: 0.00002
+>>>>> Step [200/269] Loss: 0.00001
+>>>>> Step [240/269] Loss: 0.00000
+>>>>> Step [10/68] Classifier Validate Loss: 0.35278
+>>>>> Step [20/68] Classifier Validate Loss: 0.18903
+>>>>> Step [30/68] Classifier Validate Loss: 0.47642
+>>>>> Step [40/68] Classifier Validate Loss: 0.19284
+>>>>> Step [50/68] Classifier Validate Loss: 0.52318
+>>>>> Step [60/68] Classifier Validate Loss: 0.46203
+Validate predict >>>> 91.73611111111111%
+The test accuracy is 76.45555555555555
+Finish classifier training
+Training classifier took 1798.2290184497833 secs of 29.970483640829723 mins in total 
+
+Load classifier model from save
+Start Testing
+The test accuracy is 76.92222222222222
+Test Accuracy: 76.92222222222223 %
+Finish Testing
+Testing took 22.10930037498474 secs of 0.368488339583079 mins in total
