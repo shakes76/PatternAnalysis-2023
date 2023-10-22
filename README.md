@@ -7,7 +7,7 @@
 
 ## Table of Contents
 
-1. [Introduction](#introduction)
+1. [Introduction](https://github.com/gaurikadiwan/PatternAnalysis-2023/blob/topic-recognition/README.md/Introduction)
 2. [About VIT](#about-vit)
 3. [Dependencies](#dependencies)
 4. [Directory Structure](#directory-structure)
