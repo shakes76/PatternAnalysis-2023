@@ -54,19 +54,22 @@ window 11
 After 10 epochs, the model relably provided dice score arount 80 percent. 
 
 ### 4.3. provide example inputs, outputs and plots of your algorithm
+For every epoch, the validation set is used to test the segmenation. 
 #### 4.3.1. The output when train.py is ran
-<img src="train_image.png" alt="drawing" width="200"/>
+<img src="train_image.png" alt="train_image" width="400"/>
+<img src="train_mask.png" alt="train_mask" width="400"/>
 
-![Train Image](train_image.png)
-![Train Mask](train_mask.png)
-![Example Output](train_cmd.png)
-Given the input images, the trainer will run though the epoch.
+![Example Output](train_valid_out.png)
+![Example Output CMD](train_cmd.png)
 
 #### 4.3.2. The output expected after running predict.py
+<img src="test_image.png" alt="test_image" width="400"/>
+<img src="test_mask.png" alt="test_mask" width="400"/>
+
 ![Test Image](test_image.png)
 ![Test Mask](test_mask.png)
 ![Example Output](predict_cmd_result.png)
-Given the input images, the trainer will run though the epoch.
+
 
 ### 4.4 The read me file should be properly formatted using GitHub markdown
 Bold was used to highlight the page.
@@ -81,9 +84,9 @@ I also resized the images into 256x256 sizes to increase the performance of trai
 The training is done in batch size of 16 with 10 epoches.
 The opitmizer used is ADAM and the loss function used is Dice loss function.
 The schaduler was used to reduce the learning rate at the end fo the function.
+The training accuracy and saved predictions are from validation imagesets. 
 
-
-## 5. Algorithm
+## 5. Algorithm/ImprovedUnet
 This program uses improved Unet to segment the differnt types of skin conditions such as melanoma.
 The improved Unet strucuture explained
 ### 5.1. Context layer and Localization Layer.
