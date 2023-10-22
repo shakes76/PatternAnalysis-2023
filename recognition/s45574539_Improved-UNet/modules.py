@@ -4,7 +4,7 @@ from tensorflow.keras.models import Model
 
 
 def improved_unet():
-    inputs = tf.keras.layers.Input((256, 256, 3))
+    inputs = tf.keras.layers.Input((256, 256, 1))
 
     # ---- DOWN 1 (16 filter) ----
     # 3x3x3 conv
@@ -137,7 +137,7 @@ def improved_unet():
     seg3 = Conv2D(3, (1, 1), strides=1, padding="same")(u5)
     seg3 = Add()([seg2, seg3])
 
-    outputs = Conv2D(3, (1, 1), activation='softmax')(seg3)
+    outputs = Conv2D(2, (1, 1), activation='softmax')(seg3)
     model = Model(inputs, outputs)
 
     return model
