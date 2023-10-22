@@ -1,6 +1,8 @@
 # COMP 3710 Pattern Analysis Report
 **Author**: Gaurika Diwan
+
 **Student ID**: 48240983
+
 **Description**: The Given Project contains the files for COMP3710 project report for the Year 2023.
 
 ## Table of Contents
@@ -57,7 +59,10 @@ The Vision Transformer (VIT) extends the Transformer architecture for computer v
 4.	The class token embedding, that conveys a global awareness of the image contents, uses for categorization after a lot Transformer encoder layers.
 
 5.	VIT's general modelling skills enabled it show exceptional results even with restricted datasets and transfer properly to new sectors.
-(image)
+
+<img width="643" alt="Screenshot 2023-10-22 at 9 00 13 AM" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/e329e4ed-3939-40c2-afb4-e94b721f4f7c">
+
+
 
 The principal uses for Vision Transformers are:
 
@@ -84,8 +89,9 @@ Before running the code,  installed the required Python libraries:
 - Multi-Layer Perceptrons (MLPs)
 
 ### Directory Structure
- 
-(image)
+
+ <img width="208" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/5480901e-d74f-4f3c-a186-1691e0a0ccce">
+
 
 
 ### Elaboration on Dataset.py
@@ -98,7 +104,14 @@ AD (Alzheimer's Disease): This category contains 10,400 images.
 
 NC (Normal Control): This category contains 11,120 images.
 
-AD                                             NC
+AD    
+
+<img width="100" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/cca0765b-2e33-47e1-ae8a-7a9067be8a3b">
+
+NC
+
+<img width="100" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/b6f54325-7fe2-423c-8da2-c65c12d1c429">
+
                      
 ## Testing Data:
 
@@ -106,7 +119,15 @@ AD (Alzheimer's Disease): This category contains 4,460 images.
 
 NC (Normal Control): This category contains 4,540 images.
 
-AD                                                       NC
+AD  
+
+<img width="100" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/c77c0773-f380-485e-8ae3-aba62e6c1913">
+
+NC 
+
+<img width="102" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/bff7458e-15e6-4065-927c-2d41789d66ca">
+
+
                      
 ## Image labelling:
  If the image is found in the “AD” folder, then it will be labelled as 1, otherwise 0.
@@ -166,7 +187,7 @@ The Embedder, transformer layers, and an MLP head for categorization are all uni
 3. Use the model to make predictions or include it in your custom image classification pipeline.
 
 
-## Elaboration on Train.py
+## Elaboration on train.py
 
 The `Train.py` script trains a  model to classify Alzheimer's disease. It defines the model, loss function, and optimizer, conducts the training loop, and uses the SGD optimizer. Training data is processed over 10 epochs.
 This section goes into more detail about the model architecture. In this case, it talks about the Deeper Model that consists of three fully connected layers with 'ReLU' activations.
@@ -240,7 +261,7 @@ This part outlines how users can use this project:
 
 
 
-## Elaboration on Predict.py
+## Elaboration on predict.py
 
 The `Predict.py` script loads a pre-trained PyTorch model, makes predictions, calculates accuracy and confidence, and generates bar charts. Confidence scores are visualized for training and testing data, and the results are saved as an image.
 
@@ -272,9 +293,31 @@ The predicted class ('AD' or 'NC') is printed in the console.
 
 The updated accuracy achieved on the testing data is 76%, while the training accuracy over 10 epochs is 88%. Training and testing loss exhibit a decreasing trend over epochs. The accuracy graph shows improvement in training accuracy, and in testing accuracy by the 10th epoch.
 
+<img width="1194" alt="Screenshot 2023-10-21 at 1 22 31 PM" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/a472b78a-b9b2-4f8f-9aed-811c7ecdb68f">
+
+The accuracies are displayed below after 10 epochs
+
+<img width="725" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/33ca9571-2c86-464c-8dee-4c4b1aae8906">
+
+The Final model Confidance Scores and the predicted class for Vision Transformer are displayed below with the input image taken From AD.
+
+<img width="777" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/5cc88a63-8a27-4158-9ebb-8b3aa41282b0">
+
+
+<img width="478" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/13c8ee85-9de2-48eb-a8d7-a4e0c471859f">
+
+<img width="474" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/efe780d1-c84f-4add-b5a6-21193357250d">
+
+The initial image for Training and Testing accuracies are as follows:
+
+<img width="788" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/0aeb16c9-e334-4b0b-b7f4-fc79249f1e1b">
+
+<img width="598" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/d291ac67-4c63-452b-a1ec-21007de92717">
+
+
 ## Changes Made after 20th Oct
 
-1. The code uses the Stochastic Gradient Descent (SGD) optimizer to train the neural network, as with experiencing memory issues with Adam, switching to SGD  alleviate those problems. In my model, SGD  lead to more consistent and interpretable training dynamics.
+1. The code uses the Stochastic Gradient Descent (SGD) optimizer to train the neural network, as with experiencing memory issues with Adam, switching to SGD  alleviate those problems. In my model, SGD  lead to more consistent and interpretable training dynamics. 
 
 2. FeedForward Network Used, MLPs used in my model has shown well-suited values for regression tasks where the model predict continuous numerical values. (Accuracy and loss)
 
@@ -286,3 +329,4 @@ The updated accuracy achieved on the testing data is 76%, while the training acc
 1. [Alzheimer's Disease Neuroimaging Initiative (ADNI)](https://adni.loni.usc.edu/)
 2. [PyTorch Vision - Vision Transformer](https://pytorch.org/vision/main/models/vision_transformer.html)
 3. [The Vision Transformer Model](https://machinelearningmastery.com/the-vision-transformer-model/)
+4. [Basic introduction to how Transformers can be used in images](https://medium.com/data-and-beyond/vision-transformers-vit-a-very-basic-introduction-6cd29a7e56f3)
