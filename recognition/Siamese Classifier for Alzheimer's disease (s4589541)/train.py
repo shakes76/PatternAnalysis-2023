@@ -158,7 +158,7 @@ def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, crit
             classifier.eval()
             for batch_no, (a_v, label, _, _) in enumerate(valid_loader):
                 # move the data to the GPU
-                a_v = a_v.to(device)
+                a_v, label = a_v.to(device), label.to(device)
                 # input image into siamese model to generate embedding
                 a_embed_v = siamese.single_foward(a_v)
                 # pass into classifier
