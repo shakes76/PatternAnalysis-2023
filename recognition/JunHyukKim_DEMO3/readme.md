@@ -4,36 +4,15 @@ This is a brief description of my project. The project is made for segmentation 
 Task finished was "
 
 ## 1. Table of Contents
-- [Installation](##Installation)
+- [Requriments](##Requriments)
 - [Usage](##Usage)
 - [License](##Description)
 - [Description](##Description)
 - [Description](##Algorithm)
 
 
-## 2. Installation
-### 2.1. Clone the repository
-### 2.2. Download Dependencies
-### 2.3. Download ISIC 2017 datasets. 
-The dataset is under https://challenge.isic-archive.com/data/#2017. Training data, test data, valid data is required and 
-The dataset should be positioned in the same folder as the python codes under data, train data images under train_images folder, and train mask data under train_masks folder. Test data should be in the test_images and test_masks and validation should be in val_images and val_masks folder.
-
-
-## 3. Usage
-
-Run the Train.py with python3 this will create the model.pth file.
-this will also create saved.img file if
-
-Run predict.py to get the segmentation and the dice coefficient. 
-This file will save all the segmentation predictions under evaluation_folder. T
-
-
-## 4. Description 
-### 4.1. Brief description of the task
-The ISIC 2017 improved Unet segmentation task is implemented.
-The improve Unet is used and the format follows https://arxiv.org/pdf/1802.10508v1.pdf. 
-
-### 4.2. Dependencies
+## 2. Requriments
+### 2.1. Download Dependencies
 Modules that are required to run the code:
 import tqdm
 import torchvision
@@ -49,8 +28,24 @@ import numpy
 python 3.11.5
 window 11
 
+### 2.2. Download ISIC 2017 datasets. 
+The dataset is under https://challenge.isic-archive.com/data/#2017. Training data, test data, valid data is required and 
+The dataset should be positioned in the same folder as the python codes under data, train data images under train_images folder, and train mask data under train_masks folder. Test data should be in the test_images and test_masks and validation should be in val_images and val_masks folder.
 
-#### 4.2.1 Reproducibility
+## 3. Usage
+Run the Train.py with python3 this will create the model.pth file.
+this will also create saved.img file if
+
+Run predict.py to get the segmentation and the dice coefficient. 
+This file will save all the segmentation predictions under evaluation_folder. T
+
+## 4. Description 
+### 4.1. Brief description of the task
+The ISIC 2017 improved Unet segmentation task is implemented.
+The improve Unet is used and the format follows https://arxiv.org/pdf/1802.10508v1.pdf. 
+
+
+#### 4.2. Reproducibility
 After 10 epochs, the model relably provided dice score arount 80 percent. 
 
 ### 4.3. provide example inputs, outputs and plots of your algorithm
@@ -62,8 +57,6 @@ For every epoch, the validation set is used to test the segmenation.
 ![Example Output CMD](train_cmd.png)
 
 #### 4.3.2. The output expected after running predict.py
-<img src="test_image.png" alt="test_image" width="400"/>
-<img src="test_mask.png" alt="test_mask" width="400"/>
 
 ![Example Output](predict_cmd_result.png)
 

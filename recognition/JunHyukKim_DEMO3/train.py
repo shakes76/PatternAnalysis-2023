@@ -2,7 +2,6 @@ import torch
 import albumentations as album
 from albumentations.pytorch import ToTensorV2
 from tqdm import tqdm
-import torch.nn as nn
 import torch.optim as optim
 from modules import ImprovedUnet
 from utils import (get_loaders,
