@@ -130,7 +130,7 @@ def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, crit
             classifier.train()
             for batch_no, (a_t, label, _, _) in enumerate(train_loader):
                 # move the data to the GPU
-                a_t = a_t.to(device)
+                a_t, label = a_t.to(device), label.to(device)
                 # zero the gradients
                 optimiser.zero_grad()
                 # input image into siamese model to generate embedding
