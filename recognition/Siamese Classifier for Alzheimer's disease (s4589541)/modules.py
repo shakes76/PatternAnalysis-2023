@@ -100,9 +100,6 @@ class TripletNetwork(nn.Module):
         cnn_output = self.cnn_layers(img_tensor)
         # flatten the 3D tensor to 2D
         flattened = cnn_output.view(cnn_output.size()[0], -1) 
-        # print(img_tensor.size())
-        # print(cnn_output.size())
-        # print(flattened.size())
         # pass 1D tensor into Fully Connected layers
         fc_output = self.fc_layers(flattened)
         return fc_output
@@ -129,6 +126,7 @@ class TripletNetwork(nn.Module):
 
 # define the classifier
 class BinaryClassifier(nn.Module):
+    """Binary classification model"""
     def __init__(self, in_channels):
         super().__init__()
         fc1_out = 48
@@ -141,5 +139,13 @@ class BinaryClassifier(nn.Module):
         self.layers.apply(init_net_weights)
 
     def forward(self, input):
+        """Pass Siamese embeddings through network
+
+        Args:
+            input (tensor): output from Siamese network
+
+        Returns:
+            tensor: output of classifier network
+        """
         output = self.layers(input)
         return output

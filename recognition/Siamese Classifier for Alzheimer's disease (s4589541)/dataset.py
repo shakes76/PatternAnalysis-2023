@@ -19,6 +19,7 @@ class OneChannel:
 
 
 class TripletDataset(datasets.ImageFolder):
+    """Custom dataset for providing image triplets to Siamese model."""
     def __init__(self, root, transform=None, triplet=True):
         super().__init__(root, transform=transform)
         self.triplet = triplet
@@ -67,24 +68,6 @@ class TripletDataset(datasets.ImageFolder):
 
 
 if __name__ == '__main__':
-    # setup the transforms for the images
-    # transform = transforms.Compose([
-    #     transforms.Resize((256, 240)),
-    #     transforms.ToTensor(),
-    #     OneChannel()
-    # ])
-    # set up the datasets
-    # train_set = TripletDataset(root="data/train", transform=transform)
-    # valid_set = TripletDataset(root="data/valid", transform=transform)
-    # test_set = TripletDataset(root="data/test", transform=transform)
-
-    # set up the dataloaders
-    # train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-    # valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-    # test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
-    
     # split the training data into training and validation datasets
     # create new data directory
-    # might only work on Windows
     train_valid_split()
-    pass
