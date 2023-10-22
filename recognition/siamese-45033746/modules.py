@@ -78,7 +78,7 @@ class BinaryClassifier(nn.Module):
         self.fc1 = nn.Sequential(
             nn.Linear(SIAMESE_FEATURES, 32),
             nn.ReLU(inplace=True),
-            nn.Linear(32, 1),
+            nn.Linear(32, 2),
         )
 
     def forward(self, input):

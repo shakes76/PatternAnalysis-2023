@@ -4,6 +4,7 @@ from os.path import exists
 from train import BINARY_MODEL_PATH, SIAMESE_MODEL_PATH
 import torch
 from dataset import get_test_set
+import torch.nn as nn
 
 """
 predict.py
@@ -41,17 +42,21 @@ def predict(model: BinaryClassifier, net: SiameseNetwork, testDataLoader: DataLo
 
     outcome = []
 
-    for i, (label, anchor, _, _) in enumerate(testDataLoader, 0):
+    for i, (anchor_class, anchor, _, _) in enumerate(testDataLoader, 0):
         # Send items to GPU
-        anchor, label = anchor.to(device), torch.unsqueeze(label.to(device), dim=1).float()
+        anchor, label = anchor.to(device), torch.unsqueeze(anchor_class.to(device), dim=1).float()
 
         # Get siamese embeddings for the input anchor image
         siamese_embeddings = net.forward_once(anchor)
 
-        pred = nn.Sigmoid()model(siamese_embeddings)
+        m = nn.Sigmoid()
+        pred = m(model(siamese_embeddings))
 
-        print(f"outcome : {torch.eq(pred, label)}")
+        print(f"pred:{pred}")
+
         outcome.append(torch.eq(pred, label))
+
+    print(outcome)
 
 
 def main():
@@ -59,8 +64,8 @@ def main():
     vals = load()
     if vals is None:
         return
-    bin, sin, device = vals
-    predict(bin, sin, test, device)
+    binnn, sin, device = vals
+    predict(binnn, sin, test, device)
 
 
 if __name__ == "__main__":
