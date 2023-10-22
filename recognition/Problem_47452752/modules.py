@@ -17,7 +17,7 @@ class Context(nn.Module):
     def __init__(self, in_channels):
         super(Context, self).__init__()
         # We use leakyReLU with negative slope 1e-2
-        self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=True)
+        self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=False)
         # 3x3x3 convolutional layer that preserves the input size
         self.conv = nn.Conv3d(
             in_channels, in_channels, kernel_size=3, stride=1, padding=1
@@ -37,15 +37,15 @@ class Context(nn.Module):
         return x + shortcut
 
 
-class Up(nn.Module):
+class Upsample(nn.Module):
     """
     Upsampling module used to tranfer information from low resolution feature maps into high resolution fearure maps.
     We use a simple upscale that repeats the feature voxels twice in each spatial dimension, followed by a 3x3x3 convolution
     that halves the number of feature maps.
     """
 
-    def __init__(self, in_channels, out_channels):
-        super(Up, self).__init__()
+    def __init__(self, in_channels):
+        super(Upsample, self).__init__()
         self.upsample = nn.Sequential(
             # Upscale the feature voxels
             nn.Upsample(scale_factor=2, mode="nearest"),
@@ -54,7 +54,7 @@ class Up(nn.Module):
             # Introduce non-linearity using leakyReLU with negative slope 1e-2
             nn.LeakyReLU(negative_slope=1e-2, inplace=True),
             # Apply 3x3x3 convolution that havles number of feature maps
-            nn.Conv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+            nn.Conv3d(in_channels, in_channels // 2, kernel_size=3, stride=1, padding=1),
         )
 
     def forward(self, x, skip_channels):
@@ -63,22 +63,19 @@ class Up(nn.Module):
 
 
 class Localisation(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels):
         super(Localisation, self).__init__()
         # We use leakyReLU with negative slope 1e-2
         self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=True)
-
-        # The Localisation module involves two rounds of normalizations and convoltions
-
-        # Round 1, we apply a 3x3x3 convolution
+        # We use a 3x3x3 convolution first
         self.norm1 = nn.InstanceNorm3d(in_channels)
         self.conv1 = nn.Conv3d(
             in_channels, in_channels, kernel_size=3, stride=1, padding=1
         )
-        # Round 2, we halve the number of feature maps using a 1x1x1 convolution
-        self.norm2 = nn.InstanceNorm3d(out_channels)
+        # We halve the number of feature maps by using a 1x1x1 convolution
+        self.norm2 = nn.InstanceNorm3d(in_channels // 2)
         self.conv2 = nn.Conv3d(
-            in_channels, out_channels, kernel_size=3, stride=1, padding=1
+            in_channels, in_channels // 2, kernel_size=3, stride=1, padding=1
         )
 
     def forward(self, x):
@@ -87,45 +84,70 @@ class Localisation(nn.Module):
         return x
 
 
+class Segmentation(nn.Module):
+    pass
+
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, num_classes):
         super(UNet, self).__init__()
 
-        # Context Pathway (encoders)
-        self.enc1 = Context(16)
-        self.enc2 = Context(32)
-        self.enc3 = Context(64)
-        self.enc4 = Context(128)
-        self.enc5 = Context(256)
+        # Context modules (encoders)
+        self.context1 = Context(16)
+        self.context2 = Context(32)
+        self.context3 = Context(64)
+        self.context4 = Context(128)
+        self.context5 = Context(256)
+
+        # Upsampling modules
+        self.up1 = Upsample(256)
+        self.up2 = Upsample(128)
+        self.up3 = Upsample(64)
+        self.up4 = Upsample(32)
+
+        # Localisation modules
+        self.local1 = Localisation(128)
+        self.local2 = Localisation(64)
+        self.local3 = Localisation(32)
 
         # Convolutions that connect context modules, used for downsampling
-        self.down1 = nn.Conv3d(in_channels, 16, kernel_size=3, stride=1, padding=1)
-        self.down2 = nn.Conv3d(16, 32, kernel_size=3, stride=2, padding=1)
-        self.down3 = nn.Conv3d(32, 64, kernel_size=3, stride=2, padding=1)
-        self.down4 = nn.Conv3d(64, 128, kernel_size=3, stride=2, padding=1)
-        self.down5 = nn.Conv3d(128, 256, kernel_size=3, stride=2, padding=1)
-
-        # Localization Pathway
-        self.up1 = Decoder(256, 128)
-        self.up2 = Decoder(128, 64)
-        self.up3 = Decoder(64, 32)
-        self.up4 = Decoder(32, 16)
+        self.conv1 = nn.Conv3d(in_channels, 16, kernel_size=3, stride=1, padding=1)
+        self.conv2 = nn.Conv3d(16, 32, kernel_size=3, stride=2, padding=1)
+        self.conv3 = nn.Conv3d(32, 64, kernel_size=3, stride=2, padding=1)
+        self.conv4 = nn.Conv3d(64, 128, kernel_size=3, stride=2, padding=1)
+        self.conv5 = nn.Conv3d(128, 256, kernel_size=3, stride=2, padding=1)
 
         # Final output layer
         self.out_conv = nn.Conv3d(16, out_channels, kernel_size=1)
 
-    def forward(self, x):
-        # Context Pathway
-        enc1 = self.enc1(self.down1(x))
-        enc2 = self.enc2(self.down2(enc1))
-        enc3 = self.enc3(self.down3(enc2))
-        enc4 = self.enc4(self.down1(enc3))
-        enc5 = self.enc5(self.down2(enc4))
+        # To upscale the segmentaion layers 
+        self.upscale = nn.Upsample(scale_factor=2, mode="trilinear", align_corners=True)
 
-        # Localization Pathway with skip connections (decoding)
-        dec1 = self.up1(enc3, enc2)
-        dec2 = self.up2(dec1, enc1)
+        # Segmentation layers 
+        self.segment1 = nn.Conv3d(64, num_classes, kernel_size=1, stride=1)
+        self.segment2 = nn.Conv3d(32, num_classes, kernel_size=1, stride=1)
+        self.segment3 = nn.Conv3d(16, num_classes, kernel_size=1, stride=1)
+        
+
+    def forward(self, x):
+
+        # Context Pathway
+        c1 = self.context1(self.conv1(x))
+        c2 = self.context2(self.conv2(c1))
+        c3 = self.context3(self.conv3(c2))
+        c4 = self.context4(self.conv4(c3))
+        x = self.context5(self.conv5(c4))
+
+        # Decoding Pathway (upsample + localisation)
+        l1 = self.local1(self.up1(x, c4))
+        l2 = self.local2(self.up2(l1, c3)) # TODO
+        l3 = self.local3(self.up3(l2, c2)) # TODO
+        x = self.out_conv(self.up4(l3, c1))
+
+        # Deep Supervision 
+        s1 = self.segment1() 
+
+
 
         # Final output
         return self.out_conv(dec2)
