@@ -1,5 +1,5 @@
 # requirements.txt
-tensorflow
+tensorflow[and-cuda]
 matplotlib
 numpy
 
