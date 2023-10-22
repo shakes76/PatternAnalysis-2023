@@ -48,6 +48,7 @@ To run model testing, follow these steps in `train.py`:
 3. Make sure testing dataset is well defined in `dataset.py`. (Refer to "Loading dataset" of this doc )
 4. Comment out code for training (from line ??? to line ???)
 5. run `train.py`
+### Prediction
 
 
 

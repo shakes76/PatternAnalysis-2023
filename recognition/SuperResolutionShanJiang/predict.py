@@ -14,7 +14,7 @@ import math
 import matplotlib.pyplot as plt
 
 # load the trained model
-checkpoint_filepath= "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
+checkpoint_filepath= "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/checkpoint/"
 model = get_model()
 model.load_weights(checkpoint_filepath)
 

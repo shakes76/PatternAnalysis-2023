@@ -17,7 +17,7 @@ input_width_size = crop_width_size // upscale_factor
 batch_size = 8
 
 #Specify directory containing training dataset
-training_dir = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/train'
+training_dir = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/train_dataset"
 
 #Create traning dataset
 train_ds = image_dataset_from_directory(
@@ -81,7 +81,7 @@ valid_ds = valid_ds.map(
 valid_ds = valid_ds.prefetch(buffer_size=32)
 
 #Specify directory containing testing dataset
-test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/original/test'
+test_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/test_dataset'
 #Put path of each testing image into a sorted list
 test_img_paths = sorted(
     [
@@ -96,7 +96,7 @@ def get_test_img_paths():
     return test_img_paths
 
 #Specify directory containing prediction dataset
-prediction_path = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/prediction"
+prediction_path = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/prediction_dataset"
 #Put path of each prediction image into a sorted list
 prediction_path = sorted(
     [

@@ -53,7 +53,7 @@ class ESPCNCallback(keras.callbacks.Callback):
 early_stopping_callback = keras.callbacks.EarlyStopping(monitor="loss", patience=10)
 
 # Path to save model parameters
-checkpoint_filepath = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
+checkpoint_filepath = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/checkpoint/"
 # checkpoint_filepath = "H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
 
 # Save model parameters at checkpoint during training
@@ -67,7 +67,7 @@ model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
 
 # Initialise a model
 model = get_model(upscale_factor=upscale_factor, channels=1)
-model.summary()
+# model.summary()
 
 # Define callbacks, loos function and optimiser
 callbacks = [ESPCNCallback(), early_stopping_callback, model_checkpoint_callback] 
@@ -84,6 +84,10 @@ model.compile(
 model.fit(
     train_ds, epochs=epochs, callbacks=callbacks, validation_data=valid_ds, verbose=2
 )
+
+
+# Initialise a model
+model = get_model(upscale_factor=upscale_factor, channels=1)
 
 # The model weights (that are considered the best) are loaded into the model.
 model.load_weights(checkpoint_filepath)
