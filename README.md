@@ -149,10 +149,12 @@ The model predicts the class labels for the test dataset. The predictions are th
 
 ### Accuracy-
  
+![image](https://github.com/JivalX/PatternAnalysis-2023/assets/104201585/e40177f3-899e-48da-9872-6c5083b3147b)
 
-![image](https://github.com/JivalX/PatternAnalysis-2023/assets/104201585/9879262a-4d94-4495-aa19-e58a2f993f9f)
 
+### Loss Plot-
 
+![image](https://github.com/JivalX/PatternAnalysis-2023/assets/104201585/0236a97e-f554-4a68-9a63-110ce20dd8d2)
 
 
 ## Results
