@@ -15,33 +15,26 @@ loss_plot_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_S
 train_loss_history = []
 valid_loss_history = []
 train_psnr_history = []
-valid_psnr_history = []
+
+# Custom Keras callback for monitoring and displaying PSNR during training.
 class ESPCNCallback(keras.callbacks.Callback):
-    """
-    Custom Keras callback for monitoring and displaying PSNR during training.
-    """
     def __init__(self):
         super().__init__()
-        # self.test_img = get_lowres_image(load_img(test_img_paths[0]), upscale_factor)
-        # print(self.test_img.size)
 
-    # Initialise a array to store epoch PSNR value when each epoch begins
+    # Initialise an array to store epoch PSNR value when each epoch begins
     def on_epoch_begin(self, epoch, logs=None):
         self.psnr = []
     
-    # Print Mean PSNR for when each epoch ends
+    # Print mean training PSNR for when each epoch ends
     def on_epoch_end(self, epoch, logs=None):
         print("Mean PSNR for epoch: %.2f" % (np.mean(self.psnr)))
-        # if epoch % 20 == 0:
-        #     prediction = upscale_image(self.model, self.test_img)
-            # plot_results(prediction, "epoch-" + str(epoch), "prediction")
         train_loss_history.append(logs['loss'])
         valid_loss_history.append(logs['val_loss'])
         train_psnr_history.append(np.mean(self.psnr))
-        valid_psnr_history.append(np.mean(self.psnr))
+
         
-        if epoch % 20 == 0 and epoch!= 0:
-            # Plot loss history after every 20 epoch
+        if epoch % 9 == 0 and epoch!= 0:
+            # Plot loss history after every 10 epoch and save the plot
             plt.figure(figsize=(10, 6))
             plt.plot(train_loss_history, label='Training Loss', color='blue')
             plt.plot(valid_loss_history, label='Validation Loss', color='red')
@@ -52,15 +45,14 @@ class ESPCNCallback(keras.callbacks.Callback):
             plt.grid(True)
             plt.savefig(loss_plot_path + 'epoch' + str(epoch+1) + '.png')
 
-    # Store PSNR value when each test epoch ends
+    # Store training PSNR value when each test epoch ends
     def on_test_batch_end(self, batch, logs=None):
         self.psnr.append(10 * math.log10(1 / logs["loss"]))
 
 # Stop training when loss does not improve for 10 consecutive epochs         
 early_stopping_callback = keras.callbacks.EarlyStopping(monitor="loss", patience=10)
 
-# Define 
-# to save model parameters
+# Path to save model parameters
 checkpoint_filepath = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
 # checkpoint_filepath = "H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
 
@@ -76,7 +68,9 @@ model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
 # Initialise a model
 model = get_model(upscale_factor=upscale_factor, channels=1)
 model.summary()
-callbacks = [ESPCNCallback(), early_stopping_callback, model_checkpoint_callback]
+
+# Define callbacks, loos function and optimiser
+callbacks = [ESPCNCallback(), early_stopping_callback, model_checkpoint_callback] 
 loss_fn = keras.losses.MeanSquaredError()
 optimizer = keras.optimizers.Adam(learning_rate=0.001)
 
@@ -93,9 +87,6 @@ model.fit(
 
 # The model weights (that are considered the best) are loaded into the model.
 model.load_weights(checkpoint_filepath)
-
-#Test the model
-
 
 # Testing metrics
 total_bicubic_psnr = 0.0 # PSNR of downsampled image

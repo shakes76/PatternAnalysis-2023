@@ -15,16 +15,16 @@ def get_lowres_image(img, upscale_factor):
 
 # preprocessed given image and use the give model to increase its resolution
 def upscale_image(model, img):
-    ycbcr = img.convert("YCbCr")
+    ycbcr = img.convert("YCbCr") # Convert image to YCbCr colout spave
     y, cb, cr = ycbcr.split()
     y = img_to_array(y)
-    y = y.astype("float32") / 255.0
+    y = y.astype("float32") / 255.0 # Normalise the pixel values 
 
     input = np.expand_dims(y, axis=0)
-    out = model.predict(input)
+    out = model.predict(input) 
 
     out_img_y = out[0]
-    out_img_y *= 255.0
+    out_img_y *= 255.0 # Denormalise the pixel values 
 
     # Restore the image in RGB color space.
     out_img_y = out_img_y.clip(0, 255)
