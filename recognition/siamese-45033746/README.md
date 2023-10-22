@@ -29,6 +29,8 @@ To train models, run train.py
 
 To see accuracy of models, run predict.py
 
+Please note, the data is retrieved via the rangpur location if on a linux system, and is retrieved via the file structure nominated in the readme on a windows system. Adjustments can be made to the filepath at the top of the dataset.py file if this is not the configuration preferred.
+
 ### Dependencies
 
 - matplotlib 3.7.2
