@@ -55,9 +55,48 @@ Note: Reference [3] was used as a resource when implementing the function in thi
 <!-- Project Results  -->
 ## Results
 
-After 10 EPOCHS, the model achieved:
+The **average validation dice similarity score** after 10 Epochs was **0.84296**. Hence, completing the Task requirement of surpassing 0.80.
 
-accuracy: 0.9325 - dice_similarity: 0.9229 - val_loss: 0.1791 - val_accuracy: 0.9308 - val_dice_similarity: 0.9232
+Log:
+
+Epoch 1/10
+182/182 [==============================] - 327s 2s/step - loss: 0.3759 - accuracy: 0.8559 - dice_similarity: 0.8341 - val_loss: 0.4574 - val_accuracy: 0.8667 - val_dice_similarity: 0.7428
+
+Epoch 2/10
+182/182 [==============================] - 321s 2s/step - loss: 0.2815 - accuracy: 0.8943 - dice_similarity: 0.8778 - val_loss: 0.4507 - val_accuracy: 0.7911 - val_dice_similarity: 0.7476
+
+Epoch 3/10
+182/182 [==============================] - 324s 2s/step - loss: 0.2588 - accuracy: 0.9032 - dice_similarity: 0.8884 - val_loss: 0.3821 - val_accuracy: 0.8528 - val_dice_similarity: 0.8145
+
+Epoch 4/10
+182/182 [==============================] - 327s 2s/step - loss: 0.2360 - accuracy: 0.9106 - dice_similarity: 0.8969 - val_loss: 0.3269 - val_accuracy: 0.8743 - val_dice_similarity: 0.8474
+
+Epoch 5/10
+182/182 [==============================] - 322s 2s/step - loss: 0.2194 - accuracy: 0.9178 - dice_similarity: 0.9052 - val_loss: 0.2706 - val_accuracy: 0.8977 - val_dice_similarity: 0.8696
+
+Epoch 6/10
+182/182 [==============================] - 329s 2s/step - loss: 0.2048 - accuracy: 0.9224 - dice_similarity: 0.9109 - val_loss: 0.2888 - val_accuracy: 0.8864 - val_dice_similarity: 0.8617
+
+Epoch 7/10
+182/182 [==============================] - 327s 2s/step - loss: 0.1949 - accuracy: 0.9260 - dice_similarity: 0.9150 - val_loss: 0.3198 - val_accuracy: 0.8795 - val_dice_similarity: 0.8690
+
+Epoch 8/10
+182/182 [==============================] - 323s 2s/step - loss: 0.1869 - accuracy: 0.9290 - dice_similarity: 0.9182 - val_loss: 0.1768 - val_accuracy: 0.9354 - val_dice_similarity: 0.9206
+
+Epoch 9/10
+182/182 [==============================] - 322s 2s/step - loss: 0.1801 - accuracy: 0.9308 - dice_similarity: 0.9206 - val_loss: 0.2174 - val_accuracy: 0.9186 - val_dice_similarity: 0.8978
+
+Epoch 10/10
+182/182 [==============================] - 321s 2s/step - loss: 0.1736 - accuracy: 0.9336 - dice_similarity: 0.9236 - val_loss: 0.2959 - val_accuracy: 0.8782 - val_dice_similarity: 0.8586
+
+
+Below is a plot of the dice similarity coefficient performance while training the model.
+
+<p align="center">
+  <kbd>
+  <img src="IMG/dice_similarity.png" height="400px"/>
+  </kbd>
+</p>
 
 <!-- Usage Instructions -->
 ## Usage
