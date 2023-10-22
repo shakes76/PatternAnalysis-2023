@@ -6,7 +6,7 @@
 #SBATCH --gres=gpu:1
 #SBATCH --partition=vgpu
 #SBATCH --job-name="uwu-train"
-#SBATCH --account=s45033746
+#SBATCH --account=s4503374
 #SBATCH --mail-user=treffery.webb@uqconnect.edu.au
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
