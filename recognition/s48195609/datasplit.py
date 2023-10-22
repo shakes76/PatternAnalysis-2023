@@ -1,60 +1,44 @@
-"""
-datasplit.py
-
-Data loader for loading and preprocessing data.
-
-Author: Atharva Gupta
-Date Created: 17-10-2023
-"""
-import os
 import torch
 from torchvision import datasets, transforms
-from torch.utils.data import DataLoader
 
-from parameter import DATA_LOAD_PATH, IMAGE_SIZE, BATCH_SIZE
-
-def load_data():
+def create_transforms(crop_size=240):
     """
-    Loads the dataset that will be used into PyTorch datasets.
+    Create a transformation pipeline with customization options.
+    Args:
+        crop_size (int): Size for random cropping.
 
     Returns:
-    - train_loader: DataLoader for the training dataset
-    - validation_loader: DataLoader for the validation dataset
-    - test_loader: DataLoader for the test dataset
+        A data transformation pipeline.
     """
-    # Define data transformations for preprocessing
-    data_transforms = transforms.Compose([
-        transforms.RandomHorizontalFlip(),
-        transforms.RandomRotation(2),
-        transforms.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-        transforms.Resize((IMAGE_SIZE, IMAGE_SIZE)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+    transformation = transforms.Compose([
+        transforms.Grayscale(num_output_channels=1),  # Convert to grayscale
+        transforms.RandomCrop(crop_size),  # Randomly crop the image
+        transforms.ToTensor(),  # Convert to a PyTorch tensor
+        transforms.Lambda(lambda x: x[0][:, :, None])  # Convert to 240x240x1 format
     ])
+    return transformation
 
-    # Load the training dataset
-    train_dataset = datasets.ImageFolder(
-        os.path.join(DATA_LOAD_PATH, 'train'),
-        transform=data_transforms
-    )
+def create_data_loader(dir, batch_size=32, shuffle=True, num_workers=0, crop_size=240):
+    """
+    Create a data loader for the specified directory.
+    Args:
+        dir (str): Path to the dataset directory.
+        batch_size (int): Batch size for the data loader.
+        shuffle (bool): Whether to shuffle the dataset.
+        num_workers (int): Number of data loading workers.
+        crop_size (int): Size for random cropping.
 
-    # Load the test dataset
-    test_dataset = datasets.ImageFolder(
-        os.path.join(DATA_LOAD_PATH, 'test'),
-        transform=data_transforms
-    )
+    Returns:
+        A PyTorch data loader.
+    """
+    data_transform = create_transforms(crop_size=crop_size)
+    dataset = datasets.ImageFolder(dir, transform=data_transform)
+    data_loader = torch.utils.data.DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=num_workers)
+    return data_loader
 
-    # Split the test dataset into validation and test sets
-    num_test_images = len(test_dataset)
-    split_index = num_test_images // 2
-
-    validation_dataset, test_dataset = torch.utils.data.random_split(
-        test_dataset, [split_index, num_test_images - split_index]
-    )
-
-    # Create DataLoaders for training, validation, and test sets
-    train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True)
-    validation_loader = DataLoader(validation_dataset, batch_size=BATCH_SIZE, shuffle=False)
-    test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False)
-
-    return train_loader, validation_loader, test_loader
+# Example usage:
+# Create data loaders for training and testing
+train_loader = create_data_loader(dir='C:/Users/hp/Desktop/comp3710/PatternAnalysis-2023/recognition/s48195609/AD_NC/train',
+                                  batch_size=32, shuffle=True, num_workers=4)
+test_loader = create_data_loader(dir='C:/Users/hp/Desktop/comp3710/PatternAnalysis-2023/recognition/s48195609/AD_NC/test',
+                                 batch_size=32, shuffle=False, num_workers=4)
