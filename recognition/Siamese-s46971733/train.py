@@ -18,12 +18,12 @@ import numpy as np
 
 # Toggles.
 all_train = 1   # If 0 Disables all training.
-train = 1       # Enables/Disables Resnet Training
+train = 0       # Enables/Disables Resnet Training
 train_clas = 1  # Enables/Disables Classifier Training
 test = 1        # Enables/Disables testing.
 plot_loss = 1   # Enables/Disables plotting of loss.
 data_visual = 1 # Enables/Disables Visualisation of Data
-scheduler_active = 1
+scheduler_active = 1 # Enables/Disables Scheduler.
 
 # Path that model is saved to and loaded from.
 #PATH = 'resnet_net_good_p100.pth'
@@ -36,9 +36,9 @@ DATA_PATH = 'data_plot_local30_6.png'
 
 # Hyperparameters
 num_epochs = 30
-num_epochs_clas = 30
+num_epochs_clas = 15
 batch_size = 8
-batch_size_clas = 3
+batch_size_clas = 5
 learning_rate = 0.005
 res_learning_rate = 0.0001
 
@@ -136,8 +136,6 @@ if all_train == 1:
                 positive_out = resnet(positive)
                 negative_out = resnet(negative)
 
-                #print(f"Sizes are {anchor_out.shape}, {positive_out.shape}, {negative_out.shape}")
-
                 # Calculate Loss with Triplet Loss.
                 loss = criterion(anchor_out, positive_out, negative_out)
 
@@ -150,12 +148,9 @@ if all_train == 1:
                 # Keep track of running loss.
                 running_loss += loss.item()
 
-
-
                 # Print Loss Info while training.
                 if (i + 1) % 1 == 0:
                     print(f'[T][Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {running_loss:.5f}')
-                    #print(f"[T] Anchor Size is: {anchor.size(dim=0)}, Divided: {loss / anchor.size(dim=0)}")
                     running_loss = 0.0
 
                 loss_list.append(loss.item())
@@ -190,16 +185,13 @@ if all_train == 1:
 
                     # Keep track of running loss.
                     val_running_loss += loss.item()
-                    #total_loss = val_running_loss/anchor.size(dim=0)
 
                     # Print Loss Info while training.
                     if (i + 1) % 1 == 0:
                         print(f'[V][Epoch {epoch + 1}/{num_epochs}, {i + 1:5d}] - Loss: {val_running_loss:.5f}')
-                        #print(f"[V] Anchor Size is: {anchor.size(dim=0)}, Divided: {loss / anchor.size(dim=0)}")
                         val_running_loss = 0.0
 
                     valid_loss_list.append(loss.item())
-
 
         # Save trained model for later use.
         torch.save(resnet.state_dict(), PATH)
@@ -338,6 +330,10 @@ if all_train == 1:
     elapsed = time.time() - st
     print(f"\nTraining took: {elapsed}s to complete, or {elapsed/60} minutes.\n")
 
+###############
+#   Testing   #
+###############
+
 if test == 1:
     print(">>> Testing Start")
 
@@ -359,19 +355,12 @@ if test == 1:
             features = resnet(inputs)
             output = clas_net(features)
 
-            #predicted = torch.softmax(output, dim=1).argmax(dim=1)
-            print(f"Output is {output} while labels are {labels}")
-            #predicted = torch.sigmoid(output)
-            #print(f"After Sigmoid is {predicted}")
             predicted = torch.round(output)
-            print(f"After round is {predicted}")
 
             # For each image in the batch -> as .size is [batch, channel, height, width]
             for index in range(inputs.size(0)):
                 pred = predicted[index].cpu()
                 true_val = labels[index].cpu()
-
-                #print(f"Predicted is {pred}, True is {true_val}")
 
                 # Calculate dice coefficient and append to list.
                 if pred == true_val:
@@ -382,7 +371,6 @@ if test == 1:
         accuracy = correct/total
 
         print(f"Accuracy of the Model is {accuracy*100}%")
-
 
 # Plot the loss over the many iterations of training.
 if plot_loss == 1:

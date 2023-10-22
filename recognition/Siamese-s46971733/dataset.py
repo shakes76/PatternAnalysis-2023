@@ -12,12 +12,12 @@ import os
 import random
 
 # Rangpur Locations
-TESTIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/test'
-TRAINIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/train'
+#TESTIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/test'
+#TRAINIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/train'
 
 # Local Locations
-#TESTIMAGEPATH = '../ADNI/AD_NC/test'
-#TRAINIMAGEPATH = '../ADNI/AD_NC/train'
+TESTIMAGEPATH = '../ADNI/AD_NC/test'
+TRAINIMAGEPATH = '../ADNI/AD_NC/train'
 #TRAINIMAGEPATH = '../ADNI/AD_NC/train_big'
 
 # Creating Lists of Directories
