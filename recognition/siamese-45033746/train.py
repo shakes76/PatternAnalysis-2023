@@ -6,11 +6,11 @@ import torch
 from utils import show_plot, save_plot
 from dataset import load
 
+MODEL_PATH = "./assets/siamese_model.pth"
 
-# 256x240
 
 def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt, counter: [],
-                  loss: [], epoch: int, device, model : SiameseNetwork):
+                  loss: [], epoch: int, device, model: SiameseNetwork):
     # Iterate over batch
     for i, (label, anchor, positive, negative) in enumerate(dataLoader, 0):
         # Send data to GPU
@@ -47,39 +47,45 @@ def train(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
     train_loss = []
     val_loss = []
 
-    print(f"Training images : {len(trainDataLoader)*trainDataLoader.batch_size}")
-    print(f"Validation images : {len(validDataLoader)*validDataLoader.batch_size}")
+    print(f"Training images : {len(trainDataLoader) * trainDataLoader.batch_size}")
+    print(f"Validation images : {len(validDataLoader) * validDataLoader.batch_size}")
 
     for epoch in range(epochs):
         # Iterate over training batch
         model.train()
         counter, loss = iterate_batch("Training", trainDataLoader, criterion, optimiser, train_counter,
-                                                  train_loss, epoch, device, model)
+                                      train_loss, epoch, device, model)
         train_counter = train_counter + counter
         train_loss = train_loss + loss
 
         # Iterate over cross validation batch
         model.eval()
         counter, loss = iterate_batch("Validation", validDataLoader, criterion, optimiser, val_counter,
-                                              val_loss, epoch, device, model)
+                                      val_loss, epoch, device, model)
         val_counter = val_counter + counter
         val_loss = val_loss + loss
 
     save_plot(train_counter, train_loss, "train")
     save_plot(train_counter, train_loss, "validation")
 
+    torch.save(model.state_dict(), MODEL_PATH)
 
-if __name__ == '__main__':
+
+def main():
     trainData, valData = load()
     print(f"Data loaded")
+
     # Device configuration
     gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Send model to cpu
     net = SiameseNetwork().to(gpu)
-    # net = SiameseNetwork().cuda()
 
     adam_optimiser = optim.Adam(net.parameters(), lr=0.0005)
-    epochs = 1
+    epoch_num = 15
 
-    train(net, TripletMarginLoss(), adam_optimiser, trainData, valData, epochs, gpu)
+    train(net, TripletMarginLoss(), adam_optimiser, trainData, valData, epoch_num, gpu)
+
+
+if __name__ == '__main__':
+    main()
