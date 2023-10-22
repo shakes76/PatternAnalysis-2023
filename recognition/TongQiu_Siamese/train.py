@@ -67,8 +67,8 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
 def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
     model.train()
     train_loss_lis = np.array([])
-    # negative_pairs_below_margin = 0  # Count of negative pairs with distances below the margin
-    # total_negative_pairs = 0
+    negative_pairs_below_margin = 0  # Count of negative pairs with distances below the margin
+    total_negative_pairs = 0
 
     for batch in tqdm(train_loader):
         img_1, img_2, labels = batch
@@ -83,21 +83,21 @@ def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
         # Record the batch loss
         train_loss_lis = np.append(train_loss_lis, loss.item())
 
-        # # Update the count of negative pairs below the margin
-        # negative_pair_mask = (labels == 0).float()  # 0 for negative pair
-        # total_negative_pairs += negative_pair_mask.sum().item()
-        # dists = model.euclidean_distance(embedding_1, embedding_2)
-        # negative_dists_below_margin = (dists < criterion.margin).float() * negative_pair_mask.squeeze()
-        # negative_pairs_below_margin += negative_dists_below_margin.sum().item()
+        # Update the count of negative pairs below the margin
+        negative_pair_mask = (labels == 0).float()  # 0 for negative pair
+        total_negative_pairs += negative_pair_mask.sum().item()
+        dists = model.euclidean_distance(embedding_1, embedding_2)
+        negative_dists_below_margin = (dists < criterion.margin).float() * negative_pair_mask.squeeze()
+        negative_pairs_below_margin += negative_dists_below_margin.sum().item()
 
     # calculate training loss
     train_loss = sum(train_loss_lis) / len(train_loss_lis)
 
-    # # Adjust the margin if too many negative pairs are below it
-    # proportion_negative_below_margin = negative_pairs_below_margin / (total_negative_pairs + 1e-10)
-    # if proportion_negative_below_margin > 0.3:  # Example threshold, adjust as needed
-    #     criterion.margin *= 0.9  # Reduce the margin by 10%
-    #     print('proportion_negative_below_margin', proportion_negative_below_margin)
+    # Adjust the margin if too many negative pairs are below it
+    proportion_negative_below_margin = negative_pairs_below_margin / (total_negative_pairs + 1e-10)
+    if proportion_negative_below_margin > 0.3:  # Example threshold, adjust as needed
+        criterion.margin *= 0.9  # Reduce the margin by 10%
+        print('proportion_negative_below_margin', proportion_negative_below_margin)
 
     # Print the information.
     print(
@@ -184,8 +184,6 @@ def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
 def train_triplet(model, train_loader, optimizer, criterion, epoch, epochs):
     model.train()
     train_loss_lis = np.array([])
-    correct_predictions = 0
-    total_samples = 0
 
     for batch in tqdm(train_loader):
         anchor, positive, negative, labels = batch
@@ -201,22 +199,12 @@ def train_triplet(model, train_loader, optimizer, criterion, epoch, epochs):
         # Record the batch loss
         train_loss_lis = np.append(train_loss_lis, loss.item())
 
-        # Compute accuracy
-        dists_p = F.pairwise_distance(embedding_a, embedding_p)
-        dists_n = F.pairwise_distance(embedding_a, embedding_n)
-        pred_diff = (dists_p < dists_n).float()
-        predictions = pred_diff * labels.squeeze() + (1 - pred_diff) * (1 - labels.squeeze())
-
-        correct_predictions += (predictions == labels.squeeze().float()).sum().item()
-        total_samples += labels.size(0)
-
     train_loss = sum(train_loss_lis) / len(train_loss_lis)
-    accuracy = correct_predictions / total_samples
 
     # Print the information.
     print(
-        f"[ Train | {epoch + 1:03d}/{epochs:03d} ] acc = {accuracy:.5f}, loss = {train_loss:.5f}")
-    return train_loss, accuracy
+        f"[ Train | {epoch + 1:03d}/{epochs:03d} ] loss = {train_loss:.5f}")
+    return train_loss
 
 
 def validate_triplet(model, val_loader, criterion, epoch, epochs):
