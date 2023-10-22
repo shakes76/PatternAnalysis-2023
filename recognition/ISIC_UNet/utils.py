@@ -1,21 +1,13 @@
-from torchvision import transforms
-import torch
-import random
-class RandomTransform:
-    def __init__(self, transform,transform_seg):
-        self.transform = transform          #Transform for normal images    
-        self.transform_seg=transform_seg    #Transform for turth
 
-    def __call__(self, element1, element2):
-        seed=random.randint(0, 1000) #Create a random seed
+#Dice loss function. Calculates overlap between prediction and truth
+def dice_loss(model_out,segm_map):
+    model_out=model_out.view(-1) #Flattens the tensors
+    segm_map=segm_map.view(-1)
 
-        random.seed(seed)                   #Set random seed
-        torch.manual_seed(seed)             #Set random seed for torch
-        output1=self.transform(element1)    #Transform for normal images
 
-        random.seed(seed)                   #Resets seed so the random transforms are the same for truth and normal
-        torch.manual_seed(seed)
-        output2=self.transform_seg(element2)
+    overlap=(model_out*segm_map).sum()                  #Gets the overlap via the sum function
+    dice=(2*overlap)/(model_out.sum()+segm_map.sum())   #Computes the dice score using the using the formula
 
-        return (output1,output2)
+    return 1-dice                                       #Subtracts the score from one to converteit to a loss value.
+
 
