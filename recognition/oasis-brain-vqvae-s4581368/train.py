@@ -44,7 +44,23 @@ def generate_samples(images, model, device):
     return x_tilde
 
 def train_vqvae(model, save_filename, device, train_loader, val_loader, logger, fixed_images, learning_rate, epochs):
-    """"""
+    """
+    The training loop for the VQ-VAE module.
+    Uses the Adam optimizer with the default hyperparameters described in the original paper.
+
+    :param nn.Module model: The VQ-VAE model object
+    :param str save_filename: The filepath to save logs, models and images
+    :param str device: The device name to train the model on 
+    :param Dataloader train_loader: The training image dataloader
+    :param Dataloader val_loader: The validation image dataloader
+    :param SummaryWriter logger: The tensorboard summarywriter to log changes to 
+    :param Tensor fixed_images: A test batch of images to generate reconstructions from
+    :param float learning_rate: The optimizer learning rate
+    :param int epochs: The number of epochs to train
+
+    :returns list train_tilde_loss: The reconstruction loss of each iteration
+    :returns list avg_ssims: The average ssim of each epoch
+    """
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     best_loss = -1
@@ -83,7 +99,15 @@ def train_vqvae(model, save_filename, device, train_loader, val_loader, logger, 
 
 
 def save_samples(index, latent_tensors, sample_dir, net, vqvae):
-    """Helper function to save images"""
+    """
+    Helper function to save novel MRI images, using a generated quantized representation 
+    and the VQ-VAE Decoder
+    :param int index: The iteration index of the generated batch
+    :param Tensor latent_tensors: The latent tensors to feed the GAN generator
+    :param str sample_dir: The filepath to save the generated images to
+    :param nn.Module net: The GAN
+    :param nn.Module vqvae: The VQ-VAE
+    """
     fake_images = net.generator(latent_tensors)
     fake_images = vqvae.decoder(fake_images) 
     fake_fname = 'images-{0:0=4d}.png'.format(index)
@@ -91,8 +115,23 @@ def save_samples(index, latent_tensors, sample_dir, net, vqvae):
     print("Saving", fake_fname)
 
 def train_gan(vqvae_model, gan_model, train_loader, device, save_path, epochs, latent_tensors, learning_rate):
+    """
+    Training method for the GAN. The inputs to the GAN are the quantized (codebook) representations of the 
+    VQ-VAE inputs. The GAN attempts to create novel quantized images, which are then fed to the trained 
+    VQ-VAE decoder to generate novel images of brains
 
-    """Training method for the GAN"""
+    :param nn.Module vqvae_model: The trained VQ-VAE
+    :param nn.Module gan_model: The GAN model to train
+    :param Dataloader train_loader: The training Dataloader to generate quantized images
+    :param str device: The device to train on
+    :param str save_path: The filepath to save the generated images, logs and graphs
+    :param int epochs: The number of epochs to train
+    :param Tensor latent_tensors: The latent tensors to generate novel quantized representations from the GAN
+    :param float learning_rate: The learning rate for the optimizer
+
+    :returns list losses_generator: The losses per epoch of the generator
+    :returns list losses_discriminator: The losses per epoch of the discriminator
+    """
     torch.cuda.empty_cache()
     # Training data
     start_index = 1
@@ -173,7 +212,7 @@ def train_gan(vqvae_model, gan_model, train_loader, device, save_path, epochs, l
         print("Epoch [{}/{}], loss_g: {:.4f}, loss_d: {:.4f}, real_score: {:.4f}, fake_score: {:.4f}".format(epoch+1, epochs, loss_g, loss_d, real_score, fake_score))
         # Save generated images
         save_samples(epoch+start_index, latent_tensors, save_path, gan_model, vqvae_model)
-    return losses_generator, losses_generator
+    return losses_generator, losses_discriminator
 
 
 

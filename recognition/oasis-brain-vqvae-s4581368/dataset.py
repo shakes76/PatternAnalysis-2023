@@ -1,16 +1,16 @@
-# Dataset loader for the OASIS brain dataset
+"""
+Dataset loader for the OASIS brain dataset
+45813685
+Ryan Ward
+"""
 import os
 import torch
-import torchvision
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader, Dataset
 import matplotlib.pyplot as plt
 from skimage import io
-# Data Parameters
-
 
 class OASISDataSet(Dataset):
-
     def __init__(self, data_path):
         """
         Initialises the data loader
@@ -38,13 +38,18 @@ class OASISDataSet(Dataset):
         image = io.imread(image_path)
         image = self.transform(image)
         return image
-        
-
 
 def data_loaders(train_path, test_path, validate_path, batch_size=32):
-    
-        # TODO: Include a composed transform, and split out dataset into train test and validate. For now just
-        # batch all data together
+    """
+    Generate the dataloaders for the OASIS train, test and validation sets
+    :param str train_path: The filepath for the train path directory
+    :param str test_path: The filepath for the test path directory
+    :param str validate_path: The filepath for the validation path directory
+    :returns Dataloader, Dataloader, Dataloader: The respective dataloaders for each
+            path in the input
+    """
+   
+    # Train Dataset and Dataloader
     train_dataset = OASISDataSet(train_path)
     train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     
@@ -59,7 +64,10 @@ def data_loaders(train_path, test_path, validate_path, batch_size=32):
     return train_dataloader, test_dataloader, validation_dataloader
     
 def see_data(data_loader):
-        # Display image and label.
+    """
+    Helper function to view the loaded data
+    :param Dataloader data_loader: The dataloader to view images from
+    """
     train_features, train_labels = next(iter(data_loader))
     print(f"Feature batch shape: {train_features.size()}")
     print(f"Labels batch shape: {train_labels.size()}")
