@@ -28,18 +28,25 @@ The model underwent training on the Google Colab V100 GPU, spanning 30 epochs. I
 
 The results are as follows:
 
-**Sample Predictions:**:
+**Sample Predictions:**
 
 **Sample 1 Input:**
+[![Sample 1 Input](/images/input_sample1.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/input_sample1.png)
+
 **Sample 1 Mask:**
+[![Sample 1 Mask](/images/mask_sample1.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/mask_sample1.png)
+
 **Sample 1 Output:**
+[![Sample 1 Output](/images/output_sample1.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/output_sample1.png)
+
 **Sample 2 Input:**
+[![Sample 2 Input](/images/input_sample2.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/input_sample2.png)
+
 **Sample 2 Mask:**
+[![Sample 2 Mask](/images/mask_sample2.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/mask_sample2.png)
+
 **Sample 2 Output:**
+[![Sample 2 Output](/images/output_sample2.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/output_sample2.png)
 
 
-
-[![Sample Predictions](/images/sample1.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/sample1.png) [![Sample Predictions](/images/sample2.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/sample2.png)
-
-
-**Metrics**: Loss per Epoch and Average Dice Coefficient per Epoch: [![Sample Predictions](/images/results.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/results.png)
+**Metrics**: Loss per Epoch and Average Dice Coefficient per Epoch: [![Results](/images/results.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/results.png)
