@@ -92,7 +92,7 @@ def get_test_loaders(test_dir,
     
     return test_loader
 
-def check_accuracy(loader, model,folder="saved_images/", device="cuda"):
+def check_accuracy(loader, model, device="cuda"):
     """
     Computes and prints the accuracy and Dice score of the given model on the provided data loader.
 

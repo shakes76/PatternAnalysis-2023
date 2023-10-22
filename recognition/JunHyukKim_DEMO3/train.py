@@ -90,64 +90,54 @@ class diceLoss(torch.nn.Module):
 
 
 def main():
+    
     #Creates saved images folder if they dont exist.
     make_folder_if_not_exists("saved_images")
 
-    train_transform = album.Compose(
-        [
-            album.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
-            album.Rotate(limit=35, p=1.0),
-            album.HorizontalFlip(p=0.5),
-            album.VerticalFlip(p=0.1),
-            album.Normalize(mean=[0.0, 0.0, 0.0],
-                        std=[1.0, 1.0, 1.0],
-                        max_pixel_value=255.0,),
-            ToTensorV2(),
-        ],
-    )
+    train_transform = album.Compose([album.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
+                                    album.Rotate(limit=35, p=1.0),
+                                    album.HorizontalFlip(p=0.5),
+                                    album.VerticalFlip(p=0.1),
+                                    album.Normalize(mean=[0.0, 0.0, 0.0],
+                                                    std=[1.0, 1.0, 1.0],
+                                                    max_pixel_value=255.0,),
+                                    ToTensorV2(),],)
 
-
-    val_transforms = album.Compose(
-        [
-            album.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
-            album.Normalize(
-                mean=[0.0, 0.0, 0.0],
-                std=[1.0, 1.0, 1.0],
-                max_pixel_value=255.0,
-            ),
-            ToTensorV2(),
-        ],
-    )
+    val_transforms = album.Compose([album.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
+                                    album.Normalize(
+                                        mean=[0.0, 0.0, 0.0],
+                                        std=[1.0, 1.0, 1.0],
+                                        max_pixel_value=255.0,),
+                                    ToTensorV2(),],)
 
 
     model = UNET(in_channels=3, out_channels=1).to(DEVICE)
     loss_fn = diceLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
-    train_loader, val_loader = get_loaders(
-            TRAIN_IMG_DIR,
-            TRAIN_MASK_DIR,
-            VAL_IMG_DIR,
-            VAL_MASK_DIR,
-            BATCH_SIZE,
-            train_transform,
-            val_transforms,
-            NUM_WORKERS,
-            PIN_MEMORY,
-    )
+    train_loader, val_loader = get_loaders(TRAIN_IMG_DIR,
+                                        TRAIN_MASK_DIR,
+                                        VAL_IMG_DIR,
+                                        VAL_MASK_DIR,
+                                        BATCH_SIZE,
+                                        train_transform,
+                                        val_transforms,
+                                        NUM_WORKERS,
+                                        PIN_MEMORY,)
 
     check_accuracy(val_loader, model, device=DEVICE)
     scaler = torch.cuda.amp.GradScaler()
+
 
     for epoch in range(NUM_EPOCHS):
         train_fn(train_loader, model, optimizer, loss_fn, scaler)
         # check accuracy
         check_accuracy(val_loader, model, device=DEVICE)
         # print some examples to a folder
-
-    save_predictions_as_imgs(
-        val_loader, model, folder="saved_images/", device=DEVICE
-    )    
+        save_predictions_as_imgs(
+            val_loader, model, folder="saved_images/", device=DEVICE
+        )
+    #save the model under the name of "model.pth"
     FILE = "model.pth"
     torch.save(model.state_dict(), FILE)
 

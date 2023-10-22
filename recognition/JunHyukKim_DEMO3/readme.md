@@ -26,13 +26,13 @@ Using this file you can get the segmented image.
 ### 3.2. run Predict.py to get the segmentation and the dice coefficient. 
 
 
-## 4. Description
+## 4. Description 
 
 ### 4.1. The readme file should contain a title, a description of the algorithm and the problem that it solves
 (approximately a paragraph), how it works in a paragraph and a figure/visualisation.
 The 
 
-### 4.2. It should also list any dependencies required, including versions and address reproduciblility of results,
+### 4.2. Dependencies
 if applicable.
 import torchvision
 import torch
@@ -44,52 +44,56 @@ import pandas
 import numpy
 python 3.11.5
 window 11
-the training dataset requires to be in data folder. The ground truth files 
+After 10 epochs, the model relably provided dice score arount 80 percent. 
+
 
 #### 4.2.1 Reproducibility
 With this, you can expect the accruacy of 80 plug minus 2 percent.
 
 ### 4.3. provide example inputs, outputs and plots of your algorithm
 #### 4.3.1. The output when train.py is ran
-![Example Input](Example_Inputs_train.png)
-![Example Output](Example_Outputs_train.png)
+![Train Image](Example_Inputs_train.png)
+![Train Mask](train_mask.png)
+![Example Output](train_cmd.png)
+Given the input images, the trainer will run though the epoch.
 
 #### 4.3.2. The output expected after running predict.py
-
-![Example Input](Example_Inputs_predict.png)
-![Example Output](Example_Outputs_predict.png)
+![Test Image](test_image.png)
+![Test Mask](test_mask.png)
+![Example Output](predict_cmd_result.png)
+Given the input images, the trainer will run though the epoch.
 
 ### 4.4 The read me file should be properly formatted using GitHub markdown
-#### 4.4.1
+Bold was used to highlight the page.
 
 ### 4.5. Describe any specific pre-processing you have used with references if any. Justify your training, 
 #### 4.5.1. pre-processing
 I used transformation to increase the number of samples the model is trained on.
+For transformation the 
 I also resized the images into 256x256 sizes to increase the performance of training and also because my model works on that sizes. 
 
 #### 4.5.2. Training
-validation
-and testing splits of the data.
+validation and testing splits of the data.
 
-## 1. description and explanation of the working principles of the algorithm implemented and the problem it
-solves (5 Marks)
-##
+## 5. Description and explanation of the working principles of the algorithm implemented and the problem it solves (5 Marks)
 This program uses improved Unet to segment the differnt types of skin conditions such as melanoma.
 The improved Unet strucuture explained
+
+### 5.1. Layer going down the layer.
 The improved Unet works by first, applying the 3x3 convolutional layer. After that context layer is applied. 
 Inbewteen each context layer, 3x3 convolutional layer with 2 stride is used to reduce the size of features. 
+
+### 5.2. Layer going up the layer.
 After applying context layer 5 times and the stride 2 convolutional layer 4 times, the upsampling module is used and reduces the number of features, and increasee the size of each images. 
 Segmentation layer is used and 
+
 finally the 3x3 convolutional layer is used as the final convolutional layer. After this, final segmentaion layer is applied and it is combined with the upscaled segmention layer. 
 This is ran though the activation function which is sigmoid in this case. 
 
 By doing this, each features are extended and this can reliably create the segmentation.
-
 ![My Image Alt Text](image.png)
     
-## 2. description of usage and comments throughout scripts (3 Marks)
+## 6. description of usage and comments throughout scripts (3 Marks)
 Each methods and classes were commented and described along with listing of what each parameters and the returns. If the function doesnt return anything, return: None was used to show that.
 
 
-## 3. proper formatting using GitHub markdown (2 Mark)
-Github markdown was used to make the documentation easier to read and organised.

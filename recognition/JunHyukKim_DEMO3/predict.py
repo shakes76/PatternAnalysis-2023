@@ -65,7 +65,7 @@ def main():
     loaded_model.load_state_dict(torch.load(FILE))
     loaded_model.to(DEVICE)
     loaded_model.eval()
-    check_accuracy(test_loader,loaded_model,folder="evaluation_images/")
+    check_accuracy(test_loader,loaded_model)
     #save_predictions_as_imgs(test_loader,loaded_model)
 
 if __name__ == "__main__":
