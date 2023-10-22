@@ -7,12 +7,12 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 
 # for slurm
-TRAIN_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/train"
-TEST_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/test"
+# TRAIN_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/train"
+# TEST_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/test"
 
 # for local
-# TRAIN_FILE_ROOT = "./AD_NC/train"
-# TEST_FILE_ROOT = "./AD_NC/test"
+TRAIN_FILE_ROOT = "./AD_NC/train"
+TEST_FILE_ROOT = "./AD_NC/test"
 
 VAL_SIZE = 0.1
 TRAIN_SIZE = 0.9
@@ -82,7 +82,7 @@ def remove_patients(imgset: datasets.ImageFolder, index: int, match_set: []) -> 
     for patient in match_set:
         for fname in os.listdir(TRAIN_FILE_ROOT + "/" + folder):
             if patient in fname:
-                imgset.imgs.remove((TRAIN_FILE_ROOT + "/" + folder + "/" + fname, index))
+                imgset.imgs.remove((TRAIN_FILE_ROOT + "\\" + folder + "\\" + fname, index))
 
     return imgset
 

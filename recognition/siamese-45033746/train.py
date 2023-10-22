@@ -179,7 +179,8 @@ def main():
     gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Train binary classifier based on siamese classifier
-    parent_train_binary(gpu, trainData, valData)
+    # parent_train_binary(gpu, trainData, valData)
+    parent_train_siamese(gpu, trainData, valData)
 
 
 if __name__ == '__main__':
