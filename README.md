@@ -30,7 +30,11 @@ This work was undertaken as part of the COMP3710 course.
    - Accepts original images and introduces noise based on a provided timestep.
    - Uses the U-Net architecture to estimate the denoised version of a noisy image for a given timestep.
 
-#### Training 
+## Training Process
+Training the model involved playing with the hyperparameters, until a suitable results were achieved. Due to Google Collab not saving a few figures, I only have the batch size comparison.
+
+The loss gives insight into how well the model is approximating the target function. Lower loss indicates that the model's predictions are closer to the actual values.
+
 
 **File**: `train.py`
 
@@ -75,6 +79,26 @@ This work was undertaken as part of the COMP3710 course.
     ```python
     training_loop(model, loader, NUM_EPOCHS, optimizer, DEVICE)
     ```
+### Performance Metrics:
+
+To evaluate the model's training performance, we have visualized the loss metrics with respect to different batch sizes:
+
+1. **Average Loss per Epoch for Batch Size 32**:
+    ![Average Loss per Epoch for Batch Size 32](figures/batch_size_32.png)
+
+2. **Average Loss per Epoch for Batch Size 128**:
+    ![Average Loss per Epoch for Batch Size 128](figures/batch_size_128.png)
+
+3. **Loss per Step for Both Batch Sizes**:
+    While the average loss per epoch provides a macroscopic view, the loss per step offers a granular perspective of the model's learning behavior within each epoch.
+
+### Visualization of Model's Image Generation:
+
+To get a visual understanding of the model's performance, a GIF showcasing the image generation over time was created:
+
+![DDPM U-Net Image Generation Over Time](figures/ddpm_generated_samples.gif)
+
+
 
 ## Image Generation and GIF Creation with DDPM U-Net
 
@@ -106,43 +130,6 @@ The `predict.py` script provides functionality for generating new images using t
     create_gif(model_trained, num_samples=16, device=my_device, frames_per_gif=100, gif_name="sampling.gif")
     ```
     This will generate a GIF named `sampling.gif` visualizing the denoising process of the model over time.
-
----
-
-## Training Process of the DDPM U-Net Model
-
-Training the model involved playing with the hyperparameters, until a suitable results were achieved. Due to Google Collab not saving a few figures, I only have the batch size comparison.
-
-The loss gives insight into how well the model is approximating the target function. Lower loss indicates that the model's predictions are closer to the actual values.
-
-### Training Details:
-
-1. **Dataset**: The model was trained on the ADNIDataset with images resized to `224x224` pixels.
-
-2. **Optimization Details**: A learning rate of `0.001` was used. The training loop includes gradient clipping and an optional learning rate scheduler.
-
-3. **Hardware**: Training was done on a machine with GPU support. If unavailable, the CPU was used as a fallback.
-
-### Performance Metrics:
-
-To evaluate the model's training performance, we have visualized the loss metrics with respect to different batch sizes:
-
-1. **Average Loss per Epoch for Batch Size 32**:
-    ![Average Loss per Epoch for Batch Size 32](figures/batch_size_32.png)
-
-2. **Average Loss per Epoch for Batch Size 128**:
-    ![Average Loss per Epoch for Batch Size 128](figures/batch_size_128.png)
-
-3. **Loss per Step for Both Batch Sizes**:
-    While the average loss per epoch provides a macroscopic view, the loss per step offers a granular perspective of the model's learning behavior within each epoch.
-
-### Visualization of Model's Image Generation:
-
-To get a visual understanding of the model's performance, a GIF showcasing the image generation over time was created:
-
-![DDPM U-Net Image Generation Over Time](figures/ddpm_generated_samples.gif)
-
-This GIF visually represents the model's ability to generate and denoise images throughout its training lifecycle.
 
 ## Dependencies
 
