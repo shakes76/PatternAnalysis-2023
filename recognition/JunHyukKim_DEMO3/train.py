@@ -7,7 +7,8 @@ import torch.optim as optim
 from modules import UNET
 from utils import (get_loaders,
                     check_accuracy,
-                    save_predictions_as_imgs,)
+                    save_predictions_as_imgs,
+                    make_folder_if_not_exists)
 
 
 # Hyperparameters etc.
@@ -89,6 +90,9 @@ class diceLoss(torch.nn.Module):
 
 
 def main():
+    #Creates saved images folder if they dont exist.
+    make_folder_if_not_exists("saved_images")
+
     train_transform = album.Compose(
         [
             album.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
