@@ -70,7 +70,7 @@ def show_images(img, epoch):
     fig.axes.get_yaxis().set_visible(False)
     
     # Save to 'gen_img' subdirectory
-    img_name = f'gen_img/s_epoch_{epoch}.png'
+    img_name = f's_epoch_{epoch}.png'
     save_image(img, img_name)
     print("Saving", img_name)
     plt.savefig(img_name)

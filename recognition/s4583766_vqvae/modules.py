@@ -248,9 +248,8 @@ class Discriminator(nn.Module):
         # generating latent tensors.
         self.net = nn.Sequential(
             # nn.Conv2d(1, 128, kernel_size=4, stride=2, padding=1), # With a stride of 2, need padding of 1 - prevents downsampling.
-            # nn.LeakyReLU(0.2), # Allows 0.2 of the negative
-            self._block(64, 32),
-            self._block(32, 64),
+            nn.LeakyReLU(0.2), # Allows 0.2 of the negative
+            self._block(64, 64), # map from the embeddings dimension to the image dimension
             self._block(64, 128),
             self._block(128, 256), 
             nn.Conv2d(256, 1, kernel_size=4, stride=1, padding=0, bias=False),
@@ -282,7 +281,7 @@ class Generator(nn.Module):
         super(Generator, self).__init__()
         # Input: N x channels_noise x 1 x 1
         self.net = nn.Sequential(
-            self._block(128, 512, 1, 0), 
+            self._block(128, 512, 1, 0), # go from latent space to quantized space
             self._block(512, 256, 2, 1),
             self._block(256, 128, 2, 1), 
             self._block(128, 64, 2, 1), 

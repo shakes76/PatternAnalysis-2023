@@ -494,25 +494,21 @@ def main():
     )
     model = model.to(device)
     train_dl, test_dl, val_dl = get_dataloaders(TRAIN_DATA_PATH, TEST_DATA_PATH, VAL_DATA_PATH, BATCH_SIZE)
-    # vqvae = train_vqvae(model, train_dl=train_dl, val_dl=val_dl)
+    model = train_vqvae(model, train_dl=train_dl, val_dl=val_dl)    
 
-    # torch.save(vqvae.state_dict(), RUN_IMG_OUTPUT + "vqvae_good.pth")
-    
-
-    ## load in the saved gan model stored at path + 'best-gan.pth'
-    model.load_state_dict(
-        torch.load(
-            FILE_SAVE_PATH + "2023-10-23_04-23-47/vqvae_good.pth",
-            map_location=torch.device("cpu"),
-        )
-    )
+    ## Uncomment to load in the saved gan model stored at path + 'best-gan.pth'
+    # model.load_state_dict(
+    #     torch.load(
+    #         FILE_SAVE_PATH + "path/vqvae_good.pth",
+    #         map_location=torch.device("cpu"),
+    #     )
+    # )
     model.eval()
 
-    # # visualise_embeddings(model, test_dl)
+    visualise_embeddings(model, test_dl)
 
     losses_g, losses_d, real_scores, fake_scores = train_gan(vqvae=model, train_dl=train_dl)
-        # def plot_scores(real_scores, fake_scores):
-        # """Plot scores from the discriminator and generator."""
+    # Plot scores from the discriminator and generator training
     plt.plot(real_scores, '-')
     plt.plot(fake_scores, '-')
     plt.xlabel('epoch')
@@ -522,8 +518,7 @@ def main():
     plt.savefig(RUN_IMG_OUTPUT + 'gan_scores.png', bbox_inches="tight", pad_inches=0)
     plt.clf()
     
-    # def plot_losses(losses_d, losses_g):
-    """Plot losses from discriminator and generator."""
+    # Plot losses from discriminator and generator
     plt.plot(losses_d, '-')
     plt.plot(losses_g, '-')
     plt.xlabel('epoch')
@@ -532,10 +527,6 @@ def main():
     plt.title('Losses');
     plt.savefig(RUN_IMG_OUTPUT + 'gan_losses.png', bbox_inches="tight", pad_inches=0)
     plt.clf()
-
-    # TODO: fix this method
-    # calc_ssim(model, test_dl)
-
 
 if __name__ == '__main__':
     main()

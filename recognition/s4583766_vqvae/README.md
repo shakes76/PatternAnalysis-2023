@@ -27,6 +27,8 @@ The DCGAN is a generative model that uses convolutional layers to generate image
 
 In this case, a latent space of size 100 is used as input to the generator, and then strided convolutional transpose layers are used to upsample the latent space to the size of the original image.
 
+For this problem, the DCGAN is trained to generate the priors for the VQ-VAE. I.e. the Generator takes the random latent space and outputs a codebook vector the same size of the VQ-VAE latent space. This codebook vector is then used as the prior for the VQ-VAE, which is then able to generate novel images. The combination of these two models allows for the generation of high-quality images that are similar to the original dataset, where regular VAEs would not facilitate this pairing. 
+
 ### Deep learning pipeline - overview
 
 The following sections provide an overview of the deep learning pipeline used for this project.
@@ -75,53 +77,53 @@ A summary of the model is shown here:
 VQVAE(
   (encoder): Encoder(
     (layers): Sequential(
-      (0): Conv2d(1, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+      (0): Conv2d(1, 32, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
       (1): ReLU(inplace=True)
-      (2): Conv2d(64, 128, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+      (2): Conv2d(32, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
       (3): ResidualBlock(
         (_residual_block): Sequential(
           (0): ReLU()
-          (1): Conv2d(128, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (1): Conv2d(64, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
           (2): ReLU()
-          (3): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): Conv2d(32, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
         )
       )
       (4): ResidualBlock(
         (_residual_block): Sequential(
           (0): ReLU()
-          (1): Conv2d(128, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (1): Conv2d(64, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
           (2): ReLU()
-          (3): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): Conv2d(32, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
         )
       )
     )
   )
-  (conv1): Conv2d(128, 64, kernel_size=(1, 1), stride=(1, 1))
+  (conv1): Conv2d(64, 64, kernel_size=(1, 1), stride=(1, 1))
   (vector_quantizer): VectorQuantizer(
     (embedding): Embedding(512, 64)
   )
   (decoder): Decoder(
     (layers): Sequential(
-      (0): Conv2d(64, 128, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+      (0): Conv2d(64, 64, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
       (1): ResidualBlock(
         (_residual_block): Sequential(
           (0): ReLU()
-          (1): Conv2d(128, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (1): Conv2d(64, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
           (2): ReLU()
-          (3): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): Conv2d(32, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
         )
       )
       (2): ResidualBlock(
         (_residual_block): Sequential(
           (0): ReLU()
-          (1): Conv2d(128, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
+          (1): Conv2d(64, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1), bias=False)
           (2): ReLU()
-          (3): Conv2d(32, 128, kernel_size=(1, 1), stride=(1, 1), bias=False)
+          (3): Conv2d(32, 64, kernel_size=(1, 1), stride=(1, 1), bias=False)
         )
       )
-      (3): ConvTranspose2d(128, 64, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+      (3): ConvTranspose2d(64, 32, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
       (4): ReLU(inplace=True)
-      (5): ConvTranspose2d(64, 1, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
+      (5): ConvTranspose2d(32, 1, kernel_size=(4, 4), stride=(2, 2), padding=(1, 1))
     )
   )
 )
@@ -201,8 +203,6 @@ Discriminator(
 )
 </pre>
 </details>
-
-
 
 
 ## 4. Training procedure
@@ -302,7 +302,10 @@ The traing procedure for the DCGAN model was adapted from the [DCGAN tutorial](h
 
 The following plot shows the loss results from training the DCGAN model. The loss for the discriminator and generator are shown in blue and orange respectively. There were issues during the DCGAN training whereby the discriminator loss was overpowering the generator. This resulted in the following plot of training losses after 25 epochs, whereby the Generator failed to stabilise and kept increasing. 
 
-![DCGAN training losses](resources/train_vqvae/gan_losses.png)
+<p align="center">
+    <img src="resources/train_vqvae/gan_losses.png" width="65%" />
+</p>
+<!-- ![DCGAN training losses](resources/train_vqvae/gan_losses.png) -->
 
 The following sample images are from epochs 0, 1, and 2 of the GAN training (generator output):
 
@@ -355,12 +358,60 @@ The lowest SSIM score, 0.5730, was observed for the following image:
 
 Overall, the SSIM scores were quite high, with 535 out of the 544 images (98.35%) in the dataset being above the miniminum threshold of 0.6. This indicates that the VQ-VAE model was able to reconstruct the images with a high degree of accuracy. Also, importantly, these scores showed that the model has decent generalisability and isn't overfitting, being similar to the training and validation SSIM scores. 
 
+## Project setup
+
+### File structure
+The modules contained in this project are as follows:
+
+| **Module** | **Description** |
+|---|---|
+| [dataset.py](dataset.py) | Loads the data and preprocesses it for use by the train loaders. |
+| [modules.py](modules.py) | Core components of the model required for the pattern recognition task, includes VQVAE and GAN models. |
+| [predict.py](predict.py) | Example usage of the trained model, generates results and provides visualisations. |
+| [README.md](README.md) | This file! |
+| [train.py](train.py) | Training script for the VQVAE and GAN models, including validation, testing, and saving of the model, and plotting losses and metrics observed during training. |
+
+
+### Dependencies
+This is a python project that requires at least Python 3.11.x. Miniconda3 was used for package and dependency management. The dependencies (and their version numbers) required for running this project are as follows:
+| **Dependency** | **Version** |
+|---|---|
+| pytorch | 2.0.1 |
+| numpy | 1.25.0 |
+| matplotlib | 3.7.1 |
+| torchvision | 0.15.2 |
+| scikit-image | 0.20.0 | 
+
+The `.yaml` file [environment.yml](environment.yml) contains the conda environment used for this project, generated on a Linux OS (AlmaLinux release 8.8). To create the environment `conda-torch`, run the following command:
+```bash
+conda env create -f environment.yml
+```
+
+### Reproducing training and testing results
+The entrypoint to the project is [train.py](train.py). This assumes you are in the PatternAnalysis-2023 root directory. To train the model, run the following command:
+```bash
+python3 python3 recognition/s4583766_vqvae/train.py
+```
+This will train the model and create a new directory `/gen_imgs/x` where `x` was the date and time that the run started. This directory will contain the images generated in training, as well as the best model checkpoint (saved as a `.pth` file), and the training and validation losses and metrics (saved as `.png` files).
+
+To evalute training results, the [predict.py](predict.py) script can be used. This script will load the best VQVAE model checkpoint and generate images from the test set. To run this script, run the following command, passing the path to the model checkpoint as an argument (the path should be relative to the `gen_img/` directory, i.e. ``):
+```bash
+python3 recognition/s4583766_vqvae/predict.py path/vqvae.pth
+```
+This will generate testing plots and images in a new directory. 
+
+### Other notes
+[Conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) were used to structure commit messages in this project. 
+
 ## References
+The following sources were referenced in the development of this project:
 * [1] OASIS brain MRI dataset: https://www.oasis-brains.org/
 * [2] VQ-VAEs: Neural Discrete Representation Learning: https://www.youtube.com/watch?v=VZFVUrYcig0.
 * [3] Paper: *Neural Discrete Representation Learning*, Aaron van den Oord, Oriol Vinyals, Koray Kavukcuoglu, 2017. https://arxiv.org/abs/1711.00937
 * [4] DCGAN tutorial by Pytorch: https://pytorch.org/tutorials/beginner/dcgan_faces_tutorial.html.
 * [5] https://medium.com/analytics-vidhya/an-overview-on-vq-vae-learning-discrete-representation-space-8b7e56cc6337
 * [6] Paper: *Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks*, https://arxiv.org/pdf/1511.06434.pdf.
-* [Sonnet VQ-VAE implementation](https://github.com/google-deepmind/sonnet/blob/v1/sonnet/examples/vqvae_example.ipynb)
+* [7] Sonnet VQ-VAE implementation: https://github.com/google-deepmind/sonnet/blob/v1/sonnet/examples/vqvae_example.ipynb.
+
+Additionally, GitHub Copilot was used to increase the efficiency of development in this project.
 
