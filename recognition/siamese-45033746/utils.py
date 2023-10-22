@@ -1,10 +1,10 @@
 import os
 import random
-import matplotlib as plt
+import matplotlib.pyplot as plt
 
 def show_plot(iteration, loss):
     plt.plot(iteration, loss)
-    plt.show()
+    plt.savefig(f"./assets/train_loss.png")
 
 
 adid = ['218391', '218393', '228875', '228879', '236920', '240954', '242719', '242720', '243891', '243895', '247513',
