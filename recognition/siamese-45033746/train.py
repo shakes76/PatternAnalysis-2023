@@ -1,24 +1,21 @@
-from dataset import patient_split, SiameseDataSet, compose_transform
+from dataset import get_test_set, get_patient_split, SiameseDataSet, compose_transform
 from modules import SiameseNetwork
-import torchvision.datasets as datasets
 from torch.utils.data import DataLoader
 from torch import optim
 from torch.nn import TripletMarginLoss
 import torch
 from utils import show_plot
 
-TEST_FILE_ROOT = "./AD_NC/test"
-
 
 # 256x240
 
 def load():
-    trainer, val = patient_split()
+    trainer, val = get_patient_split()
     transform = compose_transform()
 
     trainSet = SiameseDataSet(trainer, transform)
     valSet = SiameseDataSet(val, transform)
-    testSet = SiameseDataSet(datasets.ImageFolder(root=TEST_FILE_ROOT), transform)
+    testSet = SiameseDataSet(get_test_set(), transform)
 
     trainDataLoader = DataLoader(trainSet, shuffle=True, num_workers=2, batch_size=64)
     valDataLoader = DataLoader(valSet, shuffle=True, num_workers=2, batch_size=64)

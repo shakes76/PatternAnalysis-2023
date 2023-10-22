@@ -8,9 +8,11 @@ from torch.utils.data import Dataset
 
 # for slurm
 TRAIN_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/train"
+TEST_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/test"
 
 # for local
 # TRAIN_FILE_ROOT = "./AD_NC/train"
+# TEST_FILE_ROOT = "./AD_NC/test"
 
 VAL_SIZE = 0.1
 TRAIN_SIZE = 0.9
@@ -74,8 +76,8 @@ def remove_patients(imgset: datasets.ImageFolder, index: int, match_set: []) -> 
     else:
         folder = "NC"
 
-    #windows local : TRAIN_FILE_ROOT + "\\" + folder + "\\" + fname
-    #slurm ubuntu : TRAIN_FILE_ROOT + "/" + folder + "/" + fname
+    # windows local : TRAIN_FILE_ROOT + "\\" + folder + "\\" + fname
+    # slurm ubuntu : TRAIN_FILE_ROOT + "/" + folder + "/" + fname
 
     for patient in match_set:
         for fname in os.listdir(TRAIN_FILE_ROOT + "/" + folder):
@@ -85,7 +87,7 @@ def remove_patients(imgset: datasets.ImageFolder, index: int, match_set: []) -> 
     return imgset
 
 
-def patient_split() -> (datasets.ImageFolder, datasets.ImageFolder):
+def get_patient_split() -> (datasets.ImageFolder, datasets.ImageFolder):
     files = get_patients(TRAIN_FILE_ROOT + "/AD")
     random.shuffle(files)
     train_ad, validate_ad = np.split(files, [int(len(files) * TRAIN_SIZE)])
@@ -103,6 +105,10 @@ def patient_split() -> (datasets.ImageFolder, datasets.ImageFolder):
     validation_dataset = remove_patients(validation_dataset, 1, train_nc)
 
     return train_dataset, validation_dataset
+
+
+def get_test_set():
+    return datasets.ImageFolder(root=TEST_FILE_ROOT)
 
 
 def compose_transform():
