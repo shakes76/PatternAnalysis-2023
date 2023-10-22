@@ -4,7 +4,7 @@ import torch
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import numpy as np
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 
 # for slurm
 TRAIN_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/train"
@@ -117,6 +117,18 @@ def compose_transform():
         transforms.Resize((256, 240)),
         transforms.ToTensor()
     ])
+
+def load():
+    trainer, val = get_patient_split()
+    transform = compose_transform()
+
+    trainSet = SiameseDataSet(trainer, transform)
+    valSet = SiameseDataSet(val, transform)
+
+    trainDataLoader = DataLoader(trainSet, shuffle=True, num_workers=2, batch_size=64)
+    valDataLoader = DataLoader(valSet, shuffle=True, num_workers=2, batch_size=64)
+
+    return trainDataLoader, valDataLoader
 
 
 if __name__ == "__main__":

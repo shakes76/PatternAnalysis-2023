@@ -53,5 +53,15 @@ class SiameseNetwork(nn.Module):
         return anchor_vec, positive_vec, negative_vec
 
 
+class BinaryClassifier(nn.Module):
+
+    def __init__(self, siamese_embeddings):
+        super().__init__()
+
+    def forward(self, input):
+        pass
+
+
+
 if __name__ == "__main__":
     pass

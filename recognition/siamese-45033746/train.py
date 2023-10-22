@@ -1,16 +1,16 @@
-from dataset import get_test_set, get_patient_split, SiameseDataSet, compose_transform
 from modules import SiameseNetwork
 from torch.utils.data import DataLoader
 from torch import optim
 from torch.nn import TripletMarginLoss
 import torch
 from utils import show_plot, save_plot
+from dataset import load
 
 
 # 256x240
 
 def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt, counter: [],
-                  loss: [], epoch: int, device, net : SiameseNetwork):
+                  loss: [], epoch: int, device, model : SiameseNetwork):
     # Iterate over batch
     for i, (label, anchor, positive, negative) in enumerate(dataLoader, 0):
         # Send data to GPU
@@ -20,7 +20,7 @@ def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLo
         opt.zero_grad()
 
         # Pass in anchor, positive, and negative into network
-        anchor_vec, positive_vec, negative_vec = net(anchor, positive, negative)
+        anchor_vec, positive_vec, negative_vec = model(anchor, positive, negative)
 
         # Pass vectors and label to the loss function
         loss_contrastive = criterion(anchor_vec, positive_vec, negative_vec)
@@ -40,19 +40,6 @@ def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLo
     return counter, loss
 
 
-def load():
-    trainer, val = get_patient_split()
-    transform = compose_transform()
-
-    trainSet = SiameseDataSet(trainer, transform)
-    valSet = SiameseDataSet(val, transform)
-
-    trainDataLoader = DataLoader(trainSet, shuffle=True, num_workers=2, batch_size=64)
-    valDataLoader = DataLoader(valSet, shuffle=True, num_workers=2, batch_size=64)
-
-    return trainDataLoader, valDataLoader
-
-
 def train(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
           trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
     train_counter = []
@@ -60,16 +47,23 @@ def train(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
     train_loss = []
     val_loss = []
 
+    print(f"Training images : {len(trainDataLoader)*trainDataLoader.batch_size}")
+    print(f"Validation images : {len(validDataLoader)*validDataLoader.batch_size}")
+
     for epoch in range(epochs):
         # Iterate over training batch
         model.train()
-        train_counter, train_loss = iterate_batch("Training", trainDataLoader, criterion, optimiser, train_counter,
+        counter, loss = iterate_batch("Training", trainDataLoader, criterion, optimiser, train_counter,
                                                   train_loss, epoch, device, model)
+        train_counter = train_counter + counter
+        train_loss = train_loss + loss
 
         # Iterate over cross validation batch
         model.eval()
-        val_counter, val_loss = iterate_batch("Validation", validDataLoader, criterion, optimiser, val_counter,
+        counter, loss = iterate_batch("Validation", validDataLoader, criterion, optimiser, val_counter,
                                               val_loss, epoch, device, model)
+        val_counter = val_counter + counter
+        val_loss = val_loss + loss
 
     save_plot(train_counter, train_loss, "train")
     save_plot(train_counter, train_loss, "validation")
@@ -79,12 +73,13 @@ if __name__ == '__main__':
     trainData, valData = load()
     print(f"Data loaded")
     # Device configuration
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Send model to cpu
-    net = SiameseNetwork().to(device)
+    net = SiameseNetwork().to(gpu)
     # net = SiameseNetwork().cuda()
-    optimiser = optim.Adam(net.parameters(), lr=0.0005)
+
+    adam_optimiser = optim.Adam(net.parameters(), lr=0.0005)
     epochs = 1
 
-    train(net, TripletMarginLoss(), optimiser, trainData, valData, epochs, device)
+    train(net, TripletMarginLoss(), adam_optimiser, trainData, valData, epochs, gpu)
