@@ -4,10 +4,11 @@ This is a brief description of my project. The project is made for segmentation 
 Task finished was "
 
 ## 1. Table of Contents
-- [Installation](#installation)
-- [Usage](#usage)
-- [License](#license)
-- [Description](#Description)
+- [Installation](##Installation)
+- [Usage](##Usage)
+- [License](##Description)
+- [Description](##Description)
+- [Description](##Algorithm)
 
 
 ## 2. Installation
@@ -27,7 +28,6 @@ Using this file you can get the segmented image.
 
 
 ## 4. Description 
-
 ### 4.1. The readme file should contain a title, a description of the algorithm and the problem that it solves
 (approximately a paragraph), how it works in a paragraph and a figure/visualisation.
 The 
@@ -46,13 +46,12 @@ python 3.11.5
 window 11
 After 10 epochs, the model relably provided dice score arount 80 percent. 
 
-
 #### 4.2.1 Reproducibility
 With this, you can expect the accruacy of 80 plug minus 2 percent.
 
 ### 4.3. provide example inputs, outputs and plots of your algorithm
 #### 4.3.1. The output when train.py is ran
-![Train Image](Example_Inputs_train.png)
+![Train Image](train_image.png)
 ![Train Mask](train_mask.png)
 ![Example Output](train_cmd.png)
 Given the input images, the trainer will run though the epoch.
@@ -75,25 +74,32 @@ I also resized the images into 256x256 sizes to increase the performance of trai
 #### 4.5.2. Training
 validation and testing splits of the data.
 
-## 5. Description and explanation of the working principles of the algorithm implemented and the problem it solves (5 Marks)
+## 5. Algorithm
 This program uses improved Unet to segment the differnt types of skin conditions such as melanoma.
 The improved Unet strucuture explained
+### 5.1. Context layer and Localization Layer.
+Context Layer consists of 2d convolutional layer with kernel size 3, InstanceNorm2d, LeakyReLU and dropout layer with p value of 3. After that, another 2d convolutional layer with kernel size 3 is applied followed by instanceNorm2d and LeakyReLU. Context layer normally recieves the same output as input channel, which means goingthough context layer doestn really change the dimension of the tensor. 
 
-### 5.1. Layer going down the layer.
-The improved Unet works by first, applying the 3x3 convolutional layer. After that context layer is applied. 
-Inbewteen each context layer, 3x3 convolutional layer with 2 stride is used to reduce the size of features. 
+Localization Layer consists of 2d convolutional layer with kernel size 3, InstanceNorm2d, LeakyReLU. After that, another 2d convolutional layer with kernel size 1 is applied followed by instanceNorm2d and LeakyReLU.
+Localization layer changes the dimension of the tensor given by halving it. This is because it recieves the concatination of skip_connection and the previous output from the previous layer. 
 
-### 5.2. Layer going up the layer.
-After applying context layer 5 times and the stride 2 convolutional layer 4 times, the upsampling module is used and reduces the number of features, and increasee the size of each images. 
-Segmentation layer is used and 
+### 5.2. Layer going down the layer.
+#### 5.1.1. Structure of context pathway
+Firstly,2d convolutional layer is applied to the input tensor X, and the output is saved. First convolutional layer changes the dimension of the tensor to 3 to 64, but all the other pathways doubles the dimension of the tensor.
+The output if fed into the the context layer, and the output of the context layer and the first convolutional layer is added element wise using the "torch.add()" function. 
+The output is saved in the name of skip_connection_n(where n is the layer which the context pathway is in).
 
-finally the 3x3 convolutional layer is used as the final convolutional layer. After this, final segmentaion layer is applied and it is combined with the upscaled segmention layer. 
-This is ran though the activation function which is sigmoid in this case. 
+Than this countinues 4 more times except for the 5 th time the skip connection is not saved.
 
-By doing this, each features are extended and this can reliably create the segmentation.
+
+### 5.3. Layer going up the layer.
+In the layer 5 after applying the context pathway for 5 times, localization pathway is applied. 
+Localization pathway consists of first upsampling the tensor(which doubles the size of the image) and a convolutional layer with kernal size of 1, which halves the amount of features the tensor has. After this, the skip layer which corresponds to the layer which the localization layer is positioned is concatinated to the previous output. Than the output is fed into the localization layer, which will halve the amount of features the tensor has. This is because the number of feature is doubled after concatination.
+This continues until the the ouput reaches the layer 1, where instead of localization a normal convolutional layer with kernel size 3 is applied. This doesnt change the amount of the feature map.
+
+During the localization pathway, in Kayer 3 localization and Layer 4 localization, and after the final convolutiol layer, segmentaion layer which is just a convolutional layer with out channel of 1 is appied and the output is saved under the name of segmentation 1, segmentaion 2 and segmentation 3.
+Segmentation 1 is upscaled and added element wise to segmentaion 2, and the combination of those are upscaled and added to segmenation 3 element wise. 
+
+Finally the combination of all are ran though Sigmoid function and the model returns the output. 
 ![My Image Alt Text](image.png)
-    
-## 6. description of usage and comments throughout scripts (3 Marks)
-Each methods and classes were commented and described along with listing of what each parameters and the returns. If the function doesnt return anything, return: None was used to show that.
-
 

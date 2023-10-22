@@ -9,13 +9,13 @@ from utils import (get_loaders,
                     check_accuracy,
                     save_predictions_as_imgs,
                     make_folder_if_not_exists)
-
+import matplotlib.pyplot as plt
 
 # Hyperparameters etc.
 LEARNING_RATE = 1e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 16
-NUM_EPOCHS = 10
+NUM_EPOCHS = 2
 NUM_WORKERS = 2
 IMAGE_HEIGHT = 256  # 1280 originally
 IMAGE_WIDTH = 256  # 1918 originally
@@ -42,7 +42,6 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
     """
     # Initialize tqdm progress bar
     loop = tqdm(loader)
-
     for batch_idx, (data, targets) in enumerate(loop):
         data = data.to(device=DEVICE)
         targets = targets.float().unsqueeze(1).to(device=DEVICE)
@@ -58,7 +57,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
 
         # update tqdm loop
         loop.set_postfix(loss=loss.item())
-
+        losses.append(loss.item())
 
 
 class diceLoss(torch.nn.Module):
@@ -79,7 +78,9 @@ class diceLoss(torch.nn.Module):
         
         :return: The computed Dice loss value.
         """
-        smooth = 1.
+        smooth = 1e-5
+        #Smooth value exist to prevent division by 0
+        
         iflat = pred.contiguous().view(-1)
         tflat = target.contiguous().view(-1)
         intersection = (iflat * tflat).sum()
@@ -90,7 +91,8 @@ class diceLoss(torch.nn.Module):
 
 
 def main():
-    
+    global losses 
+    losses = []
     #Creates saved images folder if they dont exist.
     make_folder_if_not_exists("saved_images")
 
@@ -138,6 +140,14 @@ def main():
             val_loader, model, folder="saved_images/", device=DEVICE
         )
     #save the model under the name of "model.pth"
+    plt.figure(figsize=(10,5))
+    plt.plot(losses)
+    plt.title('Training Loss over Time')
+    plt.xlabel('Epochs or Iterations')
+    plt.ylabel('Loss Value')
+    plt.grid(True)
+    plt.show()
+
     FILE = "model.pth"
     torch.save(model.state_dict(), FILE)
 

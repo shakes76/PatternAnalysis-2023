@@ -86,10 +86,6 @@ class UNET(nn.Module):
         """
         super(UNET, self).__init__()
         self.feature_num = 64
-        self.ups = nn.ModuleList()
-        self.downs = nn.ModuleList()
-        self.pool = nn.MaxPool2d(kernel_size=2, stride=2)
-
         #LAYER 1
         self.first_conv = nn.Conv2d(in_channels, self.feature_num, kernel_size=3, stride=1, padding=1, bias=False)
         self.first_down = ContextLayer(self.feature_num, self.feature_num)
