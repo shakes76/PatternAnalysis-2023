@@ -16,6 +16,7 @@ mlp_units = [2048, 1024]
 input_shape = (140, 140, 3)
 
 
+# Preprocessing pipeline for input images
 preprocessing = keras.Sequential(
     [
         Normalization(),
@@ -25,8 +26,18 @@ preprocessing = keras.Sequential(
     ],
     name="preprocessing")
 
-
 def perceptron(tensor_in, hidden_units, dropout):
+    """
+    Multi-layer perceptron (MLP) with dropout.
+
+    Args:
+        tensor_in: Input tensor.
+        hidden_units: List of hidden unit sizes for each layer.
+        dropout: Dropout rate.
+
+    Returns:
+        Output tensor after passing through the MLP layers with dropout.
+    """
     for units in hidden_units:
         tensor_in = Dense(units, activation=tf.nn.gelu)(tensor_in)
         tensor_in = Dropout(dropout)(tensor_in)
@@ -39,6 +50,15 @@ class Patches(Layer):
         self.patch_size = patch_size
 
     def call(self, images):
+        """
+        Extract patches from input images.
+
+        Args:
+            images: Input images.
+
+        Returns:
+            Patches extracted from the input images.
+        """
         batch_size = tf.shape(images)[0]
         patches = tf.image.extract_patches(
             images=images,
@@ -66,24 +86,26 @@ class PatchEncoder(Layer):
 
 
 def transformer():
+    """
+    Build a Vision Transformer (ViT) model.
+
+    Returns:
+        ViT model with the specified architecture.
+    """
     inputs = Input(shape=input_shape)
     augmented_inputs = preprocessing(inputs)
     patches = Patches(patch_size)(augmented_inputs)
     encoded_patches = PatchEncoder(patch, dimensions)(patches)
 
     for _ in range(vit_layer):
-        
         Layer1 = LayerNormalization(epsilon=1e-6)(encoded_patches)
-        attention_output = MultiHeadAttention(num_heads=num_heads,key_dim=dimensions,dropout=0.1)
+        attention_output = MultiHeadAttention(num_heads=num_heads, key_dim=dimensions, dropout=0.1)
         (Layer1, Layer1)
-        
         Layer2 = Add()([attention_output, encoded_patches])
         Layer3 = LayerNormalization(epsilon=1e-6)(Layer2)
-        Layer3 = perceptron(Layer3,hidden_units=vit_dim,dropout=0.1)
-
+        Layer3 = perceptron(Layer3, hidden_units=vit_dim, dropout=0.1)
         encoded_patches = Add()([Layer3, Layer2])
 
-    
     output = LayerNormalization(epsilon=1e-6)(encoded_patches)
     output = Flatten()(output)
     output = Dropout(0.5)(output)
