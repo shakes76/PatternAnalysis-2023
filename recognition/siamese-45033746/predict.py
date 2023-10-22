@@ -4,7 +4,7 @@ from os.path import exists
 from train import BINARY_MODEL_PATH, SIAMESE_MODEL_PATH
 import torch
 from dataset import get_test_set
-import torch.nn as nn
+import numpy
 
 """
 predict.py
@@ -40,7 +40,7 @@ def predict(model: BinaryClassifier, net: SiameseNetwork, testDataLoader: DataLo
     model.eval()
     net.eval()
 
-    outcome = []
+    acc = []
 
     for i, (anchor_class, anchor, _, _) in enumerate(testDataLoader, 0):
         # Send items to GPU
@@ -52,14 +52,12 @@ def predict(model: BinaryClassifier, net: SiameseNetwork, testDataLoader: DataLo
         """
         none of this works, apologies, the sigmoid functon would not work to expectations
         """
-        pred = model(siamese_embeddings)
-        print(pred)
+        pred = model(siamese_embeddings).round()
+        matches = torch.eq(pred, label)
+        print(f"batch accuracy : {torch.sum(matches) / len(matches)}")
+        acc.append(torch.sum(matches).item() / len(matches))
 
-
-
-        outcome.append(torch.eq(pred, label))
-
-    print(outcome)
+    print(f"Average accuracy : {sum(acc) / len(acc)}")
 
 
 def main():

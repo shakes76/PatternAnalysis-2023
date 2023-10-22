@@ -56,7 +56,7 @@ def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLo
 
         # Every batch print out the loss
 
-        print(f"Epoch {epoch} - Siamese {title} Batch {i} : Loss = {loss_contrastive.item()}\n")
+        # print(f"Epoch {epoch} - Siamese {title} Batch {i} : Loss = {loss_contrastive.item()}\n")
         counter.append(i)
         loss.append(loss_contrastive.item())
 
@@ -92,12 +92,16 @@ def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, trainData
         train_counter = train_counter + counter
         train_loss = train_loss + loss
 
+        print(f"Epoch {epoch}, average siamese training loss = {sum(loss) / len(loss)}")
+
         # Iterate over cross validation batch
         model.eval()
         counter, loss = iterate_batch("Validation", validDataLoader, criterion, optimiser, val_counter,
                                       val_loss, epoch, device, model)
         val_counter = val_counter + counter
         val_loss = val_loss + loss
+
+        print(f"Epoch {epoch}, average siamese validation loss = {sum(loss) / len(loss)}")
 
     save_plot(train_counter, train_loss, "siamese_train")
     save_plot(val_counter, val_loss, "siamese_validation")
@@ -129,6 +133,7 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn
     siamese.eval()
 
     for epoch in range(epochs):
+        loss = []
 
         # Iterate over training batches
         model.train()
@@ -154,9 +159,13 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn
             # Optimise
             optimiser.step()
 
-            print(f"Epoch {epoch} - Binary Training Batch {i} : Loss = {loss.item()}\n")
+            # print(f"Epoch {epoch} - Binary Training Batch {i} : Loss = {loss.item()}\n")
             train_counter.append(i)
             train_loss.append(loss.item())
+
+            loss.append(loss.item())
+
+        print(f"Epoch {epoch}, average binary training loss = {sum(loss) / len(loss)}")
 
         model.eval()
         for i, (label, anchor, _, _) in enumerate(validDataLoader, 0):
@@ -181,9 +190,11 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn
             # Optimise
             optimiser.step()
 
-            print(f"Epoch {epoch} - Binary Validation Batch {i} : Loss = {loss.item()}\n")
+            # print(f"Epoch {epoch} - Binary Validation Batch {i} : Loss = {loss.item()}\n")
             val_counter.append(i)
             val_loss.append(loss.item())
+            loss.append(loss.item())
+        print(f"Epoch {epoch}, average binary validation loss = {sum(loss) / len(loss)}")
 
     save_plot(train_counter, train_loss, "binary_train")
     save_plot(val_counter, val_loss, "binary_validation")
