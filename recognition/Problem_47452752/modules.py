@@ -50,13 +50,13 @@ class UNet(nn.Module):
         super(UNet, self).__init__()
 
         # Context Pathway (encoders)
-        self.enc1 = Encoder(in_channels)
+        self.enc1 = Encoder(16)
         self.enc2 = Encoder(32)
         self.enc3 = Encoder(64)
         self.enc4 = Encoder(128)
         self.enc5 = Encoder(256)
 
-        # Convolutions for downsampling
+        # Convolutions that connect context modules, used for downsampling
         self.down1 = nn.Conv3d(in_channels, 16, kernel_size=3, stride=1, padding=1)
         self.down2 = nn.Conv3d(16, 32, kernel_size=3, stride=2, padding=1)
         self.down3 = nn.Conv3d(32, 64, kernel_size=3, stride=2, padding=1)
