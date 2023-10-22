@@ -1,3 +1,11 @@
+"""
+datasplit.py
+
+creates the train loader and test loader.
+
+Author: Atharva Gupta
+Date Created: 17-10-2023
+"""
 import torch
 from torchvision import datasets, transforms
 
