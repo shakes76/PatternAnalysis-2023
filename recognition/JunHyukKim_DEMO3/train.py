@@ -5,17 +5,16 @@ from tqdm import tqdm
 import torch.nn as nn
 import torch.optim as optim
 from modules import UNET
-from utils import (load_checkpoint,
-                    save_checkpoint,
-                    get_loaders,
+from utils import (get_loaders,
                     check_accuracy,
                     save_predictions_as_imgs,)
+
 
 # Hyperparameters etc.
 LEARNING_RATE = 1e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-BATCH_SIZE = 16
-NUM_EPOCHS = 20
+BATCH_SIZE = 50
+NUM_EPOCHS = 100
 NUM_WORKERS = 2
 IMAGE_HEIGHT = 256  # 1280 originally
 IMAGE_WIDTH = 256  # 1918 originally
@@ -27,6 +26,7 @@ VAL_IMG_DIR = "data/val_images/"
 VAL_MASK_DIR = "data/val_masks/"
 TEST_IMG_DIR = "data/test_images/"
 TEST_MASK_DIR = "data/test_masks/"
+
 
 def train_fn(loader, model, optimizer, loss_fn, scaler):
     loop = tqdm(loader)
@@ -45,8 +45,6 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
 
         # update tqdm loop
         loop.set_postfix(loss=loss.item())
-    FILE = "model.pth"
-    torch.save(model.state_dict(), FILE)
 
 
 
@@ -61,6 +59,7 @@ class diceLoss(torch.nn.Module):
        A_sum = torch.sum(iflat * iflat)
        B_sum = torch.sum(tflat * tflat)
        return 1 - ((2. * intersection + smooth) / (A_sum + B_sum + smooth) )   
+
 
 
 def main():
@@ -90,7 +89,6 @@ def main():
     )
 
     model = UNET(in_channels=3, out_channels=1).to(DEVICE)
-    #loss_fn = nn.BCEWithLogitsLoss()
     loss_fn = diceLoss()
     optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
 
@@ -106,8 +104,6 @@ def main():
             PIN_MEMORY,
     )
 
-
-
     check_accuracy(val_loader, model, device=DEVICE)
     scaler = torch.cuda.amp.GradScaler()
 
@@ -115,11 +111,13 @@ def main():
         train_fn(train_loader, model, optimizer, loss_fn, scaler)
         # check accuracy
         check_accuracy(val_loader, model, device=DEVICE)
-
         # print some examples to a folder
         save_predictions_as_imgs(
             val_loader, model, folder="saved_images/", device=DEVICE
         )
+    
+    FILE = "model.pth"
+    torch.save(model.state_dict(), FILE)
 
 if __name__ == "__main__":
     main()

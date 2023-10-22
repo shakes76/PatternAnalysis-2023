@@ -66,7 +66,7 @@ class LocalizationLayer(nn.Module):
         :return: Processed tensor after passing through the layer sequence
         """
         return self.conv(x)
-    
+
 class UNET(nn.Module):
     """
     Improved Unet architecture comprising of 5 encoding (downsampling) layers and 
@@ -136,6 +136,7 @@ class UNET(nn.Module):
         self.segmentation_1 = nn.Conv2d(self.feature_num*4, out_channels, kernel_size=1)
         self.segmentation_2 = nn.Conv2d(self.feature_num*2, out_channels, kernel_size=1)
         self.segmentation_3 = nn.Conv2d(self.feature_num*2, out_channels, kernel_size=1)
+
 
     def forward(self, x):
         """
