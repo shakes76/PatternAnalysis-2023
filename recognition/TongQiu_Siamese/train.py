@@ -6,6 +6,7 @@ from tqdm.auto import tqdm
 from utils import Config
 from torch.utils.tensorboard import SummaryWriter
 import random
+import os
 from modules import Embedding_Baseline, SiameseContrastive, SiameseTriplet, ClassificationNet
 from dataset import ContrastiveDataset, discover_directory, patient_level_split, TripletDataset
 from torch.utils.data import DataLoader
@@ -13,6 +14,8 @@ from torch.utils.data import DataLoader
 """
 Trining process for Contrastive loss
 """
+
+
 def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epochs):
     print('---------Train on: ' + Config.DEVICE + '----------')
 
@@ -51,17 +54,17 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
         else:
             print(f"no improvement: score {best_score:.5f} --> {val_batch_acc:.5f}")
 
-        # Convert lists to numpy arrays
-        train_losses = np.array(train_losses)
-        train_accs = np.array(train_accs)
-        val_losses = np.array(val_losses)
-        val_accs = np.array(val_accs)
+    # Convert lists to numpy arrays
+    train_losses = np.array(train_losses)
+    train_accs = np.array(train_accs)
+    val_losses = np.array(val_losses)
+    val_accs = np.array(val_accs)
 
-        # Save the arrays
-        np.save(Config.LOG_DIR + 'contrastive/train_losses.npy', train_losses)
-        np.save(Config.LOG_DIR + 'contrastive/train_accs.npy', train_accs)
-        np.save(Config.LOG_DIR + 'contrastive/val_losses.npy', val_losses)
-        np.save(Config.LOG_DIR + 'contrastive/val_accs.npy', val_accs)
+    # Save the arrays
+    np.save(os.path.join(Config.LOG_DIR, 'contrastive/train_losses.npy'), train_losses)
+    np.save(os.path.join(Config.LOG_DIR, 'contrastive/train_accs.npy'), train_accs)
+    np.save(os.path.join(Config.LOG_DIR, 'contrastive/val_losses.npy'), val_losses)
+    np.save(os.path.join(Config.LOG_DIR, 'contrastive/val_accs.npy'), val_accs)
 
 
 def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
@@ -153,9 +156,11 @@ class ContrastiveLoss(torch.nn.Module):
                                       label * torch.pow(torch.clamp(self.margin - euclidean_distance, min=0.0), 2))
         return loss_contrastive
 
+
 """
 Training process for Triplet loss
 """
+
 
 def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
     print('---------Train on: ' + Config.DEVICE + '----------')
@@ -192,6 +197,7 @@ def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
         writer.add_scalar("Validation Score", val_batch_acc, epoch)
 
     writer.close()
+
 
 def train_triplet(model, train_loader, optimizer, criterion, epoch, epochs):
     model.train()
@@ -265,7 +271,6 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
     return average_loss, val_acc
 
 
-
 # train with contrastive
 if __name__ == '__main__':
     random.seed(2023)
@@ -313,8 +318,6 @@ if __name__ == '__main__':
     epochs = 50
 
     main_contrastive(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
-
-
 
 """
 # train with Triplet loss
