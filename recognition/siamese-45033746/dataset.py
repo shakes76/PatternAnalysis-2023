@@ -77,6 +77,8 @@ def remove_patients(imgset: datasets.ImageFolder, index: int, match_set: []) -> 
     for patient in match_set:
         for fname in os.listdir(TRAIN_FILE_ROOT + "/" + folder):
             if patient in fname:
+                print(TRAIN_FILE_ROOT + "\\" + folder + "\\" + fname)
+                print(imgset.samples[0])
                 imgset.imgs.remove((TRAIN_FILE_ROOT + "\\" + folder + "\\" + fname, index))
 
     return imgset
