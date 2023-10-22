@@ -22,7 +22,7 @@ def show_graph(graph, model):
     embeddings = embeddings.numpy()
 
     # Use UMAP to reduce the dimensionality
-    umap_embeddings = umap.UMAP(n_neighbors=15, min_dist=0.5, n_components=2).fit_transform(embeddings)
+    umap_embeddings = umap.UMAP(n_neighbors=30, min_dist=0.5, n_components=2).fit_transform(embeddings)
     true_labels = graph.ndata['Target'].numpy()
 
     # Create a UMAP embeddings plot with ground truth labels in colours

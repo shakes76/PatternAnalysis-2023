@@ -64,10 +64,10 @@ def start():
     graph, train_mask, test_mask, num_features = dataset.load_data()
 
     # Initialize the GCN model
-    model = modules.GCN(input_feats=128, hidden_size=64, num_classes=num_features, num_layers=4)
+    model = modules.GCN(input_feats=128, num_classes=num_features)
 
     #Train the model
-    train.train_model(graph, train_mask, test_mask, model, 60, 0.02)
+    train.train_model(graph, train_mask, test_mask, model, 60, 0.01)
 
 if __name__ == "__main__":
     start()

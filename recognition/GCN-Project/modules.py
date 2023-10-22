@@ -42,18 +42,23 @@ class GCN(pt.nn.Module):
     which allows the network to model more complex, non-linear relationships 
     in the dataset.
 
+    It was found in testing that increasing the dimensionality in deeper layers 
+    allowed for an improved model. It was also found an initial layer of 64 was
+    ideal for getting the model to have reasonable accuracy.
+
     input_feats: dimensionality of the features
-    hidden_size: dimensionality of the hidden layers in the GCN
     num_classes: number of classes in the dataset
-    num_layers: number of GCN layers
     '''
-    def __init__(self, input_feats, hidden_size, num_classes, num_layers):
+    def __init__(self, input_feats, num_classes):
         super(GCN, self).__init__()
         self.layers = pt.nn.ModuleList()
-        self.layers.append(dgl.nn.GraphConv(input_feats, hidden_size, activation=pt.nn.ReLU()))
-        for _ in range(1, num_layers):
-            self.layers.append(dgl.nn.GraphConv(hidden_size, hidden_size, activation=pt.nn.ReLU()))
-        self.classifier = pt.nn.Linear(hidden_size, num_classes)
+
+        self.layers.append(dgl.nn.GraphConv(input_feats, 64, activation=pt.nn.ReLU()))
+        self.layers.append(dgl.nn.GraphConv(64, 64, activation=pt.nn.ReLU()))
+        self.layers.append(dgl.nn.GraphConv(64, 96, activation=pt.nn.ReLU()))
+        self.layers.append(dgl.nn.GraphConv(96, 96, activation=pt.nn.ReLU()))
+
+        self.classifier = pt.nn.Linear(96, num_classes)
 
     '''
     forward(graph, inputs):
