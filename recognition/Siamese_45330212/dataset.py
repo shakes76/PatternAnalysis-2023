@@ -109,36 +109,34 @@ transform_train = transforms.Compose([
 print("> Getting triplet train set")
 triplet_trainset = CustomTripletSiameseNetworkDataset(root_dir=Config.training_dir, transform=transform_train)
 
-# Calculate the lengths of the splits for training and validation sets
-total_len = len(triplet_trainset)
-train_len = int(0.8 * total_len)
-val_len = total_len - train_len
-
-# Split the dataset into training and validation sets
-triplet_train_subset, triplet_val_subset = utils.random_split(triplet_trainset, [train_len, val_len])
-
-# Create DataLoaders for the training and validation subsets
-triplet_train_loader = torch.utils.data.DataLoader(triplet_train_subset, batch_size=Config.siamese_train_batch_size, shuffle=True)
-triplet_val_loader = torch.utils.data.DataLoader(triplet_val_subset, batch_size=Config.siamese_train_batch_size, shuffle=False)
-print("< Finished getting triplet train set")
-
-# print("> Getting train and validation set")
-# trainset = datasets.ImageFolder(root=Config.training_dir, transform=transform_train)
-# train_loader = torch.utils.data.DataLoader(trainset, batch_size=Config.train_batch_size, shuffle=True)
-# # Calculate the lengths of the splits
-# total_len = len(trainset)
+# # Calculate the lengths of the splits for training and validation sets
+# total_len = len(triplet_trainset)
 # train_len = int(0.8 * total_len)
 # val_len = total_len - train_len
 
-# # Split the dataset
-# train_subset, val_subset = utils.random_split(trainset, [train_len, val_len])
+# # Split the dataset into training and validation sets
+# triplet_train_subset, triplet_val_subset = utils.random_split(triplet_trainset, [train_len, val_len])
 
-# trainset = CustomClassifcationDataset(triplet_train_subset, model, device)
+# Create DataLoaders for the training and validation subsets
+triplet_train_loader = torch.utils.data.DataLoader(triplet_trainset, batch_size=Config.siamese_train_batch_size, shuffle=True)
+# triplet_val_loader = torch.utils.data.DataLoader(triplet_val_subset, batch_size=Config.siamese_train_batch_size, shuffle=False)
+print("< Finished getting triplet train set")
 
-# # Create DataLoaders for the subsets
-# train_loader = torch.utils.data.DataLoader(train_subset, batch_size=Config.train_batch_size, shuffle=True)
-# val_loader = torch.utils.data.DataLoader(val_subset, batch_size=Config.train_batch_size, shuffle=False)
-# print("< Finished getting train set and validation set. With testing size:", len(train_subset), "and validation size:", len(val_subset))
+print("> Getting train and validation set")
+trainset = datasets.ImageFolder(root=Config.training_dir, transform=transform_train)
+train_loader = torch.utils.data.DataLoader(trainset, batch_size=Config.train_batch_size, shuffle=True)
+# Calculate the lengths of the splits
+total_len = len(trainset)
+train_len = int(0.8 * total_len)
+val_len = total_len - train_len
+
+# Split the dataset
+train_subset, val_subset = utils.random_split(trainset, [train_len, val_len])
+
+# Create DataLoaders for the subsets
+train_loader = torch.utils.data.DataLoader(train_subset, batch_size=Config.train_batch_size, shuffle=True)
+val_loader = torch.utils.data.DataLoader(val_subset, batch_size=Config.train_batch_size, shuffle=False)
+print("< Finished getting train set and validation set. With testing size:", len(train_subset), "and validation size:", len(val_subset))
 
 # Create DataLoader for the test set
 print("> Getting test set")

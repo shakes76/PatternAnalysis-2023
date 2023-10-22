@@ -69,7 +69,7 @@ def siameseTripletTraining():
 
             # Logging and updating loss history
             if i % 50 == 0:
-                print("i:", i, "/", int(len(triplet_train_subset) / Config.siamese_train_batch_size))
+                print("i:", i, "/", int(len(triplet_trainset) / Config.siamese_train_batch_size))
                 print("Epoch number {}\n Current loss {}\n".format(epoch,loss_triplet.item()))
             if i % 50 == 0:
                 iteration_number += 50
@@ -78,22 +78,22 @@ def siameseTripletTraining():
             scheduler.step()
 
         # Comment out this validation loop if it runs into memory issues.
-        print("> Beginning validation")
-        # Validation loop (Similar to training loop but without backprop)
-        with torch.no_grad():
-            for i, data in enumerate(triplet_val_loader,0):
-                #Produce two sets of images with the label as 0 if they're from the same file or 1 if they're different
-                anchor_img, pos_img, neg_img, _ = data
-                anchor_img, pos_img, neg_img = anchor_img.to(device), pos_img.to(device), neg_img.to(device)
+        # print("> Beginning validation")
+        # # Validation loop (Similar to training loop but without backprop)
+        # with torch.no_grad():
+        #     for i, data in enumerate(triplet_val_loader,0):
+        #         #Produce two sets of images with the label as 0 if they're from the same file or 1 if they're different
+        #         anchor_img, pos_img, neg_img, _ = data
+        #         anchor_img, pos_img, neg_img = anchor_img.to(device), pos_img.to(device), neg_img.to(device)
 
-                # Forward pass
-                anchor_output, pos_output, neg_output = model(anchor_img, pos_img, neg_img)
-                loss_triplet = criterion_triplet(anchor_output, pos_output, neg_output)
-                if i % 50 == 0:
-                    val_iteration_number += 50
-                    val_counter.append(iteration_number)
-                    val_loss_history.append(loss_triplet.item())
-        print("> Finished validation")
+        #         # Forward pass
+        #         anchor_output, pos_output, neg_output = model(anchor_img, pos_img, neg_img)
+        #         loss_triplet = criterion_triplet(anchor_output, pos_output, neg_output)
+        #         if i % 50 == 0:
+        #             val_iteration_number += 50
+        #             val_counter.append(iteration_number)
+        #             val_loss_history.append(loss_triplet.item())
+        # print("> Finished validation")
             
         # Save and plot the losses
         save_plot(val_counter, val_loss_history, str(epoch) + 'SNNVAL', "Triplet Network Validation loss over iterations.")
@@ -124,12 +124,12 @@ os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
 
 # --------------------------
 # Train classification model
-print("> Getting classification train set")
-classification_trainset = CustomClassifcationDataset(train_subset=triplet_train_subset, model=model, device=device)
-classification_train_loader = torch.utils.data.DataLoader(classification_trainset, batch_size=Config.train_batch_size, shuffle=True)
-classification_valset = CustomClassifcationDataset(train_subset=triplet_val_subset, model=model, device=device)
-classification_val_loader = torch.utils.data.DataLoader(classification_valset, batch_size=Config.train_batch_size, shuffle=False)
-print("< Finished getting classification train set\n")
+# print("> Getting classification train set")
+# classification_trainset = CustomClassifcationDataset(train_subset=triplet_train_subset, model=model, device=device)
+# classification_train_loader = torch.utils.data.DataLoader(classification_trainset, batch_size=Config.train_batch_size, shuffle=True)
+# classification_valset = CustomClassifcationDataset(train_subset=triplet_val_subset, model=model, device=device)
+# classification_val_loader = torch.utils.data.DataLoader(classification_valset, batch_size=Config.train_batch_size, shuffle=False)
+# print("< Finished getting classification train set\n")
 
 classification_model = BinaryClassifier()
 classification_model = classification_model.to(device)
@@ -141,7 +141,7 @@ class_criterion = nn.CrossEntropyLoss()
 # optimizer = optim.RMSprop(model.parameters(), lr=1e-4, alpha=0.99, eps=1e-8, weight_decay=0.0005, momentum=0.9)
 class_optimizer = torch.optim.SGD(classification_model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
 # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=learning_rate, steps_per_epoch=len(train_loader), epochs=Config.train_number_epochs)
-class_scheduler = torch.optim.lr_scheduler.OneCycleLR(class_optimizer, max_lr=learning_rate, steps_per_epoch=len(classification_train_loader), epochs=Config.train_number_epochs)
+class_scheduler = torch.optim.lr_scheduler.OneCycleLR(class_optimizer, max_lr=learning_rate, steps_per_epoch=len(train_loader), epochs=Config.train_number_epochs)
 
 # print(sum(p.numel() for p in model.parameters() if p.requires_grad))
 def classificationModelTraining():
@@ -151,7 +151,7 @@ def classificationModelTraining():
     epochs = []
     val_accuracy = []
     for epoch in range(0,Config.train_number_epochs):
-        for i, (images, labels) in enumerate(classification_train_loader,0):
+        for i, (images, labels) in enumerate(train_loader,0):
             images = images.to(device)
             embeddings =  model.forward_once(images)
             # Load data into variables and move to device
@@ -179,7 +179,7 @@ def classificationModelTraining():
         total_val = 0
         print("> Beginning validation")
         with torch.no_grad():
-            for image, label in classification_val_loader:
+            for image, label in val_loader:
                 image = image.to(device)
                 embeddings = model.forward_once(image)
                 embeddings, label = embeddings.to(device), label.to(device)

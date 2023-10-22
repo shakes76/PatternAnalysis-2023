@@ -23,9 +23,9 @@ class Config():
     training_dir = '/home/Student/s4533021/AD_NC/train'
     testing_dir = '/home/Student/s4533021/AD_NC/test'
     siamese_train_batch_size = 12
-    train_batch_size = 20
-    siamese_number_epochs = 16
-    train_number_epochs = 16
+    train_batch_size = 40
+    siamese_number_epochs = 19
+    train_number_epochs = 19
 
 # --------------
 # Model
