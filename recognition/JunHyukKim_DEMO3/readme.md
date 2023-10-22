@@ -55,7 +55,7 @@ After 10 epochs, the model relably provided dice score arount 80 percent.
 
 ### 4.3. provide example inputs, outputs and plots of your algorithm
 #### 4.3.1. The output when train.py is ran
-<img src="train_image.jpg" alt="drawing" width="200"/>
+<img src="train_image.png" alt="drawing" width="200"/>
 
 ![Train Image](train_image.png)
 ![Train Mask](train_mask.png)
