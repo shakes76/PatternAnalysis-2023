@@ -6,9 +6,15 @@ import torchvision.transforms as transforms
 import numpy as np
 from torch.utils.data import Dataset
 
-TRAIN_FILE_ROOT = "./AD_NC/train"
-TRAIN_AD = "./AD_NC/train/AD"
-TRAIN_NC = "./AD_NC/train/NC"
+# for slurm
+TRAIN_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/train/"
+TRAIN_AD = TRAIN_FILE_ROOT + "AD"
+TRAIN_NC = TRAIN_FILE_ROOT + "NC"
+
+# for local
+# TRAIN_FILE_ROOT = "./AD_NC/train/"
+# TRAIN_AD = TRAIN_FILE_ROOT + "AD"
+# TRAIN_NC = TRAIN_FILE_ROOT + "NC"
 
 VAL_SIZE = 0.1
 TRAIN_SIZE = 0.9
