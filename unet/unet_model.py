@@ -86,6 +86,7 @@ class UpscalingLayer(nn.Module):
     UpscalingLayer: A layer designed to upscale feature maps by a factor of 2.
     """
 
+
     def __init__(self, scale_factor=2, mode='nearest'):
         """
         Initialize the UpscalingLayer.
