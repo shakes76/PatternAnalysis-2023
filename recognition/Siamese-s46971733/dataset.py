@@ -12,12 +12,12 @@ import os
 import random
 
 # Rangpur Locations
-#TESTIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/test'
-#TRAINIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/train'
+TESTIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/test'
+TRAINIMAGEPATH = '../../groups/comp3710/ADNI/AD_NC/train'
 
 # Local Locations
-TESTIMAGEPATH = '../ADNI/AD_NC/test'
-TRAINIMAGEPATH = '../ADNI/AD_NC/train'
+#TESTIMAGEPATH = '../ADNI/AD_NC/test'
+#TRAINIMAGEPATH = '../ADNI/AD_NC/train'
 #TRAINIMAGEPATH = '../ADNI/AD_NC/train_big'
 
 # Creating Lists of Directories
@@ -209,7 +209,7 @@ class ImageDataset3D(Dataset):
         self.clas = clas
 
         # Create list of image labels.
-        self.label_list = [image[0].split('\\')[-2] for image in self.image_segs]
+        self.label_list = [image[0].split("/")[-2] for image in self.image_segs]
         self.transform = transform
 
     # Create transforms randomly to be applied to all 20 slices of a brain.
@@ -255,7 +255,7 @@ class ImageDataset3D(Dataset):
         negative_images = []
 
         # Split path to get label.
-        anchor_label = img_path[0].split('\\')[-2]
+        anchor_label = img_path[0].split("/")[-2]
 
         if not self.clas:
             positive_list = []

@@ -18,12 +18,12 @@ import numpy as np
 
 # Toggles.
 all_train = 1   # If 0 Disables all training.
-train = 0       # Enables/Disables Resnet Training
+train = 1       # Enables/Disables Resnet Training
 train_clas = 1  # Enables/Disables Classifier Training
 test = 1        # Enables/Disables testing.
 plot_loss = 1   # Enables/Disables plotting of loss.
-data_visual = 1 # Enables/Disables Visualisation of Data
-scheduler_active = 1 # Enables/Disables Scheduler.
+data_visual = 1         # Enables/Disables Visualisation of Data
+scheduler_active = 1    # Enables/Disables Scheduler.
 
 # Path that model is saved to and loaded from.
 #PATH = 'resnet_net_good_p100.pth'
@@ -35,7 +35,7 @@ PLOT_PATH = 'training_loss_local30_6.png'
 DATA_PATH = 'data_plot_local30_6.png'
 
 # Hyperparameters
-num_epochs = 30
+num_epochs = 40
 num_epochs_clas = 15
 batch_size = 8
 batch_size_clas = 5
@@ -71,24 +71,18 @@ for i, data in enumerate(trainloader_tsne, 0):
     labels_tsne = data[1].to(device).cpu().numpy()
 
 # Model.
-#resnet = Resnet().to(device)
 resnet = Resnet3D().to(device)
-#resnet = Resnet3D_34().to(device)
 clas_net = classifier().to(device)
 
 # Optimizer
-
 criterion = nn.TripletMarginLoss(margin=1)
-#criterion_class = nn.CrossEntropyLoss()
 criterion_class = nn.BCEWithLogitsLoss()
 optimizer = optim.Adam(resnet.parameters(), lr=res_learning_rate, weight_decay=0.0001)
 class_optimizer = optim.Adam(clas_net.parameters(), lr=learning_rate)
 
-# Future spot for Scheduler?
-
+# Scheduler
 scheduler = StepLR(optimizer, step_size=num_epochs, gamma=0.95)
 scheduler_clas = StepLR(class_optimizer, step_size=num_epochs_clas, gamma=0.95)
-#
 
 if train == 0:
     print("Training was disabled. \nLoading net model from path.")
@@ -96,7 +90,6 @@ if train == 0:
 if train_clas == 0:
     print("Classifier Training was disabled. \nLoading classifier from path.")
     clas_net.load_state_dict(torch.load(CLAS_PATH))
-
 
 loss_list = []
 valid_loss_list = []
