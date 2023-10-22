@@ -4,7 +4,7 @@ import torch
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 import numpy as np
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 TRAIN_FILE_ROOT = "./AD_NC/train"
 TRAIN_AD = "./AD_NC/train/AD"

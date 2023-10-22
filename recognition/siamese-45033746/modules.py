@@ -38,7 +38,9 @@ class SiameseNetwork(nn.Module):
         # It's output is used to determine the similiarity
         # REDO
         cnn_output = self.cnn1(tensor)
+        print(tensor.size())
         cnn_output = cnn_output.view(cnn_output.size()[0], -1)
+        print(tensor.size())
         cnn_output = self.fc1(cnn_output)
         return cnn_output
 
