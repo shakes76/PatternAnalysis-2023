@@ -1,7 +1,7 @@
 import torch  # Import PyTorch for deep learning functionalities.
-import matplotlib.pyplot as plt  # for plotting and visualization.
-import numpy as np  # for numerical computations.
-from torch.utils.data import DataLoader  # for creating manageable batches from datasets.
+import matplotlib.pyplot as plt  # For plotting and visualization.
+import numpy as np  # For numerical computations.
+from torch.utils.data import DataLoader  # For creating manageable batches from datasets.
 
 # Get functions from other file.
 from dataset import ISICDataset, get_transform, get_mask_transform
@@ -15,7 +15,7 @@ print(f"Predict: {torch.cuda.is_available()}") # Display whether CUDA is availab
 def imshow(inp, title=None, gray=False, ax=None):
     """A helper function to display images with certain adjustments."""
 
-    # If the input is a Torch tensor, we need to convert it to a NumPy array first
+    # If the input is a Torch tensor, we need to convert it to a NumPy array first.
     if isinstance(inp, torch.Tensor):
         inp = inp.numpy()
 
