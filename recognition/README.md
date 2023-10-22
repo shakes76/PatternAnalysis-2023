@@ -36,8 +36,8 @@ The Dice Similarity Coefficient (DSC) was used to evaluate the model. DSC is a s
 ### Training DSC and Validation Plots:
 ![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/80bd011b-f776-4c41-a9ae-3dd136d01a19)  
 (Only can run 15 Epoch due to hardware)  
-Training Dice Similarity Coefficient: 0.71   
-Validation Dice Similarity Coefficient: 0.70
+Training Dice Similarity Coefficient: 0.746   
+Validation Dice Similarity Coefficient: 0.725
 
 ### Visual PLot:  
 <img width="332" alt="result" src="https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/50862ba9-3cb9-44da-b4ae-6dfb76239ad2">
