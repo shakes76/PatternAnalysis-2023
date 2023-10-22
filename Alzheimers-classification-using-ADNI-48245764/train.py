@@ -1,52 +1,44 @@
+import dataset
 import tensorflow as tf
-from tensorflow.keras import models, layers
-import matplotlib.pyplot as plt
-from IPython.display import HTML
+from tensorflow import keras
+
+num_epochs = 80
+learning_rate = 0.005
+weight_decay = 0.0001
+num_classes = 2
+image_size = 140
+batch_size = 140
 
 
-
-BATCH_SIZE = 32
-IMAGE_SIZE = 256
-CHANNELS=3
-EPOCHS=50
-
-history
-
-
-history.params
-
-
-history.history.keys()
-
-
-type(history.history['loss'])
-
-
-len(history.history['loss'])
+def run_model(model):
+    train_images, test_images, validation_images, train_labels, test_labels, validation_labels = dataset.load_and_preprocess_data()
+    optimizer = tf.optimizers.Adam(
+        learning_rate=learning_rate,
+        weight_decay=weight_decay,
+    )
+    
+    
+    model.compile(
+        optimizer=optimizer,
+        loss=keras.losses.BinaryCrossentropy(from_logits=True),
+        metrics=[
+            keras.metrics.SparseCategoricalAccuracy(name="accuracy"),
+        ],
+    )
 
 
-history.history['loss'][:6] # show loss for first 6 epochs
+    performance = model.fit(
+        x=train_images,
+        y=train_labels,
+        callbacks=[reduce_lr],
+        batch_size=batch_size,
+        epochs=num_epochs,
+        validation_data=(validation_images, validation_labels),
+    )
 
 
-acc = history.history['accuracy']
-val_acc = history.history['val_accuracy']
+    _, accuracy = model.evaluate(test_images, test_labels)
+    print("test accuracy= " + str(round(accuracy, 2)))
 
-loss = history.history['loss']
-val_loss = history.history['val_loss']
-
-
-plt.figure(figsize=(8, 8))
-plt.subplot(1, 2, 1)
-plt.plot(range(EPOCHS), acc, label='Training Accuracy')
-plt.plot(range(EPOCHS), val_acc, label='Validation Accuracy')
-plt.legend(loc='lower right')
-plt.title('Training and Validation Accuracy')
-
-plt.subplot(1, 2, 2)
-plt.plot(range(EPOCHS), loss, label='Training Loss')
-plt.plot(range(EPOCHS), val_loss, label='Validation Loss')
-plt.legend(loc='upper right')
-plt.title('Training and Validation Loss')
-plt.show()
-
+    return performance
 
