@@ -143,11 +143,9 @@ class UNET(nn.Module):
         Forward pass through the network, consisting of encoding (downsampling) 
         and decoding (upsampling) stages with skip connections for U-Net like architecture.
 
-        Parameters:
-        - x (torch.Tensor): Input tensor.
+        Param x: Input tensor.
 
-        Returns:
-        - torch.Tensor: Processed tensor after passing through the network.
+        Returns: Processed tensor after passing through the network.
         """
         #LAYER 1
         l1_x1 = self.first_conv(x)

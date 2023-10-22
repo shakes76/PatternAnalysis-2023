@@ -5,27 +5,27 @@ from torch.utils.data import DataLoader
 
 def get_loaders(train_dir,
                 train_maskdir,
-                val_dir,
-                val_maskdir,
+                compare_dir,
+                compare_maskdir,
                 batch_size,
                 train_transform,
-                val_transform,
+                compare_transform,
                 num_workers=4,
                 pin_memory=True,):
     """
-    Initializes and returns data loaders for training and validation datasets.
+    Initializes and returns data loaders for training and compare datasets.
 
     :param train_dir: Directory containing training images.
     :param train_maskdir: Directory containing corresponding training masks (ground truth).
-    :param val_dir: Directory containing validation images.
-    :param val_maskdir: Directory containing corresponding validation masks (ground truth).
+    :param compare_dir: Directory containing compare images.
+    :param compare_maskdir: Directory containing corresponding compare masks (ground truth).
     :param batch_size: Number of samples per batch.
     :param train_transform: Transformations to be applied on training images.
-    :param val_transform: Transformations to be applied on validation images.
+    :param compare_transform: Transformations to be applied on compare images.
     :param num_workers: Number of subprocesses to use for data loading. Default is 4.
     :param pin_memory: Whether to copy tensors into CUDA pinned memory. Set it to True if using GPU. Default is True.
     
-    :return: Tuple containing training and validation data loaders.
+    :return: Tuple containing training and compare data loaders.
     """
     train_ds = CustomDataset(image_dir=train_dir,
                             mask_dir=train_maskdir,
@@ -37,17 +37,17 @@ def get_loaders(train_dir,
                             pin_memory=pin_memory,
                             shuffle=True,)
 
-    val_ds = CustomDataset(image_dir=val_dir,
-                            mask_dir=val_maskdir,
-                            transform=val_transform,)
+    compare_ds = CustomDataset(image_dir=compare_dir,
+                            mask_dir=compare_maskdir,
+                            transform=compare_transform,)
 
-    val_loader = DataLoader(val_ds,
+    compare_loader = DataLoader(compare_ds,
                             batch_size=batch_size,
                             num_workers=num_workers,
                             pin_memory=pin_memory,
                             shuffle=False,)
     
-    return train_loader, val_loader
+    return train_loader, compare_loader
 
 def check_accuracy(loader, model, device="cuda"):
     """

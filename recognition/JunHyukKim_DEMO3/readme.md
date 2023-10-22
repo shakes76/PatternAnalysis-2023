@@ -3,31 +3,35 @@
 This is a brief description of my project. The project is made for segmentation of melanoma. 
 Task finished was "
 
-## Table of Contents
+## 1. Table of Contents
 - [Installation](#installation)
 - [Usage](#usage)
 - [License](#license)
 - [Description](#Description)
 
 
-## Installation
-1. Clone the repository
-2. Download Dependencies
-3. Download ISIC datasets.  The dataset should be positioned in the same folder as the python codes under ISIC Folder. The images should be positioned under the ISIC Folder, ISIC-2017_Training_Data folder, and another ISIC-2017_Training_Data folder.
-4. Run the Train.py with python3 this will create the model.pth file. 
-5. run Predict.py to get the segmentation and the dice coefficient. 
-## Usage
+## 2. Installation
+### 2.1. Clone the repository
+### 2.2. Download Dependencies
+### 2.3. Download ISIC 2017 datasets. 
+The dataset is under https://challenge.isic-archive.com/data/#2017. Training data, test data, valid data is required and 
+The dataset should be positioned in the same folder as the python codes under data, train data images under train_images folder, and train mask data under train_masks folder. Test data should be in the test_images and test_masks and validation should be in val_images and val_masks folder.
+
+### 2.4. Run the Train.py with python3 this will create the model.pth file. 
+### 2.5. run Predict.py to get the segmentation and the dice coefficient. 
+
+## 3. Usage
 Run the train.py to train the model and create a model.pth file. 
 Using this file you can get the segmented image.
 
 
-## Description
+## 4. Description
 
-1. The readme file should contain a title, a description of the algorithm and the problem that it solves
+### 4.1. The readme file should contain a title, a description of the algorithm and the problem that it solves
 (approximately a paragraph), how it works in a paragraph and a figure/visualisation.
 The 
 
-2. It should also list any dependencies required, including versions and address reproduciblility of results,
+### 4.2. It should also list any dependencies required, including versions and address reproduciblility of results,
 if applicable.
 import torchvision
 import torch
@@ -41,20 +45,22 @@ python 3.11.5
 window 11
 the training dataset requires to be in data folder. The ground truth files 
 
-3. provide example inputs, outputs and plots of your algorithm
+### 4.3. provide example inputs, outputs and plots of your algorithm
 
 
-4. The read me file should be properly formatted using GitHub markdown
+### 4.4 The read me file should be properly formatted using GitHub markdown
 
-5. Describe any specific pre-processing you have used with references if any. Justify your training, 
+
+### 4.5. Describe any specific pre-processing you have used with references if any. Justify your training, 
+#### 4.5.1. pre-processing
 I used transformation to increase the number of samples the model is trained on.
 I also resized the images into 256x256 sizes to increase the performance of training and also because my model works on that sizes. 
 
+#### 4.5.2. Training
 validation
 and testing splits of the data.
 
-
-1. description and explanation of the working principles of the algorithm implemented and the problem it
+## 1. description and explanation of the working principles of the algorithm implemented and the problem it
 solves (5 Marks)
 This program uses improved Unet to segment the differnt types of skin conditions such as melanoma.
 The improved Unet strucuture explained
@@ -69,13 +75,10 @@ By doing this, each features are extended and this can reliably create the segme
 
 ![My Image Alt Text](image.png)
     
-2. description of usage and comments throughout scripts (3 Marks)
+## 2. description of usage and comments throughout scripts (3 Marks)
 
 
-3. proper formatting using GitHub markdown (2 Mark)
+## 3. proper formatting using GitHub markdown (2 Mark)
 
 
 
-
-John Kim DEMO3
-Task is:
