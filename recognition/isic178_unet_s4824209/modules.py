@@ -198,4 +198,8 @@ class localization(nn.Module):
         out = self.conv2(out)
         
         return out
-        
+
+
+#create model:
+model = IuNet()
+

@@ -2,6 +2,10 @@ from torch.utils.data import Dataset
 import os
 from PIL import Image
 from sklearn.model_selection import train_test_split
+from torchvision import transforms
+from torch.utils.data import DataLoader
+from utils import Train_Transform, Test_Transform
+
 
 
 class customDataset(Dataset):
@@ -125,3 +129,37 @@ def data_sorter(img_root, gt_root, mode):
             gt_test.append(gt)
 
         return images_test, gt_test
+
+#Set batch size for trainloader
+batch_size = 2
+
+#LOAD DATA
+#root path of test set (images and ground truth)
+train_img_root = 'data'
+train_gt_root = 'GT_data'
+
+#root path of validation set
+test_img_root ='validation_data/ISIC2018_Task1-2_Validation_Input'
+test_gt_root = 'validation_data/ISIC2018_Task1_Validation_GroundTruth'
+
+#Creating sorted lists of image and ground truth path for train and validation (80%/20% split)
+img_train_path,gt_train_path, img_val_path, gt_val_path = data_sorter(img_root=train_img_root, gt_root=train_gt_root, mode='Train')
+
+#Defining transforms for trainset and testset
+train_transform = transforms.Compose([Train_Transform()])
+test_transform = transforms.Compose([Test_Transform()])
+
+#Create the trainset and loading into dataloader with defined transforms
+train_set = customDataset(images=img_train_path, GT=gt_train_path, transform=train_transform)
+train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
+
+#Create the validation-set and loading into dataloader
+#Test loader has batch_size=1 to be able to check dice score of each separate image 
+validation_set = customDataset(images=img_val_path, GT=gt_val_path, transform=test_transform)
+validation_loader = DataLoader(validation_set, batch_size=1)
+
+
+#Create the test-set dataloader
+img_test_path,gt_test_path = data_sorter(img_root=test_img_root, gt_root=test_gt_root, mode='Test')
+test_set = customDataset(images=img_test_path, GT=gt_test_path, transform=test_transform)
+test_loader = DataLoader(test_set, batch_size=1)

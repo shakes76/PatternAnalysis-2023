@@ -72,7 +72,7 @@ class Train_Transform(object):
 
     '''
 
-    def __init__(self, p=0.25, size=(512,512)):
+    def __init__(self, p=0.25, size=(64,64)):
         self.p = p
         self.size = size
 
@@ -128,7 +128,7 @@ class Test_Transform(object):
 
     '''
 
-    def __init__(self, size=(512,512)):
+    def __init__(self, size=(64,64)):
         self.size=size
 
     def __call__(self, data):
