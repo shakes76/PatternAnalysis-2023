@@ -287,10 +287,10 @@ class GAN(nn.Module):
     def _make_generator(self):
         blocks = []
         blocks.extend(self._make_generator_block(128, 512, 1, 0))
-        blocks.extend(self._make_generator_block(512, 512, 2, 1))
         blocks.extend(self._make_generator_block(512, 256, 2, 1))
         blocks.extend(self._make_generator_block(256, 128, 2, 1))
-        blocks.append(nn.ConvTranspose2d(128, 128, kernel_size=4, stride=2, padding=1, bias=False))
+        blocks.extend(self._make_generator_block(128, 64, 2, 1))
+        blocks.append(nn.ConvTranspose2d(64, 64, kernel_size=4, stride=2, padding=1, bias=False))
         blocks.append(nn.Tanh())
         return nn.Sequential(*blocks)
 
@@ -304,7 +304,7 @@ class GAN(nn.Module):
     
     def _make_discriminator(self):
         blocks = []
-        blocks.extend((self._make_discriminator_block(128, 32, 2)))
+        blocks.extend((self._make_discriminator_block(64, 32, 2)))
         blocks.extend((self._make_discriminator_block(32, 64, 2)))
         blocks.extend((self._make_discriminator_block(64, 128, 2)))
         blocks.extend((self._make_discriminator_block(128, 256, 2)))

@@ -56,11 +56,11 @@ A quantized sample output is shown below, which represents a given quantized ima
 
 After training and validation, the GAN can be trained on the quantized output of the VQ-VAE. The generated images are shown below.
 
-![](./images/images-0015.png)
+![](./images/generated_images_better.png)
 
 As seen, the images are quite blurry and contain some amounts of noise, due to the untuned hyperparameters of the GAN. A subplot of four images is shown below for more visual granularity.
 
-![](./images/higher_qual_zoomed.png)
+![](./images/better_img_zoomed.png)
 
 ## Reproduction 
 To generate the images shown above, ensure the OASIS data path is either specified or in the working directory, install all necessary dependencies, ensure that you are in a conda environment, and run ```driver.py```. This will generate the ```log``` and ```model``` directories in the workspace, which save the various models, logs and tensorboard logfiles for each time the training script is run.

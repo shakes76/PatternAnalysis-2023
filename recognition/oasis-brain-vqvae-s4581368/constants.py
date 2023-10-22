@@ -7,18 +7,18 @@ Ryan Ward
 """Default Hyperparameters"""
 BATCH_SIZE = 32
 
-HIDDEN_LAYERS = 128
+HIDDEN_LAYERS = 64
 RESIDUAL_HIDDEN_LAYERS = 32
 RESIDUAL_LAYERS = 2
 
-EMBEDDING_DIMENSION = 128
+EMBEDDING_DIMENSION = 64
 EMBEDDINGS = 512
 
 """Taken from the original paper"""
 BETA = 0.25
 
 LEARNING_RATE = 1e-3
-EPOCHS = 2
+EPOCHS = 15
 
 """Training Data Paths"""
 TRAIN_PATH = "./keras_png_slices_data/keras_png_slices_train"
