@@ -78,6 +78,37 @@ class SegmentationLayer(nn.Module):
         """
         # Applying convolution
         x = self.conv(x)
+        return x
 
+
+class UpscalingLayer(nn.Module):
+    """
+    UpscalingLayer: A layer designed to upscale feature maps by a factor of 2.
+    """
+
+    def __init__(self, scale_factor=2, mode='nearest'):
+        """
+        Initialize the UpscalingLayer.
+
+        Parameters:
+        - scale_factor (int, optional): Factor by which to upscale the input. Default is 2.
+        - mode (str, optional): Algorithm used for upscaling: 'nearest', 'bilinear', etc. Default is 'nearest'.
+        """
+        super(UpscalingLayer, self).__init__()
+        # An upsampling layer that increases the spatial dimensions of the feature map
+        self.upsample = nn.Upsample(scale_factor=scale_factor, mode=mode)
+
+    def forward(self, x):
+        """
+        Forward pass through the UpscalingLayer.
+
+        Parameters:
+        - x (Tensor): The input tensor.
+
+        Returns:
+        - Tensor: The output tensor after applying the upscaling, having increased spatial dimensions.
+        """
+        # Applying upscaling
+        x = self.upsample(x)
         return x
 
