@@ -37,7 +37,7 @@ if __name__ == "__main__":
     num_epochs = 5
     model_path = "files/model.h5"
     csv_path = "files/data.csv"
-    dataset_path = "your_dataset_directory_here"
+    dataset_path = "your_dataset_directory_here (folder both the image and masks are in)"
     (train_x, train_y), (valid_x, valid_y), (test_x, test_y) = load_data(dataset_path)
     # To print the number of images and masks of each type of data uncomment out below
     #print(f"Train: {len(train_x)} - {len(train_y)}")
