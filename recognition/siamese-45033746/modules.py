@@ -24,7 +24,7 @@ class SiameseNetwork(nn.Module):
         )
 
         self.fc1 = nn.Sequential(
-            nn.Linear(128, 512),
+            nn.Linear(386688, 512),
             nn.ReLU(inplace=True),
 
             nn.Linear(512, 256),
@@ -38,9 +38,7 @@ class SiameseNetwork(nn.Module):
         # It's output is used to determine the similiarity
         # REDO
         cnn_output = self.cnn1(tensor)
-        print(tensor.size())
         cnn_output = cnn_output.view(cnn_output.size()[0], -1)
-        print(tensor.size())
         cnn_output = self.fc1(cnn_output)
         return cnn_output
 

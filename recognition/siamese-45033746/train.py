@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader
 from torch import optim
 from torch.nn import TripletMarginLoss
 import torch
-import matplotlib as plt
+from utils import show_plot
 
 TEST_FILE_ROOT = "./AD_NC/test"
 
@@ -13,10 +13,10 @@ TEST_FILE_ROOT = "./AD_NC/test"
 # 256x240
 
 def load():
-    train, val = patient_split()
+    trainer, val = patient_split()
     transform = compose_transform()
 
-    trainSet = SiameseDataSet(train, transform)
+    trainSet = SiameseDataSet(trainer, transform)
     valSet = SiameseDataSet(val, transform)
     testSet = SiameseDataSet(datasets.ImageFolder(root=TEST_FILE_ROOT), transform)
 
@@ -25,11 +25,6 @@ def load():
     testDataLoader = DataLoader(testSet, shuffle=True, num_workers=2, batch_size=64)
 
     return trainDataLoader, valDataLoader, testDataLoader
-
-
-def show_plot(iteration, loss):
-    plt.plot(iteration, loss)
-    plt.show()
 
 
 def train(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,

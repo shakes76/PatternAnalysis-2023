@@ -14,7 +14,8 @@ the loss between the anchor and the negative, and minimise the loss between the 
 Once training is completed on the siamese network, we can use the siamese embeddings on the image input to another convolutional neural network,
 this a binary classifier.
 
-![Siamese triplet diagram](https://github.com/tweeeb/PatternAnalysis-2023/tree/topic-recognition/recognition/siamese-45033746/assets/triplet_siamese.jpg?raw=true)
+![Siamese triplet diagram](https://github.com/tweeeb/PatternAnalysis-2023/blob/topic-recognition/recognition/siamese-45033746/assets/triplet_siamese.jpg?raw=true)
+
 ### Data Pre-Processing
 #### Transforms
 Data is pre-proccessed with transforms such as random rotation, and horizontal flip to diversify data and prevent overfitting.
