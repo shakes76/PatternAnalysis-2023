@@ -9,10 +9,10 @@
 
 #SBATCH --gres=gpu:1
 
-#SBATCH --job-name=Qiu_Siamese
+#SBATCH --job-name=C_Siamese
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=tong.qiu@uqconnect.edu.au
 
 conda activate metadamagenet
-python3 train.py
+python3 train.py -m Contrastive
