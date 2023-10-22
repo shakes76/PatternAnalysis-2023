@@ -1,94 +1,55 @@
 import tensorflow as tf
-from tensorflow.keras import models, layers
-import matplotlib.pyplot as plt
-from IPython.display import HTML
+from tensorflow import keras
+from keras.layers import Dense, Layer, Flatten, Normalization, Resizing, Dropout, Embedding, RandomFlip, RandomRotation, RandomZoom, Input, LayerNormalization, MultiHeadAttention, Add
+import os    
+
+num_classes = 2
+image_size = 140
+batch_size = 140
+patch_size = 16
+dimensions = 96
+num_heads = 4
+patch = (image_size // patch_size) ** 2
+vit_dim = [dimensions * 2, dimensions, ]
+vit_layer = 5
+mlp_units = [2048, 1024]
+input_shape = (140, 140, 3)
 
 
-resize_and_rescale = tf.keras.Sequential([
-  layers.experimental.preprocessing.Resizing(IMAGE_SIZE, IMAGE_SIZE),
-  layers.experimental.preprocessing.Rescaling(1./255),
-])
+def perceptron(tensor_in, hidden_units, dropout):
+    for units in hidden_units:
+        tensor_in = Dense(units, activation=tf.nn.gelu)(tensor_in)
+        tensor_in = Dropout(dropout)(tensor_in)
+    return tensor_in
 
 
-data_augmentation = tf.keras.Sequential([
-  layers.experimental.preprocessing.RandomFlip("horizontal_and_vertical"),
-  layers.experimental.preprocessing.RandomRotation(0.2),
-])
+def transformer():
+    inputs = Input(shape=input_shape)
+    augmented_inputs = preprocessing(inputs)
+    patches = Patches(patch_size)(augmented_inputs)
+    encoded_patches = PatchEncoder(patch, dimensions)(patches)
 
+    for _ in range(vit_layer):
+        
+        Layer1 = LayerNormalization(epsilon=1e-6)(encoded_patches)
 
-train_ds = train_ds.map(
-    lambda x, y: (data_augmentation(x, training=True), y)
-).prefetch(buffer_size=tf.data.AUTOTUNE)
+        attention_output = MultiHeadAttention(num_heads=num_heads,key_dim=dimensions,dropout=0.1)
+        (Layer1, Layer1)
 
+        Layer2 = Add()([attention_output, encoded_patches])
+        
+        Layer3 = LayerNormalization(epsilon=1e-6)(Layer2)
+        Layer3 = perceptron(Layer3,hidden_units=vit_dim,dropout=0.1)
 
+        encoded_patches = Add()([Layer3, Layer2])
 
-input_shape = (BATCH_SIZE, IMAGE_SIZE, IMAGE_SIZE, CHANNELS)
-n_classes = 3
+    output = LayerNormalization(epsilon=1e-6)(encoded_patches)
+    output = Flatten()(output)
+    output = Dropout(0.5)(output)
 
-model = models.Sequential([
-    resize_and_rescale,
-    layers.Conv2D(32, kernel_size = (3,3), activation='relu', input_shape=input_shape),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(64,  kernel_size = (3,3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(64,  kernel_size = (3,3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(64, (3, 3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(64, (3, 3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Conv2D(64, (3, 3), activation='relu'),
-    layers.MaxPooling2D((2, 2)),
-    layers.Flatten(),
-    layers.Dense(64, activation='relu'),
-    layers.Dense(n_classes, activation='sigmoid'),
-])
+    features = perceptron(output, hidden_units=mlp_units, dropout=0.5)
 
-model.build(input_shape=input_shape)
+    logits = Dense(num_classes)(features)
+    model = keras.Model(inputs=inputs, outputs=logits)
 
-
-model.summary()
-
-
-model.compile(
-    optimizer='adam',
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False),
-    metrics=['accuracy']
-)
-
-
-history = model.fit(
-    train_ds,
-    batch_size=BATCH_SIZE,
-    validation_data=val_ds,
-    verbose=1,
-    epochs=50,
-)
-
-
-scores = model.evaluate(test_ds)
-
-
-scores
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# model_version=1
-# model.save(f"/content/drive{model_version}")
-
-
-model.save("../train.h5")
+    return model
