@@ -72,15 +72,21 @@ Images were resized to 512x512 pixels for consistency. Furthermore, the images w
 root_directory
 │
 ├── datasets
-│   ├── isic-512
-│   │   ├── resized_train
-│   │   ├── resized_train_gt
-│   │   ├── resized_test
-│   │   ├── resized_test_gt
-│   │   ├── resized_valid
-│   │   └── resized_valid_gt
-│
-└── your_script.py
+│   ├
+│   ├── training_input
+│   ├── training_groundtruth
+│   ├── validation_input
+│   ├── validation_groundtruth
+│   ├── test_input
+│   └── test_groundtruth
+├── output
+│   
+├── train.py
+├── modules.py
+├── dataset.py
+└── predict.py
+
+
 ```
 
 ## Data Splits
