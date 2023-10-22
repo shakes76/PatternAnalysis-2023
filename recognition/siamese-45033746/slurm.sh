@@ -2,9 +2,11 @@
 #SBATCH --time=0-02:00:00
 #SBATCH --nodes=1
 #SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task 4
 #SBATCH --gres=gpu:1
-#SBATCH --partition=gpu
-#SBATCH --job-name="uwu"
+#SBATCH --partition=vgpu
+#SBATCH --job-name="uwu-train"
+#SBATCH --account=s45033746
 #SBATCH --mail-user=treffery.webb@uqconnect.edu.au
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
