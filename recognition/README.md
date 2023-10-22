@@ -33,9 +33,9 @@ Figure 1(above), Our design was inspired by the U-Net. Top level data is gathere
 ### Performance Metric
 The Dice Similarity Coefficient (DSC) was used to evaluate the model. DSC is a statistic used to compare the similarity of two sets, most commonly use when comparing two images in biomedical image processing.  
 
-### Training DSC and Loss Plots over Epochs:
-![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/80bd011b-f776-4c41-a9ae-3dd136d01a19)
-
+### Training DSC and Validation Plots:
+![Image](https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/80bd011b-f776-4c41-a9ae-3dd136d01a19)  
+(15 Epoch)  
 Training Dice Similarity Coefficient: 0.71   
 Validation Dice Similarity Coefficient: 0.70
 
