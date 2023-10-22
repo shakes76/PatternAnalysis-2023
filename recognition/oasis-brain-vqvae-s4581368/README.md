@@ -58,7 +58,7 @@ After training and validation, the GAN can be trained on the quantized output of
 
 ![](./images/generated_images_better.png)
 
-As seen, the images are quite blurry and contain some amounts of noise, due to the untuned hyperparameters of the GAN. A subplot of four images is shown below for more visual granularity.
+As seen, the images are quite blurry and contain some amounts of noise, due to the untuned hyperparameters of the GAN. A subplot of six images is shown below for more visual granularity.
 
 ![](./images/better_img_zoomed.png)
 
