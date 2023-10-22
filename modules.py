@@ -47,7 +47,6 @@ config_params_dict = {
     }
 }
 
-
 class CViTConfig:
     """
     Configuration class for Convolutional Vision Transformer (CViT) containing the configuration of the
