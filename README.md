@@ -16,32 +16,31 @@ I used the ISIC 2017 dataset. This dataset can be swapped out with any other cus
 
 ## Training
 
-The training process is defined in the `train.py` file. Key components of the training process include loss computation (Dice loss), backpropagation, and optimization using the Adam optimizer. Training is executed over multiple epochs, with periodic validation to track the model's performance.
+The training process is defined in the `train.py` file. Key components of the training process include loss computation (Dice loss), backpropagation, and optimization using the Adam optimizer. Training is executed over multiple epochs, with periodic validation to track the model's performance. This code does run the validation and tests on the same training data by splitting the data up, 60% for testing, 20% for validation and 20% for testing. This was done because some work was done on the 2018 ISIC dataset as well which doesnt have a seperate validation set. This can be changed with some minor tweaking of the code, but for the sake of using this data you only need to supply 1 set of data for training, validation and testing.
 
 ### Training Evidence
 
-- Training Input Directory: `ISIC2018_Task1-2_Training_Input_x2`
-- Training Mask Directory: `ISIC2018_Task1_Training_GroundTruth_x2`
+- Training Input Directory: `ISIC-2017_Training_Data` - contains the images and the masks.
 - Batch Size: 4
-- Learning Rate: 0.1
-- Number of Epochs: 10
+- Learning Rate: 0.0001
+- Number of Epochs: 5
 
 ## Results
 
 The project's primary output is the segmentation of medical images, which is saved in the `predictions` directory. These predictions can be further evaluated and utilized for various medical applications. The training results produced:
 
-- Epoch 1/10, Average Dice Coefficient: 0.2782156467437744
-- Epoch 2/10, Average Dice Coefficient: 0.19667883217334747
-- Epoch 3/10, Average Dice Coefficient: 0.16954968869686127
-- Epoch 4/10, Average Dice Coefficient: 0.15880490839481354
-- Epoch 5/10, Average Dice Coefficient: 0.14603781700134277
-- Epoch 6/10, Average Dice Coefficient: 0.14193236827850342
-- Epoch 7/10, Average Dice Coefficient: 0.1289714127779007
-- Epoch 8/10, Average Dice Coefficient: 0.1291133463382721
-- Epoch 9/10, Average Dice Coefficient: 0.12223245203495026
-- Epoch 10/10, Average Dice Coefficient: 0.12053724378347397
+Training and Validation results: 
 
-Images produced by `predict.py` are grey images, with no black and or white and therefore the `predict.py` code does not work as expected.
+- Epoch 1 - 1586s 4s/step - loss: 0.4144 - dice_coef: 0.3622 - val_loss: 0.3933 - val_dice_coef: 0.4268
+- Epoch 2 - 1529s 4s/step - loss: 0.2700 - dice_coef: 0.6042 - val_loss: 0.2441 - val_dice_coef: 0.6430
+- Epoch 3 - 1625s 4s/step - loss: 0.2202 - dice_coef: 0.6772 - val_loss: 0.2154 - val_dice_coef: 0.6990
+- Epoch 4 - 1645s 4s/step - loss: 0.1968 - dice_coef: 0.7096 - val_loss: 0.1865 - val_dice_coef: 0.7222
+- Epoch 5 - 1776s 5s/step - loss: 0.1838 - dice_coef: 0.7274 - val_loss: 0.1795 - val_dice_coef: 0.7383
+
+
+Testing results:
+Mean Dice Coefficient: 72.16
+
 
 ## Discussion
 
@@ -52,22 +51,29 @@ When I started this project, I started it in another repository. For all the com
 ## Test Driver Script
 
 To run the model:
-1. Run 'python train.py'
+1. Insert the dataset locations into all .py files that require it (dataset.py, train.py and predict.py)
+2. Run 'python train.py'
    - This will train the model and save the model to the desired location.
-2. Run 'python predict.py'
-   - This will run the testing images through the model and output the product to the desired location.
+3. Run 'python predict.py'
+   - This will run the testing images through the model and print the result of the model.
 
 ## Requirements/Dependencies
 
 - Python
-- PyTorch
-- torchvision
-- PIL (Pillow)
+- numpy
+- tensorflow
+- cv2
+- glob
+- sklearn
 
-- Directories must be inserted into `train.py` and `predict.py` files.
+- Directories must be inserted into 'dataset.py', `train.py` and `predict.py` files.
 
 ## References
+
+Image segmentation. (2023). Image segmentation. TensorFlow. https://www.tensorflow.org/tutorials/images/segmentation
 
 ISIC Challenge. (2016). Isic-Archive.com. (https://challenge.isic-archive.com/data/#2017)
 
 Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., & Maier-Hein, Klaus H. (2017). Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge. ArXiv.org. (https://arxiv.org/abs/1802.10508v1)
+
+
