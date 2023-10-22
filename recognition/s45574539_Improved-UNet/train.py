@@ -49,7 +49,7 @@ def plot_dice_similarity(history):
     plt.title('Dice Similarity Coefficient Test vs Validation')
     plt.xlabel('# of Epochs')
     plt.ylabel('Dice Similarity Coefficient')
-    plt.savefig('dice_similarity.png')
+    plt.savefig('IMG/dice_similarity.png')
     plt.show()
 
 
