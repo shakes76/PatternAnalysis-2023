@@ -16,8 +16,8 @@ z_dim = 512
 w_dim = 512
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-load_path_mapping', default=f'./Models/MAPPING_NETWORK_{modelName}.pth', help='Provide the load path of the mapping network')
-parser.add_argument('-load_path_generator', default=f'./Models/GENERATOR_{modelName}.pth', help='Provide the load path of the generator network')
+parser.add_argument('-load_path_mapping', default=f'{save_path}MAPPING_NETWORK_{modelName}.pth', help='Provide the load path of the mapping network')
+parser.add_argument('-load_path_generator', default=f'{save_path}GENERATOR_{modelName}.pth', help='Provide the load path of the generator network')
 parser.add_argument('-num_output', default=64, help='Number of generated outputs')
 parser.add_argument('-plt_title', default="Generated Images", help='Provide a title for the plot')
 parser.add_argument('-train_models', default="FALSE", help='Train a new series of models (using the parameters defined in config.pg) and then perform inference. If specified, the provided model paths will be ignored.')
