@@ -174,7 +174,7 @@ def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
         val_batch_loss = validate_triplet(model, val_loader, criterion, epoch, epochs)
         val_losses.append(val_batch_loss)
 
-        if val_batch_loss > best_loss:
+        if val_batch_loss < best_loss:
             print(f"model improved: score {best_loss:.5f} --> {val_batch_loss:.5f}")
             best_loss = val_batch_loss
             # Save the best weights if the score is improved
