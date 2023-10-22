@@ -1,41 +1,69 @@
+import os
 import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+from itertools import islice
+import math
 
-class SkinLesionDataset:
-    def __init__(self, data_dir, target_size=(512, 512)):
-        self.data_dir = data_dir
-        self.target_size = target_size
+# Constants related to data preprocessing
+IMAGE_HEIGHT = 512
+IMAGE_WIDTH = 512
+CHANNELS = 3
+SEED = 45
+BATCH_SIZE = 2
+# Directory containing the dataset
+PATH_ORIGINAL_DATA = os.path.join("datasets", "training_input")  # directory that contains folder containing input images
+PATH_SEG_DATA = os.path.join("datasets", "training_groundtruth")  # directory that contains folder containing ground truth images
+IMAGE_MODE = "rgb" 
+MASK_MODE = "grayscale"
+DATA_TRAIN_GEN_ARGS = dict(
+    rescale=1.0/255,
+    shear_range=0.1,
+    zoom_range=0.1,
+    horizontal_flip=True,
+    vertical_flip=True,
+    fill_mode='nearest',
+    validation_split=0.2)  # 0.2 used to have training set take the first 80% of images
+# Set the properties for the image generators for testing images. No image transformations.
+DATA_TEST_GEN_ARGS = dict(
+    rescale=1.0/255,
+    validation_split=0.8)  # 0.8 used to have test set take the final 20% of images (keep train/test data separated)
+# Set the shared properties for generator flows - scale all images to given dimensions.
+TEST_TRAIN_GEN_ARGS = dict(
+    seed=SEED,
+    class_mode=None,
+    batch_size=BATCH_SIZE,
+    interpolation="nearest",
+    subset='training',  # all subsets are set to training - this corresponds to the first 80% and last 20% for each
+    target_size=(IMAGE_HEIGHT, IMAGE_WIDTH))
 
-        self.train_dataset = self.load_dataset("ISIC2018_Task1-2_Training_Input", "ISIC2018_Task1_Training_GroundTruth")
-        self.test_dataset = self.load_dataset("ISIC2018_Task1-2_Test_Input", "ISIC2018_Task1_Test_GroundTruth")
-        self.validation_dataset = self.load_dataset("ISIC2018_Task1-2_Validation_Input", "ISIC2018_Task1_Validation_GroundTruth")
+# Preprocess data forming the generators.
+def pre_process_data():
+    train_image_data_generator = keras.preprocessing.image.ImageDataGenerator(**DATA_TRAIN_GEN_ARGS)
+    train_mask_data_generator = keras.preprocessing.image.ImageDataGenerator(**DATA_TRAIN_GEN_ARGS)
+    test_image_data_generator = keras.preprocessing.image.ImageDataGenerator(**DATA_TEST_GEN_ARGS)
+    test_mask_data_generator = keras.preprocessing.image.ImageDataGenerator(**DATA_TEST_GEN_ARGS)
 
-    def load_and_preprocess(self, image_path, mask_path):
-        # Load and decode image
-        image = tf.io.decode_image(tf.io.read_file(image_path), channels=3)  # Adjust channels as needed
+    image_train_gen = train_image_data_generator.flow_from_directory(
+        PATH_ORIGINAL_DATA,
+        color_mode=IMAGE_MODE,
+        **TEST_TRAIN_GEN_ARGS)
 
-        # Resize image to the target size with padding
-        image = tf.image.resize_with_pad(image, target_height=self.target_size[0], target_width=self.target_size[1])
-        image = tf.cast(image, tf.float32) / 255.0
+    image_test_gen = test_image_data_generator.flow_from_directory(
+        PATH_ORIGINAL_DATA,
+        color_mode=IMAGE_MODE,
+        **TEST_TRAIN_GEN_ARGS)
 
-        # Load and decode mask
-        mask = tf.io.decode_image(tf.io.read_file(mask_path), channels=1)  # Assuming grayscale masks
+    mask_train_gen = train_mask_data_generator.flow_from_directory(
+        PATH_SEG_DATA,
+        color_mode=MASK_MODE,
+        **TEST_TRAIN_GEN_ARGS)
 
-        # Resize mask to the target size with padding
-        mask = tf.image.resize_with_pad(mask, target_height=self.target_size[0], target_width=self.target_size[1])
-        mask = tf.cast(mask, tf.float32) / 255.0
+    mask_test_gen = test_mask_data_generator.flow_from_directory(
+        PATH_SEG_DATA,
+        color_mode=MASK_MODE,
+        **TEST_TRAIN_GEN_ARGS)
 
-        return image, mask
-
-    def load_dataset(self, input_folder, ground_truth_folder):
-        input_paths = sorted([str(path.numpy()) for path in tf.data.Dataset.list_files(f"{self.data_dir}/{input_folder}/*")])
-        ground_truth_paths = sorted([str(path.numpy()) for path in tf.data.Dataset.list_files(f"{self.data_dir}/{ground_truth_folder}/*")])
-
-        dataset = tf.data.Dataset.zip((tf.data.Dataset.from_tensor_slices(input_paths), tf.data.Dataset.from_tensor_slices(ground_truth_paths))).map(self.load_and_preprocess)
-
-        return dataset
-
-# Example usage:
-# dataset = SkinLesionDataset("datasets")
-# train_data = dataset.train_dataset
-# test_data = dataset.test_dataset
-# validation_data = dataset.validation_dataset
+    # Ideally this would be a Sequence joining the two generators instead of zipping them together to keep everything
+    # thread-safe, allowing for multiprocessing - but if it ain't broke. (It works).
+    return zip(image_train_gen, mask_train_gen), zip(image_test_gen, mask_test_gen)
