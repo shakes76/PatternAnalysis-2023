@@ -1,11 +1,11 @@
 import torch  # Import PyTorch for deep learning functionalities.
 import matplotlib.pyplot as plt  # For plotting and visualization.
 import numpy as np  # For numerical computations.
-from torch.utils.data import DataLoader  # For creating manageable batches from datasets.
 
 # Get functions from other file.
 from dataset import ISICDataset, get_transform, get_mask_transform
 from modules import ImprovedUNet
+from torch.utils.data import DataLoader 
 
 # Determine if CUDA (GPU support) is available, use it, otherwise default to CPU.
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
