@@ -1,3 +1,5 @@
+#Extensive use of tensorflow and keras documentation was used to write this code.
+
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np

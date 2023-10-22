@@ -1,3 +1,4 @@
+#Extensive use of tensorflow and keras documentation was used to write this code.
 #Code in this section is based on code from:
 #https://pyimagesearch.com/2022/02/21/u-net-image-segmentation-in-keras/
 #Papers used to write this:
