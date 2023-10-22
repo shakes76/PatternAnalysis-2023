@@ -37,6 +37,7 @@ To ensure the reproducibility of results:
 ## Example Inputs and Outputs
 
 **1**: 
+
 ![Visaulisation 1](assets/visualisation1.png)
 
 **2**: 
@@ -44,6 +45,7 @@ To ensure the reproducibility of results:
 ![Visaulisation 2](assets/visualisation2.png)
 
 **3**:
+
 ![Visaulisation 3](assets/visualisation3.png)
 
 ## Evaluation Metrics
