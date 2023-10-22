@@ -15,4 +15,4 @@
 #SBATCH --mail-user=tong.qiu@uqconnect.edu.au
 
 conda activate metadamagenet
-python3 train.py -m Contrastive
+python3 train.py -m Contrastive -bs 6
