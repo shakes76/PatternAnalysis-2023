@@ -58,10 +58,11 @@ class BinaryClassifier(nn.Module):
     def __init__(self, siamese_embeddings):
         super().__init__()
 
+        self.fc1 = nn.Sequential(
+            nn.Linear(siamese_embeddings, 32),
+            nn.ReLU(inplace=True),
+            nn.Linear(32, 1)
+        )
+
     def forward(self, input):
-        pass
-
-
-
-if __name__ == "__main__":
-    pass
+        return self.fc1(input)

@@ -1,4 +1,4 @@
-from modules import SiameseNetwork
+from modules import SiameseNetwork, BinaryClassifier
 from torch.utils.data import DataLoader
 from torch import optim
 from torch.nn import TripletMarginLoss
@@ -31,17 +31,17 @@ def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLo
         # Optimize
         opt.step()
 
-        # Every batche print out the loss
+        # Every batch print out the loss
 
-        print(f"Epoch {epoch} - {title} Batch {i} : Loss = {loss_contrastive.item()}\n")
+        print(f"Epoch {epoch} - Siamese {title} Batch {i} : Loss = {loss_contrastive.item()}\n")
         counter.append(i)
         loss.append(loss_contrastive.item())
 
     return counter, loss
 
 
-def train(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
-          trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
+def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
+                  trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
     train_counter = []
     val_counter = []
     train_loss = []
@@ -65,10 +65,80 @@ def train(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
         val_counter = val_counter + counter
         val_loss = val_loss + loss
 
-    save_plot(train_counter, train_loss, "train")
-    save_plot(train_counter, train_loss, "validation")
+    save_plot(train_counter, train_loss, "siamese_train")
+    save_plot(val_counter, val_loss, "siamese_validation")
 
     torch.save(model.state_dict(), MODEL_PATH)
+
+
+def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
+                 trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
+    train_counter = []
+    val_counter = []
+    train_loss = []
+    val_loss = []
+
+    siamese.eval()
+
+    for epoch in range(epochs):
+
+        # Iterate over training batches
+        model.train()
+        for i, (label, anchor, _, _) in enumerate(trainDataLoader, 0):
+            # Send data to GPU
+            anchor, label = anchor.to(device), label.to(device)
+
+            # Zero gradients
+            optimiser.zero_grad()
+
+            # Generate siamese model embeddings from image data
+            siamese_embeddings = siamese.forward_once(anchor)
+
+            # Train binary classifier with siamese embeddings
+            vec = model(siamese_embeddings)
+
+            # Calculate loss
+            loss = criterion(vec, label)
+
+            # Calculate the backpropagation
+            loss.backward()
+
+            # Optimise
+            optimiser.step()
+
+            print(f"Epoch {epoch} - Binary Training Batch {i} : Loss = {loss.item()}\n")
+            train_counter.append(i)
+            train_loss.append(loss.item())
+
+        model.eval()
+        for i, (label, anchor, _, _) in enumerate(validDataLoader, 0):
+            # Send data to GPU
+            anchor, label = anchor.to(device), label.to(device)
+
+            # Zero gradients
+            optimiser.zero_grad()
+
+            # Generate siamese model embeddings from image data
+            siamese_embeddings = siamese.forward_once(anchor)
+
+            # Train binary classifier with siamese embeddings
+            vec = model(siamese_embeddings)
+
+            # Calculate loss
+            loss = criterion(vec, label)
+
+            # Calculate the backpropagation
+            loss.backward()
+
+            # Optimise
+            optimiser.step()
+
+            print(f"Epoch {epoch} - Binary Validation Batch {i} : Loss = {loss.item()}\n")
+            val_counter.append(i)
+            val_loss.append(loss.item())
+
+    save_plot(train_counter, train_loss, "binary_train")
+    save_plot(val_counter, val_loss, "binary_validation")
 
 
 def main():
@@ -84,7 +154,7 @@ def main():
     adam_optimiser = optim.Adam(net.parameters(), lr=0.0005)
     epoch_num = 15
 
-    train(net, TripletMarginLoss(), adam_optimiser, trainData, valData, epoch_num, gpu)
+    train_siamese(net, TripletMarginLoss(), adam_optimiser, trainData, valData, epoch_num, gpu)
 
 
 if __name__ == '__main__':
