@@ -12,4 +12,4 @@
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
 conda activate /home/Student/s4589541/miniconda3/envs/venv
-python /home/Student/s4589541/comp3710/report/PatternAnalysis-2023/recognition/Siamese\ Classifier\ for\ Alzheimer\'s\ disease\ \(s4589541\)/train.py --train-s
+python /home/Student/s4589541/comp3710/report/PatternAnalysis-2023/recognition/Siamese\ Classifier\ for\ Alzheimer\'s\ disease\ \(s4589541\)/train.py --train-c checkpoints/cp_10-22_08-51-01

@@ -10,7 +10,7 @@ import torch
 from torch import optim
 
 def train(model: TripletNetwork, criterion: TripletLoss, optimiser: optim.Optimizer,
-          train_loader: DataLoader, valid_loader: DataLoader, epochs: int):
+           device, train_loader: DataLoader, valid_loader: DataLoader, epochs: int):
     losses = {
         "train": [],
         "valid": []
@@ -76,7 +76,7 @@ def train(model: TripletNetwork, criterion: TripletLoss, optimiser: optim.Optimi
 
 
 def test(chkpt_path, model: TripletNetwork, criterion: TripletLoss,
-            test_loader: DataLoader):
+            device, test_loader: DataLoader):
     model.load_state_dict(torch.load(chkpt_path))
     model.eval()
     losses = []
@@ -111,7 +111,7 @@ def test(chkpt_path, model: TripletNetwork, criterion: TripletLoss,
 
 
 def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, criterion, 
-                     optimiser: optim.Optimizer, train_loader: DataLoader, 
+                     optimiser: optim.Optimizer, device, train_loader: DataLoader, 
                      valid_loader: DataLoader, epochs: int):
     losses = {
         "train": [],
@@ -188,26 +188,39 @@ def parse_user_args():
     test_or_train = parser.add_mutually_exclusive_group(required=True)
 
     test_or_train.add_argument(
-        "--train",
+        "--train-s",
         action="store_true",
-        help="Train new model"
+        help="Train new siamese model"
     )
 
     test_or_train.add_argument(
-        "--test",
+        "--train-c",
         type=str,
-        help="Path to saved model to test",
-        metavar="FILE_PATH"
+        help="Train new classifier with saved siamese model",
+        metavar="SIAM_FILE_PATH"
+    )
+
+    test_or_train.add_argument(
+        "--test-s",
+        type=str,
+        help="Path to saved siamese model to test",
+        metavar="SIAM_FILE_PATH"
+    )
+
+    test_or_train.add_argument(
+        "--test-c",
+        type=str,
+        help="Path to saved classifier to test",
+        metavar="CLSF_FILE_PATH"
     )
 
     args = parser.parse_args()
+    return args.train_s, args.train_c, args.test_s, args.test_c
 
-    return args.train, args.test
 
-
-if __name__ == '__main__':
-    is_training, saved_model_path = parse_user_args()
-
+def main():
+    is_training_s, train_c_s_path, saved_s_path, saved_c_path = parse_user_args()
+    
     # setup the transforms for the images
     transform = transforms.Compose([
         transforms.Resize((256, 240)),
@@ -218,15 +231,16 @@ if __name__ == '__main__':
     # set up network and hyperparameters
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(device)
-    model = TripletNetwork().to(device)
+    siamese = TripletNetwork().to(device)
     # criterion = TripletLoss()
     criterion = torch.nn.TripletMarginLoss()
-    optimiser = optim.Adam(model.parameters(), lr=1e-3)
+    optimiser = optim.Adam(siamese.parameters(), lr=1e-3)
     epochs = 10
 
-    print(model)
+    print(siamese)
 
-    if is_training:
+    # train new siamese model
+    if is_training_s:
         # set up the datasets
         train_set = TripletDataset(root="data/train", transform=transform)
         valid_set = TripletDataset(root="data/valid", transform=transform)
@@ -236,20 +250,42 @@ if __name__ == '__main__':
         valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
         # train the model
-        losses = train(model, criterion, optimiser, train_loader, valid_loader, epochs)
+        losses = train(siamese, criterion, optimiser, device, train_loader, valid_loader, epochs)
         save_path = f"./checkpoints/cp_{datetime.datetime.now().strftime('%m-%d_%H-%M-%S')}"
-        torch.save(model.state_dict(), save_path)
+        torch.save(siamese.state_dict(), save_path)
         # print(losses)
         
         plot_losses(losses["train"], losses["valid"])
-        saved_model_path = save_path
+        # path gets set here as is not provided for --train-s option
+        saved_s_path = save_path
 
-    test_set = TripletDataset(root="data/test", transform=transform)
-    test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+    if train_c_s_path is None and saved_c_path is None:
+        # test the siamese model
+        test_set = TripletDataset(root="data/test", transform=transform)
+        test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
-    test_losses, average_test_loss, embeddings = test(saved_model_path, model, 
-                                                      criterion, test_loader)
-    plot_test_loss(test_losses)
-    save_embeddings(embeddings)
-    if False:
-        plot_embeddings(embeddings)
+        test_losses, average_test_loss, embeddings = test(saved_s_path, siamese, 
+                                                        criterion, device, test_loader)
+        plot_test_loss(test_losses)
+        save_embeddings(embeddings)
+        if False:
+            plot_embeddings(embeddings)
+        
+        return
+    
+    classifier = BinaryClassifier(siamese.embedding_dim)
+    criterion_c = torch.nn.BCELoss()
+    optimiser_c = optim.Adam(classifier.parameters(), lr=1e-3)
+    epochs = 10
+    
+    if saved_c_path is None:
+        # train new classifier
+        losses = train_classifier(classifier, siamese, criterion_c, optimiser, device, train_loader, 
+                     valid_loader, epochs)
+        save_path = f"./checkpoints/cp_c_{datetime.datetime.now().strftime('%m-%d_%H-%M-%S')}"
+        torch.save(classifier.state_dict(), save_path)
+    
+
+
+if __name__ == '__main__':
+    main()
