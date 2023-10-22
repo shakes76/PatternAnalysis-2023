@@ -16,7 +16,7 @@ timestr = time.strftime("%Y%m%d-%H%M%S")
 output_dir = "output"
 
 # Constants related to training
-EPOCHS = 5
+EPOCHS = 2
 LEARNING_RATE = 0.0005
 BATCH_SIZE = 2  # set the batch_size
 IMAGE_HEIGHT = 512  # the height input images are scaled to
@@ -49,9 +49,7 @@ def plot_accuracy_loss(track):
     plt.xlabel('Epoch')
     plt.legend(['Accuracy', 'Loss'])
     
-    # Generate a unique filename based on the current date and time
-    now = datetime.datetime.now()
-    timestr = now.strftime("%Y%m%d-%H%M%S")
+    # Generate a unique filename based on the current date and tim
     filename = os.path.join(output_dir, f"accuracy_loss_plot_{timestr}.png")
     
     # Save the plot to the output folder
@@ -76,20 +74,37 @@ def dice_loss(truth, pred):
     return 1.0 - dice_coefficient(truth, pred)
 
 
-# Compile and train the model, evaluate test loss and accuracy.
+# Plot the dice coefficient curve
+def plot_dice_coefficient(dice_history):
+    plt.figure(1)
+    plt.plot(dice_history)
+    plt.title('Dice Coefficient Curve')
+    plt.xlabel('Epoch')
+    plt.ylabel('Dice Coefficient')
+    plt.show()
+
+
+
 def train_model_check_accuracy(train_gen, test_gen):
     model = layers.improved_unet(IMAGE_WIDTH, IMAGE_HEIGHT, CHANNELS)
     model.summary()
+    
+    # Define the DiceCoefficientCallback
+    dice_coefficient_callback = DiceCoefficientCallback(test_gen, STEPS_PER_EPOCH_TEST)
+    
     model.compile(optimizer=keras.optimizers.Adam(LEARNING_RATE),
                   loss=dice_loss, metrics=['accuracy', dice_coefficient])
+    
     track = model.fit(
         train_gen,
         steps_per_epoch=STEPS_PER_EPOCH_TRAIN,
         epochs=EPOCHS,
         shuffle=True,
         verbose=1,
-        use_multiprocessing=False)
-    plot_accuracy_loss(track)
+        use_multiprocessing=False,
+        callbacks=[dice_coefficient_callback])  # Add the callback here
+
+    plot_accuracy_loss(track)  # Plot accuracy and loss curves
 
     print("\nEvaluating test images...")
     test_loss, test_accuracy, test_dice = \
@@ -97,7 +112,9 @@ def train_model_check_accuracy(train_gen, test_gen):
     print("Test Accuracy: " + str(test_accuracy))
     print("Test Loss: " + str(test_loss))
     print("Test DSC: " + str(test_dice) + "\n")
-    return model
+    
+    return model, track.history['dice_coefficient']
+
 
 # Test and visualize model predictions with a set amount of test inputs.
 def test_visualise_model_predictions(model, test_gen):
@@ -147,23 +164,14 @@ def main():
     print("\nPREPROCESSING IMAGES")
     train_gen, test_gen = pre_process_data()
     print("\nTRAINING MODEL")
-    model = train_model_check_accuracy(train_gen, test_gen)
+    model, dice_history = train_model_check_accuracy(train_gen, test_gen)
     # Save the trained model to a file
     print("\nSAVING MODEL")
     model.save("my_model.keras")
     print("\nVISUALISING PREDICTIONS")
     test_visualise_model_predictions(model, test_gen)
-
-    # Initialize the callback for Dice coefficient
-    dice_coefficient_callback = DiceCoefficientCallback(test_gen, STEPS_PER_EPOCH_TEST)
-    
-    print("\nPLOTTING DICE COEFFICIENT")
-    plt.figure()
-    plt.plot(dice_coefficient_callback.dice_coefficients)
-    plt.title('Dice Coefficient')
-    plt.xlabel('Epoch')
-    plt.ylabel('Dice Coefficient')
-    plt.show()
+    # Plot Dice coefficient
+    plot_dice_coefficient(dice_history)
 
     print("COMPLETED")
     return 0
