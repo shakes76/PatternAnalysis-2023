@@ -35,10 +35,10 @@ class RawSiameseModel(nn.Module):
             nn.Conv2d(in_channels=128, out_channels=256, kernel_size=4, stride=1),
             nn.ReLU(),
             nn.Flatten(),
-            nn.Linear(102400, 4096)
+            nn.Linear(102400, 2048),
         )
 
-        # unlike the structure from the report, this return 4096 feature vector instead of the similarity
+        # unlike the structure from the report, this return 2048 feature vector instead of the similarity
         # this is because the feature vector will be use to train the binary classifier
 
     def forward(self, x):
@@ -59,13 +59,11 @@ class BinaryModelClassifier(nn.Module):
         super(BinaryModelClassifier, self).__init__()
 
         self.binary_layer = nn.Sequential(
-            nn.Linear(4096, 1024),
+            nn.Linear(2048, 128),
             nn.ReLU(),
-            nn.Linear(1024, 256),
+            nn.Linear(128, 16),
             nn.ReLU(),
-            nn.Linear(256, 64),
-            nn.ReLU(),
-            nn.Linear(64, 1),
+            nn.Linear(16, 1),
             nn.Sigmoid()
         )
 
@@ -82,7 +80,7 @@ class ContrastiveLossFunction(nn.Module):
     """
     def __init__(self):
         super(ContrastiveLossFunction, self).__init__()
-        self.margin = 0.9
+        self.margin = 1.0
 
     def forward(self, output1, output2, label): 
         output = F.pairwise_distance(output1, output2)

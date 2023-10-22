@@ -13,6 +13,9 @@ SIAMESE_MODEL_SAVE_PATH = utils.siamese
 CLASSIFIER_MODEL_SAVE_PATH = utils.classifier
 
 def load_model(model_type=0):
+    """
+        Load the model, use for testing
+    """
     if model_type == 0:
         PATH = SIAMESE_MODEL_SAVE_PATH
     else:
@@ -26,6 +29,9 @@ def load_model(model_type=0):
         return None
 
 def random_test_model(device, model, cModel, test_loader):
+    """
+        Randomly select one batch of test image and return predicted label for that batch
+    """
     random.seed(60)
 
     # evaluate the model
@@ -47,6 +53,9 @@ def random_test_model(device, model, cModel, test_loader):
                 return img, label, predicted
 
 def save_plot_image(img, label, predicted):
+    """
+        Save the image along with the predicted of the class that it belong to along with the actual label
+    """
     n_col = 3
     n_row = 4
     plt.figure(figsize=(10, 12))

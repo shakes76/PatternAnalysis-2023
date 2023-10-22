@@ -171,7 +171,7 @@ class LoadData():
         if self.train: # transforms parameter for train/set dataset
             path = TRAIN_PATH
             transform = transforms.Compose([
-                transforms.RandomCrop(self.image_size, 15, padding_mode='reflect'),
+                transforms.RandomCrop(self.image_size, 10, padding_mode='reflect'),
                 transforms.ToTensor(),
             ])
         else:

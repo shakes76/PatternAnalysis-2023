@@ -21,6 +21,9 @@ CLASSIFIER_MODEL_SAVE_PATH = utils.classifier
 VALIDATE_ACCURACY_SAVE_PATH = utils.train_accuracy
 
 def train_siamese(model, train_loader, criterion, optimizer, loss_list):
+    """
+        Train siamese model
+    """
     model.train()
 
     for i, val in enumerate(train_loader):
@@ -35,6 +38,7 @@ def train_siamese(model, train_loader, criterion, optimizer, loss_list):
         output2 = model(img1)
         loss = criterion(output1, output2, labels)
 
+        # backstep and optimize
         loss.backward()
 
         optimizer.step()
@@ -49,6 +53,9 @@ def train_siamese(model, train_loader, criterion, optimizer, loss_list):
     return model
 
 def validate_siamese(model, val_loader, criterion, val_loss_list):
+    """
+        Validate siamese model: Use validation data to validate
+    """
     model.eval()
 
     with torch.no_grad():
@@ -68,6 +75,9 @@ def validate_siamese(model, val_loader, criterion, val_loss_list):
                         .format(i+1, len(val_loader), loss.item()))
 
 def plot_tsne(fv, label, name, file):
+    """
+        Plot t-SNE scatter plot, showing how the image is separated using siamese model
+    """
     fv = fv.cpu().detach().numpy()
     label = label.cpu().detach().numpy()
     tsne = TSNE(n_components=2, random_state=42)
@@ -78,6 +88,9 @@ def plot_tsne(fv, label, name, file):
     plt.close()
 
 def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_list, lastEpoch=False):
+    """
+        Train binary classifier using siamese model
+    """
     sModel.eval() # siamese
     cModel.train() # classifier
 
@@ -89,8 +102,8 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
         label = label.to(device).float()
         optimizer.zero_grad()
 
-        fv1 = sModel(img)
-        if lastEpoch and i + 2 == len(train_loader):
+        fv1 = sModel(img) # put the image through siamese to extract feature vector
+        if lastEpoch and i + 2 == len(train_loader): # only plot tsne for the last epoch (don't need to plot everything)
             plot_tsne(fv1, label, "t-SNE train", utils.tsne_train)
         output = cModel(fv1)
         loss = criterion(output.view(-1), label)
@@ -100,6 +113,7 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
         total_test += label.size(0)
         correct_predict += (predicted == label).sum().item()
 
+        # back step and optimize
         loss.backward()
         optimizer.step()
 
@@ -113,6 +127,10 @@ def train_classifier(sModel, cModel, train_loader, criterion, optimizer, loss_li
     return cModel, accuracy
 
 def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list, lastEpoch=False):
+    """
+        Validate classifier model: using the validation data set
+        Approach is exactly the same as testing
+    """
     sModel.eval()
     cModel.eval()
 
@@ -123,7 +141,7 @@ def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list, la
             img = img.to(device)
             label = label.to(device).float()
 
-            fv = sModel(img) 
+            fv = sModel(img) # extract feature vector of the image
             output = cModel(fv)
             if lastEpoch and i + 2 == len(val_loader):
                 plot_tsne(output, label, "t-SNE validate", utils.tsne_validate)
@@ -131,7 +149,7 @@ def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list, la
             loss = criterion(output, label)
             val_loss_list.append(loss.item())
 
-            predicted = (output > 0.5).float()
+            predicted = (output > 0.5).float() # binary classify return a float range, given that mid point determine which class it belong to
             total_test += label.size(0)
             correct_predict += (predicted == label).sum().item()
 
@@ -144,6 +162,9 @@ def validate_classifier(sModel, cModel, val_loader, criterion, val_loss_list, la
         return accuracy
 
 def test_model(model, cModel, test_loader):
+    """
+        Test the model on test dataset
+    """
     # evaluate the model
     model.eval() # disable drop out, batch normalization
     cModel.eval()
@@ -166,6 +187,7 @@ def test_model(model, cModel, test_loader):
             correct_predict += (predicted == label).sum().item()
             count += 1
     
+    print(f"The test accuracy is {100 * correct_predict/total_test}")
     return correct_predict/total_test
 
 def save_loss_plot(loss_list, val_loss_list, epoch=0, siamese=True):
@@ -188,13 +210,14 @@ def save_loss_plot(loss_list, val_loss_list, epoch=0, siamese=True):
 
     plt.close()
 
-def save_val_accuracy_plot(accuracy_list, train_accuracy_list, epoch=0):
+def save_val_accuracy_plot(accuracy_list, train_accuracy_list, test_accuracy_list, epoch=0):
     """
         Save accuracy list during validate for classifier
     """
     plt.figure(figsize=(12, 8))
     plt.plot(accuracy_list, label="Accuracy")
     plt.plot(train_accuracy_list, label="Train Accuracy")
+    plt.plot(test_accuracy_list, label="Test Accuracy")
     plt.legend()
     plt.xlabel('Epoch')
     plt.ylabel('Accuracy %')
@@ -204,6 +227,10 @@ def save_val_accuracy_plot(accuracy_list, train_accuracy_list, epoch=0):
     plt.close()
 
 def save_model(epochs, m_state_dict, criterion, o_state_dict, model_type=0):
+    """
+        Save the model parameters for classifier and siamese.
+        Use to save the model at epoch with lowest loss
+    """
     if model_type == 0:
         PATH = SIAMESE_MODEL_SAVE_PATH
     else:
@@ -219,6 +246,9 @@ def save_model(epochs, m_state_dict, criterion, o_state_dict, model_type=0):
     print("Save model")
 
 def load_model(model_type=0):
+    """
+        Load the model, use for testing
+    """
     if model_type == 0:
         PATH = SIAMESE_MODEL_SAVE_PATH
     else:
@@ -236,6 +266,9 @@ def load_model(model_type=0):
         return None
 
 def execute_sTrain(train_loader, val_loader):
+    """
+        Fully train siamese model
+    """
     model = RawSiameseModel().to(device)
 
     # hyper-parameters
@@ -271,7 +304,7 @@ def execute_sTrain(train_loader, val_loader):
         avg_loss_list.append(np.mean(loss_list))
         avg_val_loss.append(current_val_loss)
 
-        if best_model is None:
+        if best_model is None: # save the best model based on loss
             best_model = model.state_dict()
             best_val_loss = current_val_loss
             print(f"Current best validate loss is {best_val_loss} at epoch {epoch + 1}")
@@ -299,11 +332,15 @@ def execute_sTrain(train_loader, val_loader):
     # don't need to return model because will load from pt
     # return model
 
-def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
+def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier, test_loader):
+    """
+        Fully train binary classifier
+        Only train this once the siamese model already train.
+    """
     cModel = BinaryModelClassifier().to(device)
 
     # hyper parameters for classifier
-    num_epochs = 25
+    num_epochs = 20
     learning_rate = 0.001
 
     criterion = nn.BCELoss()
@@ -320,6 +357,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     # accuracy
     accuracy_list = []
     train_accuracy_list = []
+    test_accuracy_list = []
 
     # save model based on validate
     # best_val_loss = 100 # should not be 100
@@ -341,6 +379,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
             cModel, t_accuracy = train_classifier(sModel, cModel, train_loader_classifier, criterion, optimizer, classifier_loss_list)
             accuracy = validate_classifier(sModel, cModel, val_loader_classifier, criterion, classifier_val_loss_list)
         
+        test_accuracy_list.append(100 * test_model(sModel, cModel, test_loader))
         accuracy_list.append(accuracy)
         train_accuracy_list.append(t_accuracy)
         
@@ -349,7 +388,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
         avg_classifier_loss_list.append(np.mean(classifier_loss_list))
         avg_classifier_val_loss.append(current_classifier_val_loss)
         
-        if best_model is None:
+        if best_model is None: # save the best model based on loss
             best_model = cModel.state_dict()
             best_acc = current_classifier_val_loss
             print(f"Current best classifier validate loss is {current_classifier_val_loss} at epoch {epoch + 1}")
@@ -365,7 +404,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
         classifier_val_loss_list = []
 
         save_loss_plot(avg_classifier_loss_list, avg_classifier_val_loss, epoch, siamese=False)
-        save_val_accuracy_plot(accuracy_list, train_accuracy_list, epoch)
+        save_val_accuracy_plot(accuracy_list, train_accuracy_list, test_accuracy_list, epoch)
     
     # test save the last model
     # save_model(epoch, best_model, criterion, optimizer.state_dict(), 1)
@@ -379,6 +418,7 @@ def execute_cTrain(sModel, train_loader_classifier, val_loader_classifier):
     # return cModel
 
 if __name__ == '__main__':
+    # set up for reproducibility
     os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
     random.seed(42)
     torch.manual_seed(42)
@@ -408,7 +448,7 @@ if __name__ == '__main__':
         print("error, unable to load, cannot find save file")
 
     #########  TRAINING BINARY CLASSIFIER MODEL ########## 
-    execute_cTrain(siamese_model, train_loader_classifier, val_loader_classifier)
+    execute_cTrain(siamese_model, train_loader_classifier, val_loader_classifier, test_loader)
 
     classifier_model = BinaryModelClassifier().to(device)
     load_classifier_save_model = load_model(1)
