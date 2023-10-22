@@ -47,3 +47,37 @@ class ContextModule(nn.Module):
             x = self.dropout(x)
             x = self.conv2(x)
             return x
+
+
+class SegmentationLayer(nn.Module):
+    """
+    SegmentationLayer: A convolutional layer specifically utilized to generate a segmentation map.
+    """
+
+    def __init__(self, in_channels, out_channels):
+        """
+        Initialize the SegmentationLayer.
+
+        Parameters:
+        - in_channels (int): Number of input channels.
+        - out_channels (int): Number of output channels, often equal to the number of classes in segmentation.
+        """
+        super(SegmentationLayer, self).__init__()
+        # A convolutional layer that produces segmentation map
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
+
+    def forward(self, x):
+        """
+        Forward pass through the SegmentationLayer.
+
+        Parameters:
+        - x (Tensor): The input tensor.
+
+        Returns:
+        - Tensor: The output tensor after applying the convolution, serving as a segmentation map.
+        """
+        # Applying convolution
+        x = self.conv(x)
+
+        return x
+
