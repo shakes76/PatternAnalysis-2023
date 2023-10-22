@@ -16,7 +16,7 @@ load ADNI data sets from dataloader.py and utilise to train siamese cnn and bina
 
 SIAMESE_MODEL_PATH = "./assets/siamese_model.pth"
 BINARY_MODEL_PATH = "./assets/binary_model.pth"
-EPOCHS = 1
+EPOCHS = 15
 
 
 def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt, counter: [],
