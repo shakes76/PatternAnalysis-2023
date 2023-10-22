@@ -7,6 +7,12 @@ import numpy as np
 from torch.utils.data import Dataset, DataLoader
 from sys import platform
 
+"""
+dataset.py
+
+Handles download of ADNI dataset into pytorch Dataset and Dataloader. Partitions on the patient level for the train and validation sets.
+"""
+
 if platform == "linux" or platform == "linux2":
     TRAIN_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/train"
     TEST_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/test"
