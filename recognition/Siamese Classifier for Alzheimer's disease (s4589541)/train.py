@@ -237,7 +237,7 @@ def main():
     siamese = TripletNetwork().to(device)
     # criterion = TripletLoss()
     criterion = torch.nn.TripletMarginLoss()
-    optimiser = optim.Adam(siamese.parameters(), lr=1e-3)
+    optimiser = optim.Adam(siamese.parameters(), lr=1e-5)
     epochs = 10
 
     print(siamese)
