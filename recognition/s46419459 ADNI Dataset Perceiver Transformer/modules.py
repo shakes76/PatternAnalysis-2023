@@ -55,3 +55,13 @@ class PerceiverBlock(nn.Module):
         out = self.transformer(out)
         return out
     
+
+class Classifer(nn.Module):
+
+    def __init__(self, dim_latent, n_classes):
+        self.output_layer = nn.Linear(dim_latent, n_classes)
+
+    def forward(self, x):
+        averaged = torch.mean(x, dim = 2)
+        out = self.output_layer(averaged)
+        return out
