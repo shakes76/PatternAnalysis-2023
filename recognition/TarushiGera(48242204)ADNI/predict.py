@@ -2,6 +2,8 @@
 Swin Transformer Model Architecture Based Topic Recognition for Alzheimer's Disease Classification
 Name: Tarushi Gera
 Student ID: 48242204
+This script allows you to utilize the model to identify whether the input image is AD or NC. 
+The image is preprocessed and passed through the architecture, and the result is displayed with the input image.
 """
 import os
 import yaml
