@@ -133,10 +133,9 @@ class BinaryClassifier(nn.Module):
         super().__init__()
         self.layers = nn.Sequential(
             nn.Linear(in_channels, 64),
-            nn.ReLU(inplace=True),
+            nn.LeakyReLU(inplace=True),
             nn.Dropout(p=0.2),
-            nn.Linear(64, 1),
-            nn.Sigmoid()
+            nn.Linear(64, 1)
         )
     
     def forward(self, input):

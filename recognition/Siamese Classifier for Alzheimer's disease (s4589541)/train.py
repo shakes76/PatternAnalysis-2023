@@ -274,8 +274,8 @@ def main():
         return
     
     classifier = BinaryClassifier(siamese.embedding_dim).to(device)
-    criterion_c = torch.nn.BCELoss()
-    optimiser_c = optim.Adam(classifier.parameters(), lr=1e-3)
+    criterion_c = torch.nn.BCEWithLogitsLoss()
+    optimiser_c = optim.Adam(classifier.parameters(), lr=1e-2)
     epochs = 10
 
     print(classifier)
