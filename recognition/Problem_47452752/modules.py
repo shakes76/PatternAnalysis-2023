@@ -16,24 +16,27 @@ class Context(nn.Module):
 
     def __init__(self, in_channels):
         super(Context, self).__init__()
-        # We use leakyReLU with negative slope 1e-2
-        self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=False)
         # 3x3x3 convolutional layer that preserves the input size
         self.conv = nn.Conv3d(
             in_channels, in_channels, kernel_size=3, stride=1, padding=1
         )
-        # Dropout layer with p_dropout = 0.3
+        # Dropout layer with p_drop = 0.3
         self.dropout = nn.Dropout(p=0.3)
-        # Normalize the batch with instance normalization
+        # Instance normalization of the input is used
         self.norm = nn.InstanceNorm3d(in_channels)
 
     def forward(self, x):
+        # Keep track of the initial input
         shortcut = x
-
-        x = self.relu(self.norm(x))
+        # First convolutional layer
+        x = F.leaky_relu(self.norm(x), negative_slope=1e-2)
+        x = self.conv(x)
+        # Dropout layer
         x = self.dropout(x)
-        x = self.relu(self.norm(x))
-
+        # Second convolution layer
+        x = F.leaky_relu(self.norm(x), negative_slope=1e-2)
+        x = self.conv(x)
+        # Return the residual output
         return x + shortcut
 
 
@@ -41,24 +44,26 @@ class Upsample(nn.Module):
     """
     Upsampling module used to tranfer information from low resolution feature maps into high resolution fearure maps.
     We use a simple upscale that repeats the feature voxels twice in each spatial dimension, followed by a 3x3x3 convolution
-    that halves the number of feature maps.
+    that halves the number of feature maps. Instance normalization and leaky ReLU is used throughout the network.
     """
 
     def __init__(self, in_channels):
         super(Upsample, self).__init__()
-        self.upsample = nn.Sequential(
-            # Upscale the feature voxels
-            nn.Upsample(scale_factor=2, mode="nearest"),
-            # Normalize the batch useing instance normalization
-            nn.InstanceNorm3d(in_channels),
-            # Introduce non-linearity using leakyReLU with negative slope 1e-2
-            nn.LeakyReLU(negative_slope=1e-2, inplace=True),
-            # Apply 3x3x3 convolution that havles number of feature maps
-            nn.Conv3d(in_channels, in_channels // 2, kernel_size=3, stride=1, padding=1),
+        # Instance normalization of the input is used
+        self.norm = nn.InstanceNorm3d(in_channels)
+        # 3x3x3 convolution layer with half number of feature maps
+        self.conv = nn.Conv3d(
+            in_channels, in_channels // 2, kernel_size=3, stride=1, padding=1
         )
 
     def forward(self, x, skip_channels):
-        x = self.upsample(x)
+        # Repeat feature voxels twice in each spatial dimension
+        x = F.interpolate(x, scale_factor=2, mode="nearest")
+        # Normalize and introduce non-linearlity
+        x = F.leaky_relu(self.norm(x), negative_slope=1e-2)
+        # Apply a 3x3x3 convolution to halve the number of feature maps
+        x = self.conv(x)
+
         return torch.cat([x, skip_channels], dim=1)
 
 
@@ -66,7 +71,7 @@ class Localisation(nn.Module):
     def __init__(self, in_channels):
         super(Localisation, self).__init__()
         # We use leakyReLU with negative slope 1e-2
-        self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=True)
+        self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=False)
         # We use a 3x3x3 convolution first
         self.norm1 = nn.InstanceNorm3d(in_channels)
         self.conv1 = nn.Conv3d(
@@ -89,13 +94,12 @@ class Segmentation(nn.Module):
         super(Segmentation, self).__init__()
         self.conv = nn.Conv3d(in_channels, num_classes, kernel_size=1, stride=1)
         self.upscale = nn.Upsample(scale_factor=2, mode="nearest")
-    
+
     def forward(self, x, other_layer=None):
         x = self.conv(x)
         if other_layer is not None:
             x += other_layer
         return self.upscale(x)
-        
 
 
 class UNet(nn.Module):
@@ -136,10 +140,8 @@ class UNet(nn.Module):
         self.segment1 = Segmentation(64, num_classes)
         self.segment2 = Segmentation(32, num_classes)
         self.segment3 = Segmentation(16, num_classes)
-        
 
     def forward(self, x):
-
         # Context Pathway
         c1 = self.context1(self.in_conv(x))
         c2 = self.context2(self.conv1(c1))
@@ -153,7 +155,7 @@ class UNet(nn.Module):
         l3 = self.local3(self.up3(l2, c2))
         end = self.end_conv(self.up4(l3, c1))
 
-        # Deep Supervision 
+        # Deep Supervision
         s1 = self.segment1(l2)
         s2 = self.segment2(l3, s1)
         s3 = self.segment3(s2, end)
