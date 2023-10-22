@@ -136,7 +136,7 @@ class BinaryClassifier(nn.Module):
             nn.ReLU(inplace=True),
             nn.Dropout(p=0.2),
             nn.Linear(64, 2),
-            nn.Softmax()
+            nn.Softmax(dim=1)
         )
     
     def forward(self, input):
