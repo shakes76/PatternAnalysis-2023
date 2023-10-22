@@ -8,9 +8,15 @@ from dataset import load
 from os.path import exists
 import torch.nn as nn
 
+"""
+train.py
+
+load ADNI data sets from dataloader.py and utilise to train siamese cnn and binary classifier nn.
+"""
+
 SIAMESE_MODEL_PATH = "./assets/siamese_model.pth"
 BINARY_MODEL_PATH = "./assets/binary_model.pth"
-EPOCHS = 1
+EPOCHS = 20
 
 
 def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt, counter: [],

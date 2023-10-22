@@ -35,6 +35,12 @@ class SiameseDataSet(Dataset):
         self.transform = transform
 
     def __getitem__(self, index: int):
+        """
+        overloads function such that item calls return three times, and anchor, a positive class match for the anchor,
+        a negative class match for the anchor, and the class label for the anchor
+        :param index: integer index to be used to iterate through dataset
+        :return: int: class, torch.Tensor: anchor, torch.Tensor: positive anchor match, torch.Tensor: negative anchor match
+        """
         anchor_path, anchor_class = self.imgset.samples[index]
         anchor = self.imgset.loader(anchor_path)
 

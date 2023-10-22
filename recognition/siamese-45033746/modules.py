@@ -2,6 +2,12 @@ import torch.nn as nn
 
 SIAMESE_FEATURES = 2
 
+"""
+modules.py
+
+define triple siamese convolutional neural network and binary classifer neural net
+"""
+
 class SiameseNetwork(nn.Module):
     """
     Siamese CNN

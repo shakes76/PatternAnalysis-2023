@@ -5,6 +5,11 @@ from train import BINARY_MODEL_PATH, SIAMESE_MODEL_PATH
 import torch
 from dataset import get_test_set
 
+"""
+predict.py
+
+load trained models and measure accuracy
+"""
 
 def load():
     # Device configuration
