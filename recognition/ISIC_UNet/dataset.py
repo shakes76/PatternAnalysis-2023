@@ -1,5 +1,3 @@
-
-import torch
 import os
 from PIL import Image
 from torch.utils.data import Dataset
@@ -7,7 +5,7 @@ from torch.utils.data import Dataset
 
 
 class CustomDataset(Dataset):
-    def __init__(self, root_dir, transform=None): 
+    def __init__(self, root_dir, transform): 
         super(CustomDataset,self).__init__()
         self.root_dir = root_dir                            #Path for image folder
         self.transform = transform                          #Transform for resize and converting to tensor
