@@ -55,6 +55,19 @@ for epoch in range(EPOCHS):
     
     print(f"Epoch {epoch+1}/{EPOCHS}, Train Loss: {train_losses[-1]:.4f}, Train Accuracy: {accuracies[-1]:.2f}%")
 
+#Validation Stage
+    correct_val = 0
+    total_val = 0
+    for inputs, labels in valid_loader:
+        inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
+        outputs = model(inputs)
+        _, predicted = torch.max(outputs.data, 1)
+        total_val += labels.size(0)
+        correct_val += (predicted == labels).sum().item()
+
+    val_accuracy = 100 * correct_val / total_val
+    print(f"Validation Accuracy: {val_accuracy:.2f}%")
+
 # After training, evaluate on the test set
 model.eval()
 correct_test = 0
