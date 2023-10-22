@@ -77,6 +77,9 @@ for index, prediction_img_path in enumerate(get_prediction_img_paths()):
     # Save the plot 
     filename = os.path.basename(img)
     plt.save(prediction_result_path+filename)
+    
+    print("PSNR of lowres images is %.4f" % (bicubic_psnr / 10))
+    print("PSNR of reconstructions is %.4f" % (test_psnr / 10))
 
 print("Avg. PSNR of lowres images is %.4f" % (total_bicubic_psnr / 10))
 print("Avg. PSNR of reconstructions is %.4f" % (total_test_psnr / 10))

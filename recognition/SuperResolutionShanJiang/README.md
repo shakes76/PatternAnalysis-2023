@@ -33,7 +33,7 @@ Two functions are defined in `utils.py`.
 Model training, validation and testing is are implemented in `train.py`.
 #### Training and validation 
 `ESPCNCallback` class is used to monitor and display the accumulating mean PSNR after each epoch; and the plots of loss function (for both training and validation) vs epoch number are saved to specified directory after every 10 epochs. Mean Squared Error is used as the loss function and Adam is used as the optimiser. `early_stopping_callback` is set so that the training stops automatically if loss does not improve for 10 consecutive epochs. During training, the best(resultin in minimul loss) model weight is saved to specified path. The following image is the plot of loss over epoch for the entire training process (epoch 1 to 60).
-To run model training, follow these steps in `train.py`:
+To run model training, do following in `train.py`:
 1. Make sure the value of `upscale_factor` at line ?? is the same as the one defined in `dataset.py`
 2. Make sure training dataset is well defined in `dataset.py`. (Refer to "Loading dataset" of this doc )
 3. Creat a empty folder in the same directory as the python files to save the weights. Specify the exact directory of this folder at line ?? by altering the value of variable `checkpoint_filepath`at line ??. Make sure add a "/" at the end of the path, for example: "exact/path/to/the/folder/".
@@ -42,14 +42,18 @@ To run model training, follow these steps in `train.py`:
 6. run `train.py`
 #### Testing
 During model testing, the images are first downsampled by passing them to the functions `get_lowres_imageget_lowres_image(img, upscale_factor)` and then a reconstructed high resolution version is predicted using the model. The average PSNR of lower resolution images and prediction are calculated to verify the effectiveness of the model (PSNR of prediction should be higher than lower resolution images)
-To run model testing, follow these steps in `train.py`:
+To run model testing, do following in `train.py`:
 1. Make sure the value of `upscale_factor` at line ?? is the same as the one defined in `dataset.py`
 2. Make sure the model has been trained and weights have been saved (see training part)
 3. Make sure testing dataset is well defined in `dataset.py`. (Refer to "Loading dataset" of this doc )
 4. Comment out code for training (from line ??? to line ???)
 5. run `train.py`
 ### Prediction
-
+Example usage of this model is shown in `predict.py`. In this file, 10 images from testing daaset are downsampled, predicted using the model. For each image, we show the lower resolution version, higher resolution version and prediction in one figure and saved in specified directory. To run this file, do following in `predict.py`:
+2. Make sure the model has been trained and weights have been saved (see training part)
+3. Make sure prediction dataset is well defined in `dataset.py`. (Refer to "Loading dataset" of this doc)
+4. Creat a empty folder in the same directory as the python files to save the example figures. Specify the exact directory of this folder at line ?? by altering the value of variable `prediction_result_path` at line ??. Make sure add a "/" at the end of the path, for example: "exact/path/to/the/folder/".
+5. run `predict.py` 
 
 
 
