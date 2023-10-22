@@ -50,6 +50,13 @@ class SiameseNetwork(nn.Module):
         return cnn_output
 
     def forward(self, anchor, positive, negative):
+        """
+        Calls forward on all three images in CNN
+        :param anchor: torch.Tensor
+        :param positive: torch.Tensor
+        :param negative: torch.Tensor
+        :return:
+        """
         # In this function we pass in  triplet images and obtain triplet vectors
         # which are returned
         # REDO
@@ -61,6 +68,9 @@ class SiameseNetwork(nn.Module):
 
 
 class BinaryClassifier(nn.Module):
+    """
+    Binary Classifier Neural Net to discriminate between AD and NC
+    """
 
     def __init__(self):
         super().__init__()

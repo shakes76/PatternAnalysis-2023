@@ -21,6 +21,19 @@ EPOCHS = 20
 
 def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt, counter: [],
                   loss: [], epoch: int, device, model: SiameseNetwork):
+    """
+    Iterate over a dataloaders batches with a model
+    :param title: label to discriminate print to console as training or validation sets
+    :param dataLoader: DataLoader containing batches of images to use on model
+    :param criterion: TripletMarginLoss contrastive loss function
+    :param opt: Adam optimiser
+    :param counter: Tracks number of total batches run
+    :param loss: Tracks loss per batch
+    :param epoch: Discriminates epoch number when printed to console
+    :param device: gpu device
+    :param model: SiameseNetwork to train or validate
+    :return: counter [] containing total batches run thus far, loss [] tracking contrastive loss per batch
+    """
     # Iterate over batch
     for i, (label, anchor, positive, negative) in enumerate(dataLoader, 0):
         # Send data to GPU
@@ -52,6 +65,15 @@ def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLo
 
 def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, trainDataLoader: DataLoader,
                   validDataLoader: DataLoader, epochs: int, device):
+    """
+    Train the SiameseNet from modules.py with cross-validation and save model to ./assets after
+    :param model: Instance of SiameseNet sent to GPU
+    :param criterion: TripletMarginLoss to measure contrastive loss
+    :param trainDataLoader: DataLoader containing the batches for the training set
+    :param validDataLoader: DataLoader containing the batches for the validation set
+    :param epochs: Number of epochs to train for
+    :param device: GPU
+    """
     train_counter = []
     val_counter = []
     train_loss = []
@@ -85,6 +107,18 @@ def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, trainData
 
 def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn.BCEWithLogitsLoss,
                  trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
+    """
+    Train BinaryClassifier from modules.py to take the SiameseNet's out features and determine Alzheimer's class AD or
+    NC. Saves model to ./assets after
+    :param model: Instance of BinaryClassifier sent to GPU
+    :param siamese: Instance of a trained SiameseNet
+    :param criterion: BCEWithLogitsLoss
+    :param trainDataLoader: DataLoader containing the batches for the training set
+    :param validDataLoader: DataLoader containing the batches for the validation set
+    :param epochs: Number of epochs to train for
+    :param device: GPU
+    :return:
+    """
     train_counter = []
     val_counter = []
     train_loss = []
@@ -157,14 +191,15 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn
     torch.save(model.state_dict(), BINARY_MODEL_PATH)
 
 
-def parent_train_siamese(device, train: DataLoader, val: DataLoader):
-    # Send model to gpu
-    net = SiameseNetwork().to(device)
-
-    train_siamese(net, TripletMarginLoss(), train, val, EPOCHS, device)
-
-
 def parent_train_binary(device, train: DataLoader, val: DataLoader):
+    """
+    Helper function for training the BinaryClassifier, ensures that a pre-trained model of SiameseNet exists, or
+    creates a new one.
+    :param device: GPU
+    :param train: DataLoader containing the batches for the training set
+    :param val: DataLoader containing the batches for the validation set
+    :return:
+    """
     # Send classifier to gpu
     net = BinaryClassifier().to(device)
 
@@ -174,7 +209,9 @@ def parent_train_binary(device, train: DataLoader, val: DataLoader):
     siamese_exists = exists(SIAMESE_MODEL_PATH)
     if not siamese_exists:
         print("No SiameseNet trained model found, training new SiameseNet")
-        parent_train_siamese(device, train, val)
+        # Send model to gpu
+        net = SiameseNetwork().to(device)
+        train_siamese(net, TripletMarginLoss(), train, val, EPOCHS, device)
     else:
         print("Trained SiameseNet found, loading now...")
 
@@ -187,6 +224,10 @@ def parent_train_binary(device, train: DataLoader, val: DataLoader):
 
 
 def main():
+    """
+    Main function to load in ADNI data, configure gpu or cpu devices, and train SiameseNet and BianryClassifier with.
+    :return:
+    """
     trainData, valData = load()
     print(f"Data loaded")
 

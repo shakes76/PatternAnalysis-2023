@@ -31,6 +31,11 @@ class SiameseDataSet(Dataset):
     """
 
     def __init__(self, imgset: datasets.ImageFolder, transform=None):
+        """
+        initialise class
+        :param imgset: torch.datasets.ImageFolder of ADNI data
+        :param transform: Transform to be applied to images to turn them into torch.Tensor instances
+        """
         self.imgset = imgset
         self.transform = transform
 
@@ -69,6 +74,11 @@ class SiameseDataSet(Dataset):
 
 
 def get_patients(path: str) -> [str]:
+    """
+    Retrieves a unique list of patients from a folder of patient images
+    :param path: path to patient images
+    :return: list of unique patient id's found in folder
+    """
     uids = []
     dire = os.fsdecode(path)
     for file in os.listdir(dire):
@@ -82,14 +92,18 @@ def get_patients(path: str) -> [str]:
 
 
 def remove_patients(imgset: datasets.ImageFolder, index: int, match_set: []) -> datasets.ImageFolder:
+    """
+    Removes specified pateints in match_set in order to provide a patient level split
+    :param imgset: datasets.ImageFolder of loaded ADNI data
+    :param index: Class of ADNI photos to search for patients in. 0 = AD, 1 = NC
+    :param match_set: list of patients to remove from imgset
+    :return: datasets.Imagefolder without images featuring the specified patients match_set
+    """
     folder = ""
     if index == 0:
         folder = "AD"
     else:
         folder = "NC"
-
-    # windows local : TRAIN_FILE_ROOT + "\\" + folder + "\\" + fname
-    # slurm ubuntu : TRAIN_FILE_ROOT + "/" + folder + "/" + fname
 
     for patient in match_set:
         for fname in os.listdir(TRAIN_FILE_ROOT + "/" + folder):
@@ -103,6 +117,11 @@ def remove_patients(imgset: datasets.ImageFolder, index: int, match_set: []) -> 
 
 
 def get_patient_split() -> (datasets.ImageFolder, datasets.ImageFolder):
+    """
+    Loads ADNI training set data, retrieves all patients present in the AD and NC classes and performs a patient-level
+    split on data to prevent data leakage during training between train and validation sets.
+    :return: train and validation ImageFolder's
+    """
     files = get_patients(TRAIN_FILE_ROOT + "/AD")
     random.shuffle(files)
     train_ad, validate_ad = np.split(files, [int(len(files) * TRAIN_SIZE)])
@@ -123,6 +142,10 @@ def get_patient_split() -> (datasets.ImageFolder, datasets.ImageFolder):
 
 
 def get_test_set() -> DataLoader:
+    """
+    Loads test set as an isntance of the SiameseDataSet class
+    :return:
+    """
     return DataLoader(SiameseDataSet(datasets.ImageFolder(root=TEST_FILE_ROOT), compose_transform()),
                       shuffle=True,
                       num_workers=2,
@@ -130,13 +153,22 @@ def get_test_set() -> DataLoader:
 
 
 def compose_transform():
+    """
+    Compose transform converting image to greyscale, 256x240 sized torch.Tenshor
+    :return: series of torchvision.transforms
+    """
     return transforms.Compose([
         transforms.Grayscale(num_output_channels=1),
         transforms.Resize((256, 240)),
         transforms.ToTensor()
     ])
 
-def load():
+
+def load() -> (SiameseDataSet, SiameseDataSet):
+    """
+    Loads patient-level split training and validation image sets into an instance of SiameseDataSet
+    :return: training and validation SiaemseDataSet's
+    """
     trainer, val = get_patient_split()
     transform = compose_transform()
 
