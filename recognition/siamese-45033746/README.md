@@ -18,24 +18,18 @@ this a binary classifier.
 
 ### Data Pre-Processing
 #### Transforms
-Data is pre-proccessed with transforms such as random rotation, and horizontal flip to diversify data and prevent overfitting.
+Data is pre-proccessed to be of size 256x240 and converted to greyscale (so the siamese model takes in 1 channel instead of 3) as these are the only features that matter. No other transformations are done as the input image format is relatively constant.
 
-### Data partitions
+#### Data partitions
 Data is partitioned by patient to prevent data leakage. This is to prevent the model from seeing data from the same patient in the validation set or in the test set while being trained.
 
 ### Project Structure
-
 ### Dependencies
 
 - matplotlib 3.7.2
 - numpy 1.24.3
-- Pillow 10.1.0
 - torch 2.1.0
 
-Install project requirements by running the following command
-```
-conda install --yes --file requirements.txt
-```
 ### File Structure
 
 This project uses the ADNI dataset for Alzheimer's disease. Please format the data under the directory AD_NC in 
@@ -50,6 +44,9 @@ siamese-45033746
 ├── train.py
 ├── utils.py
 ├── .gitignore
+├── slurm.sh
+├── assets
+|   └── triplet_siamese.jpg
 └── AD_NC
     ├── test
     |    ├── AD

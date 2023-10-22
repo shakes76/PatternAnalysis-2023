@@ -129,8 +129,8 @@ def load():
     trainSet = SiameseDataSet(trainer, transform)
     valSet = SiameseDataSet(val, transform)
 
-    trainDataLoader = DataLoader(trainSet, shuffle=True, num_workers=2, batch_size=64)
-    valDataLoader = DataLoader(valSet, shuffle=True, num_workers=2, batch_size=64)
+    trainDataLoader = DataLoader(trainSet, shuffle=True, num_workers=2, batch_size=32)
+    valDataLoader = DataLoader(valSet, shuffle=True, num_workers=2, batch_size=32)
 
     return trainDataLoader, valDataLoader
 

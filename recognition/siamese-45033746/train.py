@@ -6,8 +6,9 @@ import torch
 from utils import save_plot
 from dataset import load
 from os.path import exists
+import torch.nn as nn
 
-SIAMESE_MODEL_PATH = "./assets/siamese_model.pth"
+SIAMESE_MODEL_PATH = "assets/port/siamese_model-95127.pth"
 BINARY_MODEL_PATH = "./assets/binary_model.pth"
 
 
@@ -72,12 +73,12 @@ def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, trainData
     save_plot(train_counter, train_loss, "siamese_train")
     save_plot(val_counter, val_loss, "siamese_validation")
 
-    torch.save(model.state_dict(), SIAMESE_MODEL_PATH)
+    torch.save(model.state_dict(), SIAMESE_MODEL_PATH + f"{epochs}")
 
     return model
 
 
-def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: TripletMarginLoss,
+def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn.BCEWithLogitsLoss,
                  trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
     train_counter = []
     val_counter = []
@@ -148,7 +149,7 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: Tr
     save_plot(train_counter, train_loss, "binary_train")
     save_plot(val_counter, val_loss, "binary_validation")
 
-    torch.save(model.state_dict(), BINARY_MODEL_PATH)
+    torch.save(model.state_dict(), BINARY_MODEL_PATH + f"{epochs}")
 
 
 def parent_train_siamese(device, train: DataLoader, val: DataLoader):
@@ -177,7 +178,9 @@ def parent_train_binary(device, train: DataLoader, val: DataLoader):
         siamese_net.load_state_dict(torch.load(SIAMESE_MODEL_PATH))
         siamese_net.to(device)
 
-    train_binary(net, siamese_net, TripletMarginLoss(), train, val, 5, device)
+    crit = nn.BCEWithLogitsLoss()
+
+    train_binary(net, siamese_net, crit, train, val, 5, device)
 
 
 def main():
