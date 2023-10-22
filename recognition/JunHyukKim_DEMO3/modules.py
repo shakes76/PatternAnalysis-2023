@@ -67,7 +67,7 @@ class LocalizationLayer(nn.Module):
         """
         return self.conv(x)
 
-class UNET(nn.Module):
+class ImprovedUnet(nn.Module):
     """
     Improved Unet architecture comprising of 5 encoding (downsampling) layers and 
     corresponding decoding (upsampling) layers with skip connections. The model 
@@ -84,7 +84,7 @@ class UNET(nn.Module):
         :param out_channels: Number of output channels. Typically 1 for binary segmentation.
         :param features: List containing the number of features in each layer. Defines the depth and width of the U-Net.
         """
-        super(UNET, self).__init__()
+        super(ImprovedUnet, self).__init__()
         self.feature_num = 64
         #LAYER 1
         self.first_conv = nn.Conv2d(in_channels, self.feature_num, kernel_size=3, stride=1, padding=1, bias=False)

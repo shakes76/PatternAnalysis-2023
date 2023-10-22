@@ -56,10 +56,8 @@ After 10 epochs, the model relably provided dice score arount 80 percent.
 ### 4.3. provide example inputs, outputs and plots of your algorithm
 For every epoch, the validation set is used to test the segmenation. 
 #### 4.3.1. The output when train.py is ran
-<img src="train_image.png" alt="train_image" width="400"/>
-<img src="train_mask.png" alt="train_mask" width="400"/>
-<img src="the_loss_plot.png" alt="the_loss_plot" width="400"/>
 
+![Example Output](the_loss_plot.png)
 ![Example Output](train_valid_out.png)
 ![Example Output CMD](train_cmd.png)
 
@@ -76,7 +74,8 @@ Bold was used to highlight the page.
 ### 4.5. Describe any specific pre-processing you have used with references if any. Justify your training, 
 #### 4.5.1. pre-processing
 I used transformation to increase the number of samples the model is trained on.
-For transformation the 
+For transformation the albumentations module was used. This makes the transformation much eaiser.
+Transformation used are, rotate, horizontalflip, veritcalflip. Also the values were normalized.
 I also resized the images into 256x256 sizes to increase the performance of training and also because my model works on that sizes. 
 
 #### 4.5.2. Training
@@ -84,6 +83,7 @@ The training is done in batch size of 16 with 10 epoches.
 The opitmizer used is ADAM and the loss function used is Dice loss function.
 The schaduler was used to reduce the learning rate at the end fo the function.
 The training accuracy and saved predictions are from validation imagesets. 
+GradScaler is used to make the training faster.
 
 ## 5. Algorithm/ImprovedUnet
 This program uses improved Unet to segment the differnt types of skin conditions such as melanoma.
@@ -94,8 +94,7 @@ Context Layer consists of 2d convolutional layer with kernel size 3, InstanceNor
 Localization Layer consists of 2d convolutional layer with kernel size 3, InstanceNorm2d, LeakyReLU. After that, another 2d convolutional layer with kernel size 1 is applied followed by instanceNorm2d and LeakyReLU.
 Localization layer changes the dimension of the tensor given by halving it. This is because it recieves the concatination of skip_connection and the previous output from the previous layer. 
 
-### 5.2. Layer going down the layer.
-#### 5.1.1. Structure of context pathway
+### 5.2. Layer 1 to Layer 5.
 Firstly,2d convolutional layer is applied to the input tensor X, and the output is saved. First convolutional layer changes the dimension of the tensor to 3 to 64, but all the other pathways doubles the dimension of the tensor.
 The output if fed into the the context layer, and the output of the context layer and the first convolutional layer is added element wise using the "torch.add()" function. 
 The output is saved in the name of skip_connection_n(where n is the layer which the context pathway is in).
@@ -103,7 +102,7 @@ The output is saved in the name of skip_connection_n(where n is the layer which 
 Than this countinues 4 more times except for the 5 th time the skip connection is not saved.
 
 
-### 5.3. Layer going up the layer.
+### 5.3. Layer 5 to Layer 1.
 In the layer 5 after applying the context pathway for 5 times, localization pathway is applied. 
 Localization pathway consists of first upsampling the tensor(which doubles the size of the image) and a convolutional layer with kernal size of 1, which halves the amount of features the tensor has. After this, the skip layer which corresponds to the layer which the localization layer is positioned is concatinated to the previous output. Than the output is fed into the localization layer, which will halve the amount of features the tensor has. This is because the number of feature is doubled after concatination.
 This continues until the the ouput reaches the layer 1, where instead of localization a normal convolutional layer with kernel size 3 is applied. This doesnt change the amount of the feature map.

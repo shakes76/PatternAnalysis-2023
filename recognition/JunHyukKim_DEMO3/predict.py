@@ -1,12 +1,10 @@
 #import modules
-from modules import UNET
-import torch
 import torch.nn.parallel
 import torch.utils.data
 import torch
-import albumentations as A
+import albumentations as album
 from albumentations.pytorch import ToTensorV2
-from modules import UNET
+from modules import ImprovedUnet
 from utils import ( get_test_loaders,
                     check_accuracy,
                     save_predictions_as_imgs,
@@ -25,17 +23,13 @@ def main():
     TEST_MASK_DIR = "data/test_masks/"
     BATCH_SIZE = 16
 
-    test_transforms = A.Compose(
+    test_transforms = album.Compose(
         [
-            A.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
-            A.Normalize(
-                mean=[0.0, 0.0, 0.0],
-                std=[1.0, 1.0, 1.0],
-                max_pixel_value=255.0,
-            ),
-            ToTensorV2(),
-        ],
-    )
+            album.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
+            album.Normalize(mean=[0.0, 0.0, 0.0],
+                            std=[1.0, 1.0, 1.0],
+                            max_pixel_value=255.0,),
+            ToTensorV2(),],)
 
     test_loader = get_test_loaders(
             TEST_IMG_DIR,
@@ -47,7 +41,7 @@ def main():
     )
 
     FILE = "model.pth"
-    loaded_model = UNET(3,1,[64,128,256,512]) 
+    loaded_model = ImprovedUnet(3,1,[64,128,256,512]) 
     loaded_model.load_state_dict(torch.load(FILE))
     loaded_model.to(DEVICE)
     loaded_model.eval()
