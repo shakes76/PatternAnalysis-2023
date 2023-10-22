@@ -183,3 +183,4 @@ Explore additional data augmentation techniques to increase the diversity of the
 
 4.	A. Researcher, "ADNI Brain Dataset," CloudStor. [Online]. Available: https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI.
 
+5.  "An Approach to Classify Alzheimer’s Disease using Vision Transformers", National College of Ireland Repository, Available: https://norma.ncirl.ie/id/eprint/6583
