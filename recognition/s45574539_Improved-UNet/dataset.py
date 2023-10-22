@@ -1,4 +1,7 @@
 import tensorflow as tf
+import matplotlib.pyplot as plt
+from tensorflow.image import resize, decode_jpeg, decode_png
+from tensorflow.io import read_file
 import glob
 from sklearn.utils import shuffle
 
@@ -14,14 +17,15 @@ test_val_split_size = 389
 
 def pre_process(image, mask_image):
     img = tf.io.read_file(image)
-    img = tf.image.decode_jpeg(img, channels=3)
+    img = tf.image.decode_jpeg(img, channels=1)
     img = tf.image.resize(img, (256, 256))
-    img /= 255
+    img = tf.cast(img, tf.float32) / 255.0
 
     mask = tf.io.read_file(mask_image)
-    mask = tf.image.decode_png(mask, channels=3)
+    mask = tf.image.decode_png(mask, channels=1)
     mask = tf.image.resize(mask, (256, 256))
-    mask /= 255
+    mask = mask == [0, 255]
+    
     return img, mask
 
 
