@@ -14,6 +14,11 @@ ViT for ImageNet: https://arxiv.org/abs/2205.01580
 - ViT has a set of tokens + 1 class token
 - Uses an average pooling layer at the end of all convolution layers. 
 Generates a 1 dimensional string used for outputting classification of images
+- Image transformers don't use a masked multi-head attention component,
+as they don't need to be auto-regressive (look at both information from both the
+past and the future of the current position in the input). This transformer is
+bi-directional
+
 
 Possible hyperparams:
 - How big the MLP depth is
@@ -73,8 +78,9 @@ V -> Linear ->
 K -> Linear -> Scaled Dot-Product Attention -> Concat -> Linear ->
 Q -> Linear ->
 
-A masked multi-head attention can be created by adding a mask layer to the 
-scaled dot product attention component.
+A masked multi-head attention could be created by adding a mask layer to the 
+scaled dot product attention component, but a mask layer will not be used for
+this model.
 """
 class Attention(nn.Module):
 
@@ -197,4 +203,55 @@ class FeedForward(nn.Module):
         return self.network(x)
 
 
+"""
+Create the whole Transformer (ViT) network, using combinations of the Attention
+and FeedForward modules.
+"""
+class Transformer(nn.Module):
+
+    """
+    Create the layers required for the Transformer network.
+    Add Attention modules, whose outputs are fed into FeedForward modules.
+
+    Params:
+        dimensions (int): the size/dimensions of the input data
+        depth (int): the depth of the network (number of required Attention modules,
+                     whose outputs are chained into FeedForward modules)
+        n_heads (int): the number of heads added to each multi-head attention component
+        head_dimensions (int): the dimensions/size of each head added to the attention. 
+    """
+    def __init__(self, dimensions, depth, n_heads, head_dimensions, mlp_dimensions):
+        super().__init__()
+        # All operations will be normalised (layer norm for 1D representations, similar to batch norm)
+        self.layer_norm = nn.LayerNorm(dimensions)
+
+        # Add the # of required chained Attention and FeedForward modules
+        self.layers = nn.ModuleList([])
+        for i in range (depth):
+            self.layers.append(nn.ModuleList([
+                Attention(dimensions=dimensions, n_heads=n_heads, 
+                          head_dimensions=head_dimensions),
+                FeedForward(dimensions=dimensions, hidden_layer_dimensions=mlp_dimensions)
+            ]))
+
+    
+    """
+    Perform one forward pass (forward propagation) on the Transformer network.
+    Residual connections are maintained between the input to that sub-component
+    and the current Attention and FeedForward layers - the residual connection is
+    added to the output, then normalised.
+
+    Params:
+        x: 1D representation of input data
+    Returns:
+        Computed result of final Attention module (after second Linear layer of
+        final FeedForward module is applied)
+    """
+    def forward(self, x):
+        for attention, feed_forward in self.layers:
+            # Add residual connections between the input to that sub-component and the modules
+            x = attention(x) + x
+            x = feed_forward(x) + x
+        # Normalise the output
+        return self.layer_norm(x)
 
