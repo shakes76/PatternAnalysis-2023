@@ -58,6 +58,7 @@ For every epoch, the validation set is used to test the segmenation.
 #### 4.3.1. The output when train.py is ran
 <img src="train_image.png" alt="train_image" width="400"/>
 <img src="train_mask.png" alt="train_mask" width="400"/>
+<img src="the_loss_plot.png" alt="the_loss_plot" width="400"/>
 
 ![Example Output](train_valid_out.png)
 ![Example Output CMD](train_cmd.png)
@@ -66,8 +67,6 @@ For every epoch, the validation set is used to test the segmenation.
 <img src="test_image.png" alt="test_image" width="400"/>
 <img src="test_mask.png" alt="test_mask" width="400"/>
 
-![Test Image](test_image.png)
-![Test Mask](test_mask.png)
 ![Example Output](predict_cmd_result.png)
 
 
