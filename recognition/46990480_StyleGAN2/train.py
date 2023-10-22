@@ -13,7 +13,37 @@ import matplotlib.pyplot as plt
 from config import device, modelName, data_path_root, output_path, save_path, num_epochs
 from config import learning_rate, channels, batch_size, image_size, log_resolution, image_height
 from config import image_width, z_dim, w_dim, lambda_gp
-import argparse
+
+def get_noise(batch_size):
+    '''
+    Generates a random noise vector for a batch of images
+    '''
+    noise = []
+    resolution = 4
+
+    for i in range(log_resolution):
+        if i == 0:
+            n1 = None
+        else:
+            n1 = torch.randn(batch_size, 1, resolution, resolution, device=device)
+        n2 = torch.randn(batch_size, 1, resolution, resolution, device=device)
+
+        noise.append((n1, n2))
+
+        resolution *= 2
+
+    return noise
+
+def get_w(batch_size, log_resolution, mapping_network):
+    '''
+    Creates a style latent vector w, from a random noise z latent vector.
+    '''
+    # Random noise z latent vector
+    z = torch.randn(batch_size, w_dim).to(device)
+
+    # Forward pass z through the mapping network to generate w latent vector
+    w = mapping_network(z)
+    return w[None, :, :].expand(log_resolution, -1, -1)
 
 def trainStyleGAN2():
     '''
@@ -78,37 +108,6 @@ def trainStyleGAN2():
         gradient_penalty = torch.mean((gradient_norm - 1) ** 2)
         return gradient_penalty
 
-    def get_w(batch_size, log_resolution):
-        '''
-        Creates a style latent vector w, from a random noise z latent vector.
-        '''
-        # Random noise z latent vector
-        z = torch.randn(batch_size, w_dim).to(device)
-
-        # Forward pass z through the mapping network to generate w latent vector
-        w = mapping_network(z)
-        return w[None, :, :].expand(log_resolution, -1, -1)
-
-    def get_noise(batch_size):
-        '''
-        Generates a random noise vector for a batch of images
-        '''
-        noise = []
-        resolution = 4
-
-        for i in range(log_resolution):
-            if i == 0:
-                n1 = None
-            else:
-                n1 = torch.randn(batch_size, 1, resolution, resolution, device=device)
-            n2 = torch.randn(batch_size, 1, resolution, resolution, device=device)
-
-            noise.append((n1, n2))
-
-            resolution *= 2
-
-        return noise
-
     def generate_examples(gen, epoch, n=100):
         '''
         Saves n number of sample images generated from random noise at a specified training epoch.
@@ -116,13 +115,12 @@ def trainStyleGAN2():
         gen.eval()
         for i in range(n):
             with torch.no_grad():
-                w = get_w(1, log_resolution)
+                w = get_w(1, log_resolution, mapping_network)
                 noise = get_noise(1)
                 img = gen(w, noise)
                 if not os.path.exists(f'saved_examples_{modelName}/epoch{epoch}'):
                     os.makedirs(f'saved_examples_{modelName}/epoch{epoch}')
                 save_image(img*0.5+0.5, f"saved_examples_{modelName}/epoch{epoch}/img_{i}.png")
-
         gen.train()
 
     print("> Training")
@@ -148,7 +146,7 @@ def trainStyleGAN2():
             # Batch size
             current_batch_size = real.shape[0]
 
-            w = get_w(current_batch_size, log_resolution)
+            w = get_w(current_batch_size, log_resolution, mapping_network)
             noise = get_noise(current_batch_size)
             with torch.cuda.amp.autocast():
                 # Generate a fake image batch with the Generator
@@ -228,10 +226,5 @@ def trainStyleGAN2():
     # Training Complete
     print("> Done Training")
 
-# If we provide the run argument, then run the script
-parser = argparse.ArgumentParser()
-parser.add_argument('-run', default='FALSE', help='Provide this argument to run the training script')
-args = parser.parse_args()
-
-if args.run == "TRUE":
+if __name__ == "__main__":
     trainStyleGAN2()    
