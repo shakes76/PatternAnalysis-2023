@@ -14,7 +14,7 @@ train.py
 load ADNI data sets from dataloader.py and utilise to train siamese cnn and binary classifier nn.
 """
 
-SIAMESE_MODEL_PATH = "assets/siamese_model.pth"
+SIAMESE_MODEL_PATH = "./assets/siamese_model.pth"
 BINARY_MODEL_PATH = "./assets/binary_model.pth"
 EPOCHS = 1
 
@@ -133,7 +133,7 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn
     siamese.eval()
 
     for epoch in range(epochs):
-        loss = []
+        loss_ep_tracker = []
 
         # Iterate over training batches
         model.train()
@@ -163,9 +163,9 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn
             train_counter.append(i)
             train_loss.append(loss.item())
 
-            loss.append(loss.item())
+            loss_ep_tracker.append(loss.item())
 
-        print(f"Epoch {epoch}, average binary training loss = {sum(loss) / len(loss)}")
+        print(f"Epoch {epoch}, average binary training loss = {sum(loss_ep_tracker) / len(loss_ep_tracker)}")
 
         model.eval()
         for i, (label, anchor, _, _) in enumerate(validDataLoader, 0):
@@ -193,8 +193,8 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn
             # print(f"Epoch {epoch} - Binary Validation Batch {i} : Loss = {loss.item()}\n")
             val_counter.append(i)
             val_loss.append(loss.item())
-            loss.append(loss.item())
-        print(f"Epoch {epoch}, average binary validation loss = {sum(loss) / len(loss)}")
+            loss_ep_tracker.append(loss.item())
+        print(f"Epoch {epoch}, average binary validation loss = {sum(loss_ep_tracker) / len(loss_ep_tracker)}")
 
     save_plot(train_counter, train_loss, "binary_train")
     save_plot(val_counter, val_loss, "binary_validation")

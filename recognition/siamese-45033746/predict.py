@@ -16,7 +16,7 @@ load trained models and measure accuracy
 def load():
     """
     Load pre-trained SiameseNet and BinaryClassifier models and predict
-    :return:
+    :return: BinaryClassifier, SiameseNet, GPU device
     """
     # Device configuration
     gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
@@ -37,6 +37,14 @@ def load():
 
 
 def predict(model: BinaryClassifier, net: SiameseNetwork, testDataLoader: DataLoader, device):
+    """
+    run SiameseNet and BinaryClassifier in eval mode to predict values on the test ADNI set, report on accuracy to console
+    :param model: trained BinaryClassifier in ./assets
+    :param net: trained SiameseNetwork in ./assets
+    :param testDataLoader:
+    :param device:
+    :return:
+    """
     model.eval()
     net.eval()
 
