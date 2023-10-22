@@ -73,7 +73,7 @@ def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, trainData
     save_plot(train_counter, train_loss, "siamese_train")
     save_plot(val_counter, val_loss, "siamese_validation")
 
-    torch.save(model.state_dict(), SIAMESE_MODEL_PATH + f"{epochs}")
+    torch.save(model.state_dict(), SIAMESE_MODEL_PATH)
 
     return model
 
@@ -149,18 +149,15 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn
     save_plot(train_counter, train_loss, "binary_train")
     save_plot(val_counter, val_loss, "binary_validation")
 
-    torch.save(model.state_dict(), BINARY_MODEL_PATH + f"{epochs}")
+    torch.save(model.state_dict(), BINARY_MODEL_PATH)
 
 
 def parent_train_siamese(device, train: DataLoader, val: DataLoader):
     # Send model to gpu
     net = SiameseNetwork().to(device)
 
-    return train_siamese(net, TripletMarginLoss(), train, val, 5, device)
+    return train_siamese(net, TripletMarginLoss(), train, val, 50, device)
 
-
-# model: BinaryClassifier, siamese: SiameseNetwork, criterion: TripletMarginLoss,
-#                  trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device
 def parent_train_binary(device, train: DataLoader, val: DataLoader):
     # Send classifier to gpu
     net = BinaryClassifier().to(device)
@@ -174,13 +171,12 @@ def parent_train_binary(device, train: DataLoader, val: DataLoader):
         siamese_net = parent_train_siamese(device, train, val)
     else:
         print("Trained SiameseNet found, loading now...")
-        siamese_net = SiameseNetwork()
-        siamese_net.load_state_dict(torch.load(SIAMESE_MODEL_PATH))
+        siamese_net = torch.load(SIAMESE_MODEL_PATH)
         siamese_net.to(device)
 
     crit = nn.BCEWithLogitsLoss()
 
-    train_binary(net, siamese_net, crit, train, val, 5, device)
+    train_binary(net, siamese_net, crit, train, val, 50, device)
 
 
 def main():
