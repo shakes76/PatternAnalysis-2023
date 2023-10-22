@@ -17,7 +17,7 @@ The Improved U-Net is a cutting-edge neural network architecture which can be ta
 - Feature maps from the corresponding level in the downsampling pathway (or the encoder) are concatenated with the upsampled feature maps. This is the hallmark of the U-Net architecture and is referred to as a skip connection.
 - The concatenated feature maps combine the high-resolution spatial details from the encoder with the high-level contextual information from the decoder.
 
-![Improved UNet Model Architecture](architecture.png)
+![Improved UNet Model Architecture](assets/architecture.png)
 
 Above is an image that showcases the localisation module in the context of processing 3 dimensional data.
 
@@ -76,3 +76,8 @@ We divided the ISIC 2018 dataset into training, validation, and test sets follow
 - **Test Data**: 10% - Held out for evaluating the final performance of the model.
 
 This division ensures a robust assessment of the model's performance, minimising overfitting and providing a reliable estimation of its real-world applicability.
+
+## TODO:
+
+- Add a link to the dataset.
+- Research the best way to use the dice coeffficient callback
