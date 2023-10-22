@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import matplotlib.pyplot as plt
-from modules import Perceiver, CrossAttention
+from modules import Perceiver
 from dataset import get_dataloaders
 
 # Constants and hyperparameters
