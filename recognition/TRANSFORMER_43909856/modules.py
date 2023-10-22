@@ -255,3 +255,37 @@ class Transformer(nn.Module):
         # Normalise the output
         return self.layer_norm(x)
 
+
+"""
+Creates a positional encoding for the Transformer input data, using a 2D set of 
+sinusoids.
+Every row of the encoding will vary with frequency, allowing for the inputs to
+be encoded uniquely and their position located.
+
+Params:
+    height (int): the required height of the positional encoding
+    width (int): the required width of the positional encoding
+    dimensions (int): the dimensions/size of the input features. This value 
+                      must be a multiple of 4.
+    temperature (int): determines the frequencies used by the sinusoids in the
+                       positional encoding
+    dtype (torch dtype): the data type for the positional encoding to be stored as
+"""
+def create_positonal_encodings(height, width, dimensions, temperature=10000,
+                                dtype=torch.float32):
+    # Set up a 2D set of coordinates in a mesh grid
+    y, x = torch.meshgrid(torch.arange(height), torch.arange(width), indexing="ij")
+    # Set the frequencies used by the sinusoids in the positional encoding
+    omega = torch.arange(dimensions // 4) / (dimensions // 4 - 1)
+    omega = 1.0 / (temperature ** omega)
+    
+    # Flatten the x and y coordinates into 1D arrays
+    y = y.flatten()[:, None] * omega[None, :]
+    x = x.flatten()[:, None] * omega[None, :]
+    
+    # Compute sinusoids and combine them together
+    positional_encoding = torch.cat((x.sin(), x.cos(), y.sin(), y.cos()), dim=1)
+    return positional_encoding.type(dtype)
+
+
+
