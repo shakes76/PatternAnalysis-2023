@@ -5,14 +5,14 @@ from PIL import Image
 import tensorflow as tf
 
 # Load keras data set to colab 
-from google.colab import drive
-drive.mount('/content/drive')
+#from google.colab import drive
+#drive.mount('/content/drive')
 
-!unzip /content/drive/My\ Drive/keras_png_slices_data.zip
-# Initialise paths for training, testing and validation sets
-TRAIN_PATH = "keras_png_slices_data/keras_png_slices_train"
-TEST_PATH = "keras_png_slices_data/keras_png_slices_test"
-VAL_PATH = "keras_png_slices_data/keras_png_slices_validate"
+#!unzip /content/drive/My\ Drive/keras_png_slices_data.zip
+# Initialise paths for training, testing and validation sets 
+TRAIN_PATH = "/Users/pc/Documents/COMP3710/keras_png_slices_data/keras_png_slices_train"
+TEST_PATH = "/Users/pc/Documents/COMP3710/keras_png_slices_data/keras_png_slices_test"
+VAL_PATH = "/Users/pc/Documents/COMP3710/keras_png_slices_data/keras_png_slices_validate"
 # Incitialise directories for training, testing and validation data
 train_files = os.listdir(TRAIN_PATH)
 test_files = os.listdir(TEST_PATH)
