@@ -15,8 +15,8 @@ class Config:
     TRAIN_DIR = Path("./AD_NC/train")
     TEST_DIR = Path("./AD_NC/test")
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    LOG_DIR = Path("./log/Contrastive")
-    MODEL_DIR = "./model/Contrastive.pth"
+    LOG_DIR_CONTRASTIVE = Path("./log/Contrastive")
+    MODEL_DIR_CONTRASTIVE = "./model/Contrastive.pth"
 
     # # colab
     # TRAIN_DIR = Path("/content/drive/MyDrive/Colab_Notebooks/COMP_3710/Siamese/AD_NC/train")
