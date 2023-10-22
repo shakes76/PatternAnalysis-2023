@@ -12,7 +12,7 @@ mask_dir = "C:/Users/lombo/Desktop/3710_report/ISIC2018_Task1_Test_GroundTruth" 
 # Parameters
 n_batch = 128
 learning_rate = 0.001
-n_epochs = 2
+n_epochs = 30
 
 # Make sure output directory exists
 os.makedirs(output_dir, exist_ok=True)
@@ -50,7 +50,7 @@ def main():
         print(f"Val Loss: {val_loss:.4f} | Val Dice: {val_dice:.4f}")
 
         # Save some sample images for visualization
-        #save_sample_images(epoch, val_loader, model, output_dir, device)
+        save_sample_images(epoch, val_loader, model, output_dir, device)
 
     # Plot training progress
     plot_training_progress(train_loss_history, val_loss_history, train_dice_history, val_dice_history, output_dir)

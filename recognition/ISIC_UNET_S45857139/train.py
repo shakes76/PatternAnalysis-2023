@@ -135,8 +135,11 @@ def save_sample_images(epoch, val_loader, model, output_dir, device, samples=3):
                 break
             inputs, labels = inputs.to(device), labels.to(device)
             outputs = model(inputs)
-            combined = torch.cat((inputs[0], labels[0], outputs[0]), dim=2)
-            save_image(combined.cpu(), os.path.join(output_dir, f"combined_{epoch}_{i}.png"))
+
+            # Saving input, mask, and output separately
+            save_image(inputs[0].cpu(), os.path.join(output_dir, f"input_{epoch}_{i}.png"))
+            save_image(labels[0].cpu(), os.path.join(output_dir, f"mask_{epoch}_{i}.png"))
+            save_image(outputs[0].cpu(), os.path.join(output_dir, f"output_{epoch}_{i}.png"))
 
 def plot_training_progress(train_loss_history, val_loss_history, train_dice_history, val_dice_history, output_dir):
     """
