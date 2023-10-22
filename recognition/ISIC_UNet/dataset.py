@@ -81,22 +81,22 @@ transform_train = transforms.Compose([                                          
 
 
 
-data = CustomDataset(root_dir='/home/snorrebs/Pattern_3710/ass3_test/ISIC_UNet/pictures', transform=transform)                  #Loads data, resizes and converts to tensor.
-trainset,validationset=train_test_split(data,test_size=SPLIT,shuffle=False)                                                     #Splits normal dataset into training and validationset 
+data = CustomDataset(root_dir='path/to/trainingset-images', transform=transform)                #Loads data, resizes and converts to tensor.
+trainset,validationset=train_test_split(data,test_size=SPLIT,shuffle=False)                     #Splits normal dataset into training and validationset 
 
-truthset = CustomDataset(root_dir='/home/snorrebs/Pattern_3710/ass3_test/ISIC_UNet/pictures_seg', transform=transform)          #Loads truth data for training 
-truth_trainset,truth_validationset=train_test_split(truthset,test_size=SPLIT,shuffle=False)                                     #Splits truth set into training and validation  
+truthset = CustomDataset(root_dir='path/to/trainingset-truths', transform=transform)            #Loads truth data for training 
+truth_trainset,truth_validationset=train_test_split(truthset,test_size=SPLIT,shuffle=False)     #Splits truth set into training and validation  
 
-testset=CustomDataset(root_dir='/home/snorrebs/Pattern_3710/ass3_test/ISIC_UNet/ISIC2018_Task1-2_Validation_Input', transform=transform)           #Loads the data set
-testset_truth=CustomDataset(root_dir='/home/snorrebs/Pattern_3710/ass3_test/ISIC_UNet/ISIC2018_Task1_Validation_GroundTruth', transform=transform) #Loads the truth for the testset 
+testset=CustomDataset(root_dir='path/to/testset', transform=transform)                          #Loads the data set
+testset_truth=CustomDataset(root_dir='path/to/testset-truths', transform=transform)             #Loads the truth for the testset 
 
 
-trainset_trans=transformation_train(trainset,truth_trainset)            #Preforms image augmentation transforms on training data. See utils.py
+trainset_trans=transformation_train(trainset,truth_trainset)                                    #Preforms image augmentation transforms on training data. See utils.py
  
 
 #Uses data loader to create datasets
-trainloader = DataLoader(trainset_trans, batch_size=3, shuffle=True)                    #Training set - normal images
-validationloader=DataLoader(validationset, batch_size=3, shuffle=False)                 #Validation set - normal images
-truth_validationset_loader=DataLoader(truth_validationset, batch_size=3, shuffle=False) #Validation set - truth images
-testloader=DataLoader(testset, batch_size=1, shuffle=False)                             #Test set - normal images
-testset_truth_loader=DataLoader(testset_truth, batch_size=1, shuffle=False)             #Test set - truth images
+trainloader = DataLoader(trainset_trans, batch_size=3, shuffle=True)                        #Training set - normal images
+validationloader=DataLoader(validationset, batch_size=3, shuffle=False)                     #Validation set - normal images
+truth_validationset_loader=DataLoader(truth_validationset, batch_size=3, shuffle=False)     #Validation set - truth images
+testloader=DataLoader(testset, batch_size=1, shuffle=False)                                 #Test set - normal images
+testset_truth_loader=DataLoader(testset_truth, batch_size=1, shuffle=False)                 #Test set - truth images

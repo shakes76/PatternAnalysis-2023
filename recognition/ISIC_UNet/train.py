@@ -69,7 +69,7 @@ def eval(input,truth,load):
     model.eval()                                            #Innit the model for eval
     if load == "load":                                      #Load the best model when testing
         print("Loading model ...")
-        model.load_state_dict(torch.load('UNet_model.pt'))
+        model.load_state_dict(torch.load('UNet_model.pt'))  #Loading model
     score_list=[]
     with torch.no_grad():                                   
         for images, truth_batch in zip(input,truth):        #Loading batches
