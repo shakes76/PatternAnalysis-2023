@@ -1,47 +1,41 @@
 import tensorflow as tf
-import glob
 
-class SegmentationDataset(tf.data.Dataset):
-    def _generator(image_paths, mask_paths, image_size):
-        for image_path, mask_path in zip(image_paths, mask_paths):
-            image = tf.io.read_file(image_path)
-            image = tf.image.decode_jpeg(image, channels=3)
-            image = tf.image.resize(image, image_size)
-            image = image / 255.0  # Normalize
+class SkinLesionDataset:
+    def __init__(self, data_dir, target_size=(512, 512)):
+        self.data_dir = data_dir
+        self.target_size = target_size
 
-            mask = tf.io.read_file(mask_path)
-            mask = tf.image.decode_png(mask, channels=1)  # Assuming mask is in PNG format
-            mask = tf.image.resize(mask, image_size)
-            mask = mask / 255.0  # Normalize
+        self.train_dataset = self.load_dataset("ISIC2018_Task1-2_Training_Input", "ISIC2018_Task1_Training_GroundTruth")
+        self.test_dataset = self.load_dataset("ISIC2018_Task1-2_Test_Input", "ISIC2018_Task1_Test_GroundTruth")
+        self.validation_dataset = self.load_dataset("ISIC2018_Task1-2_Validation_Input", "ISIC2018_Task1_Validation_GroundTruth")
 
-            yield image, mask
+    def load_and_preprocess(self, image_path, mask_path):
+        # Load and decode image
+        image = tf.io.decode_image(tf.io.read_file(image_path), channels=3)  # Adjust channels as needed
 
-    def __new__(cls, image_dir, mask_dir, image_size, cache=False):
-        image_paths = sorted(glob.glob(image_dir + "/*"))
-        mask_paths = sorted(glob.glob(mask_dir + "/*"))
+        # Resize image to the target size with padding
+        image = tf.image.resize_with_pad(image, target_height=self.target_size[0], target_width=self.target_size[1])
+        image = tf.cast(image, tf.float32) / 255.0
 
-        # Assume that the number of images and masks are the same
-        dataset = tf.data.Dataset.from_generator(
-            cls._generator,
-            output_signature=(
-                tf.TensorSpec(shape=(image_size[0], image_size[1], 3), dtype=tf.float32),
-                tf.TensorSpec(shape=(image_size[0], image_size[1], 1), dtype=tf.float32)
-            ),
-            args=(image_paths, mask_paths, image_size)
-        )
+        # Load and decode mask
+        mask = tf.io.decode_image(tf.io.read_file(mask_path), channels=1)  # Assuming grayscale masks
 
-        if cache:
-            dataset = dataset.cache()
+        # Resize mask to the target size with padding
+        mask = tf.image.resize_with_pad(mask, target_height=self.target_size[0], target_width=self.target_size[1])
+        mask = tf.cast(mask, tf.float32) / 255.0
+
+        return image, mask
+
+    def load_dataset(self, input_folder, ground_truth_folder):
+        input_paths = sorted([str(path.numpy()) for path in tf.data.Dataset.list_files(f"{self.data_dir}/{input_folder}/*")])
+        ground_truth_paths = sorted([str(path.numpy()) for path in tf.data.Dataset.list_files(f"{self.data_dir}/{ground_truth_folder}/*")])
+
+        dataset = tf.data.Dataset.zip((tf.data.Dataset.from_tensor_slices(input_paths), tf.data.Dataset.from_tensor_slices(ground_truth_paths))).map(self.load_and_preprocess)
 
         return dataset
 
-def get_dataloaders(batch_size=32, image_size=(572, 572)):
-    train_dataset = SegmentationDataset("/datasets/ISIC2018_Task1-2_Training_Input", "/datasets/ISIC2018_Task1-2_Training_Input_GroundTruth", image_size, cache=True)
-    test_dataset = SegmentationDataset("/datasets/ISIC2018_Task1-2_Test_Input", "/datasets/ISIC2018_Task1-2_Test_Input_GroundTruth", image_size, cache=True)
-    valid_dataset = SegmentationDataset("/datasets/ISIC2018_Task1-2_Validation_Input", "/datasets/ISIC2018_Task1-2_Validation_Input_GroundTruth", image_size, cache=True)
-
-    train_dataloader = train_dataset.batch(batch_size).prefetch(tf.data.AUTOTUNE)
-    test_dataloader = test_dataset.batch(batch_size).prefetch(tf.data.AUTOTUNE)
-    valid_dataloader = valid_dataset.batch(batch_size).prefetch(tf.data.AUTOTUNE)
-
-    return train_dataloader, test_dataloader, valid_dataloader
+# Example usage:
+# dataset = SkinLesionDataset("datasets")
+# train_data = dataset.train_dataset
+# test_data = dataset.test_dataset
+# validation_data = dataset.validation_dataset
