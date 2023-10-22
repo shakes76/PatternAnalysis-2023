@@ -33,14 +33,19 @@ def predict(model: BinaryClassifier, net: SiameseNetwork, testDataLoader: DataLo
     model.eval()
     net.eval()
 
-    for i, (label, anchor, _, _) in enumerate(testDataLoader, 0):
-        anchor = anchor.to(device)
+    outcome = []
 
+    for i, (label, anchor, _, _) in enumerate(testDataLoader, 0):
+        # Send items to GPU
+        anchor, label = anchor.to(device), torch.unsqueeze(label.to(device), dim=1).float()
+
+        # Get siamese embeddings for the input anchor image
         siamese_embeddings = net.forward_once(anchor)
 
-        result = model(siamese_embeddings)
+        pred = model(siamese_embeddings)
 
-        print(f"pred : {result}, label : {label}")
+        print(f"pred : {pred}, label : {label}, outcome : {torch.eq(pred, label)}")
+        outcome.append(torch.eq(pred, label))
 
 
 def main():
