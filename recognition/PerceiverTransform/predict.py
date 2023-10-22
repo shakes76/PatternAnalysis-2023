@@ -11,7 +11,7 @@ MODEL_PATH = './perceiver_model.pth'
 
 # Load the trained model
 model = Perceiver(
-    input_dim=3 * 224 * 224,  # Assuming image dimensions are (3, 224, 224)
+    input_dim = 224 * 224,  
     latent_dim=256, 
     embed_dim=256,
     n_classes=2,
@@ -26,10 +26,9 @@ def predict_image(img_path):
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
-    image = Image.open(img_path).convert('RGB')
+    image = Image.open(img_path)
     image_tensor = transform(image).unsqueeze(0).to(DEVICE)
     
     # Predict
