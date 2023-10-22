@@ -56,15 +56,21 @@ def data_sorter(img_root, gt_root, mode):
         img_root (String): path to the root folder of images
         gt_root (String): path to root folder of corresponding ground truth images
 
-        mode: (Sting): 'Train'/'Validate, determines if the set is split 80/20 or not
+        mode: (Sting): 'Train'/'Tese', determines if the set is split into train/validate (80/20), or kept as a single test set
         
 
     returns:
+    mode=train
         tuple
             images_train(List): List of paths to train images (String)
             gt_train(List): List of paths to train ground truth images (String)
-            images_test(List): List of paths to test images (String)
-            gt_test(List): List of paths to test gt images (String)
+            images_validation(List): List of paths to test images (String)
+            gt_validation(List): List of paths to test gt images (String)
+    
+    mode=Test
+        tuple
+            images_test: list of path to images
+            gt_test:  list of path to ground truth
 
     '''
 
@@ -79,6 +85,7 @@ def data_sorter(img_root, gt_root, mode):
     #create a list of indices in the data
     indices = list(range(len(img_path)))
 
+    #Split indices into random sets of 80/20
     train_indices, test_indices = train_test_split(indices, train_size=0.8, test_size=0.2)
 
     if mode == 'Train':
@@ -103,7 +110,7 @@ def data_sorter(img_root, gt_root, mode):
 
         return images_train, gt_train, images_test, gt_test
     
-    if mode == 'Validate':
+    if mode == 'Test':
 
         for idx in range(len(img_path)):
             

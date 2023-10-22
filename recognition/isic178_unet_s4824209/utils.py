@@ -1,10 +1,10 @@
 '''
 Author: Marius Saether
-Student id: s4824209
+Student id: 48242099
 
 Mudules used for transformations and loss
 
-Code on lines 76-113 is developed with CHATGPT 3.5, see source 2 in README.md
+Code on lines 75-112 is developed with CHATGPT 3.5, see readme_additions/source_GPT35.txt
 
 '''
 
@@ -72,7 +72,7 @@ class Train_Transform(object):
 
     '''
 
-    def __init__(self, p=0.25, size=(64,64)):
+    def __init__(self, p=0.25, size=(512,512)):
         self.p = p
         self.size = size
 
@@ -128,7 +128,7 @@ class Test_Transform(object):
 
     '''
 
-    def __init__(self, size=(64,64)):
+    def __init__(self, size=(512,512)):
         self.size=size
 
     def __call__(self, data):

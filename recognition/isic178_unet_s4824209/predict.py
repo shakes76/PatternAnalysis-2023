@@ -1,6 +1,6 @@
 '''
 Author: Marius Saether
-student id: s4824209
+student id: 48242099
 
 Program for plotting and evaluating the trained model on the validation set.
 '''
@@ -25,38 +25,30 @@ if not torch.cuda.is_available():
     sys.stdout.flush()
 
 
-batch_size = 1
-
 #LOAD DATA
 #Root path of validation images and ground truth
 img_root = 'validation_data/ISIC2018_Task1-2_Validation_Input'
 gt_root = 'validation_data/ISIC2018_Task1_Validation_GroundTruth'
 
-
 #Creating sorted lists of image and ground truth path for test and train (80%/20% split)
-img_val_path,gt_val_path = data_sorter(img_root=img_root, gt_root=gt_root, mode='Validate')
-
+img_test_path,gt_test_path = data_sorter(img_root=img_root, gt_root=gt_root, mode='Test')
 
 #Resize images to (512x512) and convert to tensors
-validation_transform = transforms.Compose([Test_Transform()])
+test_transform = transforms.Compose([Test_Transform()])
 
 #Loading the test set into dataloader
-test_set = customDataset(images=img_val_path, GT=gt_val_path, transform=validation_transform)
+test_set = customDataset(images=img_test_path, GT=gt_test_path, transform=test_transform)
 #Test loader has batch_size=1 to be able to check dice score of each separate image 
-validation_loader = DataLoader(test_set, batch_size=batch_size)
+test_loader = DataLoader(test_set, batch_size=1)
 
 #________Model___________
 model = IuNet()
 model = model.to(device)
-
-trained_model_path = 'trained_models/unet_085_avg.pt'
-
+trained_model_path = 'trained_model_bestavg.pt'
 model.load_state_dict(torch.load(trained_model_path, map_location=device))
 
 
-#Dice loss function, used to determine DCS 
 criterion = Diceloss()
-
 
 #test model after each epoch
 model.eval()
@@ -68,10 +60,9 @@ with torch.no_grad():
 
     DCS_list = []
     y_list = []
-    
     min_DCS_list = []
     #Iterate the test data
-    for i, elements in enumerate(validation_loader):
+    for i, elements in enumerate(test_loader):
         data, ground_t = elements
         data = data.to(device)
         ground_t = ground_t.to(device)
@@ -94,29 +85,23 @@ with torch.no_grad():
         if DCS.item() < 0.1:
             img = torch.cat((torch.round(output), ground_t), dim=0)
             min_DCS_list.append(img)
-
-            
         
+        #Print every 10th image for visualisation
+        if i%10 == 9:
+            img = torch.cat((torch.round(output), ground_t), dim=0)
+            img = img.cpu()
+            save_image(img, f'validation_images/batch{i+1}.png', nrow = 1)
+            
+        #add dcs and index for plotting
         DCS_list.append(DCS.item())
         y_list.append(i+1)
         
-
-        #Stores images of batchs
-        # img = torch.cat((torch.round(output), ground_t), dim=0)
-        # img = img.cpu()
-        # data = data.cpu()
-        # save_image(img, f'validation_images/batch{i+1}.png', nrow = batch_size)
-        # save_image(data, f'validation_images/imgbatch{i+1}.png', nrow = batch_size)
-        
-
     #prints average DCS 
-    print(f'[Predict] avg DCS:{avg_DCS/(i+1) :.3f}, min:{round(min_DCS,3)}, max:{round(max_DCS,3)}')
+    print(f'[Predict] avg DCS:{avg_DCS/(i+1) :.3f}')
 
 
 plt.scatter(y_list, DCS_list)
 plt.ylabel('DCS score')
 plt.savefig('plot/DCS.png')
 
-# print(len(min_DCS_list))
-# save = torch.concat((min_DCS_list[0], min_DCS_list[1]), dim = 0)
-# save_image(save, f'validation_images/wors_val.png', nrow = 2)
+
