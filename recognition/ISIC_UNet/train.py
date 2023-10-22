@@ -1,134 +1,97 @@
 import torch
-from dataset import CustomDataset
-from torch.utils.data import DataLoader
-from torchvision import transforms
 from modules import UNet
 from torchvision.utils import save_image
 import torch.optim as optim
 from torch.optim.lr_scheduler import StepLR
-from sklearn.model_selection import train_test_split
-from utils import RandomTransform
+from utils import dice_loss
+from dataset import trainloader, validationloader, truth_validationset_loader, testset_truth_loader, testloader
 
-##init
-device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if not torch.cuda.is_available():
+
+device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')     #Trying to define device as GPU
+if not torch.cuda.is_available():                                       #Print warning if GPU is not available
     print("Warning no cuda")
 
-NUM_EPOCHS = 50
-LR=0.00009
-SPLIT=0.05
+NUM_EPOCHS = 2                   #Defining number of epochs
+LR=0.00009                       #Defining learning rate
 
-
-## Data
-transform_norm = transforms.Compose([transforms.ToTensor(),transforms.Resize((512,512),antialias=True)]) #Transforms for testset
-
-transform_train = transforms.Compose([ #Transforms for training data normal images
-    transforms.ToTensor(),
-    transforms.RandomHorizontalFlip(),                                                           #Randomly flips image
-    transforms.RandomRotation(90),                                                               #Randomly rotates images 90 degrees
-    transforms.RandomResizedCrop(512, scale=(0.9, 1.5), ratio=(0.75, 1.333), interpolation=2),   #Randomly resized and crops the image
-    transforms.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.15, hue=(-0.4,0.4))        #Randomly changes brightness, contrast, saturation and hue of image
-])
-
-data = CustomDataset(root_dir='/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2', transform=transform_norm) #Loads data, resizes and converts to tensor.
-trainset,testset=train_test_split(data,test_size=SPLIT,shuffle=False)                                                        #Splits normal dataset into training and test 
-
-segmset = CustomDataset(root_dir='/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2', transform=transform_norm) #Loads segmentation data
-seg_trainset,seg_testset=train_test_split(segmset,test_size=SPLIT,shuffle=False)                                                    #Splits segmentaiton data into   
-
-
-trainset_trans=[] #New list for transfomations
-to_pil = transforms.ToPILImage() #Function for converting tensor to PIL image
-random_transform= RandomTransform(transform=transform_train,transform_seg=transform_train) #Innit randomtransform class
-
-#Runs through the split data set lists. Converst back to PIL img and preforms transform on the images.
-for pic,truth in zip(trainset,seg_trainset):
-    pic=to_pil(pic)
-    truth=to_pil(truth)
-    transformed=random_transform(pic,truth)
-    trainset_trans.append(transformed)
- 
-#Uses data loader to create datasets
-trainloader = DataLoader(trainset_trans, batch_size=3, shuffle=True)
-testloader=DataLoader(testset, batch_size=3, shuffle=False)
-seg_testloader=DataLoader(seg_testset, batch_size=3, shuffle=False)
-
-total_step=len(trainloader)
+total_step=len(trainloader)      #Define lenght of batched dataset
 
 #Innit model
 def improved_UNet():
     return UNet()
 
-model=improved_UNet()
-model=model.to(device) #Set device to run on GPU
+model=improved_UNet()  
+model=model.to(device)           #Set model to run on GPU
 
-#Dice loss function. Calculates overlap between prediction and truth
-def dice_loss(model_out,segm_map):
-    model_out=model_out.view(-1)
-    segm_map=segm_map.view(-1)
-
-
-    overlap=(model_out*segm_map).sum()
-    dice=(2*overlap)/(model_out.sum()+segm_map.sum())
-
-    return 1-dice
-
-
-
-optimizer = optim.Adam(model.parameters(), lr=LR)   #Adam optimizer for loss calculation
+optimizer = optim.Adam(model.parameters(), lr=LR)               #Adam optimizer for loss calculation
 scheduler = StepLR(optimizer, step_size=total_step, gamma=0.95) # SetpLR for LR-scheduler
 
 
 #Training
 def train():
-    
+    score=0                        #For evaluating performance of models
+    new_score=0                                     
     for epoch in range(NUM_EPOCHS):
-        model.train()
+        print("---------Training---------")
+        model.train()                               #Set the model for trainings
         running_loss = 0.0
         i=0
-        for images, segm in trainloader:  
-            images=images.to(device)
+        for images, segm in trainloader:            #Run through the batches in the data loader
+            images=images.to(device)                #Set the device to GPU
             segm=segm.to(device)
             
-            outputs = model(images)
-            loss = dice_loss(outputs, segm)
+            prediction = model(images)              #Run the images through the model to get a prediction
+            loss = dice_loss(prediction, segm)      #Calculate loss    
 
-            optimizer.zero_grad()
-            loss.backward()
-            optimizer.step()
-            scheduler.step()
-            running_loss += loss.item()
+            optimizer.zero_grad()                   #Clears out the gradient parameters for the model
+            loss.backward()                         #Adjusts prameters for the model
+            optimizer.step()                        #Progress the optimizer
+            scheduler.step()                        #Progress the scheduler
+            running_loss += loss.item()             #Calculate runningloss
             i=i+1
 
             if (i+1) % 10 == 0:
-                print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}".format(epoch+1, NUM_EPOCHS, i+1, total_step, running_loss/i))
-                #output=torch.round(outputs)
-                image = torch.cat((outputs.cpu(),segm.cpu()),dim=0)
-                save_image(image, f'better_img/z{epoch}sigm_008_near.png',nrow=6)
-        print(epoch)
-        test()
+                print ("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}".format(epoch+1, NUM_EPOCHS, i+1, total_step, running_loss/(i+1)))
+    
+        print("------------------------------")
+        print(f"Performing validation for epoch number {epoch+1}:")
+        new_score,_=eval(validationloader,truth_validationset_loader,"no_load")  #Run evaluation
+
+        if new_score>=score:                                        #Checking if new score is bettern than old score
+            score=new_score                                         #Define new best score
+            print("Saving model ...")                   
+            torch.save(model.state_dict(), 'UNet_model.pt')         #Saving the model
 
 
 
-#Testing
-def test():
-    model.eval()
+#Validating and testing
+def eval(input,truth,load):
+    model.eval()                                            #Innit the model for eval
+    if load == "load":                                      #Load the best model when testing
+        print("Loading model ...")
+        model.load_state_dict(torch.load('UNet_model.pt'))
     score_list=[]
-    with torch.no_grad():
-        for images, truth in zip(testloader, seg_testloader):
+    with torch.no_grad():                                   
+        for images, truth_batch in zip(input,truth):        #Loading batches
             images = images.to(device)
-            truth = truth.to(device)
+            truth_batch = truth_batch.to(device)            #Setting device for truth and images
 
             outputs = model(images)
-            outputs=torch.round(outputs)
-            for i,x in zip(outputs,truth):
-                dice=dice_loss(i,x).item()
-                score_list.append(dice)
+            outputs=torch.round(outputs)                    #Rounding the predictions from the model to get binary values
+            for i,x in zip(outputs,truth_batch):            #Calculate dice score for all the images in the batch
+                dice=1-dice_loss(i,x).item()
+                score_list.append(dice)                     #Apennd to the list for all scores in test set.
 
-        print(sum(score_list)/len(score_list))
-        print(min(score_list))
-        print(max(score_list))
-train()
+        print(f"Mean: {sum(score_list)/len(score_list)}")
+        print(f"Lowest score: {min(score_list)}")
+        print(f"Highest score: {max(score_list)}")
+        return sum(score_list)/len(score_list),score_list  #Return the mean and the score list
+    
+if __name__=="__main__":
+    train()
+    print("-----------------------")
+    print("Performing test:")
+    eval(testloader,testset_truth_loader,"load")
 
 
 

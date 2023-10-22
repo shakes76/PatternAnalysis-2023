@@ -12,7 +12,9 @@ class pre_act_context(nn.Module):
     def __init__(self,in_channels,out_channels):
         super(pre_act_context,self).__init__()
         self.pre_activation=nn.Sequential(
-            convoltion(in_channels,out_channels,3,1,1), #Convolutional layer 
+            nn.BatchNorm2d(in_channels),
+            nn.ReLU(),
+            nn.Conv2d(in_channels,out_channels,3,1,1), #Convolutional layer 
             nn.Dropout(p=0.3),                          #Dropout that zeros elements based on a probability
             convoltion(in_channels,out_channels,3,1,1)
         )
@@ -26,13 +28,13 @@ class pre_act_context(nn.Module):
 class convoltion(nn.Module):
     def __init__(self,in_channels,out_channels,kernel,stride,padding):
         super(convoltion,self).__init__()
-        self.bn1=nn.BatchNorm2d(in_channels)                                                                        #Batch normalization
+        self.bn1=nn.BatchNorm2d(out_channels)                                                                        #Batch normalization
         self.conv1=nn.Conv2d(in_channels,out_channels,kernel_size=kernel,stride=stride,padding=padding,bias=False)  #Convolution
 
     def forward(self,x):
-        out=self.bn1(x)    #Batch nomalization
+        out=self.conv1(x)#Convolution
+        out=self.bn1(out) #Batch nomalization
         out=funk.relu(out) #Relu
-        out=self.conv1(out)#Convolution
         return out
 
 #Localization module which consists of a 3x3 convolution and one 1x1 convolution        
@@ -90,6 +92,7 @@ class segmentation(nn.Module):
 class UNet(nn.Module):
     def __init__(self):
         super(UNet,self).__init__()
+        """Defining all the parts of the UNet model with the correct number of input and output channels"""
         self.conv1=convoltion(3,16,3,1,1)
         self.down1=pre_act_context(16, 16)
 
