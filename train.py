@@ -1,109 +1,65 @@
-import math
 import os
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import DataLoader
-from torchvision import transforms
-from dataset import get_loader, CustomDataset
-from modules import UNet
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.optimizers import Adam
+from modules import build_unet
+from dataset import load_data, tf_dataset
 
-class Train:
-    def __init__(self, model, train_loader, learning_rate, num_epochs, save_path):
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = model.to(self.device)
-        self.train_loader = train_loader
-        self.learning_rate = learning_rate
-        self.num_epochs = num_epochs
-        self.save_path = save_path
+H = 256
+W = 256
 
-        # Define loss and optimizer
-        self.dice_loss = DiceLoss()
-        self.optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
+def create_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
 
-    def train(self):
-        for epoch in range(self.num_epochs):
-            self.model.train()
-            total_dice = 0.0
-            for batch_idx, (inputs, targets) in enumerate(self.train_loader):
-                inputs, targets = inputs.to(self.device), targets.to(self.device)
+def dice_coef(y_true, y_pred):
+    smooth = 1e-5
+    y_true = tf.keras.layers.Flatten()(y_true)
+    y_pred = tf.keras.layers.Flatten()(y_pred)
+    intersection = tf.reduce_sum(y_true * y_pred)
+    return (2. * intersection + smooth) / (tf.reduce_sum(y_true) + tf.reduce_sum(y_pred) + smooth)
 
-                # Calculate the iteration number within the epoch
-                iteration = batch_idx
+def dice_loss(y_true, y_pred):
+    return 1.0 - dice_coef(y_true, y_pred)
 
-                # Forward pass
-                outputs = self.model(inputs)
+def calculate_dice_coefficient(model, x, y):
+    y_pred = model.predict(x)
+    dice = dice_coef(y, y_pred).numpy()
+    return dice
 
-                # Check for values greater than 1 in both predicted and target tensors
-                if (outputs > 1).any() or (targets > 1).any():
-                    print("Values greater than 1 found in outputs or targets.")
-                    # Handle or log the issue and continue
-
-                # Calculate the Dice coefficient
-                dice = self.calculate_dice(outputs, targets)
-                total_dice += dice
-
-                if torch.isnan(dice).any():
-                    print("Dice coefficient contains NaN values.")
-                    # Handle or log the issue and continue
-
-                # Backpropagation
-                self.optimizer.zero_grad()
-                dice_loss = dice
-                dice_loss.backward()
-                self.optimizer.step()
-
-                # Print the training progress
-                #print(f"Epoch {epoch + 1}/{self.num_epochs}, Iteration {iteration}, Loss: {dice.item()}")
-
-            average_dice = total_dice / len(self.train_loader)
-            print(f"Epoch {epoch + 1}/{self.num_epochs}, Average Dice Coefficient: {average_dice}")
-
-        # Save the complete model after training
-        self.save_model()
-
-    def calculate_dice(self, predicted, target, smooth=1e-5):
-        iflat = predicted.contiguous().view(-1)
-        tflat = target.contiguous().view(-1)
-        intersection = (iflat * tflat).sum()
-        A_sum = torch.sum(iflat * iflat)
-        B_sum = torch.sum(tflat * tflat)
-        return 1 - ((2. * intersection + smooth) / (A_sum + B_sum + smooth))
-    def save_model(self):
-        save_path = f"{self.save_path}.pt"
-        torch.save(self.model, save_path)
-        print(f"Model saved as {save_path}")
-
-class DiceLoss(nn.Module):
-    def __init__(self):
-        nn.Module.__init__(self)
-
-    def forward(self, predicted, target):
-        smooth = 1.
-        iflat = predicted.contiguous().view(-1)
-        tflat = target.contiguous().view(-1)
-        intersection = (iflat * tflat).sum()
-        A_sum = torch.sum(iflat * iflat)
-        B_sum = torch.sum(tflat * tflat)
-        return 1 - ((2. * intersection + smooth) / (A_sum + B_sum + smooth))
-
-
-if __name__ == '__main__':
-    train_input_dir = r"training input images directory here"
-    train_mask_dir = r"training input masks directory here"
+if __name__ == "__main__":
+    # Set random seeds for reproducibility
+    np.random.seed(1)
+    tf.random.set_seed(1)
+    create_dir("files")
     batch_size = 4
-    learning_rate = 0.01
-    num_epochs = 10
-    save_path = r"location to save model here"
+    lr = 0.0001
+    num_epochs = 5
+    model_path = "files/model.h5"
+    csv_path = "files/data.csv"
+    dataset_path = "your_dataset_directory_here"
+    (train_x, train_y), (valid_x, valid_y), (test_x, test_y) = load_data(dataset_path)
+    # To print the number of images and masks of each type of data uncomment out below
+    #print(f"Train: {len(train_x)} - {len(train_y)}")
+    #print(f"Valid: {len(valid_x)} - {len(valid_y)}")
+    #print(f"Test: {len(test_x)} - {len(test_y)}")
+    train_dataset = tf_dataset(train_x, train_y, batch_size)
+    valid_dataset = tf_dataset(valid_x, valid_y, batch_size)
+    train_steps = len(train_x) // batch_size
+    valid_steps = len(valid_x) // batch_size
+    if len(train_x) % batch_size != 0:
+        train_steps += 1
+    if len(valid_x) % batch_size != 0:
+        valid_steps += 1
 
-    # Create the data loader using your CustomDataset and get_loader
-    transform = transforms.Compose([
-        transforms.ToTensor()
-    ])
-    train_loader = get_loader(train_input_dir, train_mask_dir, batch_size, transform=transform)
+    model = build_unet((H, W, 3))
+    metrics = [dice_coef]
+    model.compile(loss="binary_crossentropy", optimizer=Adam(learning_rate=lr), metrics=metrics)
 
-    model = UNet(3, 1)
-
-    trainer = Train(model, train_loader, learning_rate, num_epochs, save_path)
-    trainer.train()
-
+    model.fit(
+        train_dataset,
+        epochs=num_epochs,
+        validation_data=valid_dataset,
+        steps_per_epoch=train_steps,
+        validation_steps=valid_steps,
+    )
