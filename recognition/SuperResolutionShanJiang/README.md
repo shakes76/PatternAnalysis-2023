@@ -49,12 +49,13 @@ To run model testing, do following in `train.py`:
 4. Comment out code for training (from line ??? to line ???)
 5. run `train.py`
 ### Prediction
-Example usage of this model is shown in `predict.py`. In this file, 10 images from testing daaset are downsampled, predicted using the model. For each image, we show the lower resolution version, higher resolution version and prediction in one figure and saved in specified directory. To run this file, do following in `predict.py`:
+Example usage of this model is shown in `predict.py`. In this file, 10 images from testing daaset are downsampled, predicted using the model. For each image, we show the lower resolution version, higher resolution version and prediction in one figure and saved in specified directory. The following figures show an example of the figure.
+To run this file, do following in `predict.py`:
 2. Make sure the model has been trained and weights have been saved (see training part)
 3. Make sure prediction dataset is well defined in `dataset.py`. (Refer to "Loading dataset" of this doc)
 4. Creat a empty folder in the same directory as the python files to save the example figures. Specify the exact directory of this folder at line ?? by altering the value of variable `prediction_result_path` at line ??. Make sure add a "/" at the end of the path, for example: "exact/path/to/the/folder/".
 5. run `predict.py` 
-
+![example image](example_image.jpg)
 
 
        
