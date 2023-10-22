@@ -21,59 +21,54 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
 
     # Create model
     model = model.to(Config.DEVICE)
-    best_score = 0
+    best_loss = float('inf')
 
     # Lists for storing metrics
     train_losses = []
-    train_accs = []
     val_losses = []
-    val_accs = []
+    early_stopping_counter = 0
 
     for epoch in range(epochs):
 
         # train
-        train_batch_loss, train_batch_acc = train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs)
+        train_batch_loss = train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs)
         train_losses.append(train_batch_loss)
-        train_accs.append(train_batch_acc)
 
         # validate
-        val_batch_loss, val_batch_acc = validate_contrastive(model, val_loader, criterion, epoch, epochs)
+        val_batch_loss = validate_contrastive(model, val_loader, criterion, epoch, epochs)
         val_losses.append(val_batch_loss)
-        val_accs.append(val_batch_acc)
 
-        if val_batch_acc > best_score:
-            print(f"model improved: score {best_score:.5f} --> {val_batch_acc:.5f}")
-            best_score = val_batch_acc
+        if val_batch_loss < best_loss:
+            print(f"model improved: score {best_loss:.5f} --> {val_batch_loss:.5f}")
+            best_loss = val_batch_loss
             # Save the best weights if the score is improved
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': model.embedding_net.state_dict(),
                 'train_loss': train_batch_loss,
-                'val_acc': val_batch_acc
             }, Config.MODEL_DIR)
         else:
-            print(f"no improvement: score {best_score:.5f} --> {val_batch_acc:.5f}")
+            early_stopping_counter += 1
+            print(f"no improvement: loss {best_loss:.5f} --> {val_batch_loss:.5f}")
+
+        if early_stopping_counter > 5:
+            print("Early stopping!")
+            break
 
     # Convert lists to numpy arrays
     train_losses = np.array(train_losses)
-    train_accs = np.array(train_accs)
     val_losses = np.array(val_losses)
-    val_accs = np.array(val_accs)
 
     # Save the arrays
     np.save(os.path.join(Config.LOG_DIR, 'contrastive/train_losses.npy'), train_losses)
-    np.save(os.path.join(Config.LOG_DIR, 'contrastive/train_accs.npy'), train_accs)
     np.save(os.path.join(Config.LOG_DIR, 'contrastive/val_losses.npy'), val_losses)
-    np.save(os.path.join(Config.LOG_DIR, 'contrastive/val_accs.npy'), val_accs)
 
 
 def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
     model.train()
     train_loss_lis = np.array([])
-    correct_predictions = 0
-    total_samples = 0
-    negative_pairs_below_margin = 0  # Count of negative pairs with distances below the margin
-    total_negative_pairs = 0
+    # negative_pairs_below_margin = 0  # Count of negative pairs with distances below the margin
+    # total_negative_pairs = 0
 
     for batch in tqdm(train_loader):
         img_1, img_2, labels = batch
@@ -88,39 +83,31 @@ def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
         # Record the batch loss
         train_loss_lis = np.append(train_loss_lis, loss.item())
 
-        # calculate acc
-        probs = model.predict(embedding_1, embedding_2)
-        preds = (probs >= 0.5).float()
-        correct_predictions += (preds == labels.squeeze().float()).sum().item()
-        total_samples += labels.size(0)
+        # # Update the count of negative pairs below the margin
+        # negative_pair_mask = (labels == 0).float()  # 0 for negative pair
+        # total_negative_pairs += negative_pair_mask.sum().item()
+        # dists = model.euclidean_distance(embedding_1, embedding_2)
+        # negative_dists_below_margin = (dists < criterion.margin).float() * negative_pair_mask.squeeze()
+        # negative_pairs_below_margin += negative_dists_below_margin.sum().item()
 
-        # Update the count of negative pairs below the margin
-        negative_pair_mask = (labels == 0).float()  # 0 for negative pair
-        total_negative_pairs += negative_pair_mask.sum().item()
-        dists = model.euclidean_distance(embedding_1, embedding_2)
-        negative_dists_below_margin = (dists < criterion.margin).float() * negative_pair_mask.squeeze()
-        negative_pairs_below_margin += negative_dists_below_margin.sum().item()
-
+    # calculate training loss
     train_loss = sum(train_loss_lis) / len(train_loss_lis)
-    accuracy = correct_predictions / total_samples
 
-    # Adjust the margin if too many negative pairs are below it
-    proportion_negative_below_margin = negative_pairs_below_margin / (total_negative_pairs + 1e-10)
-    if proportion_negative_below_margin > 0.3:  # Example threshold, adjust as needed
-        criterion.margin *= 0.9  # Reduce the margin by 10%
-        print('proportion_negative_below_margin', proportion_negative_below_margin)
+    # # Adjust the margin if too many negative pairs are below it
+    # proportion_negative_below_margin = negative_pairs_below_margin / (total_negative_pairs + 1e-10)
+    # if proportion_negative_below_margin > 0.3:  # Example threshold, adjust as needed
+    #     criterion.margin *= 0.9  # Reduce the margin by 10%
+    #     print('proportion_negative_below_margin', proportion_negative_below_margin)
 
     # Print the information.
     print(
-        f"[ Train | {epoch + 1:03d}/{epochs:03d} ] margin = {criterion.margin}, acc = {accuracy:.5f}, loss = {train_loss:.5f}")
-    return train_loss, accuracy
+        f"[ Train | {epoch + 1:03d}/{epochs:03d} ] margin = {criterion.margin}, loss = {train_loss:.5f}")
+    return train_loss
 
 
 def validate_contrastive(model, val_loader, criterion, epoch, epochs):
     model.eval()
     total_loss = 0.0
-    correct_predictions = 0
-    total_samples = 0
 
     with torch.no_grad():
         for batch in tqdm(val_loader):
@@ -130,19 +117,14 @@ def validate_contrastive(model, val_loader, criterion, epoch, epochs):
             loss = criterion(embedding_1, embedding_2, labels)
 
             total_loss += loss.item()
-            probs = model.predict(embedding_1, embedding_2)
-            preds = (probs >= 0.5).float()
-            correct_predictions += (preds == labels.squeeze().float()).sum().item()
-            total_samples += labels.size(0)
 
     average_loss = total_loss / len(val_loader)
-    val_acc = correct_predictions / total_samples
 
     # Print the information.
     print(
-        f"[ Validation | {epoch + 1:03d}/{epochs:03d} ] margin = {criterion.margin:.5f}, acc = {val_acc:.5f}, loss = {average_loss:.5f}")
+        f"[ Validation | {epoch + 1:03d}/{epochs:03d} ] margin = {criterion.margin:.5f}, loss = {average_loss:.5f}")
 
-    return average_loss, val_acc
+    return average_loss
 
 
 class ContrastiveLoss(torch.nn.Module):
