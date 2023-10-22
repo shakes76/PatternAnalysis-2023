@@ -127,7 +127,7 @@ def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, crit
             print(f"Epoch {epoch + 1}")
             # training
             epoch_train_loss = 0
-            a_embed_t.train()
+            classifier.train()
             for batch_no, (a_t, label, _, _) in enumerate(train_loader):
                 # move the data to the GPU
                 a_t = a_t.to(device)
@@ -274,13 +274,23 @@ def main():
         return
     
     classifier = BinaryClassifier(siamese.embedding_dim)
-    criterion_c = torch.nn.BCELoss()
+    criterion_c = torch.nn.CrossEntropyLoss()
     optimiser_c = optim.Adam(classifier.parameters(), lr=1e-3)
     epochs = 10
+
+    print(classifier)
     
     if saved_c_path is None:
+        # set up the datasets
+        train_set = TripletDataset(root="data/train", transform=transform)
+        valid_set = TripletDataset(root="data/valid", transform=transform)
+
+        # set up the dataloaders
+        train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+        valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+
         # train new classifier
-        losses = train_classifier(classifier, siamese, criterion_c, optimiser, device, train_loader, 
+        losses = train_classifier(classifier, siamese, criterion_c, optimiser_c, device, train_loader, 
                      valid_loader, epochs)
         save_path = f"./checkpoints/cp_c_{datetime.datetime.now().strftime('%m-%d_%H-%M-%S')}"
         torch.save(classifier.state_dict(), save_path)
