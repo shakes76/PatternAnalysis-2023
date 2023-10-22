@@ -85,8 +85,6 @@ root_directory
 ├── modules.py
 ├── dataset.py
 └── predict.py
-
-
 ```
 
 ## Data Splits
