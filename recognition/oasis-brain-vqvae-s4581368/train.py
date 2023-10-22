@@ -1,4 +1,8 @@
-# Training module for the VQVAE
+"""
+Training module for the VQVAE
+Ryan Ward
+45813685
+"""
 import os
 import numpy as np
 import torch
@@ -7,6 +11,13 @@ import torch.nn.functional as F
 from predict import calculate_batch_ssim
 
 def test(data_loader, model, device):
+    """
+    The test function to validate the model as it is training
+    :param Dataloader data_loader: The validation Dataloader
+    :param nn.Module model: The VQ-VAE model
+    :param str device: The device to run the model on
+    :returns: float, float
+    """
     with torch.no_grad():
         loss_x, loss_q = 0., 0.
         for images in data_loader:
@@ -20,12 +31,20 @@ def test(data_loader, model, device):
     return loss_x, loss_q
 
 def generate_samples(images, model, device):
+    """
+    The test function to validate the model as it is training
+    :param Tensor images: The images to reconstruct 
+    :param nn.Module model: The VQ-VAE model
+    :param str device: The device to run the model on
+    :returns: Tensor
+    """
     with torch.no_grad():
         images = images.to(device)
         _, x_tilde, _, _ = model(images)
     return x_tilde
 
 def train_vqvae(model, save_filename, device, train_loader, val_loader, logger, fixed_images, learning_rate, epochs):
+    """"""
     model.to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     best_loss = -1
