@@ -2,6 +2,7 @@
 An implementation of StyleGAN2 for generating images of the human brain based on the [OASIS brains](https://www.oasis-brains.org/) dataset.
 
 ## Table of Contents
+
 - [COMP3710 StyleGAN2 Brain Image Generation](#comp3710-stylegan2-brain-image-generation)
   - [The Problem - *Reasonably Clear Image Generation*](#the-problem---reasonably-clear-image-generation)
   - [Why a GAN?](#why-a-gan)
@@ -14,15 +15,20 @@ An implementation of StyleGAN2 for generating images of the human brain based on
       - [Dataloader Pre-processing](#dataloader-pre-processing)
     - [Predict/Image Generation Implementation](#predictimage-generation-implementation)
   - [Training & Results](#training--results)
-    - [Figure 3 - Training Results (w_dim = 512) and (training epochs = 300)](#figure-3---training-results-w_dim--512-and-training-epochs--300)
+      - [*Figure 3 - Training Input Sample Images (From the OASIS Dataset)*](#figure-3---training-input-sample-images-from-the-oasis-dataset)
+      - [*Figure 4 - Training Results (w_dim = 512) and (training epochs = 300)*](#figure-4---training-results-w_dim--512-and-training-epochs--300)
+      - [*Figure 5 - Training Results Alternative (w_dim = 512) and (training epochs = 300)*](#figure-5---training-results-alternative-w_dim--512-and-training-epochs--300)
+      - [*Figure 6 - Training Progression of the StyleGAN2 (w_dim = 512) and (training epochs = 300)*](#figure-6---training-progression-of-the-stylegan2-w_dim-512-and-training-epochs-300)
+      - [*Figure 7 - Training Loss Plot (w_dim = 512) and (training epochs = 300)*](#figure-7---training-loss-plot-w_dim-512-and-training-epochs-300)
   - [Code Structure](#code-structure)
   - [Usage/Try it yourself](#usagetry-it-yourself)
     - [Requirements](#requirements)
     - [Getting Started](#getting-started)
     - [Training a Model](#training-a-model)
     - [Generating New Images](#generating-new-images)
-  - [Where to Next?/Discussion](#where-to-nextdiscussion)
-  - [References & Acknowledgements](#references--acknowledgements)
+    - [All in One (Training, Inference & Image Generation)](#all-in-one-training-inference-image-generation)
+  - [Future Improvements](#future-improvements)
+  - [References & Acknowledgements](#references-acknowledgements)
 
 ## The Problem - *Reasonably Clear Image Generation*
 The sophistication and complexity of the human brain has fascinated scientists for hundreds
