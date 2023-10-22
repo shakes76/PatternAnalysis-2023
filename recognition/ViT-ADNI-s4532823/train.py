@@ -5,7 +5,7 @@ Train the model and perform testing.
 from dataset import get_dataloader
 import torch
 import time
-from modules import ViT
+from modules import ViT, VisionTransformer
 import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 
@@ -96,21 +96,27 @@ def run_training(device,
     # Initialise criterion, optimizer and LR scheduler
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 1, 0.5)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, 5, 0.5)
     # Metrics tracking
     train_losses = []
     val_losses = []
     train_accs = []
     val_accs = []
     stopping_epoch = epochs
+    down_consec = 0
     # Run through epochs
     strt = time.time()
     for epoch in range(epochs):
         tl, vl, ta, va = train_val_epoch(device, model, train_loader, val_loader, criterion, optimizer, scheduler, epoch, epochs)
         train_losses.append(tl); val_losses.append(vl); train_accs.append(ta); val_accs.append(va)
-        # Stop training early if validation accuracy decreases for two epochs in a row
-        if epoch+1 > 2 and val_accs[-3] > val_accs[-2] and val_accs[-2] > val_accs[-1]:
-            stopping_epoch = epoch+1
+        # Increase the down consecutively counter if necessary
+        if epoch + 1 > 1 and val_accs[-1] < val_accs[-2]:
+            down_consec += 1
+        else:
+            down_consec = 0
+        # Stop training early if validation accuracy decreases for four epochs in a row
+        if down_consec >= 4:
+            stopping_epoch = epoch + 1
             break
         if val_accs[-1] == max(val_accs):
             # save best model
@@ -139,7 +145,7 @@ def run_testing(device, model, test_loader: DataLoader):
             test_total += labels.size(0)
             test_correct += (predicted == labels).sum().item()
 
-    print(f"Test accuracy {(test_correct/test_total)*100:.2f}, time elapsed {time.time()-start:.3f} secs or {(time.time()-start)/60:.2f} mins in total")
+    print(f"Test accuracy {(test_correct/test_total)*100:.2f}%, time elapsed {time.time()-start:.3f} secs or {(time.time()-start)/60:.2f} mins in total")
 
 
 def main():
@@ -152,12 +158,13 @@ def main():
         print("Warning CUDA not found. Using CPU")
     # Initialise hyperparameters
     BATCH_SIZE = 64
-    EPOCHS = 10
-    LR = 2e-5
+    EPOCHS = 20
+    LR = 1e-4
     # Initialise data loaders & model
     train_loader, val_loader = get_dataloader(batch_size=BATCH_SIZE, train=True)
     test_loader = get_dataloader(batch_size=BATCH_SIZE, train=False)
-    model = ViT()
+    #model = ViT()
+    model = VisionTransformer()
     model = model.to(device)
     # Run training and testing
     run_training(device, model, train_loader, val_loader, epochs=EPOCHS, lr=LR)

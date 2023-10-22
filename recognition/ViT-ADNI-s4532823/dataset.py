@@ -23,7 +23,6 @@ if sys.platform == 'win32':
 TRAIN_TRANSFORM = transforms.Compose([
     transforms.RandomCrop(224),
     transforms.RandomHorizontalFlip(),
-    transforms.RandomVerticalFlip(),
     transforms.ToTensor(),
 ])
 
