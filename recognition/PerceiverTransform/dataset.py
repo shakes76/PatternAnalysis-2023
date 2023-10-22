@@ -22,7 +22,7 @@ class AlzheimerDataset(Dataset):
             idx = idx.tolist()
 
         img_name = self.total_images[idx]
-        image = Image.open(img_name).convert('RGB')
+        image = Image.open(img_name)
         
         label = 0 if img_name in self.nc_images else 1  # 0 for NC and 1 for AD
         
@@ -38,7 +38,6 @@ def get_dataloaders(root_dir, batch_size):
     transform = transforms.Compose([
         transforms.Resize((224, 224)),  # Resizing to fit typical CNN input sizes. Adjust if necessary.
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
 
     # Here, the AlzheimerDataset class is instantiated twice, for training and testing purposes. 

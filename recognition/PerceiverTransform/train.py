@@ -14,11 +14,11 @@ MODEL_PATH = './perceiver_model.pth'
 
 # Model Initialization
 model = Perceiver(
-    input_dim=3 * 224 * 224,
-    latent_dim=256,
-    embed_dim=256,
-    n_classes=2,
-    num_heads=4  
+    input_dim = 224 * 224,
+    latent_dim = 256,
+    embed_dim = 256,
+    n_classes = 2,
+    num_heads = 4  
 ).to(DEVICE)
 
 loss_fn = nn.CrossEntropyLoss()
