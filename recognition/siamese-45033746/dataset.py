@@ -7,14 +7,10 @@ import numpy as np
 from torch.utils.data import Dataset
 
 # for slurm
-TRAIN_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/train/"
-TRAIN_AD = TRAIN_FILE_ROOT + "AD"
-TRAIN_NC = TRAIN_FILE_ROOT + "NC"
+TRAIN_FILE_ROOT = "/home/groups/comp3710/ADNI/AD_NC/train"
 
 # for local
-# TRAIN_FILE_ROOT = "./AD_NC/train/"
-# TRAIN_AD = TRAIN_FILE_ROOT + "AD"
-# TRAIN_NC = TRAIN_FILE_ROOT + "NC"
+# TRAIN_FILE_ROOT = "./AD_NC/train"
 
 VAL_SIZE = 0.1
 TRAIN_SIZE = 0.9
@@ -87,10 +83,10 @@ def remove_patients(imgset: datasets.ImageFolder, index: int, match_set: []) -> 
 
 
 def patient_split() -> (datasets.ImageFolder, datasets.ImageFolder):
-    files = get_patients(TRAIN_AD)
+    files = get_patients(TRAIN_FILE_ROOT + "/AD")
     random.shuffle(files)
     train_ad, validate_ad = np.split(files, [int(len(files) * TRAIN_SIZE)])
-    files = get_patients(TRAIN_NC)
+    files = get_patients(TRAIN_FILE_ROOT + "/NC")
     random.shuffle(files)
     train_nc, validate_nc = np.split(files, [int(len(files) * TRAIN_SIZE)])
 
