@@ -10,6 +10,7 @@ import os
 from modules import Embedding_Baseline, SiameseContrastive, SiameseTriplet, ClassificationNet
 from dataset import ContrastiveDataset, discover_directory, patient_level_split, TripletDataset
 from torch.utils.data import DataLoader
+import argparse
 
 """
 Trining process for Contrastive loss
@@ -17,7 +18,7 @@ Trining process for Contrastive loss
 
 
 def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epochs):
-    print('---------Train on: ' + Config.DEVICE + '----------')
+    print('---------Siamese(Contrastive) Train on: ' + Config.DEVICE + '----------')
 
     # Create model
     model = model.to(Config.DEVICE)
@@ -240,55 +241,6 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
 
     return average_loss, val_acc
 
-
-# train with contrastive
-if __name__ == '__main__':
-    random.seed(2023)
-
-    # pretraining Siamese
-    embedding_net = Embedding_Baseline()
-    model = SiameseContrastive(embedding_net)
-
-    full_train_data = discover_directory(Config.TRAIN_DIR)
-    train_data, val_data = patient_level_split(full_train_data)  # patient-level split
-
-    tr_transform = tf.Compose([
-        tf.Normalize((0.1160,), (0.2261,)),
-        tf.RandomRotation(10)
-    ])
-    val_transform = tf.Compose([
-        tf.Normalize((0.1160,), (0.2261,)),
-        tf.RandomRotation(10)
-    ])
-
-    train_dataset = ContrastiveDataset(train_data, transform=tr_transform)
-    val_dataset = ContrastiveDataset(val_data, transform=val_transform)
-
-    dataloader_tr = DataLoader(
-        dataset=train_dataset,
-        shuffle=True,
-        batch_size=10,
-        num_workers=1,
-        drop_last=True
-    )
-    dataloader_val = DataLoader(
-        dataset=val_dataset,
-        shuffle=True,
-        batch_size=10,
-        num_workers=1,
-        drop_last=True
-    )
-
-    criterion = ContrastiveLoss(margin=1)
-
-    lr = 0.0001
-    weight_decay = 1e-5
-    optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
-
-    epochs = 50
-
-    main_contrastive(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
-
 """
 # train with Triplet loss
 if __name__ == '__main__':
@@ -335,3 +287,81 @@ if __name__ == '__main__':
 
     main_triplet(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
 """
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Training script for Contrastive/Triplet network')
+
+    # model
+    parser.add_argument('-m', '--model', default='Contrastive', type=str,
+                        help='model to train (Contrastive/Triplet/Classification')
+
+    # seed
+    parser.add_argument('-sd', '--seed', default=2023, type=int, help='Seed for initializing training.')
+
+    # data loading
+    parser.add_argument('-tp', '--train_path', default=Config.TRAIN_DIR, help='Path to the training dataset.')
+    parser.add_argument('-wn', '--workers', default=1, type=int, help='Number of workers for data loading.')
+    parser.add_argument('-bs', '--batch_size', default=8, type=int, help='Batch size for training.')
+
+    # training parameters
+    parser.add_argument('-ep', '--epochs', default=50, type=int, help='Number of epochs for training.')
+    parser.add_argument('-lr', '--learning_rate', default=0.005, type=float, help='Initial learning rate.')
+    parser.add_argument('-wd', '--weight_decay', default=1e-5, type=float, help='Weight decay for the optimizer.')
+
+    args = parser.parse_args()
+
+    # seed
+    random.seed(args.seed)
+
+    # get data
+    full_train_data = discover_directory(args.train_path)
+    train_data, val_data = patient_level_split(full_train_data)  # patient-level split
+
+    tr_transform = tf.Compose([
+        tf.Normalize((0.1160,), (0.2261,)),
+        tf.RandomRotation(10)
+    ])
+    val_transform = tf.Compose([
+        tf.Normalize((0.1160,), (0.2261,)),
+        tf.RandomRotation(10)
+    ])
+
+    lr = args.learning_rate
+    weight_decay = args.weight_decay
+    epochs = args.epochs
+
+    # pretraining Siamese
+    if args.model == 'Contrastive':
+        embedding_net = Embedding_Baseline()
+        model = SiameseContrastive(embedding_net)
+
+        train_dataset = ContrastiveDataset(train_data, transform=tr_transform)
+        val_dataset = ContrastiveDataset(val_data, transform=val_transform)
+
+        dataloader_tr = DataLoader(
+            dataset=train_dataset,
+            shuffle=True,
+            batch_size=args.batch_size,
+            num_workers=args.workers,
+            drop_last=True
+        )
+        dataloader_val = DataLoader(
+            dataset=val_dataset,
+            shuffle=True,
+            batch_size=args.batch_size,
+            num_workers=args.workers,
+            drop_last=True
+        )
+
+        criterion = ContrastiveLoss(margin=1)
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+        main_contrastive(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
+
+    else:
+        print('model type not included, try Contrastive/Triplet.')
+
+
+
+
+
