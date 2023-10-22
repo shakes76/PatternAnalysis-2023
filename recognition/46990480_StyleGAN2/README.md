@@ -110,7 +110,7 @@ The data is now ready for use with the dataloader within this project.
 ## Implementation
 As mentioned, the StyleGAN2 model was implemented with the objective to generate reasonable clear 
 images of the brain. The models utilised within this project (found in the `modules.py` directory) 
-were based on the original [StyleGAN](https://arxiv.org/pdf/1912.04958.pdf?ref=blog.paperspace.com) & [StyleGAN2](https://arxiv.org/pdf/1912.04958.pdf) papers as well as this [light weight StlyeGAN2 implementation](https://blog.paperspace.com/implementation-stylegan2-from-scratch/) found online. This StyleGAN2 implementation wa then modified and re-tuned 
+were based on the original [StyleGAN](https://arxiv.org/pdf/1912.04958.pdf?ref=blog.paperspace.com) & [StyleGAN2](https://arxiv.org/pdf/1912.04958.pdf) papers as well as this [light weight StlyeGAN2 implementation](https://blog.paperspace.com/implementation-stylegan2-from-scratch/) found online. This StyleGAN2 implementation was then modified and re-tuned 
 to run on the OASIS brains dataset. One critical parameter which had to be re-tuned was the latent 
 space dimensions. The original paper utilised a style vector ($w$) dimension of 512. As such the 
 models were modified to accommodate this new latent dimension. 
@@ -121,7 +121,7 @@ my local machine and on the University Rangpur High Performance Cluster (HPC). A
 the dataloader was working, I modified the models to work with the new dataloader. 
 
 The next phase of implementing the solution was to develop the training loop. To train the GAN, a 
-batch of *real* images is first fetched from the data loader. Then a random style ($w$) and gaussian 
+batch of *real* images is first fetched from the data loader. Then random style vectors ($w$) and gaussian 
 noise vectors were generated, and passed into the Generator model to obtain a batch of fake generated 
 images. Using the Discriminator model each of these fakes would then be assessed to identify if they 
 were classified as real or fake. After this the original batch of real images would also be passed 
@@ -144,8 +144,7 @@ is no technique to utilise the `validate` and `test` data sets within the StyleG
 
 #### Dataloader Pre-processing
 The OASIS brains dataset provided, is already pre-processed, as such no additional pre-processing was 
-**strictly* required, however some basic pre-processing was still included in the event that it was 
-included in the event that a different version of the dataset was being utilised.
+*strictly* required, however some basic pre-processing was still included in the event that a different version of the dataset was being utilised.
 
 Since the size of the dataset is fairly small (9k images), to the reduce the risk of over-fitting 
 dataset augmentation was implemented. Upon import a random horizontal flip transform was applied to 
@@ -155,10 +154,31 @@ the images to account for this. Additionally, upon import the images were all no
 The `predict.py` functionality was utilised to generate a grid of images from the trained latent space of the Generator model. Every time this script is executed, a new subset of randomly generated images will be displayed in the grid since the new randomised style vectors ($w$) are being used to generate the outputs.
 
 ## Training & Results
-The following results ([Figure 3](#figure-3---training-results-w_dim--512-and-training-epochs--300)) were obtained when testing with the model. These results meet the requirement of generating *reasonably clear images* of brains using the styleGAN2 architecture.
+As mentioned above, this StyleGAN2 implementation has been trained on the OASIS brains dataset. A snapshot of some example input training images from this dataset can be seen in [Figure 3](#figure-3---training-input-sample-images-from-the-oasis-dataset). 
 
-#### *Figure 3 - Training Results (w_dim = 512) and (training epochs = 300)*
-![Training Results](./assets/generatedImagesExample.png)
+#### *Figure 3 - Training Input Sample Images (From the OASIS Dataset)*
+![Training Input Sample Images](./assets/trainingImageSample.png)
+
+The final results after training for 300 epochs, with a style vector dimension of 512 can be seen in Figures [4](#figure-4---training-results-w_dim--512-and-training-epochs--300) & [5](#figure-5---training-results-alternative-w_dim--512-and-training-epochs--300). To generate these images, random gaussian noise vectors were created and passed through the mapping network to obtain unique style vectors $w$. These randomised vectors were then used to create the batch of 64 images shown in the grid. As such each of the brain images within the grid is generated from a different style vector.
+
+#### *Figure 4 - Training Results (w_dim = 512) and (training epochs = 300)*
+![Training Results](./assets/generatedImages2.png)
+
+#### *Figure 5 - Training Results Alternative (w_dim = 512) and (training epochs = 300)*
+![Training Results](./assets/generatedImages.png)
+
+Overall, the above results depict *reasonably clear* images of the brain and as such, the objective of the task has been achieved. The results have appeared fairly consistent with their not being bias toward a particular feature/style. I was able to consistently reproduce similar results each time I trained the StyleGAN2 model.
+
+The training progression of the StyleGAN2 can be visualised by viewing the sample images generated at different epochs of training time. Below [Figure 6](#figure-6---training-progression-of-the-stylegan2-w_dim--512-and-training-epochs--300) shows that there is an improvement in clarity as the number of training epochs increases.
+
+#### *Figure 6 - Training Progression of the StyleGAN2 (w_dim = 512) and (training epochs = 300)*
+![Training Progression 50-250 epochs.](./assets/trainingProgression.PNG)
+
+Lastly, to ensure that the model is training correctly, the loss plots were analysed. As demonstrated by [Figure 7](#figure-7---training-loss-plot-w_dim--512-and-training-epochs--300), the loss of the generator and the discriminator models converge at approximately 0. This indicates that the GAN is being trained correctly and that there is not a bias toward one of the models in particular. 
+
+#### *Figure 7 - Training Loss Plot (w_dim = 512) and (training epochs = 300)*
+![Training loss plot after 150 epochs](./assets/trainingLossPlotAvgPerEpoch_150epochs.png)
+*Note: that there was no additional variation after epoch 150 so the domain of the graph is [0:150]*
 
 ## Code Structure
 Here is a summary of how the code base is structured.
@@ -228,6 +248,10 @@ The `predict.py` script can be used as a driver for the training and image gener
 ```
 python predict.py -train_models=TRUE
 ```
+
+## Discussion
+To further improve the results of the output, I would like to compute additional metrics to gain a better understanding of how the models are training. Specifically, I would like to try implementing a [UMAP](https://umap-learn.readthedocs.io/en/latest/) to better visualise the latent space within the trained generator model.
+
 ## References & Acknowledgements
 - https://www.oasis-brains.org/
 - https://arxiv.org/abs/1812.04948

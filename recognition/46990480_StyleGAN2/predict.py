@@ -62,6 +62,6 @@ with torch.no_grad():
 plt.figure(figsize=(4, 4))
 plt.axis("off")
 plt.margins(x=0)
-plt.title(args.plt_title)
+plt.title(args.plt_title, fontsize = 6)
 plt.imshow(np.transpose(vutils.make_grid(generated_img, padding=2, normalize=True), (1, 2, 0)))
 plt.savefig(f'{save_path}/generatedImages.png', bbox_inches='tight', dpi=600)
