@@ -9,7 +9,7 @@ from utils import show_plot, save_plot
 
 # 256x240
 
-def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt: optim.optimizer, counter: [],
+def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt, counter: [],
                   loss: [], epoch: int, device):
     # Iterate over batch
     for i, (label, anchor, positive, negative) in enumerate(dataLoader, 0):
