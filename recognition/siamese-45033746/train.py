@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 from torch import optim
 from torch.nn import TripletMarginLoss
 import torch
-from utils import show_plot
+from utils import show_plot, save_plot
 
 
 # 256x240
@@ -65,7 +65,7 @@ def train(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
                 counter.append(iteration)
                 loss_accumulator.append(loss_contrastive.item())
 
-    show_plot(counter, loss_accumulator)
+    save_plot(counter, loss_accumulator)
 
 
 if __name__ == '__main__':
