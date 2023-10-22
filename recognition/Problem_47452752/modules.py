@@ -7,15 +7,15 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class Encoder(nn.Module):
+class Context(nn.Module):
     """
     Encoder that computes the activations in the context pathway. This class behaves as the 'context module' from the paper.
-    Each Encoder module is a pre-activation residual block with two 3x3x3 convolutional layers and a dropout layer (p = 0.3) in between.
+    Each Context module is a pre-activation residual block with two 3x3x3 convolutional layers and a dropout layer (p = 0.3) in between.
     Instance normalization and leaky ReLU is used throughout the network.
     """
 
     def __init__(self, in_channels):
-        super(Encoder, self).__init__()
+        super(Context, self).__init__()
         # We use leakyReLU with negative slope 1e-2
         self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=True)
         # 3x3x3 convolutional layer that preserves the input size
@@ -30,11 +30,11 @@ class Encoder(nn.Module):
     def forward(self, x):
         shortcut = x
 
-        residual = self.relu(self.norm(x))
-        residual = self.dropout(residual)
-        residual = self.relu(self.norm(x))
+        x = self.relu(self.norm(x))
+        x = self.dropout(x)
+        x = self.relu(self.norm(x))
 
-        return residual + shortcut
+        return x + shortcut
 
 
 class Up(nn.Module):
@@ -57,42 +57,42 @@ class Up(nn.Module):
             nn.Conv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
         )
 
-    def forward(self, x):
-        return self.conv(self.relu(self.norm(x)))
+    def forward(self, x, skip_channels):
+        x = self.conv(self.relu(self.norm(x)))
+        return torch.cat([x, skip_channels], dim=1)
 
 
-class Decoder(nn.Module):
+class Localisation(nn.Module):
     def __init__(self, in_channels, out_channels):
-        super(Decoder, self).__init__()
+        super(Localisation, self).__init__()
         # We use leakyReLU with negative slope 1e-2
         self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=True)
 
-        # Upsampling module:
+        # The Localisation module involves two rounds of normalizations and convoltions
 
-        self.upsample = nn.Sequential(
-            nn.Upsample(scale_factor=2, mode="nearest"),
-            nn.InstanceNorm3d(in_channels),
-            nn.LeakyReLU(negative_slope=1e-2, inplace=True),
-            nn.Conv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
-        )
-
-        # Localization module:
-
-        self.norm1 = nn.InstanceNorm3d(2 * out_channels)
-        #
+        # Round 1, we apply a 3x3x3 convolution
+        self.norm1 = nn.InstanceNorm3d(in_channels)
         self.conv1 = nn.Conv3d(
-            2 * out_channels, 2 * out_channels, kernel_size=3, stride=1, padding=1
+            in_channels, in_channels, kernel_size=3, stride=1, padding=1
         )
-
+        # Round 2, we halve the number of feature maps using a 1x1x1 convolution
         self.norm2 = nn.InstanceNorm3d(out_channels)
         self.conv2 = nn.Conv3d(
             in_channels // 2, out_channels, kernel_size=3, stride=1, padding=1
         )
 
+        def forward(self, x):
+            x = self.conv1(self.relu(self.norm1(x)))
+            x = self.conv2(self.relu(self.norm2(x)))
+            return x
+
     def forward(self, x, skip_connection):
         upsampled = self.upsample(x)
         upsampled = self.relu(self.norm(upsampled))
         upsampled = self.conv(upsampled)
+
+        # Concatenate with skip features from the context pathway
+        x = torch.cat([x, skip_features], dim=1)
 
         # halve the in_features, concativate with skip features
         pass
@@ -103,11 +103,11 @@ class UNet(nn.Module):
         super(UNet, self).__init__()
 
         # Context Pathway (encoders)
-        self.enc1 = Encoder(16)
-        self.enc2 = Encoder(32)
-        self.enc3 = Encoder(64)
-        self.enc4 = Encoder(128)
-        self.enc5 = Encoder(256)
+        self.enc1 = Context(16)
+        self.enc2 = Context(32)
+        self.enc3 = Context(64)
+        self.enc4 = Context(128)
+        self.enc5 = Context(256)
 
         # Convolutions that connect context modules, used for downsampling
         self.down1 = nn.Conv3d(in_channels, 16, kernel_size=3, stride=1, padding=1)
