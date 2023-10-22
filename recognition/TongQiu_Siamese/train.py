@@ -6,8 +6,7 @@ from tqdm.auto import tqdm
 from utils import Config
 from torch.utils.tensorboard import SummaryWriter
 import random
-
-from modules import Baseline_Contrastive, Baseline_Triplet
+from modules import Embedding_Baseline, SiameseContrastive, SiameseTriplet, ClassificationNet
 from dataset import ContrastiveDataset, discover_directory, patient_level_split, TripletDataset
 from torch.utils.data import DataLoader
 
@@ -20,14 +19,24 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
     # Create model
     model = model.to(Config.DEVICE)
     best_score = 0
-    writer = SummaryWriter(log_dir=Config.LOG_DIR)  # for TensorBoard
+
+    # Lists for storing metrics
+    train_losses = []
+    train_accs = []
+    val_losses = []
+    val_accs = []
 
     for epoch in range(epochs):
 
         # train
         train_batch_loss, train_batch_acc = train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs)
+        train_losses.append(train_batch_loss)
+        train_accs.append(train_batch_acc)
+
         # validate
         val_batch_loss, val_batch_acc = validate_contrastive(model, val_loader, criterion, epoch, epochs)
+        val_losses.append(val_batch_loss)
+        val_accs.append(val_batch_acc)
 
         if val_batch_acc > best_score:
             print(f"model improved: score {best_score:.5f} --> {val_batch_acc:.5f}")
@@ -35,20 +44,24 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
             # Save the best weights if the score is improved
             torch.save({
                 'epoch': epoch,
-                'model_state_dict': model.state_dict(),
+                'model_state_dict': model.embedding_net.state_dict(),
                 'train_loss': train_batch_loss,
                 'val_acc': val_batch_acc
             }, Config.MODEL_DIR)
         else:
             print(f"no improvement: score {best_score:.5f} --> {val_batch_acc:.5f}")
 
-        # Write loss and score to TensorBoard
-        writer.add_scalar("Training Loss", train_batch_loss, epoch)
-        writer.add_scalar("Training Score", train_batch_acc, epoch)
-        writer.add_scalar("Validation Loss", val_batch_loss, epoch)
-        writer.add_scalar("Validation Score", val_batch_acc, epoch)
+        # Convert lists to numpy arrays
+        train_losses = np.array(train_losses)
+        train_accs = np.array(train_accs)
+        val_losses = np.array(val_losses)
+        val_accs = np.array(val_accs)
 
-    writer.close()
+        # Save the arrays
+        np.save(Config.LOG_DIR + 'contrastive/train_losses.npy', train_losses)
+        np.save(Config.LOG_DIR + 'contrastive/train_accs.npy', train_accs)
+        np.save(Config.LOG_DIR + 'contrastive/val_losses.npy', val_losses)
+        np.save(Config.LOG_DIR + 'contrastive/val_accs.npy', val_accs)
 
 
 def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
@@ -60,11 +73,11 @@ def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
     total_negative_pairs = 0
 
     for batch in tqdm(train_loader):
-        vols_1, vols_2, labels = batch
-        vols_1, vols_2, labels = vols_1.to(Config.DEVICE), vols_2.to(Config.DEVICE), labels.to(Config.DEVICE)
+        img_1, img_2, labels = batch
+        img_1, img_2, labels = img_1.to(Config.DEVICE), img_2.to(Config.DEVICE), labels.to(Config.DEVICE)
 
         optimizer.zero_grad()
-        embedding_1, embedding_2 = model(vols_1, vols_2)
+        embedding_1, embedding_2 = model(img_1, img_2)
         loss = criterion(embedding_1, embedding_2, labels)
         loss.backward()
         optimizer.step()
@@ -108,9 +121,9 @@ def validate_contrastive(model, val_loader, criterion, epoch, epochs):
 
     with torch.no_grad():
         for batch in tqdm(val_loader):
-            vols_1, vols_2, labels = batch
-            vols_1, vols_2, labels = vols_1.to(Config.DEVICE), vols_2.to(Config.DEVICE), labels.to(Config.DEVICE)
-            embedding_1, embedding_2 = model(vols_1, vols_2)
+            img_1, img_2, labels = batch
+            img_1, img_2, labels = img_1.to(Config.DEVICE), img_2.to(Config.DEVICE), labels.to(Config.DEVICE)
+            embedding_1, embedding_2 = model(img_1, img_2)
             loss = criterion(embedding_1, embedding_2, labels)
 
             total_loss += loss.item()
@@ -256,7 +269,10 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
 # train with contrastive
 if __name__ == '__main__':
     random.seed(2023)
-    model = Baseline_Contrastive()
+
+    # pretraining Siamese
+    embedding_net = Embedding_Baseline()
+    model = SiameseContrastive(embedding_net)
 
     full_train_data = discover_directory(Config.TRAIN_DIR)
     train_data, val_data = patient_level_split(full_train_data)  # patient-level split
@@ -290,11 +306,11 @@ if __name__ == '__main__':
 
     criterion = ContrastiveLoss()
 
-    lr = 0.005
+    lr = 0.0001
     weight_decay = 1e-5
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
-    epochs = 100
+    epochs = 50
 
     main_contrastive(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
 
@@ -342,7 +358,7 @@ if __name__ == '__main__':
     weight_decay = 1e-5
     optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
 
-    epochs = 100
+    epochs = 50
 
     main_triplet(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
 """
