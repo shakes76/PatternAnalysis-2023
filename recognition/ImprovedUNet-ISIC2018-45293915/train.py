@@ -10,7 +10,7 @@ import modules as layers
 from dataset import pre_process_data
 
 # Constants related to training
-EPOCHS = 1
+EPOCHS = 10
 LEARNING_RATE = 0.0005
 BATCH_SIZE = 2  # set the batch_size
 IMAGE_HEIGHT = 512  # the height input images are scaled to
@@ -108,7 +108,7 @@ def main():
     model = train_model_check_accuracy(train_gen, test_gen)
     # Save the trained model to a file
     print("\nSAVING MODEL")
-    model.save("your_model_name.h5")
+    model.save("my_model.keras")
     print("\nVISUALISING PREDICTIONS")
     test_visualise_model_predictions(model, test_gen)
 
