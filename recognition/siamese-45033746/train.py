@@ -10,7 +10,7 @@ from utils import show_plot, save_plot
 # 256x240
 
 def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt, counter: [],
-                  loss: [], epoch: int, device):
+                  loss: [], epoch: int, device, net : SiameseNetwork):
     # Iterate over batch
     for i, (label, anchor, positive, negative) in enumerate(dataLoader, 0):
         # Send data to GPU
@@ -62,12 +62,14 @@ def train(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
 
     for epoch in range(epochs):
         # Iterate over training batch
+        model.train()
         train_counter, train_loss = iterate_batch("Training", trainDataLoader, criterion, optimiser, train_counter,
-                                                  train_loss, epoch, device)
+                                                  train_loss, epoch, device, model)
 
         # Iterate over cross validation batch
+        model.eval()
         val_counter, val_loss = iterate_batch("Validation", validDataLoader, criterion, optimiser, val_counter,
-                                              val_loss, epoch, device)
+                                              val_loss, epoch, device, model)
 
     save_plot(train_counter, train_loss, "train")
     save_plot(train_counter, train_loss, "validation")
