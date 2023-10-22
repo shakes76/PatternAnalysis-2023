@@ -45,7 +45,7 @@ To ensure the reproducibility of results:
 
 ## Data Pre-processing
 
-Images were resized to 128x128 pixels for consistency. Furthermore, we applied histogram equalization to enhance the contrast of the images, ensuring better visibility of the lesions. Any artifacts or annotations present in the images were masked out to prevent interference during segmentation.
+Images were resized to 512x512 pixels for consistency. Furthermore, the images were normalised to have zero mean and unit variance. The ground truth masks were also resized to 512x512 pixels and converted to binary masks.
 
 **References**:
 - https://arxiv.org/pdf/1802.10508v1.pdf

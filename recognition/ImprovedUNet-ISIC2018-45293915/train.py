@@ -16,7 +16,7 @@ timestr = time.strftime("%Y%m%d-%H%M%S")
 output_dir = "output"
 
 # Constants related to training
-EPOCHS = 2
+EPOCHS = 5
 LEARNING_RATE = 0.0005
 BATCH_SIZE = 2  # set the batch_size
 IMAGE_HEIGHT = 512  # the height input images are scaled to
@@ -74,14 +74,17 @@ def dice_loss(truth, pred):
     return 1.0 - dice_coefficient(truth, pred)
 
 
-# Plot the dice coefficient curve
-def plot_dice_coefficient(dice_history):
+# Plot the dice coefficient curve and save it as an image
+def save_dice_coefficient_plot(dice_history):
+    filename = os.path.join(output_dir, f"dice_coefficient_plot_{timestr}.png")
     plt.figure(1)
     plt.plot(dice_history)
     plt.title('Dice Coefficient Curve')
     plt.xlabel('Epoch')
     plt.ylabel('Dice Coefficient')
-    plt.show()
+    plt.savefig(filename)  # Save the plot as an image
+    plt.close()  # Close the figure to release resources
+    print("Dice coefficeint saved as " + filename + ".")
 
 
 
@@ -165,13 +168,13 @@ def main():
     train_gen, test_gen = pre_process_data()
     print("\nTRAINING MODEL")
     model, dice_history = train_model_check_accuracy(train_gen, test_gen)
+    # Save Dice coefficient
+    save_dice_coefficient_plot(dice_history)
     # Save the trained model to a file
     print("\nSAVING MODEL")
     model.save("my_model.keras")
     print("\nVISUALISING PREDICTIONS")
     test_visualise_model_predictions(model, test_gen)
-    # Plot Dice coefficient
-    plot_dice_coefficient(dice_history)
 
     print("COMPLETED")
     return 0

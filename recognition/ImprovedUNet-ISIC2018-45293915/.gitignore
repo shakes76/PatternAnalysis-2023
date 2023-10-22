@@ -167,3 +167,6 @@ cython_debug/
 
 # .keras files
 *.keras
+
+# Ignore anything inside output folder
+/output/*
