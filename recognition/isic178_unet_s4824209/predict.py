@@ -12,28 +12,22 @@ insert path to testdata in 142/143 in dataset.py
 from dataset import test_loader
 from modules import model
 import torch 
-from torchvision import transforms
-from torch.utils.data import DataLoader
-from modules import IuNet
 from utils import Diceloss
-from utils import Test_Transform
 from torchvision.utils import save_image
-import sys
 import matplotlib.pyplot as plt
 
 
 device = torch.device('cuda'if torch.cuda.is_available() else 'cpu')
 if not torch.cuda.is_available():
     print('CUDA not found, using CPU')
-    sys.stdout.flush()
-
+    
 
 #________Model___________
 trained_model_path = 'trained_model_bestavg.pt'
 model = model.to(device)
 model.load_state_dict(torch.load(trained_model_path, map_location=device))
 
-
+#dice loss function, used to calculate DCS (There is no actual loss used here, its just used for DCS calculation)
 criterion = Diceloss()
 
 
@@ -82,6 +76,6 @@ with torch.no_grad():
 #Plot DCS results of test
 plt.scatter(y_list, DCS_list)
 plt.ylabel('DCS score')
-plt.savefig('plot/DCS.png')
+plt.savefig('DCS_plot.png')
 
 

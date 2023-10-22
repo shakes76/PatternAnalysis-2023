@@ -77,32 +77,37 @@ def data_sorter(img_root, gt_root, mode):
             gt_test:  list of path to ground truth
 
     '''
-
+    #Create identically sorted lists of filenames of img and gt
     img_path = sorted(os.listdir(img_root))
     gt_path = sorted(os.listdir(gt_root))
 
+    #Lists used for relative paths to images and gt
     images_train = []
     gt_train = []
     images_test = []
     gt_test = []
 
-    #create a list of indices in the data
+    #create a list of one indice for each element in image/gt folder
+    #if the list has 50 elements, the indices = [0,1,2.........49]
     indices = list(range(len(img_path)))
 
-    #Split indices into random sets of 80/20
+    #Create two lists with 80%/20% of the indices 
     train_indices, test_indices = train_test_split(indices, train_size=0.8, test_size=0.2)
-
+    
     if mode == 'Train':
+        #add train indices to train list
         for idx in train_indices:
             #Removes the txt files in the dataset
             if img_path[idx] == 'ATTRIBUTION.txt' or img_path[idx] == 'LICENSE.txt':
                 continue
+            #combine the root path, and the image/gt filename
             image = os.path.join(img_root, img_path[idx])
             gt = os.path.join(gt_root, gt_path[idx])
 
             images_train.append(image)
             gt_train.append(gt)
-
+        
+        #add test indices to test list
         for idx in test_indices:
             if img_path[idx] == 'ATTRIBUTION.txt' or img_path[idx] == 'LICENSE.txt':
                 continue
@@ -115,7 +120,7 @@ def data_sorter(img_root, gt_root, mode):
         return images_train, gt_train, images_test, gt_test
     
     if mode == 'Test':
-
+        #add every element to test list (the data is not split)
         for idx in range(len(img_path)):
             
             #removes txt files from dataset
@@ -154,12 +159,13 @@ train_set = customDataset(images=img_train_path, GT=gt_train_path, transform=tra
 train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True)
 
 #Create the validation-set and loading into dataloader
-#Test loader has batch_size=1 to be able to check dice score of each separate image 
+#Validation loader has batch_size=1 to be able to check dice score of each separate image 
 validation_set = customDataset(images=img_val_path, GT=gt_val_path, transform=test_transform)
 validation_loader = DataLoader(validation_set, batch_size=1)
 
 
 #Create the test-set dataloader
+#Test loader has batch_size=1 to be able to check dice score of each separate image
 img_test_path,gt_test_path = data_sorter(img_root=test_img_root, gt_root=test_gt_root, mode='Test')
 test_set = customDataset(images=img_test_path, GT=gt_test_path, transform=test_transform)
 test_loader = DataLoader(test_set, batch_size=1)

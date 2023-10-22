@@ -4,7 +4,7 @@ studetn id: 48242099
 
 Program for training and testing the model
 
-for program to run, correct data paths must be entered at line: 138, 139, 142, 143 in dataset.py
+for program to run, correct data paths must be entered at line: 143, 144, 147, 148 in dataset.py
 
 '''
 import torch 
