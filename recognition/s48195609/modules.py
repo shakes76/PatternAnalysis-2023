@@ -1,147 +1,123 @@
-# Import required libraries and modules
+"""
+modules.py
+
+Contains the perceiver model.
+
+Author: Atharva Gupta
+Date Created: 17-10-2023
+"""
+
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
-import math
 
-class PatchLayer(nn.Module):
-    """
-    Layer for shifting inputted images and transforming images into patches.
-    """
-    def __init__(self, image_size, patch_size, num_patches, projection_dim):
-        super(PatchLayer, self).__init__()
-        self.image_size = image_size
-        self.patch_size = patch_size
-        self.num_patches = num_patches
-        self.projection_dim = projection_dim
-        self.half_patch = patch_size // 2
-        self.flatten_patches = nn.Flatten(1)
-        self.projection = nn.Linear(self.num_patches * self.projection_dim, self.num_patches * self.projection_dim)
-        self.layer_norm = nn.LayerNorm(self.num_patches * self.projection_dim)
+class CustomCrossAttention(nn.Module):
+    def __init__(self, d_latents):
+        super(CustomCrossAttention, self).__init__()
+        self.attn = nn.MultiheadAttention(d_latents, 4, batch_first=True)
+        self.o_l = nn.Linear(d_latents, d_latents)
 
-    def shift_images(self, images, mode, stride):
-        # Build diagonally shifted images
-        if mode == 'left-up':
-            crop_height = self.half_patch
-            crop_width = self.half_patch
-            shift_height = 0
-            shift_width = 0
-        elif mode == 'left-down':
-            crop_height = 0
-            crop_width = self.half_patch
-            shift_height = self.half_patch
-            shift_width = 0
-        elif mode == 'right-up':
-            crop_height = self.half_patch
-            crop_width = 0
-            shift_height = 0
-            shift_width = self.half_patch
-        else:
-            crop_height = 0
-            crop_width = 0
-            shift_height = self.half_patch
-            shift_width = self.half_patch
+    def forward(self, latent, kv):
+        # Perform cross-attention
+        attn_output = self.attn(latent, kv, kv)[0]
+        output = self.o_l(attn_output)
+        return output
 
-        crop = images[:, :, crop_height:(self.image_size - self.half_patch):stride, crop_width:(self.image_size - self.half_patch):stride]
-        shift_pad = F.pad(crop, (shift_width, self.image_size - self.image_size, shift_height, self.image_size - self.image_size))
-        return shift_pad
+class CustomSelfAttention(nn.Module):
+    def __init__(self, d_latents):
+        super(CustomSelfAttention, self).__init__()
+        self.attn = nn.MultiheadAttention(d_latents, 4, batch_first=True)
+        self.o_l = nn.Linear(d_latents, d_latents)
 
-    def forward(self, images, stride=1):
-        images = torch.cat([
-            images,
-            self.shift_images(images, mode='left-up', stride=stride),
-            self.shift_images(images, mode='left-down', stride=stride),
-            self.shift_images(images, mode='right-up', stride=stride),
-            self.shift_images(images, mode='right-down', stride=stride)
-        ], dim=1)
+    def forward(self, latent):
+        # Perform self-attention
+        attn_output = self.attn(latent, latent, latent)[0]
+        output = self.o_l(attn_output)
+        return output
 
-        patches = images.unfold(2, self.patch_size, self.patch_size).unfold(3, self.patch_size, self.patch_size)
-        patches = patches.contiguous().view(patches.size(0), patches.size(1), -1)
-        patches = patches.permute(0, 2, 1)
+class CustomLatentTransformer(nn.Module):
+    def __init__(self, d_latents, depth):
+        super(CustomLatentTransformer, self).__init__()
+        self.ff = nn.ModuleList([CustomMLP(d_latents) for _ in range(depth)])
+        self.sa = nn.ModuleList([CustomSelfAttention(d_latents) for _ in range(depth)])
+        self.depth = depth
+        self.ln1 = nn.LayerNorm(d_latents)
+        self.ln2 = nn.LayerNorm(d_latents)
 
-        flat_patches = self.flatten_patches(patches)
-        tokens = self.layer_norm(flat_patches)
-        tokens = self.projection(tokens)
+    def forward(self, x):
+        latent = x
+        for i in range(self.depth):
+            # Perform self-attention and feed-forward
+            latent = self.sa[i](self.ln1(latent)) + latent
+            latent = self.ff[i](self.ln2(latent)) + latent
+        return latent
 
-        return (tokens, patches)
+class CustomMLP(nn.Module):
+    def __init__(self, d_latents):
+        super(CustomMLP, self).__init__()
+        self.ln = nn.LayerNorm(d_latents)
+        self.l1 = nn.Linear(d_latents, d_latents)
+        self.l2 = nn.Linear(d_latents, d_latents)
+        self.gelu = nn.GELU()
 
-class EmbedPatch(nn.Module):
-    """
-    Layer for projecting patches into a vector. Also adds a learnable position embedding to the projected vector.
-    """
-    def __init__(self, num_patches, projection_dim):
-        super(EmbedPatch, self).__init__()
-        self.num_patches = num_patches
-        self.projection_dim = projection_dim
-        self.position_embedding = nn.Parameter(torch.randn(1, self.num_patches, self.projection_dim))
+    def forward(self, x):
+        x = self.ln(x)
+        x = self.l1(x)
+        x = self.gelu(x)
+        x = self.l2(x)
+        return x
 
-    def forward(self, patches):
-        positions = torch.arange(self.num_patches, device=patches.device).unsqueeze(0)
-        position_embedding = self.position_embedding
-        return patches + position_embedding
+class CustomBlock(nn.Module):
+    def __init__(self, d_latents):
+        super(CustomBlock, self).__init__()
+        self.ca = CustomCrossAttention(d_latents)
+        self.ff = CustomMLP(d_latents)
+        self.ln1 = nn.LayerNorm(d_latents)
+        self.ln2 = nn.LayerNorm(d_latents)
 
-class MultiHeadAttentionLSA(nn.MultiheadAttention):
-    def __init__(self, embed_dim, num_heads, local_window_size, **kwargs):
-        super(MultiHeadAttentionLSA, self).__init__(embed_dim, num_heads, **kwargs)
-        self.tau = nn.Parameter(math.sqrt(float(embed_dim), requires_grad=True))
-        self.local_window_size = local_window_size
+    def forward(self, x, data):
+        attn = self.ca(self.ln1(x), data)
+        x = attn + x
+        x = self.ff(self.ln2(x) + x)
+        return x
 
-    def forward(self, query, key, value, attn_mask=None, bias_k=None, bias_v=None):
-        query = query / self.tau
+class CustomOutput(nn.Module):
+    def __init__(self, n_latents, n_classes=2):
+        super(CustomOutput, self).__init__()
+        self.project = nn.Linear(n_latents, n_classes)
 
-        seq_length = query.size(1)
-        local_attn_mask = torch.triu(torch.ones(seq_length, seq_length), diagonal=self.local_window_size + 1).to(query.device)
-        local_attn_mask = local_attn_mask == 0
+    def forward(self, x):
+        # Calculate the average across dimensions
+        average = torch.mean(x, dim=2)
+        logits = self.project(average)
+        return logits
 
-        if attn_mask is not None:
-            attn_mask = attn_mask & local_attn_mask
-        else:
-            attn_mask = local_attn_mask
+class CustomPerceiver(nn.Module):
+    def __init__(self, n_latents, d_latents, transformer_depth, n_cross_attends):
+        super(CustomPerceiver, self).__init__()
+        self.depth = n_cross_attends
 
-        return super(MultiHeadAttentionLSA, self).forward(query, key, value, attn_mask, bias_k, bias_v)
+        unique_latent = torch.empty(n_latents, d_latents)
+        nn.init.trunc_normal_(unique_latent, std=0.02)
+        self.unique_latent = nn.Parameter(unique_latent)
 
+        self.custom_cross_attends = nn.ModuleList([CustomBlock(d_latents) for _ in range(self.depth)])
+        self.custom_latent_transformers = nn.ModuleList([CustomLatentTransformer(d_latents, transformer_depth) for _ in range(self.depth)])
+        self.custom_output = CustomOutput(n_latents)
 
-def build_vision_transformer(input_shape, image_size, patch_size, num_patches,
-        attention_heads, projection_dim, hidden_units, dropout_rate,
-        transformer_layers, mlp_head_units, local_window_size):
-    patch_layer = PatchLayer(image_size, patch_size, num_patches, projection_dim)
-    embed_patch = EmbedPatch(num_patches, projection_dim)
+        self.custom_image_project = nn.Linear(1, d_latents)
 
-    class VisionTransformer(nn.Module):
-        def __init__(self):
-            super(VisionTransformer, self).__init__()
+        self.custom_pe = nn.Parameter(torch.empty(1, 240*240, d_latents))
+        nn.init.normal_(self.custom_pe)
 
-        def forward(self, x):
-            tokens, _ = patch_layer(x)
-            encoded_patches = embed_patch(tokens)
+    def forward(self, data):
+        b, _, _, _ = data.size()
+        flat_img = torch.flatten(data, start_dim=1)[:, :, None]
+        custom_proj_img = self.custom_image_project(flat_img) + self.custom_pe.repeat(b, 1, 1)
 
-            for _ in range(transformer_layers):
-                layer_norm_1 = nn.LayerNorm(encoded_patches.size(-1), eps=1e-6)(encoded_patches)
-                diag_attn_mask = 1 - torch.eye(num_patches, device=x.device, dtype=torch.int8)
-                attention_output = MultiHeadAttentionLSA(embed_dim=projection_dim, num_heads=attention_heads, dropout=dropout_rate, local_window_size=local_window_size)(layer_norm_1, layer_norm_1, layer_norm_1, attn_mask=diag_attn_mask)
-                skip_1 = attention_output + encoded_patches
+        x = self.unique_latent.repeat(b, 1, 1)
 
-                layer_norm_2 = nn.LayerNorm(skip_1.size(-1), eps=1e-6)(skip_1)
-                mlp_layer = layer_norm_2
-                for units in hidden_units:
-                    mlp_layer = nn.Linear(mlp_layer.size(-1), units)(mlp_layer)
-                    mlp_layer = nn.GELU()(mlp_layer)
-                    mlp_layer = nn.Dropout(dropout_rate)(mlp_layer)
-
-                encoded_patches = mlp_layer + skip_1
-
-            representation = nn.LayerNorm(encoded_patches.size(-1), eps=1e-6)(encoded_patches)
-            representation = representation.view(representation.size(0), -1)
-            representation = nn.Dropout(dropout_rate)(representation)
-
-            features = representation
-            for units in mlp_head_units:
-                features = nn.Linear(features.size(-1), units)(features)
-                features = nn.GELU()(features)
-                features = nn.Dropout(dropout_rate)(features)
-
-            logits = nn.Linear(features.size(-1), 1)(features)
-            return logits
-
-    model = VisionTransformer()
-    return model
+        for i in range(self.depth):
+            x = self.custom_cross_attends[i](x, custom_proj_img)
+            x = self.custom_latent_transformers[i](x)
+        custom_output = self.custom_output(x)
+        return custom_output
