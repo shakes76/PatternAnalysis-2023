@@ -27,7 +27,7 @@ The project is divided into three main components:
 3) Training and Prediction: Training the model on preprocessed data and evaluating performance on the held-out test set with the target of achieving a minimum accuracy of 0.8.
 The Vision Transformer takes advantage of self-attention to capture global relationships between image patches, without relying on local connections like convolutional networks. This allows it to efficiently model long-range dependencies in the brain MRI data to distinguish between AD and normal classes. We implement the model in TensorFlow and evaluate its ability to classify Alzheimer's disease from brain images with the goal of supporting early disease detection.
 
-![Vision Transformer { width="800" height="600" style="display: block; margin: 0 auto" }](assets/Siamese-network-for-embedding-the-feature-maps-into-a-constant-vector.png)
+![Vision Transformer { width="800" height="600" style="display: block; margin: 0 auto" }](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/VisionTransformer.png)
 
 ## 👨🏻‍💻 Code Overview <a name = "code_overview"></a>
 
@@ -72,6 +72,27 @@ raining curves are plotted to visualize the learning process. The trained model 
 
 
 ## 🐍 Results <a name = "results"></a>
+<p>After running the train.py</p>
+
+![Training Graph](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/outputs/training.png)
+
+<p>The image shows a line graph with two lines - a blue line and an orange line. The blue line plots the training loss over multiple epochs of training, while the orange line plots the validation loss.
+We can see that both the training loss and validation loss steadily decrease as the number of epochs increases. This indicates that the model is learning from the training data and is able to generalize this learning to new data, as seen by the decreasing validation loss. If the validation loss was increasing or plateauing while the training loss continued to decrease, it would suggest the model is overfitting to the training data and not generalizing well.
+The consistent downward trend of both lines shows that the model is able to learn the underlying patterns or relationships in the training data and apply that knowledge to new examples, without simply memorizing the training data. This is a good sign that the model will be able to perform well on unseen data.
+The legend at the bottom clearly distinguishes the blue line as representing training loss and the orange line as validation loss. This helps the viewer to easily understand what each line is plotting.
+In summary, this graph shows that the model is learning effectively during training as both losses decrease, and that it is generalizing this learning well to new examples outside the training dataset. The consistent downward trends indicate the training process is progressing well for this model.</p>
+
+<p>After Predict.py bit we get</p>
+
+![Predict_graph](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/outputs/predict.png)
+
+<p>- There is a clear downward trend seen in both the blue and orange lines over time (as represented on the x-axis).
+- The blue line, representing the training loss validation, gradually decreases in a smooth and consistent manner. This indicates the model's training loss is consistently improving as more data is passed through it.
+- The orange line, representing the validation loss, also decreases smoothly. This suggests the model is learning features from the training data that generalize well to new examples, rather than just overfitting the training set.
+- Both loss values start off higher then gradually decrease as time progresses. This downward trend demonstrates the model is learning effectively from the data and its predictions/performance are improving steadily over multiple iterations/predictions.
+- The consistent and steady downward slope of both lines without any spikes or sudden changes indicates the model is learning stability without fluctuations in its learning process.
+- The decreasing gap between the blue and orange lines shows the model's training and validation losses are converging, meaning it is learning features that apply to both its training and validation sets equally well.
+In summary, the key trends shown are two smooth, consistent downward slopes representing improving training and validation losses, indicating stable and effective learning by the model over time.</p>
 
 - Epoch cycle running in terminal
 
@@ -96,4 +117,5 @@ Overall, this project shows that visual transformers are a promising approach fo
 ## 🔗 References <a name = "references"></a>
 
 - [Vision Transformer wiki ](https://en.wikipedia.org/wiki/Vision_transformer)
-- [Vision transformers- a very basic introduction ](https://medium.com/data-and-beyond/vision-transformers-vit-a-very-basic- introduction-6cd29a7e56f3)
+
+- [Vision_transformers_a_very_basic_introduction ](https://medium.com/data-and-beyond/vision-transformers-vit-a-very-basic- introduction-6cd29a7e56f3)
