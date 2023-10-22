@@ -5,11 +5,11 @@ from PIL import Image
 import matplotlib.pyplot as plt
 from modules import Perceiver
 
-# Constants
+# Constants and defining to use GPU if available
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 MODEL_PATH = './perceiver_model.pth'
 
-# Load the trained model
+# Load the trained model same as training model 
 model = Perceiver(
     input_dim = 224 * 224,  
     latent_dim=256, 
@@ -21,17 +21,18 @@ model = Perceiver(
 model.load_state_dict(torch.load(MODEL_PATH))
 model.eval()
 
-# Load and preprocess a sample image
+# Load and preprocess a sample image (resizing and converting to tensor)
 def predict_image(img_path):
     transform = transforms.Compose([
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
     ])
-
+    
+    # Opening image to apply tranformations
     image = Image.open(img_path)
     image_tensor = transform(image).unsqueeze(0).to(DEVICE)
     
-    # Predict
+    # Predicting by passing image through model using probability
     output = model(image_tensor)
     probabilities = F.softmax(output, dim=1)
     predicted_class = torch.argmax(output, dim=1).item()

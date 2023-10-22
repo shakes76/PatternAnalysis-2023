@@ -2,12 +2,13 @@ import torch
 import torch.nn as nn
 
 class CrossAttention(nn.Module):
-    """Cross-Attention mechanism where the latent array attends to the input data."""
+    #Cross-Attention mechanism where the latent array attends to the input data.
     
     def __init__(self, embed_dim, num_heads):
         super(CrossAttention, self).__init__()
         self.attn = nn.MultiheadAttention(embed_dim, num_heads)
-        
+    # Applies multi-head attention where the query is from latent space and the key-value pairs are from input data.
+    
     def forward(self, x, latent):
         # Ensure the sequence length of x and latent match 
         # by truncating or padding latent if necessary
@@ -21,17 +22,19 @@ class CrossAttention(nn.Module):
             # Truncate latent to match x's sequence length
             latent = latent[:, :seq_len_x, :]
         
+        # Adjustes dimensions for attention mechanism
         x = x.permute(1, 0, 2)
         latent = latent.permute(1, 0, 2)
+        
+        # Applying attention
         output, _ = self.attn(latent, x, x)
-      
         output = output.permute(1, 0, 2)
         
         return output + latent
 
 
 class LatentTransformer(nn.Module):
-    """Latent Transformer applies a series of self-attention and feed-forward networks on the latent array."""
+    #Latent Transformer applies a series of self-attention and feed-forward networks on the latent array.
     
     def __init__(self, embed_dim, num_heads):
         super(LatentTransformer, self).__init__()
@@ -41,20 +44,22 @@ class LatentTransformer(nn.Module):
             nn.ReLU(),
             nn.Linear(embed_dim, embed_dim)
         )
-        
+    # Feedfoward network 
     def forward(self, latent):
         latent = self.self_attention(latent, latent)
         return self.feedforward(latent)
 
 class Perceiver(nn.Module):
-    """The Perceiver model that integrates all components."""
+    #The Perceiver model that integrates all components inlcuding embedding layer, crossattention mechanism latent transformer.
     
     def __init__(self, input_dim, latent_dim, embed_dim, n_classes, num_heads):
         super(Perceiver, self).__init__()
+    # Embedding layer to tranform
         self.embed = nn.Linear(input_dim, embed_dim)
         self.latent = nn.Parameter(torch.randn(1, latent_dim, embed_dim)) # Initialize latent array with batch dimension
         self.cross_attention = CrossAttention(embed_dim, num_heads)
         self.latent_transformer = LatentTransformer(embed_dim, num_heads)
+    # Final classification
         self.classifier = nn.Linear(embed_dim, n_classes)
         
     def forward(self, x):

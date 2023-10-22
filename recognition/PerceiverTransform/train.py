@@ -12,24 +12,25 @@ LR = 0.005
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 MODEL_PATH = './perceiver_model.pth'
 
-# Model Initialization
+# Model Initialization with specific parameters and dimensions
 model = Perceiver(
     input_dim = 224 * 224,
     latent_dim = 256,
     embed_dim = 256,
-    n_classes = 2,
+    n_classes = 2, # NC and AD (2 classes)
     num_heads = 4  
-).to(DEVICE)
+).to(DEVICE) # To utilize the GPU rather than the CPU
 
+# Loss function and optimizer
 loss_fn = nn.CrossEntropyLoss()
 optimizer = optim.Adam(model.parameters(), lr=LR)
 
-# Data Loaders
+# Data Loaders for loading dataset 
 train_loader, valid_loader, test_loader = get_dataloaders("C:\\Users\\AK\\Documents\\COMP3710\\AlzDataset", batch_size=BATCH_SIZE)
 
-# Training
-train_losses = []
-accuracies = []
+# Training loop
+train_losses = [] # Training losses over epochs
+accuracies = [] # Training accuracy
 
 for epoch in range(EPOCHS):
     model.train()
@@ -41,7 +42,7 @@ for epoch in range(EPOCHS):
         
         optimizer.zero_grad()
         outputs = model(inputs)
-        loss = loss_fn(outputs, labels)
+        loss = loss_fn(outputs, labels) 
         loss.backward()
         optimizer.step()
 
@@ -58,7 +59,7 @@ for epoch in range(EPOCHS):
 #Validation Stage
     correct_val = 0
     total_val = 0
-    for inputs, labels in valid_loader:
+    for inputs, labels in valid_loader: # Interating through validation data
         inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
         outputs = model(inputs)
         _, predicted = torch.max(outputs.data, 1)
@@ -69,10 +70,10 @@ for epoch in range(EPOCHS):
     print(f"Validation Accuracy: {val_accuracy:.2f}%")
 
 # After training, evaluate on the test set
-model.eval()
+model.eval() # Setting model to evaluation mode 
 correct_test = 0
 total_test = 0
-for inputs, labels in test_loader:
+for inputs, labels in test_loader: #Iterating through test data
     inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
     outputs = model(inputs)
     _, predicted = torch.max(outputs.data, 1)
@@ -82,7 +83,7 @@ for inputs, labels in test_loader:
 test_accuracy = 100 * correct_test / total_test
 print(f"Test Accuracy: {test_accuracy:.2f}%")
 
-# Plotting
+# Plotting training loss over epochs
 plt.figure(figsize=(10, 6))
 plt.plot(train_losses, label='Training Loss')
 plt.xlabel('Epochs')
@@ -91,6 +92,7 @@ plt.title('Training Loss over Epochs')
 plt.legend()
 plt.show()
 
+# Plotting accuracy over epochs
 plt.figure(figsize=(10, 6))
 plt.plot(accuracies, label='Training Accuracy')
 plt.xlabel('Epochs')
@@ -99,5 +101,5 @@ plt.title('Training Accuracy over Epochs')
 plt.legend()
 plt.show()
 
-# Saving model
+# Saving trained model
 torch.save(model.state_dict(), MODEL_PATH)
