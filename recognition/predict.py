@@ -1,286 +1,144 @@
-import torch # Import PyTorch for deep learning functionalities.
-import torch.nn.functional as F # Import functional interface
-import torch.optim as optim # Import optimizer support from PyTorch (Adam).
-import matplotlib.pyplot as plt # For plotting and visualization.
-
-from torch.utils.data import DataLoader, random_split # For batch loading of datasets, and random_split for splitting datasets into training and validation.
-from torchvision import transforms # Import transforms for image preprocessing.
-from torch.optim.lr_scheduler import ReduceLROnPlateau # Import learning rate scheduler which reduces LR based on some criterion.
+import torch  # Import PyTorch for deep learning functionalities.
+import matplotlib.pyplot as plt  # For plotting and visualization.
+import numpy as np  # For numerical computations.
+from torch.utils.data import DataLoader  # For creating manageable batches from datasets.
 
 # Get functions from other file.
 from dataset import ISICDataset, get_transform, get_mask_transform
-from modules import ImprovedUNet, device
-from predict import predict
+from modules import ImprovedUNet
 
 # Determine if CUDA (GPU support) is available, use it, otherwise default to CPU.
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-print(f"Train: {torch.cuda.is_available()}") # Display whether CUDA is available.
+print(f"Predict: {torch.cuda.is_available()}") # Display whether CUDA is available.
 
 
-def dice_loss(pred, target, smooth=1.):
-    """Compute the Dice loss, which is particularly useful for imbalanced segmentation problems."""
+def imshow(inp, title=None, gray=False, ax=None):
+    """A helper function to display images with certain adjustments."""
 
-    # Apply the sigmoid activation function to the predictions.
-    pred = torch.sigmoid(pred)
+    # If the input is a Torch tensor, we need to convert it to a NumPy array first.
+    if isinstance(inp, torch.Tensor):
+        inp = inp.numpy()
 
-    # Flatten the predictions and the target labels in order to compute the Dice coefficient.
-    pred = pred.view(-1)
-    target = target.view(-1)
+    # If image has an extra dimension of size 1, remove that dimension to simplify the array.
+    if inp.shape[0] == 1:
+        inp = np.squeeze(inp, axis=0)
 
-    # Compute the intersection of the prediction and target tensors.
-    intersection = (pred * target).sum()
+    # Set the colormap to 'gray' if the gray flag is True, otherwise it will be default (None).
+    if gray:
+        cmap = 'gray'
+    else:
+        cmap = None
 
-    # Compute the Dice coefficient.
-    dice = (2. * intersection + smooth) / (pred.sum() + target.sum() + smooth)
+    # Image array has three dimensions, assume it's in channels, height, width.
+    # Then rearrange this to height, width, channels for proper display with imshow.
+    if len(inp.shape) == 3:
+        inp = inp.transpose((1, 2, 0))  # Reordering dimensions.
 
-    # Return the Dice loss.
-    return 1 - dice
+        # Reverting to bring back the original colors for display.
+        mean = np.array([0.5, 0.5, 0.5])
+        std = np.array([0.5, 0.5, 0.5])
+        inp = std * inp + mean  # De-normalizing.
 
+        # Clipping the values to be between 0 and 1, as imshow expects values in this range for a float array.
+        inp = np.clip(inp, 0, 1)
 
-def combined_loss(pred, target, alpha=0.5):
-    """Calculate the combined loss, which is a weighted sum of binary cross entropy loss and Dice loss."""
+    if ax is None:
+        plt.imshow(inp, cmap=cmap)  # Creating a new plot.
+        if title is not None:
+            plt.title(title)  # Setting the title of the plot.
+    else:
+        ax.imshow(inp, cmap=cmap)  # Using the provided axis for the plot.
+        ax.set_title(title)  # Setting the title of the subplot.
 
-    # Calculate the Binary Cross Entropy loss.
-    bce = F.binary_cross_entropy_with_logits(pred, target)
-
-    # Calculate the Dice loss.
-    dice = dice_loss(pred, target)
-
-    # Return the weighted sum of the computed BCE and Dice losses.
-    return alpha * bce + (1 - alpha) * dice
-
-
-def evaluate_dsc(loader, model):
-    """ Evaluate the model on a dataset using the Dice Similarity Coefficient (DSC)."""
-
-    # Set the model in evaluation mode.
-    model.eval()
-    all_dscs = []
-
-    # Disable gradient calculations during forward passes.
-    with torch.no_grad():
-        # Iterate over the dataset.
-        for images, masks in loader:
-            # Transfer images and masks to the device that is used from GPU or CPU.
-            images, masks = images.to(device), masks.to(device)
-
-            # Make predictions.
-            outputs = model(images)
-
-            # Compute the Dice loss.
-            loss = dice_loss(outputs, masks)
-
-            # Calculate the Dice Similarity Coefficient.
-            dice_coefficient = 1 - loss.item()
-
-            # Append the coefficient to the list for all samples.
-            all_dscs.append(dice_coefficient)
-
-    # Return the list of Dice Similarity Coefficients for further analysis.
-    return all_dscs
+    # A small pause is added to allow time for the plot to be created.
+    plt.pause(0.001)
 
 
-def get_transform():
-    """Constructs the transform needed for the input images."""
+def my_collate(batch):
+    """Custom collate function to handle samples with missing masks."""
 
-    return transforms.Compose([
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
+    # This function ensures that the data loader doesn't crash if it encounters a sample without a mask.
+    new_batch = list(filter(lambda x: x[1] is not None, batch))
 
+    # Check if there are any valid samples in the batch, if all masks were None, we skip this batch.
+    if len(new_batch) == 0:  #
+        print("Warning: Empty batch encountered. All masks were None.")
+        return None
 
-def get_mask_transform():
-    """Constructs the transform needed for the mask images."""
-
-    return transforms.Compose([
-        transforms.ToTensor()
-    ])
+    # If there's at least one valid sample, we create a batch for processing.
+    return torch.utils.data.dataloader.default_collate(new_batch)
 
 
-def train():
-    """The main function to handle the training of the model."""
 
-    # Step 1: Prepare the transformations for image and mask.
+def predict():
+    """Function to load the data, run it through the model, and display the model's predictions."""
+
+    # Define transformations for the images and masks.
     img_transform = get_transform()
     mask_transform = get_mask_transform()
 
-    # Step 2: Load the ISIC2018 dataset.
-    full_dataset = ISICDataset(
-        image_dir="ISIC2018_Task1-2_Training_Input_x2",  # Path containing training images.
-        mask_dir="ISIC2018_Task1_Training_GroundTruth_x2",  # Path containing ground truth masks.
-        img_transform=img_transform,  # Transformations applied to the training images.
-        mask_transform=mask_transform,  # Transformations applied to the masks.
-        img_size=(384, 512)  # Resized the target image.
+    test_dataset = ISICDataset(
+        image_dir="ISIC2018_Task1-2_Training_Input_x2",
+        mask_dir="ISIC2018_Task1_Training_GroundTruth_x2",
+        img_transform=img_transform,
+        mask_transform=mask_transform,
+        img_size=(1024, 1024)  # dimensions to which images will be resized.
     )
 
-    # Step 3: Split the dataset into training and test subsets.
-    train_size = int(0.85 * len(full_dataset))  # 85% of the dataset is used for training.
-    test_size = len(full_dataset) - train_size  # The rest is used for testing/validation.
-    train_dataset, test_dataset = random_split(full_dataset, [train_size, test_size])  # Performing the split.
+    # Setting up the data loader for batch processing.
+    test_loader = DataLoader(test_dataset, batch_size=1, shuffle=False, collate_fn=my_collate)
 
-    # Step 4: Create data loaders. These are sophisticated data handling tools.
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)  # DataLoader for the training dataset.
-    val_loader = DataLoader(test_dataset, batch_size=4, shuffle=False)  # DataLoader for the test/validation dataset.
+    # Initializing the model, loading its weights, and setting it to evaluation mode.
+    model = ImprovedUNet().to(device)
+    model.load_state_dict(torch.load("plot_checkpoint.pth"))
+    model.eval()  # Switch to evaluation mode to prevent changes to model parameters.
 
-    # Step 5: Define the neural network model, optimizer, and learning rate scheduler.
-    model = ImprovedUNet(in_channels=3, out_channels=1).to(device)  # Initialize the model and move it to the CPU or GPU.
-    optimizer = optim.Adam(model.parameters(), lr=0.0005, weight_decay=1e-5)  # Adam optimizer used with learning rate and weight decay set.
-    scheduler = ReduceLROnPlateau(optimizer, 'min')  # Scheduler for adjusting the learning rate.
+    num_images_to_display = 5  # Number of images we want to run through the model and display.
 
-    # Step 6: Define the number of epochs for which the model will be trained .
-    num_epochs = 25  # Set number of training.
-    train_losses, val_losses = [], []  # Lists to track the loss metrics for training and validation phases.
-    avg_train_dscs, avg_val_dscs = [], []  # Lists to track the average DSC for training and validation phases.
+    # Creating an iterator from the data loader.
+    data_iter = iter(test_loader)
 
-    # Step 7: Initialize the strategy for gradient accumulation.
-    accumulation_steps = 4  # The number of steps/batches over which the gradient is accumulated.
-    optimizer.zero_grad()  # Ensuring the gradients are zero.
+    # Loop through batches for predictions.
+    for _ in range(num_images_to_display):
+        # This loop retrieves batches of images from the data loader, applies the model, and visualizes the results.
+        # It skips any batches that were found to be invalid (no masks).
+        try:
+            batch = next(data_iter)
+            if batch is None:
+                continue  # Skip this loop iteration if batch is empty.
 
-    for epoch in range(num_epochs):
-        # Print current epoch number out of total epochs which is easier for me to keep track of epoch process.
-        print(f"Epoch {epoch + 1}/{num_epochs}")
+            images, true_masks = batch  # Unpack batch.
 
-        # Set the model to "train" mode.
-        model.train()
+        except StopIteration:
+            break  # If gone through the whole dataset, exit the loop.
 
-        # Initialize variables to accumulate the losses and dice similarity coefficients within this epoch.
-        running_loss, running_dsc = 0.0, 0.0
+        # Move images and masks to the device that's being used from GPU or CPU.
+        images = images.to(device)
+        true_masks = true_masks.to(device)
 
-        # Training phase.
-        for i, (inputs, labels) in enumerate(train_loader):
-            # Move the inputs and labels to CPU or GPU that will be used for computations.
-            inputs, labels = inputs.to(device), labels.to(device)
+        # Get the model's predictions for the masks.
+        with torch.no_grad():
+            outputs = model(images)
 
-            # Clear the gradients from the previous iteration.
-            optimizer.zero_grad()
+        # Extracting the predicted masks and moving them back to the CPU for visualization.
+        predicted_masks = outputs.data.cpu().numpy()
+        true_masks = true_masks.cpu().numpy()
+        images = images.cpu()
 
-            # Forward pass: compute the predictions by passing the inputs through the model.
-            outputs = model(inputs)
+        # Loop through and display each image and its corresponding masks
+        for image, pred_mask, true_mask in zip(images, predicted_masks, true_masks):
+            plt.subplot(1, 3, 1)
+            imshow(image, title='Original Image')  # show the original image.
 
-            # Compute the loss based on the outputs and actual labels.
-            loss = combined_loss(outputs, labels)
+            plt.subplot(1, 3, 2)
+            imshow(np.squeeze(pred_mask), title='Predicted Mask', gray=True)  # show the predicted mask.
 
-            # Backward pass: compute the gradients of the loss.
-            loss.backward()
+            plt.subplot(1, 3, 3)
+            imshow(np.squeeze(true_mask), title='True Mask', gray=True)  # show the true mask.
 
-            # Update the model’s parameters based on the gradients computed during the backward pass.
-            optimizer.step()
+        plt.show()  # Display the plotted images.
 
-            # Compute the Dice Similarity Coefficient (DSC) for evaluation.
-            dsc = 1 - dice_loss(outputs, labels).item()
-
-            # Accumulate the DSC and the loss over the epoch.
-            running_dsc += dsc
-            running_loss += loss.item()
-
-            # Delay the optimizer step, so it help with my device memory.
-            if (i + 1) % accumulation_steps == 0:
-                # Perform the actual model parameters update.
-                optimizer.step()
-                # Remove the gradients.
-                optimizer.zero_grad()
-
-        # Calculate the average losses and DSC for this epoch.
-        avg_train_loss = running_loss / len(train_loader)
-        avg_train_dsc = running_dsc / len(train_loader)
-
-        # Append the average loss and DSC for this epoch to the lists for later visualization and plot.
-        train_losses.append(avg_train_loss)
-        avg_train_dscs.append(avg_train_dsc)
-
-        model.eval()  # Set the model to evaluation mode.
-        val_loss, val_dsc = 0.0, 0.0  # Initialize counters for the validation loss and DSC.
-
-        with torch.no_grad():  # Remove gradients for validation so it save memory.
-            for images, masks in val_loader:
-                # Move the images and masks to CPU or GPU.
-                images, masks = images.to(device), masks.to(device)
-
-                # Forward pass: Compute the predictions by passing images through model.
-                outputs = model(images)
-
-                # Compute the loss between the predicted outputs and the actual masks.
-                loss = combined_loss(outputs, masks)
-
-                # Accumulate the validation loss over all the batches for this epoch.
-                val_loss += loss.item()
-
-                # Calculate and accumulate the Dice Similarity Coefficient for the validation set.
-                dice_val = 1 - dice_loss(outputs, masks).item()
-                val_dsc += dice_val
-
-        # Calculate the average validation loss and DSC for this epoch.
-        avg_val_loss = val_loss / len(val_loader)
-        avg_val_dsc = val_dsc / len(val_loader)
-
-        # Append the averages to maintain a history for further analysis and plotting after all epochs.
-        val_losses.append(avg_val_loss)
-        avg_val_dscs.append(avg_val_dsc)
-
-        # Display the average training and validation loss/DSC after each epoch.
-        print(f"Epoch {epoch + 1}/{num_epochs}")
-        print(f"Train Loss: {avg_train_loss:.4f}, Train DSC: {avg_train_dsc:.4f}")
-        print(f"Val Loss: {avg_val_loss:.4f}, Val DSC: {avg_val_dsc:.4f}")
-
-        # Adjust the learning rate based on the validation loss.
-        scheduler.step(avg_val_loss)
-
-    # Prepares to plot the training and validation loss and DSC.
-    plt.figure(figsize=(15, 10))
-
-    # Plotting the training loss.
-    plt.subplot(2, 2, 1)
-
-    # 'range(1, num_epochs + 1)' creates X-axis representing each epoch.
-    # 'train_losses' contains the loss value for each epoch, forming the Y-axis.
-    
-    # Plotting the Training Loss.
-    plt.plot(range(1, num_epochs + 1), train_losses, '-o', label='Training Loss')
-    plt.title('Training Loss')  # Title of the plot.
-    plt.xlabel('Epochs')  # Label for the X-axis.
-    plt.ylabel('Loss')  # Label for the Y-axis.
-    plt.legend()  # Add a legend to help identify each line on the plot.
-
-    # Plotting the training Dice Similarity Coefficient (DSC).
-    plt.subplot(2, 2, 2)
-    plt.plot(range(1, num_epochs + 1), avg_train_dscs, '-o', label='Training DSC')
-    plt.title('Training Dice Similarity Coefficient')
-    plt.xlabel('Epochs')
-    plt.ylabel('DSC')
-    plt.legend()
-
-    # Plotting the validation loss.
-    plt.subplot(2, 2, 3)
-    plt.plot(range(1, num_epochs + 1), val_losses, '-o', label='Validation Loss')
-    plt.title('Validation Loss')
-    plt.xlabel('Epochs')
-    plt.ylabel('Loss')
-    plt.legend()
-
-    # Plotting the validation DSC.
-    plt.subplot(2, 2, 4)
-    plt.plot(range(1, num_epochs + 1), avg_val_dscs, '-o', label='Validation DSC')
-    plt.title('Validation Dice Similarity Coefficient')
-    plt.xlabel('Epochs')
-    plt.ylabel('DSC')
-    plt.legend()
-
-    # Adjust the subplots to fit in the figure.
-    plt.tight_layout()
-    # Renders the complete figure.
-    plt.draw()
-    # A short pause to ensure the plot gets rendered.
-    plt.pause(0.001)
-
-    # Saving the model's learned parameters.
-    torch.save(model.state_dict(), "plot_checkpoint.pth")
-    plt.ioff()
-    # Display the figure as a blocking call - the script will stop here until the plot is closed.
-    plt.show(block=True)
 
 if __name__ == "__main__":
-    # Call the 'train' function from train.py to start the training process.
-    train()
-    print("Training completed. Starting prediction phase...")
-    # Call the 'predict' function from predict.py.
-    predict()
+    predict()  # Run the prediction function when the script is executed directly.
+    plt.show(block=True)  # Keep the plot open.
