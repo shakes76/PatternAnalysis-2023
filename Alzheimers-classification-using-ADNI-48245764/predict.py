@@ -13,7 +13,6 @@ def main():
     plt.title("Accuracy Plot")
     plt.xlabel("Epochs")
     plt.ylabel("Accuracy")
-    plt.legend(['Training', 'Validation'], loc='upper left')
     accuracy_plot_path = os.path.join(os.path.dirname(__file__), "accuracy_plot.png")
     plt.savefig(accuracy_plot_path)
     plt.show()
@@ -24,7 +23,6 @@ def main():
     plt.title("Model Loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
-    plt.legend(['train', 'validation'], loc='upper left')
     # Save loss plot as an image
     loss_plot_path = os.path.join(os.path.dirname(__file__), "loss_plot.png")
     plt.savefig(loss_plot_path)
