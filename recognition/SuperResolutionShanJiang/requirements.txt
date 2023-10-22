@@ -1,8 +1,5 @@
-tensorflow
-os
-math
-IPython
-matplotlib
-mpl_toolkits
-PIL
-numpy
+tensorflow >= 2.14.0
+IPython >=8.16.1
+matplotlib >= 3.7.1
+Pillow >= 9.5.0
+numpy >= 1.24.2
