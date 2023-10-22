@@ -15,6 +15,7 @@ class Encoder(nn.Module):
     """
 
     def __init__(self, in_channels):
+        super(Encoder, self).__init__()
         # We use leakyReLU with negative slope 1e-2
         self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=True)
         # 3x3x3 convolutional layer that preserves the input size
@@ -24,7 +25,7 @@ class Encoder(nn.Module):
         # Dropout layer with p_dropout = 0.3
         self.dropout = nn.Dropout(p=0.3)
         # Normalize the batch with instance normalization
-        self.norm = nn.InstanceNorm3d()
+        self.norm = nn.InstanceNorm3d(in_channels)
 
     def forward(self, x):
         shortcut = x
@@ -36,11 +37,63 @@ class Encoder(nn.Module):
         return residual + shortcut
 
 
+class Up(nn.Module):
+    """
+    Upsampling module used to tranfer information from low resolution feature maps into high resolution fearure maps.
+    We use a simple upscale that repeats the feature voxels twice in each spatial dimension, followed by a 3x3x3 convolution
+    that halves the number of feature maps.
+    """
+
+    def __init__(self, in_channels, out_channels):
+        super(Up, self).__init__()
+        self.upsample = nn.Sequential(
+            # Upscale the feature voxels
+            nn.Upsample(scale_factor=2, mode="nearest"),
+            # Normalize the batch useing instance normalization
+            nn.InstanceNorm3d(in_channels),
+            # Introduce non-linearity using leakyReLU with negative slope 1e-2
+            nn.LeakyReLU(negative_slope=1e-2, inplace=True),
+            # Apply 3x3x3 convolution that havles number of feature maps
+            nn.Conv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+        )
+
+    def forward(self, x):
+        return self.conv(self.relu(self.norm(x)))
+
+
 class Decoder(nn.Module):
     def __init__(self, in_channels, out_channels):
-        pass
+        super(Decoder, self).__init__()
+        # We use leakyReLU with negative slope 1e-2
+        self.relu = nn.LeakyReLU(negative_slope=1e-2, inplace=True)
+
+        # Upsampling module:
+
+        self.upsample = nn.Sequential(
+            nn.Upsample(scale_factor=2, mode="nearest"),
+            nn.InstanceNorm3d(in_channels),
+            nn.LeakyReLU(negative_slope=1e-2, inplace=True),
+            nn.Conv3d(in_channels, out_channels, kernel_size=3, stride=1, padding=1),
+        )
+
+        # Localization module:
+
+        self.norm1 = nn.InstanceNorm3d(2 * out_channels)
+        #
+        self.conv1 = nn.Conv3d(
+            2 * out_channels, 2 * out_channels, kernel_size=3, stride=1, padding=1
+        )
+
+        self.norm2 = nn.InstanceNorm3d(out_channels)
+        self.conv2 = nn.Conv3d(
+            in_channels // 2, out_channels, kernel_size=3, stride=1, padding=1
+        )
 
     def forward(self, x, skip_connection):
+        upsampled = self.upsample(x)
+        upsampled = self.relu(self.norm(upsampled))
+        upsampled = self.conv(upsampled)
+
         # halve the in_features, concativate with skip features
         pass
 
