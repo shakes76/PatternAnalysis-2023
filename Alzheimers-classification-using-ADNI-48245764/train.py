@@ -27,6 +27,13 @@ def run_model(model):
     )
 
 
+    reduce_lr = keras.callbacks.ReduceLROnPlateau(
+        monitor="accuracy",
+        factor=0.2,
+        patience=5,
+    )
+
+    
     performance = model.fit(
         x=train_images,
         y=train_labels,
