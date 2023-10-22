@@ -20,37 +20,43 @@ The dataset should be positioned in the same folder as the python codes under da
 
 
 ## 3. Usage
-Run the train.py to train the model and create a model.pth file. 
-Using this file you can get the segmented image.
-### 3.1. Run the Train.py with python3 this will create the model.pth file.
 
-### 3.2. run Predict.py to get the segmentation and the dice coefficient. 
+Run the Train.py with python3 this will create the model.pth file.
+this will also create saved.img file if
+
+Run predict.py to get the segmentation and the dice coefficient. 
+This file will save all the segmentation predictions under evaluation_folder. T
 
 
 ## 4. Description 
-### 4.1. The readme file should contain a title, a description of the algorithm and the problem that it solves
-(approximately a paragraph), how it works in a paragraph and a figure/visualisation.
-The 
+### 4.1. Brief description of the task
+The ISIC 2017 improved Unet segmentation task is implemented.
+The improve Unet is used and the format follows https://arxiv.org/pdf/1802.10508v1.pdf. 
 
 ### 4.2. Dependencies
-if applicable.
+Modules that are required to run the code:
+import tqdm
 import torchvision
+import albumentations
 import torch
 import matplotlib
 import sklearn
 import glob 
 import PIL
+import os
 import pandas
 import numpy
 python 3.11.5
 window 11
-After 10 epochs, the model relably provided dice score arount 80 percent. 
+
 
 #### 4.2.1 Reproducibility
-With this, you can expect the accruacy of 80 plug minus 2 percent.
+After 10 epochs, the model relably provided dice score arount 80 percent. 
 
 ### 4.3. provide example inputs, outputs and plots of your algorithm
 #### 4.3.1. The output when train.py is ran
+<img src="train_image.jpg" alt="drawing" width="200"/>
+
 ![Train Image](train_image.png)
 ![Train Mask](train_mask.png)
 ![Example Output](train_cmd.png)
@@ -72,7 +78,10 @@ For transformation the
 I also resized the images into 256x256 sizes to increase the performance of training and also because my model works on that sizes. 
 
 #### 4.5.2. Training
-validation and testing splits of the data.
+The training is done in batch size of 16 with 10 epoches.
+The opitmizer used is ADAM and the loss function used is Dice loss function.
+The schaduler was used to reduce the learning rate at the end fo the function.
+
 
 ## 5. Algorithm
 This program uses improved Unet to segment the differnt types of skin conditions such as melanoma.

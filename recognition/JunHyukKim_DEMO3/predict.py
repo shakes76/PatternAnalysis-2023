@@ -1,25 +1,11 @@
 #import modules
-import argparse
-import os
-import random
-import numpy as np
-
-import dataset
 from modules import UNET
-
 import torch
 import torch.nn.parallel
 import torch.utils.data
-import torchvision.transforms as transforms
-
-from dataset import CustomDataset
-from torch.utils.data import DataLoader
 import torch
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
-from tqdm import tqdm
-import torch.nn as nn
-import torch.optim as optim
 from modules import UNET
 from utils import ( get_test_loaders,
                     check_accuracy,
@@ -66,7 +52,7 @@ def main():
     loaded_model.to(DEVICE)
     loaded_model.eval()
     check_accuracy(test_loader,loaded_model)
-    #save_predictions_as_imgs(test_loader,loaded_model)
+    save_predictions_as_imgs(test_loader,loaded_model,folder="evaluation_folder/")
 
 if __name__ == "__main__":
     main()

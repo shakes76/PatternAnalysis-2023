@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 LEARNING_RATE = 1e-4
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BATCH_SIZE = 16
-NUM_EPOCHS = 2
+NUM_EPOCHS = 10
 NUM_WORKERS = 2
 IMAGE_HEIGHT = 256  # 1280 originally
 IMAGE_WIDTH = 256  # 1918 originally
@@ -40,6 +40,9 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
     :param loss_fn: Loss function to compute training loss.
     :param scaler: Gradient scaler for mixed precision training.
     """
+    total_steps = len(loader)
+    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,max_lr = LEARNING_RATE, 
+                               steps_per_epoch = total_steps, epochs = NUM_EPOCHS)
     # Initialize tqdm progress bar
     loop = tqdm(loader)
     for batch_idx, (data, targets) in enumerate(loop):
@@ -54,7 +57,7 @@ def train_fn(loader, model, optimizer, loss_fn, scaler):
         scaler.scale(loss).backward()
         scaler.step(optimizer)
         scaler.update()
-
+        scheduler.step()
         # update tqdm loop
         loop.set_postfix(loss=loss.item())
         losses.append(loss.item())
@@ -80,7 +83,7 @@ class diceLoss(torch.nn.Module):
         """
         smooth = 1e-5
         #Smooth value exist to prevent division by 0
-        
+
         iflat = pred.contiguous().view(-1)
         tflat = target.contiguous().view(-1)
         intersection = (iflat * tflat).sum()
@@ -143,11 +146,11 @@ def main():
     plt.figure(figsize=(10,5))
     plt.plot(losses)
     plt.title('Training Loss over Time')
-    plt.xlabel('Epochs or Iterations')
+    plt.xlabel('Iterations')
     plt.ylabel('Loss Value')
     plt.grid(True)
+    plt.savefig('the_loss_plot.png')
     plt.show()
-
     FILE = "model.pth"
     torch.save(model.state_dict(), FILE)
 
