@@ -1,2 +1,8 @@
 # Don't add VS Code config files
 .vscode
+
+# Ignore dataset files
+recognition/TRANSFORMER_43909856/imagenette
+
+# Ignore directory with saved models
+recognition/TRANSFORMER_43909856/models
