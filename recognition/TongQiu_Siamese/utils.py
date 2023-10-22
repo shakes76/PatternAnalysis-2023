@@ -16,7 +16,7 @@ class Config:
     TRAIN_DIR = Path("./AD_NC/train")
     TEST_DIR = Path("./AD_NC/test")
     DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
-    LOG_DIR_CONTRASTIVE = Path("./log")
+    LOG_DIR = Path("./log")
     MODEL_DIR_CONTRASTIVE = "./model/Contrastive.pth"
     MODEL_DIR_TRIPLET = "./model/Triplet.pth"
 
