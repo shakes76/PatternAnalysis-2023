@@ -8,7 +8,7 @@ def train_encoder(encoder, train_loader, val_loader, device, num_epochs, tensor_
 
     # Initialise loss functions, optimizer, and scheduler
     miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.EASY, 
-                                      neg_strategy=miners.BatchEasyHardMiner.SEMIHARD)
+                                      neg_strategy=miners.BatchEasyHardMiner.ALL)
     criterion = losses.TripletMarginLoss(margin=0.1)
     optimizer = optim.SGD(encoder.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=learning_rate, steps_per_epoch=len(train_loader), epochs=num_epochs)
@@ -23,6 +23,9 @@ def train_encoder(encoder, train_loader, val_loader, device, num_epochs, tensor_
             if epoch > (int(0.7 * num_epochs)):
                 miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.EASY, 
                                                   neg_strategy=miners.BatchEasyHardMiner.HARD)
+            elif epoch > (int(0.5 * num_epochs)):
+                miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.EASY, 
+                                                  neg_strategy=miners.BatchEasyHardMiner.SEMIHARD)
             for i, (images, labels) in enumerate(train_loader):
                 # Retreive data and move to device
                 images = images.float().to(device)
