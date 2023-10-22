@@ -20,13 +20,7 @@ def train_encoder(encoder, train_loader, val_loader, device, num_epochs, tensor_
             # Train 
             encoder.train()
             total_train_loss = 0.0
-            if epoch > 16:
-                miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.HARD, 
-                                                  neg_strategy=miners.BatchEasyHardMiner.HARD)
-            elif epoch > 12:
-                miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.SEMIHARD, 
-                                                  neg_strategy=miners.BatchEasyHardMiner.HARD)
-            elif epoch > 8:
+            if epoch > (int(0.7 * num_epochs)):
                 miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.EASY, 
                                                   neg_strategy=miners.BatchEasyHardMiner.HARD)
             for i, (images, labels) in enumerate(train_loader):
