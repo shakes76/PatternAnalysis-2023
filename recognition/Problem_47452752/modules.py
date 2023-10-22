@@ -85,11 +85,21 @@ class Localisation(nn.Module):
 
 
 class Segmentation(nn.Module):
-    pass
+    def __init__(self, in_channels, num_classes):
+        super(Segmentation, self).__init__()
+        self.conv = nn.Conv3d(in_channels, num_classes, kernel_size=1, stride=1)
+        self.upscale = nn.Upsample(scale_factor=2, mode="nearest")
+    
+    def forward(self, x, other_layer=None):
+        x = self.conv(x)
+        if other_layer is not None:
+            x += other_layer
+        return self.upscale(x)
+        
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, out_channels, num_classes):
+    def __init__(self, in_channels, num_classes):
         super(UNet, self).__init__()
 
         # Context modules (encoders)
@@ -110,44 +120,45 @@ class UNet(nn.Module):
         self.local2 = Localisation(64)
         self.local3 = Localisation(32)
 
+        # Convolution used on input channel
+        self.in_conv = nn.Conv3d(in_channels, 16, kernel_size=3, stride=1, padding=1)
+
         # Convolutions that connect context modules, used for downsampling
-        self.conv1 = nn.Conv3d(in_channels, 16, kernel_size=3, stride=1, padding=1)
-        self.conv2 = nn.Conv3d(16, 32, kernel_size=3, stride=2, padding=1)
-        self.conv3 = nn.Conv3d(32, 64, kernel_size=3, stride=2, padding=1)
-        self.conv4 = nn.Conv3d(64, 128, kernel_size=3, stride=2, padding=1)
-        self.conv5 = nn.Conv3d(128, 256, kernel_size=3, stride=2, padding=1)
+        self.conv1 = nn.Conv3d(16, 32, kernel_size=3, stride=2, padding=1)
+        self.conv2 = nn.Conv3d(32, 64, kernel_size=3, stride=2, padding=1)
+        self.conv3 = nn.Conv3d(64, 128, kernel_size=3, stride=2, padding=1)
+        self.conv4 = nn.Conv3d(128, 256, kernel_size=3, stride=2, padding=1)
 
-        # Final output layer
-        self.out_conv = nn.Conv3d(16, out_channels, kernel_size=1)
+        # Convolution used at the end of the localization pathway
+        self.end_conv = nn.Conv3d(32, 32, kernel_size=1)
 
-        # To upscale the segmentaion layers 
-        self.upscale = nn.Upsample(scale_factor=2, mode="trilinear", align_corners=True)
-
-        # Segmentation layers 
-        self.segment1 = nn.Conv3d(64, num_classes, kernel_size=1, stride=1)
-        self.segment2 = nn.Conv3d(32, num_classes, kernel_size=1, stride=1)
-        self.segment3 = nn.Conv3d(16, num_classes, kernel_size=1, stride=1)
+        # Segmentation layers
+        self.segment1 = Segmentation(64, num_classes)
+        self.segment2 = Segmentation(32, num_classes)
+        self.segment3 = Segmentation(16, num_classes)
         
 
     def forward(self, x):
 
         # Context Pathway
-        c1 = self.context1(self.conv1(x))
-        c2 = self.context2(self.conv2(c1))
-        c3 = self.context3(self.conv3(c2))
-        c4 = self.context4(self.conv4(c3))
-        x = self.context5(self.conv5(c4))
+        c1 = self.context1(self.in_conv(x))
+        c2 = self.context2(self.conv1(c1))
+        c3 = self.context3(self.conv2(c2))
+        c4 = self.context4(self.conv3(c3))
+        x = self.context5(self.conv4(c4))
 
-        # Decoding Pathway (upsample + localisation)
+        # Localization Pathway (upsample + localisation)
         l1 = self.local1(self.up1(x, c4))
-        l2 = self.local2(self.up2(l1, c3)) # TODO
-        l3 = self.local3(self.up3(l2, c2)) # TODO
-        x = self.out_conv(self.up4(l3, c1))
+        l2 = self.local2(self.up2(l1, c3))
+        l3 = self.local3(self.up3(l2, c2))
+        end = self.end_conv(self.up4(l3, c1))
 
         # Deep Supervision 
-        s1 = self.segment1() 
+        s1 = self.segment1(l2)
+        s2 = self.segment2(l3, s1)
+        s3 = self.segment3(s2, end)
 
+        # Apply softmax
+        out = F.softmax(s3, dim=1)
 
-
-        # Final output
-        return self.out_conv(dec2)
+        return out
