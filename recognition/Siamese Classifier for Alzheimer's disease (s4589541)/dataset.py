@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 from utils import show_image, train_valid_split
 
-BATCH_SIZE = 64
+BATCH_SIZE = 32
 
 class OneChannel:
     """Custom transform class to discard extra image channels."""
