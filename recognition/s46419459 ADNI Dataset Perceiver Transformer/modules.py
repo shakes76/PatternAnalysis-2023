@@ -100,7 +100,8 @@ class Perceiver(nn.Module):
         for block in self.blocks:
             out = block(embedded, out)
 
-        
+        out = self.classifier(out)
+        return out
 
 
 
