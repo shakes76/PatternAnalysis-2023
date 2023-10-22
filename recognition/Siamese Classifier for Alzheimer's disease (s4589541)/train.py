@@ -122,62 +122,62 @@ def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, crit
     print(f"Training images: {train_set_size*BATCH_SIZE}")
     print(f"Number of training batches: {train_set_size}")
     siamese.eval()
-    # try:
-    for epoch in range(epochs):
-        print(f"Epoch {epoch + 1}")
-        # training
-        epoch_train_loss = 0
-        classifier.train()
-        for batch_no, (a_t, label, _, _) in enumerate(train_loader):
-            # move the data to the GPU
-            a_t, label = a_t.to(device), label.to(device)
-            # zero the gradients
-            optimiser.zero_grad()
-            # input image into siamese model to generate embedding
-            a_embed_t = siamese.single_foward(a_t)
-            # pass into classifier
-            a_out_t = classifier(a_embed_t)
-            # calculate the loss
-            loss_t = criterion(a_out_t, label)
-            # backpropagate
-            loss_t.backward()
-            # step the optimiser
-            optimiser.step()
-            # add the loss
-            epoch_train_loss += loss_t.item()
+    try:
+        for epoch in range(epochs):
+            print(f"Epoch {epoch + 1}")
+            # training
+            epoch_train_loss = 0
+            classifier.train()
+            for batch_no, (a_t, label, _, _) in enumerate(train_loader):
+                # move the data to the GPU
+                a_t, label = a_t.to(device), label.to(device)
+                # zero the gradients
+                optimiser.zero_grad()
+                # input image into siamese model to generate embedding
+                a_embed_t = siamese.single_foward(a_t)
+                # pass into classifier
+                a_out_t = classifier(a_embed_t)
+                # calculate the loss
+                loss_t = criterion(a_out_t, label)
+                # backpropagate
+                loss_t.backward()
+                # step the optimiser
+                optimiser.step()
+                # add the loss
+                epoch_train_loss += loss_t.item()
 
-            print(f"Training Batch {batch_no + 1}, Loss: {loss_t.item()}")
-            # if batch_no > 0:
-            #     break 
+                print(f"Training Batch {batch_no + 1}, Loss: {loss_t.item()}")
+                # if batch_no > 0:
+                #     break 
 
-        # record average training loss over epoch
-        losses["train"].append(epoch_train_loss/train_set_size)
+            # record average training loss over epoch
+            losses["train"].append(epoch_train_loss/train_set_size)
 
-        # validation
-        epoch_valid_loss = 0
-        classifier.eval()
-        for batch_no, (a_v, label, _, _) in enumerate(valid_loader):
-            # move the data to the GPU
-            a_v, label = a_v.to(device), label.to(device)
-            # input image into siamese model to generate embedding
-            a_embed_v = siamese.single_foward(a_v)
-            # pass into classifier
-            a_out_v = classifier(a_embed_v)
-            # calculate the loss
-            loss_v = criterion(a_out_v, label)
-            # add the loss
-            epoch_valid_loss += loss_v.item()
+            # validation
+            epoch_valid_loss = 0
+            classifier.eval()
+            for batch_no, (a_v, label, _, _) in enumerate(valid_loader):
+                # move the data to the GPU
+                a_v, label = a_v.to(device), label.to(device)
+                # input image into siamese model to generate embedding
+                a_embed_v = siamese.single_foward(a_v)
+                # pass into classifier
+                a_out_v = classifier(a_embed_v)
+                # calculate the loss
+                loss_v = criterion(a_out_v, label)
+                # add the loss
+                epoch_valid_loss += loss_v.item()
 
-            print(f"Validation Batch {batch_no + 1}, Loss: {loss_v.item()}")
-            # if batch_no > 0:
-            #     break 
+                print(f"Validation Batch {batch_no + 1}, Loss: {loss_v.item()}")
+                # if batch_no > 0:
+                #     break 
 
-        # record average training loss over epoch
-        losses["valid"].append(epoch_valid_loss/valid_set_size)
+            # record average training loss over epoch
+            losses["valid"].append(epoch_valid_loss/valid_set_size)
 
-    # except Exception as e:
-    #     print(f"Failed at epoch {epoch}")
-    #     print(e)
+    except Exception as e:
+        print(f"Failed at epoch {epoch}")
+        print(e)
         
     return losses
 
@@ -273,7 +273,7 @@ def main():
         
         return
     
-    classifier = BinaryClassifier(siamese.embedding_dim)
+    classifier = BinaryClassifier(siamese.embedding_dim).to(device)
     criterion_c = torch.nn.CrossEntropyLoss()
     optimiser_c = optim.Adam(classifier.parameters(), lr=1e-3)
     epochs = 10
