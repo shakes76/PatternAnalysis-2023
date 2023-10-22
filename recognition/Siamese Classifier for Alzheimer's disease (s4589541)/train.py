@@ -111,7 +111,7 @@ def test(chkpt_path, model: TripletNetwork, criterion: TripletLoss,
 
 
 def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, criterion, 
-                     optimiser: optim.Optimizer, device, train_loader: DataLoader, 
+                     optimiser: optim.Optimizer, scheduler, device, train_loader: DataLoader, 
                      valid_loader: DataLoader, epochs: int):
     losses = {
         "train": [],
@@ -171,6 +171,9 @@ def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, crit
                 print(f"Validation Batch {batch_no + 1}, Loss: {loss_v.item()}")
                 # if batch_no > 0:
                 #     break 
+
+            # step the scheduler
+            scheduler.step(epoch_valid_loss)
 
             # record average training loss over epoch
             losses["valid"].append(epoch_valid_loss/valid_set_size)
@@ -275,8 +278,9 @@ def main():
     
     classifier = BinaryClassifier(siamese.embedding_dim).to(device)
     criterion_c = torch.nn.BCEWithLogitsLoss()
-    optimiser_c = optim.Adam(classifier.parameters(), lr=1e-2)
-    epochs = 10
+    optimiser_c = optim.SGD(classifier.parameters(), lr=1e-1)
+    scheduler_c = optim.lr_scheduler.ReduceLROnPlateau(optimiser_c, "min", factor=0.8, verbose=True)
+    epochs = 100
 
     print(classifier)
     
@@ -290,8 +294,8 @@ def main():
         valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
         # train new classifier
-        losses = train_classifier(classifier, siamese, criterion_c, optimiser_c, device, train_loader, 
-                     valid_loader, epochs)
+        losses = train_classifier(classifier, siamese, criterion_c, optimiser_c, scheduler_c, 
+                                  device, train_loader, valid_loader, epochs)
         save_path = f"./checkpoints/cp_c_{datetime.datetime.now().strftime('%m-%d_%H-%M-%S')}"
         torch.save(classifier.state_dict(), save_path)
     

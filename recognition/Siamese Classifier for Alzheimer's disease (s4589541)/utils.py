@@ -9,6 +9,7 @@ from pathlib import Path
 import os
 import matplotlib.pyplot as plt
 import datetime
+import torch.nn as nn
 
 def size_after_cnn_pool(h, w, k, s, p):
     """New size of image tensor after CNN and max pool layers.
@@ -26,6 +27,18 @@ def size_after_cnn_pool(h, w, k, s, p):
     nh = int(((h-k)/s + 1)/p)
     nw = int(((w-k)/s + 1)/p)
     return nh, nw
+
+
+def init_net_weights(layer):
+    """Helper function to initialise weights of the network.
+        Used to help stop the classifier getting stuck predicting 0.
+
+    Args:
+        layer (nn.Module): model layer
+    """
+    if isinstance(layer, nn.Linear):
+        nn.init.xavier_uniform_(layer.weight)
+        layer.bias.data.fill_(0.01)
 
 
 def show_image(data: tuple):

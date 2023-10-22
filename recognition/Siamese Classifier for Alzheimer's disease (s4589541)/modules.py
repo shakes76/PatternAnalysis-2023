@@ -4,7 +4,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as Functional
-from utils import size_after_cnn_pool
+from utils import size_after_cnn_pool, init_net_weights
 
 # define the Triplet Loss function
 class TripletLoss(nn.Module):
@@ -131,13 +131,15 @@ class TripletNetwork(nn.Module):
 class BinaryClassifier(nn.Module):
     def __init__(self, in_channels):
         super().__init__()
+        fc1_out = 48
         self.layers = nn.Sequential(
-            nn.Linear(in_channels, 64),
+            nn.Linear(in_channels, fc1_out),
             nn.LeakyReLU(inplace=True),
             nn.Dropout(p=0.2),
-            nn.Linear(64, 1)
+            nn.Linear(fc1_out, 1)
         )
-    
+        self.layers.apply(init_net_weights)
+
     def forward(self, input):
         output = self.layers(input)
         return output
