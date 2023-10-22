@@ -27,7 +27,7 @@ The project is divided into three main components:
 3) Training and Prediction: Training the model on preprocessed data and evaluating performance on the held-out test set with the target of achieving a minimum accuracy of 0.8.
 The Vision Transformer takes advantage of self-attention to capture global relationships between image patches, without relying on local connections like convolutional networks. This allows it to efficiently model long-range dependencies in the brain MRI data to distinguish between AD and normal classes. We implement the model in TensorFlow and evaluate its ability to classify Alzheimer's disease from brain images with the goal of supporting early disease detection.
 
-![Vision Transformer { width="800" height="600" style="display: block; margin: 0 auto" }](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/VisionTransformer.png)
+![Vision Transformer { width="800" height="600" style="display: block; margin: 0 auto" }](recognition/s4824575_ADNI/assets/VisionTransformer.png)
 
 ## 👨🏻‍💻 Code Overview <a name = "code_overview"></a>
 
@@ -59,14 +59,14 @@ raining curves are plotted to visualize the learning process. The trained model 
 
 <h3>Data Set:</h3>
 
-![Dataset](assets/data.png)
+![Dataset]
 <p>The data used to train this model is the ADNI dataset. The dataset consists of a training set, containing ~10000 images of cognitive normal brain scans (or normal controls) and ~10000 images of brain scans of patients with Alzheimer's disease. The test set contains ~4500 of each type. To train the SNN, the train data is split into 80% for training, and 20% for validation. However, the data in its raw form is not suitable for training an SNN, as we need image pairs and labels. Therefore, we must build image pairs when loading the data. This is done in <b>dataset.py</b>, and is well documented in the code. In short, we take all the image paths, create the pairs and labels corresponding to the pair, turn them into tensorflow datasets, and then shuffle the dataset before splitting into 80% train, 20% validation. No test set is generated from the image pairs, as we only evaluate the final classification model. Further given the large amount of data, 20% is a suitable amount of data to validate on.</p>
 <h3>Classification Data:</h3>
 <p>To evaluate and train the classification model we must build a new dataset. One that just contains singular images, and a corresponding label for whether the image is AD or CN (0 or 1). We again use an 80/20 train validation split, and use the entire test set to evaluate the model after training.</p>
 <h3>Model Architecture:</h3>
 <h4>SNN:</h4>
 
-![ADNI](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/ADNI DATASET.png)
+![ADNI] (recognition/s4824575_ADNI/assets/ADNI DATASET.png)
 
 
 
@@ -74,7 +74,7 @@ raining curves are plotted to visualize the learning process. The trained model 
 ## 🐍 Results <a name = "results"></a>
 <p>After running the train.py</p>
 
-![Training Graph](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/outputs/training.png)
+![Training Graph] (recognition/s4824575_ADNI/assets/training.png)
 
 <p>The image shows a line graph with two lines - a blue line and an orange line. The blue line plots the training loss over multiple epochs of training, while the orange line plots the validation loss.
 We can see that both the training loss and validation loss steadily decrease as the number of epochs increases. This indicates that the model is learning from the training data and is able to generalize this learning to new data, as seen by the decreasing validation loss. If the validation loss was increasing or plateauing while the training loss continued to decrease, it would suggest the model is overfitting to the training data and not generalizing well.
@@ -84,7 +84,7 @@ In summary, this graph shows that the model is learning effectively during train
 
 <p>After Predict.py bit we get</p>
 
-![Predict_graph](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/outputs/predict.png)
+![Predict_graph] (recognition/s4824575_ADNI/assets/predict.png)
 
 <p>- There is a clear downward trend seen in both the blue and orange lines over time (as represented on the x-axis).
 - The blue line, representing the training loss validation, gradually decreases in a smooth and consistent manner. This indicates the model's training loss is consistently improving as more data is passed through it.
@@ -96,7 +96,7 @@ In summary, the key trends shown are two smooth, consistent downward slopes repr
 
 - Epoch cycle running in terminal
 
-![epoch_cycle](/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/Model running.png)
+![epoch_cycle] (recognition/s4824575_ADNI/assets/Model running.png)
 
 
 
@@ -118,4 +118,4 @@ Overall, this project shows that visual transformers are a promising approach fo
 
 - [Vision Transformer wiki ](https://en.wikipedia.org/wiki/Vision_transformer)
 
-- [Vision_transformers_a_very_basic_introduction ](https://medium.com/data-and-beyond/vision-transformers-vit-a-very-basic- introduction-6cd29a7e56f3)
+- [Vision_transformers_a_very_basic_introduction ](https://medium.com/data-and-beyond/vision-transformers-vit-a-very-basic-introduction-6cd29a7e56f3)
