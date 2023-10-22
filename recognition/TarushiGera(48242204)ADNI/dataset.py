@@ -2,6 +2,7 @@
 Swin Transformer Model Architecture Based Topic Recognition for Alzheimer's Disease Classification
 Name: Tarushi Gera
 Student ID: 48242204
+This code is to make training and testing easier by loading and preprocessing images from a directory.
 """
 import os
 from PIL import Image
