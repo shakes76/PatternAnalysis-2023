@@ -19,58 +19,58 @@ def train(model: TripletNetwork, criterion: TripletLoss, optimiser: optim.Optimi
     valid_set_size = len(valid_loader)
     print(f"Training images: {train_set_size*BATCH_SIZE}")
     print(f"Number of training batches: {train_set_size}")
-    try:
-        for epoch in range(epochs):
-            print(f"Epoch {epoch + 1}")
-            # training
-            epoch_train_loss = 0
-            model.train()
-            for batch_no, (a_t, label, p_t, n_t) in enumerate(train_loader):
-                # move the data to the GPU
-                a_t, p_t, n_t = a_t.to(device), p_t.to(device), n_t.to(device)
-                # zero the gradients
-                optimiser.zero_grad()
-                # input triplet images into model
-                a_out_t, p_out_t, n_out_t = model(a_t, p_t, n_t)
-                # calculate the loss
-                loss_t = criterion(a_out_t, p_out_t, n_out_t)
-                # backpropagate
-                loss_t.backward()
-                # step the optimiser
-                optimiser.step()
-                # add the loss
-                epoch_train_loss += loss_t.item()
+    # try:
+    for epoch in range(epochs):
+        print(f"Epoch {epoch + 1}")
+        # training
+        epoch_train_loss = 0
+        model.train()
+        for batch_no, (a_t, label, p_t, n_t) in enumerate(train_loader):
+            # move the data to the GPU
+            a_t, p_t, n_t = a_t.to(device), p_t.to(device), n_t.to(device)
+            # zero the gradients
+            optimiser.zero_grad()
+            # input triplet images into model
+            a_out_t, p_out_t, n_out_t = model(a_t, p_t, n_t)
+            # calculate the loss
+            loss_t = criterion(a_out_t, p_out_t, n_out_t)
+            # backpropagate
+            loss_t.backward()
+            # step the optimiser
+            optimiser.step()
+            # add the loss
+            epoch_train_loss += loss_t.item()
 
-                print(f"Training Batch {batch_no + 1}, Loss: {loss_t.item()}")
-                # if batch_no > 0:
-                #     break 
+            print(f"Training Batch {batch_no + 1}, Loss: {loss_t.item()}")
+            # if batch_no > 0:
+            #     break 
 
-            # record average training loss over epoch
-            losses["train"].append(epoch_train_loss/train_set_size)
+        # record average training loss over epoch
+        losses["train"].append(epoch_train_loss/train_set_size)
 
-            # validation
-            epoch_valid_loss = 0
-            model.eval()
-            for batch_no, (a_v, label, p_v, n_v) in enumerate(valid_loader):
-                # move the data to the GPU
-                a_v, p_v, n_v = a_v.to(device), p_v.to(device), n_v.to(device)
-                # input triplet images into model
-                a_out_v, p_out_v, n_out_v = model(a_v, p_v, n_v)
-                # calculate the loss
-                loss_v = criterion(a_out_v, p_out_v, n_out_v)
-                # add the loss
-                epoch_valid_loss += loss_v.item()
+        # validation
+        epoch_valid_loss = 0
+        model.eval()
+        for batch_no, (a_v, label, p_v, n_v) in enumerate(valid_loader):
+            # move the data to the GPU
+            a_v, p_v, n_v = a_v.to(device), p_v.to(device), n_v.to(device)
+            # input triplet images into model
+            a_out_v, p_out_v, n_out_v = model(a_v, p_v, n_v)
+            # calculate the loss
+            loss_v = criterion(a_out_v, p_out_v, n_out_v)
+            # add the loss
+            epoch_valid_loss += loss_v.item()
 
-                print(f"Validation Batch {batch_no + 1}, Loss: {loss_v.item()}")
-                # if batch_no > 0:
-                #     break 
+            print(f"Validation Batch {batch_no + 1}, Loss: {loss_v.item()}")
+            # if batch_no > 0:
+            #     break 
 
-            # record average training loss over epoch
-            losses["valid"].append(epoch_valid_loss/valid_set_size)
+        # record average training loss over epoch
+        losses["valid"].append(epoch_valid_loss/valid_set_size)
 
-    except Exception as e:
-        print(f"Failed at epoch {epoch}")
-        print(e)
+    # except Exception as e:
+    #     print(f"Failed at epoch {epoch}")
+    #     print(e)
         
     return losses
 
@@ -223,7 +223,6 @@ def parse_user_args():
 
 def main():
     is_training_s, train_c_s_path, saved_s_path, saved_c_path = parse_user_args()
-    
     # setup the transforms for the images
     transform = transforms.Compose([
         transforms.Resize((256, 240)),
@@ -238,7 +237,7 @@ def main():
     # criterion = TripletLoss()
     criterion = torch.nn.TripletMarginLoss()
     optimiser = optim.Adam(siamese.parameters(), lr=1e-5)
-    epochs = 10
+    epochs = 1
 
     print(siamese)
 

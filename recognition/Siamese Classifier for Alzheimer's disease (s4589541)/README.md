@@ -15,7 +15,61 @@ The provided ADNI dataset was split into test and train sets, and had a patient-
 
 ## Reproduction of Results
 
-The dataset split can be acheived by running dataset.py, with the AD_NC/ folder of the ADNI data in the same directory. Training and testing can be done by running train.py with `--train` to train and test a new model or `--test path_to_saved_model` to test a saved model. This requires the processed dataset in the same directory under data/ (which dataset.py creates). Running predict.py will provide sample outputs of the trained model.
+The dataset split can be acheived by running dataset.py, with the AD_NC/ folder of the ADNI data in the same directory.
+```
+Siamese Classifier for Alzheimer's disease (s4589541)
+├── README.md
+├── modules.py
+├── dataset.py
+├── predict.py
+├── train.py
+├── utils.py
+├── .gitignore
+├── AD_NC
+|   ├── test
+|   |    ├── AD
+|   |    |   └── 388206_78.jpeg
+|   |    |              .
+|   |    |              .
+|   |    └── NC
+|   |        └── 1182968_94.jpeg
+|   |                   .
+|   |                   .
+|   └── train
+|        ├── AD
+|        |   └── 218391_78.jpeg
+|        |              .
+|        |              .
+|        └── NC
+|            └── 808819_88.jpeg
+|                       .
+|                       .
+└── data    # created by dataset.py
+    ├── test
+    |    ├── AD
+    |    |   └── 388206_78.jpeg
+    |    |              .
+    |    └── NC
+    |        └── 1182968_94.jpeg
+    |                   .
+    ├── train
+    |    ├── AD
+    |    |   └── 218393_78.jpeg
+    |    |              .
+    |    └── NC
+    |        └── 808819_88.jpeg
+    |                   .
+    └── valid
+         ├── AD
+         |   └── 218391_78.jpeg
+         |              .
+         └── NC
+             └── 836646_88.jpeg
+                        .
+```
+
+
+Training and testing can be done by running train.py with `--train` to train and test a new model or `--test path_to_saved_model` to test a saved model. This requires the processed dataset in the same directory under data/ (which dataset.py creates). Running predict.py will provide sample outputs of the trained model.
 
 Below are example graphs of training, validation and testing loss.
 
