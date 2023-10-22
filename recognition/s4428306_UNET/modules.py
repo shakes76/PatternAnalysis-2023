@@ -1,7 +1,8 @@
 #Code in this section is based on code from:
 #https://pyimagesearch.com/2022/02/21/u-net-image-segmentation-in-keras/
-#TODO: Reference both papers. (Improved UNet and the segmentation layer one.)
-#NOTE: No l2 decay for now.
+#Papers used to write this:
+#[1] Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge (arXiv:1802.10508)
+#[2] CNN-based Segmentation of Medical Imaging Data (arXiv:1701.03056)
 
 import tensorflow as tf
 from tensorflow import keras
@@ -9,50 +10,45 @@ from tensorflow.keras import layers
 from tensorflow.keras.layers import LeakyReLU
 
 def context_module(x, n_filters):
-    #TODO: Write specification.
-    #NOTE: Layers in paper are said to be 3D, but this may be because they incorporate channels.
-    #      Leaving padding as "same" to prevent headaches with dimensions.
+    """
+    A context module to be used in the context pathway, as described in [1].
+    """
     og_x = x
     x = layers.Conv2D(n_filters, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     x = layers.Conv2D(n_filters, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     x = layers.Dropout(0.3)(x)
     return x + og_x
 
-#NOTE: For the report, could talk about how these are used instead of transposed convs (as mentioned in the paper),
-#      and do some experiments with these replaced.
 def upsampling_module(x, n_filters):
-    #TODO: Write specification.
-    #NOTE: This looks like what is mentioned in the paper, but the arguments to the upsample layers, or whether they
-    #      should be 3D may require some experimentation.
+    """
+    An upsampling module to be used in the localization pathway as described in [1].
+    """
     x = layers.UpSampling2D(size=(2,2))(x)
     x = layers.Conv2D(n_filters, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     return x
 
-#NOTE: Concatenation happens inside this module now, because it always happens before data is passed into it.
-#      Remember that there is one more concatenation before one of the final convolutions.
 def localization_module(x, conv_features, n_filters):
-    #TODO: Write specifictaion.
-    #NOTE: Again, unsure if these should be 2D or 3D.
+    """
+    A localization module to be used in the localization pathway as described in [1].
+    """
     x = layers.concatenate([x, conv_features])
     x = layers.Conv2D(n_filters, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     x = layers.Conv2D(n_filters, 1, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     return x
 
-#NOTE: From what I can see from the papers this is just a 1x1 (or 1x1x1) convolution.
-#      Should the papers be referenced somewhere?
-#      Going to define it like this for readability.
 def segmentation_layer(x, n_filters):
-    #TODO: Write specifictaion.
-    #NOTE: Again, unsure if these should be 2D or 3D.
+    """
+    A segmentation layer to be used in the localization pathway as described in [2].
+    """
     x = layers.Conv2D(n_filters, 1, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
     return x
 
 def build_improved_unet_model():
-    #TODO: Write specificatoin.
-    #NOTE: The extra dimension in the training data must be something wrong with the batching.
+    """
+    Builds the improved U-Net model to be compiled and trained.
+    """
     inputs = layers.Input(shape=(128,128,3))
-    #TODO: Name this path. (down?)
-    #NOTE: Again, unsure if these should be 2D or 3D.
+    #The context pathway.
     x = layers.Conv2D(16, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(inputs)
     c1 = context_module(x, 16)
     x = layers.Conv2D(32, 3, padding="same", strides=2, activation=LeakyReLU(0.01), kernel_initializer="he_normal")(c1)
@@ -63,7 +59,7 @@ def build_improved_unet_model():
     c4 = context_module(x, 128)
     x = layers.Conv2D(256, 3, padding="same", strides=2, activation=LeakyReLU(0.01), kernel_initializer="he_normal")(c4)
     x = context_module(x, 256)
-    #TODO: Name this path. (up?)
+    #The localization pathway.
     x = upsampling_module(x, 128)
     x = localization_module(x, c4, 128)
     x = upsampling_module(x, 64)
@@ -73,23 +69,13 @@ def build_improved_unet_model():
     x = upsampling_module(l2, 16)
     x = layers.concatenate([x, c1])
     x = layers.Conv2D(32, 3, padding="same", activation=LeakyReLU(0.01), kernel_initializer="he_normal")(x)
-    #NOTE: Unsure how many filters segmentation layers should have.
-    #      It looks like they all need to be the same for them to add together.
-    #      Setting them all to 1 so that the output matches the masks.
-    #      Changed filters to 2, because there are 2 classes.
-    x = segmentation_layer(x, 1)
     #Upscale and add segmentation layers.
+    x = segmentation_layer(x, 1)
     s1 = segmentation_layer(l1, 1)
     s1 = layers.UpSampling2D(size=(2,2))(s1)
     s2 = segmentation_layer(l2, 1) + s1
     s2 = layers.UpSampling2D(size=(2,2))(s2)
     x = x + s2
-    #outputs = layers.Softmax(axis=3)(x)
     outputs = tf.keras.activations.sigmoid(x)
-    #NOTE: Squeezing to make sure dimensions are the same as the masks.
-    #      Looks like this actually shouldn't be done.
-    #outputs = tf.squeeze(outputs)
-    #NOTE: A different model will need to be returned once the new class is set up and training is written.
     return tf.keras.Model(inputs, outputs)
 
-#TODO: Write new model and training function.
