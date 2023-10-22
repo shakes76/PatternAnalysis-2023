@@ -58,7 +58,7 @@ class Up(nn.Module):
         )
 
     def forward(self, x, skip_channels):
-        x = self.conv(self.relu(self.norm(x)))
+        x = self.upsample(x)
         return torch.cat([x, skip_channels], dim=1)
 
 
@@ -78,24 +78,14 @@ class Localisation(nn.Module):
         # Round 2, we halve the number of feature maps using a 1x1x1 convolution
         self.norm2 = nn.InstanceNorm3d(out_channels)
         self.conv2 = nn.Conv3d(
-            in_channels // 2, out_channels, kernel_size=3, stride=1, padding=1
+            in_channels, out_channels, kernel_size=3, stride=1, padding=1
         )
 
-        def forward(self, x):
-            x = self.conv1(self.relu(self.norm1(x)))
-            x = self.conv2(self.relu(self.norm2(x)))
-            return x
+    def forward(self, x):
+        x = self.conv1(self.relu(self.norm1(x)))
+        x = self.conv2(self.relu(self.norm2(x)))
+        return x
 
-    def forward(self, x, skip_connection):
-        upsampled = self.upsample(x)
-        upsampled = self.relu(self.norm(upsampled))
-        upsampled = self.conv(upsampled)
-
-        # Concatenate with skip features from the context pathway
-        x = torch.cat([x, skip_features], dim=1)
-
-        # halve the in_features, concativate with skip features
-        pass
 
 
 class UNet(nn.Module):
