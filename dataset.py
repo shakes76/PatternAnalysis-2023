@@ -1,54 +1,71 @@
 import os
-import torch
 import numpy as np
-from PIL import Image
-from torchvision import transforms
-from torch.utils.data import DataLoader, Dataset
+import cv2
+from glob import glob
+from sklearn.utils import shuffle
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
 
-class CustomDataset(Dataset):
-    def __init__(self, image_dir, mask_dir, transform=None):
-        self.image_dir = image_dir
-        self.mask_dir = mask_dir
+# Set random seeds for reproducibility
+np.random.seed(1)
+tf.random.set_seed(1)
 
-        self.image_files = [file for file in os.listdir(image_dir) if file.endswith('.jpg')]
-        self.mask_files = [file for file in os.listdir(mask_dir) if file.endswith('_segmentation.png')]
+H = 256
+W = 256
 
-        self.transform = transform
+def create_dir(path):
+    if not os.path.exists(path):
+        os.makedirs(path)
 
-    def __len__(self):
-        return len(self.image_files)
+def shuffling(x, y):
+    x, y = shuffle(x, y, random_state=1)
+    return x, y
 
-    def __getitem__(self, idx):
-        img_name = os.path.join(self.image_dir, self.image_files[idx])
-        mask_name = os.path.join(self.mask_dir, self.mask_files[idx])
+def load_data(dataset_path, split=0.2):
+    images = sorted(glob(os.path.join(dataset_path, r"path to training images here", "*.jpg")))
+    masks = sorted(glob(os.path.join(dataset_path, r"path to training masks here", "*.png")))
 
-        image = Image.open(img_name)
-        mask = Image.open(mask_name)
+    test_size = int(len(images) * split)
 
-        # Ensure consistent sizing
-        image = image.resize((256, 256), Image.ANTIALIAS)
-        mask = mask.resize((256, 256), Image.ANTIALIAS)
+    train_x, valid_x = train_test_split(images, test_size=test_size, random_state=1)
+    train_y, valid_y = train_test_split(masks, test_size=test_size, random_state=1)
 
-        if self.transform is not None:
-            image = self.transform(image)
+    train_x, test_x = train_test_split(train_x, test_size=test_size, random_state=1)
+    train_y, test_y = train_test_split(train_y, test_size=test_size, random_state=1)
 
-        # Convert the grayscale mask to a binary mask
-        mask = self.normalize_mask(mask)
+    return (train_x, train_y), (valid_x, valid_y), (test_x, test_y)
 
-        return image, mask
+def read_image(path):
+    path = path.decode()
+    x = cv2.imread(path, cv2.IMREAD_COLOR)
+    x = cv2.resize(x, (W, H))
+    x = x/255.0
+    x = x.astype(np.float32)
+    return x  # (256, 256, 3)
 
-    def normalize_mask(self, mask):
-        #normalise mask to a Pytorch tensor
-        mask = np.array(mask)
-        mask = mask / 255.0
-        mask = torch.tensor(mask, dtype=torch.float32)
-        return mask
+def read_mask(path):
+    path = path.decode()
+    x = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
+    x = cv2.resize(x, (W, H))
+    x = x/255.0
+    x = x.astype(np.float32)
+    x = np.expand_dims(x, axis=-1)
+    return x  # (256, 256, 1)
 
-def get_loader(image_dir, mask_dir, batch_size, transform=None):
-    if transform is None:
-        transform = transforms.Compose([transforms.ToTensor()])
+def tf_parse(x, y):
+    def _parse(x, y):
+        x = read_image(x)
+        y = read_mask(y)
+        return x, y
 
-    dataset = CustomDataset(image_dir, mask_dir, transform=transform)
-    loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    x, y = tf.numpy_function(_parse, [x, y], [tf.float32, tf.float32])
+    x.set_shape([H, W, 3])
+    y.set_shape([H, W, 1])
+    return x, y
 
-    return loader
+def tf_dataset(X, Y, batch):
+    dataset = tf.data.Dataset.from_tensor_slices((X, Y))
+    dataset = dataset.map(tf_parse)
+    dataset = dataset.batch(batch)
+    dataset = dataset.prefetch(10)
+    return dataset
