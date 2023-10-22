@@ -19,8 +19,9 @@ class OneChannel:
 
 
 class TripletDataset(datasets.ImageFolder):
-    def __init__(self, root, transform=None):
+    def __init__(self, root, transform=None, triplet=True):
         super().__init__(root, transform=transform)
+        self.triplet = triplet
 
     def __getitem__(self, index: int):
         """Overrides inherited method. Returns sample image (anchor) and class, with positive and negative image.
@@ -35,6 +36,9 @@ class TripletDataset(datasets.ImageFolder):
         path, target = self.samples[index]
         anchor = self.loader(path)
         # print(f"Anchor: {path}")
+        if not self.triplet:
+            anchor = self.transform(anchor)
+            return anchor, target
 
         # now get the positive and negative images randomly
         found_p = False

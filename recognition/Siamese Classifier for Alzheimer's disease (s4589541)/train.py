@@ -128,7 +128,7 @@ def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, crit
             # training
             epoch_train_loss = 0
             classifier.train()
-            for batch_no, (a_t, label, _, _) in enumerate(train_loader):
+            for batch_no, (a_t, label) in enumerate(train_loader):
                 # move the data to the GPU
                 a_t, label = a_t.to(device), torch.unsqueeze(label.to(device), dim=1).float()
                 # zero the gradients
@@ -156,7 +156,7 @@ def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, crit
             # validation
             epoch_valid_loss = 0
             classifier.eval()
-            for batch_no, (a_v, label, _, _) in enumerate(valid_loader):
+            for batch_no, (a_v, label) in enumerate(valid_loader):
                 # move the data to the GPU
                 a_v, label = a_v.to(device), torch.unsqueeze(label.to(device), dim=1).float()
                 # input image into siamese model to generate embedding
@@ -285,15 +285,16 @@ def main():
     print(classifier)
     
     if saved_c_path is None:
+        # train new classifier
+
         # set up the datasets
-        train_set = TripletDataset(root="data/train", transform=transform)
-        valid_set = TripletDataset(root="data/valid", transform=transform)
+        train_set = TripletDataset(root="data/train", transform=transform, triplet=False)
+        valid_set = TripletDataset(root="data/valid", transform=transform, triplet=False)
 
         # set up the dataloaders
         train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
         valid_loader = DataLoader(valid_set, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 
-        # train new classifier
         losses = train_classifier(classifier, siamese, criterion_c, optimiser_c, scheduler_c, 
                                   device, train_loader, valid_loader, epochs)
         save_path = f"./checkpoints/cp_c_{datetime.datetime.now().strftime('%m-%d_%H-%M-%S')}"
