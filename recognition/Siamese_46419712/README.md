@@ -102,13 +102,15 @@ This is also showed in the classifier loss. After 2 epochs, the train loss becom
 
 **T-SNE plot showing the impact of Siamese model**
 
-<div class="side-by-side">
+<div>
     <img src="result/tsne_train.png" alt="t-SNE train data" width="50%">
     <img src="result/tsne_validate.png" alt="t-SNE validate data" width="50%">
     <img src="result/tsne_test.png" alt="t-SNE test data" width="50%">
 </div>
 
 The t-SNE diagram shows that, when evaluating the Siamese model on validation and training sets, there are some clear differences between the two type of image (AD and NC), indicating that the Siamese model is doing it jo effectively. However, when evaluating the model on testing dataset, the difference between AD and NC classes are not that clear. This might be due to the fact that when training, there are some dataset, the Siamese model extract a high-quality feature vectors to distinguish between the two classes, in other cases, it does not perform as good.
+
+**Accuracy plot between training data, validation data and testing data**
 
 <div class="side-by-side">
   <img src="result/Accuracy_plot.png" alt="Result Accuracy loss plot" width="50%" height="50%">
