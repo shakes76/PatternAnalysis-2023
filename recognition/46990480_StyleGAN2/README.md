@@ -261,3 +261,4 @@ To further improve the results of the output, I would like to compute additional
 - https://arxiv.org/abs/1812.04948
 - https://arxiv.org/abs/1912.04958
 - https://blog.paperspace.com/implementation-stylegan2-from-scratch/#models-implementation
+
