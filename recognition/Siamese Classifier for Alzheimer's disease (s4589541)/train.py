@@ -130,7 +130,7 @@ def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, crit
             classifier.train()
             for batch_no, (a_t, label, _, _) in enumerate(train_loader):
                 # move the data to the GPU
-                a_t, label = a_t.to(device), label.to(device)
+                a_t, label = a_t.to(device), torch.unsqueeze(label.to(device), dim=1).float()
                 # zero the gradients
                 optimiser.zero_grad()
                 # input image into siamese model to generate embedding
@@ -158,7 +158,7 @@ def train_classifier(classifier: BinaryClassifier, siamese: TripletNetwork, crit
             classifier.eval()
             for batch_no, (a_v, label, _, _) in enumerate(valid_loader):
                 # move the data to the GPU
-                a_v, label = a_v.to(device), label.to(device)
+                a_v, label = a_v.to(device), torch.unsqueeze(label.to(device), dim=1).float()
                 # input image into siamese model to generate embedding
                 a_embed_v = siamese.single_foward(a_v)
                 # pass into classifier
@@ -274,7 +274,7 @@ def main():
         return
     
     classifier = BinaryClassifier(siamese.embedding_dim).to(device)
-    criterion_c = torch.nn.CrossEntropyLoss()
+    criterion_c = torch.nn.BCELoss()
     optimiser_c = optim.Adam(classifier.parameters(), lr=1e-3)
     epochs = 10
 
