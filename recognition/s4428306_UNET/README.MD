@@ -35,12 +35,12 @@ Finally, instead of a softmax layer, this implemenation uses a sigmoidal activat
 There are some other differences between this implementation and the one in [^2]:
 - The model is trained with a dice loss function for one class.
 - Padding was applied evenly to the edges of input in each convolution to ensure the inputs and outputs had the same size.
-- The model was trained for 10 epochs with a batch size of 64.
+- The model was trained for 30 epochs with a batch size of 64.
 - The Adam optimizer used had the default settings given by `tensorflow.keras.optimizers.Adam()`.
 - No l2 weight decay was used.
 
 # Example Outputs
-The model does not currently train properly, so these examples are not meaningful.
+The model produces pixelated outputs that roughly conform to the mask of the depicted lesion.
 ## Example 1
 Image:
 ![Example 1 image](/recognition/s4428306_UNET/example1_image.png)
@@ -59,17 +59,17 @@ Prediction:
 # Preprocessing
 All images were resized to 128x128 using bicubic resampling. This means that aspect ratios were not preserved, and some images may have been squashed. A center crop of 256x256 was attempted, but this cut out too much data to be useful.
 All images were passed to the model after having their colour values divided by 255 for normalization, and ground truth masks were converted to 0s and 1s, with 1s being where a lesion was present and 0s being where there was no lesion.
-Image files were also randomly flipped vertically and horizontally with their masks.
+The data was split into a 1796 example training set, 400 example validation set, and a 400 example test set. This was to ensure that the model generalises well on the test set.
 
 # Training Plots
-The model does not currently train properly, so these plots are not meaningful.
+These plots show the model training over 10 epochs.
 ## Training Loss
 ![Training loss](/recognition/s4428306_UNET/loss_plot.png)
 ## Training Accuracy
 ![Training accuracy](/recognition/s4428306_UNET/accuracy_plot.png)
 
 # Testing
-The model does not currently train properly, so testing metrics could not be meaningfully ascertained.
+The model successfully achieves a dice accuracy of 0.79 on the test data set.
 
 # Usage
 This model is run using `python test_driver.py`. The model keras file, plots and example images are saved in:
