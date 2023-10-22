@@ -1,5 +1,9 @@
 #Extensive use of tensorflow and keras documentation was used to write this code.
 
+"""
+This file is for evaluation of the model and saving example outputs.
+"""
+
 from dataset import *
 from modules import *
 from train import *

@@ -5,6 +5,10 @@
 #[1] Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge (arXiv:1802.10508)
 #[2] CNN-based Segmentation of Medical Imaging Data (arXiv:1701.03056)
 
+"""
+This file contains the modules/layers and model building function for the improved U-Net model.
+"""
+
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers

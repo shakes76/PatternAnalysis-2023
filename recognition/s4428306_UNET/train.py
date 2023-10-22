@@ -2,6 +2,10 @@
 #Code in this section is based on code from:
 #https://pyimagesearch.com/2022/02/21/u-net-image-segmentation-in-keras/
 
+"""
+This file is for the training and saving of the improved U-Net model and its training metrics.
+"""
+
 from dataset import *
 from modules import *
 import tensorflow as tf

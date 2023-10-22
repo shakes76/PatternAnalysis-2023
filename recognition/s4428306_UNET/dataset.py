@@ -1,5 +1,9 @@
 #Extensive use of tensorflow and keras documentation was used to write this code.
 
+"""
+This file is for loading and preprocessing the data.
+"""
+
 import tensorflow as tf
 from tensorflow import keras
 import numpy as np
