@@ -152,7 +152,8 @@ def classificationModelTraining():
     val_accuracy = []
     for epoch in range(0,Config.train_number_epochs):
         for i, (images, labels) in enumerate(classification_train_loader,0):
-            embeddings =  model.forward_once(images.to(device))
+            images = images.to(device)
+            embeddings =  model.forward_once(images)
             # Load data into variables and move to device
             embeddings, labels = embeddings.to(device), labels.to(device)
 

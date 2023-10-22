@@ -70,32 +70,35 @@ class CustomTripletSiameseNetworkDataset(Dataset):
     
 class CustomClassifcationDataset(Dataset):
     def __init__(self, train_subset, model, device):
-        self.model = model
-
+        self.train_subset = train_subset
         # Create a list of image paths
-        self.image_embeddings = []
+        # self.image_embeddings = []
         print("> Creating image embedding")
-        c = 0
-        for anchor, _, _, label in train_subset:
-            # print("Before shapes:", anchor.shape, pos.shape, neg.shape)
-            anchor = anchor.unsqueeze(0)
-            # pos = torch.zeros_like(anchor)
-            # neg = neg.unsqueeze(0)
-            # neg = torch.zeros_like(anchor)
-            # print("After shapes:", anchor.shape, pos.shape, neg.shape, "\n")
-            c += 1
-            if c % 1000 == 0:
-                print("Count:", c)
-            # output_anchor = model.forward_once(anchor.to(device))
-            self.image_embeddings.append((anchor, label))
+        # c = 0
+        # for anchor, _, _, label in train_subset:
+        #     # print("Before shapes:", anchor.shape, pos.shape, neg.shape)
+        #     anchor = anchor.unsqueeze(0)
+        #     # pos = torch.zeros_like(anchor)
+        #     # neg = neg.unsqueeze(0)
+        #     # neg = torch.zeros_like(anchor)
+        #     # print("After shapes:", anchor.shape, pos.shape, neg.shape, "\n")
+        #     c += 1
+        #     if c % 1000 == 0:
+        #         print("Count:", c)
+        #     # output_anchor = model.forward_once(anchor.to(device))
+        #     self.image_embeddings.append((anchor, label))
 
-        print("< Finished creating image embeddings. #Images:", len(self.image_paths))
+        # print("< Finished creating image embeddings. #Images:", len(self.image_paths))
 
     def __len__(self):
-        return len(self.image_embeddings)
+        # return len(self.image_embeddings)
+        return len(self.train_subset)
 
     def __getitem__(self, index):
-        return self.image_embeddings[index]
+        # return self.image_embeddings[index]
+        anchor, _, _, label = self.train_subset[index]
+        # anchor = anchor.unsqueeze(0)  # Do this operation here instead of in __init__
+        return anchor, label
 
 # Initialize transform for training images
 transform_train = transforms.Compose([
