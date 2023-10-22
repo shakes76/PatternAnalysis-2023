@@ -73,6 +73,8 @@ def train_siamese(model: SiameseNetwork, criterion: TripletMarginLoss, trainData
 
     torch.save(model.state_dict(), MODEL_PATH)
 
+    return model
+
 
 def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: TripletMarginLoss,
                  trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
@@ -150,7 +152,7 @@ def parent_train_siamese(device, train: DataLoader, val: DataLoader):
     # Send model to gpu
     net = SiameseNetwork().to(device)
 
-    train_siamese(net, TripletMarginLoss(), train, val, 1, device)
+    return train_siamese(net, TripletMarginLoss(), train, val, 15, device)
 
 
 # model: BinaryClassifier, siamese: SiameseNetwork, criterion: TripletMarginLoss,
@@ -159,16 +161,20 @@ def parent_train_binary(device, train: DataLoader, val: DataLoader):
     # Send classifier to gpu
     net = BinaryClassifier().to(device)
 
+    siamese_net = None
+
     # Check siamese model has been trained
     siamese_exists = exists(MODEL_PATH)
     if not siamese_exists:
-        parent_train_siamese(device, train, val)
+        print("No SiameseNet trained model found, training new SiameseNet")
+        siamese_net = parent_train_siamese(device, train, val)
+    else:
+        print("Trained SiameseNet found, loading now...")
+        siamese_net = SiameseNetwork()
+        siamese_net.load_state_dict(torch.load(MODEL_PATH))
+        siamese_net.to(device)
 
-    siamese_net = SiameseNetwork()
-    siamese_net.load_state_dict(torch.load(MODEL_PATH))
-    siamese_net.to(device)
-
-    train_binary(net, siamese_net, TripletMarginLoss(), train, val, 1, device)
+    train_binary(net, siamese_net, TripletMarginLoss(), train, val, 15, device)
 
 
 def main():
@@ -179,8 +185,8 @@ def main():
     gpu = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
     # Train binary classifier based on siamese classifier
-    # parent_train_binary(gpu, trainData, valData)
-    parent_train_siamese(gpu, trainData, valData)
+    parent_train_binary(gpu, trainData, valData)
+    #parent_train_siamese(gpu, trainData, valData)
 
 
 if __name__ == '__main__':
