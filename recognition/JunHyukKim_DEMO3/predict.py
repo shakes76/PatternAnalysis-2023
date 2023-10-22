@@ -13,6 +13,11 @@ from utils import ( get_test_loaders,
 
 
 def main():
+    """
+    The main function to evaluate a trained model on test images.
+    Images are resized, normalized, and predictions are saved in the 'evaluation_images' folder.
+    The check accuracy is used to print the accuracy of the model and the dice score from the model.
+    """
     make_folder_if_not_exists("evaluation_images")
     DEVICE = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
     NUM_WORKERS = 2
@@ -23,13 +28,11 @@ def main():
     TEST_MASK_DIR = "data/test_masks/"
     BATCH_SIZE = 16
 
-    test_transforms = album.Compose(
-        [
-            album.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
-            album.Normalize(mean=[0.0, 0.0, 0.0],
-                            std=[1.0, 1.0, 1.0],
-                            max_pixel_value=255.0,),
-            ToTensorV2(),],)
+    test_transforms = album.Compose([album.Resize(height=IMAGE_HEIGHT, width=IMAGE_WIDTH),
+                                    album.Normalize(mean=[0.0, 0.0, 0.0],
+                                                    std=[1.0, 1.0, 1.0],
+                                                    max_pixel_value=255.0,),
+                                    ToTensorV2(),],)
 
     test_loader = get_test_loaders(
             TEST_IMG_DIR,
@@ -46,7 +49,7 @@ def main():
     loaded_model.to(DEVICE)
     loaded_model.eval()
     check_accuracy(test_loader,loaded_model)
-    save_predictions_as_imgs(test_loader,loaded_model,folder="evaluation_folder/")
+    save_predictions_as_imgs(test_loader,loaded_model,folder="evaluation_images/")
 
 if __name__ == "__main__":
     main()

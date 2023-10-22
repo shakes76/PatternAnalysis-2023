@@ -52,13 +52,14 @@ After 10 epochs, the model relably provided dice score arount 80 percent.
 For every epoch, the validation set is used to test the segmenation. 
 #### 4.3.1. The output when train.py is ran
 
-![Example Output](the_loss_plot.png)
-![Example Output](train_valid_out.png)
-![Example Output CMD](train_cmd.png)
+![loss plot](the_loss_plot.png)
+![train_valid_out](train_valid_out.png)
+![train_cmd](train_cmd.png)
 
 #### 4.3.2. The output expected after running predict.py
 
-![Example Output](predict_cmd_result.png)
+![prediction_images](prediction_images.png)
+![predict_cmd_result](predict_cmd_result.png)
 
 
 ### 4.4 The read me file should be properly formatted using GitHub markdown
@@ -104,5 +105,5 @@ During the localization pathway, in Kayer 3 localization and Layer 4 localizatio
 Segmentation 1 is upscaled and added element wise to segmentaion 2, and the combination of those are upscaled and added to segmenation 3 element wise. 
 
 Finally the combination of all are ran though Sigmoid function and the model returns the output. 
-![My Image Alt Text](image.png)
+![My Image Alt Text](Unet_diagram.png)
 
