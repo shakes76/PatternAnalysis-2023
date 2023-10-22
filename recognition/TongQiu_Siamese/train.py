@@ -309,7 +309,7 @@ if __name__ == '__main__':
         drop_last=True
     )
 
-    criterion = ContrastiveLoss()
+    criterion = ContrastiveLoss(margin=1)
 
     lr = 0.0001
     weight_decay = 1e-5
