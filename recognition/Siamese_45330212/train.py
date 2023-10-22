@@ -77,19 +77,24 @@ def siameseTripletTraining():
                 loss_history.append(loss_triplet.item())
             scheduler.step()
 
+        # Comment out this validation loop if it runs into memory issues.
+        print("> Beginning validation")
         # Validation loop (Similar to training loop but without backprop)
-        for i, data in enumerate(triplet_val_loader,0):
-            #Produce two sets of images with the label as 0 if they're from the same file or 1 if they're different
-            anchor_img, pos_img, neg_img, _ = data
-            anchor_img, pos_img, neg_img = anchor_img.to(device), pos_img.to(device), neg_img.to(device)
+        with torch.no_grad():
+            for i, data in enumerate(triplet_val_loader,0):
+                #Produce two sets of images with the label as 0 if they're from the same file or 1 if they're different
+                anchor_img, pos_img, neg_img, _ = data
+                anchor_img, pos_img, neg_img = anchor_img.to(device), pos_img.to(device), neg_img.to(device)
 
-            # Forward pass
-            anchor_output, pos_output, neg_output = model(anchor_img, pos_img, neg_img)
-            loss_triplet = criterion_triplet(anchor_output, pos_output, neg_output)
-            if i % 50 == 0:
-                val_iteration_number += 50
-                val_counter.append(iteration_number)
-                val_loss_history.append(loss_triplet.item())
+                # Forward pass
+                anchor_output, pos_output, neg_output = model(anchor_img, pos_img, neg_img)
+                loss_triplet = criterion_triplet(anchor_output, pos_output, neg_output)
+                if i % 50 == 0:
+                    val_iteration_number += 50
+                    val_counter.append(iteration_number)
+                    val_loss_history.append(loss_triplet.item())
+        print("> Finished validation")
+            
         # Save and plot the losses
         save_plot(val_counter, val_loss_history, str(epoch) + 'SNNVAL', "Triplet Network Validation loss over iterations.")
     # Save and plot the final training losses
@@ -105,14 +110,16 @@ print("Siamese Triplet Training took " + str(elapsed) + " secs or " + str(elapse
 # Set the model to evaluation mode
 model.eval()
 
-torch.save(model.state_dict(), "siamese_model2.pt")
+# Save the parameters into a file
+# torch.save(model.state_dict(), "siamese_model.pt")
 # print("Model Saved Successfully")
 os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
-print("\n> Loading from parameter file")
+# print("\n> Loading from parameter file")
 
 #/home/Student/s4533021/siamese_model.pt
 # C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\siamese_model.pt
-# model.load_state_dict(torch.load("/home/Student/s4533021/siamese_model.pt", map_location=torch.device('cpu')))
+# If you want to load from a saved parameter file, helps avoid memory errors by breaking the training into two parts.
+# model.load_state_dict(torch.load("/home/Student/s4533021/siamese_model2.pt"))
 # print("> Loaded from parameter file")
 
 # --------------------------
@@ -144,7 +151,8 @@ def classificationModelTraining():
     epochs = []
     val_accuracy = []
     for epoch in range(0,Config.train_number_epochs):
-        for i, (embeddings, labels) in enumerate(classification_train_loader,0):
+        for i, (images, labels) in enumerate(classification_train_loader,0):
+            embeddings =  model.forward_once(images.to(device))
             # Load data into variables and move to device
             embeddings, labels = embeddings.to(device), labels.to(device)
 
@@ -168,6 +176,7 @@ def classificationModelTraining():
         #test the network after finish each epoch, to have a brief training result.
         correct_val = 0
         total_val = 0
+        print("> Beginning validation")
         with torch.no_grad():
             for image, label in classification_val_loader:
                 image = image.to(device)
@@ -177,7 +186,7 @@ def classificationModelTraining():
                 _, predicted = torch.max(output.data, 1)
                 total_val += label.size(0)
                 correct_val += (predicted == label).sum().item()
-
+        print("> Finished validation")
         epochs.append(epoch)
         val_accuracy.append((100 * correct_val / total_val))
         print('Accuracy of the classifier network: %d %%' % (100 * correct_val / total_val))
@@ -193,7 +202,7 @@ print("< Finished training Classification Network")
 elapsed = end - start
 print("Classification Model Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
 
-torch.save(classification_model.state_dict(), "classifaction_model.pt")
+# torch.save(classification_model.state_dict(), "classifaction_model.pt")
 # print("Classification model Saved Successfully")
 
 # --------------

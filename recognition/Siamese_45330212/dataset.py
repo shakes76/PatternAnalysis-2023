@@ -79,15 +79,15 @@ class CustomClassifcationDataset(Dataset):
         for anchor, _, _, label in train_subset:
             # print("Before shapes:", anchor.shape, pos.shape, neg.shape)
             anchor = anchor.unsqueeze(0)
-            pos = torch.zeros_like(anchor)
+            # pos = torch.zeros_like(anchor)
             # neg = neg.unsqueeze(0)
-            neg = torch.zeros_like(anchor)
+            # neg = torch.zeros_like(anchor)
             # print("After shapes:", anchor.shape, pos.shape, neg.shape, "\n")
             c += 1
             if c % 1000 == 0:
                 print("Count:", c)
-            output_anchor = model.forward_once(anchor.to(device))
-            self.image_embeddings.append((output_anchor, label))
+            # output_anchor = model.forward_once(anchor.to(device))
+            self.image_embeddings.append((anchor, label))
 
         print("< Finished creating image embeddings. #Images:", len(self.image_paths))
 
