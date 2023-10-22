@@ -10,13 +10,13 @@ drive.mount('/content/drive')
 
 !unzip /content/drive/My\ Drive/keras_png_slices_data.zip
 # Initialise paths for training, testing and validation sets
-TRAIN_IMAGE_PATH = "keras_png_slices_data/keras_png_slices_train"
-TEST_IMAGE_PATH = "keras_png_slices_data/keras_png_slices_test"
-VAL_IMAGE_PATH = "keras_png_slices_data/keras_png_slices_validate"
+TRAIN_PATH = "keras_png_slices_data/keras_png_slices_train"
+TEST_PATH = "keras_png_slices_data/keras_png_slices_test"
+VAL_PATH = "keras_png_slices_data/keras_png_slices_validate"
 # Incitialise directories for training, testing and validation data
-train_files = os.listdir(TRAIN_IMAGE_PATH)
-test_files = os.listdir(TEST_IMAGE_PATH)
-validate_files = os.listdir(VAL_IMAGE_PATH)
+train_files = os.listdir(TRAIN_PATH)
+test_files = os.listdir(TEST_PATH)
+val_files = os.listdir(VAL_PATH)
 # Initialise image dimensions for model
 IMG_HEIGHT = 80
 IMG_WIDTH = 80
@@ -36,8 +36,8 @@ def load_images(path, image_files):
     return images
 
 # Load images into lists
-train_images = load_images(TRAIN_IMAGE_PATH, train_files)
-test_images = load_images(TEST_IMAGE_PATH, test_files)
+train_images = load_images(TRAIN_PATH, train_files)
+test_images = load_images(TEST_PATH, test_files)
 
 # Convert lists into np arrays
 x_train = np.array(train_images)
@@ -54,3 +54,22 @@ print(x_train.shape)
 print(data_variance.shape)
 
 print(x_test.shape)
+
+#visualize data
+def show(list):
+    """
+    Displays the given list of images.
+    """
+    plt.figure(figsize=(6, 6))
+
+    title = ['Train', 'Test']
+
+    for i in range(len(list)):
+        plt.subplot(1, len(list), i+1)
+        plt.title(title[i])
+        plt.imshow(tf.keras.preprocessing.image.array_to_img(list[i]), cmap=plt.cm.gray)
+        plt.axis('off')
+    
+    plt.show()
+# Print the item in the list
+show([x_train_scaled[0], x_test_scaled[0]])
