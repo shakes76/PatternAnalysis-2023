@@ -100,9 +100,27 @@ class TripletDataset(Dataset):
         return anchor_img, positive_img, negative_img, label
 
 
+class ClassificationDataset(Dataset):
+    def __init__(self, data_lst, transform=None):
+        self.data_lst = data_lst
+        self.transform = transform
+        self.class_to_tensor = {'AD': torch.tensor([0]), 'NC': torch.tensor([1])}
+
+    def __len__(self):
+        return len(self.data_lst)
+
+    def __getitem__(self, idx):
+        anchor_img_path, anchor_cls, anchor_patient_id = self.data_lst[idx]
+        anchor_cls_tensor = self.class_to_tensor[anchor_cls]
+
+        # Read images
+        anchor_img = read_image(anchor_img_path, ImageReadMode.GRAY).float() / 255.
+        if self.transform:
+            anchor_img = self.transform(anchor_img)
+
+        return anchor_img, anchor_cls_tensor
 
 
-"""
 from torch.utils.data import DataLoader
 if __name__ == '__main__':
 
@@ -120,8 +138,8 @@ if __name__ == '__main__':
         tf.RandomRotation(10)
     ])
 
-    train_dataset = TripletDataset(train_data, transform=tr_transform)
-    val_dataset = TripletDataset(val_data, transform=val_transform)
+    train_dataset = ClassificationDataset(train_data, transform=tr_transform)
+    val_dataset = ClassificationDataset(val_data, transform=val_transform)
 
     dataloader = DataLoader(
         dataset=train_dataset,
@@ -134,8 +152,6 @@ if __name__ == '__main__':
         print("Batch:")
         print("anchor shape:", batch[0].shape)
         print("positive shape:", batch[1].shape)
-        print("negative:", batch[2].shape)
-        print("anchor class:", batch[3])
-        print()
+        print("positive shape:", batch[1])
         break
-"""
+
