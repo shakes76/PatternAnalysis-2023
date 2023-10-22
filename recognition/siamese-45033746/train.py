@@ -94,7 +94,7 @@ def train_binary(model: BinaryClassifier, siamese: SiameseNetwork, criterion: nn
         model.train()
         for i, (label, anchor, _, _) in enumerate(trainDataLoader, 0):
             # Send data to GPU
-            anchor, label = anchor.to(device), label.to(device)  # torch.unsqueeze(label.to(device), dim=1).float()
+            anchor, label = anchor.to(device), orch.unsqueeze(label.to(device), dim=1).float() # label.to(device)
 
             # Zero gradients
             optimiser.zero_grad()
