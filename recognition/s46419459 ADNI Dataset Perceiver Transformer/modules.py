@@ -22,9 +22,18 @@ class PositionalEncoding(nn.Module):
         self.register_buffer('pe', pe)
 
     def forward(self, x):
-        """
-        Arguments:
-            x: Tensor, shape ``[seq_len, batch_size, embedding_dim]``
-        """
         x = x + self.pe[:x.size(0)]
         return self.dropout(x)
+
+
+class CrossAtttention(nn.Module):
+
+    def __init__(self, dim_latent, heads):
+        super(CrossAtttention, self).__init__()
+        self.attention = nn.MultiheadAttention(dim_latent, heads)
+        self.linear = nn.Linear(dim_latent, dim_latent)
+
+    def forward(self, kv, q):
+        out, _ = self.attention(q, kv, kv)
+        out = self.linear(out)
+        return out
