@@ -1,3 +1,17 @@
+"""
+predict.py
+
+Description:
+    This module provides functions to generate GIFs of new images from a given generative model. 
+    The main function, create_gif, processes the noise tensor with the model across multiple steps 
+    and determines the frame indices for the GIF. The generated frames are then normalized and stored 
+    in the desired GIF format.
+
+Author:
+    Santiago Rodrigues (46423232)
+"""
+
+
 import numpy as np
 import torch
 import imageio

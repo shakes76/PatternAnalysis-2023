@@ -1,3 +1,17 @@
+"""
+train.py
+
+Description:
+    This module provides functions and configurations to train the DDPM_UNet model
+    on the ADNIDataset. It sets up dataset transformations, loading, model initialization, 
+    and defines the training loop with functionalities such as computing loss and model saving.
+    The main focus is to train the model for denoising purposes.
+
+Author:
+    Santiago Rodrigues (46423232)
+"""
+
+
 import torch
 import torch.nn as nn
 from torchvision import transforms

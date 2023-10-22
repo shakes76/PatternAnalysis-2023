@@ -1,3 +1,16 @@
+"""
+modules.py
+
+Description:
+    This module provides the neural network architectures required for image denoising.
+    It consists of basic building blocks (e.g., Block), a U-Net architecture with time embeddings (UNet),
+    and a Diffusion Denoising Probabilistic Model (DDPM) built with the U-Net (DDPM_UNet).
+
+Author:
+    Santiago Rodrigues (46423232)
+"""
+
+
 import torch
 import torch.nn as nn
 import math

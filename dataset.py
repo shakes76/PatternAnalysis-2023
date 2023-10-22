@@ -1,3 +1,47 @@
+"""
+dataset.py
+
+This module provides a utility for loading the ADNI (Alzheimer's Disease Neuroimaging Initiative) dataset.
+ADNI dataset is used in the field of neuroimaging to study Alzheimer's disease.
+
+Features:
+- ADNIDataset: A custom PyTorch Dataset class to facilitate loading of the AD and NC images.
+- get_data_loader: A utility function to easily retrieve a DataLoader instance for batching.
+
+Usage:
+    dataloader = get_data_loader("/path/to/ADNI_data", train=True, transform=your_transforms, batch_size=64)
+
+Structure:
+The expected directory structure of the ADNI dataset is:
+    /path/to/ADNI_data/
+    ├── train/
+    │   ├── AD/
+    │   │   ├── image1.png
+    │   │   ├── image2.png
+    │   │   └── ...
+    │   └── NC/
+    │       ├── image1.png
+    │       ├── image2.png
+    │       └── ...
+    └── test/
+        ├── AD/
+        │   ├── image1.png
+        │   ├── image2.png
+        │   └── ...
+        └── NC/
+            ├── image1.png
+            ├── image2.png
+            └── ...
+
+Classes:
+    - AD (Alzheimer's Disease)
+    - NC (Normal Control)
+
+Author:
+    Santiago Rodrigues (46423232)
+"""
+
+
 import os
 from torch.utils.data import Dataset, DataLoader
 from PIL import Image
