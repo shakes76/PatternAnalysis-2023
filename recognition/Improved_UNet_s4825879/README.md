@@ -33,7 +33,7 @@ After concatination of the upsampled features and the skip connection the loacal
 ### input/output
 The network takes a RGB channeled image as input, and outputs a binary segmentation map.
 
-![model arcitecture](images/model_arcitecture.png)
+![arcitecture](images/model_arcitecture.png)
 
 [^3]: https://paperswithcode.com/task/semantic-segmentation
 [^4]: https://arxiv.org/abs/1802.10508v1
@@ -74,7 +74,7 @@ a gamma value of 0.985. The network trained for 60 epochs. Due to high traffic o
 
 [^5]: https://rcc.uq.edu.au/high-performance-computing
 ## example segmentation
-![example of image segmentation](images/segmentation_example_1.png)
+![Segmentation](images/segmentation_example_1.png)
 
 ## loss function
 The dice loss function is used during training on this dataset.
@@ -106,7 +106,7 @@ class DiceLoss(nn.Module):
 The model achieves a average dice score of 0.8 with each individual dice score being represented in the plot below.
 Further improvements of the training should be tested to improve the minimum dice scores for the set.
 
-![dice score plot](images/individual_dsc.png)
+![DSC](images/individual_dsc.png)
 
 ## dependencies
 * pytorch (2.1.0) for dataset creation, data loading and torchvision functionality and training

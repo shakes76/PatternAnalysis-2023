@@ -10,19 +10,24 @@ class DiceLoss(nn.Module):
         self.smooth = smooth
         
     def forward(self, predict, target):
+        # flatten tensors
         predict = predict.view(-1)
         target = target.view(-1)
 
+        # calculate the intersect value
         intersect = (predict * target).sum()
+        # compute dice score
         dice = (2.*intersect + self.smooth)/(predict.sum() + target.sum() + self.smooth)
 
         return 1 - dice
 
+# Class for single convolution followed by batchnorm and leakyReLU
 class Conv(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size=3, stride=1, padding=1):
         super(Conv, self).__init__()
         negative_slope = 5*10**(-5)
 
+        # sequential layer containing modules
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=kernel_size, stride=stride, padding=padding),
             nn.BatchNorm2d(out_channels),
@@ -32,12 +37,14 @@ class Conv(nn.Module):
     def forward(self, out):
         return self.conv(out)
 
+# context block containing two convolutional layers with a dropout layer inbetween
 class Context(nn.Module):
     def __init__(self, size):
         super(Context, self).__init__()
         self.pdrop = 0.3
         self.neagative_slope = 10**(-2)
 
+        # sequential layer containing modules
         self.context = nn.Sequential(
             Conv(size, size),
             nn.Dropout2d(self.pdrop),
@@ -49,10 +56,12 @@ class Context(nn.Module):
         out = self.context(out)
         return torch.add(out, input)
 
+# Upsampling block containing upsample layer followed by convolution
 class Upsampling(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(Upsampling, self).__init__()
 
+        # sequential layer containing modules
         self.upsample = nn.Sequential(
             nn.Upsample(scale_factor=2),
             Conv(in_channels, out_channels)
@@ -61,10 +70,12 @@ class Upsampling(nn.Module):
     def forward(self, out):
         return self.upsample(out)
         
+# localization block for recombining features after skip connections
 class Localization(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(Localization, self).__init__()
 
+        # sequential layer containing modules
         self.localize = nn.Sequential(
             Conv(in_channels, in_channels, kernel_size=3),
             Conv(in_channels, out_channels, kernel_size=1, padding=0),
@@ -167,3 +178,5 @@ class ImpUNet(nn.Module):
         out = self.sigmoid(out)
         
         return out
+
+model = ImpUNet(3)

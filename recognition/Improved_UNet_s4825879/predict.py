@@ -1,4 +1,3 @@
-#!/home/terym/miniconda3/envs/pytorch/bin/python3
 import torch
 from modules import ImpUNet, DiceLoss
 from dataset import test_loader 

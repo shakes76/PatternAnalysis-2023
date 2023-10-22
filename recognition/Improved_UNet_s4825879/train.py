@@ -1,15 +1,14 @@
-#!/home/terym/miniconda3/envs/pytorch/bin/python3
-
 # import Libraries
 import torch
 import sys
+
 import matplotlib.pyplot as plt
 
 # import function for image saving
 from torchvision.utils import save_image
 
 # import modules and loss function
-from modules import ImpUNet, DiceLoss
+from modules import model, DiceLoss
 
 # import dataloaders
 from dataset import train_loader, val_loader, test_loader, IMAGE_SIZE, BATCH_SIZE
@@ -24,7 +23,7 @@ device = ('cuda' if torch.cuda.is_available() else 'cpu')
 total_step = len(train_loader)
 total_val_step = len(val_loader)
 
-model = ImpUNet(3).to(device)
+model = model.to(device)
 optimizer = torch.optim.Adam(model.parameters(), lr=LEARNING_RATE) 
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=400, gamma=0.985)    
 loss_fcn = DiceLoss(smooth=4.0)
@@ -54,6 +53,7 @@ for epoch in range(NUM_EPOCH):
         loss.backward() 
         optimizer.step() 
 
+        # update running loss
         running_loss += loss.item()
         counter += 1
 
@@ -94,11 +94,13 @@ for epoch in range(NUM_EPOCH):
             # add loss to total loss
             total += loss.item()
 
+            # save image
             if (i+1) % 50 == 0:
                 outputs = outputs.round()
                 saved = torch.cat((outputs, truth), dim=0)
                 save_image(saved.view(-1, 1, IMAGE_SIZE, IMAGE_SIZE), f"data/prod_img/val_{epoch+1}_{i+1}.png", nrow=BATCH_SIZE)
                     
+            # update worst and best loss for evaluation
             if loss.item() < worst_loss:
                 worst_loss = loss.item()
             if loss.item() > best_loss:
@@ -133,7 +135,7 @@ total_dice = 0.0
 loss_test = DiceLoss(smooth=0.0)
 # load model dictionary
 model.load_state_dict(torch.load('best_min.pt', map_location=torch.device('cpu')))
-for i (img, truth) in enumerate(test_loader):
+for i ,(img, truth) in enumerate(test_loader):
     with torch.no_grad():
         img = img.to(device)
         truth = truth.to(device)
@@ -141,6 +143,7 @@ for i (img, truth) in enumerate(test_loader):
         # send image through model and round output for binary segmentation map
         output = model(img).round()
 
+        # compute dice score
         dsc = 1 - loss_test(output, truth).item()
         total_dice += dsc
         
