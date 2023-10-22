@@ -9,9 +9,8 @@ def show_plot(iteration, loss):
     plt.plot(iteration, loss)
     # plt.savefig(f"./assets/train_loss.png")
 
-
-def save_plot(iteration, loss):
-    with open(f"./assets/iteration_{datetime.datetime.now()}.txt", "w") as output:
+def save_plot(iteration: [], loss: [], name: str):
+    with open(f"./assets/{name}_iteration_{datetime.datetime.now()}.txt", "w") as output:
         output.write(str(iteration))
-    with open(f"./assets/loss_{datetime.datetime.now()}.txt", "w") as output:
+    with open(f"./assets/{name}_loss_{datetime.datetime.now()}.txt", "w") as output:
         output.write(str(loss))

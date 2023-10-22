@@ -9,67 +9,72 @@ from utils import show_plot, save_plot
 
 # 256x240
 
+def iterate_batch(title: str, dataLoader: DataLoader, criterion: TripletMarginLoss, opt: optim.optimizer, counter: [],
+                  loss: [], epoch: int, device):
+    # Iterate over batch
+    for i, (label, anchor, positive, negative) in enumerate(dataLoader, 0):
+        # Send data to GPU
+        anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
+
+        # Zero gradients
+        opt.zero_grad()
+
+        # Pass in anchor, positive, and negative into network
+        anchor_vec, positive_vec, negative_vec = net(anchor, positive, negative)
+
+        # Pass vectors and label to the loss function
+        loss_contrastive = criterion(anchor_vec, positive_vec, negative_vec)
+
+        # Calculate the backpropagation
+        loss_contrastive.backward()
+
+        # Optimize
+        opt.step()
+
+        # Every batche print out the loss
+
+        print(f"Epoch {epoch} - {title} Batch {i} : Loss = {loss_contrastive.item()}\n")
+        counter.append(i)
+        loss.append(loss_contrastive.item())
+
+    return counter, loss
+
+
 def load():
     trainer, val = get_patient_split()
     transform = compose_transform()
 
     trainSet = SiameseDataSet(trainer, transform)
     valSet = SiameseDataSet(val, transform)
-    testSet = SiameseDataSet(get_test_set(), transform)
 
     trainDataLoader = DataLoader(trainSet, shuffle=True, num_workers=2, batch_size=64)
     valDataLoader = DataLoader(valSet, shuffle=True, num_workers=2, batch_size=64)
-    testDataLoader = DataLoader(testSet, shuffle=True, num_workers=2, batch_size=64)
 
-    return trainDataLoader, valDataLoader, testDataLoader
+    return trainDataLoader, valDataLoader
 
 
 def train(model: SiameseNetwork, criterion: TripletMarginLoss, optimiser,
           trainDataLoader: DataLoader, validDataLoader: DataLoader, epochs: int, device):
-    counter = []
-    loss_accumulator = []
-    iteration = 0
-
-    trainSize = len(trainDataLoader)
-    validSize = len(validDataLoader)
-    print(f"Training images : {trainSize * 64}")
-    print(f"Number of training batches : {trainSize}")
+    train_counter = []
+    val_counter = []
+    train_loss = []
+    val_loss = []
 
     for epoch in range(epochs):
+        # Iterate over training batch
+        train_counter, train_loss = iterate_batch("Training", trainDataLoader, criterion, optimiser, train_counter,
+                                                  train_loss, epoch, device)
 
-        # Iterate over batch
-        for i, (label, anchor, positive, negative) in enumerate(trainDataLoader, 0):
-            # Send data to GPU
-            anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
+        # Iterate over cross validation batch
+        val_counter, val_loss = iterate_batch("Validation", validDataLoader, criterion, optimiser, val_counter,
+                                              val_loss, epoch, device)
 
-            # Zero gradients
-            optimiser.zero_grad()
-
-            # Pass in anchor, positive, and negative into network
-            anchor_vec, positive_vec, negative_vec = net(anchor, positive, negative)
-
-            # Pass vectors and label to the loss function
-            loss_contrastive = criterion(anchor_vec, positive_vec, negative_vec)
-
-            # Calculate the backpropagation
-            loss_contrastive.backward()
-
-            # Optimize
-            optimiser.step()
-
-            # Every 10 batches print out the loss
-            if i % 10 == 0:
-                print(f"Epoch number {epoch}\n Current loss {loss_contrastive.item()}\n")
-                iteration += 10
-
-                counter.append(iteration)
-                loss_accumulator.append(loss_contrastive.item())
-
-    save_plot(counter, loss_accumulator)
+    save_plot(train_counter, train_loss, "train")
+    save_plot(train_counter, train_loss, "validation")
 
 
 if __name__ == '__main__':
-    trainData, valData, testData = load()
+    trainData, valData = load()
     print(f"Data loaded")
     # Device configuration
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
