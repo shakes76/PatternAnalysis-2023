@@ -43,7 +43,7 @@ def siameseTripletTraining(): #Maybe add validation loss, track both losses and 
     for epoch in range(0,Config.siamese_number_epochs):
         for i, data in enumerate(triplet_train_loader,0):
             #Produce two sets of images with the label as 0 if they're from the same file or 1 if they're different
-            anchor_img, pos_img, neg_img = data
+            anchor_img, pos_img, neg_img, _ = data
             anchor_img, pos_img, neg_img = anchor_img.to(device), pos_img.to(device), neg_img.to(device)
 
             # Forward pass
@@ -71,7 +71,7 @@ print("Siamese Triplet Training took " + str(elapsed) + " secs or " + str(elapse
 
 model.eval()
 
-# torch.save(model.state_dict(), "siamese_model.pt")
+# torch.save(model.state_dict(), "siamese_model2.pt")
 # print("Model Saved Successfully")
 os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
 print("\n> Loading from parameter file")
