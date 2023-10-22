@@ -1,195 +1,112 @@
 import torch
-import torch.optim as optim
-import torch.nn as nn
-from pytorch_metric_learning import losses, miners
-import time
+import torchvision.transforms as transforms
+from torch.utils.data import DataLoader
+import os
+from dataset import adniDataset, embeddingsDataset
+from modules import Siamese, Classifier
+from utils import train_encoder, train_classifier, validate_model, test_model
 
-def train_encoder(model, train_loader, device, num_epochs, tensor_path, learning_rate):
+# Device configuration
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(torch.__version__)
+print(device)
+print(torch.cuda.device_count())
 
-    # Initialise loss functions, optimizer, and scheduler
-    miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.EASY, 
-                                      neg_strategy=miners.BatchEasyHardMiner.SEMIHARD)
-    criterion = losses.TripletMarginLoss()
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,
-                                                    max_lr=learning_rate,
-                                                    steps_per_epoch=len(train_loader),
-                                                    epochs=num_epochs)
+# Path
+path = '/home/groups/comp3710'
+tensor_path = '/home/Student/s4623300/PatternAnalysis-2023/recognition/46233002_Siamese_ADNI/easysemihard'
+model_path = '/home/Student/s4623300/PatternAnalysis-2023/recognition/46233002_Siamese_ADNI/models'
 
-    print("Begin Training Encoder")
-    model.train()
-    start = time.time()
+# Hyper-parameters
+num_epochs_encoder = 24
+num_epochs_classifier = 24
+learning_rate_encoder = 1e-04
+learning_rate_classifier = 1e-03
+batch_size = 16
 
-    with torch.autograd.set_detect_anomaly(True):
-        for epoch in range(num_epochs):
-            total_loss = 0.0
-            for i, (images, labels) in enumerate(train_loader):
-                # Retreive data and move to device
-                images = images.float().to(device)
-                labels = labels.long().to(device)
+# Get file names
+train_ads = os.listdir(path + "/ADNI/AD_NC/train/AD") # len = 10400
+train_ncs = os.listdir(path + "/ADNI/AD_NC/train/NC") # len = 11120
+test_ads = os.listdir(path + "/ADNI/AD_NC/test/AD")   # len = 4460
+test_ncs = os.listdir(path + "/ADNI/AD_NC/test/NC")   # len = 4540
 
-                # Forward pass
-                outputs = model(images)
-                hard_pairs = miner(outputs, labels)
+# Extract validation set from test set 
+val_size = 0.1
+val_ads = train_ads[:int(len(train_ads)*val_size)]
+val_ncs = train_ncs[:int(len(train_ncs)*val_size)]
+train_ads = train_ads[int(len(train_ads)*val_size):]
+train_ncs = train_ncs[int(len(train_ncs)*val_size):]
 
-                # Save final embeddings
-                if (epoch == num_epochs - 1):
-                    torch.save({"embeddings": outputs, "labels": labels}, 
-                            tensor_path+f"/embedding{i}.pt")
+# Check data distribution
+print("\n === Hyperparameters of Models === ")
+print("Number of Epochs (Encoder/Classifier): ", num_epochs_encoder, num_epochs_classifier)
+print("Learning Rate: ", learning_rate_encoder, learning_rate_classifier)
+print("Batch Size: ", batch_size)
+print("\n ==== Distribution of ads/ncs ==== ")
+print("Train set: ", len(train_ads), len(train_ncs))  # 8320, 8896
+print("Test set: ", len(test_ads), len(test_ncs))     # 4460, 4540
+print("Validation set: ", len(val_ads), len(val_ncs)) # 2080, 2224
+print()
 
-                # Compute loss
-                loss = criterion(outputs, labels, hard_pairs)
-                #loss = criterion(outputs, labels)
-                total_loss += loss
+# Transformer
+train_transform = transforms.Compose([transforms.ToTensor(),
+                                transforms.RandomCrop((225, 225)),
+                                transforms.RandomAffine(degrees=25, 
+                                                        translate=(0.05, 0.05),
+                                                        scale=(0.8, 1.2)),
+                                transforms.Normalize(mean=0.0, std=1.0)])
 
-                optimizer.zero_grad() # Zero gradient
-                loss.backward()       # Back propagate loss
-                optimizer.step()      # Optimizer takes a step
-                scheduler.step()      # Scheduler takes a step 
+val_transform = transforms.Compose([transforms.ToTensor(),
+                                transforms.CenterCrop((240, 240)),
+                                transforms.Resize((225, 225)),
+                                transforms.Normalize(mean=0.0, std=1.0)])
 
-                # Print process
-                if i % 100 == 0:
-                    print("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}".format(
-                        epoch+1, num_epochs, i+1, len(train_loader), loss.item()))
-            
-            # Print total loss of an epoch
-            print("Epoch [{}], Total Loss: {:.5f}".format(epoch+1, total_loss))
- 
-    end = time.time()
-    elapsed = end - start
-    print("End Training")
-    print(f"Training took {str(elapsed)} secs or {str(elapsed/60)} mins")
-    print()
+test_transform = transforms.Compose([transforms.ToTensor(),
+                                transforms.CenterCrop((240, 240)),
+                                transforms.Resize((225, 225)),
+                                transforms.Normalize(mean=0.0, std=1.0)])
 
-def train_classifier(model, train_loader, device, num_epochs, 
-                     learning_rate):
-    
-    # Initialise loss functions, optimizer, and scheduler
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.SGD(model.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
-    scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,
-                                                    max_lr=learning_rate,
-                                                    steps_per_epoch=len(train_loader),
-                                                    epochs=num_epochs)
+# Create train/test/validation dataset objects 
+trainset = adniDataset(ad_dir = path + "/ADNI/AD_NC/train/AD", 
+                       nc_dir = path + "/ADNI/AD_NC/train/NC",
+                       ads = train_ads, ncs = train_ncs,
+                       transform = train_transform)
+testset = adniDataset(ad_dir = path + "/ADNI/AD_NC/test/AD", 
+                      nc_dir = path + "/ADNI/AD_NC/test/NC",
+                      ads = test_ads, ncs = test_ncs,
+                      transform = test_transform)
+valset = adniDataset(ad_dir = path + "/ADNI/AD_NC/train/AD", 
+                     nc_dir = path + "/ADNI/AD_NC/train/NC",
+                     ads = val_ads, ncs = val_ncs,
+                     transform = val_transform)
 
-    print("Begin Training Classifier")
-    model.train()
-    start = time.time()
-    with torch.autograd.set_detect_anomaly(True):
-        for epoch in range(num_epochs):
-            total_loss = 0.0
-            for i, (embeddings, labels) in enumerate(train_loader):
-                # Retreive data and move to device
-                embeddings = embeddings.squeeze().float().to(device)
-                labels = labels.squeeze().long().to(device)
+# Load datasets to DataLoader 
+train_loader = DataLoader(trainset, shuffle=True, batch_size=batch_size)
+val_loader = DataLoader(valset, shuffle=True, batch_size=batch_size)
+test_loader = DataLoader(testset, shuffle=False, batch_size=batch_size)
 
-                # Forward pass
-                outputs = model(embeddings)
+# Construct encoder 
+siamese = Siamese().to(device)
+classifier = Classifier().to(device)
 
-                # Back propagation
-                loss = criterion(outputs, labels)
-                total_loss += loss
+# Train encoder
+train_encoder(siamese, train_loader, val_loader, device, num_epochs_encoder, 
+              tensor_path, learning_rate_encoder)
 
-                optimizer.zero_grad()
-                loss.backward()
-                optimizer.step()
-                scheduler.step()
+# Get embeddings
+embeddings_set = embeddingsDataset(tensor_path, device)
+embeddings_loader = DataLoader(embeddings_set, shuffle=True, batch_size=1)
 
-                # Print process
-                if i % 100 == 0:
-                    print("Epoch [{}/{}], Step [{}/{}] Loss: {:.5f}".format(
-                        epoch+1, num_epochs, i+1, len(train_loader), loss.item()))
-            print("Epoch [{}], Total Loss: {:.5f}".format(epoch+1, total_loss))
+# Train classifier
+train_classifier(siamese, classifier, embeddings_loader, val_loader, device, num_epochs_classifier, 
+                 learning_rate_classifier)
 
-    end = time.time()
-    elapsed = end - start
-    print("End Training")
-    print(f"Training took {str(elapsed)} secs or {str(elapsed/60)} mins")
-    print()
-    print(outputs)
-    print(labels)
-    preds = torch.argmax(outputs, axis = 1)
-    print(preds)
+# Validate models
+validate_model(siamese, classifier, val_loader, device)
 
+# Test models 
+test_model(siamese, classifier, test_loader, device)
 
-def validate_model(encoder, classifier, val_loader, device):
-
-    # Initialise loss functions
-    criterion_encoder = losses.TripletMarginLoss()
-    criterion_classifier = nn.CrossEntropyLoss()
-
-    # Initialise variables for counting
-    total_loss_encoder = 0.0
-    total_loss_classifier = 0.0
-    num_correct = 0
-    total = 0
-
-    print("Begin Validation")
-    encoder.eval()
-    classifier.eval()
-    start = time.time()
-    with torch.no_grad():
-        for i, (images, labels) in enumerate(val_loader):
-            # Retreive data and move to device
-            images = images.float().to(device)
-            labels = labels.long().to(device)
-
-            # Forward data
-            embeddings = encoder(images)
-            outputs = classifier(embeddings)
-
-            # Compute losses 
-            loss_encoder = criterion_encoder(outputs, labels)
-            loss_classifier = criterion_classifier(outputs, labels)
-            total_loss_encoder += loss_encoder
-            total_loss_classifier += loss_classifier
-
-            preds = torch.argmax(outputs, axis = 1)
-            num_correct += (preds == labels).sum()
-            total += torch.numel(preds)
-            accuracy = num_correct / total * 100
-
-            if i % 10 == 0:
-                print("Step [{}/{}] Encoder Loss: {:.5f} Classifier Loss: {:.5f}".format(
-                    i+1, len(val_loader), loss_encoder.item(), loss_classifier.item()))
-                print("Got {}/{} with acc {:.2f}".format(num_correct, total, accuracy))
-
-    end = time.time()
-    elapsed = end - start
-    print("End Validation")
-    print("Validation took {} secs or {} mins".format(str(elapsed), str(elapsed/60)))
-    print("Total Encoder Loss: {:.5f} Total Classifier Loss: {:.5f}".format(total_loss_encoder, total_loss_classifier))
-    print("Got {}/{} with acc {:.2f}".format(num_correct, total, accuracy))
-    print()
-
-
-def test_model(encoder, classifier, test_loader, device):
-    print("Begin Testing")
-    encoder.eval()
-    classifier.eval()
-
-    start = time.time()
-    num_correct = 0
-    total = 0
-    with torch.no_grad():
-        for (images, labels) in test_loader:
-            # Retreive data and move to device
-            images = images.float().to(device)
-            labels = labels.long().to(device)
-
-            # Forward data
-            embeddings = encoder(images)
-            outputs = classifier(embeddings)
-            preds = torch.argmax(outputs, axis = 1)
-            num_correct += (preds == labels).sum()
-            total += torch.numel(preds)
-            accuracy = num_correct / total * 100
-
-    end = time.time()
-    elapsed = end - start
-    print("End Testing")
-    print(f"Testing took {str(elapsed)} secs or {str(elapsed/60)} mins")
-    print(f"Got {num_correct}/{total} with acc {accuracy:.2f}")
-    print()
-    print(labels)
-    print(preds)
+# Save models
+torch.save(siamese.state_dict(), model_path + '/siamese.pt')
+torch.save(classifier.state_dict(), model_path + '/classifier.pt')

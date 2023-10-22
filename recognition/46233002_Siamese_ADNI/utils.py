@@ -9,7 +9,7 @@ def train_encoder(encoder, train_loader, val_loader, device, num_epochs, tensor_
     # Initialise loss functions, optimizer, and scheduler
     miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.EASY, 
                                       neg_strategy=miners.BatchEasyHardMiner.SEMIHARD)
-    criterion = losses.TripletMarginLoss()
+    criterion = losses.TripletMarginLoss(margin=0.1)
     optimizer = optim.SGD(encoder.parameters(), lr=learning_rate, momentum=0.9, weight_decay=5e-4)
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr=learning_rate, steps_per_epoch=len(train_loader), epochs=num_epochs)
 
@@ -20,6 +20,15 @@ def train_encoder(encoder, train_loader, val_loader, device, num_epochs, tensor_
             # Train 
             encoder.train()
             total_train_loss = 0.0
+            if epoch > 16:
+                miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.HARD, 
+                                                  neg_strategy=miners.BatchEasyHardMiner.HARD)
+            elif epoch > 12:
+                miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.SEMIHARD, 
+                                                  neg_strategy=miners.BatchEasyHardMiner.HARD)
+            elif epoch > 8:
+                miner = miners.BatchEasyHardMiner(pos_strategy=miners.BatchEasyHardMiner.EASY, 
+                                                  neg_strategy=miners.BatchEasyHardMiner.HARD)
             for i, (images, labels) in enumerate(train_loader):
                 # Retreive data and move to device
                 images = images.float().to(device)
@@ -46,14 +55,15 @@ def train_encoder(encoder, train_loader, val_loader, device, num_epochs, tensor_
             # Validate
             encoder.eval()
             total_val_loss = 0.0
-            for i, (images, labels) in enumerate(val_loader):
-                # Retreive data and move to device
-                images = images.float().to(device)
-                labels = labels.long().to(device)
-                # Forward pass & generaet triplets 
-                outputs = encoder(images)
-                loss = criterion(outputs, labels)
-                total_val_loss += loss.item()
+            with torch.no_grad():
+                for i, (images, labels) in enumerate(val_loader):
+                    # Retreive data and move to device
+                    images = images.float().to(device)
+                    labels = labels.long().to(device)
+                    # Forward pass & generaet triplets 
+                    outputs = encoder(images)
+                    loss = criterion(outputs, labels)
+                    total_val_loss += loss.item()
 
             # Print summary
             print("Epoch [{}/{}], Train Loss: {:.5f}, Validation Loss: {:.5f}".format(
@@ -102,21 +112,22 @@ def train_classifier(encoder, classifier, train_loader, val_loader, device, num_
             total_val_loss = 0.0
             num_correct = 0
             total = 0
-            for i, (images, labels) in enumerate(val_loader):
-                # Retreive data and move to device
-                images = images.float().to(device)
-                labels = labels.long().to(device)
-                # Forward data
-                embeddings = encoder(images)
-                outputs = classifier(embeddings)
-                # Compute losses
-                loss = criterion(outputs, labels)
-                total_val_loss += loss.item()
-                # Compute accuracy
-                preds = torch.argmax(outputs, axis = 1)
-                num_correct += (preds == labels).sum()
-                total += torch.numel(preds)
-                accuracy = num_correct / total * 100
+            with torch.no_grad():
+                for i, (images, labels) in enumerate(val_loader):
+                    # Retreive data and move to device
+                    images = images.float().to(device)
+                    labels = labels.long().to(device)
+                    # Forward data
+                    embeddings = encoder(images)
+                    outputs = classifier(embeddings)
+                    # Compute losses
+                    loss = criterion(outputs, labels)
+                    total_val_loss += loss.item()
+                    # Compute accuracy
+                    preds = torch.argmax(outputs, axis = 1)
+                    num_correct += (preds == labels).sum()
+                    total += torch.numel(preds)
+                    accuracy = num_correct / total * 100
             # Print summary
             print("Epoch [{}/{}], Train Loss: {:.5f}, Validation Loss: {:.5f}, Accuracy {:.2f}".format(
                 epoch+1, num_epochs, total_train_loss/len(train_loader), total_val_loss/len(val_loader), accuracy))
@@ -173,6 +184,10 @@ def test_model(encoder, classifier, test_loader, device):
     print("Got {}/{} with acc {:.2f}\n".format(num_correct, total, accuracy))
 
 def predict(encoder, classifier, pred_loader, device):
+    num_ad = 0
+    num_nc = 0
+    total = 0
+    predictions = []
     print("Begin Prediction")
     encoder.eval()
     classifier.eval()
@@ -182,5 +197,11 @@ def predict(encoder, classifier, pred_loader, device):
             embeddings = encoder(images)
             outputs = classifier(embeddings)
             preds = torch.argmax(outputs, axis=1)
-            print(preds)
+            num_ad += (preds == 1).sum()
+            num_nc += (preds == 0).sum()
+            total += torch.numel(preds)
+            predictions.extend(preds.cpu().detach().numpy().tolist())
     print("End Prediction")
+    print(f"Out of {total}\nNumber of AD = {num_ad}. Number of NC = {num_nc}")
+    print("Predictions:")
+    print(predictions)
