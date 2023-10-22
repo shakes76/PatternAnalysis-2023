@@ -37,3 +37,21 @@ class CrossAtttention(nn.Module):
         out, _ = self.attention(q, kv, kv)
         out = self.linear(out)
         return out
+    
+
+class PerceiverBlock(nn.Module):
+
+    def __init__(self, dim_latent, heads, transformer_depth):
+        self.cross_attention = CrossAtttention(dim_latent, heads)
+        self.transformer = nn.Transformer(
+            d_model = dim_latent, 
+            nhead = heads,
+            num_encoder_layers = transformer_depth,
+            num_decoder_layers = transformer_depth
+        )
+
+    def forward(self, x):
+        out = self.cross_attention(x)
+        out = self.transformer(out)
+        return out
+    
