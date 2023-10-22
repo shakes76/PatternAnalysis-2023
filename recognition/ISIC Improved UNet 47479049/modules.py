@@ -4,6 +4,10 @@ import torchvision.transforms.functional as TF
 
 
 class UNet(nn.Module):
+    """
+    Improved unet from the paper https://arxiv.org/pdf/1802.10508v1.pdf 
+    Modified from https://github.com/mcost45/ISICs-improved-unet/blob/main/layers_model.py
+    """
     def __init__(self, in_channels=3, out_channels=1, base_features=16):
         super(UNet, self).__init__()
 
@@ -154,10 +158,6 @@ class UNet(nn.Module):
 
         output = self.output(seg3)
         return self.sigmoid(output)
-
-
-
-
 
     
         

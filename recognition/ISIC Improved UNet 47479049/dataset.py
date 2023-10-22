@@ -20,9 +20,12 @@ class SkinDataset(Dataset):
         img_path = os.path.join(self.image_dir, self.images[index])
         mask_path = os.path.join(self.mask_dir, self.images[index].replace(".jpg", "_segmentation.png"))
 
+        # Changes image to numpy array then changes to values to rbg(3 channels) L(greysacle 1 channel) 
         image = np.array(Image.open(img_path).convert("RGB"))
         mask = np.array(Image.open(mask_path).convert("L"), dtype=np.float32)
 
+
+        # if pixel is black change to 1
         mask[mask <= 128.0] = 0
         mask[mask > 128.0] = 1
 
@@ -32,6 +35,15 @@ class SkinDataset(Dataset):
         return image, mask
 
 def get_loaders(train_dir, mask_dir, batch_size, train_trasform):
+    """
+    get_loaders takes in the directory of the data set then converts them into dataloaders
+    train_dir: directory of training dataset
+    mask_dir: directory of mask dataset
+    batch_size: batch size for loaders
+    trian_transform: transormation for dataset
+    
+    returns: Training Dataloder and validation Dataloader
+    """
 
     dataset = SkinDataset(
         image_dir=train_dir,

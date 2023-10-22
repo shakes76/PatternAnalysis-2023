@@ -52,7 +52,8 @@ Figure 5: Original ISIC image
 figure 6: Original ISIC Mask
 
 ![segmented](ISIC_0000001_segmentation_from_model.png)
-figure 6: ISIC Mask From model
+
+figure 7: ISIC Mask From model
 
 
 # Dependecies 
@@ -69,3 +70,6 @@ F. Isensee, P. Kickingereder, W. Wick, M. Bendszus, and K. H. Maier-Hein, “Bra
 and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge,” Feb. 2018. [Online].
 Available: https://arxiv.org/abs/1802.10508v1
 
+https://discuss.pytorch.org/t/implementation-of-dice-loss/53552
+
+https://github.com/mcost45/ISICs-improved-unet/blob/main/layers_model.py

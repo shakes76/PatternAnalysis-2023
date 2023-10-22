@@ -66,6 +66,11 @@ def train(loader, val_loader, model, optimizer, criterion, num_epochs):
 
 
 class diceloss(torch.nn.Module):
+    """
+    Calculates diceloss
+    taken from: https://discuss.pytorch.org/t/implementation-of-dice-loss/53552
+    """
+
     def init(self):
         super(diceloss, self).__init__()
     def forward(self, pred, target):
@@ -90,6 +95,10 @@ def loss_graph(results, results_val, num_epochs):
 
 
 def create_mask(loader, model, max_pics, device=device):
+    """
+    create_mask will create a mask given the laoder using the model given
+    """
+
     model.eval()
 
     for idx, (x,y) in enumerate(loader):
