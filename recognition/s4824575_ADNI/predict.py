@@ -4,29 +4,24 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
 from tensorflow.keras.preprocessing.image import load_img, img_to_array
 
-DATA_PATH = '</Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/AD_NC/test>'  # Specify the path to your dataset here
+DATA_PATH = '/Users/raghavendrasinghgulia/PatternAnalysis-2023/recognition/s4824575_ADNI/AD_NC/test'
 
 # Load data function
 def load_data():
     data = []
     labels = []
 
-    categories = os.listdir(DATA_PATH)
-    for category in categories:
+    for category in os.listdir(DATA_PATH):
         category_path = os.path.join(DATA_PATH, category)
 
+        # Check if the current path is a directory
         if os.path.isdir(category_path):
             for img in os.listdir(category_path):
                 img_path = os.path.join(category_path, img)
                 image = load_img(img_path, target_size=(150, 150))  # Resize the image to match the expected input size
                 image = img_to_array(image)
                 data.append(image)
-                if 'AD' in img:
-                    labels.append(0)
-                elif 'NC' in img:
-                    labels.append(1)
-                else:
-                    raise ValueError("Unknown category found.")
+                labels.append(0 if category == 'AD' else 1)
 
     data = np.array(data)
     labels = np.array(labels)
@@ -48,7 +43,7 @@ def perform_prediction(model, data):
 # Main function for prediction
 def main():
     data, labels = load_data()
-    model = load_trained_model('model.h5')  # Replace 'modelname' with the actual model path
+    model = load_trained_model('model.h5')
 
     loss, accuracy = model.evaluate(data, labels)
 
@@ -67,7 +62,7 @@ def main():
     plt.show()
 
     # Upload a slice of an AD image
-    sample_img_path = '<ADSLICE>'  # Replace '<ADSLICE>' with the path to your AD image slice
+    sample_img_path = '<ADSLICE>'
     sample_image = load_img(sample_img_path, target_size=(150, 150))
     sample_image = img_to_array(sample_image)
     sample_data = np.expand_dims(sample_image, axis=0)
