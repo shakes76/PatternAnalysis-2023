@@ -14,12 +14,9 @@ def generateDataLoader(imageHeight: int, imageWidth: int, batch_size: int, data_
     """
     print("> Loading Dataset")
     # Import Datasets
-    # TODO: research which transforms are best to apply to the OASIS dataset (similar to how the MNIST dataset had standard values for normalisation etc)
     trainset = torchvision.datasets.ImageFolder(root=data_path_root+"keras_png_slices_train",
                             transform=transforms.Compose([
-                                #    transforms.Resize(image_size),
                                 transforms.Resize((imageHeight, imageWidth)),
-                                #    transforms.CenterCrop(image_size),
                                 transforms.RandomHorizontalFlip(p=0.5),
                                 transforms.ToTensor(),
                                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
@@ -27,9 +24,7 @@ def generateDataLoader(imageHeight: int, imageWidth: int, batch_size: int, data_
     
     testset = torchvision.datasets.ImageFolder(root=data_path_root+"keras_png_slices_test",
                             transform=transforms.Compose([
-                                #    transforms.Resize(image_size),
                                 transforms.Resize((imageHeight, imageWidth)),
-                                #    transforms.CenterCrop(image_size),
                                 transforms.RandomHorizontalFlip(p=0.5),
                                 transforms.ToTensor(),
                                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
@@ -37,9 +32,7 @@ def generateDataLoader(imageHeight: int, imageWidth: int, batch_size: int, data_
 
     validationset = torchvision.datasets.ImageFolder(root=data_path_root+"keras_png_slices_validate",
                             transform=transforms.Compose([
-                                #    transforms.Resize(image_size),
                                 transforms.Resize((imageHeight, imageWidth)),
-                                #    transforms.CenterCrop(image_size),
                                 transforms.RandomHorizontalFlip(p=0.5),
                                 transforms.ToTensor(),
                                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
