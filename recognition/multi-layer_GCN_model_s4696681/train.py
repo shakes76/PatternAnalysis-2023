@@ -48,10 +48,6 @@ def train_and_evaluate(model, train_tensor1, test_tensor1, train_labels_tensor1,
     hidden_features = parameters['hidden_features']
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
-    # Convert indices to a torch.Tensor or use them to create dataset splits
-    # train_features, train_labels = ...
-    # test_features, test_labels = ...
-
     # Training
     model.train()
     for epoch in range(epochs):
@@ -68,8 +64,6 @@ def train_and_evaluate(model, train_tensor1, test_tensor1, train_labels_tensor1,
     # Evaluation
     model.eval()
     with torch.no_grad():
-        # Calculate accuracy or other metrics on your test set
-        # ...
         test_out = model(all_features_tensor, adjacency_normed_tensor)
         pred = test_out[test_mask_tensor1].argmax(dim=1)
         correct = (pred == test_labels_tensor1).sum().item()
@@ -77,7 +71,7 @@ def train_and_evaluate(model, train_tensor1, test_tensor1, train_labels_tensor1,
         print(f"Test accuracy: {acc * 100:.2f}%")
         test_accuracy = acc*100
 
-    return test_accuracy  # or other metrics
+    return test_accuracy 
 
 # Set up K-fold cross-validation
 k_folds = 10
@@ -90,16 +84,12 @@ best_accuracy = -1
 for parameters in parameter_combinations:
     fold_accuracies = []
 
-    # Outer loop for the K-folds
     for train_indices, test_indices in kf.split(all_features_tensor):
-        # Create a new model with the current parameters
         model = modules.GCN(in_features=all_features_tensor.shape[1], hidden_features=parameters['hidden_features'], out_features=out_features).to(device)
-        # Train and evaluate the model with the current parameters
         train_tensor1, test_tensor1, train_labels_tensor1, test_labels_tensor1, train_mask_tensor1, test_mask_tensor1 = create_new_tensors(train_indices, test_indices)
         accuracy = train_and_evaluate(model, train_tensor1, test_tensor1, train_labels_tensor1, test_labels_tensor1, train_mask_tensor1, test_mask_tensor1, parameters)
         fold_accuracies.append(accuracy)
 
-    # Calculate mean accuracy for the current parameters
     mean_accuracy = sum(fold_accuracies) / len(fold_accuracies)
 
     # Update best parameters if current combination is better
