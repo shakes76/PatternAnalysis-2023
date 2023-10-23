@@ -14,7 +14,7 @@ class ViT(pl.LightningModule):
     def __init__(self, model_kwargs, lr):
         super().__init__()
         self.save_hyperparameters()
-        self.model = VisionEncoder()
+        self.model = VisionEncoder(*model_kwargs)
 
     def forward(self, x):
         return self.model(x)
@@ -48,6 +48,19 @@ def train_model():
     return
 
 def main():
+    kwargs = {"embed_dim": 256,
+        "hidden_dim": 512,
+        "num_heads": 8,
+        "num_layers": 1,
+        "patch_size": 4,
+        "num_channels": 3,
+        "num_patches": 64,
+        "num_classes": 10,
+        "dropout": 0.2,}
+    model = ViT(kwargs, lr=3e-4)
+    data = CIFAR10DataModule
+    trainer = pl.Trainer(max_epochs=1)
+    trainer.fit(model, data)
     return
 
 if __name__ == '__main__': main()
