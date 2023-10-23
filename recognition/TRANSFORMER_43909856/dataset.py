@@ -218,7 +218,6 @@ Returns:
     DataLoader for the train set data. If train_size < 1, a DataLoader
     for the validation set data is also returned. Otherwise, a value of None is
     returned as well as the train set data.
-    
 """
 def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=BASIC_TF, val_tf=BASIC_TF, 
                    batch_size=BATCH_SIZE, train_size=0.8, imgs_per_patient=N_IMGS_PER_PATIENT):
@@ -280,28 +279,8 @@ def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=BASIC_TF, val
     train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
     val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True)
 
-    # Get the size of the test set:
-    # print(f"Data points: {len(train_loader.dataset)}")
-    # print(f"Data points: {len(val_loader.dataset)}")
-    # # Get the classes:
-    # print(f"Classes: {train_data.classes}")
-    # print(f"Classes: {val_data.classes}")
-    # # Get the original file's names:
-    # print(f"Images: {train_data.imgs}")
-    # print(f"Images: {val_data.imgs}")
-
-    # # Plot a selection of images from a single batch of the dataset
-    # sample_data = next(iter(train_loader))
-    # # Create a grid of 8x8 images
-    # plt.figure(figsize=(8,8))
-    # plt.axis("off")
-    # # Add a title
-    # plt.title("Sample of images (train set)")
-    # # Plot the first 64 images in the batch
-    # plt.imshow(np.transpose(make_grid(sample_data[0][:64], padding=2, normalize=True).cpu(),(1, 2, 0)))
-    # # Plot graph
-    # plt.show()
-
+    # TODO convert iterables into maps - this may make the dataloaders in this
+    # method perform more similarly to the other dataloaders
+    
     return train_loader, val_loader
     
-
