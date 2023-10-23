@@ -10,6 +10,7 @@ from einops.layers.torch import Rearrange
 This file contains all of the components required to create a 2D image recognition
 transformer (ViT) used for a binary classification problem.
 ViT for ImageNet: https://arxiv.org/abs/2205.01580
+https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=9880094 
 
 - ViT has a set of tokens + 1 class token. In this model, average pooling of the
 model will be used instead of a class token
@@ -82,6 +83,7 @@ Q -> Linear ->
 A masked multi-head attention could be created by adding a mask layer to the 
 scaled dot product attention component, but a mask layer will not be used for
 this model.
+https://towardsdatascience.com/transformers-explained-visually-part-3-multi-head-attention-deep-dive-1c1ff1024853
 """
 class Attention(nn.Module):
 
@@ -98,7 +100,7 @@ class Attention(nn.Module):
 
         self.n_heads = n_heads
         # Normalise the matrix, using the square root of the size of the head
-        self.scale = head_dimensions ** (-0.5)
+        self.scale = head_dimensions ** -0.5
         # All operations will be normalised (layer norm for 1D representations, similar to batch norm)
         self.layer_norm = nn.LayerNorm(dimensions)
         # Used for performing network concatenations
@@ -132,20 +134,19 @@ class Attention(nn.Module):
         qkv = self.to_qkv(x).chunk(3, dim=-1)
         '''
         Convert the KQV tensors into groups, then split them 
-        across the 8 attention heads.
+        across the attention heads.
         b - dimensions/size of each batch
-        n - TODO
         h - number of heads
         d - dimensions/size of each head
         '''
-        q, k, v = map(lambda i: rearrange(i, "b n (h d) -> b h n d", h=self.n_heads), qkv)
+        q, k, v = map(lambda t: rearrange(t, "b n (h d) -> b h n d", h=self.n_heads), qkv)
 
         # Get correlations - perform matrix multiplication between Q and K. Scale result to [0, 1]
-        q_k_correlations = torch.matmul(q, k.transpose(1, -2)) * self.scale
+        q_k_correlations = torch.mul(q, k) * self.scale
         # Turn correlations into probabilites using softmax function
         attention = self.attend(q_k_correlations)
         # Multiply attention probabilites with the Values
-        out = torch.matmul(attention, v)
+        out = torch.mul(attention, v)
         # Concatenate results with # of heads and the dimensions of each head
         out = rearrange(out, "b h n d -> b n (h d)")
         # Apply to Linear layer to give flattened linear output
@@ -320,7 +321,7 @@ class SimpleViT(nn.Module):
         head_dimensions (int):
     """
     def __init__(self, *, image_size, patch_size, n_classes, dimensions, depth,
-                    n_heads, mlp_dimensions, n_channels, head_dimensions):
+                    n_heads, mlp_dimensions, n_channels=3):
         super().__init__()
         '''
         The image height should be a multiple of the patch height, and
@@ -341,7 +342,7 @@ class SimpleViT(nn.Module):
         p2 - patch width
         '''
         self.to_patch_embedding = nn.Sequential(
-            Rearrange("b c (h p1) (w p2) -> (p1 p2 c)", p1=patch_height, p2=patch_width),
+            Rearrange("b c (h p1) (w p2) -> b (h w) (p1 p2 c)", p1=patch_height, p2=patch_width),
             # Add a layer norm for 1D dat
             nn.LayerNorm(patch_dimensions),
             # Embed patches in linear layer
@@ -358,8 +359,7 @@ class SimpleViT(nn.Module):
         )
 
         # Add the Transformer network
-        self.transformer = Transformer(dimensions=dimensions, depth=depth, n_heads=n_heads,
-                                       head_dimensions=head_dimensions, 
+        self.transformer = Transformer(dimensions, depth, n_heads, head_dimensions=64, 
                                        mlp_dimensions=mlp_dimensions)
         
         # Use average pooling for the network (instead of using a class token)
