@@ -140,8 +140,9 @@ save_image(anchor, 'anchor_sample.png')
 save_image(positive, 'positive_sample.png')
 save_image(negative, 'negative_sample.png')
 
+print("Finished Training Siamese Network")
 
-# --------- Visualize Embeddings ---------
+# --------- Visualize Embeddings using t-SNE ---------
 # Extract embeddings and labels
 all_embeddings = []
 all_labels = []
@@ -173,3 +174,24 @@ plt.colorbar()
 plt.title('2D t-SNE of Embeddings')
 plt.savefig('embeddings_tsne.png')
 
+# --------- Extract Embeddings for the Entire Dataset ---------
+train_embeddings = []
+train_labels = []
+test_embeddings = []
+test_labels = []
+
+with torch.no_grad():
+    for anchor, _, _, label in train_loader:
+        anchor = anchor.to(device)
+        embedding, _ = model(anchor, anchor)
+        train_embeddings.append(embedding.cpu().numpy())
+        train_labels.extend(label.tolist())
+    
+    for anchor, _, _, label in test_loader:
+        anchor = anchor.to(device)
+        embedding, _ = model(anchor, anchor)
+        test_embeddings.append(embedding.cpu().numpy())
+        test_labels.extend(label.tolist())
+
+train_embeddings = np.concatenate(train_embeddings)
+test_embeddings = np.concatenate(test_embeddings)
