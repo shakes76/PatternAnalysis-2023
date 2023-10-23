@@ -5,7 +5,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 from PIL import Image
-import PIL.ImageOps    
+import PIL.ImageOps
+from datetime import datetime
 
 import torchvision
 import torchvision.datasets as datasets
@@ -18,54 +19,7 @@ import torch.nn as nn
 from torch import optim
 import torch.nn.functional as F
 
-# class SiameseNetworkDataset(Dataset):
-#     def __init__(self, imageDataset,transform=None):
-#         self.imageDataset = imageDataset
-#         self.transform = transform
-    
-#     def __getitem__(self, index):
-#         rand_img = random.choice(self.path.imgs)
 
-class SiameseNetworkDataset(Dataset):
-    def __init__(self,imageFolderDataset,transform=None):
-        self.imageFolderDataset = imageFolderDataset    
-        self.transform = transform
-        
-    def __getitem__(self,index):
-        img0_tuple = random.choice(self.imageFolderDataset)
-
-        #We need to approximately 50% of images to be in the same class
-        should_get_same_class = random.randint(0,1) 
-        if should_get_same_class:
-            while True:
-                #Look untill the same class image is found
-                img1_tuple = random.choice(self.imageFolderDataset) 
-                if img0_tuple[1] == img1_tuple[1]:
-                    break
-        else:
-
-            while True:
-                #Look untill a different class image is found
-                img1_tuple = random.choice(self.imageFolderDataset) 
-                if img0_tuple[1] != img1_tuple[1]:
-                    break
-
-        img0 = Image.open(img0_tuple[0])
-        img1 = Image.open(img1_tuple[0])
-
-        img0 = img0.convert("L")
-        img1 = img1.convert("L")
-
-        if self.transform is not None:
-            img0 = self.transform(img0)
-            img1 = self.transform(img1)
-        
-        return img0, img1, torch.from_numpy(np.array([int(img1_tuple[1] != img0_tuple[1])], dtype=np.float32))
-    
-    def __len__(self):
-        return len(self.imageFolderDataset)
-    
-    #create the Siamese Neural Network
 class SiameseNetwork(nn.Module):
 
     def __init__(self):
@@ -73,27 +27,27 @@ class SiameseNetwork(nn.Module):
 
         # Setting up the Sequential of CNN Layers
         self.cnn1 = nn.Sequential(
-            nn.Conv2d(1, 96, kernel_size=11,stride=4),
+            nn.Conv2d(1, 32, kernel_size=10,stride=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(3, stride=2),
+            nn.MaxPool2d(2, stride=1),
             
-            nn.Conv2d(96, 256, kernel_size=5, stride=1),
+            nn.Conv2d(32, 64, kernel_size=7, stride=1),
             nn.ReLU(inplace=True),
-            nn.MaxPool2d(2, stride=2),
+            nn.MaxPool2d(2, stride=1),
 
-            nn.Conv2d(256, 384, kernel_size=3,stride=1),
+            nn.Conv2d(64, 128, kernel_size=4,stride=1),
             nn.ReLU(inplace=True)
         )
 
+        
         # Setting up the Fully Connected Layers
         self.fc1 = nn.Sequential(
-            nn.Linear(384, 1024),
-            nn.ReLU(inplace=True),
-            
-            nn.Linear(1024, 256),
-            nn.ReLU(inplace=True),
-            
-            nn.Linear(256,2)
+            nn.Linear(128*108*100, 64),
+            nn.Sigmoid(),
+            nn.Linear(64,1),
+            nn.Sigmoid()
+          
+           
         )
         
     def forward_once(self, x):
@@ -112,7 +66,6 @@ class SiameseNetwork(nn.Module):
 
         return output1, output2
     
-
     # Define the Contrastive Loss Function
 class ContrastiveLoss(torch.nn.Module):
     def __init__(self, margin=2.0):
@@ -128,3 +81,4 @@ class ContrastiveLoss(torch.nn.Module):
 
 
       return loss_contrastive
+

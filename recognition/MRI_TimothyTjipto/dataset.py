@@ -5,7 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torchvision import datasets,transforms
 from torch.utils.data import DataLoader,ConcatDataset,Dataset,TensorDataset, Subset
-
+from PIL import Image
 import random
 
 # Load and return normalized data
@@ -94,33 +94,6 @@ def split_dataset(dataset, train_size, val_size):
     train_set, val_set = torch.utils.data.random_split(dataset, [train_size,val_size])
     return  train_set,val_set 
 
-# def visualise(img1, img2, labels, to_show=6, num_col=3, prediction=None, test=False):
-
-#     num_row = to_show // num_col if to_show // num_col != 0 else 1
-
-#     to_show = num_row * num_col
-
-#     # Plot the images
-#     fig, axes = plt.subplots(num_row, num_col, figsize=(10, 10))
-#     for i in range(to_show):
-
-#         # If the number of rows is 1, the axes array is one-dimensional
-#         if num_row == 1:
-#             ax = axes[i % num_col]
-#         else:
-#             ax = axes[i // num_col, i % num_col]
-
-#         ax.imshow((tf.concat([img1[i], img2[i]], axis=1).numpy()*255.0).astype("uint8"))
-#         ax.set_axis_off()
-#         if test:
-#             ax.set_title("True: {} | Pred: {:.5f}".format(labels[i], predictions[i][0]))
-#         else:
-#             ax.set_title("Label: {}".format(labels[i]))
-#     if test:
-#         plt.tight_layout(rect=(0, 0, 1.9, 1.9), w_pad=0.0)
-#     else:
-#         plt.tight_layout(rect=(0, 0, 1.5, 1.5))
-    plt.show()
 
 def visualise_1(dataset):
     img,lab = random.choice(dataset)
@@ -138,7 +111,7 @@ def visualise_batch(dataloader):
     images1,images2,labels = next(example_batch)
 
     plt.figure(figsize=(16,4)) # width x height
-    batch_size = dataloader.batchsize
+    batch_size = len(images1)
     for idx in range(batch_size):
 
         image1 = transforms.ToPILImage()(images1[idx])
@@ -186,25 +159,6 @@ def split_dataset_by_class(dataset):
     return class_datasets
 
 
-
-class SiameseDataset(Dataset):
-    def __init__(self, data, transform=None):
-        self.data = data
-        self.transform = transform
-
-    def __len__(self):
-        return len(self.data)
-    
-    def __getitem__(self, idx):
-        # Fetching a pair of data samples and a label indicating if they are similar or not
-        img1, img2, label = self.data[idx]
-
-        if self.transform:
-            img1 = self.transform(img1)
-            img2 = self.transform(img2)
-
-        return img1, img2, torch.tensor(label, dtype=torch.float32)
-
 class SiameseNetworkDataset1(Dataset):
     def __init__(self,imageFolderDataset,transform=None):
         self.imageFolderDataset = imageFolderDataset
@@ -240,6 +194,46 @@ class SiameseNetworkDataset1(Dataset):
             img1 = self.transform(img1)
 
         return img0, img1, torch.from_numpy(np.array([int(img1_tuple[1] != img0_tuple[1])], dtype=np.float32))
+
+    def __len__(self):
+        return len(self.imageFolderDataset.imgs)
+
+
+class SiameseNetworkDataset_test(Dataset):
+    def __init__(self,imageFolderDataset,transform=None):
+        self.imageFolderDataset = imageFolderDataset
+        self.transform = transform
+
+    def __getitem__(self,index):
+        img0_tuple = random.choice(self.imageFolderDataset.imgs)
+
+        #We need to approximately 50% of images to be in the same class
+        should_get_same_class = random.randint(0,1)
+        if should_get_same_class:
+            while True:
+                #Look untill the same class image is found
+                img1_tuple = random.choice(self.imageFolderDataset.imgs)
+                if img0_tuple[1] == img1_tuple[1]:
+                    break
+        else:
+
+            while True:
+                #Look untill a different class image is found
+                img1_tuple = random.choice(self.imageFolderDataset.imgs)
+                if img0_tuple[1] != img1_tuple[1]:
+                    break
+
+        img0 = Image.open(img0_tuple[0])
+        img1 = Image.open(img1_tuple[0])
+
+        img0 = img0.convert("L")
+        img1 = img1.convert("L")
+
+        if self.transform is not None:
+            img0 = self.transform(img0)
+            img1 = self.transform(img1)
+
+        return img0, img1, torch.from_numpy(np.array([int(img1_tuple[1] != img0_tuple[1])], dtype=np.float32)), img0_tuple[1],img1_tuple[1]
 
     def __len__(self):
         return len(self.imageFolderDataset.imgs)
