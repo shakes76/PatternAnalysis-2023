@@ -46,7 +46,7 @@ class TripletDataset(Dataset):
                 transforms.RandomVerticalFlip(),
                 transform
             ])
-            
+
         elif mode == 'test':
             self.ad_paths = test_ad_paths
             self.nc_paths = test_nc_paths
@@ -121,3 +121,4 @@ def patient_wise_split(ad_paths, nc_paths, split_ratio=0.8):
     test_nc_paths = [path for path in nc_paths if os.path.basename(path).split('_')[0] in test_nc_ids]
 
     return train_ad_paths, test_ad_paths, train_nc_paths, test_nc_paths
+
