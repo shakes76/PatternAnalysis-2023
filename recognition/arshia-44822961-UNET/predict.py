@@ -1,89 +1,151 @@
+"""
+File: predict.py
+Author: Arshia Sharma
+
+Description: Performs inference using trained model
+Dependencies: torch torchvision numpy matplotlib tqdm
+"""
+# libraries 
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
 import os 
+from torch.utils.data import DataLoader
 
+# import from local files  
+from train import load_data, data_transform, dice_coefficient
 from dataset import ISICDataset
-from train import load_data, data_transform, dice_coefficient, BATCH_SIZE
 
-# model file 
+# UPDATE IF NOT SAVED IN BASE DIRECTORY. 
 MODEL_FILE_PATH = "improved_UNET.pth"
 
-# plot output paths 
-OUTPUT_DIR_PATH = "~/report1"
+# UPDATE TO WHERE TEST NEED TO BE SAVED
+OUTPUT_DIR_PATH = "/ISIC2018"
 
-# data 
-TEST_DATA_PATH = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Test_Input"
-TEST_MASK_PATH = "~/report1/ISIC2018_Task1_Test_GroundTruth"
+# UPDATE WITH PATH TO YOUR TEST DATA
+TEST_DATA_PATH = "ISIC2018/ISIC2018_Task1-2_Validation_Input"
+TEST_MASK_PATH = "ISIC2018/ISIC2018_Task1_Validation_GroundTruth"
 
-def perform_predictions(model, data_loader, device):
+"""
+    Tests improved unet on trained model. 
+    Calcualtes dice coeficient for each image and corresponding ground truth. 
+
+    Parameters:
+    - model (nn.Module): The trained model to be tested.
+    - test_loader (DataLoader): DataLoader for the test dataset.
+    - device (str): The device (e.g., 'cuda' or 'cpu') to run the evaluation on.
+
+    Returns:
+    - dice_scores (list): List of Dice coefficients for each image in the test dataset.
+"""
+def test(model, test_loader, device):
     model.eval()  # Set the model to evaluation mode
-    predictions = []
-    inputs = []
-    targets = []
+    
+    dice_scores = [] # stores dice scores. 
+
     with torch.no_grad():
-        for inputs, targets in data_loader:
-            inputs = inputs.to(device)
+        for data in test_loader:
+            inputs, targets = data
+            inputs, targets = inputs.to(device), targets.to(device)
             outputs = model(inputs)
-            predictions.append(outputs.cpu())
-    return predictions, inputs, targets
+            dice = dice_coefficient(outputs, targets)
+            dice_scores.append(dice.item())
 
-# histogram of coefficents 
-def plot_histogram(dice_coeffs, directory):
-    plt.hist(dice_coeffs, bins=10, edgecolor='black')
-    plt.xlabel('Dice Coefficient')
-    plt.ylabel('Frequency')
-    plt.title('Histogram of Dice Coefficients')
-    plt.savefig(os.path.join(directory, 'dice_dist.png'))
-    plt.close()
+    return dice_scores
 
-# images of thre min, max and avg dice coefficients. 
-def visualize_extreme_cases(predictions, inputs, targets, directory):
-    coefficients = [dice_coefficient(pred, target) for pred, target in zip(predictions, targets)]
-    
-    min_idx = np.argmin(coefficients)
-    max_idx = np.argmax(coefficients)
-    avg_idx = (np.abs(coefficients - np.mean(coefficients))).argmin()
-    
-    for idx, name in zip([min_idx, max_idx, avg_idx], ['min', 'max', 'avg']):
-        img, gt, pred = inputs[idx], targets[idx], predictions[idx]
-        
-        fig, axs = plt.subplots(1, 3, figsize=(15, 5))
-        axs[0].imshow(img.permute(1, 2, 0)) 
-        axs[0].set_title('Original Image')
-        axs[1].imshow(gt.squeeze(), cmap='gray')
-        axs[1].set_title('Ground Truth')
-        axs[2].imshow(pred.squeeze(), cmap='gray')
-        axs[2].set_title(f'Predicted Mask\nDice Coefficient: {coefficients[idx]:.2f}')
-        
-        for ax in axs:
-            ax.axis('off')
-        
-        plt.savefig(f'{directory}/{name}_dice_coefficient.png', bbox_inches='tight')
-        plt.close(fig)
+"""
+Load in test data and return dataset loader object. 
+
+"""
+def load_data(img_path, labels_path, transform, batch_size, shuffle=True):
+    test_dataset = ISICDataset(img_path, labels_path, transform) 
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=shuffle) 
+    return test_loader
+
+"""
+    Visualises model image, predictions and ground truth on first three images from test loader.
+
+    Parameters:
+    - model (nn.Module): The trained model used for making predictions.
+    - test_loader (DataLoader): DataLoader for the test dataset.
+    - device (str): The device (e.g., 'cuda' or 'cpu') to run the visualization on.
+    - num_images (int): The number of images to visualize (default is 3).
+
+    """
+def visualise_predictions(model, test_loader, device, num_images=3):
+    model.eval()  # Set the model to evaluation mode
+
+    image_count = 0  # Keep track of the number of images processed
+
+    with torch.no_grad():
+        for data in test_loader:
+            inputs, targets = data
+            inputs, targets = inputs.to(device), targets.to(device)
+            # get prediction 
+            outputs = model(inputs)
+
+            # Convert PyTorch tensors to NumPy arrays
+            input_image = inputs[0].cpu().numpy()  
+            target_image = targets[0].cpu().numpy()
+            predicted_image = outputs[0].cpu().numpy()
+
+            # Create a side-by-side visualization for three images, prediction, ground truth. 
+            plt.figure(figsize=(12, 4))
+            plt.subplot(1, 3, 1)
+            plt.title("Input Image")
+            plt.imshow(input_image[0], cmap='gray')  
+
+            plt.subplot(1, 3, 2)
+            plt.title("Model Prediction")
+            plt.imshow(predicted_image[0], cmap='gray')  
+
+            plt.subplot(1, 3, 3)
+            plt.title("Ground Truth")
+            plt.imshow(target_image[0], cmap='gray')  
+
+            plt.show()
+
+            image_count += 1
+
+            if image_count >= num_images:
+                break
+
+"""
+    Plots dice coefficients of the whole test dataset.
+    Takes an array of dice scores as input. 
+"""
+def plot_dice(dice):
+    x_values = np.arange(len(dice))  # Generate x-values as indices
+    plt.figure(figsize=(8, 6))
+    plt.plot(x_values, dice, marker='o', linestyle='-')
+    plt.xlabel("Image Index")
+    plt.ylabel("Dice Coefficient")
+    plt.title("Dice Coefficient across test inputs")
+    plt.grid(True)
+    plt.show()
 
 
+"""
+    Driver method 
 
+"""
 if __name__ == "__main__":
-    # connect to gpu 
+    # connect to gpu
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # load in data and model
-    test_loader = load_data(TEST_DATA_PATH, TEST_MASK_PATH, data_transform, batch_size=BATCH_SIZE)
-    model = torch.load(MODEL_FILE_PATH)
+    test_loader = load_data(TEST_DATA_PATH, TEST_MASK_PATH, data_transform, batch_size=1)
+    model = torch.load("improved_UNET.pth")
 
-    # perform predictions 
-    predictions, inputs, targets = perform_predictions(model, test_loader, device)
+    # perform predictions
+    dice_scores = test(model, test_loader, device)
+    average_dice = np.mean(dice_scores)
+    print(f"Average Dice Coefficient: {average_dice:.4f}")
 
-    for i, (pred, data, target) in enumerate(zip(predictions, input_images, target_images)):
-        dice = dice_coefficient(pred, target)
-        print(f'Dice Coefficient for image {i}: {dice}')
+    # plot dice scores across the dataset.
+    plot_dice(dice_scores)
 
-    # plot dice coefficients in a histogram. 
-    plot_histogram(dice, OUTPUT_DIR_PATH)
-
-    # plot three examples of images and their respective segments. 
-    visualize_extreme_cases(predictions, inputs, targets, OUTPUT_DIR_PATH)
-
+    # plot three examples of images, prediction and truth. 
+    visualise_predictions(model, test_loader,device)
 
 
