@@ -19,11 +19,13 @@ test_dataset = TripletDataset(root_dir="/home/Student/s4647936/PatternAnalysis-2
 
 # Parameters
 learning_rate = 0.001
-num_epochs = 10
+num_epochs = 1
 batch_size = 32
 
 # GPU availability
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+if not torch.cuda.is_available():
+    print("No CUDA Found. Using CPU")
 
 # Initialise the Siamese Network and Triplet Loss
 model = SiameseNetwork().to(device)
@@ -61,6 +63,40 @@ for epoch in range(num_epochs):
 
 print("Finished Training")
 
+# # --------- Begin Validation/Testing ---------
+# model.eval()  # set the model to evaluation mode
+# correct = 0
+# total = 0
+
+# # DataLoader setup for test dataset
+# test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+
+# with torch.no_grad():  # deactivate autograd engine to reduce memory usage and speed up computations
+#     for batch_idx, (anchor, positive, negative) in enumerate(test_loader):
+#         anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
+        
+#         # Forward pass
+#         anchor_out, positive_out = model(anchor, positive)
+#         _, negative_out = model(anchor, negative)
+
+#         # Compute triplet loss
+#         loss = criterion(anchor_out, positive_out, negative_out)
+
+#         # You might want to add some logic here to determine "correctness", depending on how you define it for your problem
+#         # For instance, if the distance between anchor and positive is less than between anchor and negative, consider it "correct"
+#         positive_distance = torch.dist(anchor_out, positive_out)
+#         negative_distance = torch.dist(anchor_out, negative_out)
+
+#         if positive_distance < negative_distance:
+#             correct += 1
+#         total += 1
+
+# print(f"Accuracy on test set: {100 * correct / total}%")
+# # --------- End Validation/Testing ---------
+
+"""
+Save and visualise results
+"""
 # Test to see number of images
 # print(len(train_dataset)) # 17200
 # print(len(test_dataset)) # 1820
@@ -75,7 +111,14 @@ plt.savefig('loss_curve.png')
 
 # Function to save images
 def save_image(img, filename):
-    img = img.numpy().transpose((1, 2, 0))
+    # Select the first image from the batch
+    img = img[0]
+
+    # Move tensor to CPU and convert to numpy
+    img = img.cpu().numpy()
+
+    # Transpose from [channels, height, width] to [height, width, channels]
+    img = img.transpose((1, 2, 0))
     
     # Convert to float and normalize if necessary
     if img.max() > 1:
@@ -86,7 +129,9 @@ def save_image(img, filename):
     plt.axis('off')  # Hide axes
     plt.savefig(filename)
 
+
+
 # Save sample images after training
-save_image(anchor, 'anchor_sample.png')
-save_image(positive, 'positive_sample.png')
-save_image(negative, 'negative_sample.png')
+save_image(anchor, 'anchor_sample2.png')
+save_image(positive, 'positive_sample2.png')
+save_image(negative, 'negative_sample2.png')
