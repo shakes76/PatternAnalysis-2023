@@ -104,7 +104,8 @@ class ClassificationDataset(Dataset):
     def __init__(self, data_lst, transform=None):
         self.data_lst = data_lst
         self.transform = transform
-        self.class_to_tensor = {'AD': torch.tensor([0]), 'NC': torch.tensor([1])}
+        self.class_to_tensor = {'AD': torch.tensor([0], dtype=torch.float32),
+                                'NC': torch.tensor([1], dtype=torch.float32)}
 
     def __len__(self):
         return len(self.data_lst)
@@ -152,6 +153,6 @@ if __name__ == '__main__':
         print("Batch:")
         print("anchor shape:", batch[0].shape)
         print("positive shape:", batch[1].shape)
-        print("positive shape:", batch[1])
+        print("positive shape:", batch[1].dtype)
         break
 

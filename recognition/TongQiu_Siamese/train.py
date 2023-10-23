@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 import random
 import os
 from modules import Embedding_Baseline, SiameseContrastive, SiameseTriplet, ClassificationNet
-from dataset import ContrastiveDataset, discover_directory, patient_level_split, TripletDataset
+from dataset import ContrastiveDataset, discover_directory, patient_level_split, TripletDataset, ClassificationDataset
 from torch.utils.data import DataLoader
 import argparse
 
@@ -41,9 +41,9 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
         val_losses.append(val_batch_loss)
 
         if val_batch_loss < best_loss:
-            print(f"model improved: score {best_loss:.5f} --> {val_batch_loss:.5f}")
+            print(f"model improved: loss {best_loss:.5f} --> {val_batch_loss:.5f}")
             best_loss = val_batch_loss
-            # Save the best weights if the score is improved
+            # Save the best weights if the loss is improved
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': model.embedding_net.state_dict(),
@@ -179,9 +179,9 @@ def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
         val_losses.append(val_batch_loss)
 
         if val_batch_loss < best_loss:
-            print(f"model improved: score {best_loss:.5f} --> {val_batch_loss:.5f}")
+            print(f"model improved: loss {best_loss:.5f} --> {val_batch_loss:.5f}")
             best_loss = val_batch_loss
-            # Save the best weights if the score is improved
+            # Save the best weights if the loss is improved
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': model.embedding_net.state_dict(),
@@ -189,7 +189,7 @@ def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
             }, Config.MODEL_DIR_TRIPLET)
         else:
             early_stopping_counter += 1
-            print(f"no improvement: score {best_loss:.5f} --> {val_batch_loss:.5f}")
+            print(f"no improvement: loss {best_loss:.5f} --> {val_batch_loss:.5f}")
 
         if early_stopping_counter > 5:
             print("Early stopping!")
@@ -259,6 +259,147 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
 
     return average_loss
 
+"""
+Train Classifier
+"""
+def main_classifier(model, train_loader, val_loader, criterion, optimizer, epochs):
+    print('---------Classifier Train on: ' + Config.DEVICE + '----------')
+
+    # Create model
+    model = model.to(Config.DEVICE)
+    best_score = 0
+
+    # Lists for storing metrics
+    train_losses = []
+    val_losses = []
+    train_accs = []
+    val_accs = []
+    early_stopping_counter = 0
+
+    for epoch in range(epochs):
+
+        # train
+        train_batch_loss, train_batch_acc = train_classifier(model, train_loader, optimizer, criterion, epoch, epochs)
+        train_losses.append(train_batch_loss)
+        train_accs.append(train_batch_acc)
+
+        # validate
+        val_batch_loss, val_batch_acc = validate_classifier(model, val_loader, criterion, epoch, epochs)
+        val_losses.append(val_batch_loss)
+        val_accs.append(val_batch_acc)
+
+        if val_batch_acc > best_score:
+            print(f"model improved: score {best_score:.5f} --> {val_batch_acc:.5f}")
+            best_loss = val_batch_loss
+            # Save the best weights if the score is improved
+            torch.save({
+                'epoch': epoch,
+                'model_state_dict': model.state_dict(),
+                'val_loss': val_batch_loss,
+                'val_acc': val_batch_acc
+            }, Config.MODEL_DIR_TRIPLET)
+        else:
+            early_stopping_counter += 1
+            print(f"no improvement: score {best_score:.5f} --> {val_batch_acc:.5f}")
+
+        if early_stopping_counter > 5:
+            print("Early stopping!")
+            break
+
+    # Convert lists to numpy arrays
+    train_losses = np.array(train_losses)
+    val_losses = np.array(val_losses)
+    train_accs = np.array(train_accs)
+    val_accs = np.array(val_accs)
+
+    # Save the arrays
+    train_loss_path = os.path.join(Config.LOG_DIR, 'classifier_c/train_losses.npy')
+    val_loss_path = os.path.join(Config.LOG_DIR, 'classifier_c/val_losses.npy')
+    train_accs_path = os.path.join(Config.LOG_DIR, 'classifier_c/train_accs.npy')
+    val_accs_path = os.path.join(Config.LOG_DIR, 'classifier_c/val_accs.npy')
+
+    # Check if the directory exists, if not create it
+    if not os.path.exists(os.path.dirname(train_loss_path)):
+        os.makedirs(os.path.dirname(train_loss_path))
+    # save
+    np.save(train_loss_path, train_losses)
+    np.save(val_loss_path, val_losses)
+    np.save(train_accs_path, train_accs)
+    np.save(val_accs_path, val_accs)
+
+def train_classifier(model, train_loader, optimizer, criterion, epoch, epochs):
+    model.train()
+    train_loss_lis = np.array([])
+    train_acc_lis = np.array([])
+
+    n=0
+
+    for batch in tqdm(train_loader):
+        imgs, labels = batch
+        imgs, labels = imgs.to(Config.DEVICE), labels.to(Config.DEVICE)
+
+        optimizer.zero_grad()
+        out = model(imgs)
+        loss = criterion(out, labels)
+        loss.backward()
+        optimizer.step()
+
+        # Record the batch loss
+        train_loss_lis = np.append(train_loss_lis, loss.item())
+
+        # Record the batch acc
+        preds = (out > 0.5).float()
+        corrects = (preds == labels).float().sum()
+        batch_acc = corrects / len(labels)
+        train_acc_lis = np.append(train_acc_lis, batch_acc.item())
+
+        n+=1
+        if n>2:
+            break
+
+    train_loss = sum(train_loss_lis) / len(train_loss_lis)
+    train_acc = sum(train_acc_lis)/len(train_acc_lis)
+
+    # Print the information.
+    print(
+        f"[ Train | {epoch + 1:03d}/{epochs:03d} ] loss = {train_loss:.5f}, acc = {train_acc:.5f}")
+    return train_loss, train_acc
+
+def validate_classifier(model, val_loader, criterion, epoch, epochs):
+    model.eval()
+    total_loss = 0.0
+    total_acc = 0.0
+
+    n=0
+
+    with torch.no_grad():
+        for batch in tqdm(val_loader):
+            imgs, labels = batch
+            imgs, labels = imgs.to(Config.DEVICE), labels.to(Config.DEVICE)
+            out = model(imgs)
+
+            # Record the batch loss
+            loss = criterion(out, labels)
+            total_loss += loss.item()
+
+            # Record the batch acc
+            preds = (out > 0.5).float()
+            corrects = (preds == labels).float().sum().cpu()
+            batch_acc = corrects / len(labels)
+            total_acc += batch_acc
+
+            n+=1
+            if n>2:
+                break
+
+    average_loss = total_loss / len(val_loader)
+    average_acc = total_acc / len(val_loader)
+
+    # Print the information.
+    print(
+        f"[ Validation | {epoch + 1:03d}/{epochs:03d} ] loss = {average_loss:.5f}, acc = {average_acc:.5f}")
+
+    return average_loss, average_acc
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Training script for Contrastive/Triplet network')
@@ -266,6 +407,8 @@ if __name__ == '__main__':
     # model
     parser.add_argument('-m', '--model', default='Contrastive', type=str,
                         help='model to train (Contrastive/Triplet/Classification')
+    parser.add_argument('-bm', '--backbone', default=None, type=str,
+                        help='backbone model to train the classifier')
 
     # seed
     parser.add_argument('-sd', '--seed', default=2023, type=int, help='Seed for initializing training.')
@@ -277,7 +420,7 @@ if __name__ == '__main__':
 
     # training parameters
     parser.add_argument('-ep', '--epochs', default=50, type=int, help='Number of epochs for training.')
-    parser.add_argument('-lr', '--learning_rate', default=0.005, type=float, help='Initial learning rate.')
+    parser.add_argument('-lr', '--learning_rate', default=0.001, type=float, help='Initial learning rate.')
     parser.add_argument('-wd', '--weight_decay', default=1e-5, type=float, help='Weight decay for the optimizer.')
 
     args = parser.parse_args()
@@ -357,8 +500,42 @@ if __name__ == '__main__':
 
         main_triplet(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
 
+    elif args.model == 'Classification':
+
+        # check backbone
+        if args.backbone and not os.path.exists(args.backbone):
+            print(f"Backbone model at {args.backbone} does not exist!")
+
+        backbone = Embedding_Baseline()
+        checkpoint = torch.load(args.backbone)
+        backbone.load_state_dict(checkpoint['model_state_dict'])
+        model = ClassificationNet(backbone)
+
+        train_dataset = ClassificationDataset(train_data, transform=tr_transform)
+        val_dataset = ClassificationDataset(val_data, transform=val_transform)
+
+        dataloader_tr = DataLoader(
+            dataset=train_dataset,
+            shuffle=True,
+            batch_size=args.batch_size,
+            num_workers=args.workers,
+            drop_last=True
+        )
+        dataloader_val = DataLoader(
+            dataset=val_dataset,
+            shuffle=True,
+            batch_size=args.batch_size,
+            num_workers=args.workers,
+            drop_last=True
+        )
+
+        criterion = torch.nn.BCELoss()
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
+
+        main_classifier(model, dataloader_tr, dataloader_val, criterion, optimizer, epochs)
+
     else:
-        print('model type not included, try Contrastive/Triplet.')
+        print('model type not included, try Contrastive/Triplet/Classification.')
 
 
 
