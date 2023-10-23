@@ -83,3 +83,14 @@ class TripletLoss(nn.Module):
         distance_negative = (anchor - negative).pow(2).sum(1)  # Euclidean distance
         losses = nn.functional.relu(distance_positive - distance_negative + self.margin)
         return losses.mean()
+    
+class SimpleClassifier(nn.Module):
+    def __init__(self):
+        super(SimpleClassifier, self).__init__()
+        self.fc1 = nn.Linear(2, 64)  # Embedding size is 2
+        self.fc2 = nn.Linear(64, 2)  # Output is 2 (AD or NC)
+
+    def forward(self, x):
+        x = F.relu(self.fc1(x))
+        x = self.fc2(x)
+        return x
