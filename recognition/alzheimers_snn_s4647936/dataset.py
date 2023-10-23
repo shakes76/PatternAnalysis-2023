@@ -83,7 +83,10 @@ class TripletDataset(Dataset):
             positive_image = self.transform(positive_image)
             negative_image = self.transform(negative_image)
 
-        return anchor_image, positive_image, negative_image
+        # Decide label based on anchor image path
+        label = 0 if "AD" in anchor_path else 1
+
+        return anchor_image, positive_image, negative_image, label
     
 
 def patient_wise_split(ad_paths, nc_paths, split_ratio=0.8):
