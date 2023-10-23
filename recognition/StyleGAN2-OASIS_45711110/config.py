@@ -7,7 +7,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('Device: ', device)
 
 # Path
-dataset = "/dev/data/keras_png_slices_data"
+dataset = "/dev/data/keras_png_slices_data/keras_png_slices_"
 
 # Hyper Parameters
 epochs = 300            # Number of epochs to train
