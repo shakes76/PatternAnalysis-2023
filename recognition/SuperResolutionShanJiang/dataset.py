@@ -49,10 +49,6 @@ def scaling(input_image):
 train_ds = train_ds.map(scaling)
 valid_ds = valid_ds.map(scaling)
 
-# for batch in train_ds.take(1):
-#     for img in batch:
-#         display(array_to_img(img))
-
 # A fucntion that turns given image to grey scale and crop it 
 def process_input(input,input_height_size,input_width_size):
     input = tf.image.rgb_to_yuv(input)

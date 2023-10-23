@@ -12,6 +12,9 @@ import matplotlib.pyplot as plt
 upscale_factor = 4
 loss_plot_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/loss_plot/'
 
+# Path to save model parameters
+checkpoint_filepath = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/checkpoint/"
+
 train_loss_history = []
 valid_loss_history = []
 train_psnr_history = []
@@ -51,10 +54,6 @@ class ESPCNCallback(keras.callbacks.Callback):
 
 # Stop training when loss does not improve for 10 consecutive epochs         
 early_stopping_callback = keras.callbacks.EarlyStopping(monitor="loss", patience=10)
-
-# Path to save model parameters
-checkpoint_filepath = "D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/checkpoint/"
-# checkpoint_filepath = "H:/final_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/tmp/checkpoint/"
 
 # Save model parameters at checkpoint during training
 model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
@@ -114,8 +113,8 @@ for index, test_img_path in enumerate(get_test_img_paths()):
     total_bicubic_psnr += bicubic_psnr
     total_test_psnr += test_psnr
 
-print("Avg. PSNR of lowres images is %.4f" % (total_bicubic_psnr / 10))
-print("Avg. PSNR of reconstructions is %.4f" % (total_test_psnr / 10))
+print("Avg. PSNR of lowres images is %.4f" % (total_bicubic_psnr / len(get_test_img_paths())))
+print("Avg. PSNR of reconstructions is %.4f" % (total_test_psnr / len(get_test_img_paths())))
 
         
 

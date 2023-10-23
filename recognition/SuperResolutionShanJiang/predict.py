@@ -59,24 +59,24 @@ for index, prediction_img_path in enumerate(get_prediction_img_paths()):
     # Create a figure with three subplots
     fig, axes = plt.subplots(1, 3, figsize=(12, 4))
 
-    # Display the first image in the first subplot
+    # Display the high redolution image in the first subplot
     axes[0].imshow(image1)
-    axes[0].set_title('Image 1')
+    axes[0].set_title('high redolution')
 
-    # Display the second image in the second subplot
+    # Display the low redolution image in the second subplot
     axes[1].imshow(image2)
-    axes[1].set_title('Image 2')
+    axes[1].set_title('low redolution')
 
-    # Display the third image in the third subplot
+    # Display the prediction image in the third subplot
     axes[2].imshow(image3)
-    axes[2].set_title('Image 3')
+    axes[2].set_title('prediction')
 
     # Adjust spacing between subplots
     plt.tight_layout()
 
     # Save the plot 
-    filename = os.path.basename(img)
-    plt.save(prediction_result_path+filename)
+    filename = os.path.basename(os.path.basename(prediction_img_path))
+    plt.savefig(prediction_result_path+filename)
     
     print("PSNR of lowres images is %.4f" % (bicubic_psnr / 10))
     print("PSNR of reconstructions is %.4f" % (test_psnr / 10))
