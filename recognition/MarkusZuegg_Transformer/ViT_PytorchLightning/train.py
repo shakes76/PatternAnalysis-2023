@@ -58,9 +58,8 @@ def main():
         "num_classes": 10,
         "dropout": 0.2,}
     model = ViT(kwargs, lr=3e-4)
-    data = CIFAR10DataModule
+    data = CIFAR10DataModule(batch_size=64, image_size=32, in_channels=3)
     trainer = pl.Trainer(max_epochs=1)
     trainer.fit(model, data)
-    return
 
 if __name__ == '__main__': main()
