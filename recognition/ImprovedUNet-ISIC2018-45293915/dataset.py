@@ -3,6 +3,29 @@ import tensorflow as tf
 from tensorflow import keras
 
 class DataLoader:
+    """
+    A utility class for creating data generators for image segmentation tasks.
+    It prepares and generates batches of input images and corresponding ground truth masks
+    for training or validation purposes.
+
+    Parameters:
+        - input_dir: The directory containing input images.
+        - groundtruth_dir: The directory containing corresponding ground truth masks.
+        - image_mode: The color mode for input images (e.g., 'rgb').
+        - mask_mode: The color mode for ground truth masks (e.g., 'grayscale').
+        - image_height: The desired height of the input images.
+        - image_width: The desired width of the input images.
+        - batch_size: The batch size for data generation.
+        - seed: The random seed for data augmentation (default is 45).
+        - shear_range: The range for shear transformations during data augmentation.
+        - zoom_range: The range for zooming transformations during data augmentation.
+        - horizontal_flip: Whether to perform horizontal flips during data augmentation.
+        - vertical_flip: Whether to perform vertical flips during data augmentation.
+        - fill_mode: The fill mode for filling in newly created pixels during data augmentation.
+
+    Methods:
+        - create_data_generators: Creates and returns data generators for input images and masks.
+    """
     def __init__(self, input_dir, groundtruth_dir, image_mode, mask_mode, image_height, image_width, batch_size, seed=45, shear_range=0.1, zoom_range=0.1, horizontal_flip=True, vertical_flip=True, fill_mode='nearest',):
         self.input_dir = input_dir
         self.groundtruth_dir = groundtruth_dir
