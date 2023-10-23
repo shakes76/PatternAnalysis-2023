@@ -64,7 +64,7 @@ class CIFAR10DataModule(LightningDataModule):
     def val_dataloader(self):
         return DataLoader(self.val, self.batch_size, num_workers=self.num_workers, shuffle=False)
     
-def img_to_patch(x, patch_size, flatten_channels=True):
+def img_to_patch(x, patch_size, num_patches):
     """
     Args:
         x: Tensor representing the image of shape [B, C, H, W]
@@ -75,7 +75,5 @@ def img_to_patch(x, patch_size, flatten_channels=True):
     B, C, H, W = x.shape
     x = x.reshape(B, C, H // patch_size, patch_size, W // patch_size, patch_size)
     x = x.permute(0, 2, 4, 1, 3, 5)  # [B, H', W', C, p_H, p_W]
-    x = x.flatten(1, 2)  # [B, H'*W', C, p_H, p_W]
-    if flatten_channels:
-        x = x.flatten(2, 4)  # [B, H'*W', C*p_H*p_W]
+    x = x.flatten(2, 4)  # [B, H'*W', C*p_H*p_W]
     return x
