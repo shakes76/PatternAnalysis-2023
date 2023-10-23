@@ -67,4 +67,5 @@ def show(list):
     
     plt.show()
 # Print the item in the list
-show([x_train_scaled[0], x_test_scaled[0]])
+#show([x_train_scaled[0], x_test_scaled[0]])
+
