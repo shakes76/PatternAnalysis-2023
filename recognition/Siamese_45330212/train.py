@@ -110,8 +110,8 @@ print("Siamese Triplet Training took " + str(elapsed) + " secs or " + str(elapse
 # Set the model to evaluation mode
 model.eval()
 # Save the parameters into a file
-# torch.save(model.state_dict(), "siamese_model3.pt")
-# print("Model Saved Successfully")
+torch.save(model.state_dict(), "siamese_model.pt")
+print("Model Saved Successfully")
 os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
 # print("\n> Loading from parameter file")
 torch.cuda.empty_cache()
@@ -203,8 +203,8 @@ print("< Finished training Classification Network")
 elapsed = end - start
 print("Classification Model Training took " + str(elapsed) + " secs or " + str(elapsed/60) + " mins in total")
 
-# torch.save(classification_model.state_dict(), "classifaction_model.pt")
-# print("Classification model Saved Successfully")
+torch.save(classification_model.state_dict(), "classifaction_model.pt")
+print("Classification model Saved Successfully")
 
 # --------------
 # Test the model
