@@ -40,6 +40,17 @@ class VectorQuantizer(layers.Layer):
             + tf.reduce_sum(self.embeddings ** 2, axis=0)
             - 2 * similarity
         )
+        indices = tf.argmin(distances, axis=1)
+        return indices
+
+def get_encoder(latent_dim=16):
+    encoder_inputs = keras.Input(shape=(80, 80, 1))
+    x = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same")(
+        encoder_inputs
+    )
+    x = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same")(x)
+    encoder_outputs = layers.Conv2D(latent_dim, 1, padding="same")(x)
+    return keras.Model(encoder_inputs, encoder_outputs, name="encoder")
 
 
 '''
