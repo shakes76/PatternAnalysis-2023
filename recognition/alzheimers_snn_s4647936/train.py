@@ -34,7 +34,7 @@ test_dataset = TripletDataset(root_dir="/home/Student/s4647936/PatternAnalysis-2
 
 # Parameters
 learning_rate = 0.001
-num_epochs = 10
+num_epochs = 30
 batch_size = 32
 
 # GPU availability
@@ -84,7 +84,7 @@ for epoch in range(num_epochs):
     model.eval() # set the model to evaluation mode
     val_running_loss = 0.0
     with torch.no_grad(): # deactivate autograd engine to reduce memory usage and speed up computations
-        for val_anchor, val_positive, val_negative in test_loader:
+        for val_anchor, val_positive, val_negative, _ in test_loader:
             val_anchor, val_positive, val_negative = val_anchor.to(device), val_positive.to(device), val_negative.to(device)
             val_anchor_out, val_positive_out = model(val_anchor, val_positive)
             _, val_negative_out = model(val_anchor, val_negative)
@@ -154,7 +154,7 @@ all_labels = []
 # Assuming you have two classes: AD and NC. Let's assign them numeric labels.
 # AD: 0, NC: 1
 with torch.no_grad():
-    for (anchor, _, _), label in train_loader:
+    for anchor, _, _, label in train_loader:
         anchor = anchor.to(device)
         embedding, _ = model(anchor, anchor)
         all_embeddings.append(embedding.cpu().numpy())
