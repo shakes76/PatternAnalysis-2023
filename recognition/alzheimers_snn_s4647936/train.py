@@ -8,7 +8,19 @@ import torch.optim as optim
 from sklearn.manifold import TSNE
 import numpy as np
 import torch.nn as nn
+import seaborn as sns
+from sklearn.metrics import confusion_matrix
 
+def plot_confusion_matrix(y_true, y_pred, classes, output_filename):
+    cm = confusion_matrix(y_true, y_pred)
+    fig, ax = plt.subplots(figsize=(5, 5))
+    sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', cbar=False, ax=ax)
+    ax.set_xlabel('Predicted labels')
+    ax.set_ylabel('True labels')
+    ax.set_title('Confusion Matrix')
+    ax.xaxis.set_ticklabels(classes)
+    ax.yaxis.set_ticklabels(classes)
+    plt.savefig(output_filename)
 
 # Transformations for images
 transform = transforms.Compose([
@@ -152,16 +164,14 @@ all_labels = []
 # Assuming you have two classes: AD and NC. Let's assign them numeric labels.
 # AD: 0, NC: 1
 with torch.no_grad():
-    for idx, (anchor, _, _) in enumerate(train_loader):
+    for (anchor, _, _), label in train_loader:
         anchor = anchor.to(device)
         embedding, _ = model(anchor, anchor)
         all_embeddings.append(embedding.cpu().numpy())
-        
-        # Assign labels based on paths. You can adjust this based on your dataset setup.
-        if idx < len(train_dataset.ad_paths):
-            all_labels.extend([0] * anchor.size(0))  # AD
-        else:
-            all_labels.extend([1] * anchor.size(0))  # NC
+        all_labels.extend(label.tolist())
+
+print(f"Number of AD labels: {all_labels.count(0)}")
+print(f"Number of NC labels: {all_labels.count(1)}")
 
 all_embeddings = np.concatenate(all_embeddings)
 
@@ -211,7 +221,7 @@ for epoch in range(num_epochs):
         loss = criterion(outputs, torch.tensor(labels).to(device))
         loss.backward()
         optimizer.step()
-        
+
 # --------- Evaluate Classifier ---------
 correct = 0
 total = 0
