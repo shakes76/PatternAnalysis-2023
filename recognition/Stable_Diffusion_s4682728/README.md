@@ -91,7 +91,7 @@ optimizer = optim.Adam(model.parameters(), lr=1e-3)
 loss = F.smooth_l1_loss(noise, predicted_noise)
 ```
 
-![Training Loss](/images/training_loss.png)
+![Training Loss](images/training_loss.png)
 
 ## Usage
 1. To configure the training, testing, and validation datasets, please modify the `process_dataset` function in the `dataset.py` file. To verify that the data is loaded correctly, modify the corresponding directories under the `if __name__ == '__main__':` section and execute the script.
@@ -127,7 +127,7 @@ BATCH_SIZE = 16 # Set the training batch size
 
 The following sample output was generated after training the model for 100 epochs on the OASIS Brain dataset. The reasonable clarity and fidelity of these images demonstrates model's performance capabilities.
 
-![](/images/image_grid.png)
+![](images/image_grid.png)
 
 Going forward, the future work entails quantitatively evaluate the quality of generated images and visualise the image generation process via GIFs.
 
