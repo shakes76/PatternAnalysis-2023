@@ -24,16 +24,43 @@ if not torch.cuda.is_available():
 else:
     print(torch.cuda.get_device_name(0))
 
+
 #### Model hyperparameters: ####
 BATCH_SIZE = 32
+
 
 #### Dataset parameters: ####
 # The number of MRI image slices per patient in the dataset
 N_IMGS_PER_PATIENT = 20
+# Dimensions to resize the original 256x240 images to (IMG_SIZE x IMG_SIZE)
+IMG_SIZE = 224
+
 
 #### Input processing transforms: ####
 # Create basic transforms for the images (using these for now, will need to add other transforms later)
 BASIC_TF = transforms.Compose([transforms.ToTensor()])
+'''
+Create transforms that resize the image, then crop it to create a 224x224 image.
+The transforms will also normalise the RGB intensity values for the data to per-channel
+means and standard deviations of 0.5 - this places intensity values in the range
+[-1, 1].
+'''
+TRAIN_TF = transforms.Compose([
+      transforms.Resize(IMG_SIZE),
+      transforms.CenterCrop(IMG_SIZE),
+      transforms.ToTensor(), 
+      transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+      ])
+TEST_TF = transforms.Compose([
+                transforms.ToTensor(), 
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            ])
+VAL_TF = transforms.Compose([
+                transforms.ToTensor(), 
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+            ])
+# TODO should validation and test transforms be different? I don't see why they should be
+
 
 #### File paths: ####
 DATASET_PATH = osp.join("recognition", "TRANSFORMER_43909856", "dataset", "AD_NC")
@@ -101,7 +128,7 @@ Params:
 Returns:
     DataLoaders for the given set's data
 """
-def load_ADNI_data(dataset_path=DATASET_PATH, tf=BASIC_TF, batch_size=BATCH_SIZE,
+def load_ADNI_data(dataset_path=DATASET_PATH, tf=TEST_TF, batch_size=BATCH_SIZE,
                    dataset="test"):
     # Load the ADNI data
     data = ImageFolder(root=osp.join(dataset_path, dataset), transform=tf)
@@ -219,7 +246,7 @@ Returns:
     for the validation set data is also returned. Otherwise, a value of None is
     returned as well as the train set data.
 """
-def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=BASIC_TF, val_tf=BASIC_TF, 
+def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=TRAIN_TF, val_tf=VAL_TF, 
                    batch_size=BATCH_SIZE, train_size=0.8, imgs_per_patient=N_IMGS_PER_PATIENT):
     if train_size == 1:
         '''
@@ -281,6 +308,6 @@ def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=BASIC_TF, val
 
     # TODO convert iterables into maps - this may make the dataloaders in this
     # method perform more similarly to the other dataloaders
-    
+
     return train_loader, val_loader
     

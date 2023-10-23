@@ -3,17 +3,15 @@ import os.path as osp
 import torch
 import torch.nn as nn
 import time
-from timm.data import ImageDataset
-from timm.data.transforms_factory import create_transform
 
+import dataset
 
 """
-This file shows example usage of the trained model, on the benchmark Imagenette
-dataset.
+This file is used to test the ViT model trained on the ADNI dataset.
 Any results will be printed out, and visualisations will be provided 
 where applicable.
 """
-
+# TODO add plots of loss/metrics
 
 #### Set-up GPU device ####
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -28,17 +26,15 @@ BATCH_SIZE = 32
 
 
 #### File paths: ####
-dataset_path = "./recognition/TRANSFORMER_43909856/imagenette"
+dataset_path = "./recognition/TRANSFORMER_43909856/dataset"
 output_path = "./recognition/TRANSFORMER_43909856/models"
 
 
-# Get the testing data 
-tfm_val = create_transform(224, is_training=False)
-imagenette_val_ds = ImageDataset(dataset_path+"imagenette2-320/val", transform=tfm_val)
-test_loader = torch.utils.data.DataLoader(imagenette_val_ds, batch_size=BATCH_SIZE, shuffle=False)
+# Get the testing data (ADNI)
+test_loader = dataset.load_ADNI_data()
 
 # Load the model
-model = torch.load(osp.join(output_path, "ViT_imagenette_model.pt"))
+model = torch.load(osp.join(output_path, "ViT_ADNI_model.pt"))
 # Move the model to the GPU device
 model = model.to(device)
 
