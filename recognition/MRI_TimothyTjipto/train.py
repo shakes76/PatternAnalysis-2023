@@ -1,7 +1,3 @@
-'''Source code for training, validating, testing and saving your model. The model
-should be imported from “modules.py” and the data loader should be imported from “dataset.py”. Make
-sure to plot the losses and metrics during training'''
-
 # Importing necessary libraries and modules
 import torch
 from torchvision import datasets
@@ -37,6 +33,24 @@ VISUALISE = False # Print out Error pics DEBUGGING TOOL for now
 
 
 def load_checkpoint(path):
+    """
+    Load a model and its parameters from a checkpoint.
+
+    This function loads a SiameseNetwork model along with its optimizer state, epoch, counter, loss, and iteration 
+    from a given checkpoint path. The model is moved to the CUDA device if available.
+
+    Args:
+        path (str):  Path to the checkpoint file.
+
+    Returns:
+        tuple: A tuple containing the following elements:
+            - model (SiameseNetwork): The loaded SiameseNetwork model.
+            - optimizer (optim.Adam): The optimizer with its state loaded.
+            - epoch (int): The epoch at which the checkpoint was saved.
+            - counter (list): A list of counters indicating the progress of training.
+            - loss (list): A list of loss values recorded during training.
+            - iteration (int): The iteration number at which the checkpoint was saved.
+    """
     model = SiameseNetwork().cuda()
     optimizer = optim.Adam(model.parameters(), lr = 0.00006)
 
@@ -52,7 +66,9 @@ def load_checkpoint(path):
     return model,optimizer,epoch,counter,loss,iteration
 
 def main():
-    
+    """
+    Main function to train and test a Siamese Network.
+    """
     training_transform = dataset.get_transform()
     raw_dataset = datasets.ImageFolder(root=TRAIN_PATH)
     siamese_dataset = SiameseNetworkDataset1(raw_dataset, training_transform )
@@ -101,7 +117,7 @@ def main():
                 # Optimize
                 optimizer.step()
 
-                # Every 10 batches print out the loss
+                # Every 50 batches append loss
                 if i % 50 == 0 :
                     counter.append(iteration_number)
                     loss_history.append(loss_contrastive.item())
@@ -123,6 +139,7 @@ def main():
         show_plot(counter, loss_history)
     if TEST_MODE:
 
+        # Load Checkpoint
         if not TRAINING_MODE:
             checkpoint = torch.load(CHECKPOINT)
             model = SiameseNetwork().cuda()
@@ -142,6 +159,7 @@ def main():
     
         postive_prediction = 0
         
+        # Test image 
         for i in range(TEST_RANGE):
             
             # Iterate over 10 images and test them with the first image (x0)
