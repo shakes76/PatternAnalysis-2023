@@ -113,8 +113,7 @@ if __name__ == "__main__":
 
 
     # create improvised unet. 
-    model = ImprovedUnet()  
-    print("model made")
+    model = ImprovedUnet() 
 
     # set up data transform for data 
     data_transform = transforms.Compose([
