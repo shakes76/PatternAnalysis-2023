@@ -39,15 +39,6 @@ def filter_labels(dataset):
 
     return TensorDataset(tensor_images0, tensor_labels0), TensorDataset(tensor_images1, tensor_labels1)
 
-# # DO NOT SHUFFLE
-# def make_pair(dataset1, dataset2):
-    
-#     # postive_pair1 = torch.cat((dataset1,dataset1),1)
-#     # postive_pair2 = torch.cat((dataset2,dataset2),1)
-#     # negative_pair1 = torch.cat((dataset1,dataset2),1)
-#     # negative_pair2 = torch.cat((dataset2,dataset1),1)
-
-#     postive_pair1 = ConcatDataset([dataset1,dataset2])
 
 # Pairs up dataset
 class PairDataset(Dataset):

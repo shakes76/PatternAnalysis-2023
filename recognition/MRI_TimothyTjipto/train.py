@@ -30,14 +30,13 @@ TRAIN_PATH = "/home/Student/s4653241/AD_NC/train"
 TEST_PATH = "/home/Student/s4653241/AD_NC/test"
 
 INPUT_SHAPE= (120, 128) # SIZE OF IMAGE 256 X 240
-# COLOR_MODE= 'grayscale'
 BATCH_SIZE = 16 # Batch Size for DataLoader
-# TRAINING_SIZE= 1800
 
 TRAINING_MODE = False # Training mode
 EPOCH_RANGE = 61 # Size of the Training Epoch
 CHECKPOINT_TRAINING = False # Use Checkpoint and continue Training
 LOAD_CHECKPOINT_TRAINING = "/home/Student/s4653241/MRI/Training_Epoch/Epoch_40.pth"
+SAVE_EPOCH = True
 EPOCH_SAVE__CHECKPOINT = 60  # Saves every 30 Epoch 
 
 TEST_MODE = True # For Testing
@@ -65,7 +64,6 @@ def load_checkpoint(path):
 def main():
     transform = transforms.Compose([
         transforms.Grayscale(num_output_channels=1),  # Convert to grayscale with one channel
-        # transforms.CenterCrop((220,200)), # crops image
         transforms.Resize((120,128)),  # img_size should be a tuple like (128, 128) actual img(256x240)
         transforms.ToTensor(),
         # You can add more transformations if needed
@@ -79,13 +77,9 @@ def main():
                             batch_size=16)
     
     dataset.visualise_batch(vis_dataloader)
-    # train_dataloader = dataset.load_data(siamese_dataset,BATCH_SIZE,8,True)
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
-    
-    print(f'Date and time is: {datetime.now()}\nDevice on: {device}')
-    
-       
     net = SiameseNetwork().cuda()
     criterion = ContrastiveLoss()
     optimizer = optim.Adam(net.parameters(), lr = 0.00006)
@@ -96,13 +90,13 @@ def main():
     iteration_number= 0
 
     if CHECKPOINT_TRAINING:
+
         net,optimizer,current_epoch,counter,loss_history,iteration_number=load_checkpoint(LOAD_CHECKPOINT_TRAINING)
 
     # Iterate throught the epochs
     if TRAINING_MODE:
         for epoch in range(current_epoch, EPOCH_RANGE):
 
-            print("---------------------------------- new Epoch-------------------------------")
             # Iterate over batches
             for i, (img0, img1, label) in enumerate(vis_dataloader, 0):
 
@@ -126,25 +120,21 @@ def main():
 
                 # Every 10 batches print out the loss
                 if i % 50 == 0 :
-                    if i % 50 == 0 :
-                        print(f"Epoch number {epoch} Iteration Number {iteration_number}\n Current loss {loss_contrastive.item()}\n ")
                     counter.append(iteration_number)
                     loss_history.append(loss_contrastive.item())
                     iteration_number += 50
-                    
-            dt = datetime.now()
-            print(dt)
-            print("End of Epoch")
-            if epoch%EPOCH_SAVE__CHECKPOINT == 0:
-                checkpoint  = {
-                'epoch': epoch,
-                'model_state_dict': net.state_dict(),
-                'optimizer_state_dict': optimizer.state_dict(),
-                'counter':counter,
-                'loss': loss_history,
-                'iteration': iteration_number,
-                }
-                torch.save(checkpoint,  f"/home/Student/s4653241/MRI/Training_Epoch/Epoch_{epoch}.pth")
+
+            if SAVE_EPOCH:
+                if epoch%EPOCH_SAVE__CHECKPOINT == 0:
+                    checkpoint  = {
+                    'epoch': epoch,
+                    'model_state_dict': net.state_dict(),
+                    'optimizer_state_dict': optimizer.state_dict(),
+                    'counter':counter,
+                    'loss': loss_history,
+                    'iteration': iteration_number,
+                    }
+                    torch.save(checkpoint,  f"/home/Student/s4653241/MRI/Training_Epoch/Epoch_{epoch}.pth")
         
         print("End of Training")
         show_plot(counter, loss_history)
@@ -153,10 +143,10 @@ def main():
         checkpoint = torch.load(CHECKPOINT)
         model = SiameseNetwork().cuda()
         model.load_state_dict(checkpoint['model_state_dict'], strict=False)
-        #optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+        
         epoch = checkpoint['epoch']
         loss = checkpoint['loss']
-        # model.train() #for continue training
+        
         model.eval()
 
         raw_test_dataset = datasets.ImageFolder(root=TEST_PATH)
@@ -171,8 +161,6 @@ def main():
         x0, _, _,x0label,_ = next(dataiter)
     
         postive_prediction = 0
-        print(x0)
-        # x0 = x0.cuda()
         Prediction = ['Different', 'Same']
         # Debugging 
         counter_same_but_wrong = 0
@@ -190,20 +178,17 @@ def main():
             with torch.no_grad():   
                 output1, output2 = model(x0.cuda(), x1.cuda())
             euclidean_distance = F.pairwise_distance(output1, output2)
-            # print(f'output1{output1}, output2{output2}')
-            # print(f'Euclidean_distance: {euclidean_distance}') # Debugging Code
+           
             
             predict_class = predict.classify_pair(euclidean_distance.item(),THRESHOLD) # Threshold
 
             if predict_class == 1 and int(x0label) == int(x1label):
-                # print(f'x0 label: {int(x0label)}, x1 label: {int(x1label)}')
-                # print('Activated into pos positive pair') # Debugging Code
+    
                 postive_prediction+=1
                 PRINTING = False
                 
             if predict_class != 1 and int(x0label) != int(x1label):
-                # print(f'x0 label: {int(x0label)}, x1 label: {int(x1label)}')
-                # print('Activated into neg positive pair') # Debugging Code
+
                 postive_prediction+=1
                 PRINTING = False
             if PRINTING:
@@ -238,31 +223,20 @@ def main():
                 plt.title(f'Dissimilarity: {euclidean_distance.item():.2f}\nClass predicted: {Prediction[predict_class]} ')
                 plt.axis('off')
                 
-                # print(f'Predicted Class: {predict_class}') # Debugging Code
+
 
                 plt.subplot(2, 8, 3)
                 plt.title(int(x1label))
                 x1_pic = transforms.ToPILImage()(x1[0])
                 plt.axis('off')
                 plt.imshow(x1_pic, cmap='gray')
-                # 0  is same 
-                # 1 totally dif
-
-                # plt.savefig('lol')
-                # concatenated = transforms.ToPILImage()(concatenated
-
-                #plt.imshow(torchvision.utils.make_grid(concatenated))
-                # plt.title(f'Dissimilarity: {euclidean_distance.item():.2f}')
-            
+               
                 plt.savefig(f'/home/Student/s4653241/MRI/Test_pic/test{i}')
             
         
         Accuracy = postive_prediction/TEST_RANGE
         print(f'Using Checkpoint: {CHECKPOINT}\nAccuracy: {Accuracy}\nNo. of Positive Matches: {postive_prediction}\nNo. of Test: {TEST_RANGE}')
-        print(f'No. of  Negative Negative: {counter_same_but_wrong}\nNegative Positive: {counter_wrong_but_same}')
-        print(Neg_Neg)
-        print(Neg_Pos)
-        print('End of test')
+        
 
 
 if __name__ == '__main__':
