@@ -10,7 +10,7 @@ from utils import dice_coefficient
 from dataset import DataLoader
 
 BATCH_SIZE = 2  # set the batch_size
-STEPS_PER_EPOCH_TEST = math.floor(519 / BATCH_SIZE)
+STEPS_PER_EPOCH_TEST = math.floor(1000 / BATCH_SIZE)
 
 
 def save_prediction(original, probabilities, truth, dice_coeff, filename):

@@ -1,6 +1,8 @@
 # Improved U-Net for ISIC 2018 Skin Lesion Segmentation
 
-## Description
+This repository contains the code for the Improved U-Net model for the ISIC 2018 Skin Lesion Segmentation challenge (https://challenge.isic-archive.com/data/#2018). The model was trained on the ISIC 2018 dataset, which contains 2594 dermoscopic images of skin lesions. The model was trained on a single NVIDIA Tesla T4 GPU with 16GB of VRAM. The model was trained for 100 epochs, with a batch size of 8. The model was trained using the Adam optimiser with a learning rate of 0.0001. The model achieved a dice coefficient of 0.85 on the test set.
+
+## Architecture Description
 
 The Improved U-Net is a cutting-edge neural network architecture which can be tailored for biomedical image segmentation tasks. Originally inspired by the U-Net architecture, this version boasts enhancements that further optimize its accuracy and performance. The algorithm effectively addresses the problem of segmenting skin lesions from dermoscopic images, a crucial step in early skin cancer detection.
 
@@ -23,9 +25,14 @@ Above is an image that showcases the localisation module in the context of proce
 
 ## Dependencies
 
-- **TensorFlow**: version x
-- **NumPy**: version x
-- **matplotlib**: version x
+- **TensorFlow**: version 2.14.0
+- **Keras**: version 2.14.0
+- **NumPy**: version 1.26.1
+- **TensorFlow Addons**: version 0.22.0
+- **TensorFlow Estimator**: version 2.14.0
+- **Matplotlib**: version 3.8.0
+- **Python**: version 3.10.12
+
 
 ## Reproducibility
 
@@ -61,7 +68,27 @@ To ensure the reproducibility of results:
 
 ## Data Pre-processing
 
-Images were resized to 512x512 pixels for consistency. Furthermore, the images were normalised to have zero mean and unit variance. The ground truth masks were also resized to 512x512 pixels and converted to binary masks.
+For the image segmentation task, a series of data pre-processing steps were performed to prepare the input images and corresponding ground truth masks for training and validation.
+
+### Input Images
+
+- **Color Mode:** The color mode for the input images was set to `image_mode`, which is typically 'rgb' for full-color images.
+
+- **Resizing:** To ensure consistency, all input images were resized to a common dimension of `image_height` pixels in height and `image_width` pixels in width (e.g., 512x512 pixels).
+
+- **Normalization:** Normalization was applied to the input images by rescaling their pixel values to have zero mean and unit variance. This was done using the formula `rescale=1.0 / 255`.
+
+- **Data Augmentation:** Data augmentation techniques were employed to increase the diversity of the training dataset. Augmentation options included shear transformations with a range of `shear_range`, zooming transformations within `zoom_range`, horizontal flips (`horizontal_flip`), and vertical flips (`vertical_flip`). These augmentations help the model generalize better to different variations of the input data.
+
+- **Fill Mode:** The `fill_mode` parameter determined how newly created pixels, if any, were filled during data augmentation. Common options include 'nearest,' 'constant,' and 'reflect.'
+
+### Ground Truth Masks
+
+- **Color Mode:** The color mode for the ground truth masks was set to `mask_mode`, which is typically 'grayscale' for binary masks.
+
+- **Resizing:** Similar to the input images, the ground truth masks were resized to the same dimensions of `image_height` pixels in height and `image_width` pixels in width (e.g., 512x512 pixels).
+
+Overall, these pre-processing steps ensured that both input images and ground truth masks were appropriately sized, normalized, and augmented for training and validation of the image segmentation model.
 
 **References**:
 - https://arxiv.org/pdf/1802.10508v1.pdf
@@ -80,24 +107,18 @@ root_directory
 │   ├── test_input
 │   └── test_groundtruth
 ├── output
+├── models
+├── assets
 │   
 ├── train.py
 ├── modules.py
 ├── dataset.py
-└── predict.py
+├── predict.py
+├── utils.py
+├── validation.py
+└── requirements.txt
 ```
 
 ## Data Splits
 
-We divided the ISIC 2018 dataset into training, validation, and test sets following an 80-10-10 split:
-
-- **Training Data**: 80% - Used for training the network.
-- **Validation Data**: 10% - Used for hyperparameter tuning and early stopping.
-- **Test Data**: 10% - Held out for evaluating the final performance of the model.
-
-This division ensures a robust assessment of the model's performance, minimising overfitting and providing a reliable estimation of its real-world applicability.
-
-## TODO:
-
-- Add a link to the dataset.
-- Research the best way to use the dice coeffficient callback
+The ISIC 2018 data was provided through 6 zip files for 3 types of data: Training, Validation and Testing. The training data contained 2594 images, the validation data contained 100 images and the testing data contained 1000 images.

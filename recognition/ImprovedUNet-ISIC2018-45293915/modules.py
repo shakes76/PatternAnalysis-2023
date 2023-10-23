@@ -2,6 +2,7 @@ import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras.regularizers import l2
 import tensorflow_addons as tfa
+
 # TensorFlow Addons (tfa) is used here because it provides support for Instance Normalization (IN)
 # as opposed to Batch Normalization (BN). This choice aligns with the findings from the referenced paper
 # (https://arxiv.org/abs/1802.10508v1), where IN is preferred over BN due to the potential destabilization

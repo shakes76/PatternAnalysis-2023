@@ -1,16 +1,11 @@
-import os
-import tensorflow as tf
 from tensorflow import keras
-import numpy as np
-import matplotlib.pyplot as plt
-from itertools import islice
 import math
 import time
 
 import modules as layers
 from dataset import DataLoader
 from utils import dice_coefficient, dice_loss, DiceCoefficientCallback, plot_accuracy_loss, save_dice_coefficient_plot
-from visualise import validate_and_visualise_predictions
+from validation import validate_and_visualise_predictions
 from predict import test_and_visualise_predictions
 
 # string modifier for saving output files based on time
@@ -18,15 +13,14 @@ timestr = time.strftime("%Y%m%d-%H%M%S")
 output_dir = "output"
 
 # Constants related to training
-EPOCHS = 1
+EPOCHS = 5
 LEARNING_RATE = 0.0005
 BATCH_SIZE = 2  # set the batch_size
 IMAGE_HEIGHT = 512  # the height input images are scaled to
 IMAGE_WIDTH = 512  # the width input images are scaled to
 CHANNELS = 3
-STEPS_PER_EPOCH_TRAIN = math.floor(2076 / BATCH_SIZE)
-STEPS_PER_EPOCH_TEST = math.floor(519 / BATCH_SIZE)
-
+STEPS_PER_EPOCH_TRAIN = math.floor(2594 / BATCH_SIZE)
+STEPS_PER_EPOCH_TEST = math.floor(100 / BATCH_SIZE)
 
 
 def train_model_check_accuracy(training_data, validation_data):
@@ -105,7 +99,7 @@ def main():
 
     # print("\nVISUALISING PREDICTIONS")
     # validate_and_visualise_predictions(model, validation_data, output_dir, timestr, number_of_predictions)
-    
+
     test_and_visualise_predictions(model, test_data, output_dir, timestr, number_of_predictions)
     print("COMPLETED")
     return 0
