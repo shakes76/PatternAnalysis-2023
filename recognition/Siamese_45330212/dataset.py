@@ -17,7 +17,7 @@ class CustomTripletSiameseNetworkDataset(Dataset):
 
         # Loop through each folder in the root directory
         folders = os.listdir(root_dir)
-        print("> Creating image paths")
+        print("\n> Creating image paths")
         for i, folder1 in enumerate(folders):
             folder2 = folders[i ^ 1]
             c = 0
@@ -69,36 +69,90 @@ class CustomTripletSiameseNetworkDataset(Dataset):
         return anchor, pos, neg, label
     
 class CustomClassifcationDataset(Dataset):
-    def __init__(self, train_subset, model, device):
-        self.train_subset = train_subset
-        # Create a list of image paths
-        # self.image_embeddings = []
-        print("> Creating image embedding")
-        # c = 0
-        # for anchor, _, _, label in train_subset:
-        #     # print("Before shapes:", anchor.shape, pos.shape, neg.shape)
-        #     anchor = anchor.unsqueeze(0)
-        #     # pos = torch.zeros_like(anchor)
-        #     # neg = neg.unsqueeze(0)
-        #     # neg = torch.zeros_like(anchor)
-        #     # print("After shapes:", anchor.shape, pos.shape, neg.shape, "\n")
-        #     c += 1
-        #     if c % 1000 == 0:
-        #         print("Count:", c)
-        #     # output_anchor = model.forward_once(anchor.to(device))
-        #     self.image_embeddings.append((anchor, label))
+    def __init__(self, root_dir, transform=None, train=False, validateSet = set()):
+        self.root_dir = root_dir # Root directory for the dataset
+        self.transform = transform# Transformations to apply on images
 
-        # print("< Finished creating image embeddings. #Images:", len(self.image_paths))
+        # Initialize empty lists to store image paths and labels
+        self.image_paths = []
+        self.labels = []
+        self.totalPatients0 = set()
+        self.trainPatients0 = set()
+        self.valPatients0 = set()
+
+        self.totalPatients1 = set()
+        self.trainPatients1 = set()
+        self.valPatients1 = set()
+
+        # Loop through each folder in the root directory
+        folders = os.listdir(root_dir)
+        print("\n> Creating image paths", str(train))
+        if train:
+            for i, folder1 in enumerate(folders):
+                folder1_path = os.path.join(root_dir, folder1)
+                folder1_images = os.listdir(folder1_path)
+                for image in folder1_images:
+                    patient = image.split("_")[0]
+                    if i == 0:
+                        self.totalPatients0.add(patient)
+                    else:
+                        self.totalPatients1.add(patient)
+            for i, p in enumerate(self.totalPatients0):
+                if i <= int(len(self.totalPatients0) * 0.8):
+                    self.trainPatients0.add(p)
+                else:
+                    self.valPatients0.add(p)
+            for i, p in enumerate(self.totalPatients1):
+                if i <= int(len(self.totalPatients1) * 0.8):
+                    self.trainPatients1.add(p)
+                else:
+                    self.valPatients1.add(p)
+            for i, folder1 in enumerate(folders):
+                c = 0
+                print("Folder:", folder1)
+                folder1_path = os.path.join(root_dir, folder1)
+                folder1_images = os.listdir(folder1_path)
+                for image in folder1_images:
+                    patient = image.split("_")[0]
+                    if patient in self.trainPatients0 or patient in self.trainPatients1:
+                        c += 1
+                        if c % 1000 == 0:
+                            print("Count:", c)
+                        
+                        image_path = os.path.join(folder1_path, image)
+                        self.image_paths.append((image_path, i))
+        else:
+            for i, folder1 in enumerate(folders):
+                c = 0
+                print("Folder:", folder1)
+                folder1_path = os.path.join(root_dir, folder1)
+                folder1_images = os.listdir(folder1_path)
+                for image in folder1_images:
+                    patient = image.split("_")[0]
+                    if patient in validateSet:
+                        c += 1
+                        if c % 1000 == 0:
+                            print("Count:", c)
+                        image_path = os.path.join(folder1_path, image)
+                        self.image_paths.append((image_path, i))
+
+        print("< Finished creating image paths. #Images:", len(self.image_paths))
 
     def __len__(self):
-        # return len(self.image_embeddings)
-        return len(self.train_subset)
+        return len(self.image_paths) # Return the total number of images
 
     def __getitem__(self, index):
-        # return self.image_embeddings[index]
-        anchor, _, _, label = self.train_subset[index]
-        # anchor = anchor.unsqueeze(0)  # Do this operation here instead of in __init__
-        return anchor, label
+        # Return a single item (anchor, positive, negative, label) at the given index
+        image_path,  label = self.image_paths[index]
+        image = Image.open(image_path).convert("RGB")
+
+        if self.transform is not None:
+            image = self.transform(image)
+
+        return image, label
+    
+    def getValPatients(self):
+        return (self.valPatients0.union(self.valPatients1))
 
 # Initialize transform for training images
 transform_train = transforms.Compose([
@@ -130,22 +184,30 @@ triplet_train_loader = torch.utils.data.DataLoader(triplet_trainset, batch_size=
 print("< Finished getting triplet train set")
 
 print("> Getting train and validation set")
-trainset0 = datasets.ImageFolder(root=Config.training_dir, transform=transform_train)
-cropped_trainset = datasets.ImageFolder(root=Config.training_dir, transform=transform_train_cropped)
-trainset = utils.ConcatDataset([trainset0, cropped_trainset])
-train_loader = torch.utils.data.DataLoader(trainset, batch_size=Config.train_batch_size, shuffle=True)
-# Calculate the lengths of the splits
-total_len = len(trainset)
-train_len = int(0.8 * total_len)
-val_len = total_len - train_len
+train_set_normal = CustomClassifcationDataset(root_dir=Config.training_dir, transform=transform_train, train=True)
+train_set_cropped = CustomClassifcationDataset(root_dir=Config.training_dir, transform=transform_train_cropped, train=True)
+trainset = utils.ConcatDataset([train_set_normal, train_set_cropped])
 
-# Split the dataset
-train_subset, val_subset = utils.random_split(trainset, [train_len, val_len])
+val_set_normal = CustomClassifcationDataset(root_dir=Config.training_dir, transform=transform_train, train=False, validateSet=train_set_normal.getValPatients())
+val_set_cropped = CustomClassifcationDataset(root_dir=Config.training_dir, transform=transform_train_cropped, train=False, validateSet=train_set_normal.getValPatients())
+valset = utils.ConcatDataset([val_set_normal, val_set_cropped])
+
+# trainset0 = datasets.ImageFolder(root=Config.training_dir, transform=transform_train)
+# cropped_trainset = datasets.ImageFolder(root=Config.training_dir, transform=transform_train_cropped)
+# trainset = utils.ConcatDataset([trainset0, cropped_trainset])
+# train_loader = torch.utils.data.DataLoader(trainset, batch_size=Config.train_batch_size, shuffle=True)
+# # Calculate the lengths of the splits
+# total_len = len(trainset)
+# train_len = int(0.8 * total_len)
+# val_len = total_len - train_len
+
+# # Split the dataset
+# train_subset, val_subset = utils.random_split(trainset, [train_len, val_len])
 
 # Create DataLoaders for the subsets
-train_loader = torch.utils.data.DataLoader(train_subset, batch_size=Config.train_batch_size, shuffle=True)
-val_loader = torch.utils.data.DataLoader(val_subset, batch_size=Config.train_batch_size, shuffle=False)
-print("< Finished getting train set and validation set. With testing size:", len(train_subset), "and validation size:", len(val_subset))
+train_loader = torch.utils.data.DataLoader(trainset, batch_size=Config.train_batch_size, shuffle=True)
+val_loader = torch.utils.data.DataLoader(valset, batch_size=Config.train_batch_size, shuffle=False)
+print("< Finished getting train set and validation set. With testing size:", len(trainset), "and validation size:", len(valset))
 
 # Create DataLoader for the test set
 print("> Getting test set")
