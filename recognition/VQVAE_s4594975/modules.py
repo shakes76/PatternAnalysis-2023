@@ -44,18 +44,23 @@ class VectorQuantizer(layers.Layer):
         return indices
 
 def get_encoder(latent_dim=16):
-    encoder_inputs = keras.Input(shape=(80, 80, 1))
-    x = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same")(
-        encoder_inputs
-    )
+    inputs = keras.Input(shape=(80, 80, 1))
+    x = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same")(inputs)
     x = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same")(x)
+    x = layers.Conv2D(128, 3, activation="relu", strides=2, padding="same")(x)
     encoder_outputs = layers.Conv2D(latent_dim, 1, padding="same")(x)
-    return keras.Model(encoder_inputs, encoder_outputs, name="encoder")
+    return keras.Model(inputs, encoder_outputs, name="encoder")
+
+def get_decoder(latent_dim=16):
+    inputs = keras.Input(shape=get_encoder().output.shape[1:])
+    x = layers.Conv2DTranspose(128, 3, activation="relu", strides=2, padding="same")(inputs)
+    x = layers.Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same")(x)
+    x = layers.Conv2DTranspose(32, 3, activation="relu", strides=2, padding="same")(x)   
+    decoder_outputs = layers.Conv2DTranspose(1, 3, padding="same")(x)
+    return keras.Model(inputs, decoder_outputs, name="decoder")
 
 
-'''
-class VAE(model)       
-    
+'''        
 class pixelcnn()
     def __init__(self) -> None:
     def call(self, input)
