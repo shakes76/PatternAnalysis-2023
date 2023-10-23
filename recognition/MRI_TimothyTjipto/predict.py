@@ -1,10 +1,19 @@
 '''Shows example usage of trained model. Print out any results and/ or provide visualisations where applicable'''
+
+# Importing necessary libraries and modules
 import matplotlib.pyplot as plt
 import torch
 from torchvision import transforms
 
-# Plotting data
+
 def show_plot(iteration,loss):
+    """
+    Plots the loss values against iterations and saves the resulting graph.
+
+    Args:
+        iteration (List[int]): A list of iteration numbers.
+        loss (List[float]): A list of loss values corresponding to each iteration.
+    """
     plt.clf()
     plt.plot(iteration,loss)
     plt.savefig("Iteration loss")
@@ -47,6 +56,18 @@ def classify_pair(score, threshold):
 
 
 def visual_pred_dis(idx,x0,x1,x0label,x1label,euclidean_distance,predict_class):
+    """
+        Visualizes the predictions by plotting the input images and their predicted dissimilarity.
+
+    Args:
+        idx (int): _description_
+        x0 (torch.Tensor): First input image tensor
+        x1 (torch.Tensor): Second input image tensor
+        x0label (int): Label of first image
+        x1label (int): Label of second image
+        euclidean_distance (float): Calculated euclidean distance between the embeddings of the two images.
+        predict_class (int): Predicted class (0 for 'Different', 1 for 'Same').
+    """
     Prediction = ['Different', 'Same']
 
     plt.clf()
