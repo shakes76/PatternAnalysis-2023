@@ -3,7 +3,7 @@ from tensorflow import keras
 from tensorflow.keras import layers
 
 class VectorQuantizer(layers.Layer):
-    def __init__(self, num_embeddings, embedding_dim, beta=0.25, **kwargs):
+    def __init__(self, num_embeddings, embedding_dim, beta, **kwargs):
         super().__init__(**kwargs)
         self.embedding_dim = embedding_dim
         self.num_embeddings = num_embeddings
@@ -18,6 +18,7 @@ class VectorQuantizer(layers.Layer):
             trainable=True,
             name="embeddings_vqvae",
         )
+
     def call(self, x):
         input_shape = tf.shape(x)
         flattened = tf.reshape(x, [-1, self.embedding_dim])
@@ -43,22 +44,80 @@ class VectorQuantizer(layers.Layer):
         indices = tf.argmin(distances, axis=1)
         return indices
 
-def get_encoder(latent_dim=16):
+def get_encoder(latent_dim):
     inputs = keras.Input(shape=(80, 80, 1))
     x = layers.Conv2D(32, 3, activation="relu", strides=2, padding="same")(inputs)
-    x = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same")(x)
-    x = layers.Conv2D(128, 3, activation="relu", strides=2, padding="same")(x)
-    encoder_outputs = layers.Conv2D(latent_dim, 1, padding="same")(x)
+    x1 = layers.Conv2D(64, 3, activation="relu", strides=2, padding="same")(x)
+    x2 = layers.Conv2D(128, 3, activation="relu", strides=2, padding="same")(x1)
+    encoder_outputs = layers.Conv2D(latent_dim, 1, padding="same")(x2)
     return keras.Model(inputs, encoder_outputs, name="encoder")
 
-def get_decoder(latent_dim=16):
-    inputs = keras.Input(shape=get_encoder().output.shape[1:])
+def get_decoder(latent_dim):
+    inputs = keras.Input(shape=get_encoder(latent_dim).output.shape[1:])
     x = layers.Conv2DTranspose(128, 3, activation="relu", strides=2, padding="same")(inputs)
-    x = layers.Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same")(x)
-    x = layers.Conv2DTranspose(32, 3, activation="relu", strides=2, padding="same")(x)   
-    decoder_outputs = layers.Conv2DTranspose(1, 3, padding="same")(x)
+    x1 = layers.Conv2DTranspose(64, 3, activation="relu", strides=2, padding="same")(x)
+    x2 = layers.Conv2DTranspose(32, 3, activation="relu", strides=2, padding="same")(x1)   
+    decoder_outputs = layers.Conv2DTranspose(1, 3, padding="same")(x2)
     return keras.Model(inputs, decoder_outputs, name="decoder")
 
+def vqvae(lat, emb, beta):
+    vect_q = VectorQuantizer(emb, lat, beta, name = "quantiser")
+    encoder	= get_encoder(lat)
+    decoder	= get_decoder(lat)
+    input	= keras.Input(shape = (80,80,1))
+    encoder_out	= encoder(input)
+    quantized	= vect_q(encoder_out)
+    reconstructed	= decoder(quantized)
+
+    return keras.Model(input, reconstructed, name = "vqvae")
+
+class VQVAE_MODEL(tf.keras.Model):
+    def __init__(self, variance, latent_dim, num_embeddings, beta, **kwargs):
+        super(VQVAE_MODEL, self).__init__(**kwargs)
+        self.variance  = variance
+        self.latent_dim = latent_dim
+        self.num_embeddings = num_embeddings
+        self.vqvae = vqvae(self.latent_dim, self.num_embeddings, beta)
+        self.total_loss_tracker = keras.metrics.Mean(name="total_loss")
+        self.reconstruction_loss_tracker = keras.metrics.Mean(name="reconstruction_loss")
+        self.vq_loss_tracker = keras.metrics.Mean(name="vq_loss")
+
+    
+    @property
+    def metrics(self):
+        return [
+            self.total_loss_tracker,
+            self.reconstruction_loss_tracker,
+            self.vq_loss_tracker,
+        ] 
+    
+    def train_step(self, x):
+        
+        with tf.GradientTape() as tape:
+            # Outputs from the VQ-VAE.
+            reconstructions = self.vqvae(x)
+
+            # Calculate the losses.
+            reconstruction_loss = (
+                tf.reduce_mean((x - reconstructions) ** 2) / self.variance
+            )
+            total_loss = reconstruction_loss + sum(self.vqvae.losses)
+
+        # Backpropagation.
+        grads = tape.gradient(total_loss, self.vqvae.trainable_variables)
+        self.optimizer.apply_gradients(zip(grads, self.vqvae.trainable_variables))
+
+        # Loss tracking.
+        self.total_loss_tracker.update_state(total_loss)
+        self.reconstruction_loss_tracker.update_state(reconstruction_loss)
+        self.vq_loss_tracker.update_state(sum(self.vqvae.losses))
+
+        # Log results.
+        return {
+            "loss": self.total_loss_tracker.result(),
+            "reconstruction_loss": self.reconstruction_loss_tracker.result(),
+            "vqvae_loss": self.vq_loss_tracker.result(),
+        }
 
 '''        
 class pixelcnn()
