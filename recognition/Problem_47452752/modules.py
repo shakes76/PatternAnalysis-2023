@@ -16,14 +16,14 @@ class Context(nn.Module):
 
     def __init__(self, in_channels):
         super(Context, self).__init__()
-        # 3x3x3 convolutional layer that preserves the input size
-        self.conv = nn.Conv3d(
+        # 3x3 convolutional layer that preserves the input size
+        self.conv = nn.Conv2d(
             in_channels, in_channels, kernel_size=3, stride=1, padding=1
         )
         # Dropout layer with p_drop = 0.3
         self.dropout = nn.Dropout(p=0.3)
         # Instance normalization of the input is used
-        self.norm = nn.InstanceNorm3d(in_channels)
+        self.norm = nn.InstanceNorm2d(in_channels)
 
     def forward(self, x):
         # Keep track of the initial input
@@ -50,18 +50,18 @@ class Upsampling(nn.Module):
     def __init__(self, in_channels):
         super(Upsampling, self).__init__()
         # Upsamping components:
-        self.up_norm = nn.InstanceNorm3d(in_channels)
-        self.up_conv = nn.Conv3d(
+        self.up_norm = nn.InstanceNorm2d(in_channels)
+        self.up_conv = nn.Conv2d(
             in_channels, in_channels // 2, kernel_size=3, stride=1, padding=1
         )
 
         # Localisation components:
-        self.merged_norm = nn.InstanceNorm3d(in_channels)
-        self.merged_conv = nn.Conv3d(
+        self.merged_norm = nn.InstanceNorm2d(in_channels)
+        self.merged_conv = nn.Conv2d(
             in_channels, in_channels, kernel_size=3, stride=1, padding=1
         )
-        self.half_norm = nn.InstanceNorm3d(in_channels // 2)
-        self.half_conv = nn.Conv3d(
+        self.half_norm = nn.InstanceNorm2d(in_channels // 2)
+        self.half_conv = nn.Conv2d(
             in_channels, in_channels // 2, kernel_size=3, stride=1, padding=1
         )
 
@@ -104,7 +104,7 @@ class Upsampling(nn.Module):
 class Segmentation(nn.Module):
     def __init__(self, in_channels, num_classes):
         super(Segmentation, self).__init__()
-        self.conv = nn.Conv3d(in_channels, num_classes, kernel_size=1, stride=1)
+        self.conv = nn.Conv2d(in_channels, num_classes, kernel_size=1, stride=1)
 
     def forward(self, x, other_layer=None):
         x = self.conv(x)
@@ -131,16 +131,16 @@ class UNet(nn.Module):
         self.up4 = Upsampling(32)
 
         # Convolutional layer used on input channel
-        self.input_conv = nn.Conv3d(in_channels, 16, kernel_size=3, stride=1, padding=1)
+        self.input_conv = nn.Conv2d(in_channels, 16, kernel_size=3, stride=1, padding=1)
 
         # Convolutional layers that connect context modules
-        self.conv1 = nn.Conv3d(16, 32, kernel_size=3, stride=2, padding=1)
-        self.conv2 = nn.Conv3d(32, 64, kernel_size=3, stride=2, padding=1)
-        self.conv3 = nn.Conv3d(64, 128, kernel_size=3, stride=2, padding=1)
-        self.conv4 = nn.Conv3d(128, 256, kernel_size=3, stride=2, padding=1)
+        self.conv1 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1)
+        self.conv4 = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1)
 
         # Convolutional layer for the localisation pathway output
-        self.end_conv = nn.Conv3d(32, 32, kernel_size=1)
+        self.end_conv = nn.Conv2d(32, 32, kernel_size=1)
 
         # Segmentation layers
         self.segment1 = Segmentation(64, num_classes)
@@ -168,3 +168,5 @@ class UNet(nn.Module):
 
         # Apply softmax and return
         return F.softmax(seg_3, dim=1)
+
+
