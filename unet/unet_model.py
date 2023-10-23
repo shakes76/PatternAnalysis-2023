@@ -3,12 +3,12 @@
 from .unet_parts import *
 
 
-
 class ContextModule(nn.Module):
     """
     Context Module: Consists of two convolutional layers for feature extraction and a dropout layer
     for regularization, aimed at capturing and preserving the context information in the features.
     """
+
     def __init__(self, in_channels, out_channels):
         """
         Initialize the Context Module.
@@ -86,7 +86,6 @@ class UpscalingLayer(nn.Module):
     UpscalingLayer: A layer designed to upscale feature maps by a factor of 2.
     """
 
-
     def __init__(self, scale_factor=2, mode='nearest'):
         """
         Initialize the UpscalingLayer.
@@ -113,3 +112,79 @@ class UpscalingLayer(nn.Module):
         x = self.upsample(x)
         return x
 
+
+class LocalisationModule(nn.Module):
+    """
+    Localisation Module: Focused on up-sampling the received feature map and reducing the
+    number of feature channels, working towards recovering the spatial resolution of the input data.
+    """
+
+    def __init__(self, in_channels, out_channels):
+        """
+        Initialize the Localisation Module.
+
+        Parameters:
+        - in_channels (int): Number of input channels.
+        - out_channels (int): Number of output channels.
+        """
+        super(LocalisationModule, self).__init__()
+        # Using a simple upscale by repeating the feature pixels twice
+        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        # 3x3 convolution to process concatenated features
+        self.conv1 = nn.Conv2d(in_channels, in_channels, kernel_size=3, stride=1, padding=1)
+        # 1x1 convolution to reduce the number of feature maps
+        self.conv2 = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
+
+    def forward(self, x):
+        """
+        Forward pass through the localisation module. Input is put through 2 3x3 stride 1 convolutions
+        with leaky ReLU applied in between
+
+        Parameters:
+        - x (Tensor): The input tensor.
+
+        Returns:
+        - Tensor: The output tensor after passing through the localisation module.
+        """
+        x = self.conv1(x)
+        x = F.relu(x)
+        x = self.conv2(x)
+        x = F.relu(x)
+        return x
+
+
+class UpsamplingModule(nn.Module):
+    """
+    Upsampling Module: Handles the up-sampling of feature maps in the decoder part of the UNet,
+    contributing to incrementing the spatial dimensions of the input feature map.
+    """
+
+    def __init__(self, in_channels, out_channels):
+        """
+        Initialize the Upsampling Module.
+
+        Parameters:
+        - in_channels (int): Number of input channels.
+        - out_channels (int): Number of output channels.
+        """
+        super(UpsamplingModule, self).__init__()
+        # Using a simple upscale by repeating the feature pixels twice
+        self.upsample = nn.Upsample(scale_factor=2, mode='nearest')
+        # 3x3 convolution that halves the number of feature maps
+        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size=3, stride=1, padding=1)
+
+    def forward(self, x):
+        """
+        Forward pass through the upsampling module. First the input is upsampled, then undergoes stride 1
+        3x3 convolution followed by leaky ReLU.
+
+        Parameters:
+        - x (Tensor): The input tensor.
+
+        Returns:
+        - Tensor: The output tensor after passing through the upsampling module.
+        """
+        x = self.upsample(x)
+        x = self.conv(x)
+        x = F.relu(x)
+        return x
