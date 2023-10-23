@@ -49,10 +49,13 @@ optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 # DataLoader setup
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-# Training loop
-losses = []
+# Lists to store training and validation losses
+training_losses = []
+validation_losses = []
 
+# Training loop for Siamese Network
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
@@ -72,45 +75,31 @@ for epoch in range(num_epochs):
 
         running_loss += loss.item()
 
+    # Calculate average training loss for the epoch
     epoch_loss = running_loss / len(train_loader)
-    losses.append(epoch_loss)
-    print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}")
+    training_losses.append(epoch_loss)
 
-print("Finished Training")
+    # Validation step
+    model.eval() # set the model to evaluation mode
+    val_running_loss = 0.0
+    with torch.no_grad(): # deactivate autograd engine to reduce memory usage and speed up computations
+        for val_anchor, val_positive, val_negative in test_loader:
+            val_anchor, val_positive, val_negative = val_anchor.to(device), val_positive.to(device), val_negative.to(device)
+            val_anchor_out, val_positive_out = model(val_anchor, val_positive)
+            _, val_negative_out = model(val_anchor, val_negative)
+            val_loss = criterion(val_anchor_out, val_positive_out, val_negative_out)
+            val_running_loss += val_loss.item()
 
-# Save the model's parameters
+    # Calculate average validation loss for the epoch
+    val_epoch_loss = val_running_loss / len(test_loader)
+    validation_losses.append(val_epoch_loss)
+    print(f"Epoch {epoch+1}/{num_epochs}, Training Loss: {epoch_loss:.4f}, Validation Loss: {val_epoch_loss:.4f}")
+
+print("Finished Training Siamese Network")
+
+# After training, save the Siamese Network model weights
 torch.save(model.state_dict(), "/home/Student/s4647936/PatternAnalysis-2023/recognition/alzheimers_snn_s4647936/siamese_model.pth")
-
-# --------- Begin Validation/Testing ---------
-model.eval()  # set the model to evaluation mode
-correct = 0
-total = 0
-
-# DataLoader setup for test dataset
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
-
-with torch.no_grad():  # deactivate autograd engine to reduce memory usage and speed up computations
-    for batch_idx, (anchor, positive, negative) in enumerate(test_loader):
-        anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
-        
-        # Forward pass
-        anchor_out, positive_out = model(anchor, positive)
-        _, negative_out = model(anchor, negative)
-
-        # Compute triplet loss
-        loss = criterion(anchor_out, positive_out, negative_out)
-
-        # You might want to add some logic here to determine "correctness", depending on how you define it for your problem
-        # For instance, if the distance between anchor and positive is less than between anchor and negative, consider it "correct"
-        positive_distance = torch.dist(anchor_out, positive_out)
-        negative_distance = torch.dist(anchor_out, negative_out)
-
-        if positive_distance < negative_distance:
-            correct += 1
-        total += 1
-
-print(f"Accuracy on test set: {100 * correct / total}%")
-# --------- End Validation/Testing ---------
+print("Saved Siamese Network model weights")
 
 """
 Save and visualise results
@@ -121,11 +110,13 @@ Save and visualise results
 
 # Save the loss curve
 plt.figure()
-plt.plot(losses)
+plt.plot(training_losses, label='Training Loss')
+plt.plot(validation_losses, label='Validation Loss')
 plt.xlabel('Epochs')
 plt.ylabel('Loss')
-plt.title('Training Loss Curve')
-plt.savefig('loss_curve.png')
+plt.title('Siamese Network Training vs Validation Loss')
+plt.legend()
+plt.savefig('siamese_train_vs_val_loss.png')
 
 # Function to save images
 def save_image(img, filename):
@@ -153,8 +144,6 @@ def save_image(img, filename):
 save_image(anchor, 'anchor_sample.png')
 save_image(positive, 'positive_sample.png')
 save_image(negative, 'negative_sample.png')
-
-print("Finished Training Siamese Network")
 
 # --------- Visualize Embeddings using t-SNE ---------
 # Extract embeddings and labels
@@ -221,6 +210,10 @@ for epoch in range(num_epochs):
         loss = criterion(outputs, torch.tensor(labels).to(device))
         loss.backward()
         optimizer.step()
+
+# After training, save the classifier model weights
+torch.save(classifier.state_dict(), "/home/Student/s4647936/PatternAnalysis-2023/recognition/alzheimers_snn_s4647936/classifier_model.pth")
+print("Saved classifier model weights")
 
 # --------- Evaluate Classifier ---------
 correct = 0
