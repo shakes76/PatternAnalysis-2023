@@ -2,25 +2,15 @@
 should be imported from “modules.py” and the data loader should be imported from “dataset.py”. Make
 sure to plot the losses and metrics during training'''
 
+# Importing necessary libraries and modules
 import torch
-import torchvision
-from torch.autograd import Variable
-import torch.nn as nn
+from torchvision import datasets
 from torch import optim
 import torch.nn.functional as F
 
-from torchvision import datasets, transforms
-from torch.utils.data import DataLoader, Dataset
-import torchvision.utils
-import numpy as np
-import matplotlib.pyplot as plt
-import random
-from datetime import datetime
-from PIL import Image
-
+# Importing custom modules
 import dataset 
 from dataset import SiameseNetworkDataset1,SiameseNetworkDataset_test
-import modules
 from modules import SiameseNetwork, ContrastiveLoss
 from predict import show_plot
 import predict
@@ -37,12 +27,12 @@ EPOCH_RANGE = 61 # Size of the Training Epoch
 CHECKPOINT_TRAINING = False # Use Checkpoint and continue Training
 LOAD_CHECKPOINT_TRAINING = "/home/Student/s4653241/MRI/Training_Epoch/Epoch_40.pth"
 SAVE_EPOCH = True
-EPOCH_SAVE__CHECKPOINT = 60  # Saves every 30 Epoch 
+EPOCH_SAVE__CHECKPOINT = 60  # Saves every 60 Epoch 
 
 TEST_MODE = True # For Testing
 CHECKPOINT = "/home/Student/s4653241/MRI/Training_Epoch/Epoch_60.pth" # Test the checkpoint you want
 TEST_RANGE = 500 # Testing size
-THRESHOLD = 0.5
+THRESHOLD = 0.5 # Threshold Number
 VISUALISE = False # Print out Error pics DEBUGGING TOOL for now
 
 
