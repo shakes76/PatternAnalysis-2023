@@ -19,7 +19,7 @@ test_dataset = TripletDataset(root_dir="/home/Student/s4647936/PatternAnalysis-2
 
 # Parameters
 learning_rate = 0.001
-num_epochs = 1
+num_epochs = 10
 batch_size = 32
 
 # GPU availability
@@ -63,36 +63,36 @@ for epoch in range(num_epochs):
 
 print("Finished Training")
 
-# # --------- Begin Validation/Testing ---------
-# model.eval()  # set the model to evaluation mode
-# correct = 0
-# total = 0
+# --------- Begin Validation/Testing ---------
+model.eval()  # set the model to evaluation mode
+correct = 0
+total = 0
 
-# # DataLoader setup for test dataset
-# test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+# DataLoader setup for test dataset
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
 
-# with torch.no_grad():  # deactivate autograd engine to reduce memory usage and speed up computations
-#     for batch_idx, (anchor, positive, negative) in enumerate(test_loader):
-#         anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
+with torch.no_grad():  # deactivate autograd engine to reduce memory usage and speed up computations
+    for batch_idx, (anchor, positive, negative) in enumerate(test_loader):
+        anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
         
-#         # Forward pass
-#         anchor_out, positive_out = model(anchor, positive)
-#         _, negative_out = model(anchor, negative)
+        # Forward pass
+        anchor_out, positive_out = model(anchor, positive)
+        _, negative_out = model(anchor, negative)
 
-#         # Compute triplet loss
-#         loss = criterion(anchor_out, positive_out, negative_out)
+        # Compute triplet loss
+        loss = criterion(anchor_out, positive_out, negative_out)
 
-#         # You might want to add some logic here to determine "correctness", depending on how you define it for your problem
-#         # For instance, if the distance between anchor and positive is less than between anchor and negative, consider it "correct"
-#         positive_distance = torch.dist(anchor_out, positive_out)
-#         negative_distance = torch.dist(anchor_out, negative_out)
+        # You might want to add some logic here to determine "correctness", depending on how you define it for your problem
+        # For instance, if the distance between anchor and positive is less than between anchor and negative, consider it "correct"
+        positive_distance = torch.dist(anchor_out, positive_out)
+        negative_distance = torch.dist(anchor_out, negative_out)
 
-#         if positive_distance < negative_distance:
-#             correct += 1
-#         total += 1
+        if positive_distance < negative_distance:
+            correct += 1
+        total += 1
 
-# print(f"Accuracy on test set: {100 * correct / total}%")
-# # --------- End Validation/Testing ---------
+print(f"Accuracy on test set: {100 * correct / total}%")
+# --------- End Validation/Testing ---------
 
 """
 Save and visualise results
@@ -132,6 +132,6 @@ def save_image(img, filename):
 
 
 # Save sample images after training
-save_image(anchor, 'anchor_sample2.png')
-save_image(positive, 'positive_sample2.png')
-save_image(negative, 'negative_sample2.png')
+save_image(anchor, 'anchor_sample.png')
+save_image(positive, 'positive_sample.png')
+save_image(negative, 'negative_sample.png')
