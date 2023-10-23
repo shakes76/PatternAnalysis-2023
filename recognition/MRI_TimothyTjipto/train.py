@@ -62,21 +62,23 @@ def load_checkpoint(path):
     return model,optimizer,epoch,counter,loss,iteration
 
 def main():
-    transform = transforms.Compose([
-        transforms.Grayscale(num_output_channels=1),  # Convert to grayscale with one channel
-        transforms.Resize((120,128)),  # img_size should be a tuple like (128, 128) actual img(256x240)
-        transforms.ToTensor(),
-        # You can add more transformations if needed
-    ])
+    # transform = transforms.Compose([
+    #     transforms.Grayscale(num_output_channels=1),  # Convert to grayscale with one channel
+    #     transforms.Resize((120,128)),  # img_size should be a tuple like (128, 128) actual img(256x240)
+    #     transforms.ToTensor(),
+    #     # You can add more transformations if needed
+    # ])
+    training_transform = dataset.get_transform()
     raw_dataset = datasets.ImageFolder(root=TRAIN_PATH)
-    siamese_dataset = SiameseNetworkDataset1(raw_dataset, transform)
+    siamese_dataset = SiameseNetworkDataset1(raw_dataset, training_transform )
     # Create a simple dataloader just for simple visualization
-    vis_dataloader = DataLoader(siamese_dataset,
-                            shuffle=True,
-                            num_workers=1,
-                            batch_size=16)
-    
-    dataset.visualise_batch(vis_dataloader)
+    # training_dataloader = DataLoader(siamese_dataset,
+    #                         shuffle=True,
+    #                         num_workers=1,
+    #                         batch_size=16)
+    training_dataloader = dataset.get_dataloader(siamese_dataset,BATCH_SIZE,True)
+
+    dataset.visualise_batch(training_dataloader)
 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
@@ -98,7 +100,7 @@ def main():
         for epoch in range(current_epoch, EPOCH_RANGE):
 
             # Iterate over batches
-            for i, (img0, img1, label) in enumerate(vis_dataloader, 0):
+            for i, (img0, img1, label) in enumerate(training_dataloader, 0):
 
                 # Send the images and labels to CUDA
                 img0, img1, label = img0.cuda(), img1.cuda(), label.cuda()
@@ -124,6 +126,7 @@ def main():
                     loss_history.append(loss_contrastive.item())
                     iteration_number += 50
 
+            # Save Epoch to Checkpoint
             if SAVE_EPOCH:
                 if epoch%EPOCH_SAVE__CHECKPOINT == 0:
                     checkpoint  = {
@@ -136,26 +139,22 @@ def main():
                     }
                     torch.save(checkpoint,  f"/home/Student/s4653241/MRI/Training_Epoch/Epoch_{epoch}.pth")
         
-        print("End of Training")
         show_plot(counter, loss_history)
     if TEST_MODE:
-        print(f'Start of testing {datetime.now()}')
-        checkpoint = torch.load(CHECKPOINT)
-        model = SiameseNetwork().cuda()
-        model.load_state_dict(checkpoint['model_state_dict'], strict=False)
-        
-        epoch = checkpoint['epoch']
-        loss = checkpoint['loss']
+
+        if not TRAINING_MODE:
+            checkpoint = torch.load(CHECKPOINT)
+            model = SiameseNetwork().cuda()
+            model.load_state_dict(checkpoint['model_state_dict'], strict=False)
+            epoch = checkpoint['epoch']
+            
         
         model.eval()
 
         raw_test_dataset = datasets.ImageFolder(root=TEST_PATH)
-
-        test_siam = SiameseNetworkDataset_test(raw_test_dataset, transform)
-        test_dataloader = DataLoader(test_siam,
-                                shuffle=True,
-                                num_workers=1,
-                                batch_size=1)
+        test_transform = dataset.get_transform()
+        test_siam = SiameseNetworkDataset_test(raw_test_dataset, test_transform)
+        test_dataloader = dataset.get_dataloader(test_siam,1,True)
 
         dataiter = iter(test_dataloader)
         x0, _, _,x0label,_ = next(dataiter)
@@ -169,7 +168,7 @@ def main():
         Neg_Pos = []
 
         for i in range(TEST_RANGE):
-            print(f'Iteration: {i}')
+            # print(f'Iteration: {i}')
             PRINTING = True
             # Iterate over 10 images and test them with the first image (x0)
             _, x1, label2,_,x1label = next(dataiter)
