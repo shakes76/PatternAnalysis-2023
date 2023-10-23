@@ -1,6 +1,6 @@
 # Improved U-Net for ISIC 2018 Skin Lesion Segmentation
 
-This repository contains the code for the Improved U-Net model for the ISIC 2018 Skin Lesion Segmentation challenge (https://challenge.isic-archive.com/data/#2018). The model was trained on the ISIC 2018 dataset, which contains 2594 dermoscopic images of skin lesions. The model was trained on a single NVIDIA RTX 3080. The model was trained for 5 epochs, with a batch size of 2. The model was trained using the Adam optimiser with a learning rate of 0.0005. The model achieved a dice coefficient of 0.81 on the test set.
+This repository contains the code for the Improved U-Net model for the ISIC 2018 Skin Lesion Segmentation dataset (https://challenge.isic-archive.com/data/#2018). The model contained 2594 dermoscopic images of skin lesions and was trained on a single NVIDIA RTX 3080. The model was trained for 5 epochs, with a batch size of 2. The model was trained using the Adam optimiser with a learning rate of 0.0005. The model achieved a dice coefficient of 0.81 on the test set.
 
 ## Architecture Description
 
