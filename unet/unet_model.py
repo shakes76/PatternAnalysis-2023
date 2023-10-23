@@ -187,4 +187,5 @@ class UpsamplingModule(nn.Module):
         x = self.upsample(x)
         x = self.conv(x)
         x = F.relu(x)
+
         return x
