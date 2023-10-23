@@ -1,3 +1,11 @@
+"""
+File: dataset.py
+Author: Arshia Sharma 
+Description: Creates custom ISIC dataset for Improved Unet model. 
+
+Dependencies: PIL numpy torch torchvision 
+"""
+
 import os
 from PIL import Image
 import numpy as np
