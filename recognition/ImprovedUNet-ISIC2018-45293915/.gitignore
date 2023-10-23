@@ -159,22 +159,27 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
-# datasets folder
+# Ignore everything in the specified folders
 datasets/training_groundtruth/*
 datasets/validation_groundtruth/*
 datasets/test_groundtruth/*
 datasets/training_input/*
 datasets/validation_input/*
 datasets/test_input/*
+/modelenv/*
+output/*
+models/*
 
-# modelenv environment folder
-/modelenv
+# But do not ignore the .gitkeep files
+!datasets/training_groundtruth/.gitkeep
+!datasets/validation_groundtruth/.gitkeep
+!datasets/test_groundtruth/.gitkeep
+!datasets/training_input/.gitkeep
+!datasets/validation_input/.gitkeep
+!datasets/test_input/.gitkeep
+!/modelenv/.gitkeep
+!output/.gitkeep
+!models/.gitkeep
 
 # .keras files
 *.keras
-
-# Ignore anything inside output folder
-output/*
-
-# Ignore anything inside models folder
-models/*
