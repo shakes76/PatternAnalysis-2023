@@ -2,11 +2,13 @@ import os
 import torch
 import matplotlib.pyplot as plt
 from dataset import TripletDataset 
-from modules import SiameseNetwork, TripletLoss
+from modules import SiameseNetwork, TripletLoss, SimpleClassifier
 from torchvision import transforms
 import torch.optim as optim
 from sklearn.manifold import TSNE
 import numpy as np
+import torch.nn as nn
+
 
 # Transformations for images
 transform = transforms.Compose([
@@ -195,3 +197,17 @@ with torch.no_grad():
 
 train_embeddings = np.concatenate(train_embeddings)
 test_embeddings = np.concatenate(test_embeddings)
+
+# --------- Train Simple Classifier ---------
+classifier = SimpleClassifier().to(device)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(classifier.parameters(), lr=0.001)
+
+for epoch in range(num_epochs):
+    # Train with embeddings
+    for embeddings, labels in zip(train_embeddings, train_labels):
+        optimizer.zero_grad()
+        outputs = classifier(torch.tensor(embeddings).to(device))
+        loss = criterion(outputs, torch.tensor(labels).to(device))
+        loss.backward()
+        optimizer.step()
