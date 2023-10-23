@@ -19,7 +19,7 @@ TRANSFORMED_Y= 256  # height after resizing
 
     Methods:
     - __len__(): Returns the total number of images in the dataset.
-    - __getitem__(idx): Returns the image and its corresponding mask at the given index `idx`.
+    - __getitem__(idx): Returns the image and its corresponding mask at the given index `idx`. Resizes image and converts to correct colour channels. 
     - match_mask_to_image(img_filename): Converts image filename to its corresponding mask filename.
     """
 class ISICDataset(Dataset):
@@ -34,7 +34,6 @@ class ISICDataset(Dataset):
         return len(self.img_filenames)
 
     def match_mask_to_image(self, img_filename):
-    # Convert the image filename to its corresponding mask filename
         base_name = os.path.splitext(img_filename)[0]  # This removes the .jpg or any extension
         return base_name + '_segmentation.png'
 
@@ -43,7 +42,7 @@ class ISICDataset(Dataset):
         mask_name = os.path.join(self.mask_path, self.match_mask_to_image(self.img_filenames[idx]))
 
         img = Image.open(img_name).convert('RGB')  # Convert to RGB
-        mask = Image.open(mask_name).convert('L')  # Convert to grayscale for segmentation masks. 
+        mask = Image.open(mask_name).convert('L')  # Convert to grayscale for segmentation masks.
 
         img = img.resize((TRANSFORMED_Y, TRANSFORMED_X))
         mask = mask.resize((TRANSFORMED_Y, TRANSFORMED_X), Image.NEAREST)
@@ -54,29 +53,35 @@ class ISICDataset(Dataset):
 
         return img, mask
 
-# TODO - remove and place in main method or train.py
-# Define transforms for the images
-transform = transforms.Compose([
-    transforms.ToTensor(),
-    # remove this temporarily 
-    #transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-])
-
 
 """
 Helper method to compute mean and standard deviations for the train dataset.
+Takes in an input loader.
+
+NB: used for preprocessing, not used directly in train or predict. 
+
+Parameters:
+loader (DataLoader): A DataLoader object that provides batches of data.
+
+Returns:
+mean (tensor): The mean values for each channel in the dataset.
+std (tensor): The standard deviations for each channel in the dataset.
 """
+
 def compute_mean_std(loader):
     mean = 0.0
     squared_mean = 0.0
     total_samples = 0.0
-    
+
     for images, _ in loader:
+        # flatten image tensor and calculated mean, squared mean across all pixel values.
+
         images_flat = images.view(images.size(0), images.size(1), -1)
         mean += images_flat.mean(2).sum(0)
         squared_mean += (images_flat ** 2).mean(2).sum(0)
         total_samples += images.size(0)
 
+    # calculate mean and std dev across whole dataset.
     mean /= total_samples
     squared_mean /= total_samples
     std = (squared_mean - mean**2)**0.5
