@@ -10,10 +10,10 @@ from functools import partial, lru_cache
 import numpy as np
 
 
-def wn_linear(in_dim, out_dim):
-    return nn.utils.weight_norm(nn.Linear(in_dim, out_dim))
-
 class WNConv2d(nn.Module):
+    """
+    A 2D convolutional layer with weight normalization.
+    """
     def __init__(
         self,
         in_channel,
@@ -24,10 +24,22 @@ class WNConv2d(nn.Module):
         bias=True,
         activation=None,
     ):
+        """
+        Initialize an instance of the WNConv2d class.
+
+        Args:
+            in_channel: Number of input channels
+            out_channel: Number of output channels
+            kernel_size: Size of the kernel
+            stride: Stride of the convolution
+            padding: Zero padding for the input
+            bias: Whether to add a bias term to output
+            activation: Activation function
+        """
         super().__init__()
 
-        self.conv = nn.utils.weight_norm(
-            nn.Conv2d(
+        self.conv = nn.utils.weight_norm(   # initialize a 2D convolutional layer
+            nn.Conv2d(                      # with weight normalization
                 in_channel,
                 out_channel,
                 kernel_size,
@@ -39,31 +51,35 @@ class WNConv2d(nn.Module):
 
         self.out_channel = out_channel
 
-        if isinstance(kernel_size, int):
-            kernel_size = [kernel_size, kernel_size]
+        if isinstance(kernel_size, int):                # check if kernel_size is an integer
+            kernel_size = [kernel_size, kernel_size]    # and then convert to a list
 
         self.kernel_size = kernel_size
 
         self.activation = activation
 
     def forward(self, input):
-        out = self.conv(input)
+        """
+        Forward pass
+
+        Args:
+            input: Input tensor to pass through the layer
+
+        Return:
+            out: The tensor processed by the convolution and activation function
+        """
+        out = self.conv(input)              # pass through the conv layer
 
         if self.activation is not None:
-            out = self.activation(out)
+            out = self.activation(out)      # apply the activation function
 
-        return out
-
-
-def shift_down(input, size=1):
-    return F.pad(input, [0, 0, size, 0])[:, :, : input.shape[2], :]
-
-
-def shift_right(input, size=1):
-    return F.pad(input, [size, 0, 0, 0])[:, :, :, : input.shape[3]]
+        return out                          # return the result
 
 
 class CausalConv2d(nn.Module):
+    """
+    A causal convolutional layer
+    """
     def __init__(
         self,
         in_channel,
@@ -73,28 +89,39 @@ class CausalConv2d(nn.Module):
         padding='downright',
         activation=None,
     ):
+        """
+        Initialize an instance of the CausalConv2d class
+
+        Args:
+            in_channel: Number of input channels
+            out_channel: Number of output channels
+            kernel_size: Size of the convolutional kernel
+            stride: Stride of the convolution
+            padding: Type of padding to be used (downright/down/causal)
+            activation: Optional activation function
+        """
         super().__init__()
 
-        if isinstance(kernel_size, int):
+        if isinstance(kernel_size, int):        # convert kernel_size to list if is integer
             kernel_size = [kernel_size] * 2
 
         self.kernel_size = kernel_size
 
-        if padding == 'downright':
+        if padding == 'downright':              # pad at top & left
             pad = [kernel_size[1] - 1, 0, kernel_size[0] - 1, 0]
 
-        elif padding == 'down' or padding == 'causal':
+        elif padding == 'down' or padding == 'causal':  # pad top & left & right
             pad = kernel_size[1] // 2
 
             pad = [pad, pad, kernel_size[0] - 1, 0]
 
         self.causal = 0
-        if padding == 'causal':
+        if padding == 'causal':                 # set causal to half the kernel width
             self.causal = kernel_size[1] // 2
 
-        self.pad = nn.ZeroPad2d(pad)
+        self.pad = nn.ZeroPad2d(pad)            # zero-padding layer
 
-        self.conv = WNConv2d(
+        self.conv = WNConv2d(                   # initialize the conv layer
             in_channel,
             out_channel,
             kernel_size,
@@ -104,17 +131,29 @@ class CausalConv2d(nn.Module):
         )
 
     def forward(self, input):
-        out = self.pad(input)
+        """
+        Forward pass
 
-        if self.causal > 0:
+        Args:
+            input: The input tensor
+
+        Returns:
+            out: The output tensor after applying the causal convolution
+        """
+        out = self.pad(input)   # pad the input tensor
+
+        if self.causal > 0:     # zero out specific weights
             self.conv.conv.weight_v.data[:, :, -1, self.causal :].zero_()
 
-        out = self.conv(out)
+        out = self.conv(out)    # pass through the conv layer
 
-        return out
+        return out              # return the result tensor
 
 
 class GatedResBlock(nn.Module):
+    """
+    Gated Residual Block
+    """
     def __init__(
         self,
         in_channel,
@@ -126,110 +165,181 @@ class GatedResBlock(nn.Module):
         auxiliary_channel=0,
         condition_dim=0,
     ):
+        """
+        Initialize an instance of GatedResBlock
+
+        Args:
+            in_channel: Number of input channels
+            channel: Number of channels in the intermediate layers
+            kernel_size: Size of the convolutional kernel
+            conv: Type of convolution (wnconv2d/causal_downright/causal)
+            activation: Activation function
+            dropout: Dropout rate
+            auxiliary_channel: Number of channels in the auxiliary input
+            condition_dim: Dimension of the conditional input
+        """
         super().__init__()
 
-        if conv == 'wnconv2d':
-            conv_module = partial(WNConv2d, padding=kernel_size // 2)
+        match conv:                                                     # choose conv layer
+            case 'wnconv2d':
+                conv_module = partial(WNConv2d, padding=kernel_size // 2)
 
-        elif conv == 'causal_downright':
-            conv_module = partial(CausalConv2d, padding='downright')
+            case 'causal_downright':
+                conv_module = partial(CausalConv2d, padding='downright')
 
-        elif conv == 'causal':
-            conv_module = partial(CausalConv2d, padding='causal')
+            case 'causal':
+                conv_module = partial(CausalConv2d, padding='causal')
 
-        self.activation = activation()
-        self.conv1 = conv_module(in_channel, channel, kernel_size)
+        self.activation = activation()                                  # activation func
+        self.conv1 = conv_module(in_channel, channel, kernel_size)      # 1st conv layer
 
         if auxiliary_channel > 0:
-            self.aux_conv = WNConv2d(auxiliary_channel, channel, 1)
+            self.aux_conv = WNConv2d(auxiliary_channel, channel, 1)     # auxiliary conv
 
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout)                              # dropout layer
 
-        self.conv2 = conv_module(channel, in_channel * 2, kernel_size)
+        self.conv2 = conv_module(channel, in_channel * 2, kernel_size)  # 2nd conv layer
 
         if condition_dim > 0:
-            # self.condition = nn.Linear(condition_dim, in_channel * 2, bias=False)
-            self.condition = WNConv2d(condition_dim, in_channel * 2, 1, bias=False)
+            self.condition = WNConv2d(condition_dim, in_channel * 2, 1, bias=False) # conditional conv
 
-        self.gate = nn.GLU(1)
+        self.gate = nn.GLU(1)                                           # gated linuear unit
 
     def forward(self, input, aux_input=None, condition=None):
-        out = self.conv1(self.activation(input))
+        """
+        Forward pass
+
+        Args:
+            input: Input tensor
+            aux_input: Auxiliary input tensor
+            condition: Conditional tensor
+
+        Returns:
+            out: Output tensor processed through the gated residual block
+        """
+        out = self.conv1(self.activation(input))                    # apply conv layer
 
         if aux_input is not None:
-            out = out + self.aux_conv(self.activation(aux_input))
+            out = out + self.aux_conv(self.activation(aux_input))   # apply activation & auxiliary conv
 
-        out = self.activation(out)
-        out = self.dropout(out)
-        out = self.conv2(out)
+        out = self.activation(out)                                  # apply activation
+        out = self.dropout(out)                                     # apply dropout
+        out = self.conv2(out)                                       # apply 2nd conv layer
 
         if condition is not None:
-            condition = self.condition(condition)
+            condition = self.condition(condition)                   # apply the conditional conv
             out += condition
-            # out = out + condition.view(condition.shape[0], 1, 1, condition.shape[1])
 
-        out = self.gate(out)
+        out = self.gate(out)                                        # apply gating
         out += input
 
-        return out
+        return out                                                  # return result
 
 
 @lru_cache(maxsize=64)
 def causal_mask(size):
-    shape = [size, size]
-    mask = np.triu(np.ones(shape), k=1).astype(np.uint8).T
-    start_mask = np.ones(size).astype(np.float32)
-    start_mask[0] = 0
+    """
+    Create and return causal mask
+
+    Args:
+        size: Size of the mask
+
+    Returns:
+        A tuple contains a causal mask and a start mask
+    """
+    shape = [size, size]                                        # Def mask shape
+    mask = np.triu(np.ones(shape), k=1).astype(np.uint8).T      # Upper triangular matrix
+    start_mask = np.ones(size).astype(np.float32)               # Mask of ones
+    start_mask[0] = 0                                           # Set first position to zero
 
     return (
-        torch.from_numpy(mask).unsqueeze(0),
-        torch.from_numpy(start_mask).unsqueeze(1),
+        torch.from_numpy(mask).unsqueeze(0),                    # return mask
+        torch.from_numpy(start_mask).unsqueeze(1),              # return start
     )
 
 
+def wn_linear(in_dim, out_dim):
+    """
+    Create and return a weight-normalized linear layer
+
+    Args:
+        in_dim: Input dimension for the linear layer
+        out_dim: Output dimension for the linear layer
+    
+    Returns:
+        A weight-normalized linear layer
+    """
+    return nn.utils.weight_norm(nn.Linear(in_dim, out_dim))     # return a weight-normalized linear layer
+
+
 class CausalAttention(nn.Module):
+    """
+    Causal multi-head attention mechanism
+    """
     def __init__(self, query_channel, key_channel, channel, n_head=8, dropout=0.1):
+        """
+        Initialize an instance of CausalAttention class
+
+        Args:
+            query_channel: Number of channels in the query
+            key_channel: Number of channels in the key
+            channel: Total number of channels for the query, key, and value after transformations
+            n_head: Number of attention heads
+            dropout: Dropout rate
+        """
         super().__init__()
+                                                        # Initializes a weight-normalized linear layer
+        self.query = wn_linear(query_channel, channel)  # for query transformation
+        self.key = wn_linear(key_channel, channel)      # for key transformation
+        self.value = wn_linear(key_channel, channel)    # for value transformation
 
-        self.query = wn_linear(query_channel, channel)
-        self.key = wn_linear(key_channel, channel)
-        self.value = wn_linear(key_channel, channel)
-
-        self.dim_head = channel // n_head
+        self.dim_head = channel // n_head               # get number of channels per attention head
         self.n_head = n_head
 
-        self.dropout = nn.Dropout(dropout)
+        self.dropout = nn.Dropout(dropout)              # dropout layer
 
     def forward(self, query, key):
-        batch, _, height, width = key.shape
+        """
+        Forward pass
+
+        Args:
+            query: Query tensor
+            key: Key tensor
+        Returns:
+            out: The tensor after applying the causal attention mechanism
+        """
+        batch, _, height, width = key.shape                                             # get batch size, height, and width
 
         def reshape(input):
-            return input.view(batch, -1, self.n_head, self.dim_head).transpose(1, 2)
+            return input.view(batch, -1, self.n_head, self.dim_head).transpose(1, 2)    # reshape tensor for multi head attention processing
 
-        query_flat = query.view(batch, query.shape[1], -1).transpose(1, 2)
-        key_flat = key.view(batch, key.shape[1], -1).transpose(1, 2)
-        query = reshape(self.query(query_flat))
-        key = reshape(self.key(key_flat)).transpose(2, 3)
-        value = reshape(self.value(key_flat))
+        query_flat = query.view(batch, query.shape[1], -1).transpose(1, 2)              # flatten & transpose query tensor
+        key_flat = key.view(batch, key.shape[1], -1).transpose(1, 2)                    # flatten & transpose key tensor
+        query = reshape(self.query(query_flat))                                         # transform & reshape query tensor
+        key = reshape(self.key(key_flat)).transpose(2, 3)                               # transform & reshape key tensor
+        value = reshape(self.value(key_flat))                                           # transform & reshape value tensor
 
-        attn = torch.matmul(query, key) / sqrt(self.dim_head)
-        mask, start_mask = causal_mask(height * width)
+        attn = torch.matmul(query, key) / sqrt(self.dim_head)                           # get normalized raw attention scores
+        mask, start_mask = causal_mask(height * width)                                  # get causal mask and start mask
         mask = mask.type_as(query)
         start_mask = start_mask.type_as(query)
-        attn = attn.masked_fill(mask == 0, -1e4)
-        attn = torch.softmax(attn, 3) * start_mask
-        attn = self.dropout(attn)
+        attn = attn.masked_fill(mask == 0, -1e4)                                        # apply causal mask
+        attn = torch.softmax(attn, 3) * start_mask                                      # apply softmax & times start mask
+        attn = self.dropout(attn)                                                       # apply dropout to attention score
 
-        out = attn @ value
-        out = out.transpose(1, 2).reshape(
+        out = attn @ value                                                              # get output tensor
+        out = out.transpose(1, 2).reshape(                                              # reshape & permute output tensor
             batch, height, width, self.dim_head * self.n_head
         )
         out = out.permute(0, 3, 1, 2)
 
-        return out
+        return out                                                                      # return output tensor
 
 
 class PixelBlock(nn.Module):
+    """
+    A block of PixelSNAIL architecture
+    """
     def __init__(
         self,
         in_channel,
@@ -240,9 +350,21 @@ class PixelBlock(nn.Module):
         dropout=0.1,
         condition_dim=0,
     ):
+        """
+        Initialize an instance of PixelBlock class
+
+        Args:
+            in_channel: Number of input channels
+            channel: Number of internal channels for the GatedResBlocks
+            kernel_size: Size of the kernel
+            n_res_block: Number of GatedResBlocks
+            attention: Whether to use causal attention
+            dropout: Dropout rate
+            condition_dim: Dimension of the conditioning variable
+        """
         super().__init__()
 
-        resblocks = []
+        resblocks = []                              # initialize a list of GatedResBlocks
         for i in range(n_res_block):
             resblocks.append(
                 GatedResBlock(
@@ -255,23 +377,23 @@ class PixelBlock(nn.Module):
                 )
             )
 
-        self.resblocks = nn.ModuleList(resblocks)
+        self.resblocks = nn.ModuleList(resblocks)   # convert to a ModuleList
 
-        self.attention = attention
+        self.attention = attention                  # Attention flag
 
-        if attention:
-            self.key_resblock = GatedResBlock(
+        if attention:                                                                   # Create additional layers if attention is enabled
+            self.key_resblock = GatedResBlock(                                          # Gated residual block for key trans
                 in_channel * 2 + 2, in_channel, 1, dropout=dropout
             )
-            self.query_resblock = GatedResBlock(
+            self.query_resblock = GatedResBlock(                                        # Gated residual block for query trans
                 in_channel + 2, in_channel, 1, dropout=dropout
             )
 
-            self.causal_attention = CausalAttention(
+            self.causal_attention = CausalAttention(                                    # Causal attention module
                 in_channel + 2, in_channel * 2 + 2, in_channel // 2, dropout=dropout
             )
 
-            self.out_resblock = GatedResBlock(
+            self.out_resblock = GatedResBlock(                                          # Gated residual block for output
                 in_channel,
                 in_channel,
                 1,
@@ -279,46 +401,106 @@ class PixelBlock(nn.Module):
                 dropout=dropout,
             )
 
-        else:
-            self.out = WNConv2d(in_channel + 2, in_channel, 1)
+        else:                                                                           # if attention isn't enabled
+            self.out = WNConv2d(in_channel + 2, in_channel, 1)                          # Create a conv layer
 
     def forward(self, input, background, condition=None):
-        out = input
+        """
+        Forward pass
 
-        for resblock in self.resblocks:
+        Args:
+            input: Input tensor
+            background: Background tensor
+            condition: Conditioning tensor
+
+        Returns:
+            out: Tensor after being processed by the PixelBlock
+        """
+        out = input                                             # start with the input
+
+        for resblock in self.resblocks:                         # apply GatedResBlocks
             out = resblock(out, condition=condition)
 
-        if self.attention:
-            key_cat = torch.cat([input, out, background], 1)
+        if self.attention:                                      # if attention is enabled
+            key_cat = torch.cat([input, out, background], 1)    # get key tensor
             key = self.key_resblock(key_cat)
-            query_cat = torch.cat([out, background], 1)
+            query_cat = torch.cat([out, background], 1)         # get query tensor
             query = self.query_resblock(query_cat)
-            attn_out = self.causal_attention(query, key)
-            out = self.out_resblock(out, attn_out)
+            attn_out = self.causal_attention(query, key)        # apply causal attention
+            out = self.out_resblock(out, attn_out)              # Combine out with attn_out
 
-        else:
-            bg_cat = torch.cat([out, background], 1)
-            out = self.out(bg_cat)
+        else:                                                   # if attention isn't enabled
+            bg_cat = torch.cat([out, background], 1)            # Concatenate out with background
+            out = self.out(bg_cat)                              # apply conv layer
 
-        return out
+        return out                                              # return result (out tensor)
 
 
 class CondResNet(nn.Module):
+    """
+    Conditional Residual Network
+    """
     def __init__(self, in_channel, channel, kernel_size, n_res_block):
+        """
+        Initialize an instance of CondResNet class
+
+        Args:
+            in_channel: Number of input channels
+            channel: Number of internal channels for convolution and GatedResBlocks
+            kernel_size: Size of the kernel
+            n_res_block: Number of GatedResBlocks
+        """
         super().__init__()
 
-        blocks = [WNConv2d(in_channel, channel, kernel_size, padding=kernel_size // 2)]
+        blocks = [WNConv2d(in_channel, channel, kernel_size, padding=kernel_size // 2)] # weighted-normalized conv layer
 
         for i in range(n_res_block):
-            blocks.append(GatedResBlock(channel, channel, kernel_size))
+            blocks.append(GatedResBlock(channel, channel, kernel_size))                 # append GatedResBlocks to blocks list
 
-        self.blocks = nn.Sequential(*blocks)
+        self.blocks = nn.Sequential(*blocks)                                            # convert to a sequential model
 
     def forward(self, input):
+        """
+        Forward pass
+
+        Args:
+            input: Input tensor
+        Returns:
+            out: Tensor after being processed by the CondResNet
+        """
         return self.blocks(input)
 
 
+def shift_down(input, size=1):
+    """
+    Shift tensors downward
+
+    Args:
+        input: Input tensor
+        size: Number of positions to shift
+    Returns:
+        Tensor after being shifted
+    """
+    return F.pad(input, [0, 0, size, 0])[:, :, : input.shape[2], :] # pad at the top, shift downward, slice to the original height
+
+
+def shift_right(input, size=1):
+    """
+    Shift tensors to the right
+
+    Args:
+        input: Input tensor
+        size: Number of positions to shift
+    Returns:
+        Tensor after being shifted
+    """
+    return F.pad(input, [size, 0, 0, 0])[:, :, :, : input.shape[3]] # pad at the left, shift to the right, slice to the original width
+
+
 class PixelSNAIL(nn.Module):
+    """
+    Defines the PixelSNAIL architecture
+    """
     def __init__(
         self,
         shape,
@@ -335,34 +517,53 @@ class PixelSNAIL(nn.Module):
         cond_res_kernel=3,
         n_out_res_block=0,
     ):
+        """
+        Initialize an instance of the PixelSNAIL class
+
+        Args:
+            shape: Shape of input
+            n_class: Number of classes
+            channel: Number of channels in conv layer
+            kernel_size: Size of the kernel
+            n_block: Number of PixelBlocks
+            n_res_block: Number of GatedResBlocks in each PixelBlock
+            res_channel: Number of channels in the conv layers in residual blocks
+            attention: Whether to use the attention mechanism
+            dropout: Dropout rate
+            n_cond_res_block: Number of conditional residual blocks
+            cond_res_channel: Number of channels in the conv layers in conditional residual blocks
+            cond_res_kernel: Size of the kernel in conditional residual blocks
+            n_out_res_block: Number of residual blocks in the output sequnce
+        """
         super().__init__()
 
-        height, width = shape
+        height, width = shape               # Extract height & weight
 
         self.n_class = n_class
 
         if kernel_size % 2 == 0:
-            kernel = kernel_size + 1
+            kernel = kernel_size + 1        # adjust kernel size if even
 
         else:
             kernel = kernel_size
 
         self.horizontal = CausalConv2d(
-            n_class, channel, [kernel // 2, kernel], padding='down'
+            n_class, channel, [kernel // 2, kernel], padding='down'                 # horizontal causal conv layers
         )
         self.vertical = CausalConv2d(
-            n_class, channel, [(kernel + 1) // 2, kernel // 2], padding='downright'
+            n_class, channel, [(kernel + 1) // 2, kernel // 2], padding='downright' # vertical causal conv layers
         )
 
-        coord_x = (torch.arange(height).float() - height / 2) / height
+        # Positional Coordinates
+        coord_x = (torch.arange(height).float() - height / 2) / height              # tensor of relative x-coord of each pixel
         coord_x = coord_x.view(1, 1, height, 1).expand(1, 1, height, width)
-        coord_y = (torch.arange(width).float() - width / 2) / width
+        coord_y = (torch.arange(width).float() - width / 2) / width                 # tensor of relative y-coord of each pixel
         coord_y = coord_y.view(1, 1, 1, width).expand(1, 1, height, width)
-        self.register_buffer('background', torch.cat([coord_x, coord_y], 1))
+        self.register_buffer('background', torch.cat([coord_x, coord_y], 1))        # register a buffer for coordinates
 
-        self.blocks = nn.ModuleList()
+        self.blocks = nn.ModuleList()                                               # list of PixelBlocks
 
-        for i in range(n_block):
+        for i in range(n_block):                                                    # append PixelBlocks to the list
             self.blocks.append(
                 PixelBlock(
                     channel,
@@ -375,40 +576,52 @@ class PixelSNAIL(nn.Module):
                 )
             )
 
-        if n_cond_res_block > 0:
+        if n_cond_res_block > 0:                                                    # initialize conditional residual network if required
             self.cond_resnet = CondResNet(
                 n_class, cond_res_channel, cond_res_kernel, n_cond_res_block
             )
 
-        out = []
+        out = []                                                                    # list of final output layers
 
         for i in range(n_out_res_block):
-            out.append(GatedResBlock(channel, res_channel, 1))
+            out.append(GatedResBlock(channel, res_channel, 1))                      # append GatedResBlocks to the list
 
-        out.extend([nn.ELU(inplace=True), WNConv2d(channel, n_class, 1)])
+        out.extend([nn.ELU(inplace=True), WNConv2d(channel, n_class, 1)])           # add activation & weight-normalized conv layer
 
-        self.out = nn.Sequential(*out)
+        self.out = nn.Sequential(*out)                                              # convert to sequential module
 
     def forward(self, input, condition=None, cache=None):
-        if cache is None:
-            cache = {}
-        batch, height, width = input.shape
-        input = (
-            F.one_hot(input, self.n_class).permute(0, 3, 1, 2).type_as(self.background)
-        )
-        horizontal = shift_down(self.horizontal(input))
-        vertical = shift_right(self.vertical(input))
-        out = horizontal + vertical
+        """
+        Forward pass
 
-        background = self.background[:, :, :height, :].expand(batch, 2, height, width)
+        Args:
+            input: Input tensor
+            condition: Conditioning tensor
+            cache: Intermediate tensors
+
+        Returns:
+            out: Output tensor (generated output)
+            cache: Cached tensors
+        """
+        if cache is None:
+            cache = {}                                                                  # initialize empty cache if cache isn't provided
+        batch, height, width = input.shape                                              # extract batch size, height, width
+        input = (
+            F.one_hot(input, self.n_class).permute(0, 3, 1, 2).type_as(self.background) # encode input to one-hot format
+        )
+        horizontal = shift_down(self.horizontal(input))                                 # apply horizontal causal conv & shift down
+        vertical = shift_right(self.vertical(input))                                    # apply vertical causal conv & shift down
+        out = horizontal + vertical                                                     # combine the outputs
+
+        background = self.background[:, :, :height, :].expand(batch, 2, height, width)  # a slice of background tensor (for positional info)
 
         if condition is not None:
-            if 'condition' in cache:
-                condition = cache['condition']
+            if 'condition' in cache:                                            # if conditioned tensor is cached
+                condition = cache['condition']                                  # use it
                 condition = condition[:, :, :height, :]
 
-            else:
-                condition = (
+            else:                                                               # if confitioned tensor isn't cached
+                condition = (                                                   # process one for future use
                     F.one_hot(condition, self.n_class)
                     .permute(0, 3, 1, 2)
                     .type_as(self.background)
@@ -419,11 +632,11 @@ class PixelSNAIL(nn.Module):
                 condition = condition[:, :, :height, :]
 
         for block in self.blocks:
-            out = block(out, background, condition=condition)
+            out = block(out, background, condition=condition)                   # process the output tensor through each PixelBlock
 
-        out = self.out(out)
+        out = self.out(out)                                                     # process the output tensor through output layers
 
-        return out, cache
+        return out, cache                                                       # return the generated output & cache
 
 
 class VectorQuantizer(nn.Module):

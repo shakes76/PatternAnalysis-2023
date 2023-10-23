@@ -3,7 +3,6 @@
 import time
 import argparse
 
-import numpy as np
 import torch
 from torch import nn, optim
 from torchvision.utils import save_image
@@ -15,7 +14,7 @@ from modules import VQVAE, PixelSNAIL
 
 
 # IO Paths
-CHECKPOINT_PATH = "checkpoint/" # dir saving model snapshots
+CHECKPOINT_PATH = "checkpoint/"     # dir saving model snapshots
 MODEL_PATH = './vqvae2.pt'          # trained model
 
 # Configuration
@@ -29,40 +28,51 @@ NUM_EPOCHS = 20     # number of epoch
 LR_RATE = 3e-4      # learning rate
 
 
-def train_pixelsnail(args, epoch, loader, vqvae_model: VQVAE, model: PixelSNAIL, optimizer, scheduler, device):
-    loader = tqdm(loader)
+def train_pixelsnail(args, epoch, loader, model_vqvae: VQVAE, model: PixelSNAIL, optimizer, scheduler, device):
+    """
+    Train the given PixelSNAIL model
+    
+    Args:
+        epoch: Number of epoch
+        loader: A dataloader of training dataset
+        model_vqvae: A VQVAE model that the PixelSNAIL model will be trained on
+        model: The PixelSNAIL model to train
+        optimizer: The optimizer to use in training
+        scheduler: The shceduler to use in training
+        device: The device (cpu/cuda) to use for training
+    """
+    loader = tqdm(loader)                   # for progress bar
 
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.CrossEntropyLoss()       # loss function
 
     for i, (input, _) in enumerate(loader): # i, (input, label)
-        input = input.to(device)
-        vqvae_model.eval()
-        model.zero_grad()
+        input = input.to(device)            # use gpu if available
+        model_vqvae.eval()                  # set VQVAE model to evaluation mode
+        model.zero_grad()                   # set gradient to zero
 
-        with torch.no_grad():               # disable gradient calculation of vqvae model
-            _, _, _, top, bottom = vqvae_model.encode(input)
+        with torch.no_grad():               # disable gradient calculation of VQVAE model
+            _, _, _, top, bottom = model_vqvae.encode(input)    # get top and bottom code from VQVAE model
 
         if args.hier == 'top':
-            target = top
-            out, _ = model(top)
+            target = top                            # make a copy of original code
+            out, _ = model(top)                     # get model output
         elif args.hier == 'bottom':
-            target = bottom
-            out, _ = model(bottom, condition=top)
+            target = bottom                         # make a copy of original code
+            out, _ = model(bottom, condition=top)   # get model output
 
-        loss = criterion(out, target)
-        loss.backward()
+        loss = criterion(out, target)       # get loss
+        loss.backward()                     # backward propagation
 
         if scheduler is not None:
-            scheduler.step()
-        optimizer.step()
+            scheduler.step()                # update learning rate
+        optimizer.step()                    # update parameters
 
-        _, pred = out.max(1)
-        correct = (pred == target).float()
-        accuracy = correct.sum() / target.numel()
+        _, pred = out.max(1)                        # get the prediction
+        correct = (pred == target).float()          # indicate all the correct prediction
+        accuracy = correct.sum() / target.numel()   # get the accuracy
+        lr = optimizer.param_groups[0]['lr']        # get the learning rate
 
-        lr = optimizer.param_groups[0]['lr']
-
-        loader.set_description(
+        loader.set_description(                     # show training state
             (
                 f'epoch: {epoch + 1}; loss: {loss.item():.5f}; '
                 f'acc: {accuracy:.5f}; lr: {lr:.5f}'
@@ -75,10 +85,10 @@ def train_vqvae(epoch, loader: DataLoader, model: VQVAE, optimizer, device):
     Train the given VQVAE model
     
     Args:
-        loader: a dataloader of training dataset
-        model: the VQVAE model to train
-        optimizer: the optimizer to use in training
-        device: the device (cpu/gpu) to use for training
+        loader: A dataloader of training dataset
+        model: The VQVAE model to train
+        optimizer: The optimizer to use in training
+        device: The device (cpu/gpu) to use for training
     """
     criterion = nn.MSELoss()    # loss function
 
@@ -128,7 +138,14 @@ def train_vqvae(epoch, loader: DataLoader, model: VQVAE, optimizer, device):
 
             model.train()                           # back to training
 
+
 def main_vqvae(args):
+    """
+    The main entry point of training VQVAE model
+
+    Args:
+        args: All the arguments from shell, listed at the end of the file
+    """
     start_time = time.time()        # tracking execution time
 
     # Data
@@ -145,7 +162,14 @@ def main_vqvae(args):
 
     print("Execution Time: %.2f min" % ((time.time() - start_time) / 60))   # print execution time (loading time + training time)
 
+
 def main_pixelsnail(args):
+    """
+    The main entry point of training PixelSNAIL model
+
+    Args:
+        args: All the arguments from shell, listed at the end of the file
+    """
     start_time = time.time()        # tracking execution time
     
     # Data
@@ -154,11 +178,11 @@ def main_pixelsnail(args):
 
     # VQVAE Model
     vqvae_model = VQVAE().to(device)                    # send to gpu if available
-    vqvae_model.load_state_dict(torch.load(args.path))  # load the given model
+    vqvae_model.load_state_dict(torch.load(args.path))  # load the given VQVAE model
 
     if args.hier == 'top':
-        model = PixelSNAIL(
-            [32, 32],
+        model = PixelSNAIL(                             # initalize the PixelSNAIL model (top)
+            [32, 32],                                   # see details of args in modules.py
             512,
             args.channel,
             5,
@@ -170,8 +194,8 @@ def main_pixelsnail(args):
         )
 
     elif args.hier == 'bottom':
-        model = PixelSNAIL(
-            [64, 64],
+        model = PixelSNAIL(                             # initalize the PixelSNAIL model (bottom)
+            [64, 64],                                   # see details of args in modules.py
             512,
             args.channel,
             5,
@@ -184,72 +208,50 @@ def main_pixelsnail(args):
             cond_res_channel=args.n_res_channel,
         )
 
-    model = model.to(device)
-    optimizer = optim.Adam(model.parameters(), lr=args.lr)
+    model = model.to(device)                                # use gpu if available
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)  # initialize the optimizer
 
-    model = nn.DataParallel(model)
-    model = model.to(device)
-
-    scheduler = None
+    scheduler = None                                        # no scheduler used here
 
     # Train
     print("Training Model...")
-    for i in range(args.epoch):
-        train_pixelsnail(args, i, trainloader, vqvae_model, model, optimizer, scheduler, device)
-        torch.save(
+    for i in range(args.epoch):                             # iterate over the number of epoch
+        train_pixelsnail(args, i, trainloader, vqvae_model, model, optimizer, scheduler, device)    # train the model
+        torch.save(                                         # save a checkpoint of the model and args
             {'model': model.module.state_dict(), 'args': args},
             f'{CHECKPOINT_PATH}pixelsnail_{args.hier}_{str(i + 1).zfill(3)}.pt',
         )
 
     print("Execution Time: %.2f min" % ((time.time() - start_time) / 60))   # print execution time (loading time + training time)
 
-# if __name__ == "__main__":
-#     parser = argparse.ArgumentParser()
-#     parser.add_argument("--batch", type=int, default=256)    # Batch size, depends on your machine
-#     parser.add_argument("--epoch", type=int, default=400)   # Epoch, can be larger (>500) for a better quality
-#     parser.add_argument("--lr", type=float, default=3e-4)   # learning rate
-
-#     args = parser.parse_args()
-#     print(args)
-
-#     main_vqvae(args)
 
 if __name__ == '__main__':
-    # top
+    # VQVAE
+    # parser = argparse.ArgumentParser()
+    # parser.add_argument("--batch", type=int, default=256)   # Batch size, depends on your machine
+    # parser.add_argument("--epoch", type=int, default=400)   # Epoch, can be larger (>500) for a better quality
+    # parser.add_argument("--lr", type=float, default=3e-4)   # learning rate
+
+    # args = parser.parse_args()
+    # print(args)
+
+    # main_vqvae(args)
+
+    # PixelSNAIL
     parser = argparse.ArgumentParser()
-    parser.add_argument('--batch', type=int, default=16)
-    parser.add_argument('--epoch', type=int, default=100)
-    parser.add_argument('--hier', type=str, default='top')
-    parser.add_argument('--lr', type=float, default=3e-4)
-    parser.add_argument('--channel', type=int, default=64)
-    parser.add_argument('--n_res_block', type=int, default=2)
-    parser.add_argument('--n_res_channel', type=int, default=64)
-    parser.add_argument('--n_out_res_block', type=int, default=0)
-    parser.add_argument('--n_cond_res_block', type=int, default=3)
-    parser.add_argument('--dropout', type=float, default=0.1)
-    parser.add_argument('--path', type=str, default=MODEL_PATH)
+    parser.add_argument('--batch', type=int, default=16)            # batch size
+    parser.add_argument('--epoch', type=int, default=100)           # number of epoch
+    parser.add_argument('--hier', type=str, default='top')          # which hierarchy to train (top/bottom)
+    parser.add_argument('--lr', type=float, default=3e-4)           # learning rate
+    parser.add_argument('--channel', type=int, default=64)          # number of channels in the model
+    parser.add_argument('--n_res_block', type=int, default=2)       # number of residual blocks in the model
+    parser.add_argument('--n_res_channel', type=int, default=64)    # number of channels in the residual blocks of the model
+    parser.add_argument('--n_out_res_block', type=int, default=0)   # number of output residual blocks in the model
+    parser.add_argument('--n_cond_res_block', type=int, default=3)  # number of conditional residual blocks in the model (for bottom only)
+    parser.add_argument('--dropout', type=float, default=0.1)       # dropout rate
+    parser.add_argument('--path', type=str, default=MODEL_PATH)     # the path of trained VQVAE model
 
     args = parser.parse_args()
     print(args)
 
     main_pixelsnail(args)
-
-    # bottom
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--batch', type=int, default=16)
-    parser.add_argument('--epoch', type=int, default=100)
-    parser.add_argument('--hier', type=str, default='bottom')
-    parser.add_argument('--lr', type=float, default=3e-4)
-    parser.add_argument('--channel', type=int, default=64)
-    parser.add_argument('--n_res_block', type=int, default=2)
-    parser.add_argument('--n_res_channel', type=int, default=64)
-    parser.add_argument('--n_out_res_block', type=int, default=0)
-    parser.add_argument('--n_cond_res_block', type=int, default=3)
-    parser.add_argument('--dropout', type=float, default=0.1)
-    parser.add_argument('--path', type=str, default=MODEL_PATH)
-
-    args = parser.parse_args()
-    print(args)
-
-    main_pixelsnail(args)
-
