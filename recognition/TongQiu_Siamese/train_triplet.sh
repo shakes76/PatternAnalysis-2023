@@ -15,4 +15,4 @@
 #SBATCH --mail-user=tong.qiu@uqconnect.edu.au
 
 conda activate metadamagenet
-python3 train.py -m Triplet -bs 16 -lr 0.001
+python3 train.py -m Triplet -bs 16 -lr 0.0001
