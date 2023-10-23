@@ -55,6 +55,12 @@ test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, s
 training_losses = []
 validation_losses = []
 
+# Early stopping parameters
+patience = 5
+best_val_loss = float('inf')
+epochs_without_improvement = 0
+
+
 # Training loop for Siamese Network
 for epoch in range(num_epochs):
     model.train()
@@ -94,6 +100,17 @@ for epoch in range(num_epochs):
     # Calculate average validation loss for the epoch
     val_epoch_loss = val_running_loss / len(test_loader)
     validation_losses.append(val_epoch_loss)
+    
+    # Early stopping logic
+    if val_epoch_loss < best_val_loss:
+        best_val_loss = val_epoch_loss
+        epochs_without_improvement = 0
+    else:
+        epochs_without_improvement += 1
+        if epochs_without_improvement == patience:
+            print("Early stopping due to no validation loss improvement.")
+            break
+    
     print(f"Epoch {epoch+1}/{num_epochs}, Training Loss: {epoch_loss:.4f}, Validation Loss: {val_epoch_loss:.4f}")
 
 print("Finished Training Siamese Network")
