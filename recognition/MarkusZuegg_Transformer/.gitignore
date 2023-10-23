@@ -1,3 +1,4 @@
 /Data
 ViT_PytorchLightning/Data/
 ViT_PytorchLightning/lightning_logs
+/__pycache__
