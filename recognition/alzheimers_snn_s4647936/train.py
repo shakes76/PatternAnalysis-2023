@@ -5,7 +5,8 @@ from dataset import TripletDataset
 from modules import SiameseNetwork, TripletLoss
 from torchvision import transforms
 import torch.optim as optim
-
+from sklearn.decomposition import PCA
+import numpy as np
 
 # Transformations for images
 transform = transforms.Compose([
@@ -62,6 +63,9 @@ for epoch in range(num_epochs):
     print(f"Epoch {epoch+1}/{num_epochs}, Loss: {epoch_loss:.4f}")
 
 print("Finished Training")
+
+# Save the model's parameters
+torch.save(model.state_dict(), "siamese_model.pth")
 
 # --------- Begin Validation/Testing ---------
 model.eval()  # set the model to evaluation mode
@@ -135,3 +139,36 @@ def save_image(img, filename):
 save_image(anchor, 'anchor_sample.png')
 save_image(positive, 'positive_sample.png')
 save_image(negative, 'negative_sample.png')
+
+
+# --------- Visualize Embeddings ---------
+# Extract embeddings and labels
+all_embeddings = []
+all_labels = []
+
+# Assuming you have two classes: AD and NC. Let's assign them numeric labels.
+# AD: 0, NC: 1
+with torch.no_grad():
+    for idx, (anchor, _, _) in enumerate(loader):
+        anchor = anchor.to(device)
+        embedding, _ = model(anchor, anchor)
+        all_embeddings.append(embedding.cpu().numpy())
+        
+        # Assign labels based on paths. You can adjust this based on your dataset setup.
+        if idx < len(train_dataset.ad_paths):
+            all_labels.extend([0] * anchor.size(0))  # AD
+        else:
+            all_labels.extend([1] * anchor.size(0))  # NC
+
+all_embeddings = np.concatenate(all_embeddings)
+
+# Reduce dimensionality using PCA
+pca = PCA(n_components=2)
+embeddings_2d = pca.fit_transform(all_embeddings)
+
+# Plot
+plt.figure()
+plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1], c=all_labels, cmap='jet', alpha=0.5)
+plt.colorbar()
+plt.title('2D PCA of Embeddings')
+plt.savefig('embeddings_pca.png')
