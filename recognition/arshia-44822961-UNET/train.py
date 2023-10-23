@@ -179,6 +179,10 @@ def load_data(img_path, labels_path, transform, batch_size):
 
     return train_loader, val_loader
 
+"""
+Driver method to train model and plot losses.
+
+"""
 if __name__ == "__main__":
     # connect to gpu
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
