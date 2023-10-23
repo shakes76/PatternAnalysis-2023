@@ -1,6 +1,7 @@
 '''Shows example usage of trained model. Print out any results and/ or provide visualisations where applicable'''
 import matplotlib.pyplot as plt
 import torch
+from torchvision import transforms
 
 # Plotting data
 def show_plot(iteration,loss):
@@ -43,3 +44,28 @@ def classify_pair(score, threshold):
     
     classification = 1 if score < threshold else 0
     return classification
+
+
+def visual_pred_dis(idx,x0,x1,x0label,x1label,euclidean_distance,predict_class):
+    Prediction = ['Different', 'Same']
+
+    plt.clf()
+    plt.subplot(2, 8, 1)
+    plt.title(int(x0label))
+    x0_pic = transforms.ToPILImage()(x0[0])
+    plt.axis('off')
+    plt.imshow(x0_pic, cmap='gray')
+
+    plt.subplot(2,8,2)
+    plt.title(f'Dissimilarity: {euclidean_distance.item():.2f}\nClass predicted: {Prediction[predict_class]} ')
+    plt.axis('off')
+
+
+
+    plt.subplot(2, 8, 3)
+    plt.title(int(x1label))
+    x1_pic = transforms.ToPILImage()(x1[0])
+    plt.axis('off')
+    plt.imshow(x1_pic, cmap='gray')
+
+    plt.savefig(f'/home/Student/s4653241/MRI/Test_pic/test{idx}')

@@ -62,20 +62,11 @@ def load_checkpoint(path):
     return model,optimizer,epoch,counter,loss,iteration
 
 def main():
-    # transform = transforms.Compose([
-    #     transforms.Grayscale(num_output_channels=1),  # Convert to grayscale with one channel
-    #     transforms.Resize((120,128)),  # img_size should be a tuple like (128, 128) actual img(256x240)
-    #     transforms.ToTensor(),
-    #     # You can add more transformations if needed
-    # ])
+    
     training_transform = dataset.get_transform()
     raw_dataset = datasets.ImageFolder(root=TRAIN_PATH)
     siamese_dataset = SiameseNetworkDataset1(raw_dataset, training_transform )
-    # Create a simple dataloader just for simple visualization
-    # training_dataloader = DataLoader(siamese_dataset,
-    #                         shuffle=True,
-    #                         num_workers=1,
-    #                         batch_size=16)
+
     training_dataloader = dataset.get_dataloader(siamese_dataset,BATCH_SIZE,True)
 
     dataset.visualise_batch(training_dataloader)
@@ -160,16 +151,9 @@ def main():
         x0, _, _,x0label,_ = next(dataiter)
     
         postive_prediction = 0
-        Prediction = ['Different', 'Same']
-        # Debugging 
-        counter_same_but_wrong = 0
-        counter_wrong_but_same = 0
-        Neg_Neg = []
-        Neg_Pos = []
-
+        
         for i in range(TEST_RANGE):
-            # print(f'Iteration: {i}')
-            PRINTING = True
+            
             # Iterate over 10 images and test them with the first image (x0)
             _, x1, label2,_,x1label = next(dataiter)
             
@@ -178,59 +162,21 @@ def main():
                 output1, output2 = model(x0.cuda(), x1.cuda())
             euclidean_distance = F.pairwise_distance(output1, output2)
            
-            
             predict_class = predict.classify_pair(euclidean_distance.item(),THRESHOLD) # Threshold
 
             if predict_class == 1 and int(x0label) == int(x1label):
     
                 postive_prediction+=1
-                PRINTING = False
+                
                 
             if predict_class != 1 and int(x0label) != int(x1label):
 
                 postive_prediction+=1
-                PRINTING = False
-            if PRINTING:
-                print(f'Euclidean_distance: {euclidean_distance}') # Debugging Code
-                print(f'x0 label: {int(x0label)}, x1 label: {int(x1label)}')
-                print(f'Class predicted: {Prediction[predict_class]}')
                 
-                rounded_distance = round(float(euclidean_distance.item()), 1)
-
-                if predict_class == 1 and int(x0label) != int(x1label):
-                    counter_same_but_wrong += 1
-                    if rounded_distance != 0.0:
-                        Neg_Neg.append(rounded_distance)
-
-                    
+            
+            if VISUALISE:
                 
-                if predict_class != 1 and int(x0label) == int(x1label):
-                    counter_wrong_but_same += 1
-                    
-                    if rounded_distance != 1:
-                        Neg_Pos.append(rounded_distance)
-
-            if PRINTING and VISUALISE:
-                plt.clf()
-                plt.subplot(2, 8, 1)
-                plt.title(int(x0label))
-                x0_pic = transforms.ToPILImage()(x0[0])
-                plt.axis('off')
-                plt.imshow(x0_pic, cmap='gray')
-                
-                plt.subplot(2,8,2)
-                plt.title(f'Dissimilarity: {euclidean_distance.item():.2f}\nClass predicted: {Prediction[predict_class]} ')
-                plt.axis('off')
-                
-
-
-                plt.subplot(2, 8, 3)
-                plt.title(int(x1label))
-                x1_pic = transforms.ToPILImage()(x1[0])
-                plt.axis('off')
-                plt.imshow(x1_pic, cmap='gray')
-               
-                plt.savefig(f'/home/Student/s4653241/MRI/Test_pic/test{i}')
+                predict.visual_pred_dis(i,x0,x1,x0label,x1label,euclidean_distance,predict_class)
             
         
         Accuracy = postive_prediction/TEST_RANGE
