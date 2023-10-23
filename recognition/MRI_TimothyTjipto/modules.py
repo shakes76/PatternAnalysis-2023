@@ -1,22 +1,10 @@
 '''Source code of the components of your model. Each component must be
 implementated as a class or a function
 '''
-import matplotlib.pyplot as plt
-import numpy as np
-import random
-from PIL import Image
-import PIL.ImageOps
-from datetime import datetime
 
-import torchvision
-import torchvision.datasets as datasets
-import torchvision.transforms as transforms
-from torch.utils.data import DataLoader, Dataset
-import torchvision.utils
+# Importing necessary libraries and modules
 import torch
-from torch.autograd import Variable
 import torch.nn as nn
-from torch import optim
 import torch.nn.functional as F
 
 
