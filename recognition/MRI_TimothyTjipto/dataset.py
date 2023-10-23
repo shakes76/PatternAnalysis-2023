@@ -1,5 +1,6 @@
 '''Data loader for loading and preprocessing data'''
 
+# Importing necessary libraries and modules
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,7 +11,9 @@ import random
 
 def get_transform():
     """
-    Returns a composed transformation for datasets.
+        Returns a composed transform for preprocessing images.
+    Returns:
+        torchvision.transforms.Compose: A composed transform for preprocessing images.
     """
     transform = transforms.Compose([
         transforms.Grayscale(num_output_channels=1),  # Convert to grayscale with one channel
@@ -21,6 +24,19 @@ def get_transform():
     return transform
 
 def get_dataloader(dataset, batch_size = 16, shuffle=True):
+    """
+    Returns a DataLoader for the given dataset.
+
+    This function creates and returns a DataLoader for the provided dataset with the specified batch size and shuffling option.
+
+    Parameters:
+    - dataset (Dataset): The dataset for which the DataLoader is to be created.
+    - batch_size (int, optional): The number of samples per batch. Default is 16.
+    - shuffle (bool, optional): Whether to shuffle the dataset before splitting into batches. Default is True.
+
+    Returns:
+    - DataLoader: A DataLoader object for the given dataset with the specified parameters.
+    """
     v_dataloader = DataLoader(dataset,
                             shuffle=shuffle,
                             num_workers=1,
@@ -30,6 +46,12 @@ def get_dataloader(dataset, batch_size = 16, shuffle=True):
 
 
 def visualise_1(dataset):
+    """
+    Plots a random image in the dataset
+
+    Args:
+        dataset (Dataset): Dataset which the random image will be picked
+    """
     img,lab = random.choice(dataset)
     plt.title(lab)
     plt.imshow(img)
@@ -39,6 +61,12 @@ def visualise_1(dataset):
 
     
 def visualise_batch(dataloader):
+    """
+    Plots a batch of images from the dataloader
+
+    Args:
+        dataloader (Dataloader): Dataset which a batch will be taken to be plotted.
+    """
     LABELS = ['POS','NEG']
 
     example_batch = iter(dataloader)
@@ -68,11 +96,29 @@ def visualise_batch(dataloader):
 
 
 class SiameseNetworkDataset1(Dataset):
+    """    
+    A dataset class for creating pairs of images for Siamese networks.
+
+    Args:
+        Dataset (torchvision.datasets.ImageFolder): A dataset object containing images and their labels.
+        transform (torchvision.transforms): A function/transform that takes in an image and returns a transformed version. 
+                                        Default is None.
+    """
     def __init__(self,imageFolderDataset,transform=None):
+        
         self.imageFolderDataset = imageFolderDataset
         self.transform = transform
 
     def __getitem__(self,index):
+        """
+        Returns a pair of images and a label indicating if they belong to the same class.
+
+        Args:
+            index (int): Index (ignored)
+
+        Returns:
+            tuple:  A tuple containing two images and a label
+        """
         img0_tuple = random.choice(self.imageFolderDataset.imgs)
 
         #We need to approximately 50% of images to be in the same class
@@ -108,11 +154,28 @@ class SiameseNetworkDataset1(Dataset):
 
 
 class SiameseNetworkDataset_test(Dataset):
+    """    
+    A test dataset class for creating pairs of images for Siamese networks.
+
+    Args:
+        Dataset (torchvision.datasets.ImageFolder): A dataset object containing images and their labels.
+        transform (torchvision.transforms): A function/transform that takes in an image and returns a transformed version. 
+                                        Default is None.
+    """
     def __init__(self,imageFolderDataset,transform=None):
         self.imageFolderDataset = imageFolderDataset
         self.transform = transform
 
     def __getitem__(self,index):
+        """
+        Returns a pair of images, a label indicating if they belong to the same class and labels of images.
+
+        Args:
+            index (int): Index (ignored in this implementation as images are chosen randomly).
+
+        Returns:
+            tuple: A tuple containing two images, a label (1 if the images are from different classes, 0 otherwise) and 2 labels of the respective images.
+        """
         img0_tuple = random.choice(self.imageFolderDataset.imgs)
 
         #We need to approximately 50% of images to be in the same class
@@ -144,4 +207,10 @@ class SiameseNetworkDataset_test(Dataset):
         return img0, img1, torch.from_numpy(np.array([int(img1_tuple[1] != img0_tuple[1])], dtype=np.float32)), img0_tuple[1],img1_tuple[1]
 
     def __len__(self):
+        """
+        Returns the total number of images in the dataset.
+
+        Returns:
+            int: Total number of images in the dataset.
+        """
         return len(self.imageFolderDataset.imgs)
