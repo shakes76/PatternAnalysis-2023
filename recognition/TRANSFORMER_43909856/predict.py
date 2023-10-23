@@ -61,5 +61,5 @@ with torch.no_grad():
 end_time = time.time()
 elapsed_time = end_time - start_time
 print(f"Test accuracy: {(100 * correct) / total} %")
-print(f"Training finished. Training took {elapsed_time} seconds ({elapsed_time/60} minutes)")
+print(f"Testing finished. Testing took {elapsed_time} seconds ({elapsed_time/60} minutes)")
 

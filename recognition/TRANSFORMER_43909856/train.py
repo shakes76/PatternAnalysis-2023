@@ -3,6 +3,7 @@ import os.path as osp
 import torch
 import torch.nn as nn
 import time
+import numpy as np
 
 import dataset
 import modules
@@ -69,6 +70,9 @@ scheduler = torch.optim.lr_scheduler.OneCycleLR(optimiser, max_lr=LEARNING_RATE,
 # TODO ViT paper uses a different kind of LR scheduler - may want to try this
 
 
+# Store the epoch, step, & loss value for the model at this epoch & step
+train_loss_values = []
+
 # Train the model:
 model.train()
 print("Training has started")
@@ -93,11 +97,12 @@ for epoch in range(N_EPOCHS):
         loss.backward()
         optimiser.step()
         
-        # Print the training metrics for every 20 images, and at the end of each epoch
+        # Print/log the training metrics for every 20 images, and at the end of each epoch
         if (i+1) % 20 == 0 or i+1 == total_step:
             print(f"Epoch [{epoch+1}/{N_EPOCHS}] Step [{i+1}/{total_step}] " +
                   f"Training loss: {round(loss.item(), 5)}")
-            
+            train_loss_values += [[epoch+1, i+1, round(loss.item(), 5)]]
+
         # Step through the learning rate scheduler
         scheduler.step()
 
@@ -114,4 +119,8 @@ if not osp.isdir(output_path):
 
 # Save the model
 torch.save(model.state_dict(), osp.join(output_path, "ViT_ADNI_model.pt"))
+
+# Save the training loss values
+np.savetxt(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'output', 
+                        'ADNI_train_loss.csv'), np.asarray(train_loss_values))
 
