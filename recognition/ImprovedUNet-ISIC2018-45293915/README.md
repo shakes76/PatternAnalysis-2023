@@ -1,16 +1,16 @@
 # Improved U-Net for ISIC 2018 Skin Lesion Segmentation
 
-This repository contains the code for the Improved U-Net model for the ISIC 2018 Skin Lesion Segmentation challenge (https://challenge.isic-archive.com/data/#2018). The model was trained on the ISIC 2018 dataset, which contains 2594 dermoscopic images of skin lesions. The model was trained on a single NVIDIA Tesla T4 GPU with 16GB of VRAM. The model was trained for 100 epochs, with a batch size of 8. The model was trained using the Adam optimiser with a learning rate of 0.0001. The model achieved a dice coefficient of 0.85 on the test set.
+This repository contains the code for the Improved U-Net model for the ISIC 2018 Skin Lesion Segmentation challenge (https://challenge.isic-archive.com/data/#2018). The model was trained on the ISIC 2018 dataset, which contains 2594 dermoscopic images of skin lesions. The model was trained on a single NVIDIA RTX 3080. The model was trained for 5 epochs, with a batch size of 2. The model was trained using the Adam optimiser with a learning rate of 0.0005. The model achieved a dice coefficient of 0.81 on the test set.
 
 ## Architecture Description
 
-The Improved U-Net is a cutting-edge neural network architecture which can be tailored for biomedical image segmentation tasks. Originally inspired by the U-Net architecture, this version boasts enhancements that further optimize its accuracy and performance. The algorithm effectively addresses the problem of segmenting skin lesions from dermoscopic images, a crucial step in early skin cancer detection.
+The Improved U-Net is a cutting-edge neural network architecture which can be tailored for biomedical image segmentation tasks. Originally inspired by the U-Net architecture, this version boasts enhancements that further optimise its accuracy and performance. The algorithm effectively addresses the problem of segmenting skin lesions from dermoscopic images, a crucial step in early skin cancer detection.
 
 ## How It Works
 
 ### Upsampling the Feature Maps:
 
-- The first step in the localization module is to upsample the feature maps coming from the deeper layers (lower spatial resolution) to a higher spatial resolution.
+- The first step in the localisation module is to upsample the feature maps coming from the deeper layers (lower spatial resolution) to a higher spatial resolution.
 - Instead of directly using a transposed convolution, the Improved U-Net often employs a simpler upscale mechanism. This could involve just doubling each pixel value or using a simple bilinear or nearest-neighbor interpolation.
 - After the upscale, a 2D convolution is applied. This helps in refining the upsampled feature maps and can reduce the number of feature channels (if required).
 
@@ -82,9 +82,9 @@ For the image segmentation task, a series of data pre-processing steps were perf
 
 - **Color Mode:** The color mode for the input images was set to `image_mode`, which is typically 'rgb' for full-color images.
 
-- **Resizing:** To ensure consistency, all input images were resized to a common dimension of `image_height` pixels in height and `image_width` pixels in width (e.g., 512x512 pixels).
+- **Resising:** To ensure consistency, all input images were resised to a common dimension of `image_height` pixels in height and `image_width` pixels in width (e.g., 512x512 pixels).
 
-- **Normalization:** Normalization was applied to the input images by rescaling their pixel values to have zero mean and unit variance. This was done using the formula `rescale=1.0 / 255`.
+- **Normalisation:** Normalisation was applied to the input images by rescaling their pixel values to have zero mean and unit variance. This was done using the formula `rescale=1.0 / 255`.
 
 - **Data Augmentation:** Data augmentation techniques were employed to increase the diversity of the training dataset. Augmentation options included shear transformations with a range of `shear_range`, zooming transformations within `zoom_range`, horizontal flips (`horizontal_flip`), and vertical flips (`vertical_flip`). These augmentations help the model generalize better to different variations of the input data.
 
@@ -94,9 +94,9 @@ For the image segmentation task, a series of data pre-processing steps were perf
 
 - **Color Mode:** The color mode for the ground truth masks was set to `mask_mode`, which is typically 'grayscale' for binary masks.
 
-- **Resizing:** Similar to the input images, the ground truth masks were resized to the same dimensions of `image_height` pixels in height and `image_width` pixels in width (e.g., 512x512 pixels).
+- **Resising:** Similar to the input images, the ground truth masks were resised to the same dimensions of `image_height` pixels in height and `image_width` pixels in width (e.g., 512x512 pixels).
 
-Overall, these pre-processing steps ensured that both input images and ground truth masks were appropriately sized, normalized, and augmented for training and validation of the image segmentation model.
+Overall, these pre-processing steps ensured that both input images and ground truth masks were appropriately sized, normalised, and augmented for training and validation of the image segmentation model.
 
 **References**:
 - https://arxiv.org/pdf/1802.10508v1.pdf
