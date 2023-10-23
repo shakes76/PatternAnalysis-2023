@@ -62,7 +62,7 @@ def inference(model: VQVAE,
 
         save_image(
             torch.cat([sample, out], 0),            # concatenates sequence in dimension 0
-            f"{GENERATED_IMG_PATH}rec_{str(i).zfill(5)}.png",   # file name
+            f"{GENERATED_IMG_PATH}rec_{str(sample_size).zfill(5)}.png",   # file name
             nrow=sample_size,                       # number of samples
             normalize=True,                         # normalize
             range=(-1, 1),                          # range of data
@@ -184,12 +184,12 @@ def main(args):
         model_top = load_model('top', MODEL_TOP_PATH)           # load a trained PixelSNAIL model (top)
         model_bottom = load_model('bottom', MODEL_BOTTOM_PATH)  # load a trained PixelSNAIL model (bottom)
         
-        top_sample = sample_model(model_top, args.batch, [32, 32], args.temp)                               # get the code of top-hier
-        bottom_sample = sample_model(model_bottom, args.batch, [64, 64], args.temp, condition=top_sample)   # get the code of bottom-hier
+        top_sample = sample_model(model_top, args.sample_size, [32, 32], args.temp)                               # get the code of top-hier
+        bottom_sample = sample_model(model_bottom, args.sample_size, [64, 64], args.temp, condition=top_sample)   # get the code of bottom-hier
         decoded_sample = model_vqvae.decode_code(top_sample, bottom_sample)                                 # converte code to image
         decoded_sample = decoded_sample.clamp(-1, 1)                                                        # clamps to valid pixel values
 
-        save_image(decoded_sample, f"{GENERATED_IMG_PATH}gen.png", normalize=True, range=(-1, 1))           # save image
+        save_image(decoded_sample, f"{GENERATED_IMG_PATH}gen_{str(args.sample_size).zfill(5)}.png", normalize=True, range=(-1, 1))           # save image
 
     else:                           # encode and reconstruct images
         # Data
@@ -208,10 +208,9 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--sample_size", type=int, default=10)  # number of sample imgs to show
+    parser.add_argument("--sample_size", type=int, default=5)  # number of sample imgs to show
     parser.add_argument("--generate", type=bool, default=True)  # Generate or reconstructure
     parser.add_argument("--verbose", type=bool, default=False)  # print info of each img
-    parser.add_argument('--batch', type=int, default=8)         # batch size
     parser.add_argument('--temp', type=float, default=1.0)      # temperature
 
     args = parser.parse_args()
