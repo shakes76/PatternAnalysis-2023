@@ -106,9 +106,16 @@ transform_train = transforms.Compose([
     transforms.Normalize((0.11550809, 0.11550809, 0.11550809), (0.22545652, 0.22545652, 0.22545652)),
 ])
 
-print("> Getting triplet train set")
-triplet_trainset = CustomTripletSiameseNetworkDataset(root_dir=Config.training_dir, transform=transform_train)
+transform_train_cropped = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.11550809, 0.11550809, 0.11550809), (0.22545652, 0.22545652, 0.22545652)),
+    transforms.RandomCrop((240, 256), padding=10, fill=0),
+])
 
+print("> Getting triplet train set")
+triplet_trainset0 = CustomTripletSiameseNetworkDataset(root_dir=Config.training_dir, transform=transform_train)
+triplet_trainset_cropped = CustomTripletSiameseNetworkDataset(root_dir=Config.training_dir, transform=transform_train_cropped)
+triplet_trainset = utils.ConcatDataset([triplet_trainset0, triplet_trainset_cropped])
 # # Calculate the lengths of the splits for training and validation sets
 # total_len = len(triplet_trainset)
 # train_len = int(0.8 * total_len)
@@ -123,7 +130,9 @@ triplet_train_loader = torch.utils.data.DataLoader(triplet_trainset, batch_size=
 print("< Finished getting triplet train set")
 
 print("> Getting train and validation set")
-trainset = datasets.ImageFolder(root=Config.training_dir, transform=transform_train)
+trainset0 = datasets.ImageFolder(root=Config.training_dir, transform=transform_train)
+cropped_trainset = datasets.ImageFolder(root=Config.training_dir, transform=transform_train_cropped)
+trainset = utils.ConcatDataset([trainset0, cropped_trainset])
 train_loader = torch.utils.data.DataLoader(trainset, batch_size=Config.train_batch_size, shuffle=True)
 # Calculate the lengths of the splits
 total_len = len(trainset)

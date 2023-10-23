@@ -109,12 +109,12 @@ print("Siamese Triplet Training took " + str(elapsed) + " secs or " + str(elapse
 
 # Set the model to evaluation mode
 model.eval()
-
 # Save the parameters into a file
-# torch.save(model.state_dict(), "siamese_model.pt")
+# torch.save(model.state_dict(), "siamese_model3.pt")
 # print("Model Saved Successfully")
 os.environ['KMP_DUPLICATE_LIB_OK']='TRUE'
 # print("\n> Loading from parameter file")
+torch.cuda.empty_cache()
 
 #/home/Student/s4533021/siamese_model.pt
 # C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\siamese_model.pt
