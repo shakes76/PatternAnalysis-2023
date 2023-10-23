@@ -35,7 +35,7 @@ From looking at the values of the loss over the different epochs it appears that
 Currently the classifier network classifies the test set with 71.27% accuracy but achieves 98% accuracy on the validation set. This is indicative of over-fitting of the model and possible data leakage during training.
 
 ## Data Preprocessing
-The images are converted to the RGB space and normalized using a calculated set of mean and standard deviation values. The data is transformed into tensors using PyTorch's transforms library.
+The images are converted to the RGB space and normalized using a calculated set of mean and standard deviation values. The data is transformed into tensors using PyTorch's transforms library. To generalise the data further, a random crop dataset is concatonated to the original dataset.
 
 ### Data Splits
 The total dataset is divided into 70% training and 30% testing sets. This training set it then split into 80% used for training and 20% used for validation. This split ensures that the model is trained on a diverse set of data and generalizes well to unseen data.
