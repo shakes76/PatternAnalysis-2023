@@ -149,6 +149,7 @@ def main_vqvae(args):
     start_time = time.time()        # tracking execution time
 
     # Data
+    print("---- VQVAE ----")
     print("Loading Data...")
     trainloader, _ = load_data(batch_size=args.batch, test=False)   # get dataloader
 
@@ -173,6 +174,7 @@ def main_pixelsnail(args):
     start_time = time.time()        # tracking execution time
     
     # Data
+    print("---- PixelSNAIL ----")
     print("Loading Data...")
     trainloader, _ = load_data(batch_size=args.batch, test=False)    # get dataloader
 
@@ -228,32 +230,24 @@ def main_pixelsnail(args):
 
 
 if __name__ == '__main__':
-    # VQVAE
     parser = argparse.ArgumentParser()
-    parser.add_argument("--batch", type=int, default=256)   # Batch size, depends on your machine
-    parser.add_argument("--epoch", type=int, default=400)   # Epoch, can be larger (>500) for a better quality
-    parser.add_argument("--lr", type=float, default=3e-4)   # learning rate
+    
+    parser.add_argument('--batch', type=int, default=16)            # batch size
+    parser.add_argument('--epoch', type=int, default=100)           # number of epoch
+    parser.add_argument('--hier', type=str, default=None)           # which hierarchy to train (None/top/bottom)
+    parser.add_argument('--lr', type=float, default=3e-4)           # learning rate
+    parser.add_argument('--channel', type=int, default=64)          # number of channels in the model
+    parser.add_argument('--n_res_block', type=int, default=2)       # number of residual blocks in the model
+    parser.add_argument('--n_res_channel', type=int, default=64)    # number of channels in the residual blocks of the model
+    parser.add_argument('--n_out_res_block', type=int, default=0)   # number of output residual blocks in the model
+    parser.add_argument('--n_cond_res_block', type=int, default=3)  # number of conditional residual blocks in the model (for bottom only)
+    parser.add_argument('--dropout', type=float, default=0.1)       # dropout rate
+    parser.add_argument('--path', type=str, default=MODEL_PATH)     # the path of trained VQVAE model
 
     args = parser.parse_args()
     print(args)
 
-    main_vqvae(args)
-
-    # PixelSNAIL
-    # parser = argparse.ArgumentParser()
-    # parser.add_argument('--batch', type=int, default=16)            # batch size
-    # parser.add_argument('--epoch', type=int, default=100)           # number of epoch
-    # parser.add_argument('--hier', type=str, default='top')          # which hierarchy to train (top/bottom)
-    # parser.add_argument('--lr', type=float, default=3e-4)           # learning rate
-    # parser.add_argument('--channel', type=int, default=64)          # number of channels in the model
-    # parser.add_argument('--n_res_block', type=int, default=2)       # number of residual blocks in the model
-    # parser.add_argument('--n_res_channel', type=int, default=64)    # number of channels in the residual blocks of the model
-    # parser.add_argument('--n_out_res_block', type=int, default=0)   # number of output residual blocks in the model
-    # parser.add_argument('--n_cond_res_block', type=int, default=3)  # number of conditional residual blocks in the model (for bottom only)
-    # parser.add_argument('--dropout', type=float, default=0.1)       # dropout rate
-    # parser.add_argument('--path', type=str, default=MODEL_PATH)     # the path of trained VQVAE model
-
-    # args = parser.parse_args()
-    # print(args)
-
-    # main_pixelsnail(args)
+    if not args.hier:
+        main_vqvae(args)
+    else:
+        main_pixelsnail(args)

@@ -1,5 +1,5 @@
 # Generative model of OASIS brain dataset using a VQ-VAE-2
-Create a generative model of OASIS brain using a VQ-VAE-2 that has a reasonably clear image and a SSIM of over 0.6.
+Create a generative model of the OASIS brain using a VQ-VAE-2 that has a reasonably clear image and an SSIM of over 0.6.
 
 This implementation trains a VQ-VAE based on convolutional layers and uses a PixelSNAIL prior to generate images.
 
@@ -11,32 +11,32 @@ VQ-VAE-2 (Vector Quantized Variational Autoencoder 2) is a generative model buil
 
 1. **Hierarchical Encoding** - Usually, there are two levels of encoders. The first encoder produces a set of "top" latent codes, and the second encoder produces a set of "bottom" latent codes
 
-2. **Vector Quantization** - Each encoder's output goes through a vector quantization process. The continuous embedding from the encoders are quantized into discrete values. The discrete values are chosen from a predefined codebook.
+2. **Vector Quantization** - Each encoder's output goes through a vector quantization process. The continuous embeddings from the encoders are quantized into discrete values. The discrete values are chosen from a predefined codebook.
 
 3. **Hierarchical Decoding** - A combination of top latent codes and bottom latent codes is fed to the decoder to reconstruct the image.
 
-A diagram of this model is shown below [1]
+A diagram of this model is shown below [1].
 
 ![Alt text](readme_assets/vqvae2_arch.png)
 
 ### PixelSNAIL model
-PixelSNAIL is a generative model builds upon PixelCNN. It use autoregressive neurol networks to generate data pixel-by-pixel. And use self-attention mechanism to capture long-range dependencies in the data. It's often used in conjunction with other models like VQ-VAE-2. 
+PixelSNAIL is a generative model builds upon PixelCNN. It uses autoregressive neural networks to generate data pixel-by-pixel in a raster scan order. By masking the convolutions, each pixel can only access information from earlier positions. It uses a self-attention mechanism to capture long-range dependencies in the data. It's often used in conjunction with other models like VQ-VAE-2, as PixelSNAIL can generate lower-level details based on higher-level latent codes.
 
-A diagram of this model is shown below [2]
+A diagram of this model is shown below [2].
 
 ![Alt text](readme_assets/pixelsnail_blocks.png)
 ![Alt text](readme_assets/pixelsnail_arch.png)
 
 ## Dataset
-The OASIS brain dataset is provided by course. It contains 9664 training images, 1120 validation images and 544 test images.
+The OASIS brain dataset is provided by the course. It contains 9664 training images, 1120 validation images and 544 test images.
 
-The size of these images are 256x256 and are greyscale with pixel values ranging from 0 to 255. Below are some training samples from the training data set
+The size of these images is 256x256 and are greyscale with pixel values ranging from 0 to 255. 
+
+Below are some training samples from the training data set.
 
 ![Alt text](readme_assets/oasis_sample.png)
 
-## Inplementation
-### Modules
-
+## Implementation
 ### Dependencies
 * python = 3.10.12
 * pytorch = 2.0.1
@@ -49,22 +49,35 @@ The size of these images are 256x256 and are greyscale with pixel values ranging
 
 ### Usage
 Training:
+
+Add your dataset path into dataset.py.
+
+Run the following command to train the models (VQVAE, PixelSNAIL-top, PixelSNAIL-bottom).
+
 ```bash
-$ python3 train.py
+$ python train.py --batch 64
+$ python train.py --hier top
+$ python train.py --hier bottom
 ```
 Predicting:
+
+Run the following command to reconstruct images (with SSIM) & generate images.
+
+Images will be saved to "predict/".
+
 ```bash
-$ python3 predict.py
+$ python predict.py
+$ python predict.py --generate True
 ```
 
 ## Results
 ### Reconstructure results
-The original and reconstructed images by the VQ-VAE-2 model achieved an average SSIM of 97%. Visually the overall structure of the reconstructed images clearly resemble the original images. Below are some examples of reconstruction, with original images from the test set at the top, and respective reconstructions at the bottom
+The original and reconstructed images by the VQ-VAE-2 model achieved an average SSIM of 97%. Visually the overall structures of the reconstructed images clearly resemble the original images. Below are some examples of reconstruction, with original images from the test set at the top, and respective reconstructions at the bottom.
 
 ![Alt text](readme_assets/rec_00010.png)
 
 ### Generation results
-The PixelSNAIL model has been used in conjunction with the VQ-VAE-2 model to generate images of brain. Below are some examples of generated images
+The PixelSNAIL model has been used in conjunction with the VQ-VAE-2 model to generate images of brains. Below are some examples of generated images.
 
 ![Alt text](readme_assets/gen_00008.png)
 

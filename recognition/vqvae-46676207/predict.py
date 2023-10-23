@@ -14,10 +14,10 @@ from dataset import load_data
 from modules import VQVAE, PixelSNAIL
 
 # IO Paths
-GENERATED_IMG_PATH = 'predict/'                 # path to save the generated images
-MODEL_VQVAE_PATH = './vqvae2.pt'                # trained VQVAE model
-MODEL_TOP_PATH = './pixelsnail_top.pt'          # trained PixelSNAIL model (top)
-MODEL_BOTTOM_PATH = './pixelsnail_bottom.pt'    # trained PixelSNAIL model (bottom)
+GENERATED_IMG_PATH = 'predict/'                             # path to save the images
+MODEL_VQVAE_PATH = 'checkpoint/vqvae_400.pt'                # trained VQVAE model
+MODEL_TOP_PATH = 'checkpoint/pixelsnail_top_100.pt'         # trained PixelSNAIL model (top)
+MODEL_BOTTOM_PATH = 'checkpoint/pixelsnail_bottom_100.pt'   # trained PixelSNAIL model (bottom)
 
 # Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # use gpu when cuda is available
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument("--sample_size", type=int, default=5)  # number of sample imgs to show
-    parser.add_argument("--generate", type=bool, default=True)  # Generate or reconstructure
+    parser.add_argument("--generate", type=bool, default=False)  # Generate or reconstructure
     parser.add_argument("--verbose", type=bool, default=False)  # print info of each img
     parser.add_argument('--temp', type=float, default=1.0)      # temperature
 
