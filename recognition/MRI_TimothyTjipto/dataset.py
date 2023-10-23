@@ -27,21 +27,6 @@ def get_dataloader(dataset, batch_size = 16, shuffle=True):
                             batch_size=batch_size)
     return v_dataloader
 
-# Pairs up dataset
-class PairDataset(Dataset):
-    def __init__(self,dataset1,dataset2, label):
-        self.dataset1 = dataset1
-        self.dataset2 = dataset2
-        self.label = label
-
-    def __len__(self):
-        return min(len(self.dataset1), len(self.dataset2))
-    
-    def __getitem__(self, index):
-        img1,_ = self.dataset1[index]
-        img2,_ = self.dataset2[index]
-
-        return img1, img2, self.label
 
 
 def visualise_1(dataset):
