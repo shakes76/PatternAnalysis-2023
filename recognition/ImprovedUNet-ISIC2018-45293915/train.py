@@ -10,14 +10,14 @@ import time
 import modules as layers
 from dataset import DataLoader
 from utils import dice_coefficient, dice_loss, DiceCoefficientCallback, plot_accuracy_loss, save_dice_coefficient_plot
-from visualise import test_visualise_model_predictions
+from visualise import validate_and_visualise_predictions
 
 # string modifier for saving output files based on time
 timestr = time.strftime("%Y%m%d-%H%M%S")
 output_dir = "output"
 
 # Constants related to training
-EPOCHS = 1
+EPOCHS = 2
 LEARNING_RATE = 0.0005
 BATCH_SIZE = 2  # set the batch_size
 IMAGE_HEIGHT = 512  # the height input images are scaled to
@@ -77,17 +77,17 @@ def main():
 
     print("\nPREPROCESSING IMAGES")
     # print number of images in each directory
-    test_data = DataLoader(
+    validation_data = DataLoader(
         validation_dir, validation_groundtruth_dir, image_mode, mask_mode, image_height, image_width, batch_size, seed,
         shear_range, zoom_range, horizontal_flip, vertical_flip, fill_mode)
-    test_data = test_data.create_data_generators()
+    validation_data = validation_data.create_data_generators()
     train_data = DataLoader(
         train_dir, train_groundtruth_dir, image_mode, mask_mode, image_height, image_width, batch_size, seed,
         shear_range, zoom_range, horizontal_flip, vertical_flip, fill_mode)
     train_data = train_data.create_data_generators()
 
     print("\nTRAINING MODEL")
-    model, dice_history = train_model_check_accuracy(train_data, test_data)
+    model, dice_history = train_model_check_accuracy(train_data, validation_data)
     # Save Dice coefficient
     save_dice_coefficient_plot(dice_history, output_dir, timestr)
     # Save the trained model to a file
@@ -96,7 +96,7 @@ def main():
     model.save(f"models/my_model_{timestr}.keras")
 
     print("\nVISUALISING PREDICTIONS")
-    test_visualise_model_predictions(model, test_data, output_dir, timestr, number_of_predictions)
+    validate_and_visualise_predictions(model, validation_data, output_dir, timestr, number_of_predictions)
 
     print("COMPLETED")
     return 0

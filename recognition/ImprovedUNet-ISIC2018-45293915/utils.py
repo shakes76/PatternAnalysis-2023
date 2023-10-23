@@ -61,4 +61,4 @@ def save_dice_coefficient_plot(dice_history, output_dir, timestr):
     plt.ylabel('Dice Coefficient')
     plt.savefig(filename)  # Save the plot as an image
     plt.close()  # Close the figure to release resources
-    print("Dice coefficeint saved as " + filename + ".")
+    print("Dice Coefficient saved as " + filename + ".")

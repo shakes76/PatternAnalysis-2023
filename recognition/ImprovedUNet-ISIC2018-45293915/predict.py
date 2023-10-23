@@ -1,50 +1,61 @@
-import os
 import numpy as np
-import argparse
-from tensorflow import keras
 import matplotlib.pyplot as plt
-from tensorflow.keras.preprocessing import image
+from tensorflow import keras
+import os
 
-def load_and_predict(model_path, input_image_dir, output_dir):
-    # Load the saved model
-    model = keras.models.load_model(model_path, compile=False)
+from utils import dice_coefficient
+from visualise import save_prediction
+from dataset import DataLoader
 
-    # Define input image dimensions
-    input_height = 512
-    input_width = 512
+# Evaluate and visualise model predictions on the validation set.
+def validate_and_visualise_predictions(model, test_data, output_dir, timestr, number_of_predictions):
+    # Initialise variables to calculate statistics
+    total_dice_coefficient = 0.0
+    total_samples = 0
 
-    # Create a list of input image file names
-    input_image_files = os.listdir(input_image_dir)
+    for i, (image_input, mask_truth) in enumerate(test_data):
+        # Predict using the model
+        predictions = model.predict(image_input, steps=1, use_multiprocessing=False)
+        prediction = predictions[0]
+        truth = mask_truth[0]
+        original = image_input[0]
+        probabilities = keras.preprocessing.image.img_to_array(prediction)
+        dice_coeff = dice_coefficient(truth, prediction, axis=None)
 
-    # Create the output directory if it doesn't exist
-    os.makedirs(output_dir, exist_ok=True)
+        # Create a unique filename for each visualisation
+        filename = os.path.join(output_dir, f"visualisation_{i}_{timestr}.png")
 
-    # Loop through input images and make predictions
-    for input_image_file in input_image_files:
-        # Load and preprocess the input image
-        input_image_path = os.path.join(input_image_dir, input_image_file)
-        img = image.load_img(input_image_path, target_size=(input_height, input_width))
-        img_array = image.img_to_array(img)
-        img_array = np.expand_dims(img_array, axis=0) / 255.0  # Normalize the image
+        # Save the visualisation
+        if i < number_of_predictions:
+            save_prediction(original, probabilities, truth, dice_coeff, filename)
 
-        # Make predictions using the model
-        prediction = model.predict(img_array)
+        # Accumulate statistics
+        total_dice_coefficient += dice_coeff
+        total_samples += 1
 
-        # Save the prediction as an image (you can customize this part)
-        prediction_image = np.squeeze(prediction, axis=0)  # Remove the batch dimension
-        prediction_image = (prediction_image * 255).astype(np.uint8)  # Convert to 8-bit image
-        prediction_image_path = os.path.join(output_dir, f"prediction_{input_image_file}")
-        plt.imsave(prediction_image_path, prediction_image, cmap='gray')
 
-        print(f"Saved prediction for {input_image_file} to {prediction_image_path}")
+    # Calculate and print average Dice coefficient for the entire validation set
+    average_dice_coefficient = total_dice_coefficient / total_samples
+    print("Average Dice Coefficient on Validation Set:", average_dice_coefficient)
 
-    print("Prediction complete.")
+    print("Visualisations saved in the 'output' folder.")
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run predictions using a saved model.")
-    parser.add_argument("model_path", type=str, help="Path to the saved model file")
-    parser.add_argument("input_image_dir", type=str, help="Directory containing input images for prediction")
-    parser.add_argument("output_dir", type=str, help="Directory to save prediction results")
-    args = parser.parse_args()
-
-    load_and_predict(args.model_path, args.input_image_dir, args.output_dir)
+    test_dir = "datasets/test_input"
+    test_groundtruth_dir = "datasets/test_groundtruth"
+    image_mode = "rgb"
+    mask_mode = "grayscale"
+    image_height = 512
+    image_width = 512
+    batch_size = 2
+    seed = 45
+    shear_range = 0.1
+    zoom_range = 0.1
+    horizontal_flip = True
+    vertical_flip = True
+    fill_mode = 'nearest'
+    number_of_predictions = 3
+    test_data = DataLoader(
+        test_dir, test_groundtruth_dir, image_mode, mask_mode, image_height, image_width, batch_size, seed,
+        shear_range, zoom_range, horizontal_flip, vertical_flip, fill_mode)
+    test_data = test_data.create_data_generators()
