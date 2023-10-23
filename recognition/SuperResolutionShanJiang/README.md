@@ -52,11 +52,11 @@ To run model testing, do following in `train.py`:
 ### Prediction
 Example usage of this model is shown in `predict.py`. In this file, 10 images from testing daaset are chosen to be downsampled and predicted using the model. For each image, we show the lower resolution version, higher resolution version and prediction in one figure and saved in specified directory. The following figures show an example of the figure. ![prediction figure](./readme_images/prediction.jpeg)
 To run this file, do following in `predict.py`:
-2. Make sure the model has been trained and weights have been saved (see training part).
-3. Make sure the value of `prediction_result_path` at line 17 is the same as `prediction_result_path` defined in `train.py`.
-4. Make sure prediction dataset is well defined in `dataset.py`. (Refer to "Loading dataset" of this doc)
-5. Creat a empty folder in the same directory as the python files to save the example figures. Specify the exact directory of this folder at by altering the value of variable `prediction_result_path` at line 22. Make sure add a "/" at the end of the path, for example: "exact/path/to/the/folder/".
-6. run `predict.py` 
+1. Make sure the model has been trained and weights have been saved (see training part).
+2. Make sure the value of `checkpoint_filepath` at line 17 is the same as `checkpoint_filepath` defined in `train.py`.
+3. Make sure prediction dataset is well defined in `dataset.py`. (Refer to "Loading dataset" of this doc)
+4. Creat a empty folder in the same directory as the python files to save the example figures. Specify the exact directory of this folder at by altering the value of variable `prediction_result_path` at line 22. Make sure add a "/" at the end of the path, for example: "exact/path/to/the/folder/".
+5. run `predict.py` 
 
 
 
