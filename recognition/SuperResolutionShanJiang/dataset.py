@@ -8,6 +8,12 @@ from keras.utils import img_to_array
 from keras.preprocessing import image_dataset_from_directory
 from IPython.display import display
 
+# Reference
+""" Title: Image Super-Resolution using an Efficient Sub-Pixel CNN
+Author: Xingyu Long
+Date: 28/07/2020
+Availability: https://keras.io/examples/vision/super_resolution_sub_pixel/"""
+
 #Set parameters for cropping
 crop_width_size = 256
 crop_height_size = 248

@@ -2,6 +2,13 @@ import tensorflow as tf
 from tensorflow import keras
 from keras import layers
 
+
+# Reference
+""" Title: Image Super-Resolution using an Efficient Sub-Pixel CNN
+Author: Xingyu Long
+Date: 28/07/2020
+Availability: https://keras.io/examples/vision/super_resolution_sub_pixel/"""
+
 def get_model(upscale_factor=4, channels=1):
     """build a super-resolution model
 

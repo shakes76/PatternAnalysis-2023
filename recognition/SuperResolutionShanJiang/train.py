@@ -9,6 +9,12 @@ import os
 import math
 import matplotlib.pyplot as plt
 
+# Reference
+""" Title: Image Super-Resolution using an Efficient Sub-Pixel CNN
+Author: Xingyu Long
+Date: 28/07/2020
+Availability: https://keras.io/examples/vision/super_resolution_sub_pixel/"""
+
 upscale_factor = 4
 loss_plot_path = 'D:/temporary_workspace/comp3710_project/PatternAnalysis_2023_Shan_Jiang/recognition/SuperResolutionShanJiang/loss_plot/'
 
@@ -74,7 +80,7 @@ loss_fn = keras.losses.MeanSquaredError()
 optimizer = keras.optimizers.Adam(learning_rate=0.001)
 
 #Train and validate the model
-epochs = 60
+epochs = 100
 
 model.compile(
     optimizer=optimizer, loss=loss_fn,

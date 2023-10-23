@@ -5,6 +5,12 @@ import PIL
 import numpy as np
 from keras.utils import img_to_array
 
+# Reference
+""" Title: Image Super-Resolution using an Efficient Sub-Pixel CNN
+Author: Xingyu Long
+Date: 28/07/2020
+Availability: https://keras.io/examples/vision/super_resolution_sub_pixel/"""
+
 # downsamples given image by  ratio of given upscale_factor.
 def get_lowres_image(img, upscale_factor):
     return img.resize(

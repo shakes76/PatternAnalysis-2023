@@ -57,6 +57,8 @@ To run this file, do following in `predict.py`:
 3. Make sure prediction dataset is well defined in `dataset.py`. (Refer to "Loading dataset" of this doc)
 4. Creat a empty folder in the same directory as the python files to save the example figures. Specify the exact directory of this folder at by altering the value of variable `prediction_result_path` at line 22. Make sure add a "/" at the end of the path, for example: "exact/path/to/the/folder/".
 5. run `predict.py` 
+### References 
+Long  X. (2020). Image Super-Resolution using an Efficient Sub-Pixel CNN.  https://keras.io/examples/vision/super_resolution_sub_pixel/
 
 
 
