@@ -1,7 +1,6 @@
 '''Source code of the components of your model. Each component must be
 implementated as a class or a function
 '''
-
 # Importing necessary libraries and modules
 import torch
 import torch.nn as nn
@@ -9,6 +8,14 @@ import torch.nn.functional as F
 
 
 class SiameseNetwork(nn.Module):
+    """
+    A Siamese Neural Network that takes in pair of images and returns vectors 
+    for both images in the pair. The vectors are then used to determine the similarity 
+    between the two images.
+
+    Args:
+        nn (torch.nn.Module)): Base class for all neural network modules in PyTorch.
+    """
 
     def __init__(self):
         super(SiameseNetwork, self).__init__()
@@ -56,12 +63,21 @@ class SiameseNetwork(nn.Module):
     
     # Define the Contrastive Loss Function
 class ContrastiveLoss(torch.nn.Module):
+    """
+    Contrastive loss function. Computes the contrastive loss between pairs of samples based on their 
+    distances and labels.
+
+    Args:
+        margin (float): The margin value beyond  which the loss will not incease.
+                        It acts as a threshold to separate positive and negative pairs.
+                        Default is 2.0.
+    """
     def __init__(self, margin=2.0):
         super(ContrastiveLoss, self).__init__()
         self.margin = margin
 
     def forward(self, output1, output2, label):
-      # Calculate the euclidean distance and calculate the contrastive loss
+
       euclidean_distance = F.pairwise_distance(output1, output2, keepdim = True)
 
       loss_contrastive = torch.mean((1-label) * torch.pow(euclidean_distance, 2) +
