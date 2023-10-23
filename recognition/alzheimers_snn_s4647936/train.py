@@ -59,7 +59,8 @@ validation_losses = []
 for epoch in range(num_epochs):
     model.train()
     running_loss = 0.0
-    for batch_idx, (anchor, positive, negative) in enumerate(train_loader):
+
+    for batch_idx, (anchor, positive, negative, labels) in enumerate(train_loader):
         anchor, positive, negative = anchor.to(device), positive.to(device), negative.to(device)
 
         # Zero the parameter gradients
@@ -202,18 +203,53 @@ classifier = SimpleClassifier().to(device)
 criterion = nn.CrossEntropyLoss()
 optimizer = optim.Adam(classifier.parameters(), lr=0.001)
 
+classifier_training_losses = []
+classifier_validation_losses = []
+
 for epoch in range(num_epochs):
     # Train with embeddings
+    running_loss = 0.0
+
     for embeddings, labels in zip(train_embeddings, train_labels):
         optimizer.zero_grad()
         outputs = classifier(torch.tensor(embeddings).to(device))
         loss = criterion(outputs, torch.tensor(labels).to(device))
         loss.backward()
         optimizer.step()
+        running_loss += loss.item()
+
+    # Average training loss for the epoch
+    epoch_loss = running_loss / len(train_labels)
+    classifier_training_losses.append(epoch_loss)
+    
+    # Validation loss
+    val_running_loss = 0.0
+    with torch.no_grad():
+        for embeddings, labels in zip(test_embeddings, test_labels):
+            outputs = classifier(torch.tensor(embeddings).to(device))
+            val_loss = criterion(outputs, torch.tensor(labels).to(device))
+            val_running_loss += val_loss.item()
+
+    # Average validation loss for the epoch
+    val_epoch_loss = val_running_loss / len(test_labels)
+    classifier_validation_losses.append(val_epoch_loss)
+    
+    print(f"Classifier Epoch {epoch+1}/{num_epochs}, Training Loss: {epoch_loss:.4f}, Validation Loss: {val_epoch_loss:.4f}")
+
 
 # After training, save the classifier model weights
 torch.save(classifier.state_dict(), "/home/Student/s4647936/PatternAnalysis-2023/recognition/alzheimers_snn_s4647936/classifier_model.pth")
 print("Saved classifier model weights")
+
+# Plotting the classifier training vs validation losses
+plt.figure()
+plt.plot(classifier_training_losses, label='Classifier Training Loss')
+plt.plot(classifier_validation_losses, label='Classifier Validation Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.title('Classifier Training vs Validation Loss')
+plt.legend()
+plt.savefig('classifier_train_vs_val_loss.png')
 
 # --------- Evaluate Classifier ---------
 correct = 0
