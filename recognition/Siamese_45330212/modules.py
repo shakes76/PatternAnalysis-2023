@@ -20,8 +20,8 @@ class Config():
     # /home/Student/s4533021/siamese_model.pt
     # C:\\Users\\david\\OneDrive\\Documents\\0NIVERSITY\\2023\\SEM2\\COMP3710\\Project\\PatternAnalysis-2023\\recognition\\Siamese_45330212\\AD_NC\\train
     # Directory paths and batch sizes for different processes
-    training_dir = '/home/Student/s4533021/train'
-    testing_dir = '/home/Student/s4533021/test'
+    training_dir = '/home/Student/s4533021/AD_NC/train'
+    testing_dir = '/home/Student/s4533021/AD_NC/test'
     siamese_train_batch_size = 12
     train_batch_size = 40
     siamese_number_epochs = 19
