@@ -1,5 +1,7 @@
 # Don't add VS Code config files
 .vscode
+# Ignore pycache files
+recognition/TRANSFORMER_43909856/__pycache__
 
 # Ignore dataset files
 recognition/TRANSFORMER_43909856/imagenette
