@@ -7,6 +7,7 @@ pip install -r  recognition/SuperResolutionShanJiang/requirements.txt
 ### Loading dataset
 The dataset used for training(and validation) and testing is loaded in `dataset.py`.The images are cropped into specified size (256*248 in our case). 20% of the training dataset is reserved for validation. Pixel values of traning and validation images are rescales to range of 0 to 1. A list of path for each testing and prediction image is also created for later use. The dataset is can be found at [ADNI MRI Dataset (2D slices)
 ](https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI)
+
 Then we produce pairs of  high resolution and loss resolution images from the training and validation dataset. To get high resolution images,we convert images from the RGB color space to the YUV colour space and only keeps Y channel. To get low recolution version, we convert images from the RGB color space to the YUV colour space,only keeps Y channel and resize them by certain ratio (4 in our case) so that their resolution is reduced. Each pair is put into a tuple to be fed into the model for training. The following images show exmaple of a high resolution image and the corresponding low resolution image. 
 ![A high resolution MRI image](./readme_images/high_res_train.png)
 ![A low resolution MRI image](./readme_images/low_res_train.png)
