@@ -55,7 +55,7 @@ To run this file, do following in `predict.py`:
 3. Make sure prediction dataset is well defined in `dataset.py`. (Refer to "Loading dataset" of this doc)
 4. Creat a empty folder in the same directory as the python files to save the example figures. Specify the exact directory of this folder at line ?? by altering the value of variable `prediction_result_path` at line ??. Make sure add a "/" at the end of the path, for example: "exact/path/to/the/folder/".
 5. run `predict.py` 
-![example](./im.jpg)
+![example](https://camo.githubusercontent.com/722283a1bf8e4c866a781df40eb8ba7452dba3b86db00008898854583837ed82/68747470733a2f2f6c6f63616c73656e642e6f72672f696d672f73637265656e73686f742d6970686f6e652e77656270)
 
 
        
