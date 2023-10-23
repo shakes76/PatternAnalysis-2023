@@ -175,3 +175,6 @@ datasets/test_input/*
 
 # Ignore anything inside output folder
 output/*
+
+# Ignore anything inside models folder
+models/*
