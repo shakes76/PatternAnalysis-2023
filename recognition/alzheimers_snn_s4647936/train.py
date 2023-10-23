@@ -211,3 +211,15 @@ for epoch in range(num_epochs):
         loss = criterion(outputs, torch.tensor(labels).to(device))
         loss.backward()
         optimizer.step()
+        
+# --------- Evaluate Classifier ---------
+correct = 0
+total = 0
+with torch.no_grad():
+    for embeddings, labels in zip(test_embeddings, test_labels):
+        outputs = classifier(torch.tensor(embeddings).to(device))
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == torch.tensor(labels).to(device)).sum().item()
+
+print(f"Accuracy of the classifier on test embeddings: {100 * correct / total}%")
