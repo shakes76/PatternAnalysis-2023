@@ -1,6 +1,6 @@
 # Brain MRI super-resolution network 
 ## Introduction
-This project implemented a super-resolution CNN network trained on the ADNI brain dataset. The trained model can convert a low resolution image into a high resolution version. The CNN consists of four convolutional layers followed by a depth-to-space transformation. The dataset used in training and testing is ADNI dataset, including 2D slices of MRI for both Alzheimer’s disease patients (AD) and health control (HC). For our purpose, dataset for AD and HC are combined together into one dataset (since our model do not deal with classification). The training and testing achives mean PSNR of 28.82 and ? WITH loss of 0.0013 and? respectively.
+This project implemented a super-resolution CNN network trained on the ADNI brain dataset. The trained model can convert a low resolution image into a high resolution version. The CNN consists of four convolutional layers followed by a depth-to-space transformation. The dataset used in training and testing is ADNI dataset, including 2D slices of MRI for both Alzheimer’s disease patients (AD) and health control (HC). For our purpose, dataset for AD and HC are combined together into one dataset (since our model do not deal with classification). The training and testing achives mean PSNR of 28.82 and 24.83 WITH loss of 0.0013 and? respectively.
 ## Getting Started
 ### Install the required dependencies
 pip install -r  recognition/SuperResolutionShanJiang/requirements.txt   
@@ -55,7 +55,7 @@ To run this file, do following in `predict.py`:
 3. Make sure prediction dataset is well defined in `dataset.py`. (Refer to "Loading dataset" of this doc)
 4. Creat a empty folder in the same directory as the python files to save the example figures. Specify the exact directory of this folder at line ?? by altering the value of variable `prediction_result_path` at line ??. Make sure add a "/" at the end of the path, for example: "exact/path/to/the/folder/".
 5. run `predict.py` 
-![example](./ism.jpg)
+![example](./im.jpg)
 
 
        
