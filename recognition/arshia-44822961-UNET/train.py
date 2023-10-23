@@ -165,9 +165,8 @@ def show_sample(image, mask):
 """
 def load_data(img_path, labels_path, transform, batch_size):
     seed = 1243535  # You can use any integer value as your seed
+    # set seed for reproducibility between splits.
     torch.manual_seed(seed)
-    #@random.seed(seed)
-
 
     dataset = ISICDataset(img_path, labels_path, transform)
     train_size = int(0.8 * len(dataset))

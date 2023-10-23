@@ -3,7 +3,7 @@ File: predict.py
 Author: Arshia Sharma
 
 Description: Performs inference using trained model
-Dependencies: torch torchvision numpy matplotlib tqdm
+Dependencies: torch torchvision numpy matplotlib 
 """
 # libraries 
 import torch
@@ -18,9 +18,6 @@ from dataset import ISICDataset
 
 # UPDATE IF NOT SAVED IN BASE DIRECTORY. 
 MODEL_FILE_PATH = "improved_UNET.pth"
-
-# UPDATE TO WHERE TEST NEED TO BE SAVED
-OUTPUT_DIR_PATH = "/ISIC2018"
 
 # UPDATE WITH PATH TO YOUR TEST DATA
 TEST_DATA_PATH = "ISIC2018/ISIC2018_Task1-2_Validation_Input"
@@ -135,7 +132,7 @@ if __name__ == "__main__":
 
     # load in data and model
     test_loader = load_data(TEST_DATA_PATH, TEST_MASK_PATH, data_transform, batch_size=1)
-    model = torch.load("improved_UNET.pth")
+    model = torch.load(MODEL_FILE_PATH)
 
     # perform predictions
     dice_scores = test(model, test_loader, device)
