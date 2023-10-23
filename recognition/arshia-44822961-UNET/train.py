@@ -3,7 +3,7 @@ File: train.py
 Author: Arshia Sharma 
 Description: Trains ImprovedUnet architecture. 
 
-Dependencies: torch
+Dependencies: torch torchvision matplotlib tqdm
 
 """
 # import libraries. 
@@ -17,7 +17,7 @@ import matplotlib.pyplot as plt
 import os
 from tqdm import tqdm
 
-# import local files. 
+# import local modules. 
 from dataset import ISICDataset
 from modules import ImprovedUnet
 
