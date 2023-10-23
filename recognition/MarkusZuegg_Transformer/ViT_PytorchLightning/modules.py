@@ -88,7 +88,7 @@ class VisionEncoder(nn.Module):
     def _make_layers(self):
         """Makes a list of Attention blocks"""
         layers = []
-        for i in self.num_layers:
+        for i in range(self.num_layers):
             layers.append(AttentionBlock(self.embed_dim, 
                                          self.hidden_dim, 
                                          self.num_heads, 

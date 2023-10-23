@@ -14,7 +14,7 @@ class ViT(pl.LightningModule):
     def __init__(self, model_kwargs, lr):
         super().__init__()
         self.save_hyperparameters()
-        self.model = VisionEncoder(*model_kwargs)
+        self.model = VisionEncoder(**model_kwargs)
 
     def forward(self, x):
         return self.model(x)
