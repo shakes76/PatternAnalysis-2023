@@ -45,7 +45,7 @@ def test_and_visualise_predictions(model, test_data, output_dir, timestr, number
         model.evaluate(test_data, steps=STEPS_PER_EPOCH_TEST, verbose=2, use_multiprocessing=False)
     print("Test Accuracy: " + str(test_accuracy))
     print("Test Loss: " + str(test_loss))
-    print("Test DSC: " + str(test_dice) + "\n")
+    print("Test Dice Coefficient: " + str(test_dice) + "\n")
 
     test_range = np.arange(0, stop=number_of_predictions, step=1)
     
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     test_data = test_data.create_data_generators()
 
 
-    model_name = "WORK.keras"
+    model_name = "models/my_model.keras"
     output_dir = "output"
     timestr = time.strftime("%Y%m%d-%H%M%S")
     print("\nTESTING MODEL")

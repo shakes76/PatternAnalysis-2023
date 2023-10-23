@@ -70,7 +70,7 @@ To ensure the reproducibility of results:
 ```
 Test Accuracy: 0.8966387510299683
 Test Loss: 0.20560072362422943
-Test DSC: 0.8109999895095825
+Test Dice Coefficient: 0.8109999895095825
 ```
 
 
