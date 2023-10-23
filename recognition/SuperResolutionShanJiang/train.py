@@ -33,7 +33,7 @@ class ESPCNCallback(keras.callbacks.Callback):
         train_psnr_history.append(np.mean(self.psnr))
 
         
-        if epoch % 9 == 0 and epoch!= 0:
+        if (epoch+1) % 10 == 0 and epoch!= 0:
             # Plot loss history after every 10 epoch and save the plot
             plt.figure(figsize=(10, 6))
             plt.plot(train_loss_history, label='Training Loss', color='blue')
