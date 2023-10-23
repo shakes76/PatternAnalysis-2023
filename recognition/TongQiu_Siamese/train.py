@@ -23,7 +23,7 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
     # Create model
     model = model.to(Config.DEVICE)
     best_loss = float('inf')
-    print(f"model init, mem allocated = {torch.cuda.memory_allocated() / 1e9 :.4f} GiB")
+    # print(f"model init, mem allocated = {torch.cuda.memory_allocated() / 1e9 :.4f} GiB")
 
     # Lists for storing metrics
     train_losses = []
@@ -86,11 +86,11 @@ def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
         optimizer.zero_grad()
         embedding_1, embedding_2 = model(img_1, img_2)
         loss = criterion(embedding_1, embedding_2, labels)
-        print(f"before backward, mem allocated = {torch.cuda.memory_allocated() / 1e9 :.4f} GiB")
+        # print(f"before backward, mem allocated = {torch.cuda.memory_allocated() / 1e9 :.4f} GiB")
         loss.backward()
-        print(f"After backward, mem allocated = {torch.cuda.memory_allocated() / 1e9 :.4f} GiB")
+        # print(f"After backward, mem allocated = {torch.cuda.memory_allocated() / 1e9 :.4f} GiB")
         optimizer.step()
-        print(f"After step, mem allocated = {torch.cuda.memory_allocated() / 1e9 :.4f} GiB")
+        # print(f"After step, mem allocated = {torch.cuda.memory_allocated() / 1e9 :.4f} GiB")
 
         # Record the batch loss
         train_loss_lis = np.append(train_loss_lis, loss.item())
@@ -273,7 +273,7 @@ if __name__ == '__main__':
     # data loading
     parser.add_argument('-tp', '--train_path', default=Config.TRAIN_DIR, help='Path to the training dataset.')
     parser.add_argument('-wn', '--workers', default=1, type=int, help='Number of workers for data loading.')
-    parser.add_argument('-bs', '--batch_size', default=8, type=int, help='Batch size for training.')
+    parser.add_argument('-bs', '--batch_size', default=32, type=int, help='Batch size for training.')
 
     # training parameters
     parser.add_argument('-ep', '--epochs', default=50, type=int, help='Number of epochs for training.')
