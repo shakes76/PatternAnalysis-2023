@@ -3,13 +3,18 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import pytorch_lightning as pl
+from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
+from pytorch_lightning.callbacks.progress import TQDMProgressBar
+from pytorch_lightning.loggers import CSVLogger
+from dataset import CIFAR10DataModule
+from modules import VisionEncoder
 
 class ViT(pl.LightningModule):
+    #!get rid of kwargs (too annoying)
     def __init__(self, model_kwargs, lr):
         super().__init__()
         self.save_hyperparameters()
-        #! make model to import
-        self.model = None
+        self.model = VisionEncoder()
 
     def forward(self, x):
         return self.model(x)
@@ -38,3 +43,11 @@ class ViT(pl.LightningModule):
 
     def test_step(self, batch, batch_idx):
         self._calculate_loss(batch, mode="test")
+
+def train_model():
+    return
+
+def main():
+    return
+
+if __name__ == '__main__': main()
