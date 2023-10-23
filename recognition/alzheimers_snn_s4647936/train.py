@@ -5,7 +5,7 @@ from dataset import TripletDataset
 from modules import SiameseNetwork, TripletLoss
 from torchvision import transforms
 import torch.optim as optim
-from sklearn.decomposition import PCA
+from sklearn.manifold import TSNE
 import numpy as np
 
 # Transformations for images
@@ -65,7 +65,7 @@ for epoch in range(num_epochs):
 print("Finished Training")
 
 # Save the model's parameters
-torch.save(model.state_dict(), "siamese_model.pth")
+torch.save(model.state_dict(), "/home/Student/s4647936/PatternAnalysis-2023/recognition/alzheimers_snn_s4647936/siamese_model.pth")
 
 # --------- Begin Validation/Testing ---------
 model.eval()  # set the model to evaluation mode
@@ -149,7 +149,7 @@ all_labels = []
 # Assuming you have two classes: AD and NC. Let's assign them numeric labels.
 # AD: 0, NC: 1
 with torch.no_grad():
-    for idx, (anchor, _, _) in enumerate(loader):
+    for idx, (anchor, _, _) in enumerate(train_loader):
         anchor = anchor.to(device)
         embedding, _ = model(anchor, anchor)
         all_embeddings.append(embedding.cpu().numpy())
@@ -162,13 +162,14 @@ with torch.no_grad():
 
 all_embeddings = np.concatenate(all_embeddings)
 
-# Reduce dimensionality using PCA
-pca = PCA(n_components=2)
-embeddings_2d = pca.fit_transform(all_embeddings)
+# Reduce dimensionality using t-SNE
+tsne = TSNE(n_components=2, random_state=42)
+embeddings_2d = tsne.fit_transform(all_embeddings)
 
 # Plot
-plt.figure()
-plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1], c=all_labels, cmap='jet', alpha=0.5)
+plt.figure(figsize=(10, 7))
+plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1], c=all_labels, cmap='jet', alpha=0.5, edgecolors='w', s=40)
 plt.colorbar()
-plt.title('2D PCA of Embeddings')
-plt.savefig('embeddings_pca.png')
+plt.title('2D t-SNE of Embeddings')
+plt.savefig('embeddings_tsne.png')
+
