@@ -51,12 +51,12 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
 
         # Forward pass
-        _, outputs = torch.max(model(images), 1)
-        outputs = outputs.unsqueeze(1)
-        # outputs = model(images)
+        outputs = model(images)
+        outputs = (outputs > 0.5).float()
         print(outputs.size())
         print(masks.size())
-
+        # _, outputs = torch.max(model(images), 1)
+        # outputs = outputs.unsqueeze(1)
         loss = dice_loss(outputs, masks)
 
         # Backward pass + optimization
