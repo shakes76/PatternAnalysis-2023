@@ -83,3 +83,7 @@ print("test acc: ", test(model, testloader()))
 print(TRAIN_LOSS)
 print(TRAIN_ACC)
 print(TRAIN_TIMES)
+test(model, testloader())
+print(TRAIN_LOSS)
+print(TRAIN_ACC)
+
