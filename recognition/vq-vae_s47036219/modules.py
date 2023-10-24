@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print("Running on: ", device)
+
 class ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels, intermediate_channels=None):
         super(ResidualBlock, self).__init__()
