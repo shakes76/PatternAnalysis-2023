@@ -9,7 +9,7 @@
 
 #SBATCH --gres=gpu:1
 
-#SBATCH --job-name=C_Siamese
+#SBATCH --job-name=C_Classifier
 
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=tong.qiu@uqconnect.edu.au
