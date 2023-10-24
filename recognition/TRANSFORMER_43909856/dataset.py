@@ -51,11 +51,15 @@ TRAIN_TF = transforms.Compose([
       ])
 TEST_TF = transforms.Compose([
                 # transforms.ToPILImage(),
+                transforms.Resize(IMG_SIZE),
+                transforms.CenterCrop(IMG_SIZE),
                 transforms.ToTensor(), 
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
 VAL_TF = transforms.Compose([
                 # transforms.ToPILImage(),
+                transforms.Resize(IMG_SIZE),
+                transforms.CenterCrop(IMG_SIZE),
                 transforms.ToTensor(), 
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
@@ -359,3 +363,66 @@ def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=TRAIN_TF,
     val_images = val_data.sharding_filter().map(open_image).map(apply_val_tf)
 
     return train_images, n_train_datapoints, val_images
+
+
+"""
+Plots a 4x4 grid of sample images from a specified split data set (train,
+validation, or test) within the ADNI dataset.
+
+Params:
+    loader (torch DataLoader): a DataLoader for the given train, test, or validation
+                               set, which contains randomly shuffled MRI image slices
+    show_plot (bool): show the plot in a popup window if True; otherwise, don't
+                      show the plot
+    save_plot (bool): save the plot as a PNG file to the directory "plots" if
+                      True; otherwise, don't save the plot
+"""
+def plot_data_sample(loader, show_plot=False, save_plot=False):
+    ### Set-up GPU device ####
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if not torch.cuda.is_available():
+        print("Warning: CUDA not found. Using CPU")
+    else:
+        print(torch.cuda.get_device_name(0))
+
+    # Get the size of the set:
+    #print(f"Data points: {len(loader.dataset)}") 
+
+    # Plot a selection of images from a single batch of the dataset
+    sample_data = next(iter(loader))
+    # Create a grid of 4x4 images
+    plt.figure(figsize=(4,4))
+    plt.axis("off")
+    # Add a title
+    plt.title("Sample of ADNI dataset MRI images")
+    # Plot the first 16 images in the batch
+    plt.imshow(np.transpose(make_grid(sample_data[0].to(device)[:16], padding=2, 
+                                      normalize=True).cpu(),(1, 2, 0)))
+    
+    if save_plot:
+        # Create an output folder for the plot, if one doesn't already exist
+        directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'plots')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        # Save the plot in the "plots" directory
+        plt.savefig(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'plots', 
+                        "ADNI_sample_data.png"), dpi=600)
+        
+    if show_plot:
+        # Show the plot
+        plt.show()
+
+
+"""
+Main method - make sure to run any methods in this file within here.
+Adding this so that multiprocessing runs appropriately/correctly
+on Windows devices.
+"""
+def main():
+    pass
+
+if __name__ == '__main__':    
+    main()
+
+
+# TODO implement saving predicted and actual classes from testing loop to use for metrics/plots later
