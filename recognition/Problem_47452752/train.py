@@ -52,6 +52,9 @@ for epoch in range(num_epochs):
 
         # Forward pass
         outputs = model(images)
+        print(outputs.size())
+        print(masks.size())
+
         loss = dice_loss(outputs, masks)
 
         # Backward pass + optimization
