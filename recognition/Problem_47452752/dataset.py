@@ -17,8 +17,8 @@ import numpy as np
 class ISICDataset(Dataset):
     def __init__(
         self,
-        image_dir,
-        mask_dir,
+        image_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2",
+        mask_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2",
         transform=None,
     ):
         self.image_dir = image_dir
@@ -69,14 +69,15 @@ transform = transforms.Compose(
     ]
 )
 
-image_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
-mask_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
 
-dataset = ISICDataset(image_dir, mask_dir, transform)
+def train_loader(train_dataset, batch_size, shuffle=True):
+    return DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle)
+
+def test_loader(test_dataset, batch_size, shuffle=False):
+    return DataLoader(test_dataset, batch_size=batch_size, shuffle=shuffle)
+
+dataset = ISICDataset(transform)
 test_size = int(0.20 * len(dataset))
 train_size = len(dataset) - test_size
-
 train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
 
-train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
-test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False)
