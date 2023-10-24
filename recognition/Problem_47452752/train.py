@@ -5,7 +5,7 @@ Make sure to plot the losses and metrics during training
 """
 
 
-from dataset import ISICDataset, transform, train_loader, test_loader, split_data
+from dataset import ISICDataset, transform, train_loader, test_loader, split_data, check_consistency
 from modules import UNet
 from utils import dice_loss, dice_coefficient
 import torch
@@ -17,6 +17,8 @@ import torch.nn.functional as F
 num_epochs = 50
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+# Check if the dataset is consistent
+check_consistency()
 
 # Loading up the dataset and applying custom augmentations
 dataset = ISICDataset(transform)

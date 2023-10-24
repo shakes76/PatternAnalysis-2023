@@ -1,6 +1,5 @@
 """
 File containing the data loaders used for loading and preprocessing the data.
-
 """
 
 import os
@@ -13,39 +12,45 @@ import torchvision.transforms.functional as TF
 from PIL import Image
 import numpy as np
 
-excluded_ids = ["ISIC_0013499"]
+image_path = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
+mask_path = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
 
-# def filter_consistent_data(
-#     image_dir="/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2",
-#     mask_dir="/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2",
-# ):
-#     image_ids = [
-#         img.split(".")[0] for img in os.listdir(image_dir) if img.endswith(".jpg")
-#     ]
 
-#     consistent_ids = [
-#         img_id
-#         for img_id in image_ids
-#         if os.path.exists(os.path.join(mask_dir, img_id + "_segmentation.jpg"))
-#     ]
+def check_consistency(image_dir=image_path, mask_dir=mask_path):
+    image_ids = {
+        img.split(".")[0] for img in os.listdir(image_dir) if img.endswith(".jpg")
+    }
+    mask_ids = {
+        mask.split("_segmentation.")[0]
+        for mask in os.listdir(mask_dir)
+        if mask.endswith("_segmentation.jpg")
+    }
 
-#     inconsistent_ids = set(image_ids) - set(consistent_ids)
+    # Using list differences to find inconsistencies
+    images_without_masks = image_ids - mask_ids
+    masks_without_images = mask_ids - image_ids
 
-#     if inconsistent_ids:
-#         print(
-#             f"Found {len(inconsistent_ids)} inconsistent image IDs. They will be excluded from the dataset."
-#         )
+    if images_without_masks or masks_without_images:
+        inconsistent_ids = images_without_masks.union(masks_without_images)
+        # Save to a file
+        with open("inconsistent_ids.txt", "w") as file:
+            for ID in inconsistent_ids:
+                file.write(f"{ID}\n")
 
-#     return consistent_ids
+        print(f"Detected {len(inconsistent_ids)} inconsistencies, fixed em tho")
 
 
 class ISICDataset(Dataset):
     def __init__(
         self,
         transform,
-        image_dir="/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2",
-        mask_dir="/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2",
+        image_dir=image_path,
+        mask_dir=mask_path,
     ):
+        # Load the inconsistent IDs
+        with open("inconsistent_ids.txt", "r") as file:
+            excluded_ids = set(line.strip() for line in file)
+
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.image_ids = [
@@ -58,30 +63,41 @@ class ISICDataset(Dataset):
     def __len__(self):
         return len(self.image_ids)
 
+    def handle_inconsistency(self):
+        images_without_masks, masks_without_images = check_consistency(
+            self.image_dir, self.mask_dir
+        )
+        inconsistent_ids = images_without_masks.union(masks_without_images)
+
+        # Save to a file
+        with open("inconsistent_ids.txt", "a") as file:  # 'a' mode for appending
+            for ID in inconsistent_ids:
+                file.write(f"{ID}\n")
+
     def __getitem__(self, idx):
         img_name = os.path.join(self.image_dir, self.image_ids[idx] + ".jpg")
         mask_name = os.path.join(
             self.mask_dir, self.image_ids[idx] + "_Segmentation.png"
         )
 
-        if not os.path.exists(img_name) or not os.path.exists(mask_name):
-            raise FileNotFoundError(
-                f"Image or mask not found for ID {self.image_ids[idx]}"
-            )
+        try:
+            with Image.open(img_name) as image, Image.open(mask_name) as mask:
+                image = image.convert("RGB")
+                mask = mask.convert("L")
 
-        with Image.open(img_name) as image, Image.open(mask_name) as mask:
-            image = image.convert("RGB")
-            mask = mask.convert("L")
+                sample = {"image": image, "mask": mask}
 
-            sample = {"image": image, "mask": mask}
+                if self.transform:
+                    sample = self.transform(sample)
 
-            if self.transform:
-                sample = self.transform(sample)
+            # Convert mask to binary 0/1 tensor
+            sample["mask"] = (torch.tensor(np.array(sample["mask"])) > 127.5).float()
 
-        # Convert mask to binary 0/1 tensor
-        sample["mask"] = (torch.tensor(np.array(sample["mask"])) > 127.5).float()
+            return sample["image"], sample["mask"]
 
-        return sample["image"], sample["mask"]
+        except FileNotFoundError:
+            self.handle_inconsistency()
+            return self.__getitem__(idx)
 
 
 # Transformation pipeline to augment the dataset
