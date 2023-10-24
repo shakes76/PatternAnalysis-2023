@@ -8,10 +8,10 @@ def get_dataloaders(train_string, test_validation_string, batch_size):
         transforms.ToTensor(),
         #transforms.Normalize(mean=[0.5], std=[0.5])  
     ])
-    train_dataset = datasets.ImageFolder(root='train_string', transform=transform)
+    train_dataset = datasets.ImageFolder(root=train_string, transform=transform)
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     
-    full_test_dataset = datasets.ImageFolder(root='test_validation_string', transform=transform)
+    full_test_dataset = datasets.ImageFolder(root=test_validation_string, transform=transform)
     test_size = int(0.3 * len(full_test_dataset))
     val_size = len(full_test_dataset) - test_size
     

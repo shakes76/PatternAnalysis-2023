@@ -1,12 +1,12 @@
 # CONSTANTS AND HYPERPARAMETERS:
 
 import torch
-import torch.nn as nn
 import torch.optim as optim
-from modules import VQVAE, device, ssim
+from modules import VQVAE, ssim
 from dataset import get_dataloaders
 
-
+path_to_training_folder = "C:/Users/Connor/Documents/comp3710/dataset/ADNI/AD_NC/train"
+path_to_test_folder = "C:/Users/Connor/Documents/comp3710/dataset/ADNI/AD_NC/test"
 
 LEARNING_RATE = 1e-3
 BATCH_SIZE = 32
@@ -23,7 +23,7 @@ best_val_loss = float('inf')
 counter = 0
 
 
-def train(vqvae, train_loader, validation_loader):
+def train(vqvae, train_loader, validation_loader, device):
     optimizer = optim.Adam(vqvae.parameters(), lr=LEARNING_RATE)
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=3, verbose=True)
     # Training Loop
@@ -85,19 +85,21 @@ def train(vqvae, train_loader, validation_loader):
                 break
     torch.save(vqvae.state_dict(), 'vqvae.pth')
     
-def train_new_model(train, validation): # Called if weight didnt exist in the test set.
+def train_new_model(train_set, validation_set): # Called if weight didnt exist in the test set.
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Running on: ", device)
     model = VQVAE(CODEBOOK_SIZE).to(device)
-    model = train(model, train, validation)
+    model = train(model, train_set, validation_set, device)
     
 def main():
+    print("WARNING: RUNNING FROM TRAIN FILE")   
+    
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Running on: ", device)
-    train_loader, validation_loader, _ = get_dataloaders(BATCH_SIZE)
+    train_loader, validation_loader, _ = get_dataloaders(path_to_training_folder, path_to_test_folder, BATCH_SIZE)
     
     model = VQVAE(CODEBOOK_SIZE).to(device)
-    model = train(model, train_loader, validation_loader)
+    model = train(model, train_loader, device)
     
 if __name__ == "__main__":
     main()

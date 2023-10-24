@@ -1,15 +1,17 @@
 import torch
-from modules import VQVAE, device, ssim
+from modules import VQVAE, ssim
 from dataset import get_dataloaders
-from train import SSIM_WEIGHT, L2_WEIGHT, BATCH_SIZE, train_new_model
+from train import SSIM_WEIGHT, L2_WEIGHT, BATCH_SIZE, train_new_model, path_to_training_folder, path_to_test_folder
+import matplotlib
 import matplotlib.pyplot as plt
 import os
 
 def evaluate(test_loader):
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = VQVAE().to(device)
     model.load_state_dict(torch.load('vqvae.pth'))
     model.eval()
-    
+    print("loaded")
     highest_ssim_val = float('-inf')  # Initialize with negative infinity
     lowest_ssim_val = float('inf')  # Initialize with positive infinity
     highest_ssim_img = None
@@ -18,6 +20,8 @@ def evaluate(test_loader):
     lowest_ssim_recon = None
     
     val_losses = []
+    ssim_sum = 0  # To keep track of sum of all SSIM values
+    total_images = 0  # To keep track of total number of images processed
 
     with torch.no_grad():
         for i, (img, _) in enumerate(test_loader):
@@ -37,7 +41,10 @@ def evaluate(test_loader):
 
             # Calculate SSIM
             ssim_val = ssim(img, recon).item()
-            print(f'SSIM: {ssim_val}')  # Output SSIM value
+            ssim_sum += ssim_val  # Add SSIM value to the sum
+            total_images += img.size(0)  # Increase the total number of images processed
+
+            #print(f'SSIM: {ssim_val}')  # Output SSIM value
 
             # Update highest and lowest SSIM values and corresponding images
             if ssim_val > highest_ssim_val:
@@ -49,6 +56,9 @@ def evaluate(test_loader):
                 lowest_ssim_val = ssim_val
                 lowest_ssim_img = img.cpu().numpy().squeeze(1)
                 lowest_ssim_recon = recon.cpu().numpy().squeeze(1)
+
+    mean_ssim = ssim_sum / total_images
+    print(f'Mean SSIM: {mean_ssim}')  # Output mean SSIM value
 
     # Output images with the highest and lowest SSIM values
     plt.figure(figsize=(10, 5))
@@ -73,9 +83,9 @@ def evaluate(test_loader):
     plt.show()
     
 def main():
-    weight_file_path = 'vqvae.pth'
+    weight_file_path = "vqvae.pth"
     
-    train, validate, test = get_dataloaders(BATCH_SIZE)
+    train, validate, test = get_dataloaders(path_to_training_folder, path_to_training_folder, BATCH_SIZE)
 
     if os.path.exists(weight_file_path):
         print("Weights exist -> Evaluating Model...")
@@ -85,6 +95,8 @@ def main():
         print(f"Weight file {weight_file_path} does not exist.")
         print("Training model now...")
         train_new_model(train, validate)
-        
+
+
     
-    
+if __name__ == "__main__":
+    main()
