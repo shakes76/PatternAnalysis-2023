@@ -19,7 +19,7 @@ Generates a 1 dimensional string used for outputting classification of images
 - Image transformers don't use a masked multi-head attention component,
 as they don't need to be auto-regressive (look at both information from both the
 past and the future of the current position in the input). This transformer is
-bi-directional
+bi-directional.
 
 
 Possible hyperparams:
@@ -28,7 +28,7 @@ Possible hyperparams:
 - Width of the network
 - How many attention layers
 
-This model is using S/16 configuration from the ViT paper above
+This model is using the S/16 configuration from the ViT paper above.
 
 
 Einops:
@@ -48,15 +48,17 @@ Main sub-component #1:
 
 Main sub-component #2: 
 ->
--> Masked Multi-Head Attention -> Add & Layer Norm -> Multi-Head Attention ------> Add & Layer Norm -> Feed Forward --> Add & Layer Norm ->
-->                                      ^                                  ^ ^ |         ^                          |         ^  
-----------------------------------------|                                  | | |---------|                          |---------|
-                                                                           |-|
-                                                                            |
+-> Multi-Head Attention ------> Add & Layer Norm -> Feed Forward --> Add & Layer Norm ->
+->                      ^ ^ |         ^                          |         ^  
+                        | | |---------|                          |---------|
+                        |-|
+                         |
 
 Full ViT:
-Inputs -> Input Embedding -> Positional Encoding -> Main sub-component #1 ------
-Outputs (shifted right) -> Output Embedding -> Positional Encoding -> Main sub-component #2 -> Linear -> Softmax -> Output probabilities
+Inputs -> Input Embedding -> Positional Encoding -> Main sub-component #1 ->
+Outputs (shifted right) -> Output Embedding -> Positional Encoding --------> Main sub-component #2 -> Linear -> Softmax -> Output probabilities
+
+https://towardsdatascience.com/transformers-explained-visually-part-3-multi-head-attention-deep-dive-1c1ff1024853
 """
 
 
@@ -64,7 +66,7 @@ Outputs (shifted right) -> Output Embedding -> Positional Encoding -> Main sub-c
 Creates the multi-head attention modules used within the ViT network.
 The component of the network taking inputs will need N multi-head attention modules.
 The component of the network taking outputs (also connected to the previous component)
-will need N masked multi-head attention modules, and N multi-head attention modules.
+will also need N multi-head attention modules.
 
 Also includes the components for calculating the scaled dot product attention
 from the input Keys, Queries, and Values.
@@ -83,7 +85,6 @@ Q -> Linear ->
 A masked multi-head attention could be created by adding a mask layer to the 
 scaled dot product attention component, but a mask layer will not be used for
 this model.
-https://towardsdatascience.com/transformers-explained-visually-part-3-multi-head-attention-deep-dive-1c1ff1024853
 """
 class Attention(nn.Module):
 
@@ -136,6 +137,7 @@ class Attention(nn.Module):
         Convert the KQV tensors into groups, then split them 
         across the attention heads.
         b - dimensions/size of each batch
+        n - number of batches
         h - number of heads
         d - dimensions/size of each head
         '''
@@ -220,7 +222,9 @@ class Transformer(nn.Module):
         depth (int): the depth of the network (number of required Attention modules,
                      whose outputs are chained into FeedForward modules)
         n_heads (int): the number of heads added to each multi-head attention component
-        head_dimensions (int): the dimensions/size of each head added to the attention. 
+        head_dimensions (int): the dimensions/size of each head added to the attention.
+        mlp_dimensions (int): the size/dimensions of the two hidden Linear layers
+                              in the Feed-Forward components of the Transformer
     """
     def __init__(self, dimensions, depth, n_heads, head_dimensions, mlp_dimensions):
         super().__init__()
@@ -313,15 +317,17 @@ class SimpleViT(nn.Module):
                                       the image width should be a multiple of 
                                       the patch width.
         n_classes (int): the number of classes in the classification problem
-        dimensions (int):
-        depth (int):
-        n_heads (int):
-        mlp_dimensions (int):
+        dimensions (int): the size/dimensions of the input data
+        depth (int): the depth of the network (number of required Attention modules,
+                     whose outputs are chained into FeedForward modules)
+        n_heads (int): the number of heads added to each multi-head attention component
+        mlp_dimensions (int): the size/dimensions of the two hidden Linear layers
+                              in the Feed-Forward components of the Transformer
         n_channels (int): the number of channels in the input image (3 for RGB)
-        head_dimensions (int):
+        head_dimensions (int): the dimensions/size of each head added to the attention. 
     """
     def __init__(self, *, image_size, patch_size, n_classes, dimensions, depth,
-                    n_heads, mlp_dimensions, n_channels=3):
+                    n_heads, mlp_dimensions, n_channels=3, head_dimensions=64):
         super().__init__()
         '''
         The image height should be a multiple of the patch height, and
@@ -359,8 +365,8 @@ class SimpleViT(nn.Module):
         )
 
         # Add the Transformer network
-        self.transformer = Transformer(dimensions, depth, n_heads, head_dimensions=64, 
-                                       mlp_dimensions=mlp_dimensions)
+        self.transformer = Transformer(dimensions, depth, n_heads, head_dimensions, 
+                                       mlp_dimensions)
         
         # Use average pooling for the network (instead of using a class token)
         self.pooling = "mean"
