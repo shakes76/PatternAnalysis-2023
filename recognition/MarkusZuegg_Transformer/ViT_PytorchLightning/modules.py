@@ -31,7 +31,7 @@ class AttentionBlock(nn.Module):
 
     def forward(self, x):
         inp_x = self.layer_norm_1(x)
-        x = x + self.attn(inp_x, inp_x, inp_x)[0]
+        x = x + self.attn(inp_x, inp_x, inp_x)[0] #only taking first tensor 
         x = x + self.linear(self.layer_norm_2(x))
         return x 
 class VisionEncoder(nn.Module):
@@ -77,7 +77,7 @@ class VisionEncoder(nn.Module):
         # self.transformer = nn.Sequential(
         #     *(AttentionBlock(embed_dim, hidden_dim, num_heads, dropout=dropout) for _ in range(num_layers)))
 
-        self.Encoder = self._make_layers()
+        self.encoder = self._make_layers()
         self.mlp_head = nn.Sequential(nn.LayerNorm(embed_dim), nn.Linear(embed_dim, num_classes))
         self.dropout = nn.Dropout(dropout)
 
@@ -88,7 +88,7 @@ class VisionEncoder(nn.Module):
     def _make_layers(self):
         """Makes a list of Attention blocks"""
         layers = []
-        for i in range(self.num_layers):
+        for _ in range(self.num_layers):
             layers.append(AttentionBlock(self.embed_dim, 
                                          self.hidden_dim, 
                                          self.num_heads, 
@@ -109,7 +109,7 @@ class VisionEncoder(nn.Module):
         # Apply Transforrmer
         x = self.dropout(x)
         x = x.transpose(0, 1)
-        x = self.transformer(x)
+        x = self.encoder(x)
 
         # Perform classification prediction
         cls = x[0]
