@@ -1,5 +1,3 @@
-'''Data loader for loading and preprocessing data'''
-
 # Importing necessary libraries and modules
 import torch
 import numpy as np

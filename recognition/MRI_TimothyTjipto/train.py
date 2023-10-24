@@ -1,7 +1,3 @@
-'''Source code for training, validating, testing and saving your model. The model
-should be imported from “modules.py” and the data loader should be imported from “dataset.py”. Make
-sure to plot the losses and metrics during training'''
-
 # Importing necessary libraries and modules
 import torch
 from torchvision import datasets
@@ -26,7 +22,7 @@ TRAINING_MODE = False # Training mode
 EPOCH_RANGE = 61 # Size of the Training Epoch
 CHECKPOINT_TRAINING = False # Use Checkpoint and continue Training
 LOAD_CHECKPOINT_TRAINING = "/home/Student/s4653241/MRI/Training_Epoch/Epoch_40.pth"
-SAVE_EPOCH = True
+SAVE_EPOCH = False
 EPOCH_SAVE__CHECKPOINT = 60  # Saves every 60 Epoch 
 
 TEST_MODE = True # For Testing

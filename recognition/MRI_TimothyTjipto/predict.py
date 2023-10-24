@@ -1,5 +1,3 @@
-'''Shows example usage of trained model. Print out any results and/ or provide visualisations where applicable'''
-
 # Importing necessary libraries and modules
 import matplotlib.pyplot as plt
 import torch
