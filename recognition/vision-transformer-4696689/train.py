@@ -87,3 +87,6 @@ test(model, testloader())
 print(TRAIN_LOSS)
 print(TRAIN_ACC)
 
+"""saving model"""
+# model_trained = torch.jit.script(model)
+# model_trained.save('model_trained.pt')
