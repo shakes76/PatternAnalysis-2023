@@ -18,7 +18,20 @@ The ADNI (Alzheimer’s Disease Neuroimaging Initiative) dataset is a collection
 # Usage:
 **Please Note: Before running please add the directory to the train and test files for the dataset in 'train.py'**
 
-It is highly reccomended to run only the 'predict.py' file by calling 'python predict.py' while in the working directory. It is possible to run from the 'train.py' file as well, but this has implications with data leakage a I could not find a proper way to partition the test set.  
+It is highly reccomended to run only the 'predict.py' file by calling 'python predict.py' while in the working directory. It is possible to run from the 'train.py' file as well, but this has implications with data leakage a I could not find a proper way to partition the test set.
+
+If all goes well, matplotlib outputs 4 images: the original and reconstructed brain with the highest ssim, and then the lowest ssim. 
 
 # Data:
 This project uses the ADNI dataset (in the form from on blackboard), where the training set is used to train the model, and the test folder is partitioned into a validation set and test set.
+
+
+# Dependencies:
+| Dependency  | Version     |
+|-------------|-------------|
+| torch       | 2.0.1+cu117  |
+| torchvision | 0.15.2+cu117|
+| matplotlib  | 3.8.0       |
+
+# Output:
+![Output Image](./output.png)
