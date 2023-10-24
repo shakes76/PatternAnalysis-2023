@@ -119,4 +119,20 @@ class StyleBlock(nn.Module):
             x = x + self.scale_noise[None, :, None, None] * noise
         return self.activation(x + self.bias[None, :, None, None])
     
-#TODO: toRGB
+class ToRGB(nn.Module):
+
+    def __init__(self, W_DIM, features):
+        super().__init__()
+        self.to_style = EqualizedLinear(W_DIM, features, bias=1.0)
+
+        self.conv = Conv2dWeightModulate(features, 3, kernel_size=1, demodulate=False)
+        self.bias = nn.Parameter(torch.zeros(3))
+        self.activation = nn.LeakyReLU(0.2, True)
+
+    def forward(self, x, w):
+
+        style = self.to_style(w)
+        x = self.conv(x, style)
+        return self.activation(x + self.bias[None, :, None, None])
+
+#TODO: Conv2dWeightModulate
