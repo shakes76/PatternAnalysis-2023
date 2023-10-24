@@ -23,7 +23,7 @@ It is highly reccomended to run only the 'predict.py' file by calling 'python pr
 If all goes well, matplotlib outputs 4 images: the original and reconstructed brain with the highest ssim, and then the lowest ssim. 
 
 # Data:
-This project uses the ADNI dataset (in the form from on blackboard), where the training set is used to train the model, and the test folder is partitioned into a validation set and test set.
+This project uses the ADNI dataset (in the structure as seen on blackboard), where the training set is used to train the model, and the test folder is partitioned into a validation set and test set.
 
 
 # Dependencies:
@@ -35,3 +35,9 @@ This project uses the ADNI dataset (in the form from on blackboard), where the t
 
 # Output:
 ![Output Image](./output.png)
+
+# References:
+The following sources inspired and were referenced in order to complete this project:
+* Neural Discrete Representation Learning, Aaron van den Oord, Oriol Vinyals, Koray Kavukcuoglu, 2017. https://arxiv.org/abs/1711.00937
+* Adni Brain Dataset, Thanks to https://adni.loni.usc.edu/
+* Misha Laskin, https://github.com/MishaLaskin/vqvae/tree/master
