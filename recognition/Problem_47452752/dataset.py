@@ -13,6 +13,31 @@ import torchvision.transforms.functional as TF
 from PIL import Image
 import numpy as np
 
+excluded_ids = ["ISIC_0013499"]
+
+# def filter_consistent_data(
+#     image_dir="/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2",
+#     mask_dir="/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2",
+# ):
+#     image_ids = [
+#         img.split(".")[0] for img in os.listdir(image_dir) if img.endswith(".jpg")
+#     ]
+
+#     consistent_ids = [
+#         img_id
+#         for img_id in image_ids
+#         if os.path.exists(os.path.join(mask_dir, img_id + "_segmentation.jpg"))
+#     ]
+
+#     inconsistent_ids = set(image_ids) - set(consistent_ids)
+
+#     if inconsistent_ids:
+#         print(
+#             f"Found {len(inconsistent_ids)} inconsistent image IDs. They will be excluded from the dataset."
+#         )
+
+#     return consistent_ids
+
 
 class ISICDataset(Dataset):
     def __init__(
@@ -24,7 +49,9 @@ class ISICDataset(Dataset):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.image_ids = [
-            img.split(".")[0] for img in os.listdir(image_dir) if img.endswith(".jpg")
+            img.split(".")[0]
+            for img in os.listdir(image_dir)
+            if img.endswith(".jpg") and img.split(".")[0] not in excluded_ids
         ]
         self.transform = transform
 
