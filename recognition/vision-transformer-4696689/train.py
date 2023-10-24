@@ -3,7 +3,7 @@ Imports Here
 """
 from dataset import trainloader
 from dataset import testloader
-from dataset import trainaccloader
+from dataset import valloader
 from dataset import trainshape
 from dataset import testshape
 
@@ -17,9 +17,12 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+from numpy import savetxt
+
 """for results"""
 TRAIN_LOSS = []
 TRAIN_ACC = []
+TRAIN_TIMES = []
 
 """
 function to train the model
@@ -90,3 +93,5 @@ print(TRAIN_ACC)
 """saving model"""
 # model_trained = torch.jit.script(model)
 # model_trained.save('model_trained.pt')
+savetxt('loss.txt', TRAIN_LOSS)
+savetxt('acc.txt', TRAIN_ACC)
