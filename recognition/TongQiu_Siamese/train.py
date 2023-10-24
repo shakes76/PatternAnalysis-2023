@@ -508,6 +508,9 @@ if __name__ == '__main__':
         backbone = Embedding_Baseline()
         checkpoint = torch.load(args.backbone)
         backbone.load_state_dict(checkpoint['model_state_dict'])
+        # Freeze the weights in the backbone
+        for param in backbone.parameters():
+            param.requires_grad = False
         model = ClassificationNet(backbone)
 
         train_dataset = ClassificationDataset(train_data, transform=tr_transform)
