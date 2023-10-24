@@ -51,7 +51,9 @@ for epoch in range(num_epochs):
         optimizer.zero_grad()
 
         # Forward pass
-        outputs = model(images)
+        _, outputs = torch.max(model(images), 1)
+        outputs = outputs.unsqueeze(1)
+        # outputs = model(images)
         print(outputs.size())
         print(masks.size())
 
