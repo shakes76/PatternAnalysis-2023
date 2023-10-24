@@ -106,10 +106,12 @@ class Segmentation(nn.Module):
         super(Segmentation, self).__init__()
         self.conv = nn.Conv2d(in_channels, num_classes, kernel_size=1, stride=1)
 
-    def forward(self, x, other_layer=None):
+    def forward(self, x, other_layer, upscale=True):
         x = self.conv(x)
         if other_layer is not None:
             x += other_layer
+        if not upscale:
+            return x
         return F.interpolate(x, scale_factor=2, mode="nearest")
 
 
@@ -145,7 +147,7 @@ class UNet(nn.Module):
         # Segmentation layers
         self.segment1 = Segmentation(64, num_classes)
         self.segment2 = Segmentation(32, num_classes)
-        self.segment3 = Segmentation(16, num_classes)
+        self.segment3 = Segmentation(32, num_classes)
 
     def forward(self, x):
         # Context Pathway
@@ -164,9 +166,8 @@ class UNet(nn.Module):
         # Deep Supervision
         seg_1 = self.segment1(local_2, None)
         seg_2 = self.segment2(local_3, seg_1)
-        seg_3 = self.segment3(seg_2, local_out)
+        seg_3 = self.segment3(local_out, seg_2, upscale=False)
 
         # Apply softmax and return
         return F.softmax(seg_3, dim=1)
-
 
