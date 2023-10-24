@@ -30,7 +30,7 @@ function to train the model
 def train(model, dataloader, accloader, lossfunc, optimiser, nepochs=10):    
     """training"""
     for i in range(nepochs): # for each epoch
-         epoch_loss = 0
+        epoch_loss = 0
         model.train()
         n_batches = 0
         time1 = time.time()
@@ -79,7 +79,7 @@ model = VisionTransformer(inputsize=(batchsize, 192, 120), heads=4, embed=360, f
 criterion = nn.CrossEntropyLoss()
 optimiser = optim.AdamW(model.parameters(), lr=3e-4)
 start = time.time()
-train(model, trainloader(batchsize=batchsize), valloader(), criterion, optimiser, nepochs=100)
+train(model, trainloader(batchsize=batchsize), valloader(), criterion, optimiser, nepochs=1)
 end = time.time()
 print("training time: ", end-start)
 print("test acc: ", test(model, testloader()))
