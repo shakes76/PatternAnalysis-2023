@@ -20,10 +20,26 @@ def ssim(img1, img2, C1=0.01**2, C2=0.03**2):
     ssim_val = ssim_n / ssim_d
 
     return ssim_val.mean()
+
 # Check for CUDA availability and set the device accordingly
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 print("Running on: ", device)
 
+class ResidualBlock(nn.Module):
+    def __init__(self, in_channels):
+        super(ResidualBlock, self).__init__()
+        self.conv = nn.Sequential(
+            nn.Conv2d(in_channels, in_channels, 3, padding=1),
+            nn.BatchNorm2d(in_channels),
+            nn.ReLU(),
+            nn.Conv2d(in_channels, in_channels, 3, padding=1),
+            nn.BatchNorm2d(in_channels)
+        )
+
+    def forward(self, x):
+        return x + self.conv(x)
+
+# VQ-VAE Components
 # VQ-VAE Components
 class Encoder(nn.Module):
     def __init__(self):
@@ -99,7 +115,7 @@ class VectorQuantizer(nn.Module):
         return z_q
 
 # Hyperparameters
-learning_rate = 0.1
+learning_rate = 1e-3
 batch_size = 32
 num_epochs = 75
 codebook_size = 512
@@ -109,7 +125,7 @@ l2_weight = 0
 ssim_weight = 1
 
 # Constants for early stopping
-patience = 12
+patience = 75
 best_val_loss = float('inf')
 counter = 0
 
@@ -215,7 +231,50 @@ torch.save(encoder.state_dict(), 'encoder.pth')
 torch.save(decoder.state_dict(), 'decoder.pth')
 torch.save(vector_quantizer.state_dict(), 'vectorquantizer.pth')
 
-# Save Models
-torch.save(encoder.state_dict(), 'encoder.pth')
-torch.save(decoder.state_dict(), 'decoder.pth')
-torch.save(vector_quantizer.state_dict(), 'vectorquantizer.pth')
+
+from skimage.metrics import structural_similarity as ssim
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2  # Import OpenCV
+import torch
+
+# Assuming your existing PyTorch models are already loaded
+# encoder, decoder, vector_quantizer, and codebook
+
+encoder.eval()  # Set the encoder model to evaluation mode
+decoder.eval()  # Set the decoder model to evaluation mode
+vector_quantizer.eval()  # Set the vector quantizer to evaluation mode
+
+with torch.no_grad():  # Turn off gradients for the upcoming operations
+    for img, _ in train_loader:  # Loop through batches in the data loader
+        img = img.cuda()  # Move the images to the GPU
+        z = encoder(img)  # Encode the images to latent space
+
+        batch_size, _, H, W = z.shape
+        z = z.permute(0, 2, 3, 1).contiguous().view(batch_size, H * W, -1)
+        
+        z_q = vector_quantizer(z)
+        z_q = z_q.view(batch_size, H, W, 512).permute(0, 3, 1, 2).contiguous()
+        
+        recon = decoder(z_q)  # Decode the quantized vectors
+
+        # Calculate SSIM
+        original_img = img.cpu().numpy().squeeze(1)  # Convert to numpy and remove color channel dimension
+        reconstructed_img = recon.cpu().numpy().squeeze(1)  # Convert to numpy and remove color channel dimension
+        
+        ssim_val = ssim(original_img[0], reconstructed_img[0], data_range=reconstructed_img.max() - reconstructed_img.min())  # Calculate SSIM
+
+        print(f'SSIM: {ssim_val}')  # Output SSIM value
+
+        # Output images
+        plt.subplot(1, 2, 1)
+        plt.title('Original')
+        plt.imshow(original_img[0], cmap='gray')  # Show original image
+        
+        plt.subplot(1, 2, 2)
+        plt.title('Reconstructed')
+        plt.imshow(reconstructed_img[0], cmap='gray')  # Show reconstructed image
+
+        plt.show()  # Show the plot
+
+        break  # Exit the loop after one iteration for demonstration
