@@ -4,25 +4,22 @@ from typing import Dict, List, Tuple
 import torch
 import torch.nn as nn
 from torchvision import transforms
-from torch.utils.data import Dataset, DataLoader, random_split
+from torch.utils.data import Dataset, DataLoader, random_split, default_collate
 from torchvision.datasets import ImageFolder
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 import numpy as np
 from torchdata.datapipes.iter import BucketBatcher, FileLister, Mapper, RandomSplitter, UnBatcher
 from PIL import Image
+from torch.utils.data.backward_compatibility import worker_init_fn
+from torchvision.utils import make_grid
+import matplotlib.pyplot as plt
 
 """
 Contains the data loader for loading and preprocessing the ADNI dataset.
+
+https://sebastianraschka.com/blog/2022/datapipes.html#DataPipesforDatasetsWithImagesandCSVs
 """
-
-
-#### Set-up GPU device ####
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-if not torch.cuda.is_available():
-    print("Warning: CUDA not found. Using CPU")
-else:
-    print(torch.cuda.get_device_name(0))
 
 
 #### Model hyperparameters: ####
@@ -46,20 +43,23 @@ means and standard deviations of 0.5 - this places intensity values in the range
 [-1, 1].
 '''
 TRAIN_TF = transforms.Compose([
+    # transforms.ToPILImage(),
       transforms.Resize(IMG_SIZE),
       transforms.CenterCrop(IMG_SIZE),
       transforms.ToTensor(), 
       transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
       ])
 TEST_TF = transforms.Compose([
+                # transforms.ToPILImage(),
                 transforms.ToTensor(), 
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
 VAL_TF = transforms.Compose([
+                # transforms.ToPILImage(),
                 transforms.ToTensor(), 
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
-# TODO should validation and test transforms be different? I don't see why they should be
+# Should validation and test transforms be different? I don't see why they should be
 
 
 #### File paths: ####
@@ -139,26 +139,7 @@ def load_ADNI_data(dataset_path=DATASET_PATH, tf=TEST_TF, batch_size=BATCH_SIZE,
     else:
         shuffle = False
     # Load the set into DataLoader object
-    loader = DataLoader(data, batch_size=BATCH_SIZE, shuffle=shuffle)
-
-    # Get the size of the set:
-    print(f"Data points: {len(loader.dataset)}") 
-    # Get the classes:
-    print(f"Classes: {data.classes}")
-    # Get the original file's names:
-    # print(f"Images: {data.imgs}")
-
-    # Plot a selection of images from a single batch of the dataset
-    sample_data = next(iter(loader))
-    # Create a grid of 8x8 images
-    plt.figure(figsize=(8,8))
-    plt.axis("off")
-    # Add a title
-    plt.title("Sample of images (test set)")
-    # Plot the first 64 images in the batch
-    plt.imshow(np.transpose(make_grid(sample_data[0].to(device)[:64], padding=2, normalize=True).cpu(),(1, 2, 0)))
-    # Plot graph
-    #plt.show()
+    loader = DataLoader(data, batch_size=BATCH_SIZE, shuffle=shuffle, num_workers=1)
 
     return loader
 
@@ -186,7 +167,24 @@ def patient_sort(bucket):
 
 
 """
-TODO
+Opens the PIL image specified by the given filename. Returns the opened PIL
+
+Params:
+    file_data (tuple(str, str)): a filename for the PIL image to be opened, and 
+                                  label for the given data point associated with 
+                                  that file ("AD" or "NC")
+Returns:
+    Tuple containing the opened PIL image, and the label for the given 
+    data point associated with that image ("AD" or "NC")
+"""
+def open_image(file_data):
+    filename, class_name = file_data
+    return Image.open(filename).convert("RGB"), class_name
+
+
+"""
+Determines the class label to be assigned to a given file, based on the
+contents of its filename. Returns an assignment of the class label to the filename.
 
 Implementation assumes that the subdirs of the train dir separates datapoints of
 different classes into different dirs (AD classes are in the "AD" subdir, and
@@ -197,7 +195,8 @@ of the particular class name ("AD" or "NC") in the given filename.
 Params:
     filename (str): the file name of the given input image
 Returns:
-    The given filename, and the class name for that image file ("AD" or "NC")
+    Tuple containing the given filename, and the class name for that image 
+    file ("AD" or "NC")
 
 Method throws an exception if the class label can't be determined (there are
 no "AD" or "NC" substrings in the filename, indicating that the
@@ -218,7 +217,16 @@ def add_class_labels(filename):
 
 
 """
-TODO
+Loads the ADNI dataset train images from the given local directory/path.
+Depending on the provided train_size param, a validation set may also be
+generated from data in the 'train' subdir, using a stratified split.
+To prevent data leakage, the train and validation set are created using a
+patient-based split. All MRI image slices for each patient are grouped 
+together (per patient) - each patient is then shuffled and split into
+training and validation sets. After the split is performed, the patient MRI
+slices are then 'ungrouped', and data within the sets is then shuffled for each
+individual image.
+The method also applies the specified transforms to the train and/or validation set.
 
 Implementation of this method assumes that there are exactly 20 MRI image slices
 per patient within the dataset. Additionally, it is assumed that there is no
@@ -242,28 +250,35 @@ Params:
                             present in the dataset
 
 Returns:
-    DataLoader for the train set data. If train_size < 1, a DataLoader
-    for the validation set data is also returned. Otherwise, a value of None is
-    returned as well as the train set data.
+    Tuple with 3 values:
+    DataLoader for the train set data, and the number of training points in the
+    train set DataLoader. If train_size < 1, a DataLoader for the validation 
+    set data is also returned; otherwise, a value of None is returned.
 """
-def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=TRAIN_TF, val_tf=VAL_TF, 
-                   batch_size=BATCH_SIZE, train_size=0.8, imgs_per_patient=N_IMGS_PER_PATIENT):
-    if train_size == 1:
+def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=TRAIN_TF, 
+                               val_tf=VAL_TF, batch_size=BATCH_SIZE, train_size=0.8, 
+                               imgs_per_patient=N_IMGS_PER_PATIENT):
+    if train_size >= 1:
         '''
-        If train_size == 1, create only a training set.
+        If train_size >= 1, create only a training set.
         Load the data in the same manner used to load the ADNI test set.
         '''
         train_loader = load_ADNI_data(dataset_path=dataset_path, tf=train_tf,
                                            batch_size=batch_size)
         # Set the validation set DataLoader to none (no validation set used)
-        return train_loader, None
+        return train_loader, len(train_loader), None
 
-    # Create a training and validation set:
-    # Get all jpeg files in the train set subdirectories; label data (AD and NC classes)
+    '''
+    Create a training and validation set:
+    Get all jpeg files in the train set subdirectories, then label the data 
+    (with the AD or NC classes).
+    '''
     AD_files = FileLister(root=osp.join(dataset_path, "train", "AD"), 
-                        masks="*.jpeg", recursive=False).map(add_class_labels)
+                        masks="*.jpeg", recursive=False).map(
+                            add_class_labels)
     NC_files = FileLister(root=osp.join(dataset_path, "train", "NC"), 
-                        masks="*.jpeg", recursive=False).map(add_class_labels)
+                        masks="*.jpeg", recursive=False).map(
+                            add_class_labels)
     
     '''
     Add the data into distinct batches, grouped by patient ID 
@@ -272,15 +287,14 @@ def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=TRAIN_TF, val
     patient within the entire bucket (but doesn't shuffle the 20 images 
     within each patient's batch).
     '''
-    AD_batch = BucketBatcher(AD_files, use_in_batch_shuffle=False, 
+    AD_batch = AD_files.bucketbatch(use_in_batch_shuffle=False, 
                             batch_size=N_IMGS_PER_PATIENT, sort_key=patient_sort)
-    NC_batch = BucketBatcher(NC_files, use_in_batch_shuffle=False, 
+    NC_batch = NC_files.bucketbatch(use_in_batch_shuffle=False, 
                             batch_size=N_IMGS_PER_PATIENT, sort_key=patient_sort)
 
     '''
-    Perform a stratified split of AD and NC data into a train and valdation
-    set. The split of the data is determined by the train_size argument.
-    Note that the data has previously been shuffled by patient ID within each
+    Perform a stratified split of AD and NC images by the train_size argument.
+    Note that the data has previously been shuffled by patient ID, within each
     of the two classes.
     '''
     val_size = 1 - train_size
@@ -292,6 +306,7 @@ def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=TRAIN_TF, val
                                                     "validation": val_size},
                                                     total_length=len(list(NC_batch)),
                                                     seed=3)
+    
     '''
     Combine the AD and NC class splits into combined train and validation sets.
     Once combined, unbatch the data (so that data images are no longer batched
@@ -301,13 +316,46 @@ def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=TRAIN_TF, val
     '''
     train_data = AD_train.concat(NC_train).unbatch().shuffle()
     val_data = AD_val.concat(NC_val).unbatch().shuffle()
+    # Get the number of training set data points:
+    n_train_datapoints = len(list(train_data))
 
-    # Set up the training and validation set DataLoaders
-    train_loader = DataLoader(train_data, batch_size=BATCH_SIZE, shuffle=True)
-    val_loader = DataLoader(val_data, batch_size=BATCH_SIZE, shuffle=True)
+    """
+    Apply a transform to images in the training set.
 
-    # TODO convert iterables into maps - this may make the dataloaders in this
-    # method perform more similarly to the other dataloaders
-
-    return train_loader, val_loader
+    Params:
+        image_data (tuple(PIL image, str)): contains the opened PIL image, and
+                                            the class label for that image
+        dataset (str): "train" or "validation"
+    Returns:
+        The transformed input image, and the class label for that image 
+        (not transformed)
+    """
+    def apply_train_tf(image_data):
+        image, class_name = image_data
+        return train_tf(image), class_name
     
+
+    """
+    Apply a transform to images in the validation set.
+
+    Params:
+        image_data (tuple(PIL image, str)): contains the opened PIL image, and
+                                            the class label for that image
+    Returns:
+        The transformed input image, and the class label for that image 
+        (not transformed)
+    """
+    def apply_val_tf(image_data):
+        image, class_name = image_data
+        return val_tf(image), class_name
+
+
+    '''
+    Apply a sharding filter to the data after shuffling has taken place.
+    Open the PIL images from the given dataset filenames.
+    Once opened, apply the specified train and validation transforms to the images.
+    '''
+    train_images = train_data.sharding_filter().map(open_image).map(apply_train_tf)
+    val_images = val_data.sharding_filter().map(open_image).map(apply_val_tf)
+
+    return train_images, n_train_datapoints, val_images
