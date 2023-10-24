@@ -215,6 +215,8 @@ def train_triplet(model, train_loader, optimizer, criterion, epoch, epochs):
     model.train()
     train_loss_lis = np.array([])
 
+    n=0
+
     for batch in tqdm(train_loader):
         anchor, positive, negative, labels = batch
         anchor, positive, negative, labels = anchor.to(Config.DEVICE), positive.to(Config.DEVICE), \
@@ -229,6 +231,10 @@ def train_triplet(model, train_loader, optimizer, criterion, epoch, epochs):
         # Record the batch loss
         train_loss_lis = np.append(train_loss_lis, loss.item())
 
+        n+=1
+        if n>2:
+            break
+
     train_loss = sum(train_loss_lis) / len(train_loss_lis)
 
     # Print the information.
@@ -241,6 +247,8 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
     model.eval()
     total_loss = 0.0
 
+    n=0
+
     with torch.no_grad():
         for batch in tqdm(val_loader):
             anchor, positive, negative, labels = batch
@@ -250,6 +258,10 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
             loss = criterion(embedding_a, embedding_p, embedding_n)
 
             total_loss += loss.item()
+
+            n+=1
+            if n>2:
+                break
 
     average_loss = total_loss / len(val_loader)
 
@@ -290,14 +302,14 @@ def main_classifier(model, train_loader, val_loader, criterion, optimizer, epoch
 
         if val_batch_acc > best_score:
             print(f"model improved: score {best_score:.5f} --> {val_batch_acc:.5f}")
-            best_loss = val_batch_loss
+            best_score = val_batch_acc
             # Save the best weights if the score is improved
             torch.save({
                 'epoch': epoch,
                 'model_state_dict': model.state_dict(),
                 'val_loss': val_batch_loss,
                 'val_acc': val_batch_acc
-            }, Config.MODEL_DIR_TRIPLET)
+            }, Config.MODEL_DIR_CLASSIFIER)
         else:
             early_stopping_counter += 1
             print(f"no improvement: score {best_score:.5f} --> {val_batch_acc:.5f}")
@@ -313,10 +325,10 @@ def main_classifier(model, train_loader, val_loader, criterion, optimizer, epoch
     val_accs = np.array(val_accs)
 
     # Save the arrays
-    train_loss_path = os.path.join(Config.LOG_DIR, 'classifier_c/train_losses.npy')
-    val_loss_path = os.path.join(Config.LOG_DIR, 'classifier_c/val_losses.npy')
-    train_accs_path = os.path.join(Config.LOG_DIR, 'classifier_c/train_accs.npy')
-    val_accs_path = os.path.join(Config.LOG_DIR, 'classifier_c/val_accs.npy')
+    train_loss_path = os.path.join(Config.LOG_DIR, 'classifier_t/train_losses.npy')
+    val_loss_path = os.path.join(Config.LOG_DIR, 'classifier_t/val_losses.npy')
+    train_accs_path = os.path.join(Config.LOG_DIR, 'classifier_t/train_accs.npy')
+    val_accs_path = os.path.join(Config.LOG_DIR, 'classifier_t/val_accs.npy')
 
     # Check if the directory exists, if not create it
     if not os.path.exists(os.path.dirname(train_loss_path)):
@@ -390,7 +402,7 @@ def validate_classifier(model, val_loader, criterion, epoch, epochs):
     return average_loss, average_acc
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Training script for Contrastive/Triplet network')
+    parser = argparse.ArgumentParser(description='Training script for Contrastive/Triplet/Classification network')
 
     # model
     parser.add_argument('-m', '--model', default='Contrastive', type=str,
@@ -425,8 +437,7 @@ if __name__ == '__main__':
         tf.RandomRotation(10)
     ])
     val_transform = tf.Compose([
-        tf.Normalize((0.1160,), (0.2261,)),
-        tf.RandomRotation(10)
+        tf.Normalize((0.1160,), (0.2261,))
     ])
 
     lr = args.learning_rate
