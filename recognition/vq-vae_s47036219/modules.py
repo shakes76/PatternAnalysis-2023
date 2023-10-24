@@ -126,18 +126,17 @@ class VQVAE(nn.Module):
 # Hyperparameters
 learning_rate = 1e-3
 batch_size = 32
-num_epochs = 20
+num_epochs = 40
 codebook_size = 512
 
 # Weight for L2 and SSIM in final loss
-l2_weight = 0
+l2_weight = 0.05
 ssim_weight = 1
 
 # Constants for early stopping
-patience = 10
+patience = 12
 best_val_loss = float('inf')
 counter = 0
-
 
 # Data Loaders
 transform = transforms.Compose([
@@ -164,6 +163,7 @@ scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min', patience=3, v
 # Training Loop
 for epoch in range(num_epochs):
     for i, (img, _) in enumerate(train_loader):
+        model.train()
         img = img.to(device)  # Move to device
 
         # Forward pass through the entire model
@@ -187,9 +187,7 @@ for epoch in range(num_epochs):
 
     # Validation phase
     val_losses = []
-    encoder.eval()
-    decoder.eval()
-    vector_quantizer.eval()
+    model.eval()
     with torch.no_grad():
         for i, (img, _) in enumerate(val_loader):
             img = img.to(device)
@@ -235,4 +233,53 @@ for epoch in range(num_epochs):
 # Save Models
 torch.save(model.state_dict(), 'vqvae.pth')
 
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2  # Import OpenCV
+import torch
+import random
 
+# Assuming your existing PyTorch models are already loaded
+# encoder, decoder, vector_quantizer, and codebook
+model.load_state_dict(torch.load('vqvae.pth'))
+val_losses = []
+model.eval()
+
+with torch.no_grad():
+    for i, (img, _) in enumerate(val_loader):
+        img = img.to(device)
+        
+        # Validation forward pass
+        z = model.encoder(img)
+        z = model.conv1(z)
+        z_q = model.vector_quantizer(z)
+        recon = model.decoder(z_q)
+
+        # Validation losses
+        l2_loss = ((recon - img) ** 2).sum()
+        print(img.dtype, recon.dtype)
+        ssim_loss = 1 - ssim(img, recon)
+        loss = l2_weight * l2_loss + ssim_weight * ssim_loss
+
+        val_losses.append(loss.item())
+        
+        # Calculate SSIM
+        ssim_val = ssim(img, recon).item()  # We already have a PyTorch-based SSIM function
+        print(f'SSIM: {ssim_val}')  # Output SSIM value
+
+        # Assuming the images are single channel and the channel dimension is at the second position
+        original_img = img.cpu().numpy().squeeze(1)
+        reconstructed_img = recon.cpu().numpy().squeeze(1)
+
+        # Output images (for first image in the batch)
+        plt.subplot(1, 2, 1)
+        plt.title('Original')
+        plt.imshow(original_img[0], cmap='gray')
+        
+        plt.subplot(1, 2, 2)
+        plt.title('Reconstructed')
+        plt.imshow(reconstructed_img[0], cmap='gray')
+        
+        plt.show()
+        
+        break  # Exit the loop after one iteration for demonstration
