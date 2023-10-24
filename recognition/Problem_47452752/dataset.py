@@ -17,8 +17,8 @@ import numpy as np
 class ISICDataset(Dataset):
     def __init__(
         self,
-        image_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2",
-        mask_dir = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2",
+        image_dir="/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2",
+        mask_dir="/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2",
         transform=None,
     ):
         self.image_dir = image_dir
