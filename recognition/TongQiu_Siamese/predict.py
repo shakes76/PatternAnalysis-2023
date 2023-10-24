@@ -11,6 +11,7 @@ from dataset import discover_directory, ClassificationDataset
 # test acc
 def test(model, val_loader):
     model_name = type(model).__name__
+    model = model.to(Config.DEVICE)
     model.eval()
     total_acc = 0.0
 
