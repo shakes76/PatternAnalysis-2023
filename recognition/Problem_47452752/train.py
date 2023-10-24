@@ -52,12 +52,8 @@ for epoch in range(num_epochs):
 
         # Forward pass
         outputs = model(images)
-        outputs = (outputs > 0.5).float()
-        print(outputs.size())
-        print(masks.size())
-        # _, outputs = torch.max(model(images), 1)
-        # outputs = outputs.unsqueeze(1)
-        loss = dice_loss(outputs, masks)
+        masks_expanded = torch.cat((masks, 1 - masks), dim=1)
+        loss = dice_loss(outputs, masks_expanded)
 
         # Backward pass + optimization
         loss.backward()
