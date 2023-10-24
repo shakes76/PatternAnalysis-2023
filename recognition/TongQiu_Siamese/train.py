@@ -332,8 +332,6 @@ def train_classifier(model, train_loader, optimizer, criterion, epoch, epochs):
     train_loss_lis = np.array([])
     train_acc_lis = np.array([])
 
-    n=0
-
     for batch in tqdm(train_loader):
         imgs, labels = batch
         imgs, labels = imgs.to(Config.DEVICE), labels.to(Config.DEVICE)
@@ -353,10 +351,6 @@ def train_classifier(model, train_loader, optimizer, criterion, epoch, epochs):
         batch_acc = corrects / len(labels)
         train_acc_lis = np.append(train_acc_lis, batch_acc.item())
 
-        n+=1
-        if n>2:
-            break
-
     train_loss = sum(train_loss_lis) / len(train_loss_lis)
     train_acc = sum(train_acc_lis)/len(train_acc_lis)
 
@@ -369,8 +363,6 @@ def validate_classifier(model, val_loader, criterion, epoch, epochs):
     model.eval()
     total_loss = 0.0
     total_acc = 0.0
-
-    n=0
 
     with torch.no_grad():
         for batch in tqdm(val_loader):
@@ -387,10 +379,6 @@ def validate_classifier(model, val_loader, criterion, epoch, epochs):
             corrects = (preds == labels).float().sum().cpu()
             batch_acc = corrects / len(labels)
             total_acc += batch_acc
-
-            n+=1
-            if n>2:
-                break
 
     average_loss = total_loss / len(val_loader)
     average_acc = total_acc / len(val_loader)
