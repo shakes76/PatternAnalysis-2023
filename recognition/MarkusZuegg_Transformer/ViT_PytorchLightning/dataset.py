@@ -4,7 +4,6 @@ lightingdatamodule class for both CIFAR10 (testing purposes)
                         and ADNI datasets
 ADNI valadation split is done manually through file manipulation
 """
-import os
 import pytorch_lightning as pl
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, random_split
@@ -26,7 +25,7 @@ class CIFAR10DataModule(LightningDataModule):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.data_root = os.environ.get("PATH_DATASETS", "Data/")
+        self.data_root = "./Data/CIFAR10"
 
         #Check root is correct
         print(self.data_root)
@@ -50,7 +49,7 @@ class CIFAR10DataModule(LightningDataModule):
         self.train, _ = random_split(train_set, [45000, 5000])
 
         val_set = CIFAR10(root=self.data_root, train=True, transform=self.test_transform, download=True)
-        _, self.test = random_split(val_set, [45000, 5000])
+        _, self.val = random_split(val_set, [45000, 5000])
 
         self.test = CIFAR10(root=self.data_root, train=False, transform=self.test_transform, download=True)
 
@@ -64,6 +63,34 @@ class CIFAR10DataModule(LightningDataModule):
     def val_dataloader(self):
         return DataLoader(self.val, self.batch_size, num_workers=self.num_workers, shuffle=False)
     
+class ADNIDataModule(LightningDataModule):
+    def __init__(
+        self, 
+        batch_size,
+        image_size,
+        in_channels,
+        num_workers=1):
+        super().__init__()
+        self.batch_size = batch_size
+        self.num_workers = num_workers
+        self.data_root = "./Data/ADNI/AD_NC"
+
+        #Setup transfroms
+        #Transfrom for both test and validation sets
+        self.test_transform = Compose([
+                                ToTensor(), 
+                                Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+        #transform for traing set
+        self.train_transform = Compose([ 
+                                RandomHorizontalFlip(),
+                                RandomResizedCrop((image_size, image_size), scale=(0.8, 1.0), ratio=(0.9, 1.0)),
+                                ToTensor(),
+                                Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+    
+
+#TODO Make img_to_patch use num_patches
 def img_to_patch(x, patch_size, num_patches):
     """
     Args:
