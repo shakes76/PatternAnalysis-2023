@@ -35,6 +35,9 @@ The ADNI (Alzheimer’s Disease Neuroimaging Initiative) dataset is a collection
 
 
 ## Details on the implementation
+
+The goal of this project was to: "Ceate a generative model of the ADNI brain dataset using a VQVA that has a “reasonably clear image” and a Structured Similarity (SSIM) of over 0.6"
+
 This implementation was relatively standard for this model. There exist other extensions that could be of a great use in this case, using a gan or other generative models in combination creates a powerful method to improve upon my implementation - but this is left forr other students with more time. 
 
 # Usage:
