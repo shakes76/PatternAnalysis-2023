@@ -135,8 +135,7 @@ if __name__ == '__main__':
     ])
 
     val_transform = tf.Compose([
-        tf.Normalize((0.1160,), (0.2261,)),
-        tf.RandomRotation(10)
+        tf.Normalize((0.1160,), (0.2261,))
     ])
 
     train_dataset = ClassificationDataset(train_data, transform=tr_transform)
