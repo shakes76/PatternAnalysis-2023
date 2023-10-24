@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 from tensorflow import keras
 from tensorflow.keras import layers
 
@@ -61,7 +62,7 @@ def get_decoder(latent_dim):
     return keras.Model(inputs, decoder_outputs, name="decoder")
 
 def vqvae(lat, emb, beta):
-    vect_q = VectorQuantizer(emb, lat, beta, name = "quantiser")
+    vect_q = VectorQuantizer(emb, lat, beta, name = "quantizer")
     encoder	= get_encoder(lat)
     decoder	= get_decoder(lat)
     input	= keras.Input(shape = (80,80,1))
@@ -118,6 +119,81 @@ class VQVAE_MODEL(tf.keras.Model):
             "reconstruction_loss": self.reconstruction_loss_tracker.result(),
             "vqvae_loss": self.vq_loss_tracker.result(),
         }
+class PixelLayer(layers.Layer):
+    
+    def __init__(self, mask_type, **kwargs):
+        super(PixelLayer, self).__init__()
+        self.mask_type = mask_type
+        self.conv = layers.Conv2D(**kwargs)
+
+    def build(self, input_shape):
+        self.conv.build(input_shape)
+        kernel = self.conv.kernel.get_shape()
+        self.mask = np.zeros(shape=kernel)
+        self.mask[: kernel[0] // 2, ...] = 1.0
+        self.mask[kernel[0] // 2, : kernel[1] // 2, ...] = 1.0
+        
+        if self.mask_type == "B":
+            self.mask[kernel[0] // 2, kernel[1] // 2, ...] = 1.0
+
+    def call(self, inputs):
+        self.conv.kernel.assign(self.conv.kernel * self.mask)
+        return self.conv(inputs)
+    
+class ResidualBlock(keras.layers.Layer):
+    """
+    Residual block, based on the PixelConvLayer.
+    """
+    
+    def __init__(self, filters, **kwargs):
+        super(ResidualBlock, self).__init__(**kwargs)
+        self.conv1 = keras.layers.Conv2D(
+            filters=filters, kernel_size=1, activation="relu"
+        )
+        self.pixel_conv = PixelLayer(
+            mask_type="B",
+            filters=filters // 2,
+            kernel_size=3,
+            activation="relu",
+            padding="same",
+        )
+        self.conv2 = keras.layers.Conv2D(
+            filters=filters, kernel_size=1, activation="relu"
+        )
+
+    def call(self, inputs):
+        x = self.conv1(inputs)
+        x = self.pixel_conv(x)
+        x = self.conv2(x)
+        return keras.layers.add([inputs, x])
+    
+def pcnn(vqvae_model, output_enco):
+    num_residual_blocks = 2
+    num_pixelcnn_layers = 2
+    pixelcnn_input_shape = output_enco.shape[1:-1]
+    print(f"Input shape of the PixelCNN: {pixelcnn_input_shape}")
+    
+    pixelcnn_inputs = keras.Input(shape=pixelcnn_input_shape, dtype=tf.int32)
+    ohe = tf.one_hot(pixelcnn_inputs, vqvae_model.num_embeddings)
+    x = PixelLayer(mask_type="A", filters=128, kernel_size=7, activation="relu", padding="same")(ohe)
+
+    for _ in range(num_residual_blocks):
+        x = ResidualBlock(filters=128)(x)
+
+    for _ in range(num_pixelcnn_layers):
+        x = PixelLayer(
+            mask_type="B",
+            filters=128,
+            kernel_size=1,
+            strides=1,
+            activation="relu",
+            padding="valid",
+        )(x)  
+    outputs = keras.layers.Conv2D(filters=vqvae_model.num_embeddings, kernel_size=1, strides=1, padding="valid")(x)
+
+    pcnn = keras.Model(pixelcnn_inputs, outputs, name="pixel_cnn")
+    
+    return pcnn
 
 '''        
 class pixelcnn()
