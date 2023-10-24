@@ -47,7 +47,7 @@ if __name__ == '__main__':
         # model
         embedding_net = Embedding_Baseline()
         model = ClassificationNet(embedding_net)
-        checkpoint = args.model
+        checkpoint = torch.load(args.model)
         model.load_state_dict(checkpoint['model_state_dict'])
 
         # data
