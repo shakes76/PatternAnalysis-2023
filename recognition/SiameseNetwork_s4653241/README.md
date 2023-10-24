@@ -1,6 +1,6 @@
 # Siamese Network classifier to classify Alzheimer's disease
 
-Project uses Siamese Network to predict the similarity between two images and classify normal or AD(Alzheimer's Disease).
+[7]Project uses Siamese Network to predict the similarity between two images and classify normal or AD(Alzheimer's Disease).
 
 ## Siamese network
 
