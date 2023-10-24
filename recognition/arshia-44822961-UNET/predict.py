@@ -11,9 +11,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os 
 from torch.utils.data import DataLoader
+import torchvision.transforms as transforms
+
 
 # import from local files  
-from train import load_data, data_transform, dice_coefficient
+from train import dice_coefficient
 from dataset import ISICDataset
 
 # UPDATE IF NOT SAVED IN BASE DIRECTORY. 
@@ -129,6 +131,12 @@ def plot_dice(dice):
 if __name__ == "__main__":
     # connect to gpu
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # set up data transform. 
+    data_transform = transforms.Compose([
+        transforms.ToTensor(),
+        #transforms.Normalize(mean=[0.7071, 0.5821, 0.5360], std=[0.1561, 0.1644, 0.1795])
+    ])
 
     # load in data and model
     test_loader = load_data(TEST_DATA_PATH, TEST_MASK_PATH, data_transform, batch_size=1)
