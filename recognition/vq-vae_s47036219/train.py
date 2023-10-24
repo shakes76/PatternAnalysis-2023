@@ -5,7 +5,7 @@ import torch.nn as nn
 import torch.optim as optim
 from modules import VQVAE, device, ssim
 from dataset import get_dataloaders
-import os
+
 
 
 LEARNING_RATE = 1e-3
@@ -84,7 +84,13 @@ def train(vqvae, train_loader, validation_loader):
                 print(f"Early stopping at epoch {epoch+1}")
                 break
     torch.save(vqvae.state_dict(), 'vqvae.pth')
-
+    
+def train_new_model(train, validation): # Called if weight didnt exist in the test set.
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print("Running on: ", device)
+    model = VQVAE(CODEBOOK_SIZE).to(device)
+    model = train(model, train, validation)
+    
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Running on: ", device)

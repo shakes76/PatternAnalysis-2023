@@ -1,7 +1,7 @@
 import torch
 from modules import VQVAE, device, ssim
 from dataset import get_dataloaders
-from train import SSIM_WEIGHT, L2_WEIGHT, BATCH_SIZE
+from train import SSIM_WEIGHT, L2_WEIGHT, BATCH_SIZE, train_new_model
 import matplotlib.pyplot as plt
 import os
 
@@ -73,4 +73,18 @@ def evaluate(test_loader):
     plt.show()
     
 def main():
-    _, _, test_set = get_dataloaders(BATCH_SIZE)
+    weight_file_path = 'vqvae.pth'
+    
+    train, validate, test = get_dataloaders(BATCH_SIZE)
+
+    if os.path.exists(weight_file_path):
+        print("Weights exist -> Evaluating Model...")
+        evaluate(test)
+        
+    else:
+        print(f"Weight file {weight_file_path} does not exist.")
+        print("Training model now...")
+        train_new_model(train, validate)
+        
+    
+    
