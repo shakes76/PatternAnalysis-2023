@@ -23,7 +23,7 @@ def check_consistency(image_dir=image_path, mask_dir=mask_path):
     mask_ids = {
         mask.split("_segmentation.")[0]
         for mask in os.listdir(mask_dir)
-        if mask.endswith("_segmentation.jpg")
+        if mask.endswith("_segmentation.png")
     }
 
     # Using list differences to find inconsistencies
