@@ -10,11 +10,10 @@ from dataset import CIFAR10DataModule
 from modules import VisionEncoder
 
 class ViT(pl.LightningModule):
-    #!get rid of kwargs (too annoying)
-    def __init__(self, model_kwargs, lr):
+    def __init__(self, config, lr):
         super().__init__()
         self.save_hyperparameters()
-        self.model = VisionEncoder(**model_kwargs)
+        self.model = VisionEncoder(**config)
 
     def forward(self, x):
         return self.model(x)
@@ -48,7 +47,8 @@ def train_model():
     return
 
 def main():
-    kwargs = {"embed_dim": 256,
+
+    config = {"embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
         "num_layers": 1,
@@ -57,7 +57,7 @@ def main():
         "num_patches": 64,
         "num_classes": 10,
         "dropout": 0.2,}
-    model = ViT(kwargs, lr=3e-4)
+    model = ViT(config, lr=3e-4)
     data = CIFAR10DataModule(batch_size=64, image_size=32, in_channels=3)
     trainer = pl.Trainer(max_epochs=1)
     trainer.fit(model, data)
