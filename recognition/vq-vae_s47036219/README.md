@@ -11,3 +11,14 @@ The goal of this task was to implement a Vector Quantized Variational Autoencode
 
 ## VQ-VAE and the ADNI Dataset:
 The ADNI (Alzheimer’s Disease Neuroimaging Initiative) dataset is a collection of neuroimaging data, curated with the primary intent of studying Alzheimer's disease. In the context of the ADNI dataset, a VQ-VAE can be applied to condense complex brain scans into a more manageable, lower-dimensional, discrete latent space. By doing so, it can effectively capture meaningful patterns and structures inherent in the images.
+
+
+## Details on the implementation:
+
+# Usage:
+**Please Note: Before running please add the directory to the train and test files for the dataset in 'train.py'**
+
+It is highly reccomended to run only the 'predict.py' file by calling 'python predict.py' while in the working directory. It is possible to run from the 'train.py' file as well, but this has implications with data leakage a I could not find a proper way to partition the test set.  
+
+# Data:
+This project uses the ADNI dataset (in the form from on blackboard), where the training set is used to train the model, and the test folder is partitioned into a validation set and test set.
