@@ -1,3 +1,6 @@
+"""
+#! make a file header
+"""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,6 +13,12 @@ from dataset import CIFAR10DataModule
 from modules import VisionEncoder
 
 class ViT(pl.LightningModule):
+    """Pytorch_lightning all encompasing module.
+
+    Handles creation of VisionEncoder and loss calculation
+    along with optermiser and lr rate schedular
+    
+    """
     def __init__(self, config, lr):
         super().__init__()
         self.save_hyperparameters()
@@ -48,18 +57,34 @@ def train_model():
 
 def main():
 
-    config = {"embed_dim": 256,
+    lr = 3e-4
+    config = {
+        "embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
-        "num_layers": 1,
+        "num_layers": 6,
         "patch_size": 4,
         "num_channels": 3,
         "num_patches": 64,
         "num_classes": 10,
         "dropout": 0.2,}
-    model = ViT(config, lr=3e-4)
-    data = CIFAR10DataModule(batch_size=64, image_size=32, in_channels=3)
-    trainer = pl.Trainer(max_epochs=1)
+    model = ViT(config, lr=lr)
+
+    batch_size = 64
+    image_size = (32,32)
+    num_workers = 0 #num_workers = 0 if windows
+
+    
+    data = CIFAR10DataModule(
+                        batch_size=batch_size, 
+                        image_size=image_size,  
+                        num_workers=num_workers)
+    
+    trainer = pl.Trainer(max_epochs=10,
+                        accelerator='gpu',
+                        devices=1)
+    
     trainer.fit(model, data)
+    trainer.test(model, data)
 
 if __name__ == '__main__': main()
