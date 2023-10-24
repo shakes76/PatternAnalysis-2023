@@ -7,9 +7,10 @@ from dataset import trainaccloader
 from dataset import trainshape
 from dataset import testshape
 
-from model import VisionTransformer
-from model import Attention
-from model import TransBlock
+from modules import VisionTransformer
+from modules import Attention
+from modules import TransBlock
+from modules import ConvLayer
 
 import time
 import torch
@@ -23,68 +24,62 @@ TRAIN_ACC = []
 """
 function to train the model
 """
-def train(model, dataloader, accloader, lossfunc, optimiser, lr=0.1, momentum=0.9, batchsize=16, nepochs=10):
-    device = next(model.parameters()).device # check what device the net parameters are on
-    
+def train(model, dataloader, accloader, lossfunc, optimiser, nepochs=10):    
     """training"""
     for i in range(nepochs): # for each epoch
-        epoch_loss = 0
+         epoch_loss = 0
         model.train()
         n_batches = 0
         time1 = time.time()
         for (x, y) in dataloader: # for each mini-batch
-            optimiser.zero_grad()
+            optimiser.zero_grad(set_to_none=True)
             loss = lossfunc(model.forward(x), y)
             loss.backward()
             optimiser.step()
-            epoch_loss += loss
+            epoch_loss += loss.detach().item()
             n_batches += 1
         time2 = time.time()
-        print("Done an epoch", time2-time1)
+        TRAIN_TIMES.append(round(time2-time1,3))
         epoch_loss /= n_batches
-    
+
         """evaluating"""
         model.eval()
-        accuracy = test(model, accloader)
+        accuracy = test(model, accloader).detach().item()
 
         """get performance"""
-        TRAIN_LOSS.append(epoch_loss.item())
-        TRAIN_ACC.append(accuracy)
+        TRAIN_LOSS.append(round(epoch_loss,5))
+        TRAIN_ACC.append(round(accuracy*100,2))
+
 
 """
 function to test the model
 """
 def test(model, dataloader):
     with torch.no_grad(): # disable automatic gradient computation for efficiency
-        device = next(model.parameters()).device
-        
         """make predictions"""
         pcls = []
         items = 0
-        time1=time.time()
         for x, y in dataloader:
             x = x.to(device)
             pcls.append(abs(y.cpu()-torch.max(model(x), 1)[1].cpu()))
             items += 1
-        time2 = time.time()
-        print("found accuracy in:", time2-time1)
 
         """get accuracy"""
         pcls = torch.cat(pcls) # concat predictions on the mini-batches
         accuracy = 1 - (pcls.sum().float() / items)
-        print("accuracy:", accuracy)
         return accuracy
     
 """model training"""
 batchsize=16
-N, Np, P = trainshape()
-model = VisionTransformer(inputsize=(batchsize, Np, P), embed=128, fflscale=2, nblocks=4)
+N, Np, L, W, H = trainshape()
+model = VisionTransformer(inputsize=(batchsize, 192, 120), heads=4, embed=360, fflscale=2, nblocks=4)
 criterion = nn.CrossEntropyLoss()
-optimiser = optim.AdamW(model.parameters(), lr=1e-4)
+optimiser = optim.AdamW(model.parameters(), lr=3e-4)
 start = time.time()
-train(model, trainloader(batchsize=batchsize), trainaccloader(), criterion, optimiser, nepochs=10)
+train(model, trainloader(batchsize=batchsize), valloader(), criterion, optimiser, nepochs=100)
 end = time.time()
-print("training time: " end-start)
-test(model, testloader())
+print("training time: ", end-start)
+print("test acc: ", test(model, testloader()))
 print(TRAIN_LOSS)
 print(TRAIN_ACC)
+print(TRAIN_TIMES)
