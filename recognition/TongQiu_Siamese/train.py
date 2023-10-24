@@ -325,10 +325,10 @@ def main_classifier(model, train_loader, val_loader, criterion, optimizer, epoch
     val_accs = np.array(val_accs)
 
     # Save the arrays
-    train_loss_path = os.path.join(Config.LOG_DIR, 'classifier_c/train_losses.npy')
-    val_loss_path = os.path.join(Config.LOG_DIR, 'classifier_c/val_losses.npy')
-    train_accs_path = os.path.join(Config.LOG_DIR, 'classifier_c/train_accs.npy')
-    val_accs_path = os.path.join(Config.LOG_DIR, 'classifier_c/val_accs.npy')
+    train_loss_path = os.path.join(Config.LOG_DIR, 'classifier_cf/train_losses.npy')
+    val_loss_path = os.path.join(Config.LOG_DIR, 'classifier_cf/val_losses.npy')
+    train_accs_path = os.path.join(Config.LOG_DIR, 'classifier_cf/train_accs.npy')
+    val_accs_path = os.path.join(Config.LOG_DIR, 'classifier_cf/val_accs.npy')
 
     # Check if the directory exists, if not create it
     if not os.path.exists(os.path.dirname(train_loss_path)):
