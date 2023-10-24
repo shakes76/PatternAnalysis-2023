@@ -2,6 +2,11 @@
 ADNI brain data set (see Appendix for link) having a minimum accuracy of 0.8 on the test set. [Hard
 Difficulty]
 
+# Siamese Network classifier to classify Alzheimer's disease
+
+Project uses Siamese Network to predict the similarity between two images and classify normal or AD(Alzheimer's Disease).
+
+## Siamese network
 
 
 
