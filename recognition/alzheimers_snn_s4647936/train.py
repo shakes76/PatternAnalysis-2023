@@ -10,8 +10,14 @@ import numpy as np
 import torch.nn as nn
 import seaborn as sns
 from sklearn.metrics import confusion_matrix
+import datetime
 
-def plot_confusion_matrix(y_true, y_pred, classes, output_filename):
+# Generate a unique filename with a timestamp
+current_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
+def plot_confusion_matrix(y_true, y_pred, classes, base_filename):
+    output_filename = f"{base_filename}_{current_time}.png"
+
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(5, 5))
     sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', cbar=False, ax=ax)
@@ -134,10 +140,15 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.title('Siamese Network Training vs Validation Loss')
 plt.legend()
-plt.savefig('siamese_train_vs_val_loss.png')
+losses_file = f'siamese_train_vs_val_loss_{current_time}.png'
+plt.savefig(losses_file)
 
 # Function to save images
-def save_image(img, filename):
+def save_image(img, base_filename):
+    # Generate a unique filename with a timestamp
+    current_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    filename = f"{base_filename}_{current_time}.png"
+
     # Select the first image from the batch
     img = img[0]
 
@@ -187,11 +198,12 @@ tsne = TSNE(n_components=2, random_state=42)
 embeddings_2d = tsne.fit_transform(all_embeddings)
 
 # Plot
+current_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 plt.figure(figsize=(10, 7))
 plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1], c=all_labels, cmap='jet', alpha=0.5, edgecolors='w', s=40)
 plt.colorbar()
 plt.title('2D t-SNE of Embeddings')
-plt.savefig('embeddings_tsne.png')
+plt.savefig(f'embeddings_tsne_{current_time}.png')
 
 # --------- Extract Embeddings for the Entire Dataset ---------
 train_embeddings = []
@@ -244,6 +256,10 @@ for epoch in range(num_epochs):
     with torch.no_grad():
         for embeddings, labels in zip(test_embeddings, test_labels):
             outputs = classifier(torch.tensor(embeddings).to(device))
+
+            # Print the shape of the outputs tensor
+            print("Outputs shape:", outputs.shape)
+
             val_loss = criterion(outputs, torch.tensor(labels).to(device))
             val_running_loss += val_loss.item()
 
@@ -266,16 +282,16 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.title('Classifier Training vs Validation Loss')
 plt.legend()
-plt.savefig('classifier_train_vs_val_loss.png')
+plt.savefig(f'classifier_train_vs_val_loss_{current_time}.png')
 
 # --------- Evaluate Classifier ---------
-correct = 0
-total = 0
-with torch.no_grad():
-    for embeddings, labels in zip(test_embeddings, test_labels):
-        outputs = classifier(torch.tensor(embeddings).to(device))
-        _, predicted = torch.max(outputs.data, 1)
-        total += labels.size(0)
-        correct += (predicted == torch.tensor(labels).to(device)).sum().item()
+test_embeddings_tensor = torch.tensor(test_embeddings).to(device)
+test_labels_tensor = torch.tensor(test_labels).to(device)
+
+outputs = classifier(test_embeddings_tensor)
+_, predicted = torch.max(outputs, 1)
+
+correct = (predicted == test_labels_tensor).sum().item()
+total = test_labels_tensor.size(0)
 
 print(f"Accuracy of the classifier on test embeddings: {100 * correct / total}%")
