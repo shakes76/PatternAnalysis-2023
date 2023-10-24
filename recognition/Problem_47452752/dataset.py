@@ -17,13 +17,15 @@ import numpy as np
 class ISICDataset(Dataset):
     def __init__(
         self,
+        transform,
         image_dir="/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2",
         mask_dir="/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2",
-        transform=None,
     ):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
-        self.image_ids = [img.split(".")[0] for img in os.listdir(image_dir) if img.endswith('.jpg')]
+        self.image_ids = [
+            img.split(".")[0] for img in os.listdir(image_dir) if img.endswith(".jpg")
+        ]
         self.transform = transform
 
     def __len__(self):
@@ -64,19 +66,35 @@ transform = transforms.Compose(
         DictTransform(transforms.RandomVerticalFlip()),
         DictTransform(transforms.Resize((256, 256))),
         DictTransform(transforms.ToTensor()),
-        DictTransform(transforms.Lambda(lambda img_tensor: torch.cat([img_tensor, TF.to_tensor(TF.to_pil_image(img_tensor).convert("HSV"))], dim=0)), False),
-        DictTransform(transforms.Normalize([0.5, 0.5, 0.5, 0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]), False),
+        DictTransform(
+            transforms.Lambda(
+                lambda img_tensor: torch.cat(
+                    [
+                        img_tensor,
+                        TF.to_tensor(TF.to_pil_image(img_tensor).convert("HSV")),
+                    ],
+                    dim=0,
+                )
+            ),
+            False,
+        ),
+        DictTransform(
+            transforms.Normalize(
+                [0.5, 0.5, 0.5, 0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+            ),
+            False,
+        ),
     ]
 )
+
 
 def split_data(dataset, train_size, test_size):
     return random_split(dataset, [train_size, test_size])
 
+
 def train_loader(train_dataset, batch_size, shuffle=True):
     return DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle)
 
+
 def test_loader(test_dataset, batch_size, shuffle=False):
     return DataLoader(test_dataset, batch_size=batch_size, shuffle=shuffle)
-
-
-
