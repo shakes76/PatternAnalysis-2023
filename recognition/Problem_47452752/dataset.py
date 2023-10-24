@@ -77,7 +77,7 @@ class ISICDataset(Dataset):
     def __getitem__(self, idx):
         img_name = os.path.join(self.image_dir, self.image_ids[idx] + ".jpg")
         mask_name = os.path.join(
-            self.mask_dir, self.image_ids[idx] + "_Segmentation.png"
+            self.mask_dir, self.image_ids[idx] + "_segmentation.png"
         )
 
         try:
