@@ -56,12 +56,16 @@ class DictTransform:
         }
 
 
-def dice_loss(predicted, target, epsilon=1e-5):
+def dice_loss(predicted, target, epsilon=1e-7):
+    # Flatten the tensors 
+    predicted = predicted.view(-1)
+    target = target.view(-1)
+
     intersection = (predicted * target).sum()
     union = predicted.sum() + target.sum()
 
-    dice_loss = -1 * (intersection + epsilon) / (union + epsilon)
-    return dice_loss
+    dice_loss = 2 * (intersection + epsilon) / (union + epsilon)
+    return 1 - dice_loss
 
 
 def general_dice_loss(predicted, target):
@@ -78,3 +82,13 @@ def general_dice_loss(predicted, target):
     loss = 1 - dice_scores.mean()
 
     return loss
+
+def dice_coefficient(predicted, target):
+    """ Compute Dice Coefficient for single sample. """
+    intersection = (predicted * target).sum().float()
+    union = (predicted + target).sum().float()
+    
+    if union == 0:
+        return 1.0
+
+    return 2 * intersection / union
