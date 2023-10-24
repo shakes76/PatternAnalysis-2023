@@ -11,7 +11,7 @@ from dataset import discover_directory, ClassificationDataset
 # test acc
 def test(model, val_loader):
     model_name = type(model).__name__
-    model = model.to(Config.DEVICE)
+    model.to(Config.DEVICE)
     model.eval()
     total_acc = 0.0
 
@@ -47,10 +47,8 @@ if __name__ == '__main__':
     if args.task == 'test':
         # model
         embedding_net = Embedding_Baseline()
-        embedding_net = embedding_net.to(Config.DEVICE)
         model = ClassificationNet(embedding_net)
-        model = model.to(Config.DEVICE)
-        checkpoint = torch.load(args.model, map_location=Config.DEVICE)
+        checkpoint = torch.load(args.model)
         model.load_state_dict(checkpoint['model_state_dict'])
 
         # data
