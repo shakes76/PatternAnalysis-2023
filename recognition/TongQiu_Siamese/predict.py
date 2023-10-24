@@ -47,8 +47,10 @@ if __name__ == '__main__':
     if args.task == 'test':
         # model
         embedding_net = Embedding_Baseline()
+        embedding_net = embedding_net.to(Config.DEVICE)
         model = ClassificationNet(embedding_net)
-        checkpoint = torch.load(args.model)
+        model = model.to(Config.DEVICE)
+        checkpoint = torch.load(args.model, map_location=Config.DEVICE)
         model.load_state_dict(checkpoint['model_state_dict'])
 
         # data
