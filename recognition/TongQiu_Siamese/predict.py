@@ -48,7 +48,7 @@ if __name__ == '__main__':
         embedding_net = Embedding_Baseline()
         model = ClassificationNet(embedding_net)
         checkpoint = args.model
-        model.load_state_dict(torch.load(checkpoint))
+        model.load_state_dict(checkpoint['model_state_dict'])
 
         # data
         val_transform = tf.Compose([
