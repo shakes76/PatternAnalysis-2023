@@ -10,7 +10,6 @@ from torch.utils.data import DataLoader, random_split
 from torchvision.utils import make_grid
 from torchvision.datasets import CIFAR10, CIFAR100
 from torchvision.transforms import Compose, ToTensor, RandomCrop, RandomHorizontalFlip, RandomResizedCrop, Resize, Normalize, CenterCrop
-from pl_bolts.transforms.dataset_normalizations import cifar10_normalization
 
 
 class CIFAR10DataModule(LightningDataModule):
@@ -20,26 +19,22 @@ class CIFAR10DataModule(LightningDataModule):
         self, 
         batch_size,
         image_size,
-        in_channels,
         num_workers=1):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.data_root = "./Data/CIFAR10"
-
-        #Check root is correct
-        print(self.data_root)
+        self.data_root = './Data/CIFAR10'
 
         #Setup transfroms
         #Transfrom for both test and validation sets
-        self.test_transform = Compose([ToTensor(), cifar10_normalization()])
+        self.test_transform = Compose([ToTensor(), Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
 
         #transform for traing set
         self.train_transform = Compose([ 
                                 RandomHorizontalFlip(),
-                                RandomResizedCrop((image_size, image_size), scale=(0.8, 1.0), ratio=(0.9, 1.0)),
+                                RandomResizedCrop(image_size, scale=(0.8, 1.0), ratio=(0.9, 1.0)),
                                 ToTensor(),
-                                cifar10_normalization()])
+                                Normalize((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010))])
         
 
         #Splitting trickery as val set shouldnt use train_transfrom
@@ -64,16 +59,24 @@ class CIFAR10DataModule(LightningDataModule):
         return DataLoader(self.val, self.batch_size, num_workers=self.num_workers, shuffle=False)
     
 class ADNIDataModule(LightningDataModule):
+    """ADNI data module in lighting.
+
+    Args:
+        batch_size:
+        image_size:
+        num_workers:
+    """
     def __init__(
         self, 
         batch_size,
         image_size,
-        in_channels,
         num_workers=1):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
-        self.data_root = "./Data/ADNI/AD_NC"
+        self.test_data_root = './Data/ADNI/AD_NC/test'
+        self.train_data_root = './Data/ADNI/AD_NC/train'
+        self.val_data_root = './Data/ADNI/AD_NC/val'
 
         #Setup transfroms
         #Transfrom for both test and validation sets
@@ -91,7 +94,7 @@ class ADNIDataModule(LightningDataModule):
     
 
 #TODO Make img_to_patch use num_patches
-def img_to_patch(x, patch_size, num_patches):
+def img_to_patch(x, patch_size):
     """
     Args:
         x: Tensor representing the image of shape [B, C, H, W]
@@ -102,5 +105,7 @@ def img_to_patch(x, patch_size, num_patches):
     B, C, H, W = x.shape
     x = x.reshape(B, C, H // patch_size, patch_size, W // patch_size, patch_size)
     x = x.permute(0, 2, 4, 1, 3, 5)  # [B, H', W', C, p_H, p_W]
+    x = x.flatten(1, 2)  # [B, H'*W', C, p_H, p_W]
     x = x.flatten(2, 4)  # [B, H'*W', C*p_H*p_W]
     return x
+
