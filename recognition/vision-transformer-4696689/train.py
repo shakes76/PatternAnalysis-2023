@@ -79,7 +79,7 @@ model = VisionTransformer(inputsize=(batchsize, 192, 120), heads=4, embed=360, f
 criterion = nn.CrossEntropyLoss()
 optimiser = optim.AdamW(model.parameters(), lr=3e-4)
 start = time.time()
-train(model, trainloader(batchsize=batchsize), valloader(), criterion, optimiser, nepochs=1)
+train(model, trainloader(batchsize=batchsize), valloader(), criterion, optimiser, nepochs=100)
 end = time.time()
 print("training time: ", end-start)
 print("test acc: ", test(model, testloader()))
