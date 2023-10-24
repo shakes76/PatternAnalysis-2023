@@ -116,7 +116,7 @@ class Segmentation(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, num_classes):
+    def __init__(self, in_channels, num_classes=2):
         super(UNet, self).__init__()
 
         # Context modules
@@ -168,6 +168,12 @@ class UNet(nn.Module):
         seg_2 = self.segment2(local_3, seg_1)
         seg_3 = self.segment3(local_out, seg_2, upscale=False)
 
-        # Apply softmax and return
-        return F.softmax(seg_3, dim=1)
+        # Apply sigmoid (paper used softmax, but this is binary) and return
+        return torch.sigmoid(seg_3)
+        # if num_classes > 2: return F.softmax(seg_3, dim=1)
 
+# Lil testing
+model = UNet(6)
+test = torch.randn(1, 6, 32, 32)
+output = model(test)
+print(output.size())
