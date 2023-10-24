@@ -18,7 +18,7 @@ TEST_PATH = "/home/Student/s4653241/AD_NC/test"
 INPUT_SHAPE= (120, 128) # SIZE OF IMAGE 256 X 240
 BATCH_SIZE = 16 # Batch Size for DataLoader
 
-TRAINING_MODE = False # Training mode
+TRAINING_MODE = True # Training mode
 EPOCH_RANGE = 61 # Size of the Training Epoch
 CHECKPOINT_TRAINING = False # Use Checkpoint and continue Training
 LOAD_CHECKPOINT_TRAINING = "/home/Student/s4653241/MRI/Training_Epoch/Epoch_40.pth"
