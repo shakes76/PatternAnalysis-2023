@@ -23,7 +23,7 @@ class ISICDataset(Dataset):
     ):
         self.image_dir = image_dir
         self.mask_dir = mask_dir
-        self.image_ids = [img.split(".")[0] for img in os.listdir(image_dir)]
+        self.image_ids = [img.split(".")[0] for img in os.listdir(image_dir) if img.endswith('.jpg')]
         self.transform = transform
 
     def __len__(self):
@@ -40,7 +40,7 @@ class ISICDataset(Dataset):
                 f"Image or mask not found for ID {self.image_ids[idx]}"
             )
 
-        with image.open(img_name) as image, Image.open(mask_name) as mask:
+        with Image.open(img_name) as image, Image.open(mask_name) as mask:
             image = image.convert("RGB")
             mask = mask.convert("L")
 
@@ -69,6 +69,8 @@ transform = transforms.Compose(
     ]
 )
 
+def split_data(dataset, train_size, test_size):
+    return random_split(dataset, [train_size, test_size])
 
 def train_loader(train_dataset, batch_size, shuffle=True):
     return DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle)
@@ -76,8 +78,5 @@ def train_loader(train_dataset, batch_size, shuffle=True):
 def test_loader(test_dataset, batch_size, shuffle=False):
     return DataLoader(test_dataset, batch_size=batch_size, shuffle=shuffle)
 
-dataset = ISICDataset(transform)
-test_size = int(0.20 * len(dataset))
-train_size = len(dataset) - test_size
-train_dataset, test_dataset = random_split(dataset, [train_size, test_size])
+
 

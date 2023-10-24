@@ -2,6 +2,7 @@ import torch
 from random import choice
 import torchvision.transforms.functional as TF
 
+
 class RandomRotate90:
     """Randomly rotates the image by 90, 180, or 270 degrees."""
 
@@ -41,7 +42,7 @@ class RandomCenterCrop:
 class DictTransform:
     def __init__(self, transform, transform_mask=True):
         self.transform = transform
-
+        self.transform_mask = transform_mask
     def __call__(self, sample):
         image, mask = sample["image"], sample["mask"]
         if self.transform_mask:
@@ -53,3 +54,27 @@ class DictTransform:
             "image": self.transform(image),
             "mask": mask,
         }
+
+
+def dice_loss(predicted, target, epsilon=1e-5):
+    intersection = (predicted * target).sum()
+    union = predicted.sum() + target.sum()
+
+    dice_loss = -1 * (intersection + epsilon) / (union + epsilon)
+    return dice_loss
+
+
+def general_dice_loss(predicted, target):
+    # One-hot encode the target segmentation map
+    target_one_hot = torch.zeros_like(predicted)
+    for k in range(target_one_hot.shape[1]):
+        target_one_hot[:, k] = target == k
+
+    # Compute the Dice loss for each class, then average
+    intersection = (predicted * target_one_hot).sum(dim=(2, 3))
+    union = (predicted + target_one_hot).sum(dim=(2, 3))
+
+    dice_scores = 2 * intersection / union
+    loss = 1 - dice_scores.mean()
+
+    return loss
