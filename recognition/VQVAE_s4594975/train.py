@@ -16,15 +16,28 @@ def trained_vqvae():
     xlabel("Epoch")
     show()
 
-    return trained_model, vqvae
+    return trained_model, vqvae_model
 
 def train_pcnn(trained):
     encoder	= trained.vqvae.get_layer("encoder")
     quantizer = trained.vqvae.get_layer("quantizer")
     output_enco = encoder.predict(x_test_scaled)
-    codebook = quantizer.code_indices(output_enco.reshape(-1, output_enco.shape[-1]))
+    codebook = quantizer.get_code_indices(output_enco.reshape(-1, output_enco.shape[-1]))
     codebook = codebook.numpy().reshape(output_enco.shape[:-1])
-    pcnn_model = pcnn()
+    pcnn_model = pcnn(trained, output_enco)
+    pcnn_model.compile(optimizer=keras.optimizers.Adam(3e-4), 
+                       loss=keras.losses.SparseCategoricalCrossentropy(from_logits=True), metrics=["accuracy"],)
+
+    pixelcnn_history = pcnn_model.fit(x=codebook, y=codebook, batch_size=128, epochs=50, validation_split=0.3,)
+    pcnn_model.save("PCNN.h5")
+    plt.plot(pixelcnn_history.history['loss'])
+    plt.plot(pixelcnn_history.history['val_loss'])
+    plt.title('PixelCNN Loss')
+    plt.ylabel('loss')
+    plt.xlabel('epoch')
+    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.show()
+
 
 def main():
     '''
