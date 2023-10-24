@@ -19,7 +19,7 @@ class Config:
     LOG_DIR = Path("./log")
     MODEL_DIR_CONTRASTIVE = "./model/Contrastive.pth"
     MODEL_DIR_TRIPLET = "./model/Triplet.pth"
-    MODEL_DIR_CLASSIFIER = "./model/Classifier_cf.pth"
+    MODEL_DIR_CLASSIFIER = "./model/Classifier_tf.pth"
 
     # # colab
     # TRAIN_DIR = Path("/content/drive/MyDrive/Colab_Notebooks/COMP_3710/Siamese/AD_NC/train")
