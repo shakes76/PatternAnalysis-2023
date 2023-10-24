@@ -4,6 +4,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from modules import VQVAE, device, ssim
+from dataset import get_dataloaders
+import os
 
 
 LEARNING_RATE = 1e-3
@@ -81,8 +83,15 @@ def train(vqvae, train_loader, validation_loader):
             if counter >= PATIENCE:
                 print(f"Early stopping at epoch {epoch+1}")
                 break
+    torch.save(vqvae.state_dict(), 'vqvae.pth')
 
 def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print("Running on: ", device)
+    train_loader, validation_loader, _ = get_dataloaders(BATCH_SIZE)
+    
     model = VQVAE(CODEBOOK_SIZE).to(device)
+    model = train(model, train_loader, validation_loader)
+    
+if __name__ == "__main__":
+    main()
