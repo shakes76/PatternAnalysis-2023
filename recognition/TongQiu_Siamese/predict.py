@@ -1,5 +1,5 @@
 import torch
-import tqdm
+from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
 import torchvision.transforms as tf
 import argparse
