@@ -140,6 +140,7 @@ plt.xlabel('Epochs')
 plt.ylabel('Loss')
 plt.title('Siamese Network Training vs Validation Loss')
 plt.legend()
+current_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 losses_file = f'siamese_train_vs_val_loss_{current_time}.png'
 plt.savefig(losses_file)
 
