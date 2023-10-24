@@ -5,13 +5,15 @@ import torch.nn as nn
 import time
 
 import dataset
+import modules
 
 """
 This file is used to test the ViT model trained on the ADNI dataset.
 Any results will be printed out, and visualisations will be provided 
 where applicable.
 """
-# TODO add plots of loss/metrics
+# TODO add plots of metrics - could do confusion matrix, ROC or Precision/Recall
+# curve.
 
 #### Set-up GPU device ####
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -23,20 +25,26 @@ else:
 
 #### Model hyperparameters: ####
 BATCH_SIZE = 32
+N_CLASSES = 2
+# Dimensions to resize the original 256x240 images to (IMG_SIZE x IMG_SIZE)
+IMG_SIZE = 224
 
 
 #### File paths: ####
-dataset_path = "./recognition/TRANSFORMER_43909856/dataset"
-output_path = "./recognition/TRANSFORMER_43909856/models"
+DATASET_PATH = osp.join("recognition", "TRANSFORMER_43909856", "dataset", "AD_NC")
+OUTPUT_PATH = osp.join("recognition", "TRANSFORMER_43909856", "models")
 
 
 # Get the testing data (ADNI)
 test_loader = dataset.load_ADNI_data()
 
-# Load the model
-model = torch.load(osp.join(output_path, "ViT_ADNI_model.pt"))
+# Initalise a blank slate model
+model = modules.SimpleViT(image_size=(IMG_SIZE, IMG_SIZE), patch_size=(16, 16), n_classes=N_CLASSES, 
+                        dimensions=384, depth=12, n_heads=6, mlp_dimensions=1536, n_channels=3)
 # Move the model to the GPU device
 model = model.to(device)
+# Load the pre-trained model into the blank slate ViT
+model.load_state_dict(torch.load(osp.join(OUTPUT_PATH, "ViT_ADNI_model.pt"), map_location=device))
 
 
 # Test the model:
