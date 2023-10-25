@@ -101,9 +101,9 @@ def train_loop_with_progress_bar(train_module, train_epoch, train_loop_dataloade
     train_module.train()
     train_epoch = train_epoch if train_epoch is not None else 0
     # Initialize the running loss to 0
-    train_running_loss = 0.0
+    train_total_losses = 0.0
     train_correct_numbers = 0
-    train_totals = 0
+    train_total_labels = 0
     # Progress bar
     for index, image_data in tqdm(enumerate(train_loop_dataloader), total=len(train_loop_dataloader)):
         # Get the images and labels from the data
@@ -113,20 +113,20 @@ def train_loop_with_progress_bar(train_module, train_epoch, train_loop_dataloade
 
         # Zero the gradients
         train_optimizer.zero_grad()
-        total_output = train_module(img_0, img_1).squeeze()  # Adjust the size of the output to match the target
-        current_loss = criterion(total_output, image_label)
-        current_loss.backward()
+        total_train_outputs = train_module(img_0, img_1).squeeze()  # Adjust the size of the output to match the target
+        train_loss = criterion(total_train_outputs, image_label)
+        train_loss.backward()
         train_optimizer.step()
 
         # Calculate the accuracy
-        predicted_label = torch.where(total_output > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
-        train_running_loss += current_loss.item()
-        train_totals += len(image_label)
+        predicted_label = torch.where(total_train_outputs > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
+        train_total_losses += train_loss.item()
+        train_total_labels += len(image_label)
         train_correct_numbers += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
 
     # Calculate the average loss over the entire training data
-    average_train_loss = train_running_loss / len(train_loop_dataloader)
-    average_train_accuracy = 100 * train_correct_numbers / train_totals
+    average_train_loss = train_total_losses / len(train_loop_dataloader)
+    average_train_accuracy = 100 * train_correct_numbers / train_total_labels
     print(f"Training - Epoch: {train_epoch}, Training Average Loss: {average_train_loss:.4f}, Training Accuracy: {average_train_accuracy:.4f}%")
 
     # Write the average loss value to tensorboard
@@ -142,24 +142,24 @@ def validation_loop_with_progress_bar(validate_module, epoch, validate_loop_data
     validate_module.eval()
 
     print("Validating is in progress...")
-    validate_loss = 0.0
+    validate_total_loss = 0.0
     validate_accuracy = 0.0
-    validate_totals = 0.0
+    validate_total_labels = 0.0
     # Progress bar
     for index, image_data in tqdm(enumerate(validate_loop_dataloader), total=len(validate_loop_dataloader)):
         img_0, img_1, image_label = image_data
         img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)
         with torch.no_grad():
-            total_output = validate_module(img_0, img_1).squeeze()
-            current_loss = criterion(total_output, image_label)
+            validate_total_outputs = validate_module(img_0, img_1).squeeze()
+            validate_loss = criterion(validate_total_outputs, image_label)
 
-            predicted_label = torch.where(total_output > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
-            validate_totals += len(image_label)
+            predicted_label = torch.where(validate_total_outputs > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
+            validate_total_labels += len(image_label)
             validate_accuracy += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
-            validate_loss += current_loss.sum().item()
+            validate_total_loss += validate_loss.sum().item()
 
-    average_validation_loss = validate_loss / len(validate_loop_dataloader)
-    validation_accuracy = validate_accuracy / validate_totals * 100
+    average_validation_loss = validate_total_loss / len(validate_loop_dataloader)
+    validation_accuracy = validate_accuracy / validate_total_labels * 100
     print(f"Validating - Epoch: {epoch}, Validating Average Loss: {average_validation_loss:.4f},Validating Accuracy:{validation_accuracy:.4f}%")
     # Write the average validation loss value and accuracy to tensorboard
     writer.add_scalar('Validation Average Loss', average_validation_loss, epoch)
@@ -174,23 +174,23 @@ def test_loop_with_progress_bar(test_module, epoch, test_loop_dataloader):
     # Test Loop
     test_module.eval()
     print("Testing is in progress...")
-    test_loss = 0.0
+    test_total_loss = 0.0
     test_accuracy = 0.0
-    test_totals = 0.0
+    test_total_labels = 0.0
     # Progress bar
     for index, image_data in tqdm(enumerate(test_loop_dataloader), total=len(test_loop_dataloader)):
         img_0, img_1, image_label = image_data
         img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)
         with torch.no_grad():
-            total_output = test_module(img_0, img_1).squeeze()
-            loss = criterion(total_output, image_label)
-            predicted_label = torch.where(total_output > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
-            test_totals += len(image_label)
+            test_total_outputs = test_module(img_0, img_1).squeeze()
+            test_loss = criterion(test_total_outputs, image_label)
+            predicted_label = torch.where(test_total_outputs > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
+            test_total_labels += len(image_label)
             test_accuracy += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
-            test_loss += loss.sum().item()
+            test_total_loss += test_loss.sum().item()
 
-    test_average_loss = test_loss / len(test_loop_dataloader)
-    test_accuracy = test_accuracy / test_totals * 100
+    test_average_loss = test_total_loss / len(test_loop_dataloader)
+    test_accuracy = test_accuracy / test_total_labels * 100
     print(f"Testing - Epoch:{epoch},Testing_Average_Loss:{test_average_loss:.4f},Testing_Accuracy:{test_accuracy:.4f}%")
 
     # Write the average test loss value and accuracy to tensorboard
