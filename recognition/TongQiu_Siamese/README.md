@@ -219,5 +219,10 @@ The following illustrates how the model (using frozen triplet backbone) provide 
 
 ![prediction for nc](./readme_imgs/nc_pred.png)
 
+### example usage:
+```
+python3 predict.py -m ./model/Classifier_tf.pth -t preimage_predict -d ./AD_NC/test/AD/388206_94.jpeg
+python3 predict.py -m ./model/Classifier_tf.pth -t preimage_predict -d ./AD_NC/test/NC/1182968_108.jpeg
+``` 
 
 
