@@ -35,15 +35,18 @@ def test(model, val_loader):
 
 def predict_img(model, img_path, transform = None):
     model.eval()
+    model.to(Config.DEVICE)
     label = img_path.split('/')[-2]
+    img_name = img_path.split('/')[-1].split('.')[0]
     img = read_image(img_path, ImageReadMode.GRAY).float()/255.
+    img.to(Config.DEVICE)
     if transform:
         img = transform(img)
     with torch.no_grad():
         out = model(img)
     pred = (out > 0.5).int().item()
     plt.imshow(img)
-    plt.title(f"Truth: {label}, Prediction: {pred}")
+    plt.title(f"img: {img_name}, Truth: {label}, Prediction: {pred}")
     plt.axis('off')  # To not display axis values
     plt.show()
 
