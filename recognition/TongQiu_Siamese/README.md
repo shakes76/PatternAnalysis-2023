@@ -187,23 +187,6 @@ python3 train.py -m Classification -bm ./model/Triplet.pth
 
 ## Result
 
-### Test Accuracies
-In addition to using frozen backbones for classification, I also experimented with fine-tuning the pretrained backbones during the training of the classification networks. 
-This was done to evaluate potential improvements, as end-to-end models often deliver superior performance.
-
-The test accuracies are shown as below:
-| Contrastive Backbone (frozen) | Triplet Backbone (frozen) | Contrastive Backbone (fine-tuned) | Triplet Backbone (fine-tuned) |
-|:--------:|:--------:|:--------:| :--------:|
-| 62.99% | 77.27% | 71.66% | 77.63% |
-
-### example usage:
-```
-python3 predict.py -m ./model/Classifier_c.pth -t test
-python3 predict.py -m ./model/Classifier_t.pth -t test
-python3 predict.py -m ./model/Classifier_cf.pth -t test
-python3 predict.py -m ./model/Classifier_tf.pth -t test
-```
-
 ### prediction 
 Instead of generating patient-level predictions using full-sized MRIs with all 20 scans, 
 the networks use only a single image as input to provide prediction. 
@@ -221,8 +204,37 @@ The following illustrates how the model (using frozen triplet backbone) provide 
 
 ### example usage:
 ```
-python3 predict.py -m ./model/Classifier_tf.pth -t preimage_predict -d ./AD_NC/test/AD/388206_94.jpeg
-python3 predict.py -m ./model/Classifier_tf.pth -t preimage_predict -d ./AD_NC/test/NC/1182968_108.jpeg
+python3 predict.py -m ./model/Classifier_tf.pth -t image_predict -d ./AD_NC/test/AD/388206_94.jpeg
+python3 predict.py -m ./model/Classifier_tf.pth -t image_predict -d ./AD_NC/test/NC/1182968_108.jpeg
 ``` 
+### Test Accuracies
+In addition to using frozen backbones for classification, I also experimented with fine-tuning the pretrained backbones during the training of the classification networks. 
+This was done to evaluate potential improvements, as end-to-end models often deliver superior performance.
 
+The test accuracies are shown as below:
+|Accuracy| Contrastive Backbone (frozen) | Triplet Backbone (frozen) | Contrastive Backbone (fine-tuned) | Triplet Backbone (fine-tuned) |
+|:--------:|:--------:|:--------:|:--------:| :--------:|
+|validation| 67.96% | 91.41% | 88.26% | 89.14% |
+|test| 62.99% | 77.27% | 71.66% | 77.63% |
+
+### example usage:
+```
+python3 predict.py -m ./model/Classifier_c.pth -t test
+python3 predict.py -m ./model/Classifier_t.pth -t test
+python3 predict.py -m ./model/Classifier_cf.pth -t test
+python3 predict.py -m ./model/Classifier_tf.pth -t test
+```
+
+### Conclusion 
+
+According to the results above, the models seem to overfit the validation set. 
+The difference between validation and test accuracies is more significant 
+in the Contrastive Backbone models. Specifically, the Contrastive Backbone (frozen) 
+has a drop of about 5% from validation to test, and the Contrastive Backbone (fine-tuned) 
+has a drop of around 16.6%. 
+
+In conclusion, while there is evidence of overfitting, 
+particularly in the Contrastive Backbone models, the Triplet Backbone models 
+show a more robust performance with lesser disparity between validation 
+and test accuracies.
 
