@@ -41,9 +41,9 @@ train_dataset = TripletDataset(root_dir="/home/Student/s4647936/PatternAnalysis-
 test_dataset = TripletDataset(root_dir="/home/Student/s4647936/PatternAnalysis-2023/recognition/alzheimers_snn_s4647936/AD_NC", mode='test', transform=transform)
 
 # Parameters
-learning_rate = 0.001
-num_epochs = 30
-batch_size = 32
+learning_rate = 0.0005
+num_epochs = 23
+batch_size = 16
 
 # GPU availability
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -291,6 +291,7 @@ with torch.no_grad():
         all_classifier_embeddings.append(outputs.cpu().numpy())
         all_labels.append(labels)
 
+all_classifier_embeddings = np.array(all_classifier_embeddings)
 all_classifier_embeddings = all_classifier_embeddings.reshape(-1, all_classifier_embeddings.shape[-1])
 
 # Reduce dimensionality using t-SNE
