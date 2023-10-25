@@ -168,13 +168,26 @@ Ensure you have Python 3.7+ installed. Then, set up a virtual environment (optio
 | scikit-learn | 1.0.1       |
 
 ## 👨‍💻 Usage
-To train the Siamese network and visualise the embeddings:
+
+### Preparation:
+Before proceeding, ensure you update the paths in the code files to point to the location where you have downloaded the dataset on your device.
+
+### 1. Train the Siamese Network:
+
+To train the Siamese network on the provided dataset and obtain embeddings for visualisation:
 
 `python train.py`
 
-To predict embeddings for a pair of sample images using a trained Siamese network, modify the `predict.py` script with the paths to your sample images and then run:
+This will train the Siamese network and save the trained model as `siamese_model.pt`. Visualisations such as the t-SNE plot for the Siamese network embeddings will also be generated.
 
-python predict.py
+### 2. Predict with the Trained Models:
+
+To predict embeddings for a pair of sample images using the trained Siamese network, modify the `predict.py` script with the paths to your sample images and run:
+
+`python predict.py`
+
+
+This will generate embeddings for the provided images and predict their classes using the trained Siamese network.
 
 
 ## ✨ Results Summary
