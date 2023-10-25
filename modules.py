@@ -137,7 +137,6 @@ class TransformerBlock(nn.Module):
 
         # Extracting the configuration parameters based on the block's index
         hidden_size = config.transformer['hidden_size']
-        print(config.transformer['num_heads'])
         num_heads = config.transformer['num_heads'][index]  # Corrected to use 'index'
         dropout_rate = config.transformer['drop_rate'][index]
         mlp_ratio = config.transformer['mlp_ratios'][index]
@@ -237,7 +236,6 @@ class ConvolutionalEmbedding(nn.Module):
         x = x.view(batch_size, embed_dim, -1).transpose(1, 2)  # Flatten spatial dimensions and move embedding dimension
 
         return x
-
 
 class ConvolutionalVisionTransformer(nn.Module):
     """
