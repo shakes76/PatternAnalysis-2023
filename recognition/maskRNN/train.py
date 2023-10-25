@@ -4,6 +4,8 @@ from torch.optim import SGD
 from module import loadModel
 import torch
 import torchvision
+from torchvision.ops import box_iou
+
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -44,34 +46,32 @@ def compute_iou(mask1, mask2):
     union = (mask1 + mask2).sum().item() - intersection
     return intersection / union
 
-model.eval()  # Set the model to evaluation mode
-iou_list = []
+iou_values = []
 
+model.eval()  # Set the model to evaluation mode
 with torch.no_grad():
     count = 0
     for images, targets in test_loader:
-        images = [img.to(device) for img in images]
-        
         print(count, len(test_loader))
         count += 1
+        images = [img.to(device) for img in images]
         
-        # Get model predictions
-        predictions = model(images)
+        # Assuming the output gives you bounding boxes; modify as needed
+        preds = model(images)
         
-        # Iterate over predictions and targets to compute IoU for each image
-        for pred, target in zip(predictions, targets):
-            # Assuming binary masks, threshold predictions at 0.5
-            pred_masks = (pred['masks'] > 0.5).squeeze(1).cpu().numpy().astype(int)
-            target_masks = target['masks'].cpu().numpy().astype(int)
-            
-            # You might have multiple masks per image, compute IoU for each and average
-            # This approach takes the max IoU for each target, modify as necessary for your needs
-            ious = [compute_iou(pred_masks[i], target_masks[j]) for i in range(pred_masks.shape[0]) for j in range(target_masks.shape[0])]
-            print(ious)
-            if ious:
-                max_iou = max(ious)
-                iou_list.append(max_iou)
+        # Extract the predicted and ground truth boxes
+        # Note: Adjust this depending on the structure of your outputs and targets
+        preds_boxes = [pred['boxes'] for pred in preds]
+        targets_boxes = [target['boxes'] for target in targets]
 
-# Compute mean IoU over validation set
-mean_iou = sum(iou_list) / len(iou_list)
-print(f"Mean IoU: {mean_iou}")
+        # Compute IoU values for each image in the batch
+        for pred_box, target_box in zip(preds_boxes, targets_boxes):
+            iou = box_iou(pred_box, target_box)
+            # Here, if you have multiple predicted boxes and target boxes, 
+            # you might want to determine a way to match them, 
+            # for example, by taking the maximum IoU value.
+            # For simplicity, we take the mean IoU value.
+            iou_values.append(iou.mean().item())
+
+average_iou = sum(iou_values) / len(iou_values)
+print(f'Average IoU: {average_iou:.4f}')
