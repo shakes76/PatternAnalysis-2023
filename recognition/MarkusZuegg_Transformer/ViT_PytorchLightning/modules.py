@@ -43,7 +43,7 @@ class VisionEncoder(nn.Module):
                 num_layers,
                 num_classes,
                 patch_size,
-                num_patches,
+                image_size,
                 dropout=0.0,):
         """Vision Encoder.
 
@@ -54,7 +54,7 @@ class VisionEncoder(nn.Module):
             num_heads: Number of heads to use in the Multi-Head Attention block
             num_layers: Number of layers to use in the Encoder
             num_classes: Number of classes to predict
-            patch_size: Number of pixels that the patches have per dimension
+            image_size: List of image dimensions (height, width)
             num_patches: Maximum number of patches an image can have
             dropout: Amount of dropout to apply in the feed-forward network
         """
@@ -66,6 +66,8 @@ class VisionEncoder(nn.Module):
         self.num_heads = num_heads
         self.num_layers = num_layers
         self.num_dropout = dropout
+
+        num_patches = (image_size[0]//self.patch_size) * (image_size[1]//self.patch_size)
 
         # Layers/Networks
         self.input_layer = nn.Linear(num_channels * (patch_size**2), embed_dim)
