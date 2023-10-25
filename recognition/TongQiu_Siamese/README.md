@@ -144,9 +144,11 @@ python3 train.py -m Triplet -bs 16 -lr 0.00001
 ### Training Loss of Siamese Network
 
 **Siamese Network using Contrastive Loss**:
+
 ![Subnetworks architecture](./readme_imgs/contrastive.png)
 
 **Siamese Network using Triplet Loss**:
+
 ![Subnetworks architecture](./readme_imgs/triplet.png)
 
 
@@ -174,9 +176,12 @@ python3 train.py -m Classification -bm ./model/Triplet.pth
 **Classification using backbone trained with Contrastive Loss**:
 
 ![Subnetworks architecture](./readme_imgs/cf_loss.png)
+
 ![Subnetworks architecture](./readme_imgs/cf_acc.png)
 **Classification using backbone trained with Triplet Loss**:
+
 ![Subnetworks architecture](./readme_imgs/tf_loss.png)
+
 ![Subnetworks architecture](./readme_imgs/tf_acc.png)
 
 ## Result
