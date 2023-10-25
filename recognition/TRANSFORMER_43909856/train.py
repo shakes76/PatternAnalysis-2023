@@ -34,7 +34,7 @@ else:
 
 
 #### Model hyperparameters: ####
-N_EPOCHS = 2
+N_EPOCHS = 1
 LEARNING_RATE = 0.001
 N_CLASSES = 2
 # Dimensions to resize the original 256x240 images to (IMG_SIZE x IMG_SIZE)
@@ -52,10 +52,15 @@ OUTPUT_PATH = osp.join("recognition", "TRANSFORMER_43909856", "models")
 Loads the ADNI dataset into train (and possibly validation) sets.
 Initialises the model, then trains the model.
 
+If a validation set is created, then the model performance will also
+be evaluated at the end of every training epoch on the validation set data.
+The validation set is effectively used for hyperparameter tuning, where the
+hyperparameter being observed is the number of training epochs.
+
 Params:
     save_model_data (bool): if true, saves the model as a .pt file and model 
-                            training metrics as .csv files. If false, doesn't
-                            save the model or training metrics
+                            training/validation metrics as .csv files. If false, 
+                            doesn't save the model or training metrics
 """
 def train_model(save_model_data=True):
     # Get the training and validation data (ADNI) and # of total steps
@@ -86,15 +91,13 @@ def train_model(save_model_data=True):
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimiser, max_lr=LEARNING_RATE, 
                                                     steps_per_epoch=total_step, epochs=N_EPOCHS)
     # TODO ViT paper uses a different kind of LR scheduler - may want to try this
-    
-    # TODO do hyperparameter tuning on number of epochs
-    # Use validation accuracy to determine the ideal model
-    # Also output validation loss for comparisons (see if model is overfitting/underfitting)
 
-    # Store the epoch, step, & loss value for the model at this epoch & step
+    # Store the epoch, step, & train loss value for the model at various steps
     train_loss_values = []
+    # Store the epoch, validation loss, and validation set accuracy at each epoch
+    val_loss_values = []
 
-    # Store the model's predicted classes and the observed/empirical classes
+    # Store the model's predicted classes and the observed/empirical classes on the validation set
     predictions = []
     observed = []
 
@@ -127,12 +130,40 @@ def train_model(save_model_data=True):
                 print(f"Epoch [{epoch+1}/{N_EPOCHS}] Step [{i+1}/{total_step}] " +
                     f"Training loss: {round(loss.item(), 5)}")
                 train_loss_values += [[epoch+1, i+1, total_step, round(loss.item(), 5)]]
-            
-            # Get predictions on the training set data from the model
-            _, predicted = torch.max(outputs.data, 1)
-            # Save the predictions and the observed/empirical class labels
-            predictions += predicted
-            observed += labels
+        
+
+        # Evaluate model on validation set (if a validation set exists):
+        if val_images is not None:
+            # After training has completed for each epoch, test model performance on validation data
+            for j, (val_images, val_labels) in enumerate(val_loader):
+                # Keep track of the total number predictions vs. correct predictions
+                correct = 0
+                total = 0
+
+                # Get predictions on the validation data from the model
+                val_outputs = model(val_images)
+                _, predicted = torch.max(val_outputs.data, 1)
+
+                # Save predictions and observed/empirical class labels
+                predictions += predicted
+                observed += labels
+
+                # Add to the total # of predictions
+                total += labels.size(0)
+                # Add correct predictions to a total
+                correct += (predicted == labels).sum().item()
+
+                
+                # Print/log validation metrics after all predictions have been made
+                if (j+1) == total_step:
+                    # Get the validation loss
+                    val_loss = criterion(val_outputs, val_labels)
+                    # Print/save metrics
+                    print(f"End of epoch [{epoch+1}/{N_EPOCHS}] Validation loss: " +
+                          f"{round(val_loss.item(), 5)} Validation accuracy: " +
+                          f"{round((100 * correct) / total, 5)}%")
+                    val_loss_values += [[epoch+1, round(loss.item(), 5), 
+                                         round((100 * correct) / total, 5)]]
 
         # Increment the LR scheduler to change the learning rate after each epoch completes
         scheduler.step()
@@ -155,12 +186,19 @@ def train_model(save_model_data=True):
         np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_train_loss.csv'), 
                    np.asarray(train_loss_values))
         
-        # Save the model's predictions
-        np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_train_predictions.csv'), 
-                   np.asarray(predictions))
-        # Save the observed/empirical values for the training set
-        np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_train_observed.csv'), 
-                   np.asarray(observed))
+        # Save validation metrics (if a validation set was used)
+        if val_images is not None:
+            # Save the validation loss values
+            np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_val_loss.csv'), 
+                    np.asarray(val_loss_values))
+            
+            # Save the model's predictions on the validation set
+            np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_val_predictions.csv'), 
+                    np.asarray(predictions))
+            
+            # Save the observed/empirical values for the validation set
+            np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_val_observed.csv'), 
+                    np.asarray(observed))
 
 
 """
@@ -244,11 +282,10 @@ on Windows devices.
 """
 def main():
     # Train the model
-    # train_model()
+    train_model()
     # Create training loss plots
-    train_loss_values = load_training_metrics()
-    print(train_loss_values)
-    plot_train_loss(train_loss_values=train_loss_values, show_plot=True, save_plot=True)
+    # train_loss_values = load_training_metrics()
+    # plot_train_loss(train_loss_values=train_loss_values, show_plot=True, save_plot=True)
 
 if __name__ == '__main__':    
     main()
