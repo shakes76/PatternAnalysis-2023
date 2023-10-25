@@ -5,5 +5,14 @@ Alzheimer's disease is a brain condition that causes memory loss and makes it ha
 ## Architecture
 The Vision Transformer uses tranformers,originally used for for natural language processing tasks, on image data. It works by first dividing the images into patches, then embeding them as sequences and finally processing them with transformer blocks.
 
-
 !!! PUT IMAGE HERE !!!
+
+The provided code in this repository uses the ViT architecture to process images. It first divides input images into 16x16 patches, then embeds them into vectors. They are then processed by the transformer encoder which uses a multi-head self-attention mechanism and then a feed-foward neural network for each embedding. 
+
+## Preproccessing
+
+## Design choices
+
+## Testing
+
+## Example prediction
