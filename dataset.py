@@ -77,13 +77,13 @@ for filename in sorted(os.listdir('../ADNI_AD_NC_2D/AD_NC/test/NC')):
     pass    
 xtrain = torch.stack(xtrain)
 xtest = torch.stack(xtest)
-ytrain = torch.from_numpy(np.concatenate((np.ones(ntrainimgs_AD), np.zeros(ntrainimgs_NC)), axis=0))
-ytest = torch.from_numpy(np.concatenate((np.ones(ntestimgs_NC), np.zeros(ntestimgs_NC)), axis=0))
+ytrain = torch.from_numpy(np.concatenate((np.ones(ntrainimgs_AD), np.zeros(ntrainimgs_NC)), axis=0)).type(torch.LongTensor)
+ytest = torch.from_numpy(np.concatenate((np.ones(ntestimgs_AD), np.zeros(ntestimgs_NC)), axis=0)).type(torch.LongTensor)
 
 data_val, data_test = random_split(TensorDataset(xtest, ytest), [0.7,0.3])
 dataloader_train = DataLoader(TensorDataset(xtrain, ytrain), batch_size=32, shuffle=True)
 dataloader_test = DataLoader(data_test, batch_size=32, shuffle=True)
-dataloader_val = DataLaoder(data_val, batch_size=32, shuffle=True)
+dataloader_val = DataLoader(data_val, batch_size=32, shuffle=True)
 
 def returnDataLoaders():
     return dataloader_train, dataloader_test, dataloader_val
