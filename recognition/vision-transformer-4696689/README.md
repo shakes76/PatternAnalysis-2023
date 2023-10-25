@@ -41,7 +41,7 @@ for transformer models.
 
 ## Training
 
-Training is done for 100 epochs which was found experimentally to be long enough. 
+Training is done for 175 epochs which was found experimentally to be long enough. 
 AdamW optimiser is used with a learning rate of 3e-4, this was decreased from 1e-3 
 (which did not train well) but also increased from 1e-4. The data is split into train, 
 validation and test sets. Majority of the data is in train set, and the validation and
