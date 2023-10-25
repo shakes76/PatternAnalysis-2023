@@ -5,7 +5,6 @@ import dataset
 import modules
 from torch.utils.data import DataLoader
 from torch import nn
-from torchvision import transforms
 
 # Hyperparameters
 BATCH_SIZE = 10
@@ -22,7 +21,6 @@ train_set, validate_set, test_set = dataset.get_datasets()
 # Set dataloaders
 train_loader = DataLoader(train_set, batch_size=BATCH_SIZE, shuffle=True)
 validate_loader = DataLoader(validate_set, batch_size=BATCH_SIZE, shuffle=False)
-test_loader = DataLoader(test_set, batch_size=BATCH_SIZE, shuffle=False)
 
 class DiceLoss(nn.Module):
     def __init__(self):
@@ -119,17 +117,20 @@ def train_model(model, criterion, optimizer, scheduler, num_epochs=EPOCHS):
         print('Epoch: {}/{} | Validation Accuracy: {:.4f}'.format(epoch + 1, num_epochs, accuracy_sum / len(validate_loader)), end='\n\n')
         
         scheduler.step(avg_validate_loss)
+        torch.save(model.state_dict(), f's4630051_improved_unet_segmentation/save/model_save_{epoch}.pth')
                 
     end = time.time()
     print('Finished training model. Time taken: {:.4f} seconds'.format(end - start))
     
+    torch.save(model.state_dict(), 's4630051_improved_unet_segmentation/save/model_save_final.pth')
+    
     return model, train_lossess, validate_losses
 
-def accuracy(preds, truths):
+def accuracy(model, mask):
   with torch.no_grad():
-    preds = (preds > 0.5).float() #if a pixel has value > 0.5, we accept it as a skin lesion
-    correct = (preds==truths).sum()
-    pixels = torch.numel(preds)
+    model = (model > 0.5).float() #if a pixel has value > 0.5, we accept it as a skin lesion
+    correct = (model == mask).sum()
+    pixels = torch.numel(model)
     accuracy = correct / pixels + 1e-8
 
   return accuracy
