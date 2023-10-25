@@ -71,8 +71,8 @@ def main():
         "dropout": 0.2,}
     model = ViT(ADNI_config, lr=lr)
 
-    batch_size = 128
-    num_workers = 4 #num_workers = 0 if windows
+    batch_size = 64
+    num_workers = 0 #num_workers = 0 if windows
     max_epochs = 30
     
     ADNI = ADNIDataModule(batch_size=batch_size, 
