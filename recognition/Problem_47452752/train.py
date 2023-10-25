@@ -14,7 +14,7 @@ import torch.nn.functional as F
 
 
 # Hyper-parameters
-num_epochs = 50
+num_epochs = 5
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Check if the dataset is consistent
@@ -53,6 +53,8 @@ for epoch in range(num_epochs):
         # Forward pass
         outputs = model(images)
         masks_expanded = torch.cat((masks, 1 - masks), dim=1)
+        print(outputs.shape)  # Should be [100, 2, 256, 256]
+        print(masks.shape)    # Should be [100, 2, 256, 256]
         loss = dice_loss(outputs, masks_expanded)
 
         # Backward pass + optimization
@@ -61,6 +63,7 @@ for epoch in range(num_epochs):
 
     scheduler.step()  # Adjust learning rate
 
+print("training complete") # TODO
 # Save the model
 torch.save(model.state_dict(), "recognition/Problem_47452752/model.pth")
 
