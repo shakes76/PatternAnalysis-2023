@@ -205,8 +205,19 @@ python3 predict.py -m ./model/Classifier_tf.pth -t test
 ```
 
 ### prediction 
+Instead of generating patient-level predictions using full-sized MRIs with all 20 scans, 
+the networks use only a single image as input to provide prediction. 
+I believe it approach is advantageous with the capability to diagnose AD using only one MRI slice,
+which potentially reducing both time and costs. 
+Furthermore, although this method emphasizes single-slice predictions, 
+it retains the flexibility to make patient-level predictions 
+by aggregating individual slice results using a majority vote
 
+The following illustrates how the model (using frozen triplet backbone) provide prediction:
 
-## Conclusion
+![prediction for ad](./readme_imgs/AD_pred.png)
+
+![prediction for nc](./readme_imgs/nc_pred.png)
+
 
 
