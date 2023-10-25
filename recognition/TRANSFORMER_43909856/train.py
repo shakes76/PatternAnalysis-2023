@@ -134,8 +134,8 @@ def train_model(save_model_data=True):
             predictions += predicted
             observed += labels
 
-            # Step through the learning rate scheduler
-            scheduler.step()
+        # Increment the LR scheduler to change the learning rate after each epoch completes
+        scheduler.step()
 
     # Get the amount of time that the model spent training
     end_time = time.time()
