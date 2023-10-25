@@ -34,7 +34,11 @@ These were chosen from prior research from the ViT paper by Google Research and 
 
 Testing code is also located in train.py
 
-After 20 epochs, the testing gave a result of 73%. This was based off the accuracy evaluation metric which is calculated by ($TP + TN) / (TP + TN + FP + FN)$
+After 20 epochs, the testing gave a result of 73%. This was based off the accuracy evaluation metric which is calculated by 
+
+- ($TP + TN) / (TP + TN + FP + FN)$
+
+  
 
 ## Example prediction
 
