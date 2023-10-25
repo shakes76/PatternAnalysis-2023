@@ -63,7 +63,7 @@ def main():
         "embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
-        "num_layers": 1,
+        "num_layers": 4,
         "patch_size": 8,
         "num_channels": 3,
         "image_size": image_size,
@@ -71,9 +71,9 @@ def main():
         "dropout": 0.2,}
     model = ViT(ADNI_config, lr=lr)
 
-    batch_size = 64
-    num_workers = 0 #num_workers = 0 if windows
-    max_epochs = 1
+    batch_size = 128
+    num_workers = 4 #num_workers = 0 if windows
+    max_epochs = 30
     
     ADNI = ADNIDataModule(batch_size=batch_size, 
                         image_size=image_size,  
