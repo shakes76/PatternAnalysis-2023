@@ -20,17 +20,21 @@ Data  preprocessing was completed in dataset.py. It uses the ADNI dataset, provi
 Images are first resized to (224 x 224) then a RandomHorizontalFlip is applied. Images are also normalised to have a mean of 0.5 and a standard deviation of 0.5 to help with stability and convergence while training.
   
 
-## Design choices
-Training of the model is done in test.py. The hyperparameters were chosen due to convention and also from published research. Below are the hyperparameters:
+## Training
+Training of the model is done in train.py. The model was trained over 20 epochs. The hyperparameters were chosen due to convention and also from published research. Below are the hyperparameters:
 
 - Patch Size: 16x16
 - Learning Rate: 0.001
 - Layers: 12
 - Transformer Architecture: 8 heads
 
-These were chosen from prior research from the ViT paper by Google Research and the "Attention is All You Need" paper. For example, the original ViT paper uses the 16x16 patches as thi gave a good balance between granularity and representational capacity [1]. Also, Vaswani proposed a multi-headed attention with 8 heads in their paper {2}.
+These were chosen from prior research from the ViT paper by Google Research and the "Attention is All You Need" paper. For example, the original ViT paper uses the 16x16 patches as thi gave a good balance between granularity and representational capacity [1]. Also, Vaswani proposed a multi-headed attention with 8 heads in their paper {2}. 
 
 ## Testing
+
+Testing code is also located in train.py
+
+After 20 epochs, the testing gave a result of 73%. This was based off the accuracy evaluation metric which is calculated by ($TP + TN) / (TP + TN + FP + FN)$
 
 ## Example prediction
 
