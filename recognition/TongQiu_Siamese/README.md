@@ -178,6 +178,7 @@ python3 train.py -m Classification -bm ./model/Triplet.pth
 ![Subnetworks architecture](./readme_imgs/cf_loss.png)
 
 ![Subnetworks architecture](./readme_imgs/cf_acc.png)
+
 **Classification using backbone trained with Triplet Loss**:
 
 ![Subnetworks architecture](./readme_imgs/tf_loss.png)
