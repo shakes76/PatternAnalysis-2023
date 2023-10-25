@@ -51,14 +51,20 @@ def normalise_adjacency_matrix(adjacency_matrix):
     adjacency_normed = D_invsqrt @ adjacency_matrix @ D_invsqrt
     return adjacency_normed
 
+## Due to extremely high memory usage, this variable is loaded from a local save of it. 
+# If you want to create it manually, run the following: adjacency_normed = normalise_adjacency_matrix(create_adjacency_matrix())
+#adjacency_normed = np.load('adjacency_normed.npy')
 adjacency_normed = normalise_adjacency_matrix(create_adjacency_matrix())
+adjacency_normed_tensor = torch.FloatTensor(adjacency_normed).to(device)
 #print(adjacency_normed)
+
 
 
 """Since the feature .json file has an inconsistent number of features for each node.
  We need to make them consistent for training.
  Hence I will create an n-dimensional bag of words feature vector for each node"""
 def create_feature_vectors():
+    print("Test")
     # Load data from a JSON file
     with open('facebook_large/musae_facebook_features.json', 'r') as file:
         data = json.load(file)
@@ -155,3 +161,5 @@ def create_tensors():
     train_tensor = torch.BoolTensor(train_mask).to(device)
     test_tensor = torch.BoolTensor(test_mask).to(device)
     return all_features_tensor, train_labels_tensor, test_labels_tensor, train_tensor, test_tensor, test_mask
+all_features_tensor, train_labels_tensor, test_labels_tensor, train_tensor, test_tensor, test_mask = create_tensors()
+
