@@ -79,32 +79,5 @@ class isicData(Dataset):
         return img_data, object_data
     
 
-if __name__ == "__main__":
-    print("HIS")
-    train_data = isicData("dataset/ISIC-2017_Training_Data", "dataset/ISIC-2017_Training_Part1_GroundTruth", "dataset/ISIC-2017_Training_Part3_GroundTruth.csv")
 
-    image, target = train_data[0]
-    fig, ax = plt.subplots()
-    image = np.array(image)
-    ax.imshow(image.transpose((1,2,0)))
-    bbox = target["boxes"][0]
-    rect = Rectangle((bbox[0], bbox[1]), bbox[2] - bbox[0], bbox[3] - bbox[1], linewidth=1, edgecolor='r', facecolor='none')
-    rx, ry = rect.get_xy()
-    cx = rx + rect.get_width()/8.0
-    cy = ry - rect.get_height()/22.0
-    label = "Melanoma" if target["labels"][0] == 2 else "Non-Melanoma"
-    l = ax.annotate(
-            label,
-            (cx, cy),
-            fontsize=7,
-            # fontweight="bold",
-            color="r",
-            ha='center',
-            va='center'
-          )
-    ax.add_patch(rect)
-    fig, ax = plt.subplots()
-    ax.imshow(target["masks"][0,...])
-    plt.show()
-    print("DONE")
             

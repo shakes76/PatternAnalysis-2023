@@ -13,7 +13,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 train_data = isicData("./dataset/ISIC-2017_Training_Data", "./dataset/ISIC-2017_Training_Part1_GroundTruth", "./dataset/ISIC-2017_Training_Part3_GroundTruth.csv",)
 test_data = isicData("./dataset/ISIC-2017_Test_v2_Data", "./dataset/ISIC-2017_Test_v2_Part1_GroundTruth","./dataset/ISIC-2017_Test_v2_Part3_GroundTruth.csv",)
 
-train_data = torch.utils.data.Subset(train_data, range(50))
+train_data = torch.utils.data.Subset(train_data, range(100))
 train_loader = DataLoader(train_data, batch_size=2, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
 test_data = torch.utils.data.Subset(test_data, range(50))
 test_loader = DataLoader(test_data, batch_size=2, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
@@ -24,7 +24,7 @@ params = [p for p in model.parameters() if p.requires_grad]
 optimizer = torch.optim.SGD(params, lr=0.0025, weight_decay=0.0001, momentum=0.9)
 lr_scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=3, gamma=0.1)
 
-num_epochs = 1
+num_epochs = 20
 
 for epoch in range(num_epochs):
     model.train()
