@@ -1,5 +1,8 @@
 # Don't add VS Code config files
 .vscode
+# Ignore conda workspace environment files
+.conda
+
 # Ignore pycache files
 recognition/TRANSFORMER_43909856/__pycache__
 
@@ -9,3 +12,5 @@ recognition/TRANSFORMER_43909856/dataset
 
 # Ignore directory with saved models
 recognition/TRANSFORMER_43909856/models
+
+
