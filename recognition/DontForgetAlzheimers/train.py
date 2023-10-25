@@ -74,7 +74,7 @@ class ViT(nn.Module):
         return self.mlp_head(x[:, 0])
     
 if __name__ == '__main__':
-        
+    
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Initialize the model, criterion, and optimizer
@@ -83,33 +83,53 @@ if __name__ == '__main__':
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
     # Create DataLoader
-    train_dataset = AlzheimerDataset("AD_NC/train", transform=transform)
+    train_dataset = AlzheimerDataset("/home/Student/s4592620/PatternAnalysis-2023/recognition/DontForgetAlzheimers/ADNI/AD_NC/train", transform=transform)
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
+    test_dataset = AlzheimerDataset("/home/Student/s4592620/PatternAnalysis-2023/recognition/DontForgetAlzheimers/ADNI/AD_NC/test", transform=transform)
+    test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)  # No need to shuffle for evaluation
     print("Data Loaded")
 
-    # Training for one epoch
-    model.train()  # set the model to training mode
-    total_loss = 0.0
+    # Training for 10 epochs
+    num_epochs = 10
+    for epoch in range(num_epochs):
+        print(f"Epoch [{epoch+1}/{num_epochs}]")
+        model.train()  # set the model to training mode
+        total_loss = 0.0
 
-    for batch_idx, (images, labels) in enumerate(train_loader):
-        print(batch_idx, len(train_loader))
-        images, labels = images.to(device), labels.to(device)
+        for batch_idx, (images, labels) in enumerate(train_loader):
+            images, labels = images.to(device), labels.to(device)
 
-        # Zero the parameter gradients
-        optimizer.zero_grad()
+            # Zero the parameter gradients
+            optimizer.zero_grad()
 
-        # Forward
-        outputs = model(images)
-        loss = criterion(outputs, labels)
+            # Forward
+            outputs = model(images)
+            loss = criterion(outputs, labels)
 
-        # Backward and optimize
-        loss.backward()
-        optimizer.step()
+            # Backward and optimize
+            loss.backward()
+            optimizer.step()
 
-        total_loss += loss.item()
+            total_loss += loss.item()
 
-        # Print status (you can use tqdm for a fancy progress bar)
-        if batch_idx % 10 == 0:
-            print(f"Batch [{batch_idx}/{len(train_loader)}], Loss: {loss.item():.4f}")
+            # Print status
+            if batch_idx % 10 == 0:
+                print(f"Batch [{batch_idx}/{len(train_loader)}], Loss: {loss.item():.4f}")
 
-    print(f"Epoch Loss: {total_loss / len(train_loader):.4f}")
+        print(f"Epoch Loss: {total_loss / len(train_loader):.4f}")
+
+    # Testing the model
+    model.eval()  # Set the model to evaluation mode
+    correct = 0
+    total = 0
+
+    with torch.no_grad():  # Turn off gradients for validation, saves memory and computations
+        for images, labels in test_loader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            _, predicted = torch.max(outputs.data, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    print(f"Accuracy on test dataset: {100 * correct / total:.2f}%")
+
