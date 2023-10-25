@@ -12,6 +12,7 @@ test_data = isicData("./dataset/ISIC-2017_Test_v2_Data", "./dataset/ISIC-2017_Te
 
 train_data = torch.utils.data.Subset(train_data, range(50))
 train_loader = DataLoader(train_data, batch_size=4, shuffle=True, collate_fn=lambda x: tuple(zip(*x)))
+test_data = torch.utils.data.Subset(test_data, range(50))
 test_loader = DataLoader(test_data, batch_size=4, shuffle=False, collate_fn=lambda x: tuple(zip(*x)))
 
 model = loadModel()
@@ -47,8 +48,12 @@ model.eval()  # Set the model to evaluation mode
 iou_list = []
 
 with torch.no_grad():
+    count = 0
     for images, targets in test_loader:
         images = [img.to(device) for img in images]
+        
+        print(count, len(test_loader))
+        count += 1
         
         # Get model predictions
         predictions = model(images)
@@ -62,7 +67,7 @@ with torch.no_grad():
             # You might have multiple masks per image, compute IoU for each and average
             # This approach takes the max IoU for each target, modify as necessary for your needs
             ious = [compute_iou(pred_masks[i], target_masks[j]) for i in range(pred_masks.shape[0]) for j in range(target_masks.shape[0])]
-            
+            print(ious)
             if ious:
                 max_iou = max(ious)
                 iou_list.append(max_iou)
