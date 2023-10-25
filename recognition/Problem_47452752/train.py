@@ -17,7 +17,7 @@ from utils import dice_loss, dice_coefficient
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
-from torch.utils.data import Subset  # for testing only TODO
+from torch.utils.data import Subset  # for debugging only TODO
 
 
 # Hyper-parameters
@@ -35,10 +35,10 @@ if debugging:
 
     test_size = int(0.5 * len(subset))
     train_size = len(subset) - test_size
-    train_dataset, test_dataset = split_data(subset, train_size, test_size)
+    train_dataset, test_dataset = random_split(subset, train_size, test_size)
 
-    train_loader = train_loader(train_dataset, 50)
-    test_loader = test_loader(test_dataset, 50)
+    train_loader = DataLoader(train_dataset, 50)
+    test_loader = DataLoader(test_dataset, 50)
 
 # Loading up the dataset and applying custom augmentations
 dataset = ISICDataset(transform)
@@ -112,7 +112,8 @@ for epoch in range(num_epochs):
             
             # Evaluate the loss
             outputs = model(images)
-            loss = dice_loss(outputs, masks)
+            masks_expanded = torch.cat((masks, 1 - masks), dim=1)
+            loss = dice_loss(outputs, masks_expanded)
             val_loss += loss.item()
 
     val_loss /= len(validation_loader)
