@@ -9,7 +9,7 @@ import pytorch_lightning as pl
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
 from pytorch_lightning.callbacks.progress import TQDMProgressBar
 from pytorch_lightning.loggers import CSVLogger
-from dataset import CIFAR10DataModule
+from dataset import CIFAR10DataModule, ADNIDataModule
 from modules import VisionEncoder
 
 class ViT(pl.LightningModule):
@@ -58,25 +58,28 @@ def train_model():
 def main():
 
     lr = 3e-4
-    config = {
+    ADNI_config = {
         "embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
-        "num_layers": 6,
-        "patch_size": 4,
+        "num_layers": 1,
+        "patch_size": 8,
         "num_channels": 3,
-        "num_patches": 64,
-        "num_classes": 10,
+        "num_patches": 960,
+        "num_classes": 2,
         "dropout": 0.2,}
-    model = ViT(config, lr=lr)
+    model = ViT(ADNI_config, lr=lr)
 
     batch_size = 64
-    image_size = (32,32)
+    image_size = (256,240)
     num_workers = 0 #num_workers = 0 if windows
 
     
-    data = CIFAR10DataModule(
-                        batch_size=batch_size, 
+    # data = CIFAR10DataModule(batch_size=batch_size, 
+    #                     image_size=image_size,  
+    #                     num_workers=num_workers)
+    
+    ADNI = ADNIDataModule(batch_size=batch_size, 
                         image_size=image_size,  
                         num_workers=num_workers)
     
@@ -84,7 +87,7 @@ def main():
                         accelerator='gpu',
                         devices=1)
     
-    trainer.fit(model, data)
-    trainer.test(model, data)
+    trainer.fit(model, ADNI)
+    # trainer.test(model, data)
 
 if __name__ == '__main__': main()
