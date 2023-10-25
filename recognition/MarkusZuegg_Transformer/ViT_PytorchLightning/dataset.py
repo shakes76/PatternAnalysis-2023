@@ -92,6 +92,9 @@ class ADNIDataModule(LightningDataModule):
                                 ToTensor(),
                                 Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         
+        #Set seed as to be reproducable
+        pl.seed_everything(42)
+        
         #Intiallising splits of data
         self.test = ImageFolder(root=self.test_data_root, transform=self.test_transform)
         self.train = ImageFolder(root=self.train_data_root, transform=self.train_transform)
