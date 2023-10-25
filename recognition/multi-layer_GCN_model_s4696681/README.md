@@ -3,9 +3,18 @@
 This folder contains the implementation of a semi-supervised multi-layer GCN (Graph Convolutional Network) for Facebook's Large Page-Page Network dataset 
 Hyperlink to dataset: https://snap.stanford.edu/data/facebook-large-page-page-network.html
 
-## Forewarning
-Due to the extreme size of the dataset, the adjacency matrix compution takes a copius amount of system memory to execute. I had to use a cloud GPU service in order to run this part of the code since even my 16GB or system memory was not enough. To mitigate this, I tried providing a local copy of this computation as a numpy file. However the file is 3.9GB which is far too large to be uploaded to github. To resolve this I have attached a shareable link to this file below. If you do not have sufficient memory on your system or virtual GPU, please download the file from this link: https://drive.google.com/file/d/1s1oZKkCDb9WA-IAjvSCuqsjWW0_goGvR/view?usp=sharing, and put it in the multi-layer_GCN_model_s4696681 folder. This means that instead of having to attempt this huge computation every time we run the model, we can just access the local copy since it will not change ever. It is redundant and extremely computationally inefficient to recalculate this every time we want to run the model which is my reasoning for including this in my project folder. The function that creates the adjacency matrix still is included in the dataset.py file, it just isn't called due to the reasoning above. If you want to test it, ensure you have a local or virtual system with high RAM and follow the instruction described below the normalise_adjacency_matrix() function in the dataset.py script.
 
+
+## Instructions
+1. Download the dataset from the hyperlink above, unzip it and place it in the multi-layer_GCN_model_s4696681 folder. This is required otherwise the model wont be able to find the dataset.
+
+2. (Optional)
+Due to the extreme size of the dataset, the adjacency matrix compution takes a copius amount of system memory to execute. Hence, Rangpur's vgpu40 had to be used in order to run this part of the code since even my 16GB of system memory was not enough. To mitigate this for users who do not have sufficient memory, I tried providing a local copy of this computation as a numpy file. However the file is 3.9GB which is far too large to be uploaded to github. To resolve this I have attached a shareable link to this file below. If you do not have sufficient memory on your system or virtual GPU, please download the file from this link: https://drive.google.com/file/d/1s1oZKkCDb9WA-IAjvSCuqsjWW0_goGvR/view?usp=sharing, and put it in the multi-layer_GCN_model_s4696681 folder.
+You then will have to modify the dataset.py script slightly by uncommenting the line where it imports the adjacency file, and comment out the line that calls the normalise_adjacency_matrix function.
+
+However, by default, the code will create the adjacency matrix each time you run the model, the above forewarning is purely for users who might have trouble running the code due to lack of memory.
+
+3. All that needs to be done is to run the predict.py script since it calls all the other required components from the different scripts. The output of running predict.py should be a log of the hyperparameter tuning and evaluation, the best hyperparameters, the best accuracy, and a TSNE plot for the data before and after it has been run through the model.
 
 ## Overview
 Semi-supervised Graph Convolutional Networks (GCNs) for node classification leverage labeled and unlabeled data within a graph to classify nodes. They operate by learning a function that maps a node's features and its topological structure within the graph to an output label. During training, the model uses the available labels in a limited subset of nodes to optimize the classification function, while also considering the graph structure and feature similarity among neighboring nodes. This approach allows the model to generalize and predict labels for unseen or unlabeled nodes in the graph, enhancing performance particularly when labeled data are scarce. 

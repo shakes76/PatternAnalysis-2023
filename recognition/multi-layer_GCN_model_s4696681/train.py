@@ -89,7 +89,7 @@ def train_model():
             best_accuracy = mean_accuracy
             best_model = model 
 
-    return best_parameters, best_accuracy, best_model 
+    return best_model, best_parameters, best_accuracy
 
 
 if __name__ == "__main__":

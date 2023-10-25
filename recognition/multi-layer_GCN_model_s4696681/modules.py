@@ -1,7 +1,7 @@
 import torch
 from torch.nn import Module, Parameter
 import torch.nn.functional as F
-
+import torch.nn as nn
 '''updated GCN layer trying to incorporate techniques learnt from model expo CON session'''
 class GCNLayer(Module):
     def __init__(self, in_features, out_features):
