@@ -63,7 +63,6 @@ def test(model, dataloader):
         pcls = []
         items = 0
         for x, y in dataloader:
-            x = x.to(device)
             pcls.append(abs(y.cpu()-torch.max(model(x), 1)[1].cpu()))
             items += 1
 
