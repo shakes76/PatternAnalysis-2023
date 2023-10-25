@@ -5,8 +5,7 @@ File containing the data loaders used for loading and preprocessing the data.
 import os
 import torch
 from utils import RandomCenterCrop, RandomRotate90, DictTransform
-from torch.utils.data import Dataset, DataLoader
-from torch.utils.data.dataset import random_split
+from torch.utils.data import Dataset
 from torchvision import transforms
 import torchvision.transforms.functional as TF
 from PIL import Image
@@ -129,15 +128,3 @@ transform = transforms.Compose(
         ),
     ]
 )
-
-
-def split_data(dataset, train_size, test_size):
-    return random_split(dataset, [train_size, test_size])
-
-
-def train_loader(train_dataset, batch_size, shuffle=True):
-    return DataLoader(train_dataset, batch_size=batch_size, shuffle=shuffle)
-
-
-def test_loader(test_dataset, batch_size, shuffle=False):
-    return DataLoader(test_dataset, batch_size=batch_size, shuffle=shuffle)
