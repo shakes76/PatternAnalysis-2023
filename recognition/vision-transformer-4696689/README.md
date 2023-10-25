@@ -49,7 +49,7 @@ test sets are of equal size.
 
 ## Result
 
-Overall, the test accuracy was INPUT_FINAL_ACCURACY% which is acceptable. The test accuracy was
+Overall, the test accuracy was 68.0% which is ok. The test accuracy was
 the same as the validation accuracy, the latter of which became stable during training. 
 This was about the same time the loss had rapidly decreased and became stable also. 
 This could indicate that the model has adapated very well to the training set and is 
