@@ -6,24 +6,11 @@ import matplotlib.pyplot as plt
 import modules
 import numpy as np
 from scipy.linalg import sqrtm
-# Placeholder evaluation function
-def evaluate(model, test_features, test_adjacency, test_mask, test_labels):
-    # Model evaluation logic here
-    model.eval()
-    with torch.no_grad():
-        test_out = model(test_features, test_adjacency)
-        pred = test_out[test_mask].argmax(dim=1)
-        correct = (pred == test_labels).sum().item()
-        acc = correct / test_labels.size(0)
-        test_accuracy = acc * 100
-    return test_accuracy
 
 def main():
-    # Train the model using train.py and get the best model
+    # Train the model using train.py and get the best model, get evaluation of model and the parameters of the best model
     model, best_parameters, best_accuracy = train.train_model()
     
-    # Assuming you have a separate test set for final evaluation
-    #test_accuracy = evaluate(model, dataset.all_features_tensor, dataset.adjacency_normed_tensor, dataset.test_mask, dataset.test_labels_tensor)
     print(f"Best Model Parameters: {best_parameters}")
     print(f"Test accuracy with best model: {best_accuracy:.2f}%")
     torch.save(model.state_dict(), "trained_model.pth")

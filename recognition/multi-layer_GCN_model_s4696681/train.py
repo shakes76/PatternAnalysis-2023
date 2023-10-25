@@ -7,11 +7,14 @@ import numpy as np
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+"""Initialise initial model variables"""
 feature_vectors = dataset.create_feature_vectors()
 node_labels = dataset.convert_labels()
 all_features_tensor, train_labels_tensor, test_labels_tensor, train_tensor, test_tensor, test_mask = dataset.create_tensors()
 adjacency_normed_tensor = torch.FloatTensor(dataset.adjacency_normed).to(device)
 
+
+"""Creates the tensors for each split of the nested cross validaton"""
 def create_new_tensors(train_indices, test_indices):
     node_ids = feature_vectors[:, 0]
 
@@ -36,12 +39,15 @@ param_grid = {
 }
 parameter_combinations = list(ParameterGrid(param_grid))
 
+"""runs train and evaluate for a certain combination of hyperparameters and train test split
+    This is called by the train_model() function which conducts the nested cross validation"""
 def train_and_evaluate(model, train_tensor1, test_tensor1, train_labels_tensor1, test_labels_tensor1, train_mask_tensor1, test_mask_tensor1, parameters):
     learning_rate = parameters['learning_rate']
     epochs = parameters['epochs']
     hidden_features = parameters['hidden_features']
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
+    # Training of model
     model.train()
     for epoch in range(epochs):
         optimizer.zero_grad()
@@ -54,6 +60,7 @@ def train_and_evaluate(model, train_tensor1, test_tensor1, train_labels_tensor1,
         if epoch % 10 == 0:
             print(f"Epoch {epoch}, Loss: {loss.item()}")
 
+    # Evaluation of model
     model.eval()
     with torch.no_grad():
         test_out = model(all_features_tensor, adjacency_normed_tensor)
@@ -65,6 +72,8 @@ def train_and_evaluate(model, train_tensor1, test_tensor1, train_labels_tensor1,
 
     return test_accuracy 
 
+"""Runs 10-fold nested cross validation on GCN model to train model with different
+    hyperparameters, evaluates each iteration of the model and returns best model and its hyperparameters and accuracy"""
 def train_model():
     k_folds = 10
     kf = KFold(n_splits=k_folds, shuffle=True)

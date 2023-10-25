@@ -51,12 +51,13 @@ def normalise_adjacency_matrix(adjacency_matrix):
     adjacency_normed = D_invsqrt @ adjacency_matrix @ D_invsqrt
     return adjacency_normed
 
-## Due to extremely high memory usage, this variable is loaded from a local save of it. 
-# If you want to create it manually, run the following: adjacency_normed = normalise_adjacency_matrix(create_adjacency_matrix())
-#adjacency_normed = np.load('adjacency_normed.npy')
+
 adjacency_normed = normalise_adjacency_matrix(create_adjacency_matrix())
+## Due to extremely high memory usage, it is recommended that systems with low memory uncomment
+## the line below and comment out the line above. Ensure the adjacency_normed.npy file is in the multi-layer_GCN_model_s4696681 directory
+## if you do this
+#adjacency_normed = np.load('adjacency_normed.npy')
 adjacency_normed_tensor = torch.FloatTensor(adjacency_normed).to(device)
-#print(adjacency_normed)
 
 
 
