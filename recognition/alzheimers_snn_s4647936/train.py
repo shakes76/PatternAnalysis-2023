@@ -42,7 +42,7 @@ test_dataset = TripletDataset(root_dir="/home/Student/s4647936/PatternAnalysis-2
 
 # Parameters
 learning_rate = 0.0005
-num_epochs = 23
+num_epochs = 30
 batch_size = 16
 
 # GPU availability
@@ -248,6 +248,7 @@ for epoch in range(num_epochs):
     running_loss = 0.0
 
     for embeddings, labels in zip(train_embeddings, train_labels):
+        embeddings_tensor = torch.tensor(embeddings).float().to(device)
         optimizer.zero_grad()
         outputs = classifier(embeddings)
         loss = criterion(outputs, torch.tensor(labels).to(device))
@@ -263,6 +264,7 @@ for epoch in range(num_epochs):
     val_running_loss = 0.0
     with torch.no_grad():
         for embeddings, labels in zip(test_embeddings, test_labels):
+            embeddings_tensor = torch.tensor(embeddings).float().to(device)
             outputs = classifier(embeddings)
             val_loss = criterion(outputs, torch.tensor(labels).to(device))
             val_running_loss += val_loss.item()
