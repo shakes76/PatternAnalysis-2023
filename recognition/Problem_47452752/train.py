@@ -5,51 +5,54 @@ Make sure to plot the losses and metrics during training
 """
 
 
-from dataset import ISICDataset, transform, train_loader, test_loader, split_data, check_consistency
+from sympy import false
+from dataset import (
+    ISICDataset,
+    transform,
+    train_loader,
+    test_loader,
+    split_data,
+    check_consistency,
+)
 from modules import UNet
 from utils import dice_loss, dice_coefficient
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
-from torch.utils.data import Subset # for testing only TODO
+from torch.utils.data import Subset  # for testing only TODO
 
 
 # Hyper-parameters
-num_epochs = 1
+num_epochs = 3
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Check if the dataset is consistent
 # check_consistency()
+debugging = False
 
-# debug data
+if debugging:
+    dataset = ISICDataset(transform)
+    subset_indices = list(range(200))  # debugging on first 200 samples
+    subset = Subset(dataset, subset_indices)
 
+    test_size = int(0.5 * len(subset))
+    train_size = len(subset) - test_size
+    train_dataset, test_dataset = split_data(subset, train_size, test_size)
+
+    train_loader = train_loader(train_dataset, 50)
+    test_loader = test_loader(test_dataset, 50)
+
+# Loading up the dataset and applying custom augmentations
 dataset = ISICDataset(transform)
-subset_indices = list(range(200))  # debugging on first 200 samples
-subset = Subset(dataset, subset_indices)
 
-test_size = int(0.5 * len(subset))
-train_size = len(subset) - test_size
-train_dataset, test_dataset = split_data(subset, train_size, test_size)
+# Splitting into testing and training sets
+test_size = int(0.2 * len(dataset))
+train_size = len(dataset) - test_size
+train_dataset, test_dataset = split_data(dataset, train_size, test_size)
 
-train_loader = train_loader(train_dataset, 50)
-test_loader = test_loader(test_dataset, 50)
-
-
-
-
-
-
-# # Loading up the dataset and applying custom augmentations
-# dataset = ISICDataset(transform)
-
-# # Splitting into testing and training sets
-# test_size = int(0.2 * len(dataset))
-# train_size = len(dataset) - test_size
-# train_dataset, test_dataset = split_data(dataset, train_size, test_size)
-
-# # Data loaders for training and testing
-# train_loader = train_loader(train_dataset, 100)
-# test_loader = test_loader(test_dataset, 100)
+# Data loaders for training and testing
+train_loader = train_loader(train_dataset, 100)
+test_loader = test_loader(test_dataset, 100)
 
 # Creating an instance of my UNet to be trained
 model = UNet(in_channels=6, num_classes=2)
@@ -72,8 +75,7 @@ for epoch in range(num_epochs):
         # Forward pass
         outputs = model(images)
         masks_expanded = torch.cat((masks, 1 - masks), dim=1)
-        # print(outputs.shape)
-        # print(masks.shape)  
+
         loss = dice_loss(outputs, masks_expanded)
 
         # Backward pass + optimization
@@ -82,10 +84,13 @@ for epoch in range(num_epochs):
 
     scheduler.step()  # Adjust learning rate
 
-print("training complete") # TODO
+print("training complete")  # TODO
 
 # Save the model
-torch.save(model.state_dict(), "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/model.pth")
+torch.save(
+    model.state_dict(),
+    "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/model.pth",
+)
 
 # Switch to evaluation mode
 model.eval()
