@@ -187,6 +187,26 @@ python3 train.py -m Classification -bm ./model/Triplet.pth
 
 ## Result
 
+### Test Accuracies
+In addition to using frozen backbones for classification, I also experimented with fine-tuning the pretrained backbones during the training of the classification networks. 
+This was done to evaluate potential improvements, as end-to-end models often deliver superior performance.
+
+The test accuracies are shown as below:
+| Contrastive Backbone (frozen) | Triplet Backbone (frozen) | Contrastive Backbone (fine-tuned) | Triplet Backbone (fine-tuned) |
+|:--------:|:--------:|:--------:| :--------:|
+| 62.99% | 77.27% | 71.66% | 77.63% |
+
+### example usage:
+```
+python3 predict.py -m ./model/Classifier_c.pth -t test
+python3 predict.py -m ./model/Classifier_t.pth -t test
+python3 predict.py -m ./model/Classifier_cf.pth -t test
+python3 predict.py -m ./model/Classifier_tf.pth -t test
+```
+
+### prediction 
+
+
 ## Conclusion
 
 
