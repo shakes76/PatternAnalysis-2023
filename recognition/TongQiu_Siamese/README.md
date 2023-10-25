@@ -62,30 +62,40 @@ it can still be adeptly repurposed for classification task, which is attributed 
 
 **Contrastive Structure**:
 
-![Siamese Network Structure (Contrastive)]()
+![Siamese Network Structure (Contrastive)](./readme_imgs/SiameseNetwork.png)
 
 **Triplet Structure**:
-![Siamese Network Structure (Triplet)]()
+![Siamese Network Structure (Triplet)](./readme_imgs/siamese_triplet.png)
 
 **Components**:
 - **Two/Three Identical Subnetworks**: These subnetworks share the same architecture, weights. Each subnetwork takes one of the two/three input vectors.
 - **Feature Vectors**: As each subnetwork processes its input, and it subsequently output a feature vector.
 - **Distance Layer**: After processing, the feature vectors are combined (using Euclidian distance), and the network outputs a scalar value that indicates how similar the inputs are.
 
-![Subnetworks architecture]()
+![Subnetworks architecture](./readme_imgs/cnn_structure.png)
 
 The figure above shows the subnetworks structure proposed by Koch et. in 2015.
 Although other CNN architectures might offer better performance, time constraints limited exploration in that direction.
 
 ### Architecture of Classification Network
-After training the siamese network, the pre-trained Subnetwork is then used as backbone as the classification network,
-followed by a classification layer. The classification network is then fine-tuned as usual image classification task.
+After training the siamese network, 
+the pre-trained Subnetwork is then used as backbone(with weights frozen) to extract embeddings for the classification network,
+followed by a classification layer. The classification network is then trained as usual image classification task.
 
-## Training
+### example usage:
+```
+embedding_net = Embedding_Baseline()
+siamese_c = SiameseContrastive(embedding_net)
+siamese_t = SiameseTriplet(embedding_net)
+classifier = ClassificationNet(embedding_net)
+```
+
+
+## Training Siamese Networks
 During the training process, 2 losses were explored: Contrastive Loss and Triplet Loss. 
-Both these losses have significant performance in metric leaning tasks.
+Both these losses have significant performance in metric leaning tasks. 
 
-### Contrastive Loss
+#### Contrastive Loss
 Contrastive loss is commonly used in siamese networks. 
 It ensures that similar instances come closer in the feature space, 
 while dissimilar instances are pushed apart. Mathematically, it can be represented as:
@@ -122,10 +132,55 @@ $$
 The loss encourages the model to make the positive pair closer than the negative pair by at least a margin of 
 m.
 
+### example usage:
+```
+# train Siamese network using Contrastivd Loss
+python3 train.py -m Contrastive -bs 32 -lr 0.0001
+
+# train Siamese network using Contrastivd Loss
+python3 train.py -m Triplet -bs 16 -lr 0.00001
+```
+
 ### Training Loss of Siamese Network
+
+**Siamese Network using Contrastive Loss**:
+![Subnetworks architecture](./readme_imgs/contrastive.png)
+
+**Siamese Network using Triplet Loss**:
+![Subnetworks architecture](./readme_imgs/triplet.png)
+
+
+## Training Classification Network
+After Siamese networks trained, the shared subnetwork can be integrated as the backbone(with frozen weights) 
+in a classification network for feature extraction. the classification networks trained fast with early stopping, 
+which could be attributed to the already trained and frozen backbone. 
+Thus, only the classification layer need to be trained in this step.
+
+Interestingly, the classification network that using the backbone trained with triplet loss outperforms its counterpart, 
+achieving a commendable validation accuracy of 91.41%. 
+In contrast, using the backbone trained with contrastive loss yields a validation accuracy of 67.96%.
+
+### example usage:
+```
+# train Classifier network using pretrained embedding from Contrastivd Loss
+python3 train.py -m Classification -bm ./model/Contrastive.pth
+
+# train Classifier network using pretrained embedding from Triplet Loss
+python3 train.py -m Classification -bm ./model/Triplet.pth
+```
 
 ### Training loss & accuracy for Classification
 
-## Evaluation
+**Classification using backbone trained with Contrastive Loss**:
+
+![Subnetworks architecture](./readme_imgs/cf_loss.png)
+![Subnetworks architecture](./readme_imgs/cf_acc.png)
+**Classification using backbone trained with Triplet Loss**:
+![Subnetworks architecture](./readme_imgs/tf_loss.png)
+![Subnetworks architecture](./readme_imgs/tf_acc.png)
 
 ## Result
+
+## Conclusion
+
+
