@@ -62,35 +62,55 @@ model = model.to(device)
 optimizer = optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-5)
 scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.985)
 
-# Training loop
+running_loss = 0.0
+print_every = 10  # Print every 10 batches.
+
 for epoch in range(num_epochs):
-    model.train()  # Switch to training mode
-    for images, masks in train_loader:
-        # Move the data onto the device
+    model.train()
+    for i, (images, masks) in enumerate(train_loader, 1):
         images, masks = images.to(device), masks.to(device)
-
-        # Zero the parameter gradients
         optimizer.zero_grad()
-
-        # Forward pass
         outputs = model(images)
         masks_expanded = torch.cat((masks, 1 - masks), dim=1)
-
         loss = dice_loss(outputs, masks_expanded)
-
-        # Backward pass + optimization
         loss.backward()
         optimizer.step()
+        
+        running_loss += loss.item()
+        if i % print_every == 0:  # Print every `print_every` batches
+            print(f"Epoch {epoch + 1}, Batch {i}: Loss = {running_loss / print_every:.4f}")
+            running_loss = 0.0
 
-    scheduler.step()  # Adjust learning rate
+
+# # Training loop
+# for epoch in range(num_epochs):
+#     model.train()  # Switch to training mode
+#     for images, masks in train_loader:
+#         # Move the data onto the device
+#         images, masks = images.to(device), masks.to(device)
+
+#         # Zero the parameter gradients
+#         optimizer.zero_grad()
+
+#         # Forward pass
+#         outputs = model(images)
+#         masks_expanded = torch.cat((masks, 1 - masks), dim=1)
+
+#         loss = dice_loss(outputs, masks_expanded)
+
+#         # Backward pass + optimization
+#         loss.backward()
+#         optimizer.step()
+
+#     scheduler.step()  # Adjust learning rate
 
 print("training complete")  # TODO
 
 # Save the model
-torch.save(
-    model.state_dict(),
-    "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/model.pth",
-)
+# torch.save(
+#     model.state_dict(),
+#     "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/model.pth",
+# )
 
 # Switch to evaluation mode
 model.eval()
