@@ -29,14 +29,14 @@ def training_log_path_and_writer():
 def loss_function():
     # Define the loss function
     # criterion = ContrastiveLoss()
-    current_criterion = nn.BCELoss()
-    return current_criterion
+    criterion_function = nn.BCELoss()
+    return criterion_function
 
 
-def current_optimizer():
+def get_optimizer(net):
     # Define the optimizer using Adam
-    current_train_optimizer = optim.Adam(net.parameters(), lr=0.001, weight_decay=0.01)
-    return current_train_optimizer
+    train_optimizer = optim.Adam(net.parameters(), lr=0.001, weight_decay=0.01)
+    return train_optimizer
 
 
 def instantiate_datasets_and_dataloaders():
@@ -53,17 +53,17 @@ def instantiate_datasets_and_dataloaders():
 def validate_process():
     print("Start to check or create validating set...")
     # Define source and validation directories
-    current_train_path = "AD_NC/train"
-    current_validate_path = "AD_NC/val"
+    train_path = "AD_NC/train"
+    validate_path = "AD_NC/val"
 
     # Check if validation set already exists
-    if not os.path.exists(current_validate_path) or len(os.listdir(current_validate_path)) == 0:
+    if not os.path.exists(validate_path) or len(os.listdir(validate_path)) == 0:
         # get all patient ids
         all_patient_ids = set()
         for current_category in ["AD", "NC"]:
-            for file_name in os.listdir(os.path.join(current_train_path, current_category)):
-                current_patient_id = file_name.split('_')[0]  # get the part before the underscore as the patient id
-                all_patient_ids.add(current_patient_id)
+            for file_name in os.listdir(os.path.join(train_path, current_category)):
+                patient_id = file_name.split('_')[0]  # get the part before the underscore as the patient id
+                all_patient_ids.add(patient_id)
 
         # randomly choose 20% of the patients for validation
         number_of_validated_patients = int(0.2 * len(all_patient_ids))  # 20% of the patients
@@ -71,11 +71,11 @@ def validate_process():
 
         # move the images of the validation patients to the validation directory
         for current_category in ["AD", "NC"]:
-            for file_name in os.listdir(os.path.join(current_train_path, current_category)):
-                current_patient_id = file_name.split('_')[0]  # get the part before the underscore as the patient id
-                source_path = os.path.join(current_train_path, current_category, file_name)
-                if current_patient_id in validation_patient_ids:
-                    destination_path = os.path.join(current_validate_path, current_category, file_name)
+            for file_name in os.listdir(os.path.join(train_path, current_category)):
+                patient_id = file_name.split('_')[0]  # get the part before the underscore as the patient id
+                source_path = os.path.join(train_path, current_category, file_name)
+                if patient_id in validation_patient_ids:
+                    destination_path = os.path.join(validate_path, current_category, file_name)
                     if not os.path.exists(os.path.dirname(destination_path)):
                         os.makedirs(os.path.dirname(destination_path))
                     shutil.move(source_path, destination_path)
@@ -95,71 +95,71 @@ def validate_process():
 #     return current_checkpoint, current_training_epoch
 
 
-def train_loop_with_progress_bar(current_module, train_epoch, current_train_dataloader, current_train_optimizer):
+def train_loop_with_progress_bar(train_module, train_epoch, train_loop_dataloader, train_optimizer):
     print("Main training loop is in progress...")
 
-    current_module.train()
+    train_module.train()
     train_epoch = train_epoch if train_epoch is not None else 0
     # Initialize the running loss to 0
-    current_running_loss = 0.0
-    current_correct = 0
-    current_total = 0
+    train_running_loss = 0.0
+    train_correct_numbers = 0
+    train_totals = 0
     # Progress bar
-    for index, image_data in tqdm(enumerate(current_train_dataloader), total=len(current_train_dataloader)):
+    for index, image_data in tqdm(enumerate(train_loop_dataloader), total=len(train_loop_dataloader)):
         # Get the images and labels from the data
-        img_0, img_1, current_image_label = image_data
+        img_0, img_1, image_label = image_data
         # Move the images and labels to the appropriate device
-        img_0, img_1, current_image_label = img_0.to(device), img_1.to(device), current_image_label.to(device)
+        img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)
 
         # Zero the gradients
-        current_train_optimizer.zero_grad()
-        total_output = current_net(img_0, img_1).squeeze()  # Adjust the size of the output to match the target
-        current_loss = criterion(total_output, current_image_label)
+        train_optimizer.zero_grad()
+        total_output = train_module(img_0, img_1).squeeze()  # Adjust the size of the output to match the target
+        current_loss = criterion(total_output, image_label)
         current_loss.backward()
-        current_train_optimizer.step()
+        train_optimizer.step()
 
         # Calculate the accuracy
         predicted_label = torch.where(total_output > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
-        current_running_loss += current_loss.item()
-        current_total += len(current_image_label)
-        current_correct += predicted_label.eq(current_image_label.view_as(predicted_label)).sum().item()
+        train_running_loss += current_loss.item()
+        train_totals += len(image_label)
+        train_correct_numbers += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
 
     # Calculate the average loss over the entire training data
-    average_loss = current_running_loss / len(current_train_dataloader)
-    current_accuracy = 100 * current_correct / current_total
-    print(f"Training - Epoch: {train_epoch}, Training Average Loss: {average_loss:.4f}, Training Accuracy: {current_accuracy:.4f}%")
+    average_train_loss = train_running_loss / len(train_loop_dataloader)
+    average_train_accuracy = 100 * train_correct_numbers / train_totals
+    print(f"Training - Epoch: {train_epoch}, Training Average Loss: {average_train_loss:.4f}, Training Accuracy: {average_train_accuracy:.4f}%")
 
     # Write the average loss value to tensorboard
-    writer.add_scalar('Training Average Loss', average_loss, train_epoch)
-    writer.add_scalar('Training Accuracy', current_accuracy, train_epoch)
+    writer.add_scalar('Training Average Loss', average_train_loss, train_epoch)
+    writer.add_scalar('Training Accuracy', average_train_accuracy, train_epoch)
 
-    current_content = "Training_Epoch:" + str(train_epoch) + ",Training_Average_Loss:" + str(average_loss) + ",Training_Accuracy:" + str(current_accuracy)
-    write_to_file(file_path, current_content)
+    train_content = "Training_Epoch:" + str(train_epoch) + ",Training_Average_Loss:" + str(average_train_loss) + ",Training_Accuracy:" + str(average_train_accuracy)
+    write_to_file(file_path, train_content)
 
 
-def validation_loop_with_progress_bar(current_module, epoch, current_validation_dataloader):
+def validation_loop_with_progress_bar(validate_module, epoch, validate_loop_dataloader):
     # Validation loop
-    current_module.eval()
+    validate_module.eval()
 
     print("Validating is in progress...")
     validate_loss = 0.0
     validate_accuracy = 0.0
-    total_labels = 0.0
+    validate_totals = 0.0
     # Progress bar
-    for index, image_data in tqdm(enumerate(current_validation_dataloader), total=len(current_validation_dataloader)):
-        img_0, img_1, current_image_label = image_data
-        img_0, img_1, current_image_label = img_0.to(device), img_1.to(device), current_image_label.to(device)
+    for index, image_data in tqdm(enumerate(validate_loop_dataloader), total=len(validate_loop_dataloader)):
+        img_0, img_1, image_label = image_data
+        img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)
         with torch.no_grad():
-            total_output = net(img_0, img_1).squeeze()
-            current_loss = criterion(total_output, current_image_label)
+            total_output = validate_module(img_0, img_1).squeeze()
+            current_loss = criterion(total_output, image_label)
 
             predicted_label = torch.where(total_output > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
-            total_labels += len(current_image_label)
-            validate_accuracy += predicted_label.eq(current_image_label.view_as(predicted_label)).sum().item()
+            validate_totals += len(image_label)
+            validate_accuracy += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
             validate_loss += current_loss.sum().item()
 
-    average_validation_loss = validate_loss / len(current_validation_dataloader)
-    validation_accuracy = validate_accuracy / total_labels * 100
+    average_validation_loss = validate_loss / len(validate_loop_dataloader)
+    validation_accuracy = validate_accuracy / validate_totals * 100
     print(f"Validating - Epoch: {epoch}, Validating Average Loss: {average_validation_loss:.4f},Validating Accuracy:{validation_accuracy:.4f}%")
     # Write the average validation loss value and accuracy to tensorboard
     writer.add_scalar('Validation Average Loss', average_validation_loss, epoch)
@@ -170,28 +170,27 @@ def validation_loop_with_progress_bar(current_module, epoch, current_validation_
     return validation_accuracy, average_validation_loss
 
 
-def test_loop_with_progress_bar(current_module, epoch, current_test_dataloader):
+def test_loop_with_progress_bar(test_module, epoch, test_loop_dataloader):
     # Test Loop
-    current_net = current_module
-    current_net.eval()
+    test_module.eval()
     print("Testing is in progress...")
-    current_test_loss = 0.0
-    current_test_accuracy = 0.0
-    current_test_label = 0.0
+    test_loss = 0.0
+    test_accuracy = 0.0
+    test_totals = 0.0
     # Progress bar
-    for index, image_data in tqdm(enumerate(current_test_dataloader), total=len(current_test_dataloader)):
-        img_0, img_1, current_image_label = image_data
-        img_0, img_1, current_image_label = img_0.to(device), img_1.to(device), current_image_label.to(device)
+    for index, image_data in tqdm(enumerate(test_loop_dataloader), total=len(test_loop_dataloader)):
+        img_0, img_1, image_label = image_data
+        img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)
         with torch.no_grad():
-            total_output = net(img_0, img_1).squeeze()
-            current_loss = criterion(total_output, current_image_label)
+            total_output = test_module(img_0, img_1).squeeze()
+            loss = criterion(total_output, image_label)
             predicted_label = torch.where(total_output > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
-            current_test_label += len(current_image_label)
-            current_test_accuracy += predicted_label.eq(current_image_label.view_as(predicted_label)).sum().item()
-            current_test_loss += current_loss.sum().item()
+            test_totals += len(image_label)
+            test_accuracy += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
+            test_loss += loss.sum().item()
 
-    test_average_loss = current_test_loss / len(current_test_dataloader)
-    test_accuracy = current_test_accuracy / current_test_label * 100
+    test_average_loss = test_loss / len(test_loop_dataloader)
+    test_accuracy = test_accuracy / test_totals * 100
     print(f"Testing - Epoch:{epoch},Testing_Average_Loss:{test_average_loss:.4f},Testing_Accuracy:{test_accuracy:.4f}%")
 
     # Write the average test loss value and accuracy to tensorboard
@@ -259,7 +258,7 @@ if __name__ == '__main__':
     criterion = loss_function()
 
     # Define the optimizer
-    optimizer = current_optimizer()
+    optimizer = get_optimizer(module)
 
     # Validation set check, create it if it doesn't exist
     validate_process()
