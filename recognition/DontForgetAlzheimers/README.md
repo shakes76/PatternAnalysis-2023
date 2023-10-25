@@ -38,7 +38,7 @@ After 20 epochs, the testing gave a result of 73%. This was based off the accura
 
 - $(TP + TN) / (TP + TN + FP + FN)$
 
-![Loss over 20 epochs](https://github.com/bquek00/PatternAnalysis-2023/blob/2c189675d69af3c897474e3076d9c15dc9fa83dd/recognition/DontForgetAlzheimers/LOSS.png)
+![Loss over 20 epochs](https://github.com/bquek00/PatternAnalysis-2023/blob/8f5cdea5170649a1be91abc45fab251eafcb0843/recognition/DontForgetAlzheimers/LOSS.png)
   
 
 ## Example prediction
