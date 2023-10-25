@@ -72,8 +72,11 @@ def main():
     model = ViT(ADNI_config, lr=lr)
 
     batch_size = 1 #working 16 on hpc
-    num_workers = 3 #num_workers = 0 if windows
+    num_workers = 0 #num_workers = 0 if windows
     max_epochs = 30
+
+    #! ================remove validation loader ========================
+
     
     ADNI = ADNIDataModule(batch_size=batch_size, 
                         image_size=image_size,  
