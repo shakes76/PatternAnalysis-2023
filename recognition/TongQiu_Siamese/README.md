@@ -2,6 +2,11 @@
 
 In this project, we leveraged Siamese Networks, a metric learning technich, to classify Alzheimer's Disease (AD) from 2D MRI scans.
 
+## Environment
+- python 3.10.9
+- pytorch 1.12.1
+- torchvision 0.13.1
+
 ## Dataset
 
 **Source**: 
@@ -17,18 +22,109 @@ In this project, we leveraged Siamese Networks, a metric learning technich, to c
 
 Training data is split into training and validation sets using an 8:2 ratio, ensuring a patient-level split.
 
-To train the Siamese network, datasets are constructed in both pairwise and triplet formats. 
-
 **Testing Data**:
 - AD: 4,460 images (223 patients)
 - CN: 4,540 images (227 subjects)
 
 The test set is reserved for final model evaluation.
 
-## Model
+### Datasets for Siamese networks:
+- **ContrastiveDataset**: Pairs of images labeled as being from the same class or different classes.
+- **TripletDataset**: Triplets of images - an anchor, a positive (same class as anchor), and a negative (different class from anchor).
 
+### Datasets for classification:
+- **ClassificationDataset**: Individual images labeled as either AD or CN.
+
+### example usage:
+```
+full_train_data = discover_directory(Config.TRAIN_DIR)
+    train_data, val_data = patient_level_split(full_train_data)
+
+    tr_transform = tf.Compose([
+        tf.Normalize((0.1160,), (0.2261,)),
+        tf.RandomRotation(10)
+    ])
+
+    val_transform = tf.Compose([
+        tf.Normalize((0.1160,), (0.2261,))
+    ])
+
+    train_dataset = ContrastiveDataset(train_data, transform=tr_transform)
+    val_dataset = ContrastiveDataset(val_data, transform=val_transform)
+```
+
+
+## Model
+Although siamese neural network is originally designed as a metric learning technique, 
+it can still be adeptly repurposed for classification task, which is attributed to its inherent capability to distinguish between input images.
+
+### Siamese Network Architecture
+
+**Contrastive Structure**:
+
+![Siamese Network Structure (Contrastive)]()
+
+**Triplet Structure**:
+![Siamese Network Structure (Triplet)]()
+
+**Components**:
+- **Two/Three Identical Subnetworks**: These subnetworks share the same architecture, weights. Each subnetwork takes one of the two/three input vectors.
+- **Feature Vectors**: As each subnetwork processes its input, and it subsequently output a feature vector.
+- **Distance Layer**: After processing, the feature vectors are combined (using Euclidian distance), and the network outputs a scalar value that indicates how similar the inputs are.
+
+![Subnetworks architecture]()
+
+The figure above shows the subnetworks structure proposed by Koch et. in 2015.
+Although other CNN architectures might offer better performance, time constraints limited exploration in that direction.
+
+### Architecture of Classification Network
+After training the siamese network, the pre-trained Subnetwork is then used as backbone as the classification network,
+followed by a classification layer. The classification network is then fine-tuned as usual image classification task.
 
 ## Training
+During the training process, 2 losses were explored: Contrastive Loss and Triplet Loss. 
+Both these losses have significant performance in metric leaning tasks.
+
+### Contrastive Loss
+Contrastive loss is commonly used in siamese networks. 
+It ensures that similar instances come closer in the feature space, 
+while dissimilar instances are pushed apart. Mathematically, it can be represented as:
+
+$$
+Contrastive Loss = (1-Y) * D^2 + Y * max((m-D),0)^2
+$$
+
+- D is the Euclidean distance between the two feature vectors.
+- Y is 1 if the pair is from the same class, O otherwise.
+- m is a margin, which ensures that dissimilar pairs are separated by at least m distance.
+
+
+The idea is to minimize the distance between positive pairs (similar instances) 
+and maximize the distance between negative pairs (dissimilar instances) up to 
+a certain margin.
+
+It is notable that the choice of margin can influence the performance.
+
+### Triplet Loss
+Triplet Loss extends the idea of contrastive loss by considering an anchor example, 
+a positive example (similar to the anchor), and a negative example 
+(dissimilar to the anchor). The goal is to make sure that an anchor is closer 
+to the positive example than the negative by at least a margin. 
+The formula for the Triplet Loss is:
+
+$$
+Triplet Loss = max(D_{a,p} - D_{a,n} + margin, 0)
+$$
+
+- $D_{a,p}$  is the distance between the anchor and positive sample.
+- $D_{a,n}$  is the distance between the anchor and negative sample.
+
+The loss encourages the model to make the positive pair closer than the negative pair by at least a margin of 
+m.
+
+### Training Loss of Siamese Network
+
+### Training loss & accuracy for Classification
 
 ## Evaluation
 
