@@ -5,16 +5,14 @@ Make sure to plot the losses and metrics during training
 """
 
 
-from sympy import false
 from dataset import (
     ISICDataset,
     transform,
-    train_loader,
-    test_loader,
-    split_data,
     check_consistency,
 )
 from modules import UNet
+from torch.utils.data import DataLoader
+from torch.utils.data.dataset import random_split
 from utils import dice_loss, dice_coefficient
 import torch
 import torch.optim as optim
@@ -23,7 +21,7 @@ from torch.utils.data import Subset  # for testing only TODO
 
 
 # Hyper-parameters
-num_epochs = 3
+num_epochs = 5
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Check if the dataset is consistent
@@ -45,14 +43,21 @@ if debugging:
 # Loading up the dataset and applying custom augmentations
 dataset = ISICDataset(transform)
 
-# Splitting into testing and training sets
-test_size = int(0.2 * len(dataset))
-train_size = len(dataset) - test_size
-train_dataset, test_dataset = split_data(dataset, train_size, test_size)
+total_size = len(dataset)
 
-# Data loaders for training and testing
-train_loader = train_loader(train_dataset, 100)
-test_loader = test_loader(test_dataset, 100)
+# Splitting into training, validation and testing sets
+train_size = int(total_size * 0.7)
+val_size = int(total_size * 0.2)
+test_size = total_size - train_size - val_size
+
+train_dataset, val_dataset, test_dataset = random_split(
+    dataset, [train_size, val_size, test_size]
+)
+
+# Data loaders for training, validation and testing
+train_loader = DataLoader(train_dataset, 32, True)
+validation_loader = DataLoader(val_dataset, 100, False)
+test_loader = DataLoader(test_dataset, 100, False)
 
 # Creating an instance of my UNet to be trained
 model = UNet(in_channels=6, num_classes=2)
@@ -62,55 +67,75 @@ model = model.to(device)
 optimizer = optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-5)
 scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.985)
 
+print("Training loop:")
+
+# Variables used for training feedback:
 running_loss = 0.0
 print_every = 10  # Print every 10 batches.
+best_val_loss = float('inf')
+patience = 3 # Number of epochs to wait before stopping
 
 for epoch in range(num_epochs):
     model.train()
     for i, (images, masks) in enumerate(train_loader, 1):
+        # Move the data onto the device
         images, masks = images.to(device), masks.to(device)
+
+        # Zero the parameter gradients
         optimizer.zero_grad()
+
+        # Forward pass
         outputs = model(images)
         masks_expanded = torch.cat((masks, 1 - masks), dim=1)
+
         loss = dice_loss(outputs, masks_expanded)
+
+        # Backward pass + optimization
         loss.backward()
         optimizer.step()
-        
+
         running_loss += loss.item()
         if i % print_every == 0:  # Print every `print_every` batches
-            print(f"Epoch {epoch + 1}, Batch {i}: Loss = {running_loss / print_every:.4f}")
+            print(
+                f"Epoch {epoch + 1}, Batch {i}: Loss = {running_loss / print_every:.4f}"
+            )
             running_loss = 0.0
+    
+    # Evaluate the model using the validation set
+    model.eval()
+    val_loss = 0
+
+    with torch.no_grad():
+        for images, masks in validation_loader:
+            # Load the validation data onto the device
+            images, masks = images.to(device), masks.to(device)
+            
+            # Evaluate the loss
+            outputs = model(images)
+            loss = dice_loss(outputs, masks)
+            val_loss += loss.item()
+
+    val_loss /= len(validation_loader)
+    print(f"Epoch {epoch}, Validation Loss = {val_loss:.4f}")
+
+    # Model checkpointing
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        torch.save(model.state_dict(), "best_model.pth")
+        no_improvement = 0
+    else:
+        no_improvement += 1
+
+    scheduler.step()  # Adjust learning rate
 
 
-# # Training loop
-# for epoch in range(num_epochs):
-#     model.train()  # Switch to training mode
-#     for images, masks in train_loader:
-#         # Move the data onto the device
-#         images, masks = images.to(device), masks.to(device)
-
-#         # Zero the parameter gradients
-#         optimizer.zero_grad()
-
-#         # Forward pass
-#         outputs = model(images)
-#         masks_expanded = torch.cat((masks, 1 - masks), dim=1)
-
-#         loss = dice_loss(outputs, masks_expanded)
-
-#         # Backward pass + optimization
-#         loss.backward()
-#         optimizer.step()
-
-#     scheduler.step()  # Adjust learning rate
-
-print("training complete")  # TODO
+print("training complete")
 
 # Save the model
-# torch.save(
-#     model.state_dict(),
-#     "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/model.pth",
-# )
+torch.save(
+    model.state_dict(),
+    "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/model.pth",
+)
 
 # Switch to evaluation mode
 model.eval()
@@ -127,7 +152,6 @@ with torch.no_grad():
         outputs = model(inputs)
 
         # Convert outputs to binary mask
-        # If sigmoid activation is used in the last layer
         predicted_masks = (outputs > 0.5).float()
 
         # Compute Dice coefficient
