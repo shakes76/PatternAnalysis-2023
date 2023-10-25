@@ -16,6 +16,9 @@ transform = transforms.Compose([
 ])
 
 class AlzheimerDataset(Dataset):
+    """
+    Dataset for loading Alzheimer's disease (AD) and Normal Control (NC) images.
+    """
     def __init__(self, dataPath, transform=None):
         self.dataPath = dataPath
         self.AD, self.NC = None, None
@@ -46,6 +49,8 @@ class AlzheimerDataset(Dataset):
         return (len(self.AD), len(self.NC))
 
 if __name__ == "__main__":
+
+    # EDA to see how many of each class exists in both train and test sets.
     test = AlzheimerDataset("AD_NC/test")
     train = AlzheimerDataset("AD_NC/train")
     print(train.testLen())
