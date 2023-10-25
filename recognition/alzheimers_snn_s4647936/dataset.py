@@ -50,6 +50,9 @@ class TripletDataset(Dataset):
         elif mode == 'test':
             self.ad_paths = test_ad_paths
             self.nc_paths = test_nc_paths
+            print("Sample AD paths:", self.ad_paths[:5])
+            print("Sample NC paths:", self.nc_paths[:5])
+
 
     def __len__(self):
         return len(self.ad_paths) + len(self.nc_paths)  # combined length
@@ -73,7 +76,6 @@ class TripletDataset(Dataset):
         
         # Choose a negative image from a different patient
         negative_path = random.choice([path for path in negative_paths if patient_id not in os.path.basename(path)])
-
         anchor_image = Image.open(anchor_path)
         positive_image = Image.open(positive_path)
         negative_image = Image.open(negative_path)
@@ -84,7 +86,7 @@ class TripletDataset(Dataset):
             negative_image = self.transform(negative_image)
 
         # Decide label based on anchor image path
-        label = 0 if "AD" in anchor_path else 1
+        label = 0 if "/AD/" in anchor_path else 1
 
         return anchor_image, positive_image, negative_image, label
     

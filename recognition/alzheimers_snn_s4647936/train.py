@@ -68,7 +68,6 @@ patience = 5
 best_val_loss = float('inf')
 epochs_without_improvement = 0
 
-
 # Training loop for Siamese Network
 for epoch in range(num_epochs):
     model.train()
@@ -130,9 +129,6 @@ print("Saved Siamese Network model weights")
 """
 Save and visualise results
 """
-# Test to see number of images
-# print(len(train_dataset)) # 17200
-# print(len(test_dataset)) # 1820
 
 # Save the loss curve
 plt.figure()
@@ -171,9 +167,9 @@ def save_image(img, base_filename):
     plt.savefig(filename)
 
 # Save sample images after training
-save_image(anchor, 'anchor_sample.png')
-save_image(positive, 'positive_sample.png')
-save_image(negative, 'negative_sample.png')
+# save_image(anchor, 'anchor_sample.png')
+# save_image(positive, 'positive_sample.png')
+# save_image(negative, 'negative_sample.png')
 
 # --------- Visualize Embeddings using t-SNE ---------
 # Extract embeddings and labels
