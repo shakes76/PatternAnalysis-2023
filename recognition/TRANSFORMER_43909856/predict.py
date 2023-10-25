@@ -42,12 +42,13 @@ Loads the previously trained ViT classification model, then tests the model
 on the test set.
 
 Params:
+    model_filename (str): The file path and file name for the model to be evaluated
     save_metrics (bool): If true, saves separate lists of the model's
                          predicted values and the corresponding observed/empirical
                          values for each image in the test set (to CSV files). 
                          Otherwise, does not save these values
 """
-def test_model(save_metrics=True):
+def test_model(model_filename=osp.join(OUTPUT_PATH, "ViT_ADNI_model.pt"), save_metrics=True):
     # Get the testing data (ADNI)
     test_loader = dataset.load_ADNI_data()
 
@@ -57,7 +58,7 @@ def test_model(save_metrics=True):
     # Move the model to the GPU device
     model = model.to(device)
     # Load the pre-trained model into the blank slate ViT
-    model.load_state_dict(torch.load(osp.join(OUTPUT_PATH, "ViT_ADNI_model.pt"), map_location=device))
+    model.load_state_dict(torch.load(model_filename, map_location=device))
 
 
     # Test the model:
@@ -77,6 +78,7 @@ def test_model(save_metrics=True):
         for images, labels in test_loader:
             images = images.to(device)
             labels = labels.to(device)
+            # Add images to the data and get the predicted classes
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
             # Add to the total # of predictions
@@ -91,8 +93,9 @@ def test_model(save_metrics=True):
     # Get the amount of time that the model spent testing
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print(f"Test accuracy: {(100 * correct) / total} %")
-    print(f"Testing finished. Testing took {elapsed_time} seconds ({elapsed_time/60} minutes)")
+    print(f"Test accuracy: {round((100 * correct) / total, 5)} %")
+    print(f"Testing finished. Testing took {round(elapsed_time, 2)} seconds "
+          +f"({round(elapsed_time/60, 5)} minutes)")
 
     # Save testing metrics
     if save_metrics:
