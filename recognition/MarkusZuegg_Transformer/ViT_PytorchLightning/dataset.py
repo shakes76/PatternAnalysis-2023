@@ -8,7 +8,7 @@ import pytorch_lightning as pl
 from pytorch_lightning import LightningDataModule
 from torch.utils.data import DataLoader, random_split
 from torchvision.utils import make_grid
-from torchvision.datasets import CIFAR10, CIFAR100
+from torchvision.datasets import CIFAR10, ImageFolder
 from torchvision.transforms import Compose, ToTensor, RandomCrop, RandomHorizontalFlip, RandomResizedCrop, Resize, Normalize, CenterCrop
 
 
@@ -62,9 +62,10 @@ class ADNIDataModule(LightningDataModule):
     """ADNI data module in lighting.
 
     Args:
-        batch_size:
-        image_size:
-        num_workers:
+        batch_size: interger of Images in each batch
+                    Can lower memory load (typically 64 if cpu, 128 for gpu)
+        image_size: Tuple of image dimensions (height, width)
+        num_workers: interger of workers for multi proccessing
     """
     def __init__(
         self, 
@@ -90,6 +91,24 @@ class ADNIDataModule(LightningDataModule):
                                 RandomResizedCrop((image_size, image_size), scale=(0.8, 1.0), ratio=(0.9, 1.0)),
                                 ToTensor(),
                                 Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+        
+        #Intiallising splits of data
+        self.test = ImageFolder(root=self.test_data_root, transform=self.test_transform)
+        self.train = ImageFolder(root=self.train_data_root, transform=self.test_transform)
+        self.val = ImageFolder(root=self.val_data_root, transform=self.test_transform)
+
+        print("Image folders loaded")
+
+    #Pytorch_lightning functions for loading split data
+    def train_dataloader(self):
+        return DataLoader(self.train, self.batch_size, num_workers=self.num_workers, shuffle=True)    
+
+    def test_dataloader(self):
+        return DataLoader(self.test, self.batch_size, num_workers=self.num_workers, shuffle=False)
+    
+    def val_dataloader(self):
+        return DataLoader(self.val, self.batch_size, num_workers=self.num_workers, shuffle=False)
+
 
     
 
@@ -103,6 +122,7 @@ def img_to_patch(x, patch_size):
                            as a feature vector instead of a image grid.
     """
     B, C, H, W = x.shape
+    print(x.shape)
     x = x.reshape(B, C, H // patch_size, patch_size, W // patch_size, patch_size)
     x = x.permute(0, 2, 4, 1, 3, 5)  # [B, H', W', C, p_H, p_W]
     x = x.flatten(1, 2)  # [B, H'*W', C, p_H, p_W]
