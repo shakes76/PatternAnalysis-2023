@@ -68,11 +68,11 @@ def train_model(save_model_data=True):
                 dataset.load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_size=0.8)
 
     # Add the training and (if any) validation data to data loaders
-    train_loader = DataLoader(train_images.dataset, batch_size=BATCH_SIZE, shuffle=True,
+    train_loader = DataLoader(train_images, batch_size=BATCH_SIZE, shuffle=True,
                             num_workers=2, worker_init_fn=worker_init_fn)
     if val_images is not None:
         # If val_images is None, don't create a validation set
-        val_loader = DataLoader(val_images.dataset, batch_size=BATCH_SIZE, shuffle=True,
+        val_loader = DataLoader(val_images, batch_size=BATCH_SIZE, shuffle=True,
                                 num_workers=2, worker_init_fn=worker_init_fn)
 
     # Initalise the model
@@ -205,18 +205,26 @@ def train_model(save_model_data=True):
 Plot the change in training loss (binary cross-entropy) over the epochs.
 Training loss is reported/updated every 20 training steps, and for the final
 step in each training epoch.
+If a validation set was used, change in validation loss at the end of each
+epoch will also be plotted.
 
 Params:
     train_loss_values (array[[int, int, int, float]]): each entry of the array
                        contains the current epoch, the current step number,
                        the total number of steps for this epoch, and the training
                        set loss recorded at this point.
+    val_loss_values (array[[int, float, float]]) or None: if this arg is
+                       None, then validation set metrics won't be plotted.
+                       If an array is passed, each entry of the array contains
+                       the current epoch, the validation loss, and the validation
+                       set accuracy recorded at this point.
     show_plot (bool): show the plot in a popup window if True; otherwise, don't
                     show the plot
     save_plot (bool): save the plot as a PNG file to the directory "plots" if
                       True; otherwise, don't save the plot
 """
-def plot_train_loss(train_loss_values, show_plot=False, save_plot=False):
+def plot_loss(train_loss_values, val_loss_values=None, show_plot=False, 
+              save_plot=False):
     # Get the train losses
     train_loss = [train_loss_values[i][3] for i in range(len(train_loss_values))]
 
@@ -232,12 +240,19 @@ def plot_train_loss(train_loss_values, show_plot=False, save_plot=False):
     # Set the figure size
     plt.figure(figsize=(10,5))
     # Add a title
-    plt.title("ViT Transformer (ADNI classifier) training loss")
+    plt.title("ViT Transformer (ADNI classifier) model loss")
 
     # Plot the train loss
     plt.plot(epoch_estimation, train_loss, label="Training set", color="Blue")
-    # TODO add plotting of validation loss to the training loss plot
-    #plt.plot(val_loss_values, label="Validation set", color="Green")
+
+    # Plot the validation loss on the same graph (if required)
+    if val_loss_values is not None:
+        # Get the validation losses
+        val_loss = [val_loss_values[i][1] for i in range(len(val_loss_values))]
+        # Get the validation epochs
+        val_epoch = [val_loss_values[i][0] for i in range(len(val_loss_values))]
+        plt.plot(val_epoch, val_loss, label="Validation set", color="Green")
+
     # Add axes titles and a legend
     plt.xlabel("Number of epochs")
     plt.ylabel("Loss (binary cross-entropy)")
@@ -251,7 +266,7 @@ def plot_train_loss(train_loss_values, show_plot=False, save_plot=False):
         if not os.path.exists(directory):
             os.makedirs(directory)
         # Save the plot in the "plots" directory
-        plt.savefig(os.path.join(directory, "ViT_train_loss.png"), dpi=600)
+        plt.savefig(os.path.join(directory, "ViT_loss.png"), dpi=600)
         
     if show_plot:
         # Show the plot
@@ -259,7 +274,8 @@ def plot_train_loss(train_loss_values, show_plot=False, save_plot=False):
 
 
 """
-Loads the training set loss data saved to a CSV file during the training process.
+Loads the training or validation set loss data, which is saved to a CSV file 
+during the training process.
 
 Params:
     filename (str): the name of the CSV file to load
@@ -270,9 +286,9 @@ Returns:
 """
 def load_training_metrics(filename=osp.join(OUTPUT_PATH, 'ADNI_train_loss.csv')):
     # Load the file
-    train_loss_values = np.loadtxt(filename, dtype=float)
+    loss_values = np.loadtxt(filename, dtype=float)
     # Convert from a numpy array to a python base lib list
-    return train_loss_values.tolist()
+    return loss_values.tolist()
 
 
 """
@@ -285,7 +301,7 @@ def main():
     train_model()
     # Create training loss plots
     # train_loss_values = load_training_metrics()
-    # plot_train_loss(train_loss_values=train_loss_values, show_plot=True, save_plot=True)
+    # plot_loss(train_loss_values=train_loss_values, show_plot=True, save_plot=True)
 
 if __name__ == '__main__':    
     main()
