@@ -14,7 +14,7 @@ import torch.nn.functional as F
 
 
 # Hyper-parameters
-num_epochs = 5
+num_epochs = 1
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Check if the dataset is consistent
@@ -35,7 +35,9 @@ test_loader = test_loader(test_dataset, 100)
 # Creating an instance of my UNet to be trained
 model = UNet(in_channels=6, num_classes=2)
 model = model.to(device)
-
+torch.save(model.state_dict(), "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/model.pth")
+print("saved")
+exit()
 # Setup the optimizer
 optimizer = optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-5)
 scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.985)
@@ -53,8 +55,8 @@ for epoch in range(num_epochs):
         # Forward pass
         outputs = model(images)
         masks_expanded = torch.cat((masks, 1 - masks), dim=1)
-        print(outputs.shape)  # Should be [100, 2, 256, 256]
-        print(masks.shape)    # Should be [100, 2, 256, 256]
+        print(outputs.shape)
+        print(masks.shape)  
         loss = dice_loss(outputs, masks_expanded)
 
         # Backward pass + optimization
