@@ -1,7 +1,6 @@
+# From https://github.com/bigmb/Unet-Segmentation-Pytorch-Nest-of-Unets
 from __future__ import print_function, division
 import torch.nn.functional as F
-
-# Implemented from https://github.com/bigmb/Unet-Segmentation-Pytorch-Nest-of-Unets
 def dice_loss(prediction, target):
     """Calculating the dice loss
     Args:

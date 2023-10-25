@@ -3,6 +3,7 @@ from matplotlib.lines import Line2D
 import numpy as np
 from visdom import Visdom
 
+
 def draw_loss(Loss_list,epoch,pic_name):
     plt.cla()
     x1 = [i for i in range(8)]
