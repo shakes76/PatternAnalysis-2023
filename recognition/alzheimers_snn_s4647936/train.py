@@ -15,9 +15,11 @@ import datetime
 # Generate a unique filename with a timestamp
 current_time = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
-def plot_confusion_matrix(y_true, y_pred, classes, base_filename):
-    output_filename = f"{base_filename}_{current_time}.png"
+def get_unique_filename(base_filename):
+    return f"{base_filename}_{current_time}.png"
 
+def plot_confusion_matrix(y_true, y_pred, classes, base_filename):
+    output_filename = get_unique_filename(base_filename)
     cm = confusion_matrix(y_true, y_pred)
     fig, ax = plt.subplots(figsize=(5, 5))
     sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', cbar=False, ax=ax)
@@ -168,8 +170,6 @@ def save_image(img, base_filename):
     plt.axis('off')  # Hide axes
     plt.savefig(filename)
 
-
-
 # Save sample images after training
 save_image(anchor, 'anchor_sample.png')
 save_image(positive, 'positive_sample.png')
@@ -257,10 +257,6 @@ for epoch in range(num_epochs):
     with torch.no_grad():
         for embeddings, labels in zip(test_embeddings, test_labels):
             outputs = classifier(torch.tensor(embeddings).to(device))
-
-            # Print the shape of the outputs tensor
-            print("Outputs shape:", outputs.shape)
-
             val_loss = criterion(outputs, torch.tensor(labels).to(device))
             val_running_loss += val_loss.item()
 
@@ -285,12 +281,39 @@ plt.title('Classifier Training vs Validation Loss')
 plt.legend()
 plt.savefig(f'classifier_train_vs_val_loss_{current_time}.png')
 
+# --------- Extract embeddings for visualization after classifier ---------
+all_classifier_embeddings = []
+all_labels = []
+
+with torch.no_grad():
+    for embeddings, labels in zip(test_embeddings, test_labels):
+        outputs = classifier(torch.tensor(embeddings).to(device))
+        all_classifier_embeddings.append(outputs.cpu().numpy())
+        all_labels.append(labels)
+
+all_classifier_embeddings = all_classifier_embeddings.reshape(-1, all_classifier_embeddings.shape[-1])
+
+# Reduce dimensionality using t-SNE
+tsne = TSNE(n_components=2, random_state=42)
+embeddings_2d = tsne.fit_transform(all_classifier_embeddings)
+
+# Plot
+plt.figure(figsize=(10, 7))
+plt.scatter(embeddings_2d[:, 0], embeddings_2d[:, 1], c=all_labels, cmap='jet', alpha=0.5, edgecolors='w', s=40)
+plt.colorbar()
+plt.title('2D t-SNE of Classifier Embeddings')
+plt.savefig(get_unique_filename('classifier_embeddings_tsne'))
+
 # --------- Evaluate Classifier ---------
 test_embeddings_tensor = torch.tensor(test_embeddings).to(device)
 test_labels_tensor = torch.tensor(test_labels).to(device)
 
 outputs = classifier(test_embeddings_tensor)
 _, predicted = torch.max(outputs, 1)
+
+# Plot confusion matrix for the classifier
+class_names = ["AD", "NC"] # Assuming AD is labeled as 0 and NC as 1
+plot_confusion_matrix(test_labels, predicted.cpu().numpy(), class_names, "classifier_confusion_matrix")
 
 correct = (predicted == test_labels_tensor).sum().item()
 total = test_labels_tensor.size(0)
