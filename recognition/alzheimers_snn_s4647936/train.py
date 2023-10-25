@@ -246,7 +246,7 @@ for epoch in range(num_epochs):
     for embeddings, labels in zip(train_embeddings, train_labels):
         embeddings_tensor = torch.tensor(embeddings).float().to(device)
         optimizer.zero_grad()
-        outputs = classifier(embeddings)
+        outputs = classifier(embeddings_tensor)
         loss = criterion(outputs, torch.tensor(labels).to(device))
         loss.backward()
         optimizer.step()
@@ -261,7 +261,7 @@ for epoch in range(num_epochs):
     with torch.no_grad():
         for embeddings, labels in zip(test_embeddings, test_labels):
             embeddings_tensor = torch.tensor(embeddings).float().to(device)
-            outputs = classifier(embeddings)
+            outputs = classifier(embeddings_tensor)
             val_loss = criterion(outputs, torch.tensor(labels).to(device))
             val_running_loss += val_loss.item()
 
@@ -292,7 +292,7 @@ all_labels = []
 
 with torch.no_grad():
     for embeddings, labels in zip(test_embeddings, test_labels):
-        outputs = classifier(embeddings)
+        outputs = classifier(embeddings_tensor)
         all_classifier_embeddings.append(outputs.cpu().numpy())
         all_labels.append(labels)
 
