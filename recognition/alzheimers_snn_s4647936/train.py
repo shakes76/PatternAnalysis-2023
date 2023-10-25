@@ -57,7 +57,7 @@ optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 # DataLoader setup
 train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
 # Lists to store training and validation losses
 training_losses = []
@@ -236,13 +236,20 @@ optimizer = optim.Adam(classifier.parameters(), lr=0.001)
 classifier_training_losses = []
 classifier_validation_losses = []
 
+# Convert embeddings list to tensor
+train_embeddings_tensor = torch.tensor(train_embeddings).float().to(device)
+test_embeddings_tensor = torch.tensor(test_embeddings).float().to(device)
+train_labels_tensor = torch.tensor(train_labels).to(device)
+test_labels_tensor = torch.tensor(test_labels).to(device)
+
+
 for epoch in range(num_epochs):
     # Train with embeddings
     running_loss = 0.0
 
     for embeddings, labels in zip(train_embeddings, train_labels):
         optimizer.zero_grad()
-        outputs = classifier(torch.tensor(embeddings).to(device))
+        outputs = classifier(embeddings)
         loss = criterion(outputs, torch.tensor(labels).to(device))
         loss.backward()
         optimizer.step()
@@ -256,7 +263,7 @@ for epoch in range(num_epochs):
     val_running_loss = 0.0
     with torch.no_grad():
         for embeddings, labels in zip(test_embeddings, test_labels):
-            outputs = classifier(torch.tensor(embeddings).to(device))
+            outputs = classifier(embeddings)
             val_loss = criterion(outputs, torch.tensor(labels).to(device))
             val_running_loss += val_loss.item()
 
@@ -287,7 +294,7 @@ all_labels = []
 
 with torch.no_grad():
     for embeddings, labels in zip(test_embeddings, test_labels):
-        outputs = classifier(torch.tensor(embeddings).to(device))
+        outputs = classifier(embeddings)
         all_classifier_embeddings.append(outputs.cpu().numpy())
         all_labels.append(labels)
 

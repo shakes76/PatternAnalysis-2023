@@ -18,7 +18,7 @@ class FeatureExtractor(nn.Module):
         self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5)
         
         # Define fully connected layers (adjust based on input image size)
-        self.fc1 = nn.Linear(29*25*128, 512)  
+        self.fc1 = nn.Linear(28*26*128, 512)
         self.dropout1 = nn.Dropout(0.5)
         self.fc2 = nn.Linear(512, 256)
         self.dropout2 = nn.Dropout(0.5)
@@ -31,7 +31,7 @@ class FeatureExtractor(nn.Module):
         x = F.max_pool2d(F.relu(self.conv3(x)), 2)
         
         # Flatten the tensor
-        x = x.view(x.size(0), -1)
+        x = x.view(x.size(0), 28*26*128)
         
         # Apply the fully connected layers with ReLU
         x = F.relu(self.fc1(x))
