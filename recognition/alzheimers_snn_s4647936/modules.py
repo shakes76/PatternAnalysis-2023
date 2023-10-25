@@ -15,22 +15,30 @@ class FeatureExtractor(nn.Module):
         # Define convolutional layers
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=32, kernel_size=5)  # assuming grayscale images
         self.conv2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=5)
+        self.conv3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=5)
         
         # Define fully connected layers (adjust based on input image size)
-        self.fc1 = nn.Linear(61*57*64, 256)  # Adjust here based on image size
-        self.fc2 = nn.Linear(256, 2)  # 2-dimensional output for simplicity
+        self.fc1 = nn.Linear(29*25*128, 512)  
+        self.dropout1 = nn.Dropout(0.5)
+        self.fc2 = nn.Linear(512, 256)
+        self.dropout2 = nn.Dropout(0.5)
+        self.fc3 = nn.Linear(256, 2)
         
     def forward(self, x):
         # Apply the convolutional layers with ReLU and max pooling
         x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
         x = F.max_pool2d(F.relu(self.conv2(x)), 2)  # kernel size 2
+        x = F.max_pool2d(F.relu(self.conv3(x)), 2)
         
         # Flatten the tensor
         x = x.view(x.size(0), -1)
         
         # Apply the fully connected layers with ReLU
         x = F.relu(self.fc1(x))
-        x = self.fc2(x)
+        x = self.dropout1(x)
+        x = F.relu(self.fc2(x))
+        x = self.dropout2(x)
+        x = self.fc3(x)
         
         return x
 
