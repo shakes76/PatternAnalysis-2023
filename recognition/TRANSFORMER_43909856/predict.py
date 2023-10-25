@@ -3,6 +3,7 @@ import os.path as osp
 import torch
 import torch.nn as nn
 import time
+import numpy as np
 
 import dataset
 import modules
@@ -39,8 +40,14 @@ OUTPUT_PATH = osp.join("recognition", "TRANSFORMER_43909856", "models")
 Loads the ADNI dataset's test set.
 Loads the previously trained ViT classification model, then tests the model
 on the test set.
+
+Params:
+    save_metrics (bool): If true, saves separate lists of the model's
+                         predicted values and the corresponding observed/empirical
+                         values for each image in the test set (to CSV files). 
+                         Otherwise, does not save these values
 """
-def test_model():
+def test_model(save_metrics=True):
     # Get the testing data (ADNI)
     test_loader = dataset.load_ADNI_data()
 
@@ -58,6 +65,10 @@ def test_model():
     # Get a timestamp for when the model testing starts
     start_time = time.time()
 
+    # Store the model's predicted classes and the observed/empirical classes
+    predictions = []
+    observed = []
+    
     model.eval()
     with torch.no_grad():
         # Keep track of the total number predictions vs. correct predictions
@@ -68,14 +79,33 @@ def test_model():
             labels = labels.to(device)
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
+            # Add to the total # of predictions
             total += labels.size(0)
+            # Add correct predictions to a total
             correct += (predicted == labels).sum().item()
+
+            # Save the predictions and the observed/empirical class labels
+            predictions += predicted
+            observed += labels
 
     # Get the amount of time that the model spent testing
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Test accuracy: {(100 * correct) / total} %")
     print(f"Testing finished. Testing took {elapsed_time} seconds ({elapsed_time/60} minutes)")
+
+    # Save testing metrics
+    if save_metrics:
+        # Create a dir for saving the testing metrics (if one doesn't exist)
+        if not osp.isdir(OUTPUT_PATH):
+            os.makedirs(OUTPUT_PATH)
+
+        # Save the model's predictions
+        np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_test_predictions.csv'), 
+                   np.asarray(predictions))
+        # Save the observed/empirical values for the test set
+        np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_test_observed.csv'), 
+                   np.asarray(observed))
 
 
 """
