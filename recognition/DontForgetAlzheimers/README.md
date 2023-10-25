@@ -34,7 +34,7 @@ These were chosen from prior research from the ViT paper by Google Research and 
 
 Testing code is also located in train.py
 
-After 20 epochs, the testing gave a result of 73%. This was based off the accuracy evaluation metric which is calculated by 
+After 20 epochs, the testing gave a result of 73.29%. This was based off the accuracy evaluation metric which is calculated by 
 
 - $(TP + TN) / (TP + TN + FP + FN)$
 
@@ -48,5 +48,12 @@ After 20 epochs, the testing gave a result of 73%. This was based off the accura
 - torchvision==0.15.2
 
 ## Install and Run
+
+- Download all dependencies
+- Clone the repo git ```git clone https://github.com/bquek00/PatternAnalysis-2023.git```
+- Navigate to DontForgetAlzheimers directory ```cd PatternAnalysis-2023/recognition/DontForgetAlzheimers```
+- Check out topic-recognition brnach ```git checkout topic-recognition```
+- Run the predict.py for usage ```python3 predict.py```
+- To test the model accuracy on the whole dataset, run train.py ```python3 train.py```
 
 
