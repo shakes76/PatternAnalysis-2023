@@ -2,6 +2,8 @@ import torch
 from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
 import torchvision.transforms as tf
+from torchvision.io import read_image, ImageReadMode
+import matplotlib.pyplot as plt
 import argparse
 from utils import Config
 from modules import Embedding_Baseline, ClassificationNet
@@ -31,6 +33,21 @@ def test(model, val_loader):
     # Print the information.
     print(f"[ test {model_name:}] acc = {average_acc:.5f}")
 
+def predict_img(model, img_path, transform = None):
+    model.eval()
+    label = img_path.split('/')[-2]
+    img = read_image(img_path, ImageReadMode.GRAY).float()/255.
+    if transform:
+        img = transform(img)
+    with torch.no_grad():
+        out = model(img)
+    pred = (out > 0.5).int().item()
+    plt.imshow(img)
+    plt.title(f"Truth: {label}, Prediction: {pred}")
+    plt.axis('off')  # To not display axis values
+    plt.show()
+
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Training script for Contrastive/Triplet network')
@@ -44,12 +61,14 @@ if __name__ == '__main__':
                         help='dataset to test or patient/image to predict')
 
     args = parser.parse_args()
+
+    # model
+    embedding_net = Embedding_Baseline()
+    model = ClassificationNet(embedding_net)
+    checkpoint = torch.load(args.model)
+    model.load_state_dict(checkpoint['model_state_dict'])
+
     if args.task == 'test':
-        # model
-        embedding_net = Embedding_Baseline()
-        model = ClassificationNet(embedding_net)
-        checkpoint = torch.load(args.model)
-        model.load_state_dict(checkpoint['model_state_dict'])
 
         # data
         val_transform = tf.Compose([
@@ -68,7 +87,8 @@ if __name__ == '__main__':
         )
 
         test(model, test_loader)
-    # elif args.task == 'image_predict':
+    elif args.task == 'image_predict':
+        predict_img(model, args.data)
     #
     # elif args.task == 'patient_predict':
 
