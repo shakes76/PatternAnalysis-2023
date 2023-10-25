@@ -189,3 +189,118 @@ class UpsamplingModule(nn.Module):
         x = F.relu(x)
 
         return x
+
+
+class UNet_For_Brain(nn.Module):
+    """
+    UNet2D: An Improved U-Net model implmented as the provided Improved U-Net documentation.
+    """
+
+    def __init__(self, in_channels, num_classes=2):
+        """
+        Initialize the UNet2D model.
+
+        Parameters:
+        - in_channels (int): Number of input channels.
+        - num_classes (int): Number of output classes for segmentation.
+        """
+        super(UNet_For_Brain, self).__init__()
+
+        # Encoder
+        self.enc1 = nn.Conv2d(in_channels, 16 * 4, kernel_size=3, stride=1, padding=1)
+        self.context1 = ContextModule(16 * 4, 16 * 4)
+        self.enc2 = nn.Conv2d(16 * 4, 32 * 4, kernel_size=3, stride=2, padding=1)
+        self.context2 = ContextModule(32 * 4, 32 * 4)
+        self.enc3 = nn.Conv2d(32 * 4, 64 * 4, kernel_size=3, stride=2, padding=1)
+        self.context3 = ContextModule(64 * 4, 64 * 4)
+        self.enc4 = nn.Conv2d(64 * 4, 128 * 4, kernel_size=3, stride=2, padding=1)
+        self.context4 = ContextModule(128 * 4, 128 * 4)
+
+        # Bottleneck
+        self.bottleneck = nn.Conv2d(128 * 4, 256 * 4, kernel_size=3, stride=2, padding=1)
+        self.bottleneck_context = ContextModule(256 * 4, 256 * 4)
+        self.up_bottleneck = UpsamplingModule(256 * 4, 128 * 4)
+
+        # Decoder
+        self.local1 = LocalisationModule(256 * 4, 128 * 4)
+        self.up1 = UpsamplingModule(128 * 4, 64 * 4)
+
+        self.local2 = LocalisationModule(128 * 4, 64 * 4)
+        self.up2 = UpsamplingModule(64 * 4, 32 * 4)
+
+        self.seg1 = SegmentationLayer(64 * 4, num_classes)
+        self.upsample_seg1 = UpscalingLayer()
+
+        self.local3 = LocalisationModule(64 * 4, 32 * 4)
+        self.up3 = UpsamplingModule(32 * 4, 16 * 4)
+
+        self.seg2 = SegmentationLayer(32 * 4, num_classes)
+        self.upsample_seg2 = UpscalingLayer()
+
+        self.final_conv = nn.Conv2d(32 * 4, 32 * 4, kernel_size=3, stride=1, padding=1)
+
+        self.seg3 = SegmentationLayer(32 * 4, num_classes)
+        self.upsample_seg3 = UpscalingLayer()
+
+    def forward(self, x):
+        """
+        Define the forward pass through the UNet2D model.
+
+        Parameters:
+        - x (Tensor): Input tensor.
+
+        Returns:
+        - Tensor: The output tensor after passing through the model.
+        """
+        y1 = self.enc1(x)
+        x1 = self.context1(y1)
+        x1 = x1 + y1
+
+        y2 = self.enc2(x1)
+        x2 = self.context2(y2)
+        x2 = x2 + y2
+
+        y3 = self.enc3(x2)
+        x3 = self.context3(y3)
+        x3 = x3 + y3
+
+        y4 = self.enc4(x3)
+        x4 = self.context4(y4)
+        x4 = x4 + y4
+
+        # Bottleneck
+        bottleneck_conv = self.bottleneck(x4)
+
+        bottleneck = self.bottleneck_context(bottleneck_conv)
+        bottleneck = bottleneck + bottleneck_conv
+
+        up_bottleneck = self.up_bottleneck(bottleneck)
+
+        # Decoder
+        x = self.local1(torch.cat((x4, up_bottleneck), dim=1))
+        x = self.up1(x)
+
+        x = self.local2(torch.cat((x3, x), dim=1))
+        seg1 = self.seg1(x)
+        x = self.up2(x)
+
+        seg1_upsampled = self.upsample_seg1(seg1)
+
+        x = self.local3(torch.cat((x2, x), dim=1))
+        seg2 = self.seg2(x)
+        x = self.up3(x)
+
+        seg12 = seg1_upsampled + seg2
+        seg12_up = self.upsample_seg2(seg12)
+
+        x = self.final_conv(torch.cat((x1, x), dim=1))
+
+        seg3 = self.seg3(x)
+        seg123 = seg3 + seg12_up
+
+        out = seg123
+        # out = nn.functional.softmax(seg123, dim=1)
+        # out = torch.sigmoid(seg123)
+        # print("out shape: ", out.size())
+
+        return out
