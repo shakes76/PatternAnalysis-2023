@@ -24,7 +24,6 @@ The losses and metrics will be plotted during training.
  https://ieeexplore.ieee.org/document/9880094
 
 """
-# TODO change this script to use validation set (hyperparam tuning)
 
 #### Set-up GPU device ####
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -55,13 +54,13 @@ Initialises the model, then trains the model.
 
 Params:
     save_model_data (bool): if true, saves the model as a .pt file and model 
-                            training metrics as a .csv file. If false, doesn't
+                            training metrics as .csv files. If false, doesn't
                             save the model or training metrics
 """
 def train_model(save_model_data=True):
     # Get the training and validation data (ADNI) and # of total steps
     train_images, total_step, val_images = \
-                dataset.load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_size=1)
+                dataset.load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_size=0.8)
 
     # Add the training and (if any) validation data to data loaders
     train_loader = DataLoader(train_images.dataset, batch_size=BATCH_SIZE, shuffle=True,
@@ -91,10 +90,16 @@ def train_model(save_model_data=True):
     scheduler = torch.optim.lr_scheduler.OneCycleLR(optimiser, max_lr=LEARNING_RATE, 
                                                     steps_per_epoch=total_step, epochs=N_EPOCHS)
     # TODO ViT paper uses a different kind of LR scheduler - may want to try this
-
+    # TODO do hyperparameter tuning on number of epochs
+    # Use validation accuracy to determine the ideal model
+    # Also output validation loss for comparisons (see if model is overfitting/underfitting)
 
     # Store the epoch, step, & loss value for the model at this epoch & step
     train_loss_values = []
+
+    # Store the model's predicted classes and the observed/empirical classes
+    predictions = []
+    observed = []
 
     # Train the model:
     model.train()
@@ -125,6 +130,12 @@ def train_model(save_model_data=True):
                 print(f"Epoch [{epoch+1}/{N_EPOCHS}] Step [{i+1}/{total_step}] " +
                     f"Training loss: {round(loss.item(), 5)}")
                 train_loss_values += [[epoch+1, i+1, total_step, round(loss.item(), 5)]]
+            
+            # Get predictions on the training set data from the model
+            _, predicted = torch.max(outputs.data, 1)
+            # Save the predictions and the observed/empirical class labels
+            predictions += predicted
+            observed += labels
 
             # Step through the learning rate scheduler
             scheduler.step()
@@ -146,6 +157,13 @@ def train_model(save_model_data=True):
         # Save the training loss values
         np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_train_loss.csv'), 
                    np.asarray(train_loss_values))
+        
+        # Save the model's predictions
+        np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_train_predictions.csv'), 
+                   np.asarray(predictions))
+        # Save the observed/empirical values for the training set
+        np.savetxt(osp.join(OUTPUT_PATH, 'ADNI_train_observed.csv'), 
+                   np.asarray(observed))
 
 
 """
