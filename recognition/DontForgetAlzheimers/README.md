@@ -40,9 +40,13 @@ After 20 epochs, the testing gave a result of 73%. This was based off the accura
 
 ![Loss over 20 epochs](https://github.com/bquek00/PatternAnalysis-2023/blob/8f5cdea5170649a1be91abc45fab251eafcb0843/recognition/DontForgetAlzheimers/LOSS.png)
   
-
-## Example prediction
-
 ## Dependencies 
 
-## Reproduce Results
+- Pillow==9.4.0
+- Pillow==10.1.0
+- torch==2.0.1
+- torchvision==0.15.2
+
+## Install and Run
+
+
