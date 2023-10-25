@@ -3,6 +3,13 @@ import torch.nn as nn
 import torchvision
 
 
+def init_weights(m):
+    # initialize the weights of the linear layers
+    if isinstance(m, nn.Linear):
+        torch.nn.init.kaiming_uniform_(m.weight)
+        m.bias.data.fill_(0.01)
+
+
 class SiameseNetwork(nn.Module):
     def __init__(self):
         super(SiameseNetwork, self).__init__()
@@ -16,23 +23,18 @@ class SiameseNetwork(nn.Module):
 
         # add linear layers to compare between the features of the two images
         self.fc = nn.Sequential(
-            nn.Linear(self.fc_in_features * 2, 128),
+            nn.Linear(self.fc_in_features * 2, 256),
+            nn.BatchNorm1d(256),  # Add Batch Normalization
             nn.ReLU(inplace=True),
-            nn.Dropout(p=0.6),
-            nn.Linear(128, 1),
+            nn.Dropout(p=0.5),
+            nn.Linear(256, 1),
         )
 
         self.sigmoid = nn.Sigmoid()
 
         # initialize the weights
-        self.resnet.apply(self.init_weights)
-        self.fc.apply(self.init_weights)
-
-    def init_weights(self, m):
-        # initialize the weights of the linear layers
-        if isinstance(m, nn.Linear):
-            torch.nn.init.xavier_uniform_(m.weight)
-            m.bias.data.fill_(0.01)
+        self.resnet.apply(init_weights)
+        self.fc.apply(init_weights)
 
     def forward_one(self, x):
         # get the features of one image
