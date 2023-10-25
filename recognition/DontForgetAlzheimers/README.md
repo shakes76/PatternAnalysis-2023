@@ -10,9 +10,21 @@ The Vision Transformer uses tranformers,originally used for for natural language
 The provided code in this repository uses the ViT architecture to process images. It first divides input images into 16x16 patches, then embeds them into vectors. They are then processed by the transformer encoder which uses a multi-head self-attention mechanism and then a feed-foward neural network for each embedding. 
 
 ## Preproccessing
+Data  preprocessing was completed in dataset.py. It uses the ADNI dataset, provided on the COMP3710 blackboard, which contains:
+
+- 11,120 NC for training
+- 10,400 AD for training
+
+- 4540 NC for test
+- 4460 AD for test
+
 
 ## Design choices
 
 ## Testing
 
 ## Example prediction
+
+## Dependencies 
+
+## Reproduce Results
