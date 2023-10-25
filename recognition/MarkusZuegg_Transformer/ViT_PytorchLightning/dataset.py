@@ -64,7 +64,7 @@ class ADNIDataModule(LightningDataModule):
     Args:
         batch_size: interger of Images in each batch
                     Can lower memory load (typically 64 if cpu, 128 for gpu)
-        image_size: Tuple of image dimensions (height, width)
+        image_size: List of image dimensions (height, width)
         num_workers: interger of workers for multi proccessing
     """
     def __init__(
@@ -88,13 +88,13 @@ class ADNIDataModule(LightningDataModule):
         #transform for traing set
         self.train_transform = Compose([ 
                                 RandomHorizontalFlip(),
-                                RandomResizedCrop((image_size, image_size), scale=(0.8, 1.0), ratio=(0.9, 1.0)),
+                                RandomResizedCrop((image_size), scale=(0.8, 1.0), ratio=(0.9, 1.0)),
                                 ToTensor(),
                                 Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
         
         #Intiallising splits of data
         self.test = ImageFolder(root=self.test_data_root, transform=self.test_transform)
-        self.train = ImageFolder(root=self.train_data_root, transform=self.test_transform)
+        self.train = ImageFolder(root=self.train_data_root, transform=self.train_transform)
         self.val = ImageFolder(root=self.val_data_root, transform=self.test_transform)
 
         print("Image folders loaded")
@@ -118,11 +118,8 @@ def img_to_patch(x, patch_size):
     Args:
         x: Tensor representing the image of shape [B, C, H, W]
         patch_size: Number of pixels per dimension of the patches (integer)
-        flatten_channels: If True, the patches will be returned in a flattened format
-                           as a feature vector instead of a image grid.
     """
     B, C, H, W = x.shape
-    print(x.shape)
     x = x.reshape(B, C, H // patch_size, patch_size, W // patch_size, patch_size)
     x = x.permute(0, 2, 4, 1, 3, 5)  # [B, H', W', C, p_H, p_W]
     x = x.flatten(1, 2)  # [B, H'*W', C, p_H, p_W]
