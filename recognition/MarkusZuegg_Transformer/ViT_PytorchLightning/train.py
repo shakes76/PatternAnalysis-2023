@@ -72,7 +72,7 @@ def main():
     model = ViT(ADNI_config, lr=lr)
 
     batch_size = 8 #working 16 on hpc
-    num_workers = 4 #num_workers = 0 if windows
+    num_workers = 3 #num_workers = 0 if windows
     max_epochs = 30
     
     ADNI = ADNIDataModule(batch_size=batch_size, 
