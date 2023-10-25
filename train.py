@@ -1,238 +1,453 @@
-import argparse
-import logging
+from __future__ import print_function, division
 import os
-import random
-import sys
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import torchvision.transforms as transforms
-import torchvision.transforms.functional as TF
-from pathlib import Path
+import numpy as np
+from PIL import Image
+import glob
+# import SimpleITK as sitk
 from torch import optim
-from torch.utils.data import DataLoader, random_split
-from tqdm import tqdm
+import torch.utils.data
+import torch
+import torch.nn.functional as F
 
-import wandb
-from evaluate import evaluate
-from unet import UNet
-from utils.data_loading import BasicDataset, CarvanaDataset
-from utils.dice_score import dice_loss
+import torch.nn
+import torchvision
+import matplotlib.pyplot as plt
+import natsort
+from torch.utils.data.sampler import SubsetRandomSampler
+from Data_Loader import Images_Dataset, Images_Dataset_folder
+import torchsummary
+# from torch.utils.tensorboard import SummaryWriter
+# from tensorboardX import SummaryWriter
 
-dir_img = Path('./data/imgs/')
-dir_mask = Path('./data/masks/')
-dir_checkpoint = Path('./checkpoints/')
+import shutil
+import random
+from Modules import UNet_For_Brain
+from Losses import calc_loss, dice_loss, threshold_predictions_v, threshold_predictions_p
+from Ploting import plot_kernels, LayerActivations, input_images, plot_grad_flow, draw_loss
+from Metrics import dice_coeff, accuracy_score
+import time
 
-
-def train_model(
-        model,
-        device,
-        epochs: int = 5,
-        batch_size: int = 1,
-        learning_rate: float = 1e-5,
-        val_percent: float = 0.1,
-        save_checkpoint: bool = True,
-        img_scale: float = 0.5,
-        amp: bool = False,
-        weight_decay: float = 1e-8,
-        momentum: float = 0.999,
-        gradient_clipping: float = 1.0,
-):
-    # 1. Create dataset
-    try:
-        dataset = CarvanaDataset(dir_img, dir_mask, img_scale)
-    except (AssertionError, RuntimeError, IndexError):
-        dataset = BasicDataset(dir_img, dir_mask, img_scale)
-
-    # 2. Split into train / validation partitions
-    n_val = int(len(dataset) * val_percent)
-    n_train = len(dataset) - n_val
-    train_set, val_set = random_split(dataset, [n_train, n_val], generator=torch.Generator().manual_seed(0))
-
-    # 3. Create data loaders
-    loader_args = dict(batch_size=batch_size, num_workers=os.cpu_count(), pin_memory=True)
-    train_loader = DataLoader(train_set, shuffle=True, **loader_args)
-    val_loader = DataLoader(val_set, shuffle=False, drop_last=True, **loader_args)
-
-    # (Initialize logging)
-    experiment = wandb.init(project='U-Net', resume='allow', anonymous='must')
-    experiment.config.update(
-        dict(epochs=epochs, batch_size=batch_size, learning_rate=learning_rate,
-             val_percent=val_percent, save_checkpoint=save_checkpoint, img_scale=img_scale, amp=amp)
-    )
-
-    logging.info(f'''Starting training:
-        Epochs:          {epochs}
-        Batch size:      {batch_size}
-        Learning rate:   {learning_rate}
-        Training size:   {n_train}
-        Validation size: {n_val}
-        Checkpoints:     {save_checkpoint}
-        Device:          {device.type}
-        Images scaling:  {img_scale}
-        Mixed Precision: {amp}
-    ''')
-
-    # 4. Set up the optimizer, the loss, the learning rate scheduler and the loss scaling for AMP
-    optimizer = optim.RMSprop(model.parameters(),
-                              lr=learning_rate, weight_decay=weight_decay, momentum=momentum, foreach=True)
-    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'max', patience=5)  # goal: maximize Dice score
-    grad_scaler = torch.cuda.amp.GradScaler(enabled=amp)
-    criterion = nn.CrossEntropyLoss() if model.n_classes > 1 else nn.BCEWithLogitsLoss()
-    global_step = 0
-
-    # 5. Begin training
-    for epoch in range(1, epochs + 1):
-        model.train()
-        epoch_loss = 0
-        with tqdm(total=n_train, desc=f'Epoch {epoch}/{epochs}', unit='img') as pbar:
-            for batch in train_loader:
-                images, true_masks = batch['image'], batch['mask']
-
-                assert images.shape[1] == model.n_channels, \
-                    f'Network has been defined with {model.n_channels} input channels, ' \
-                    f'but loaded images have {images.shape[1]} channels. Please check that ' \
-                    'the images are loaded correctly.'
-
-                images = images.to(device=device, dtype=torch.float32, memory_format=torch.channels_last)
-                true_masks = true_masks.to(device=device, dtype=torch.long)
-
-                with torch.autocast(device.type if device.type != 'mps' else 'cpu', enabled=amp):
-                    masks_pred = model(images)
-                    if model.n_classes == 1:
-                        loss = criterion(masks_pred.squeeze(1), true_masks.float())
-                        loss += dice_loss(F.sigmoid(masks_pred.squeeze(1)), true_masks.float(), multiclass=False)
-                    else:
-                        loss = criterion(masks_pred, true_masks)
-                        loss += dice_loss(
-                            F.softmax(masks_pred, dim=1).float(),
-                            F.one_hot(true_masks, model.n_classes).permute(0, 3, 1, 2).float(),
-                            multiclass=True
-                        )
-
-                optimizer.zero_grad(set_to_none=True)
-                grad_scaler.scale(loss).backward()
-                torch.nn.utils.clip_grad_norm_(model.parameters(), gradient_clipping)
-                grad_scaler.step(optimizer)
-                grad_scaler.update()
-
-                pbar.update(images.shape[0])
-                global_step += 1
-                epoch_loss += loss.item()
-                experiment.log({
-                    'train loss': loss.item(),
-                    'step': global_step,
-                    'epoch': epoch
-                })
-                pbar.set_postfix(**{'loss (batch)': loss.item()})
-
-                # Evaluation round
-                division_step = (n_train // (5 * batch_size))
-                if division_step > 0:
-                    if global_step % division_step == 0:
-                        histograms = {}
-                        for tag, value in model.named_parameters():
-                            tag = tag.replace('/', '.')
-                            if not (torch.isinf(value) | torch.isnan(value)).any():
-                                histograms['Weights/' + tag] = wandb.Histogram(value.data.cpu())
-                            if not (torch.isinf(value.grad) | torch.isnan(value.grad)).any():
-                                histograms['Gradients/' + tag] = wandb.Histogram(value.grad.data.cpu())
-
-                        val_score = evaluate(model, val_loader, device, amp)
-                        scheduler.step(val_score)
-
-                        logging.info('Validation Dice score: {}'.format(val_score))
-                        try:
-                            experiment.log({
-                                'learning rate': optimizer.param_groups[0]['lr'],
-                                'validation Dice': val_score,
-                                'images': wandb.Image(images[0].cpu()),
-                                'masks': {
-                                    'true': wandb.Image(true_masks[0].float().cpu()),
-                                    'pred': wandb.Image(masks_pred.argmax(dim=1)[0].float().cpu()),
-                                },
-                                'step': global_step,
-                                'epoch': epoch,
-                                **histograms
-                            })
-                        except:
-                            pass
-
-        if save_checkpoint:
-            Path(dir_checkpoint).mkdir(parents=True, exist_ok=True)
-            state_dict = model.state_dict()
-            state_dict['mask_values'] = dataset.mask_values
-            torch.save(state_dict, str(dir_checkpoint / 'checkpoint_epoch{}.pth'.format(epoch)))
-            logging.info(f'Checkpoint {epoch} saved!')
+# from ploting import VisdomLinePlotter
+# from visdom import Visdom
 
 
-def get_args():
-    parser = argparse.ArgumentParser(description='Train the UNet on images and target masks')
-    parser.add_argument('--epochs', '-e', metavar='E', type=int, default=5, help='Number of epochs')
-    parser.add_argument('--batch-size', '-b', dest='batch_size', metavar='B', type=int, default=1, help='Batch size')
-    parser.add_argument('--learning-rate', '-l', metavar='LR', type=float, default=1e-5,
-                        help='Learning rate', dest='lr')
-    parser.add_argument('--load', '-f', type=str, default=False, help='Load model from a .pth file')
-    parser.add_argument('--scale', '-s', type=float, default=0.5, help='Downscaling factor of the images')
-    parser.add_argument('--validation', '-v', dest='val', type=float, default=10.0,
-                        help='Percent of the data that is used as validation (0-100)')
-    parser.add_argument('--amp', action='store_true', default=False, help='Use mixed precision')
-    parser.add_argument('--bilinear', action='store_true', default=False, help='Use bilinear upsampling')
-    parser.add_argument('--classes', '-c', type=int, default=2, help='Number of classes')
+#######################################################
+# Checking if GPU is used
+#######################################################
 
-    return parser.parse_args()
+train_on_gpu = torch.cuda.is_available()
+
+if not train_on_gpu:
+    print('CUDA is not available. Training on CPU')
+else:
+    print('CUDA is available. Training on GPU')
+
+# os.environ['CUDA_VISIBLE_DEVICES'] = '1,2,3,4'
+device = torch.device("cuda:0" if train_on_gpu else "cpu")
+
+#######################################################
+# Setting the basic paramters of the model
+#######################################################
+
+batch_size = 16
+print('batch_size = ' + str(batch_size))
+
+valid_size = 0.15
+
+epoch = 400
+print('epoch = ' + str(epoch))
+
+random_seed = random.randint(1, 100)
+print('random_seed = ' + str(random_seed))
+
+shuffle = True
+valid_loss_min = np.Inf
+num_workers = 24
+lossT = []
+lossL = []
+lossL.append(np.inf)
+lossT.append(np.inf)
+epoch_valid = epoch - 2
+n_iter = 1
+i_valid = 0
+
+pin_memory = False
+if train_on_gpu:
+    pin_memory = True
+
+# plotter = VisdomLinePlotter(env_name='Tutorial Plots')
+
+#######################################################
+# Setting up the model
+#######################################################
+
+model_Inputs = [UNet_For_Brain]
 
 
-if __name__ == '__main__':
-    args = get_args()
+def model_unet(model_input, in_channel=1, out_channel=1):
+    model_test = model_input(in_channel, out_channel)
+    return model_test
 
-    logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    logging.info(f'Using device {device}')
 
-    # Change here to adapt to your data
-    # n_channels=3 for RGB images
-    # n_classes is the number of probabilities you want to get per pixel
-    model = UNet(n_channels=3, n_classes=args.classes, bilinear=args.bilinear)
-    model = model.to(memory_format=torch.channels_last)
+# passsing this string so that if it's AttU_Net or R2ATTU_Net it doesn't throw an error at torchSummary
 
-    logging.info(f'Network:\n'
-                 f'\t{model.n_channels} input channels\n'
-                 f'\t{model.n_classes} output channels (classes)\n'
-                 f'\t{"Bilinear" if model.bilinear else "Transposed conv"} upscaling')
 
-    if args.load:
-        state_dict = torch.load(args.load, map_location=device)
-        del state_dict['mask_values']
-        model.load_state_dict(state_dict)
-        logging.info(f'Model loaded from {args.load}')
+model_test = model_unet(model_Inputs[-1], 3, 1)
 
-    model.to(device=device)
-    try:
-        train_model(
-            model=model,
-            epochs=args.epochs,
-            batch_size=args.batch_size,
-            learning_rate=args.lr,
-            device=device,
-            img_scale=args.scale,
-            val_percent=args.val / 100,
-            amp=args.amp
-        )
-    except torch.cuda.OutOfMemoryError:
-        logging.error('Detected OutOfMemoryError! '
-                      'Enabling checkpointing to reduce memory usage, but this slows down training. '
-                      'Consider enabling AMP (--amp) for fast and memory efficient training')
-        torch.cuda.empty_cache()
-        model.use_checkpointing()
-        train_model(
-            model=model,
-            epochs=args.epochs,
-            batch_size=args.batch_size,
-            learning_rate=args.lr,
-            device=device,
-            img_scale=args.scale,
-            val_percent=args.val / 100,
-            amp=args.amp
+model_test.to(device)
 
-        )
+#######################################################
+# Getting the Summary of Model
+#######################################################
+
+torchsummary.summary(model_test, input_size=(3, 128, 128))
+
+#######################################################
+# Passing the Dataset of Images and Labels
+#######################################################
+
+
+#ISIC2018 data
+t_data = './ISIC2018/ISIC2018_Task1-2_Training_Input_x2/'
+l_data = './ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2/'
+test_image = './keras_png_slices_data/keras_png_slices_test/'
+test_label = './keras_png_slices_data/keras_png_slices_seg_test/'
+test_folderP = './ISIC2018/ISIC2018_Task1-2_Training_Input_x2/*'
+test_folderL = './ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2/*'
+valid_image = './ISIC2018/ISIC2018_Task1-2_Training_Input_x2/'
+valid_lable = './ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2/'
+
+Training_Data = Images_Dataset_folder(t_data, l_data)
+
+Validing_Data = Images_Dataset_folder(valid_image, valid_lable)
+
+#######################################################
+# Giving a transformation for input data
+#######################################################
+
+data_transform = torchvision.transforms.Compose([
+    torchvision.transforms.Resize((128, 128)),
+    #   torchvision.transforms.CenterCrop(96),
+    torchvision.transforms.ToTensor(),
+    # torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+])
+
+#######################################################
+# Trainging Validation Split
+#######################################################
+
+num_train = len(Training_Data)
+indices_train = list(range(num_train))
+# split = int(np.floor(valid_size * num_train))
+
+num_valid = len(Validing_Data)
+indices_valid = list(range(num_valid))
+
+if shuffle:
+    np.random.seed(random_seed)
+    np.random.shuffle(indices_train)
+    np.random.shuffle(indices_valid)
+
+# train_idx, valid_idx = indices[split:], indices[:split]
+train_idx, valid_idx = indices_train, indices_valid
+train_sampler = SubsetRandomSampler(train_idx)
+valid_sampler = SubsetRandomSampler(valid_idx)
+
+train_loader = torch.utils.data.DataLoader(Training_Data, batch_size=batch_size, sampler=train_sampler,
+                                           num_workers=num_workers, pin_memory=pin_memory, )
+
+valid_loader = torch.utils.data.DataLoader(Validing_Data, batch_size=batch_size, sampler=valid_sampler,
+                                           num_workers=num_workers, pin_memory=pin_memory, )
+
+#######################################################
+# Using Adam as Optimizer
+#######################################################
+# Hyper Parameters
+initial_lr = 5e-4
+lr_decay = 0.985
+l2_weight_decay = 1e-5
+# initial_lr = 0.001
+# opt = torch.optim.Adam(model_test.parameters(), lr=initial_lr) # try SGD
+# # opt = optim.SGD(model_test.parameters(), lr = initial_lr, momentum=0.99)
+
+# MAX_STEP = int(1e10)
+# eta_min = 1e-2
+# scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(opt, MAX_STEP, eta_min=1e-5)
+
+# Optimisation & Loss Settings
+opt = optim.Adam(model_test.parameters(), lr=initial_lr, weight_decay=l2_weight_decay)
+scheduler = optim.lr_scheduler.ExponentialLR(optimizer=opt, gamma=lr_decay)
+
+New_folder = './model'
+
+if os.path.exists(New_folder) and os.path.isdir(New_folder):
+    shutil.rmtree(New_folder)
+
+try:
+    os.mkdir(New_folder)
+except OSError:
+    print("Creation of the main directory '%s' failed " % New_folder)
+else:
+    print("Successfully created the main directory '%s' " % New_folder)
+
+#######################################################
+# Setting the folder of saving the predictions
+#######################################################
+
+read_pred = './model/pred'
+
+#######################################################
+# Checking if prediction folder exixts
+#######################################################
+
+if os.path.exists(read_pred) and os.path.isdir(read_pred):
+    shutil.rmtree(read_pred)
+
+try:
+    os.mkdir(read_pred)
+except OSError:
+    print("Creation of the prediction directory '%s' failed of dice loss" % read_pred)
+else:
+    print("Successfully created the prediction directory '%s' of dice loss" % read_pred)
+
+#######################################################
+# checking if the model exists and if true then delete
+#######################################################
+
+read_model_path = './model/Unet_D_' + str(epoch) + '_' + str(batch_size)
+
+if os.path.exists(read_model_path) and os.path.isdir(read_model_path):
+    shutil.rmtree(read_model_path)
+    print('Model folder there, so deleted for newer one')
+
+try:
+    os.mkdir(read_model_path)
+except OSError:
+    print("Creation of the model directory '%s' failed" % read_model_path)
+else:
+    print("Successfully created the model directory '%s' " % read_model_path)
+
+#######################################################
+# Training loop
+#######################################################
+
+for i in range(epoch):
+
+    train_loss = 0.0
+    valid_loss = 0.0
+    train_loss_list = []
+    valid_loss_list = []
+    since = time.time()
+    scheduler.step()
+    # lr = scheduler.get_lr()
+
+    #######################################################
+    # Training Data
+    #######################################################
+
+    model_test.train()
+    k = 1
+
+    for x, y in train_loader:
+        # print("x: ", x.shape)
+        # print("y: ", y.shape)
+        x, y = x.to(device), y.to(device)
+
+        opt.zero_grad()
+
+        y_pred = model_test(x)
+        lossT = calc_loss(y_pred, y)  # Dice_loss Used
+
+        train_loss += lossT.item() * x.size(0)
+        lossT.backward()
+        opt.step()
+        x_size = lossT.item() * x.size(0)
+        k = 2
+
+    train_loss_list.append(train_loss)
+
+    #######################################################
+    # Validation Step
+    #######################################################
+
+    model_test.eval()
+    torch.no_grad()  # to increase the validation process uses less memory
+
+    for x1, y1 in valid_loader:
+        x1, y1 = x1.to(device), y1.to(device)
+
+        y_pred1 = model_test(x1)
+        lossL = calc_loss(y_pred1, y1)  # Dice_loss Used
+
+        valid_loss += lossL.item() * x1.size(0)
+        x_size1 = lossL.item() * x1.size(0)
+
+    valid_loss_list.append(valid_loss)
+
+    if (i + 1) % 1 == 0:
+        print('Epoch: {}/{} \tTraining Loss: {:.6f} \tValidation Loss: {:.6f}'.format(i + 1, epoch, train_loss,
+                                                                                      valid_loss))
+    #######################################################
+    # Early Stopping
+    #######################################################
+
+    if valid_loss <= valid_loss_min and epoch_valid >= i:  # and i_valid <= 2:
+
+        print('Validation loss decreased ({:.6f} --> {:.6f}).  Saving model '.format(valid_loss_min, valid_loss))
+        torch.save(model_test.state_dict(), './model/Unet_D_' +
+                   str(epoch) + '_' + str(batch_size) + '/Unet_epoch_' + str(epoch)
+                   + '_batchsize_' + str(batch_size) + '.pth')
+
+        if round(valid_loss, 4) == round(valid_loss_min, 4):
+            print(i_valid)
+            i_valid = i_valid + 1
+        valid_loss_min = valid_loss
+
+if torch.cuda.is_available():
+    torch.cuda.empty_cache()
+
+#######################################################
+# Loading the model
+#######################################################
+
+model_test.load_state_dict(torch.load('./model/Unet_D_' +
+                                      str(epoch) + '_' + str(batch_size) + '/Unet_epoch_' + str(epoch)
+                                      + '_batchsize_' + str(batch_size) + '.pth'))
+
+model_test.eval()
+
+#######################################################
+# opening the test folder and creating a folder for generated images
+#######################################################
+
+read_test_folder = glob.glob(test_folderP)
+x_sort_test = natsort.natsorted(read_test_folder)  # To sort
+
+read_test_folder112 = './model/gen_images'
+
+if os.path.exists(read_test_folder112) and os.path.isdir(read_test_folder112):
+    shutil.rmtree(read_test_folder112)
+
+try:
+    os.mkdir(read_test_folder112)
+except OSError:
+    print("Creation of the testing directory %s failed" % read_test_folder112)
+else:
+    print("Successfully created the testing directory %s " % read_test_folder112)
+
+# For Prediction Threshold
+
+read_test_folder_P_Thres = './model/pred_threshold'
+
+if os.path.exists(read_test_folder_P_Thres) and os.path.isdir(read_test_folder_P_Thres):
+    shutil.rmtree(read_test_folder_P_Thres)
+
+try:
+    os.mkdir(read_test_folder_P_Thres)
+except OSError:
+    print("Creation of the testing directory %s failed" % read_test_folder_P_Thres)
+else:
+    print("Successfully created the testing directory %s " % read_test_folder_P_Thres)
+
+# For Label Threshold
+
+read_test_folder_L_Thres = './model/label_threshold'
+
+if os.path.exists(read_test_folder_L_Thres) and os.path.isdir(read_test_folder_L_Thres):
+    shutil.rmtree(read_test_folder_L_Thres)
+
+try:
+    os.mkdir(read_test_folder_L_Thres)
+except OSError:
+    print("Creation of the testing directory %s failed" % read_test_folder_L_Thres)
+else:
+    print("Successfully created the testing directory %s " % read_test_folder_L_Thres)
+
+#######################################################
+# saving the images in the files
+#######################################################
+
+img_test_no = 0
+
+for i in range(len(read_test_folder)):
+    im = Image.open(x_sort_test[i]).convert("RGB")
+
+    im1 = im
+    im_n = np.array(im1)
+    im_n_flat = im_n.reshape(-1, 1)
+
+    for j in range(im_n_flat.shape[0]):
+        if im_n_flat[j] != 0:
+            im_n_flat[j] = 255
+
+    s = data_transform(im)
+    pred = model_test(s.unsqueeze(0).cuda()).cpu()
+    pred = F.sigmoid(pred)
+    pred = pred.detach().numpy()
+
+    #    pred = threshold_predictions_p(pred) #Value kept 0.01 as max is 1 and noise is very small.
+
+    if i % 24 == 0:
+        img_test_no = img_test_no + 1
+
+    x1 = plt.imsave('./model/gen_images/im_epoch_' + str(epoch) + 'int_' + str(i)
+                    + '_img_no_' + str(img_test_no) + '.png', pred[0][0], cmap='gray')
+
+####################################################
+# Calculating the Dice Score
+####################################################
+
+data_transform = torchvision.transforms.Compose([
+    torchvision.transforms.Resize((128, 128)),
+    #    torchvision.transforms.CenterCrop(96),
+    torchvision.transforms.Grayscale(),
+    #            torchvision.transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+])
+
+read_test_folderP = glob.glob('./model/gen_images/*')
+x_sort_testP = natsort.natsorted(read_test_folderP)
+
+read_test_folderL = glob.glob(test_folderL)
+x_sort_testL = natsort.natsorted(read_test_folderL)  # To sort
+
+dice_score123 = 0.0
+x_count = 0
+x_dice = 0
+
+for i in range(len(read_test_folderP)):
+
+    x = Image.open(x_sort_testP[i]).convert("L")
+    s = data_transform(x)
+    s = np.array(s)
+    s = threshold_predictions_v(s)
+    # print(s)
+    # print("------------------")
+
+    # save the images
+    x1 = plt.imsave('./model/pred_threshold/im_epoch_' + str(epoch) + 'int_' + str(i)
+                    + '_img_no_' + str(img_test_no) + '.png', s)
+
+    y = Image.open(x_sort_testL[i]).convert("L")
+    s2 = data_transform(y)
+    s3 = np.array(s2)
+    s2 = threshold_predictions_v(s2)
+    # print(s3)
+
+    # save the Images
+    y1 = plt.imsave('./model/label_threshold/im_epoch_' + str(epoch) + 'int_' + str(i)
+                    + '_img_no_' + str(img_test_no) + '.png', s3)
+
+    total = dice_coeff(s, s3)
+    print(total)
+
+    if total <= 0.8:
+        x_count += 1
+    if total > 0.8:
+        x_dice = x_dice + total
+    dice_score123 = dice_score123 + total
+
+# print('Dice Score : ' + str(dice_score123/len(read_test_folderP)))
+print(x_count)
+print(x_dice)
+print('Dice Score : ' + str(float(x_dice / (len(read_test_folderP) - x_count))))
+
