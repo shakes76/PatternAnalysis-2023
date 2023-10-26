@@ -173,7 +173,7 @@ class UNet(nn.Module):
         # if num_classes > 2: return F.softmax(seg_3, dim=1)
 
 # Lil testing
-# model = UNet(6, 1)
-# test = torch.randn(1, 6, 32, 32)
-# output = model(test)
-# print(output.size())
+model = UNet(6, 1)
+test = torch.randn(1, 6, 32, 32)
+output = model(test)
+print(output.size())

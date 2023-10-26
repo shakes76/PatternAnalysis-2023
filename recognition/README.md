@@ -20,15 +20,25 @@ To run the ISIC Lesion Segmentation Algorithm, you'll need the following librari
 To install any dependencies you can use `pip install`
 
 ## Usage
-
+#### See predict.py for a full usage demonstration of the model.
 ### Input
-
+torch.Tensor with shape [batch_size, 6, 256, 256] 
+- The batch_size denotes the number of inputted images, this is the only argument that varies
+- 6 channels (3 for RGB and 3 for HSV)
+- The image has dimensions 256x256
 
 ### Output
 
-### Plots
+torch.Tensor was shape [batch_size, 1, 256, 256] 
+- The batch_size denotes the number of inputted images, this is the only argument that varies
+- 1 channel containing probabilities of being 
+- The image has dimensions 256x256
 
+##
+![Beautiful demonstation of the model efficacy](./UNet_Segmentation_s4745275/images/incredibly_good_prediction.png)
+Figure 2: An example output from a random sample (not an amazing depiction of the efficacy...)
 ## Pre-processing
+Various transformation pipelines where implemented for pre-processing and data augmentation. These can be found in the dataset.py file. These are used to convert inputted images or masks into tensors compatible with the model (see Input and Output), as well as normalizing the inputs. During training the process_and_augment pipeline was used to perform several random scalings, flips, rotations etc to improve the generalizability of the model during learning.
 
 # Data Splits
 

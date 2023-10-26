@@ -1,6 +1,7 @@
 """Showing an example useage of the trained model using an image in the images folder. We also compare the prediction to the true mask"""
 
 import matplotlib as plt
+from matplotlib import pyplot
 from modules import UNet
 from dataset import pre_process_image, pre_process_mask
 from PIL import Image
@@ -35,23 +36,19 @@ with torch.no_grad():
     prediction = (prediction > 0.5).float()  # Binarize the output
 
 
-# Visual comparison of the predicted segment to the true segment
+# Visual comparison of the predicted segment to the true segment:
 
 # Convert output tensor to numpy array for visualization
 predicted_np = prediction.squeeze().cpu().numpy()
-fix, ax = plt.sub
-fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+fig, ax = pyplot.subplots(1, 2, figsize=(10, 5))
 
-# Correct Mask
+# Open and process the correct mask for visualization
 mask = Image.open(mask_path).convert("L")
 mask = pre_process_mask(mask)
-print(mask.size())
-exit()
+
+# True Mask
 ax[0].imshow(mask.numpy().transpose(1, 2, 0))
 ax[0].set_title("True Mask")
-# Original Image
-ax[0].imshow(image.squeeze().cpu().numpy().transpose(1, 2, 0))
-ax[0].set_title("Original Image")
 
 # Predicted Mask
 ax[1].imshow(predicted_np, cmap="gray")
@@ -59,20 +56,3 @@ ax[1].set_title("Predicted Mask")
 
 plt.show()
 
-exit()
-
-
-mask = Image.open(mask)
-
-
-# Assuming `predicted_masks` contains the model's outputs
-predicted_mask = predicted_masks[0].detach().numpy()
-
-fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-ax[0].imshow(img_rgb)
-ax[0].set_title("RGB Image")
-ax[1].imshow(mask, cmap="gray")
-ax[1].set_title("Ground Truth Mask")
-ax[2].imshow(predicted_mask, cmap="gray")
-ax[2].set_title("Predicted Mask")
-plt.show()
