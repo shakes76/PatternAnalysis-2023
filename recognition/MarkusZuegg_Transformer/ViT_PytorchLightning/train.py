@@ -26,7 +26,7 @@ class ViT(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(), lr=self.hparams.lr)
-        lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[35, 100], gamma=0.1)
+        lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[50, 100], gamma=0.1)
         return [optimizer], [lr_scheduler]
 
     def _calculate_loss(self, batch, mode="train"):
@@ -60,7 +60,7 @@ def train_model():
         "hidden_dim": 512,
         "num_heads": 8,
         "num_layers": 6,
-        "patch_size": 16,
+        "patch_size": 8,
         "num_channels": 3,
         "image_size": image_size,
         "num_classes": 2,
@@ -75,10 +75,10 @@ def train_model():
     """
 
     # Set up varibles for DataModule class
-    batch_size = 32
+    batch_size = 20
     num_workers = 0 #issue with multiproccessing pytorch_lightning
                     #must use 0
-    max_epochs = 30
+    max_epochs = 40
     
     # Initialise DataModule class
     ADNI = ADNIDataModule(batch_size=batch_size, 
