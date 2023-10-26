@@ -57,24 +57,27 @@ def train_model():
 
 def main():
 
-    image_size = [256,240]
+    image_size = [32,32]
     lr = 3e-4
     ADNI_config = {
         "embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
-        "num_layers": 4,
+        "num_layers": 6,
         "patch_size": 8,
         "num_channels": 3,
         "image_size": image_size,
-        "num_classes": 2,
+        "num_classes": 10,
         "dropout": 0.2,}
     model = ViT(ADNI_config, lr=lr)
 
-    batch_size = 16 #working 16 on hpc
+    batch_size = 64 #working 16 on hpc
     num_workers = 0 #num_workers = 0 if windows
     max_epochs = 30
 
+    CIFAR10 = CIFAR10DataModule(batch_size=batch_size, 
+                        image_size=image_size,  
+                        num_workers=num_workers)
     
     ADNI = ADNIDataModule(batch_size=batch_size, 
                         image_size=image_size,  
@@ -84,7 +87,7 @@ def main():
                         accelerator='gpu',
                         devices=1)
     
-    trainer.fit(model, ADNI)
-    trainer.test(model, ADNI)
+    trainer.fit(model, CIFAR10)
+    trainer.test(model, CIFAR10)
 
 if __name__ == '__main__': main()
