@@ -78,7 +78,7 @@ if debugging:
     test_size = subset_size - train_size - val_size
 
     train_dataset, val_dataset, test_dataset = random_split(
-        dataset, [train_size, val_size, test_size]
+        subset, [train_size, val_size, test_size]
     )
 
     train_loader = DataLoader(train_dataset, 32, True)
