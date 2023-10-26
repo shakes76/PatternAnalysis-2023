@@ -10,6 +10,8 @@
    "Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge"
    https://arxiv.org/abs/1802.10508v1
 
+
+## Model
    U-Net is a convolutional neural network architecture primarily used for biomedical image segmentation. 
    Its U-shaped structure consists of a contracting path, which captures context, and an expansive path,
    which enables precise localization. Through skip connections, features from the contracting path are concatenated
@@ -59,12 +61,6 @@ In machine learning, it measures the difference between predicted and true value
         loss : dice loss of the epoch
 
 
-## Metrics 
-Dice Coefficient will be calculated 
-It is a statistical measure used to evaluate the similarity between two sets. 
-It is especially popular in medical imaging for quantifying the overlap between 
-predicted and ground truth binary segmentations. 
-The coefficient ranges from 0 (no overlap) to 1 (perfect overlap). 
 
 
 
