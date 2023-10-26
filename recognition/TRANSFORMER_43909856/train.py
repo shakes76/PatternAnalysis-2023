@@ -28,7 +28,7 @@ else:
 
 
 #### Model hyperparameters: ####
-N_EPOCHS = 120
+N_EPOCHS = 90
 LEARNING_RATE = 0.001
 N_CLASSES = 2
 # Dimensions to resize the original 256x240 images to (IMG_SIZE x IMG_SIZE)
@@ -135,6 +135,9 @@ def train_model(save_model_data=True):
         if val_images is not None:
             # After training has completed for each epoch, test model performance on validation data
             for j, (val_images, val_labels) in enumerate(val_loader):
+                val_images = val_images.to(device)
+                val_labels = torch.Tensor(val_labels).to(device)
+
                 # Keep track of the total number predictions vs. correct predictions
                 correct = 0
                 total = 0
@@ -144,8 +147,8 @@ def train_model(save_model_data=True):
                 _, predicted = torch.max(val_outputs.data, 1)
 
                 # Save predictions and observed/empirical class labels
-                predictions += predicted
-                observed += val_labels
+                predictions += predicted.cpu()
+                observed += val_labels.cpu()
 
                 # Add to the total # of predictions
                 total += val_labels.size(0)
@@ -168,7 +171,8 @@ def train_model(save_model_data=True):
     end_time = time.time()
     elapsed_time = end_time - start_time
 
-    print(f"Training finished. Training took {elapsed_time} seconds ({elapsed_time/60} minutes)")
+    print(f"Training finished. Training took {round(elapsed_time, 2)} seconds " +
+            f"({round(elapsed_time/60, 4)} minutes)")
 
     if save_model_data:
         # Create a dir for saving the trained model (if one doesn't exist)
@@ -340,11 +344,11 @@ def main():
     # Train the model
     train_model()
     # Create training vs validation loss plots
-    train_loss_values = load_training_metrics()
-    val_loss_values = load_training_metrics(filename=osp.join(OUTPUT_PATH, 'ADNI_val_loss.csv'))
-    plot_loss(train_loss_values, val_loss_values, show_plot=True, save_plot=True)
-    # Create validation accuracy plot
-    plot_val_accuracy(val_loss_values, show_plot=True, save_plot=True)
+    # train_loss_values = load_training_metrics()
+    # val_loss_values = load_training_metrics(filename=osp.join(OUTPUT_PATH, 'ADNI_val_loss.csv'))
+    # plot_loss(train_loss_values, val_loss_values, show_plot=True, save_plot=True)
+    # # Create validation accuracy plot
+    # plot_val_accuracy(val_loss_values, show_plot=True, save_plot=True)
 
 if __name__ == '__main__':    
     main()

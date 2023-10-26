@@ -89,15 +89,15 @@ def test_model(model_filename=osp.join(OUTPUT_PATH, "ViT_ADNI_model.pt"), save_m
             correct += (predicted == labels).sum().item()
 
             # Save the predictions and the observed/empirical class labels
-            predictions += predicted
-            observed += labels
+            predictions += predicted.cpu()
+            observed += labels.cpu()
 
     # Get the amount of time that the model spent testing
     end_time = time.time()
     elapsed_time = end_time - start_time
     print(f"Test accuracy: {round((100 * correct) / total, 5)}%")
     print(f"Testing finished. Testing took {round(elapsed_time, 2)} seconds "
-          +f"({round(elapsed_time/60, 5)} minutes)")
+          +f"({round(elapsed_time/60, 4)} minutes)")
 
     # Save testing metrics
     if save_metrics:
