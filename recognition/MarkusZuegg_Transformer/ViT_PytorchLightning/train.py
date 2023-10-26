@@ -59,7 +59,7 @@ def train_model():
         "embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
-        "num_layers": 6,
+        "num_layers": 5,
         "patch_size": 8,
         "num_channels": 3,
         "image_size": image_size,
@@ -69,11 +69,16 @@ def train_model():
     # Initialise module class
     model = ViT(ADNI_config, lr=lr)
 
+    """
+    Current set ups that work
+    epochs 20, batchsize 32, heads 8, layers 6, patchsize 8
+    """
+
     # Set up varibles for DataModule class
-    batch_size = 32 #working 16 on hpc
+    batch_size = 32 
     num_workers = 0 #issue with multiproccessing pytorch_lightning
                     #must use 0
-    max_epochs = 20
+    max_epochs = 30
     
     # Initialise DataModule class
     ADNI = ADNIDataModule(batch_size=batch_size, 
