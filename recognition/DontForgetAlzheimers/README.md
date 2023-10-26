@@ -39,7 +39,7 @@ Testing code is also located in train.py
 
 After 20 epochs, the testing gave a result of 73.29%. 
 
-Since the result was already 80% after the initial training of 20 epochs, a validation split was not created from the train set for hyper parameter tuning. 
+Since the result was already close to 80% after the initial training of 20 epochs, a validation split was not created from the train set for hyper parameter tuning. 
 
 This result was based off the accuracy evaluation metric which is calculated by 
 
