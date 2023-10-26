@@ -1,62 +1,59 @@
-import os
-import random
-
 import torch
-import torchvision.transforms as transforms
-from PIL import Image
-from torch.utils.data import Dataset
+import torch.nn as nn
+import torchvision
 
 
-class SiameseNetworkDataset(Dataset):
-    def __init__(self, root_dir):
-        super(SiameseNetworkDataset, self).__init__()
-
-        self.transform = transforms.Compose([
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomVerticalFlip(),
-            transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1)),
-            transforms.ColorJitter(brightness=0.2, contrast=0.2),
-            transforms.RandomRotation(degrees=(0, 60)),
-            transforms.RandomResizedCrop(224, scale=(0.8, 1.2)),
-            transforms.RandomPerspective(),
-            transforms.ToTensor(),
-            transforms.Normalize(mean=[0.485], std=[0.229])
-        ])
-
-        # Define categories
-        self.categories = ['AD', 'NC']
-
-        # Load images for each category
-        self.images = {category: [] for category in self.categories}
-        for category in self.categories:
-            for img_filename in os.listdir(os.path.join(root_dir, category)):
-                with Image.open(os.path.join(root_dir, category, img_filename)) as img:
-                    self.images[category].append(self.transform(img.copy()))
-
-        # Stack images into tensors for each category
-        for category in self.categories:
-            self.images[category] = torch.stack(self.images[category])
-
-    def __len__(self):
-        return min(len(self.images['AD']), len(self.images['NC']))
-
-    def __getitem__(self, index):
-        if random.choice([True, False]):
-            # Positive example (both images are AD)
-            img1 = random.choice(self.images['AD'])
-            img2 = random.choice(self.images['AD'])
-            label = torch.tensor(1, dtype=torch.float)
-        else:
-            # Negative example (one image is AD, the other is NC)
-            img1 = random.choice(self.images['AD'])
-            img2 = random.choice(self.images['NC'])
-            label = torch.tensor(0, dtype=torch.float)
-
-        return img1, img2, label
+def init_weights(m):
+    # initialize the weights of the linear layers
+    if isinstance(m, nn.Linear):
+        torch.nn.init.kaiming_uniform_(m.weight)
+        m.bias.data.fill_(0.01)
 
 
-def get_datasets(root_dir):
-    train_dataset = SiameseNetworkDataset(os.path.join(root_dir, 'train'))
-    test_dataset = SiameseNetworkDataset(os.path.join(root_dir, 'test'))
-    val_dataset = SiameseNetworkDataset(os.path.join(root_dir, 'val'))
-    return train_dataset, test_dataset, val_dataset
+class SiameseNetwork(nn.Module):
+    def __init__(self):
+        super(SiameseNetwork, self).__init__()
+        # get resnet model
+        self.resnet = torchvision.models.resnet18(weights=None)
+        self.resnet.conv1 = nn.Conv2d(1, 64, kernel_size=(7, 7), stride=(2, 2), padding=(3, 3), bias=False)
+        self.fc_in_features = self.resnet.fc.in_features
+
+        # remove the last layer of resnet18 (linear layer which is before avgpool layer)
+        self.resnet = torch.nn.Sequential(*(list(self.resnet.children())[:-1]))
+
+        # add linear layers to compare between the features of the two images
+        self.fc = nn.Sequential(
+            nn.Linear(self.fc_in_features * 2, 256),
+            nn.BatchNorm1d(256),  # Batch Normalization
+            nn.ReLU(inplace=True),  # Activate function
+            nn.Dropout(p=0.2),  # Dropout
+            nn.Linear(256, 1),
+        )
+
+        self.sigmoid = nn.Sigmoid()  # Convert the range to [0,1]
+
+        # initialize the weights
+        self.resnet.apply(init_weights)
+        self.fc.apply(init_weights)
+
+    def forward_one(self, x):
+        # get the features of one image
+        output = self.resnet(x)
+        output = output.view(output.size()[0], -1)
+        return output
+
+    def forward(self, input1, input2):
+        # get two images' features
+        output1 = self.forward_one(input1)
+        output2 = self.forward_one(input2)
+
+        # concatenate both images' features
+        output = torch.cat((output1, output2), 1)
+
+        # pass the concatenation to the linear layers
+        output = self.fc(output)
+
+        # pass the out of the linear layers to sigmoid layer
+        output = self.sigmoid(output)
+
+        return output
