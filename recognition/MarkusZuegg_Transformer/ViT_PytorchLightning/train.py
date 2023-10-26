@@ -64,7 +64,7 @@ def main():
         "hidden_dim": 512,
         "num_heads": 8,
         "num_layers": 6,
-        "patch_size": 8,
+        "patch_size": 4,
         "num_channels": 3,
         "image_size": image_size,
         "num_classes": 10,
@@ -73,7 +73,7 @@ def main():
 
     batch_size = 64 #working 16 on hpc
     num_workers = 0 #num_workers = 0 if windows
-    max_epochs = 30
+    max_epochs = 20
 
     CIFAR10 = CIFAR10DataModule(batch_size=batch_size, 
                         image_size=image_size,  
