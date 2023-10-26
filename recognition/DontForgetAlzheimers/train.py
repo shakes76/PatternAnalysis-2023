@@ -48,7 +48,7 @@ def train():
         print(f"Epoch Loss: {total_loss / len(train_loader):.4f}")
         all_loss.append(total_loss / len(train_loader))
 
-    epochs = list(range(1, 4))
+    epochs = list(range(1, 21))
     plt.figure(figsize=(10, 6))
     plt.plot(epochs, all_loss, color='blue')
     plt.title("Cross Enthropy Loss")
