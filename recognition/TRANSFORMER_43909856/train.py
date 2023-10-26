@@ -17,13 +17,6 @@ This file contains code for training, validating, testing and saving the model.
 The ViT model is imported from modules.py, and the data loader
 is imported from dataset.py. 
 The losses and metrics will be plotted during training.
-
-
- https://huggingface.co/blog/fine-tune-vit
- https://openaccess.thecvf.com/content/CVPR2023W/ECV/papers/Bhattacharyya_DeCAtt_Efficient_Vision_Transformers_With_Decorrelated_Attention_Heads_CVPRW_2023_paper.pdf
- https://ieeexplore.ieee.org/document/9880094
- https://arxiv.org/pdf/2010.11929.pdf
-
 """
 
 #### Set-up GPU device ####
@@ -35,7 +28,7 @@ else:
 
 
 #### Model hyperparameters: ####
-N_EPOCHS = 1
+N_EPOCHS = 120
 LEARNING_RATE = 0.001
 N_CLASSES = 2
 # Dimensions to resize the original 256x240 images to (IMG_SIZE x IMG_SIZE)
@@ -46,9 +39,9 @@ BATCH_SIZE = 32
 
 #### File paths: ####
 # Local dataset path
-DATASET_PATH = osp.join("recognition", "TRANSFORMER_43909856", "dataset", "AD_NC")
+# DATASET_PATH = osp.join("recognition", "TRANSFORMER_43909856", "dataset", "AD_NC")
 # Path to dataset on Rangpur HPC
-# DATASET_PATH = osp.join("/", "home", "groups", "comp3710", "ADNI", "AD_NC")
+DATASET_PATH = osp.join("/", "home", "groups", "comp3710", "ADNI", "AD_NC")
 OUTPUT_PATH = osp.join("recognition", "TRANSFORMER_43909856", "models")
 
 
@@ -345,7 +338,7 @@ on Windows devices.
 """
 def main():
     # Train the model
-    # train_model()
+    train_model()
     # Create training vs validation loss plots
     train_loss_values = load_training_metrics()
     val_loss_values = load_training_metrics(filename=osp.join(OUTPUT_PATH, 'ADNI_val_loss.csv'))

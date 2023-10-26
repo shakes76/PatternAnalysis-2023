@@ -18,6 +18,9 @@ import matplotlib.pyplot as plt
 """
 Contains the data loader for loading and preprocessing the ADNI dataset.
 
+This resource in particular was very useful for creating custom components of the dataset
+loading. Some of the code written in this file was based on the general pipeline
+followed in the information on this website:
 https://sebastianraschka.com/blog/2022/datapipes.html#DataPipesforDatasetsWithImagesandCSVs
 """
 

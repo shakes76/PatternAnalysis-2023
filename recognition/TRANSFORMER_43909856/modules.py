@@ -58,7 +58,6 @@ Full ViT:
 Inputs -> Input Embedding -> Positional Encoding -> Main sub-component #1 ->
 Outputs (shifted right) -> Output Embedding -> Positional Encoding --------> Main sub-component #2 -> Linear -> Softmax -> Output probabilities
 
-https://towardsdatascience.com/transformers-explained-visually-part-3-multi-head-attention-deep-dive-1c1ff1024853
 """
 
 
@@ -189,7 +188,6 @@ class FeedForward(nn.Module):
             # Add the first hidden Linear layer
             nn.Linear(dimensions, hidden_layer_dimensions),
             # Apply GELU (Gaussian Error Linear Unit) activation fn
-            # TODO why GELU? Try ReLU or other activation fns
             nn.GELU(),
             # Add second hidden Linear layer
             nn.Linear(hidden_layer_dimensions, dimensions)
