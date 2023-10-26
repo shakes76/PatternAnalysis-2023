@@ -10,9 +10,13 @@ from matplotlib.pyplot import suptitle, imshow, subplot, axis, show, cm, title
 custom_objects = {
     "VectorQuantizer": VectorQuantizer
 }
+custom_objects_pcnn = {"PixelConvolution": PixelLayer, "ResidualBlock": ResidualBlock}
+
 with keras.utils.custom_object_scope(custom_objects):
     vqvae = load_model("/Users/pc/Documents/COMP3710/VQVAE.h5")
-#pcnn = load_model("/Users/pc/Documents/COMP3710/PCNN.h5", custom_objects = {"PixelConvolution": PixelLayer, "ResidualBlock": ResidualBlock})
+
+with keras.utils.custom_object_scope(custom_objects_pcnn):
+    pcnn = load_model("/Users/pc/Documents/COMP3710/PCNN.h5") 
 
 
 def calculate_ssim(images, recons):
