@@ -32,13 +32,12 @@ def train_pcnn(trained):
     pcnn_model.save("PCNN.h5")
     plt.plot(pixelcnn_history.history['loss'])
     plt.plot(pixelcnn_history.history['val_loss'])
-    plt.title('PixelCNN Loss')
+    plt.title('Pixel-CNN Loss')
     plt.ylabel('loss')
     plt.xlabel('epoch')
-    plt.legend(['Train', 'Validation'], loc='upper left')
+    plt.legend(['Train', 'Test'], loc='upper left')
     plt.show()
-
-
+    
 def main():
     '''
     for training VQVAE and a PCNN
