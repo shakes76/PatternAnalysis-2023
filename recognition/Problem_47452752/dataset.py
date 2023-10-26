@@ -13,9 +13,9 @@ import numpy as np
 
 image_path = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
 mask_path = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
+inconsistent_path = "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/inconsistent_ids.txt"
 
-
-def check_consistency(image_dir=image_path, mask_dir=mask_path):
+def check_consistency(image_dir=image_path, mask_dir=mask_path, inconsistent_path=inconsistent_path):
     image_ids = {
         img.split(".")[0] for img in os.listdir(image_dir) if img.endswith(".jpg")
     }
@@ -32,7 +32,7 @@ def check_consistency(image_dir=image_path, mask_dir=mask_path):
     if images_without_masks or masks_without_images:
         inconsistent_ids = images_without_masks.union(masks_without_images)
         # Save to a file
-        with open("inconsistent_ids.txt", "w") as file:
+        with open(inconsistent_path, "w") as file:
             for ID in inconsistent_ids:
                 file.write(f"{ID}\n")
 
@@ -45,9 +45,10 @@ class ISICDataset(Dataset):
         transform,
         image_dir=image_path,
         mask_dir=mask_path,
+        inconsistent_path=inconsistent_path
     ):
         # Load the inconsistent IDs
-        with open("inconsistent_ids.txt", "r") as file:
+        with open(inconsistent_path, "r") as file:
             excluded_ids = set(line.strip() for line in file)
 
         self.image_dir = image_dir
@@ -69,7 +70,7 @@ class ISICDataset(Dataset):
         inconsistent_ids = images_without_masks.union(masks_without_images)
 
         # Save to a file
-        with open("inconsistent_ids.txt", "a") as file:  # 'a' mode for appending
+        with open(inconsistent_path, "a") as file:  # 'a' mode for appending
             for ID in inconsistent_ids:
                 file.write(f"{ID}\n")
 
@@ -83,14 +84,13 @@ class ISICDataset(Dataset):
             with Image.open(img_name) as image, Image.open(mask_name) as mask:
                 image = image.convert("RGB")
                 mask = mask.convert("L")
-
                 sample = {"image": image, "mask": mask}
 
                 if self.transform:
                     sample = self.transform(sample)
-
+                
             # Convert mask to binary 0/1 tensor
-            sample["mask"] = (torch.tensor(np.array(sample["mask"])) > 127.5).float()
+            sample["mask"] = (torch.tensor(np.array(sample["mask"])) > 0.5).float()
 
             return sample["image"], sample["mask"]
 
