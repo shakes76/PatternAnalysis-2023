@@ -10,6 +10,7 @@ from dataset import (
     transform,
     check_consistency,
 )
+import numpy as np
 from modules import UNet
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import random_split
@@ -29,6 +30,35 @@ check = False
 debugging = True
 saving = False
 validating = False
+
+
+def evaluate_model(model, data_loader, device):
+    # set the model to evaluation mode
+    model.eval()
+
+    # List to store individual dice scores for each sample
+    all_dice_scores = []
+
+    # No gradient computation during evaluation
+    with torch.no_grad():
+        for images, masks in data_loader:
+            images, masks = images.to(device), masks.to(device)
+
+            # Compute predictions
+            outputs = model(images)
+
+            # Convert predictions to binary using threshold
+            outputs = (outputs > 0.5).float()
+
+            # Compute and store the dice coefficients
+            batch_dice_scores = dice_coefficient(outputs, masks)
+            all_dice_scores.extend(batch_dice_scores.cpu().numpy())
+
+    avg_dice_score = np.mean(all_dice_scores)
+    min_dice_score = np.min(all_dice_scores)
+
+    return avg_dice_score, min_dice_score
+
 
 # Check if the dataset is consistent
 if check:
@@ -83,32 +113,33 @@ print("Training loop:")
 if validating:
     running_loss = 0.0
     print_every = 10  # Print every 10 batches.
-    best_val_loss = float('inf')
-    patience = 3 # Number of epochs to wait before stopping
+    best_val_score = 0.0
+    patience = 3  # Number of epochs to wait before stopping
 
 for epoch in range(num_epochs):
+    # Set the model to training mode
     model.train()
+
     for i, (images, masks) in enumerate(train_loader, 1):
         # Move the data onto the device
         images, masks = images.to(device), masks.to(device)
-        print(f"masks = {masks.size()}")
+
         # Zero the parameter gradients
         optimizer.zero_grad()
 
         # Forward pass
         outputs = model(images)
         print(f"outputs = {outputs.size()}")
-        
-        binary_output = (outputs > 0.5).float()
+        print(f"masks = {masks.size()}")
 
-        loss = dice_loss(binary_output, masks)
+        loss = dice_loss(outputs, masks)
 
         # Backward pass + optimization
         loss.backward()
         optimizer.step()
 
     if validating:
-
+        # Keep track of the running loss for testing feedback
         running_loss += loss.item()
         if i % print_every == 0:  # Print every `print_every` batches
             print(
@@ -117,25 +148,15 @@ for epoch in range(num_epochs):
             running_loss = 0.0
 
         # Evaluate the model using the validation set
-        model.eval()
-        val_loss = 0
-
-        with torch.no_grad():
-            for images, masks in validation_loader:
-                # Load the validation data onto the device
-                images, masks = images.to(device), masks.to(device)
-                
-                # Evaluate the loss
-                outputs = model(images)
-                masks_expanded = torch.cat((masks, 1 - masks), dim=1)
-                loss = dice_loss(outputs, masks_expanded)
-                val_loss += loss.item()
-
-        val_loss /= len(validation_loader)
-        print(f"Epoch {epoch + 1}, Validation Loss = {val_loss:.4f}")
+        dice_similarity, dice_minimum = evaluate_model(model, validation_loader, device)
+        val_loss = 1 - dice_similarity
+        # Print out the validation metrics
+        print(
+            f"Validation metrics during epoch {epoch + 1}, loss = {val_loss:.4f}, similarity = {dice_similarity:.4f}, minimum = {dice_minimum:.4f}"
+        )
 
         # Model checkpointing
-        if val_loss < best_val_loss:
+        if dice_similarity > best_val_score and dice_minimum > 0.7:
             best_val_loss = val_loss
             torch.save(model.state_dict(), "best_model.pth")
             no_improvement = 0
@@ -154,28 +175,7 @@ if saving:
         "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/model.pth",
     )
 
-# Switch to evaluation mode
-model.eval()
-
-# Metrics storage
-dice_scores = []
-
-# No gradient computation during evaluation
-with torch.no_grad():
-    for inputs, masks in test_loader:
-        inputs, masks = inputs.to(device), masks.to(device)
-
-        # Compute predictions
-        outputs = model(inputs)
-
-        # Convert outputs to binary mask
-        predicted_masks = (outputs > 0.5).float()
-
-        # Compute Dice coefficient
-        for pred, true in zip(predicted_masks, masks):
-            dice_scores.append(dice_coefficient(pred, true).item())
-
-# Calculate average Dice score
-avg_dice_score = sum(dice_scores) / len(dice_scores)
+avg_dice_score, min_dice_score = evaluate_model(model, test_loader, device)
 
 print(f"Average Dice Coefficient on Test Set: {avg_dice_score:.4f}")
+print(f"Minimum Dice Coefficient on Test Set: {min_dice_score:.4f}")
