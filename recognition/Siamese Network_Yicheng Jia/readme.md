@@ -251,6 +251,11 @@ AD_NC/
 ![loss](./Images/loss.png)
 
 
+## Predict(Recurrent):
+![predict](./Images/predict.png)
+
+### You can download the best module from /Best_Modules.
+
 
 ## Dependencies
 
