@@ -230,7 +230,7 @@ AD_NC/
 ![trainacc](./Images/trainacc.png)
 
 ### Train Loss:
-![trainloss](./Images/train_oss.png)
+![trainloss](./Images/trainloss.png)
 
 ### Validate Accuracy:
 ![valacc](./Images/valacc.png)
