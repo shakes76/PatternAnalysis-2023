@@ -67,7 +67,7 @@ def train_model():
         "dropout": 0.2,}
     
     # Initialise module class
-    ViT = ViT(ADNI_config, lr=lr)
+    model = ViT(ADNI_config, lr=lr)
 
     # Set up varibles for DataModule class
     batch_size = 32 #working 16 on hpc
@@ -86,10 +86,10 @@ def train_model():
                         devices=1)
     
     # Train model (with validation)
-    trainer.fit(ViT, ADNI)
+    trainer.fit(model, ADNI)
 
     # Test model against test set
-    trainer.test(ViT, ADNI)
+    trainer.test(model, ADNI)
 
 def main():
     train_model() #runs train_model essentially main
