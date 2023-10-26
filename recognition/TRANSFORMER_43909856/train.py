@@ -28,7 +28,7 @@ else:
 
 
 #### Model hyperparameters: ####
-N_EPOCHS = 90
+N_EPOCHS = 40
 LEARNING_RATE = 0.001
 N_CLASSES = 2
 # Dimensions to resize the original 256x240 images to (IMG_SIZE x IMG_SIZE)
@@ -133,14 +133,14 @@ def train_model(save_model_data=True):
         
         # Evaluate model on validation set (if a validation set exists):
         if val_images is not None:
+            # Keep track of the total number of predictions vs. correct predictions
+            correct = 0
+            total = 0
+
             # After training has completed for each epoch, test model performance on validation data
             for j, (val_images, val_labels) in enumerate(val_loader):
                 val_images = val_images.to(device)
                 val_labels = torch.Tensor(val_labels).to(device)
-
-                # Keep track of the total number predictions vs. correct predictions
-                correct = 0
-                total = 0
 
                 # Get predictions on the validation data from the model
                 val_outputs = model(val_images)
