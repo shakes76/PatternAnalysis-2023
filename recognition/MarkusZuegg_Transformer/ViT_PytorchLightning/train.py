@@ -1,15 +1,11 @@
 """
-#! make a file header
+This file contains main ViT class and will create a new instance
+of the model and train, test it
 """
-import torch
-import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import pytorch_lightning as pl
-from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint
-from pytorch_lightning.callbacks.progress import TQDMProgressBar
-from pytorch_lightning.loggers import CSVLogger
-from dataset import CIFAR10DataModule, ADNIDataModule
+from dataset import ADNIDataModule
 from modules import VisionEncoder
 
 class ViT(pl.LightningModule):
@@ -22,6 +18,7 @@ class ViT(pl.LightningModule):
     def __init__(self, config, lr):
         super().__init__()
         self.save_hyperparameters()
+        # Model (neural net)
         self.model = VisionEncoder(**config)
 
     def forward(self, x):
@@ -29,7 +26,7 @@ class ViT(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(), lr=self.hparams.lr)
-        lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30, 100], gamma=0.1)
+        lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[35, 100], gamma=0.1)
         return [optimizer], [lr_scheduler]
 
     def _calculate_loss(self, batch, mode="train"):
@@ -53,34 +50,46 @@ class ViT(pl.LightningModule):
         self._calculate_loss(batch, mode="test")
 
 def train_model():
+    # Image size based from dataset
     image_size = [256,240]
+
+    # Set up hyperparameters
     lr = 3e-5
     ADNI_config = {
         "embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
-        "num_layers": 6,
+        "num_layers": 5,
         "patch_size": 8,
         "num_channels": 3,
         "image_size": image_size,
         "num_classes": 2,
         "dropout": 0.2,}
-    model = ViT(ADNI_config, lr=lr)
-
-    batch_size = 32 #working 16 on hpc
-    num_workers = 0 #num_workers = 0 if windows
-    max_epochs = 40
     
+    # Initialise module class
+    ViT = ViT(ADNI_config, lr=lr)
+
+    # Set up varibles for DataModule class
+    batch_size = 32 #working 16 on hpc
+    num_workers = 0 #issue with multiproccessing pytorch_lightning
+                    #must use 0
+    max_epochs = 50
+    
+    # Initialise DataModule class
     ADNI = ADNIDataModule(batch_size=batch_size, 
                         image_size=image_size,  
                         num_workers=num_workers)
     
+    # Initialise Trainer class
     trainer = pl.Trainer(max_epochs=max_epochs,
                         accelerator='gpu',
                         devices=1)
     
-    trainer.fit(model, ADNI)
-    trainer.test(model, ADNI)
+    # Train model (with validation)
+    trainer.fit(ViT, ADNI)
+
+    # Test model against test set
+    trainer.test(ViT, ADNI)
 
 def main():
     train_model() #runs train_model essentially main
