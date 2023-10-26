@@ -43,6 +43,7 @@ class DictTransform:
     def __init__(self, transform, transform_mask=True):
         self.transform = transform
         self.transform_mask = transform_mask
+
     def __call__(self, sample):
         image, mask = sample["image"], sample["mask"]
         if self.transform_mask:
@@ -56,18 +57,49 @@ class DictTransform:
         }
 
 
+# max_dice_loss = max(dice_losses) # Penalize the worst performance
+# dice_loss = sum(dice_losses) / len(dice_losses)
 def dice_loss(predicted, target, epsilon=1e-7):
-    # Flatten the tensors 
-    # predicted = predicted.view(-1)
-    # target = target.view(-1)
-    dice_losses = [1 - dice_coefficient(pred, target) for pred, target in zip(predicted, target)]
-    penalized_losses = [loss * 2 if (1 - loss) < 0.8 else loss for loss in dice_losses]
-    average_penalized_loss = sum(penalized_losses) / len(penalized_losses)
+    # Compute dice coefficient for all images in the batch
+    intersect = (predicted * target).sum(dim=[2, 3])
+    union = (predicted + target).sum(dim=[2, 3])
+    dice_scores = (2.0 * intersect + epsilon) / (union + epsilon)
 
-    # max_dice_loss = max(dice_losses) # Penalize the worst performance
-    # dice_loss = sum(dice_losses) / len(dice_losses)
+    # Penalize losses
+    penalties = torch.where(dice_scores < 0.8, 2.0, 1.0)
+    losses = 1.0 - dice_scores
+    penalized_losses = penalties * losses
+
+    # Average penalized loss
+    average_penalized_loss = penalized_losses.mean()
 
     return average_penalized_loss
+
+
+def dice_loss(predicted, target, epsilon=1e-7):
+    # Compute dice coefficient for each image in the batch
+    dice_scores = dice_coefficient(predicted, target)
+    # Compute dice loss for each image in the batch
+    dice_losses =  1.0 - dice_scores
+    # Penalize any images with dice score less than 0.8
+    penalized_losses = torch.where(dice_scores < 0.8, dice_losses * 2, dice_losses)
+    # Return the average loss
+    average_penalized_loss = penalized_losses.mean()
+    return average_penalized_loss
+
+
+def dice_coefficient(
+    predicted: torch.Tensor, target: torch.Tensor, epsilon=1e-7
+) -> torch.Tensor:
+    """Compute dice coefficient for each image in the batch"""
+    predicted = predicted.contiguous().view(predicted.shape[0], -1)
+    target = target.contiguous().view(target.shape[0], -1)
+
+    intersection = (predicted * target).sum(dim=1)
+    return (2.0 * intersection + epsilon) / (
+        predicted.sum(dim=1) + target.sum(dim=1) + epsilon
+    )
+
 
 
 def general_dice_loss(predicted, target):
@@ -85,12 +117,10 @@ def general_dice_loss(predicted, target):
 
     return loss
 
-def dice_coefficient(predicted, target):
-    """ Compute Dice Coefficient for single sample. """
-    intersection = (predicted * target).sum().float()
-    union = (predicted + target).sum().float()
-    
-    if union == 0:
-        return 1.0
 
-    return 2 * intersection / union
+# lil testing
+# pred = torch.randn(3, 6, 32, 32)
+# tar = torch.randn(3, 6, 32, 32)
+# x = dice_coefficient(pred, tar)
+# y = dice_loss(pred, tar)
+# 
