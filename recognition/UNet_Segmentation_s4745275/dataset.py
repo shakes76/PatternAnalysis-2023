@@ -13,7 +13,7 @@ import numpy as np
 
 image_path = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
 mask_path = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
-inconsistent_path = "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/inconsistent_ids.txt"
+inconsistent_path = "/home/Student/s4745275/PatternAnalysis-2023/recognition/UNet_Segmentation_s4745275/inconsistent_ids.txt"
 
 def check_consistency(image_dir=image_path, mask_dir=mask_path, inconsistent_path=inconsistent_path):
     image_ids = {

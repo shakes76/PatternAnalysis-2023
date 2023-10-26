@@ -120,7 +120,8 @@ print("Training loop:")
 running_loss = 0.0
 no_improvement = 0
 print_every = 1  # Print every 10 batches.
-best_val_score = 0.0
+best_val_similarity = 0.0
+best_val_minimum = 0.0
 patience = 8  # Number of epochs to wait before stopping
 
 for epoch in range(num_epochs):
@@ -163,7 +164,7 @@ for epoch in range(num_epochs):
         )
 
         # Model checkpointing
-        if dice_similarity > best_val_score and dice_minimum > 0.75:
+        if dice_similarity > best_val_similarity and dice_minimum >= best_val_minimum:
             best_val_loss = val_loss
             torch.save(model.state_dict(), "best_model.pth")
             no_improvement = 0
