@@ -59,8 +59,8 @@ def train_model():
         "embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
-        "num_layers": 4,
-        "patch_size": 8,
+        "num_layers": 6,
+        "patch_size": 16,
         "num_channels": 3,
         "image_size": image_size,
         "num_classes": 2,
@@ -75,7 +75,7 @@ def train_model():
     """
 
     # Set up varibles for DataModule class
-    batch_size = 32 
+    batch_size = 32
     num_workers = 0 #issue with multiproccessing pytorch_lightning
                     #must use 0
     max_epochs = 30
