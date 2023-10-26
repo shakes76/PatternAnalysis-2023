@@ -53,17 +53,13 @@ class ViT(pl.LightningModule):
         self._calculate_loss(batch, mode="test")
 
 def train_model():
-    return
-
-def main():
-
     image_size = [256,240]
     lr = 3e-5
     ADNI_config = {
         "embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
-        "num_layers": 7,
+        "num_layers": 6,
         "patch_size": 8,
         "num_channels": 3,
         "image_size": image_size,
@@ -86,8 +82,8 @@ def main():
     trainer = pl.Trainer(max_epochs=max_epochs,
                         accelerator='gpu',
                         devices=1)
-    
-    trainer.fit(model, ADNI)
-    trainer.test(model, ADNI)
+
+def main():
+    train_model() #runs train_model essentially main
 
 if __name__ == '__main__': main()
