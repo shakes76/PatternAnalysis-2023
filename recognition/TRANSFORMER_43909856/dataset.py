@@ -43,27 +43,27 @@ means and standard deviations of 0.5 - this places intensity values in the range
 [-1, 1].
 '''
 TRAIN_TF = transforms.Compose([
-    # transforms.ToPILImage(),
       transforms.Resize(IMG_SIZE),
       transforms.CenterCrop(IMG_SIZE),
       transforms.ToTensor(), 
       transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
       ])
 TEST_TF = transforms.Compose([
-                # transforms.ToPILImage(),
                 transforms.Resize(IMG_SIZE),
                 transforms.CenterCrop(IMG_SIZE),
                 transforms.ToTensor(), 
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
 VAL_TF = transforms.Compose([
-                # transforms.ToPILImage(),
                 transforms.Resize(IMG_SIZE),
                 transforms.CenterCrop(IMG_SIZE),
                 transforms.ToTensor(), 
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
 # Should validation and test transforms be different? I don't see why they should be
+
+# TODO could try some data augmentation on these transforms?
+# TODO try changing from RGB images to greyscale, compare model performance
 
 
 #### File paths: ####
@@ -120,32 +120,25 @@ structure, relative to the project:
 By default, dataset_path is set to: './recognition/TRANSFORMER_43909856/dataset/AD_NC'.
 The PyTorch ImageFolder class automatically assigns class labels for each image
 based on the subfolders in 'train' and 'test'. An image in an 'AD' dir is
-assigned a class label of 'AD' (Alzheimer's Detected), and an image in an 'NC'
-dir is assigned a class label of 'NC' (Normal Cognition).
+assigned a class label of 'AD' (0) (Alzheimer's Detected), and an image in an 'NC'
+dir is assigned a class label of 'NC' (1) (Normal Cognition).
             
 Params:
     dataset_path (str): the directory containing the ADNI dataset images, structured
                         by the image classifications
     tf (torch transform): the transform to be applied to the data
     batch_size (int): the number of input images to be added to each DataLoader batch
+    dataset (str): "train" or "test" set
 
 Returns:
-    DataLoaders for the given set's data
+    The given set's data
 """
 def load_ADNI_data(dataset_path=DATASET_PATH, tf=TEST_TF, batch_size=BATCH_SIZE,
                    dataset="test"):
     # Load the ADNI data
     data = ImageFolder(root=osp.join(dataset_path, dataset), transform=tf)
 
-    # Shuffle DataLoader data for the training set only
-    if dataset == "train":
-        shuffle = True
-    else:
-        shuffle = False
-    # Load the set into DataLoader object
-    loader = DataLoader(data, batch_size=BATCH_SIZE, shuffle=shuffle, num_workers=1)
-
-    return loader
+    return data
 
 
 """
@@ -199,8 +192,8 @@ of the particular class name ("AD" or "NC") in the given filename.
 Params:
     filename (str): the file name of the given input image
 Returns:
-    Tuple containing the given filename, and the class name for that image 
-    file ("AD" or "NC")
+    Tuple containing the given filename, and the class for that image 
+    file ("AD" - 0 or "NC" - 1)
 
 Method throws an exception if the class label can't be determined (there are
 no "AD" or "NC" substrings in the filename, indicating that the
@@ -210,14 +203,44 @@ def add_class_labels(filename):
     split = filename.split("AD_NC")
     if split[-1].find("AD") != -1:
         # File is in the "AD" subdir
-        class_name = "AD"
+        class_name = 0
     elif split[-1].find("NC") != -1:
         # File is in the "NC" subdir
-        class_name = "NC"
+        class_name = 1
     else:
         # If the class can't be determined, throw an exception
         return Exception(f"The class label for {split[-1]} is unknown.")
     return filename, class_name
+
+
+"""
+Apply a transform to images in the training set.
+
+Params:
+    image_data (tuple(PIL image, str)): contains the opened PIL image, and
+                                        the class label for that image
+Returns:
+    The transformed input image, and the class label for that image 
+    (not transformed)
+"""
+def apply_train_tf(image_data, train_tf=TRAIN_TF):
+    image, class_name = image_data
+    return train_tf(image), class_name
+
+
+"""
+Apply a transform to images in the validation set.
+
+Params:
+    image_data (tuple(PIL image, str)): contains the opened PIL image, and
+                                        the class label for that image
+Returns:
+    The transformed input image, and the class label for that image 
+    (not transformed)
+"""
+def apply_val_tf(image_data, val_tf=VAL_TF):
+    image, class_name = image_data
+    return val_tf(image), class_name
 
 
 """
@@ -255,8 +278,8 @@ Params:
 
 Returns:
     Tuple with 3 values:
-    DataLoader for the train set data, and the number of training points in the
-    train set DataLoader. If train_size < 1, a DataLoader for the validation 
+    The train set data, and the number of training points in the
+    train set. If train_size < 1, the validation 
     set data is also returned; otherwise, a value of None is returned.
 """
 def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=TRAIN_TF, 
@@ -267,10 +290,10 @@ def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=TRAIN_TF,
         If train_size >= 1, create only a training set.
         Load the data in the same manner used to load the ADNI test set.
         '''
-        train_loader = load_ADNI_data(dataset_path=dataset_path, tf=train_tf,
-                                           batch_size=batch_size)
+        train_images = load_ADNI_data(dataset_path=dataset_path, tf=train_tf,
+                                           batch_size=batch_size, dataset="train")
         # Set the validation set DataLoader to none (no validation set used)
-        return train_loader, len(train_loader), None
+        return train_images, len(list(train_images)), None
 
     '''
     Create a training and validation set:
@@ -322,36 +345,6 @@ def load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_tf=TRAIN_TF,
     val_data = AD_val.concat(NC_val).unbatch().shuffle()
     # Get the number of training set data points:
     n_train_datapoints = len(list(train_data))
-
-    """
-    Apply a transform to images in the training set.
-
-    Params:
-        image_data (tuple(PIL image, str)): contains the opened PIL image, and
-                                            the class label for that image
-        dataset (str): "train" or "validation"
-    Returns:
-        The transformed input image, and the class label for that image 
-        (not transformed)
-    """
-    def apply_train_tf(image_data):
-        image, class_name = image_data
-        return train_tf(image), class_name
-    
-
-    """
-    Apply a transform to images in the validation set.
-
-    Params:
-        image_data (tuple(PIL image, str)): contains the opened PIL image, and
-                                            the class label for that image
-    Returns:
-        The transformed input image, and the class label for that image 
-        (not transformed)
-    """
-    def apply_val_tf(image_data):
-        image, class_name = image_data
-        return val_tf(image), class_name
 
 
     '''
@@ -424,5 +417,3 @@ def main():
 if __name__ == '__main__':    
     main()
 
-
-# TODO implement saving predicted and actual classes from testing loop to use for metrics/plots later
