@@ -1,6 +1,6 @@
 # ViT Transformer for image classification of the ADNI dataset
 
-
+ 
 ## Description
 Include a description of the algorithm and the problem that it solves (a paragraph or so).
 
