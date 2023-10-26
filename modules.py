@@ -12,20 +12,20 @@ def configuration():
         },
         "num_classes": 2,
         "patches": {
-            "sizes": [7, 3, 3],
-            "strides": [4, 2, 2],
+            "sizes": [7, 3, 3], # kernel size of each encoder’s patch embedding.
+            "strides": [4, 2, 2], # stride size ^^
             "padding": [2, 1, 1]
         },
         "transformer": {
             "embed_dim": [64, 192, 384],
-            "hidden_size": 384,
+            "hidden_size": 384, #no. of features in the hidden state 
             "num_heads": [2, 4, 6],  # Matching the number of blocks
             "depth": [1, 1, 1],  # Adjust this according to the number of blocks
-            "mlp_ratios": [4.0, 4.0, 4.0, 4.0],
+            "mlp_ratios": [4.0, 4.0, 4.0, 4.0], # size of the hidden layer: size of the input layer
             "attention_drop_rate": [0.0, 0.0, 0.0],
             "drop_rate": [0.0, 0.0, 0.0],
             "drop_path_rate": [0.0, 0.0, 0.1],
-            "qkv": {
+            "qkv": { # queries (q), keys (k), and values (v) 
                 "bias": [True, True, True],
                 "projection_method": ["dw_bn", "dw_bn", "dw_bn"],
                 "kernel": [3, 3, 3],
@@ -56,6 +56,10 @@ class CViTConfig:
             setattr(self, key, value)
 
 class MultiHeadSelfAttention(nn.Module):
+    """
+    Implements the multi-head self-attention mechanism. 
+    The attention mechanism uses scaled dot-product attention- operates on qkv projection of the input.
+    """
     def __init__(self, config):
         super().__init__()
         num_heads = config.transformer['num_heads'][0]
@@ -122,6 +126,9 @@ class MultiHeadSelfAttention(nn.Module):
 
 
 class TransformerBlock(nn.Module):
+    """
+    Transformer Block module comprising of multi-head self-attention mechanism and position-wise feed-forward network (FFN)   
+    """
     def __init__(self, config, index):
         super(TransformerBlock, self).__init__()
 

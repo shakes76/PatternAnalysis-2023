@@ -52,8 +52,11 @@ class ADNC_Dataset(Dataset):
                  image = self.transform(image)
 
              return image, label
-# Function to get image paths from a directory with valid extensions
+
 def get_image_paths_from_directory(directory_path, valid_extensions=[".jpg", ".jpeg", ".png"]):
+    """
+    Get image paths from directory with valid extensions
+    """
     if not os.path.exists(directory_path):
         raise ValueError(f"The provided directory {directory_path} does not exist.")
 
@@ -64,12 +67,18 @@ def get_image_paths_from_directory(directory_path, valid_extensions=[".jpg", ".j
             all_images.append(image_path)
     return all_images
 
-# Function to extract patient ID from image path
 def extract_patient_id(image_path):
+    """
+    Extract the patient ID from image path.
+    """
+
     base_name = os.path.splitext(os.path.basename(image_path))[0]
     return base_name.split('_')[0]
 
 def load_data(train_images_paths_AD, train_images_paths_NC):
+    """
+    Load and split image dataset into training and validation sets whilst ensuring no patient overlap between sets
+    """
     # Get image paths for training and test datasets
 
     all_train_images_paths_NC = get_image_paths_from_directory(train_images_paths_NC)
@@ -91,6 +100,9 @@ def load_data(train_images_paths_AD, train_images_paths_NC):
     return train_images_AD, train_images_NC, val_images_AD, val_images_NC
 
 def create_data_loaders(train_images_AD, train_images_NC, val_images_AD, val_images_NC, batch_size):
+    """
+    Create data loaders for training and validation sets with specified transformations.
+    """
     # Define the data transformation for train, validation, and test
     data_transforms = {
         'train': transforms.Compose([
@@ -117,6 +129,9 @@ def create_data_loaders(train_images_AD, train_images_NC, val_images_AD, val_ima
     return train_dataloader, val_dataloader
 
 def load_test_data(test_images_paths_AD, test_images_paths_NC):
+    """
+    Loads test data from specified directory and filters patient ID
+    """
     all_test_images_paths_NC = get_image_paths_from_directory(test_images_paths_NC)
     all_test_images_paths_AD = get_image_paths_from_directory(test_images_paths_AD)
 

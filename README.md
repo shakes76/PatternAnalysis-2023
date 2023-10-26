@@ -46,24 +46,23 @@ The final part of the model compresses the transformer’s output, focusing on a
 
 The project utilises images from the Alzheimer’s Disease Neuroimaging Initiative (ADNI) dataset ([ADNI](https://adni.loni.usc.edu)). Each 2D, 256 x 240 pixel image is one of 20 slices from a specific patient’s scan collection.
 
-Data pre-processing is conducted across both `dataset.py` and `process.py`. Both scripts make use of various Pytorch functionalities for streamlined and effective data handling.
+Data pre-processing is conducted within `dataset.py`, making use of various Pytorch functionalities for streamlined and effective data handling.
 
 #### Dataset.py
-
-This script handles the initial stages of data handling:
 - Importing dataset from designated directories
 - Constructing a structured DataFrame that organises image file paths alongside their respective labels, providing foundational mapping for subsequent stages
-
-#### Process.py
-
-This script handles more complex data processing, distinguishing its function by:
 - Implementing patient-level split by extracting unique patient IDs from image paths; the script ensures a non-overlapping distribution of patients between training and validation sets, preserving the integrity of evaluation
 - Conducting data augmentation and normalisation to enhance the robustness of the model
 - Facilitating batch processing to expedite the computational process (images batched together during training)
 
 ## Training and Validation Performance 
+The model was trained over 25 epochs, with hyperparameters defined in modules.py. The loss and accuracy metrics over both training and validation sets are shown in the below figures. 
 
+![Train, val losses](Images/Training_Validation_Losses.png)
 
+![Train, val accuracies](Images/Training_Validation_Accuracies.png)
+
+The model attained an accuracy of 69.4% for the training set and 67.8% for the validation set. The accuracy (and loss) plots indicate that the discrepancy between training and validation set decreases, suggesting that the model generalises well as opposed to memorising the training data. Training the model over additional epochs is likely to further prevent over-fitting, despite attempted prevention in hyperparameters. However, this was not feasible given the additional computational cost associated in doing so. The graphs indicate some convergence, and training the model on additional epochs is expected to enhance this convergence. 
 
 ## Dependencies
 - Python 3.10.12
@@ -81,10 +80,10 @@ GPU access is fundamental for accelerating training and inference processing. Th
 - **OS**: Linux (as provided by Google Colab)
 
 ## Usage Description 
-Ensure all dependencies are installed, and access to a GPU or other high-performing machine. To prepare the dataset, data loading and pre-processing is required by making use of the ADNC_Dataset class within dataset.py. Next, loading and splitting of the data via the load_data function in process.py prevents overlap between patients in the training and validation sets. Once the data is prepared, the create_data_loaders function is used to create data loaders for the training and validation sets. Once this data handling is complete, the model can be trained, using the train.py script; making use of the data loaders. Note that the hyperparameters of the model can be adjusted using the config_params_dict as needed. That is:
-  -	‘modules.py’ – contains source code for the model, and can be modified if required
-  - 'dataset.py’ and ‘process.py’ – can be altered to change the way in which data is pre-processed and handled. 
-  
+Ensure all dependencies are installed, and access to a GPU or other high-performing machine. To prepare the dataset, data loading and pre-processing is required by making use of the ADNC_Dataset class within dataset.py. Next, loading and splitting of the data via the load_data function prevents overlap between patients in the training and validation sets. Once the data is prepared, the create_data_loaders function is used to create data loaders for the training and validation sets. Once this data handling is complete, the model can be trained, using the train.py script; making use of the data loaders. The number of epochs and batch size can be specified as such --epochs 10 and --batch_size 32. Otherwise, the default is set to 2 epochs and a batch size of 16 (these were not the specifications used in training for this model). To make predictions using a pre-trained model, the predict.py script can be used, by providing the path to the image wanting to be classified. Note that the hyperparameters of the model can be adjusted using the config_params_dict as needed. That is:
+  - ‘modules.py’ – contains source code for the model, and can be modified if required
+  - 'dataset.py’  – can be altered to change the way in which data is pre-processed and handled. 
+
 ## References
 - **ADNI dataset**:
   - Alzheimer's Disease Neuroimaging Initiative (ADNI) database. [Link](https://adni.loni.usc.edu)

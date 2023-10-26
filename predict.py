@@ -7,6 +7,10 @@ from modules import ConvolutionalVisionTransformer, CViTConfig
 from dataset import load_test_data,configuration
 
 def predict_image(image_path,model_path):
+    """
+    Predict the class of an image using a pre-trained CViT model. An image is read and preprocessed from specified path, before feeding it into CViT model. The model 
+    processes the image to determine the class. Function returns the class index predicted by the model.
+    """
     # Define a transform to preprocess the test image (adjust as needed)
     transform = transforms.Compose([
         transforms.Resize((299,299)),
