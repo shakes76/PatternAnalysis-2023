@@ -2,7 +2,7 @@
 #SBATCH --nodes=1 
 #SBATCH --ntasks=1 
 #SBATCH --gres=gpu:1 
-#SBATCH --partition=test 
+#SBATCH --partition=vgpu 
 #SBATCH --job-name="COMP3710 Report"
 #SBATCH --mail-user=s4745275@student.uq.edu.au
 #SBATCH --mail-type=ALL 
