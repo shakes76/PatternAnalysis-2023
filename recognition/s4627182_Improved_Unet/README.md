@@ -25,6 +25,11 @@
    making them simpler and more focused on the lesion's location and shape.
 
 ## Model
+   The activations in the context pathway are computed by context modules. 
+   Each context module is in fact a pre-activation residual block with two 3x3x3 convolutional 
+   layers and a dropout layer (p_drop = 0.3) in between. Context modules are connected 
+   by 3x3x3 convolutions with input stride 2 to reduce the resolution of the feature maps and allow 
+   for more features while descending the aggregation pathway.
    
 
 

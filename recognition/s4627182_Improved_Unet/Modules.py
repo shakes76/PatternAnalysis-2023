@@ -6,7 +6,6 @@ import torch.utils.data
 import torch
 
 
-
 class ContextModule(nn.Module):
     """
     Context Module: Consists of two convolutional layers for feature extraction and a dropout layer
