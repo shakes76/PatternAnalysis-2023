@@ -28,24 +28,26 @@ def training_log_path_and_writer():
 
 def loss_function():
     # Define the loss function
-    # criterion = ContrastiveLoss()
     criterion_function = nn.BCELoss()
     return criterion_function
 
 
 def get_optimizer(net):
     # Define the optimizer using Adam
-    train_optimizer = optim.Adam(net.parameters(), lr=0.001, weight_decay=0.01)
+    train_optimizer = optim.Adam(net.parameters(), lr=0.001)
+    # train_optimizer = optim.Adam(net.parameters(), lr=0.001, weight_decay=0.01)
     return train_optimizer
 
 
 def instantiate_datasets_and_dataloaders():
+    dataloader_batch_size = 256
+    number_of_workers = 4
     # Instantiate the datasets and dataloaders
     new_train_dataset, new_test_dataset, new_val_dataset = dataset.get_datasets('AD_NC')
 
-    new_train_dataloader = DataLoader(new_train_dataset, shuffle=True, num_workers=4, batch_size=256)
-    new_test_dataloader = DataLoader(new_test_dataset, shuffle=True, num_workers=4, batch_size=256)
-    new_validation_dataloader = DataLoader(new_val_dataset, shuffle=True, num_workers=4, batch_size=256)
+    new_train_dataloader = DataLoader(new_train_dataset, num_workers=number_of_workers, batch_size=dataloader_batch_size)
+    new_test_dataloader = DataLoader(new_test_dataset, num_workers=number_of_workers, batch_size=dataloader_batch_size)
+    new_validation_dataloader = DataLoader(new_val_dataset, num_workers=number_of_workers, batch_size=dataloader_batch_size)
 
     return new_train_dataset, new_train_dataloader, new_test_dataloader, new_val_dataset, new_validation_dataloader
 
@@ -61,7 +63,9 @@ def validate_process():
         # get all patient ids
         all_patient_ids = set()
         for current_category in ["AD", "NC"]:
+
             for file_name in os.listdir(os.path.join(train_path, current_category)):
+
                 patient_id = file_name.split('_')[0]  # get the part before the underscore as the patient id
                 all_patient_ids.add(patient_id)
 
@@ -71,7 +75,9 @@ def validate_process():
 
         # move the images of the validation patients to the validation directory
         for current_category in ["AD", "NC"]:
+
             for file_name in os.listdir(os.path.join(train_path, current_category)):
+
                 patient_id = file_name.split('_')[0]  # get the part before the underscore as the patient id
                 source_path = os.path.join(train_path, current_category, file_name)
                 if patient_id in validation_patient_ids:
@@ -86,31 +92,23 @@ def validate_process():
         print("Validating set already exists!")
 
 
-# def read_from_checkpoint(current_module_pth: str):
-#     # read the module
-#     current_checkpoint = torch.load(current_module_pth)
-#     net.load_state_dict(current_checkpoint['module_state_dict'])
-#     current_training_epoch = current_checkpoint['epoch']
-#
-#     return current_checkpoint, current_training_epoch
-
-
 def train_loop_with_progress_bar(train_module, train_epoch, train_loop_dataloader, train_optimizer):
+
+    # Train loop
+    train_module.train()
     print("Main training loop is in progress...")
 
-    train_module.train()
+    # Initial values
     train_epoch = train_epoch if train_epoch is not None else 0
-    # Initialize the running loss to 0
     train_total_losses = 0.0
     train_correct_numbers = 0
     train_total_labels = 0
+
     # Progress bar
     for index, image_data in tqdm(enumerate(train_loop_dataloader), total=len(train_loop_dataloader)):
-        # Get the images and labels from the data
-        img_0, img_1, image_label = image_data
-        # Move the images and labels to the appropriate device
-        img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)
 
+        img_0, img_1, image_label = image_data  # Get the images and labels from the data
+        img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)  # Move the images and labels to the appropriate device
         # Zero the gradients
         train_optimizer.zero_grad()
         total_train_outputs = train_module(img_0, img_1).squeeze()  # Adjust the size of the output to match the target
@@ -125,110 +123,148 @@ def train_loop_with_progress_bar(train_module, train_epoch, train_loop_dataloade
         train_correct_numbers += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
 
     # Calculate the average loss over the entire training data
-    average_train_loss = train_total_losses / len(train_loop_dataloader)
-    average_train_accuracy = 100 * train_correct_numbers / train_total_labels
-    print(f"Training - Epoch: {train_epoch}, Training Average Loss: {average_train_loss:.4f}, Training Accuracy: {average_train_accuracy:.4f}%")
+    train_average_loss = train_total_losses / len(train_loop_dataloader)
+    train_average_accuracy = 100. * train_correct_numbers / train_total_labels
+    print(f"Training - Epoch: {train_epoch},[{train_total_labels}/{len(train_loop_dataloader.dataset)}] "
+          f"Training Average Loss: {train_average_loss:.4f}, Training Accuracy: {train_average_accuracy:.4f}%, ")
 
     # Write the average loss value to tensorboard
-    writer.add_scalar('Training Average Loss', average_train_loss, train_epoch)
-    writer.add_scalar('Training Accuracy', average_train_accuracy, train_epoch)
-
-    train_content = "Training_Epoch:" + str(train_epoch) + ",Training_Average_Loss:" + str(average_train_loss) + ",Training_Accuracy:" + str(average_train_accuracy)
+    writer.add_scalar('Training Average Loss', train_average_loss, train_epoch)
+    writer.add_scalar('Training Accuracy', train_average_accuracy, train_epoch)
+    train_content = "Training_Epoch:" + str(train_epoch) + ",Training_Average_Loss:" + str(train_average_loss) + ",Training_Accuracy:" + str(train_average_accuracy)
     write_to_file(file_path, train_content)
 
 
 def validation_loop_with_progress_bar(validate_module, epoch, validate_loop_dataloader):
     # Validation loop
     validate_module.eval()
-
     print("Validating is in progress...")
-    validate_total_loss = 0.0
-    validate_accuracy = 0.0
-    validate_total_labels = 0.0
-    # Progress bar
-    for index, image_data in tqdm(enumerate(validate_loop_dataloader), total=len(validate_loop_dataloader)):
-        img_0, img_1, image_label = image_data
-        img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)
-        with torch.no_grad():
-            validate_total_outputs = validate_module(img_0, img_1).squeeze()
-            validate_loss = criterion(validate_total_outputs, image_label)
 
+    # Initial values
+    validate_total_losses = 0.0
+    validate_correct_numbers = 0.0
+    validate_total_labels = 0.0
+
+    # Progress bar
+    with torch.no_grad():
+        for index, image_data in tqdm(enumerate(validate_loop_dataloader), total=len(validate_loop_dataloader)):
+
+            img_0, img_1, image_label = image_data  # Get the images and labels from the data
+            img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)  # Move the images and labels to the appropriate device
+            validate_total_outputs = validate_module(img_0, img_1).squeeze()  # Adjust the size of the output to match the target
+            validate_average_loss = criterion(validate_total_outputs, image_label)  # Get the loss
+
+            # Calculate the accuracy
             predicted_label = torch.where(validate_total_outputs > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
             validate_total_labels += len(image_label)
-            validate_accuracy += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
-            validate_total_loss += validate_loss.sum().item()
+            validate_correct_numbers += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
+            validate_total_losses += validate_average_loss.item()
 
-    average_validation_loss = validate_total_loss / len(validate_loop_dataloader)
-    validation_accuracy = validate_accuracy / validate_total_labels * 100
-    print(f"Validating - Epoch: {epoch}, Validating Average Loss: {average_validation_loss:.4f},Validating Accuracy:{validation_accuracy:.4f}%")
+    # Calculate the average loss over the entire validating data
+    validate_average_loss = validate_total_losses / len(validate_loop_dataloader)
+    validate_average_accuracy = 100. * validate_correct_numbers / validate_total_labels
+    print(f"Validating - Epoch: {epoch},[{validate_total_labels}/{len(validate_loop_dataloader.dataset)}] "
+          f"Validating Average Loss: {validate_average_loss:.4f},Validating Accuracy:{validate_average_accuracy:.4f}%")
+
     # Write the average validation loss value and accuracy to tensorboard
-    writer.add_scalar('Validation Average Loss', average_validation_loss, epoch)
-    writer.add_scalar('Validation Accuracy', validation_accuracy, epoch)
-    current_content = "Validating_Average_Loss:" + str(average_validation_loss) + ",Validating_Accuracy:" + str(validation_accuracy)
-    write_to_file(file_path, current_content)
+    writer.add_scalar('Validation Average Loss', validate_average_loss, epoch)
+    writer.add_scalar('Validation Accuracy', validate_average_accuracy, epoch)
+    validate_content = "Validating_Average_Loss:" + str(validate_average_loss) + ",Validating_Accuracy:" + str(validate_average_accuracy)
+    write_to_file(file_path, validate_content)
 
-    return validation_accuracy, average_validation_loss
+    # Update the current accuracy and loss in order to store the best module
+    return validate_average_accuracy, validate_average_loss
 
 
-def test_loop_with_progress_bar(test_module, epoch, test_loop_dataloader):
+def test_loop_with_progress_bar(test_module, test_epoch, test_loop_dataloader):
     # Test Loop
     test_module.eval()
     print("Testing is in progress...")
-    test_total_loss = 0.0
-    test_accuracy = 0.0
+
+    # Initial values
+    test_total_losses = 0.0
+    test_correct_numbers = 0.0
     test_total_labels = 0.0
+
     # Progress bar
-    for index, image_data in tqdm(enumerate(test_loop_dataloader), total=len(test_loop_dataloader)):
-        img_0, img_1, image_label = image_data
-        img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)
-        with torch.no_grad():
-            test_total_outputs = test_module(img_0, img_1).squeeze()
-            test_loss = criterion(test_total_outputs, image_label)
+    with torch.no_grad():
+        for index, image_data in tqdm(enumerate(test_loop_dataloader), total=len(test_loop_dataloader)):
+
+            img_0, img_1, image_label = image_data  # Get the images and labels from the data
+            img_0, img_1, image_label = img_0.to(device), img_1.to(device), image_label.to(device)  # Move the images and labels to the appropriate device
+            test_total_outputs = test_module(img_0, img_1).squeeze()  # Adjust the size of the output to match the target
+            test_loss = criterion(test_total_outputs, image_label)  # Get the loss
+
+            # Calculate the accuracy
             predicted_label = torch.where(test_total_outputs > 0.5, torch.tensor(1, device=device), torch.tensor(0, device=device))
             test_total_labels += len(image_label)
-            test_accuracy += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
-            test_total_loss += test_loss.sum().item()
+            test_correct_numbers += predicted_label.eq(image_label.view_as(predicted_label)).sum().item()
+            test_total_losses += test_loss.item()
 
-    test_average_loss = test_total_loss / len(test_loop_dataloader)
-    test_accuracy = test_accuracy / test_total_labels * 100
-    print(f"Testing - Epoch:{epoch},Testing_Average_Loss:{test_average_loss:.4f},Testing_Accuracy:{test_accuracy:.4f}%")
+    # Calculate the average loss over the entire testing data
+    test_average_loss = test_total_losses / len(test_loop_dataloader)
+    test_average_accuracy = 100. * test_correct_numbers / test_total_labels
+    print(f"Testing - Epoch:{test_epoch},{test_epoch},[{test_total_labels}/{len(test_loop_dataloader.dataset)}] "
+          f"Testing_Average_Loss:{test_average_loss:.4f},Testing_Accuracy:{test_average_accuracy:.4f}%")
 
     # Write the average test loss value and accuracy to tensorboard
-    writer.add_scalar('Test Average Loss', test_average_loss, epoch)
-    writer.add_scalar('Test Accuracy', test_accuracy, epoch)
-    current_content = "Testing_Average_Loss:" + str(test_average_loss) + ",Testing_Accuracy:" + str(test_accuracy)
-    write_to_file(file_path, current_content)
+    writer.add_scalar('Test Average Loss', test_average_loss, test_epoch)
+    writer.add_scalar('Test Accuracy', test_average_accuracy, test_epoch)
+    test_content = "Testing_Average_Loss:" + str(test_average_loss) + ",Testing_Accuracy:" + str(test_average_accuracy)
+    write_to_file(file_path, test_content)
 
-    return test_accuracy, test_average_loss
+    # Update the current accuracy and loss in order to store the best module
+    return test_average_accuracy, test_average_loss
 
 
-def main_training_loop(current_module, epochs, current_train_dataloader, current_test_dataloader, current_validation_dataloader, train_optimizer):
-    # Main Loop
+def main_training_loop(current_module, start_epoch, end_epoch, current_train_dataloader, current_test_dataloader, current_validation_dataloader, train_optimizer):
+    # Main Loop, starts from train loop so set the status as train(it's not necessary although)
     current_module.train()
+
+    # Initial values in order to get the best module
     best_validate_accuracy = 0.0
     best_validate_loss = float('inf')
     best_test_accuracy = 0.0
     best_test_loss = float('inf')
 
-    for epoch in range(epochs + 1, 1001):
+    for epoch in range(start_epoch + 1, end_epoch):
+
+        # Train loop
         train_loop_with_progress_bar(current_module, epoch, current_train_dataloader, train_optimizer)
+
+        # Validate loop
         validate_accuracy, validate_loss = validation_loop_with_progress_bar(current_module, epoch, current_validation_dataloader)
 
+        # Test loop
         test_accuracy, test_loss = test_loop_with_progress_bar(current_module, epoch, current_test_dataloader)
 
-        if test_accuracy > best_test_accuracy or test_loss < best_test_loss:
-            print(f"Current test accuracy: {test_accuracy:.4f}%, Current test loss: {test_loss:.4f}")
+        # Compare the test accuracies and store the best one
+        if test_accuracy > best_test_accuracy:
+            print(f"Best testing accuracy: {test_accuracy:.4f}%, Best testing loss: {test_loss:.4f}")
             best_test_accuracy = test_accuracy
-            best_test_loss = test_loss
-            best_content = "Best_Testing_Average_Loss:" + str(best_test_loss) + ", Best_Testing_Accuracy:" + str(best_test_accuracy)
-            write_to_file(file_path, best_content)
-            torch.save({
-                'module_state_dict': current_module.state_dict(),
-                'epoch': epoch,
-            }, 'module_best_test_accuracy' + '.pth')
 
-        if validate_accuracy > best_validate_accuracy or validate_loss < best_validate_loss:
-            print(f"Current validating accuracy: {validate_accuracy:.4f}%, Current validating loss: {validate_loss:.4f}")
+            # Compare the test losses and store the best one
+            if test_loss < best_test_loss:
+                # Loss is smaller and accuracy is higher, update the best module
+                best_test_loss = test_loss
+                both_best_content = "Best_Testing_Average_Loss:" + str(best_test_loss) + ", Best_Testing_Accuracy:" + str(best_test_accuracy)
+                write_to_file(file_path, both_best_content)
+                torch.save({
+                    'module_state_dict': current_module.state_dict(),
+                    'epoch': epoch,
+                }, 'module_best_test_accuracy' + '.pth')
+            else:
+                # Loss is not smaller but accuracy is higher, still update the best module since we care about accuracy more
+                best_content = " Best_Testing_Accuracy:" + str(best_test_accuracy)
+                write_to_file(file_path, best_content)
+                torch.save({
+                    'module_state_dict': current_module.state_dict(),
+                    'epoch': epoch,
+                }, 'module_best_test_accuracy' + '.pth')
+
+        # Compare the validating losses and accuracies, also store them and save as the best module
+        if validate_accuracy > best_validate_accuracy and validate_loss < best_validate_loss:
+            print(f"Best validating accuracy: {validate_accuracy:.4f}%, Best validating loss: {validate_loss:.4f}")
             best_validate_accuracy = validate_accuracy
             best_validate_loss = validate_loss
             best_content = "Best_Validating_Average_Loss:" + str(best_validate_loss) + ", Best_Validating_Accuracy:" + str(best_validate_accuracy)
@@ -239,6 +275,7 @@ def main_training_loop(current_module, epochs, current_train_dataloader, current
             }, 'module_best_validation' + '.pth')
 
 
+# Write the module to file
 def write_to_file(file_path_to_save, content):
     with open(file_path_to_save, 'a') as file:
         file.write(content + '\n')
@@ -264,11 +301,13 @@ if __name__ == '__main__':
     validate_process()
 
     # Instantiate datasets and dataloaders
-    train_dataset, train_dataloader, test_dataloader, val_dataset, validation_dataloader = instantiate_datasets_and_dataloaders()
+    train_dataset, train_dataloader, test_dataloader, validate_dataset, validate_dataloader = instantiate_datasets_and_dataloaders()
 
-    # read the module from the checkpoint of the previous module
-    # checkpoint, current_epoch = read_from_checkpoint('module_best_test_accuracy.pth')
-    current_epoch = 0
-    main_training_loop(module, current_epoch, train_dataloader, test_dataloader, validation_dataloader, optimizer)
+    # Initialize the start/end epoch, if we need to start from a checkpoint, we can modify it and use a helper function. 
+    # I deleted them since there is no need to use.
+    starting_epoch = 0
+    ending_epoch = 1001
+    main_training_loop(module, starting_epoch, ending_epoch, train_dataloader, test_dataloader, validate_dataloader, optimizer)
 
+    # Close the writer
     writer.close()
