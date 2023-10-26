@@ -97,10 +97,10 @@ The dataset can be downloaded from [ADNI](http://adni.loni.usc.edu/data-samples/
 
 The dataset contains 4,424 images of brain MRI scans, which are divided into 2,315 AD and 2,109 NC images.
 
-Here are several examples of AD (left) and NC (right) images:
+Here are two examples of AD (left) and NC (right) images:
 
-![AD_example.jpeg](../Images/AD_example.jpeg)
-![NC_example.jpeg](../Images/NC_example.jpeg)
+![AD_example.jpeg](./Images/AD_example.jpeg)
+![NC_example.jpeg](./Images/NC_example.jpeg)
 
 The dataset have been preprocessed, they are all in same size (256 * 240 pixels) and in gray scale.
 
@@ -197,6 +197,59 @@ AD_NC/
     - If you wish to enhance the model's generalization capabilities, consider uncommenting this code.
     - Ensure the directory structure for the image data is correct when using the dataset class.
     - You must run train.py first to get the best module then run predict.py, otherwise there will be an error.
+
+
+# Output Images
+
+
+## Tensorboard output images:
+
+### Train Accuracy:
+![train_acc](./Images/train_acc.png)
+
+### Train Loss:
+![train_loss](./Images/train_loss.png)
+
+### Validate Accuracy:
+![val_acc](./Images/val_acc.png)
+
+### Validate Loss:
+![val_loss](./Images/val_loss.png)
+
+### Test Accuracy:
+![test_acc](./Images/test_acc.png)
+
+### Test Loss:
+![test_loss](./Images/test_loss.png)
+
+
+## Pyplot Images
+### generated via results from server, since there is no tensorboard on server
+
+### Train Accuracy:
+![trainacc](./Images/trainacc.png)
+
+### Train Loss:
+![trainloss](./Images/train_oss.png)
+
+### Validate Accuracy:
+![valacc](./Images/valacc.png)
+
+### Validate Loss:
+![valloss](./Images/valloss.png)
+
+### Test Accuracy:
+![testacc](./Images/testacc.png)
+
+### Test Loss:
+![testloss](./Images/testloss.png)
+
+### All Accuracies:
+![acc](./Images/acc.png)
+
+### All Losses:
+![loss](./Images/loss.png)
+
 
 
 ## Dependencies
