@@ -29,7 +29,7 @@ class ViT(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(), lr=self.hparams.lr)
-        lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[100, 150], gamma=0.1)
+        lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[90, 150], gamma=0.1)
         return [optimizer], [lr_scheduler]
 
     def _calculate_loss(self, batch, mode="train"):
@@ -62,7 +62,7 @@ def main():
     ADNI_config = {
         "embed_dim": 256,
         "hidden_dim": 512,
-        "num_heads": 8,
+        "num_heads": 6,
         "num_layers": 6,
         "patch_size": 8,
         "num_channels": 3,
@@ -71,7 +71,7 @@ def main():
         "dropout": 0.2,}
     model = ViT(ADNI_config, lr=lr)
 
-    batch_size = 64 #working 16 on hpc
+    batch_size = 32 #working 16 on hpc
     num_workers = 0 #num_workers = 0 if windows
     max_epochs = 30
 
