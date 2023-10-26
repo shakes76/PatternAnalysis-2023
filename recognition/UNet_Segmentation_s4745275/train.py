@@ -18,20 +18,15 @@ from utils import dice_loss, dice_coefficient
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
-from torch.utils.data import Subset  # for debugging only TODO
 
+# Set to True if you encounter dataset inconsistencies
+check = False
 
 # Hyper-parameters
 num_epochs = 25
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Conditional parameters used for debugging
-check = False
-debugging = False
-saving = True
-validating = True
-
-
+# Method used during validation and testing to evaulate the model
 def evaluate_model(model, data_loader, device):
     # set the model to evaluation mode
     model.eval()
@@ -64,49 +59,27 @@ def evaluate_model(model, data_loader, device):
 if check:
     check_consistency()
 
-# Construct debugging datasets (small subset for fast tests)
-if debugging:
-    num_epochs = 2
-    subset_size = 500
 
-    dataset = ISICDataset(process_and_augment)
-    subset_indices = list(range(subset_size))
-    subset = Subset(dataset, subset_indices)
+# Loading up the dataset and applying custom augmentations
+dataset = ISICDataset(process_and_augment)
 
-    train_size = int(subset_size * 0.6)
-    val_size = int(subset_size * 0.2)
-    test_size = subset_size - train_size - val_size
+total_size = len(dataset)
 
-    train_dataset, val_dataset, test_dataset = random_split(
-        subset, [train_size, val_size, test_size]
-    )
+# Splitting into training, validation and testing sets
+train_size = int(total_size * 0.7)
+val_size = int(total_size * 0.2)
+test_size = total_size - train_size - val_size
 
-    train_loader = DataLoader(train_dataset, 32, True)
-    validation_loader = DataLoader(val_dataset, 100, False)
-    test_loader = DataLoader(test_dataset, 100, False)
+train_dataset, val_dataset, test_dataset = random_split(
+    dataset, [train_size, val_size, test_size]
+)
 
-# Construct full datasets
-if not debugging:
-    # Loading up the dataset and applying custom augmentations
-    dataset = ISICDataset(process_and_augment)
+# Data loaders for training, validation and testing
+train_loader = DataLoader(train_dataset, 32, True)
+validation_loader = DataLoader(val_dataset, 100, False)
+test_loader = DataLoader(test_dataset, 100, False)
 
-    total_size = len(dataset)
-
-    # Splitting into training, validation and testing sets
-    train_size = int(total_size * 0.7)
-    val_size = int(total_size * 0.2)
-    test_size = total_size - train_size - val_size
-
-    train_dataset, val_dataset, test_dataset = random_split(
-        dataset, [train_size, val_size, test_size]
-    )
-
-    # Data loaders for training, validation and testing
-    train_loader = DataLoader(train_dataset, 32, True)
-    validation_loader = DataLoader(val_dataset, 100, False)
-    test_loader = DataLoader(test_dataset, 100, False)
-
-# Creating an instance of my UNet to be trained
+# Creating an instance of the UNet to be trained
 model = UNet(in_channels=6, num_classes=1)
 model = model.to(device)
 
@@ -137,8 +110,6 @@ for epoch in range(num_epochs):
 
         # Forward pass
         outputs = model(images)
-        # print(f"outputs = {outputs.size()}")
-        # print(f"masks = {masks.size()}")
 
         loss = dice_loss(outputs, masks)
 
@@ -154,22 +125,21 @@ for epoch in range(num_epochs):
             )
             running_loss = 0.0
 
-    if validating:
-        # Evaluate the model using the validation set
-        dice_similarity, dice_minimum = evaluate_model(model, validation_loader, device)
-        val_loss = 1 - dice_similarity
-        # Print out the validation metrics
-        print(
-            f"Validation metrics during epoch {epoch + 1}, loss = {val_loss:.4f}, similarity = {dice_similarity:.4f}, minimum = {dice_minimum:.4f}"
-        )
+    # Evaluate the model using the validation set
+    dice_similarity, dice_minimum = evaluate_model(model, validation_loader, device)
+    val_loss = 1 - dice_similarity
+    # Print out the validation metrics
+    print(
+        f"Validation metrics during epoch {epoch + 1}, loss = {val_loss:.4f}, similarity = {dice_similarity:.4f}, minimum = {dice_minimum:.4f}"
+    )
 
-        # Model checkpointing
-        if dice_similarity > best_val_similarity and dice_minimum >= best_val_minimum:
-            best_val_loss = val_loss
-            torch.save(model.state_dict(), "best_model.pth")
-            no_improvement = 0
-        else:
-            no_improvement += 1
+    # Model checkpointing
+    if dice_similarity > best_val_similarity and dice_minimum >= best_val_minimum:
+        best_val_loss = val_loss
+        torch.save(model.state_dict(), "best_model.pth")
+        no_improvement = 0
+    else:
+        no_improvement += 1
 
     # Early stoppage if the model hasn't improved in `patience` epochs
     if no_improvement > patience:
@@ -181,11 +151,10 @@ for epoch in range(num_epochs):
 print("training complete")
 
 # Save the model
-if saving:
-    torch.save(
-        model.state_dict(),
-        "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/model.pth",
-    )
+torch.save(
+    model.state_dict(),
+    "/home/Student/s4745275/PatternAnalysis-2023/recognition/Problem_47452752/best_model.pth",
+)
 
 avg_dice_score, min_dice_score = evaluate_model(model, test_loader, device)
 

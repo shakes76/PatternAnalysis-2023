@@ -16,8 +16,13 @@ To run the ISIC Lesion Segmentation Algorithm, you'll need the following librari
 - numpy: For numerical computations and some tensor operations
 - PyTorch: For building and training the neural network
 - matplotlib: For plotting and visualisation
+- PIL: For loading the dataset and visualisation
 
 To install any dependencies you can use `pip install`
+
+## Reproducability
+
+To run the algorithm and reproduce the outcomes I've produced you may need to modify the directory paths used when initialising ISICDataset. Also, the directory where the model state dictionary is saved / loaded may also need to be modified. 
 
 ## Usage
 #### See predict.py for a full usage demonstration of the model.
@@ -34,9 +39,13 @@ torch.Tensor was shape [batch_size, 1, 256, 256]
 - 1 channel containing probabilities of being 
 - The image has dimensions 256x256
 
-##
-![Beautiful demonstation of the model efficacy](./UNet_Segmentation_s4745275/images/incredibly_good_prediction.png)
-Figure 2: An example output from a random sample (not an amazing depiction of the efficacy...)
+## Results
+In the end the model achieved an average dice similarity of 0.7364 on the test set. This was after substantial training (50 epochs) which suggests there is room for improvement within the model. If I had time I'd have employed techniques like hyperparameter tuning, and perhaps explored other optimisers.
+
+![Beautiful demonstation of the model efficacy](./UNet_Segmentation_s4745275/images/figure_2.png)
+Figure 2: An example output from a random sample. Black indicates non-lesion, white indicates lesion. (25 epochs)
+
+With that being said the model does show some ability in segmenting the image. This is demonstrated in Figure 2: the output mask somewhat resembles the true mask, espectially around the edge. 
 ## Pre-processing
 Various transformation pipelines where implemented for pre-processing and data augmentation. These can be found in the dataset.py file. These are used to convert inputted images or masks into tensors compatible with the model (see Input and Output), as well as normalizing the inputs. During training the process_and_augment pipeline was used to perform several random scalings, flips, rotations etc to improve the generalizability of the model during learning.
 
