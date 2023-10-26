@@ -16,7 +16,7 @@ class ViT(pl.LightningModule):
     """Pytorch_lightning all encompasing module.
 
     Handles creation of VisionEncoder and loss calculation
-    along with optermiser and lr rate schedular
+    along with optermiser and lr rate scheduler
     
     """
     def __init__(self, config, lr):
@@ -29,7 +29,7 @@ class ViT(pl.LightningModule):
 
     def configure_optimizers(self):
         optimizer = optim.AdamW(self.parameters(), lr=self.hparams.lr)
-        lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[15, 45], gamma=0.1)
+        lr_scheduler = optim.lr_scheduler.MultiStepLR(optimizer, milestones=[20, 45], gamma=0.1)
         return [optimizer], [lr_scheduler]
 
     def _calculate_loss(self, batch, mode="train"):
@@ -54,7 +54,7 @@ class ViT(pl.LightningModule):
 
 def train_model():
     image_size = [256,240]
-    lr = 1e-5
+    lr = 3e-5
     ADNI_config = {
         "embed_dim": 256,
         "hidden_dim": 512,
@@ -71,9 +71,9 @@ def train_model():
     num_workers = 0 #num_workers = 0 if windows
     max_epochs = 50
 
-    CIFAR10 = CIFAR10DataModule(batch_size=batch_size, 
-                        image_size=image_size,  
-                        num_workers=num_workers)
+    # CIFAR10 = CIFAR10DataModule(batch_size=batch_size, 
+    #                     image_size=image_size,  
+    #                     num_workers=num_workers)
     
     ADNI = ADNIDataModule(batch_size=batch_size, 
                         image_size=image_size,  
@@ -82,6 +82,9 @@ def train_model():
     trainer = pl.Trainer(max_epochs=max_epochs,
                         accelerator='gpu',
                         devices=1)
+    
+    trainer.fit(model, ADNI)
+    trainer.test(model, ADNI)
 
 def main():
     train_model() #runs train_model essentially main
