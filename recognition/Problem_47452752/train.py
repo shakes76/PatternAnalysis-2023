@@ -66,17 +66,17 @@ if check:
 
 # Construct smaller debugging datasets
 if debugging:
-    num_epochs = 15
+    num_epochs = 3
     dataset = ISICDataset(transform)
-    subset_indices = list(range(40))  # debugging on first 40 samples
+    subset_indices = list(range(200))  # debugging on first 40 samples
     subset = Subset(dataset, subset_indices)
 
     test_size = int(0.5 * len(subset))
     train_size = len(subset) - test_size
     train_dataset, test_dataset = random_split(subset, [train_size, test_size])
 
-    train_loader = DataLoader(train_dataset, 10)
-    test_loader = DataLoader(test_dataset, 10)
+    train_loader = DataLoader(train_dataset, 50)
+    test_loader = DataLoader(test_dataset, 50)
 
 # Construct full datasets
 if not debugging:
