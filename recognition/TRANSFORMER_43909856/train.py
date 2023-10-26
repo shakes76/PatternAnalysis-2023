@@ -64,16 +64,19 @@ Params:
 """
 def train_model(save_model_data=True):
     # Get the training and validation data (ADNI) and # of total steps
-    train_images, total_step, val_images = \
+    train_images, n_training_points, val_images = \
                 dataset.load_ADNI_data_per_patient(dataset_path=DATASET_PATH, train_size=0.8)
+    # Get the total step (# of batches)
+    total_step = int(np.ceil(n_training_points / BATCH_SIZE))
 
-    # Add the training and (if any) validation data to data loaders
+    # Add the training and validation data to data loaders
     train_loader = DataLoader(train_images, batch_size=BATCH_SIZE, shuffle=True,
-                            num_workers=2, worker_init_fn=worker_init_fn)
+                            num_workers=0, worker_init_fn=worker_init_fn)
+    
     if val_images is not None:
         # If val_images is None, don't create a validation set
         val_loader = DataLoader(val_images, batch_size=BATCH_SIZE, shuffle=True,
-                                num_workers=2, worker_init_fn=worker_init_fn)
+                                num_workers=0, worker_init_fn=worker_init_fn)
 
     # Initalise the model
     model = modules.SimpleViT(image_size=(IMG_SIZE, IMG_SIZE), patch_size=(16, 16), n_classes=N_CLASSES, 
@@ -113,7 +116,7 @@ def train_model(save_model_data=True):
         # Train on each image in the training set
         for i, (images, labels) in enumerate(train_loader):
             images = images.to(device)
-            labels = labels.to(device)
+            labels = torch.Tensor(labels).to(device)
 
             # Perform a forward pass of the model
             outputs = model(images)
@@ -131,7 +134,6 @@ def train_model(save_model_data=True):
                     f"Training loss: {round(loss.item(), 5)}")
                 train_loss_values += [[epoch+1, i+1, total_step, round(loss.item(), 5)]]
         
-
         # Evaluate model on validation set (if a validation set exists):
         if val_images is not None:
             # After training has completed for each epoch, test model performance on validation data
@@ -146,24 +148,21 @@ def train_model(save_model_data=True):
 
                 # Save predictions and observed/empirical class labels
                 predictions += predicted
-                observed += labels
+                observed += val_labels
 
                 # Add to the total # of predictions
-                total += labels.size(0)
+                total += val_labels.size(0)
                 # Add correct predictions to a total
-                correct += (predicted == labels).sum().item()
+                correct += (predicted == val_labels).sum().item()
 
-                
-                # Print/log validation metrics after all predictions have been made
-                if (j+1) == total_step:
-                    # Get the validation loss
-                    val_loss = criterion(val_outputs, val_labels)
-                    # Print/save metrics
-                    print(f"End of epoch [{epoch+1}/{N_EPOCHS}] Validation loss: " +
-                          f"{round(val_loss.item(), 5)} Validation accuracy: " +
-                          f"{round((100 * correct) / total, 5)}%")
-                    val_loss_values += [[epoch+1, round(loss.item(), 5), 
-                                         round((100 * correct) / total, 5)]]
+            # Get the validation loss after all predictions have been made
+            val_loss = criterion(val_outputs, val_labels)
+            # Print/save metrics for the end of the epoch
+            print(f"End of epoch [{epoch+1}/{N_EPOCHS}] Validation loss: " +
+                    f"{round(val_loss.item(), 5)} Validation accuracy: " +
+                    f"{round((100 * correct) / total, 5)}%")
+            val_loss_values += [[epoch+1, round(val_loss.item(), 5), 
+                                    round((100 * correct) / total, 5)]]
 
         # Increment the LR scheduler to change the learning rate after each epoch completes
         scheduler.step()
