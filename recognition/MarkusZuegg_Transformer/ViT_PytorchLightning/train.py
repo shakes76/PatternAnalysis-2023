@@ -71,9 +71,9 @@ def main():
         "dropout": 0.2,}
     model = ViT(ADNI_config, lr=lr)
 
-    batch_size = 32 #working 16 on hpc
+    batch_size = 64 #working 16 on hpc
     num_workers = 0 #num_workers = 0 if windows
-    max_epochs = 20
+    max_epochs = 30
 
     CIFAR10 = CIFAR10DataModule(batch_size=batch_size, 
                         image_size=image_size,  
