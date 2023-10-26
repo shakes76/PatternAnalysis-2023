@@ -1,10 +1,30 @@
 """
-This file will use a pretrained module and test it
-if no file is found, it will call train.py and create a model
+This file can read a model checkpoint and then test it against test set
 """
-from train import train_model
+from dataset import ADNIDataModule
+import pytorch_lightning as pl
+from train import ViT
+
+# Set up dir of checkpoint
+root_dir = './checkpoints/'
+# Enter file name below:
+file_name = 'ViT_ckpt'
 
 def main():
-    return
+    checkpoint = root_dir + file_name
+
+    # Initialise trainer
+    trainer = pl.Trainer(max_epochs=1,
+                        accelerator='gpu',
+                        devices=1)
+    
+    # Initialise dataset
+    ADNI = ADNIDataModule(batch_size=32, num_workers=0, image_size=[256,240])
+
+    # Set up model from checkpoint
+    model = ViT.load_from_checkpoint(checkpoint_path=checkpoint)
+    
+    # Test model
+    trainer.test(model, ADNI)
 
 if __name__ == '__main__': main()
