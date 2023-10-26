@@ -4,6 +4,7 @@ import torch
 import torch.nn as nn
 import time
 import numpy as np
+from torch.utils.data import DataLoader
 
 import dataset
 import modules
@@ -50,7 +51,8 @@ Params:
 """
 def test_model(model_filename=osp.join(OUTPUT_PATH, "ViT_ADNI_model.pt"), save_metrics=True):
     # Get the testing data (ADNI)
-    test_loader = dataset.load_ADNI_data()
+    test_data = dataset.load_ADNI_data()
+    test_loader = DataLoader(test_data, batch_size=BATCH_SIZE, shuffle=False)
 
     # Initalise a blank slate model
     model = modules.SimpleViT(image_size=(IMG_SIZE, IMG_SIZE), patch_size=(16, 16), n_classes=N_CLASSES, 
@@ -93,7 +95,7 @@ def test_model(model_filename=osp.join(OUTPUT_PATH, "ViT_ADNI_model.pt"), save_m
     # Get the amount of time that the model spent testing
     end_time = time.time()
     elapsed_time = end_time - start_time
-    print(f"Test accuracy: {round((100 * correct) / total, 5)} %")
+    print(f"Test accuracy: {round((100 * correct) / total, 5)}%")
     print(f"Testing finished. Testing took {round(elapsed_time, 2)} seconds "
           +f"({round(elapsed_time/60, 5)} minutes)")
 
@@ -119,5 +121,5 @@ on Windows devices.
 def main():
     test_model()
 
-if __name__ == '__main__':    
+if __name__ == '__main__':
     main()
