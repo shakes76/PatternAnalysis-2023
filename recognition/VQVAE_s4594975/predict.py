@@ -109,4 +109,4 @@ def test_pcnn():
 
 if __name__ == "__main__":
     test_vqvae()
-    #test_pcnn()
+    test_pcnn()
