@@ -141,10 +141,6 @@ class PixelLayer(layers.Layer):
         return self.conv(inputs)
     
 class ResidualBlock(keras.layers.Layer):
-    """
-    Residual block, based on the PixelConvLayer.
-    """
-    
     def __init__(self, filters, **kwargs):
         super(ResidualBlock, self).__init__(**kwargs)
         self.conv1 = keras.layers.Conv2D(
@@ -194,11 +190,3 @@ def pcnn(vqvae_model, output_enco):
     pcnn = keras.Model(pixelcnn_inputs, outputs, name="pixel_cnn")
     
     return pcnn
-
-'''        
-class pixelcnn()
-    def __init__(self) -> None:
-    def call(self, input)
-             
-class residualblock()
-class convlayer()             '''
