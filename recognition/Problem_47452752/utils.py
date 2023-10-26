@@ -58,14 +58,16 @@ class DictTransform:
 
 def dice_loss(predicted, target, epsilon=1e-7):
     # Flatten the tensors 
-    predicted = predicted.view(-1)
-    target = target.view(-1)
+    # predicted = predicted.view(-1)
+    # target = target.view(-1)
+    dice_losses = [1 - dice_coefficient(pred, target) for pred, target in zip(predicted, target)]
+    penalized_losses = [loss * 2 if (1 - loss) < 0.8 else loss for loss in dice_losses]
+    average_penalized_loss = sum(penalized_losses) / len(penalized_losses)
 
-    intersection = (predicted * target).sum()
-    union = predicted.sum() + target.sum()
+    # max_dice_loss = max(dice_losses) # Penalize the worst performance
+    # dice_loss = sum(dice_losses) / len(dice_losses)
 
-    dice_loss = 2 * (intersection + epsilon) / (union + epsilon)
-    return 1 - dice_loss
+    return average_penalized_loss
 
 
 def general_dice_loss(predicted, target):
