@@ -5,7 +5,7 @@ The ISIC Lesion Segmentation Algorithm was designed to automatically segment ski
 
 The model is a modified UNet and is composed of several CNN layers, skip connections, and uses deep supervision facilitated by segmentation layers that connect different levels of the network to the final output. The architecture of the model was inspired by the [improved UNet](https://arxiv.org/abs/1802.10508v1) (Figure 1), which proved to be an effective 3D brain tumor segmentation model during the BRATS 2017 challenge. The network is trained using the 2018 ISIC (International Skin Imaging Collaboration) dataset, which contains annotated images of various skin lesions.
 
-![Image of the improved UNet architecture](./UNet_Segmentation_s4745275/images/Improved_UNet_architecture.png)
+![Image of the improved UNet architecture](./UNet_Segmentation_s4745275/images/Figure_1.png)
 Figure 1: Improved UNet architecture. Designed by F. Isensee et al.
 
 ## Dependencies
@@ -48,7 +48,7 @@ torch.Tensor was shape [batch_size, 1, 256, 256]
 ## Results
 Ultimately, after extensive training over 50 epochs, the model attained an average Dice similarity coefficient of 0.7364 on the test set. This performance indicates potential areas for improvement. Given more time, I would delve into techniques like hyperparameter tuning and possibly experiment with alternative optimizers.
 
-![Beautiful demonstation of the model efficacy](./UNet_Segmentation_s4745275/images/figure_2.png)
+![Beautiful demonstation of the model efficacy](./UNet_Segmentation_s4745275/images/Figure_2.png)
 Figure 2: An example output from a random sample. Black indicates non-lesion, white indicates lesion. (25 epochs)
 
 That said, the model does exhibit proficiency in segmenting the image. This is evident in Figure 2, where the output mask closely mirrors the true mask, especially around the edges.
