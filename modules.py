@@ -1,52 +1,51 @@
-#CViT
-#GAME PLAN: Convolutional ViT- start with a few convolutional layers to learn hierarchical  eatures from the input images 
-#then employ a transformer to handle the higher-level reasoning from the feature maps. 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-config_params_dict = {
-    "general": {
-        "num_channels": 3,  # RGB
-        "num_classes": 2
-    },
-    "num_classes": 2,
-    "patches": {
-        "sizes": [7, 3, 3], # kernel size of each encoder’s patch embedding.
-        "strides": [4, 2, 2],  # stride size ^^
-        "padding": [2, 1, 1]
-    },
-    "transformer": {
-        "embed_dim": [64, 192, 384],
-        "hidden_size": 384, #no. of features in the hidden state 
-        "num_heads": [1, 3, 6],  # Matching the number of blocks, balances focus between retaining local feature importance and understanding global context.
-        "depth": [1, 1, 1],  # Adjust this according to the number of blocks
-        "mlp_ratios": [4.0, 4.0, 4.0, 4.0], # size of the hidden layer: size of the input layer
-        "attention_drop_rate": [0.0, 0.0, 0.0], # prevent overfitting
-        "drop_rate": [0.0, 0.0, 0.0], 
-        "drop_path_rate": [0.0, 0.0, 0.1],
-        "qkv": {# queries (q), keys (k), and values (v) 
-            "bias": [True, True, True],
-            "projection_method": ["dw_bn", "dw_bn", "dw_bn"],
-            "kernel": [3, 3, 3],
-            "padding": {
-                "kv": [1, 1, 1],
-                "q": [1, 1, 1]
-            },
-            "stride": {
-                "kv": [2, 2, 2],
-                "q": [1, 1, 1]
-            }
+def configuration():
+    # Initialize the model, loss function, and optimizer
+    config_params_dict = {
+        "general": {
+            "num_channels": 3,  # RGB
+            "num_classes": 2
         },
-        "cls_token": [False, False, True]
-    },
-    "initialisation": {
-        "range": 0.02,
-        "layer_norm_eps": 1e-6
+        "num_classes": 2,
+        "patches": {
+            "sizes": [7, 3, 3],
+            "strides": [4, 2, 2],
+            "padding": [2, 1, 1]
+        },
+        "transformer": {
+            "embed_dim": [64, 192, 384],
+            "hidden_size": 384,
+            "num_heads": [2, 4, 6],  # Matching the number of blocks
+            "depth": [1, 1, 1],  # Adjust this according to the number of blocks
+            "mlp_ratios": [4.0, 4.0, 4.0, 4.0],
+            "attention_drop_rate": [0.0, 0.0, 0.0],
+            "drop_rate": [0.0, 0.0, 0.0],
+            "drop_path_rate": [0.0, 0.0, 0.1],
+            "qkv": {
+                "bias": [True, True, True],
+                "projection_method": ["dw_bn", "dw_bn", "dw_bn"],
+                "kernel": [3, 3, 3],
+                "padding": {
+                    "kv": [1, 1, 1],
+                    "q": [1, 1, 1]
+                },
+                "stride": {
+                    "kv": [2, 2, 2],
+                    "q": [1, 1, 1]
+                }
+            },
+            "cls_token": [False, False, True]
+        },
+        "initialisation": {
+            "range": 0.02,
+            "layer_norm_eps": 1e-6
+        }
     }
-}
-
+    return config_params_dict
 class CViTConfig:
     """
     Configuration class for Convolutional Vision Transformer (CViT) containing the configuration of the
@@ -56,13 +55,7 @@ class CViTConfig:
         for key, value in config_params.items():
             setattr(self, key, value)
 
-config = CViTConfig(config_params_dict)
-
 class MultiHeadSelfAttention(nn.Module):
-    """
-    Implements the multi-head self-attention mechanism. 
-    The attention mechanism uses scaled dot-product attention- operates on qkv projection of the input.
-    """
     def __init__(self, config):
         super().__init__()
         num_heads = config.transformer['num_heads'][0]
@@ -129,9 +122,6 @@ class MultiHeadSelfAttention(nn.Module):
 
 
 class TransformerBlock(nn.Module):
-    """
-    Transformer Block module comprising of multi-head self-attention mechanism and position-wise feed-forward network (FFN)   
-    """
     def __init__(self, config, index):
         super(TransformerBlock, self).__init__()
 
@@ -237,6 +227,7 @@ class ConvolutionalEmbedding(nn.Module):
 
         return x
 
+
 class ConvolutionalVisionTransformer(nn.Module):
     """
     CViT integrates CNNs with transformers for image processing
@@ -261,7 +252,10 @@ class ConvolutionalVisionTransformer(nn.Module):
 
         self.final_layer_norm = nn.LayerNorm(config.transformer["hidden_size"], eps=config.initialisation["layer_norm_eps"])
         #classifier head
-        self.classifier = nn.Linear(config.transformer['hidden_size'], config.num_classes)
+        self.classifier = nn.Sequential(
+            nn.Linear(config.transformer['hidden_size'], config.num_classes),
+            nn.Softmax(dim=1)  # Apply softmax activation
+        )
 
     def forward(self, x):
         #Pass input through convolutional embedding layer

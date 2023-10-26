@@ -6,13 +6,17 @@ I have implemented a Convolutional Neural Network Vision Transformer (CViT), an 
 
 ### Background/ Model Overview
 
-Prior to deciding on a CNN-VIT, I thoroughly researched various aspects of transformers to understand their functionality, advantages, and limitations. This led me to the paper ‘Attention Is All You Need’ ([link](https://arxiv.org/abs/1706.03762)), a prevalent paper in the field of deep learning introducing the concept of a transformer. It pains me to admit that this however, was not what drew my eye to this paper, but rather the fact that I shared a name with one of the authors- it’s a rare occurrence for someone named Noam.
+Prior to deciding on a CNN-VIT, I thoroughly researched various aspects of transformers to understand their functionality, advantages, and limitations. This led me to the paper ‘Attention Is All You Need’ ([link](https://arxiv.org/abs/1706.03762)), a prevalent paper in the field of deep learning introducing the concept of a transformer.
 
-This paper introduced a revolutionised way of processing sequences, by solely relying on attention mechanisms, dispensing the need for recurrent layers. As suggested by the title, the utilisation of “self-attention” enables the model to weigh the significance of different parts of an input sequence differently. It is able to capture contextual relations between elements (i.e. pixels), regardless of their position in the sequence. This contextual awareness can lead to more accurate classifications, as the model dynamically adjusts the significance it assigns to various input features based on the information it has learned. In the context of AD classification, the model focuses on crucial parts of the input data that are most indicative of the disease.
+This paper introduced a revolutionised way of processing sequences, by solely relying on attention mechanisms, dispensing the need for recurrent layers. As suggested by the title, the utilisation of “self-attention” enables the model to weigh the significance of different parts of an input sequence differently. It is able to capture contextual relations between elements (i.e. pixels), regardless of their position in the sequence. This contextual awareness can lead to more accurate classifications, as the model dynamically adjusts the significance it assigns to various input features based on the information it has learned. In the context of AD classification, the model focuses on crucial parts of the input data that are most indicative of the disease. It pains me to admit that this however, was not what drew my eye to this paper, but rather the fact that I shared a name with one of the authors- it’s a rare occurrence for someone named Noam.
 
 #### Vision Transformer (ViT)
 
-A standard ViT breaks down images into fixed-size patches and linearly embeds them as sequences of vectors. This sequence includes an additional ‘class’ token for classification tasks. These sequences are then processed, applying self-attention mechanisms as mentioned above. The output corresponding to the ‘class’ token passes through a feed-forward neural network (FFN) to predict the image’s class. ViT leverages positional embeddings to maintain the image structure information. Whilst this model ushers numerous advantages in image processing, ViTs also yield several limitations in the context of image classification tasks:
+A standard ViT breaks down images into fixed-size patches and linearly embeds them as sequences of vectors. This sequence includes an additional ‘class’ token for classification tasks. These sequences are then processed, applying self-attention mechanisms as mentioned above. The output corresponding to the ‘class’ token passes through a feed-forward neural network (FFN) to predict the image’s class. ViT leverages positional embeddings to maintain the image structure information. A visualisation of the ViT articheture can be seen below. 
+
+![Visualisation of ViT](Images/vision_transformer.png)
+
+Whilst this model ushers numerous advantages in image processing, ViTs also yield several limitations in the context of image classification tasks:
 
 1.	Data Efficiency- ViT work best on large, labelled datasets- outperformed by CNNs on smaller datasets
 2.	Feature Localisation- ViT treats an image as a sequence of patches, losing explicit local feature representations that are innate to CNNs
@@ -59,10 +63,42 @@ This script handles more complex data processing, distinguishing its function by
 
 ## Training and Validation Performance 
 
-## Usage Description 
+
 
 ## Dependencies
+- Python 3.10.12
+- PyTorch 2.0.1
+- torchvision 0.15.2  
+- matplotlib 3.7.2
+- pandas 2.0.3
+- scikit-learn 1.3.0  
+- Pillow (PIL) 10.0.0  
+
+## Testing Environment
+GPU access is fundamental for accelerating training and inference processing. This task made use of Google Colab Pro+'s GPU to benefit from its faster GPU and access to more memory, which are much needed for this project. 
+- **Platform**: Google Colab Pro+
+- **GPU**: NVIDIA GPU
+- **OS**: Linux (as provided by Google Colab)
+
+## Usage Description 
+Ensure all dependencies are installed, and access to a GPU or other high-performing machine. To prepare the dataset, data loading and pre-processing is required by making use of the ADNC_Dataset class within dataset.py. Next, loading and splitting of the data via the load_data function in process.py prevents overlap between patients in the training and validation sets. Once the data is prepared, the create_data_loaders function is used to create data loaders for the training and validation sets. Once this data handling is complete, the model can be trained, using the train.py script; making use of the data loaders. Note that the hyperparameters of the model can be adjusted using the config_params_dict as needed. That is:
+  -	‘modules.py’ – contains source code for the model, and can be modified if required
+  - 'dataset.py’ and ‘process.py’ – can be altered to change the way in which data is pre-processed and handled. 
+  
+## References
+- **ADNI dataset**:
+  - Alzheimer's Disease Neuroimaging Initiative (ADNI) database. [Link](https://adni.loni.usc.edu)
+
+- **ViT architecture image**:
+  - https://github.com/google-research/vision_transformer 
+
+- **Papers**:
+  - Vaswani, A. et al. (2017). 'Attention Is All You Need'. [Link](https://arxiv.org/abs/1706.03762)
+  - Wu, Z. et al. (2021). 'CvT: Introducing Convolutions to Vision Transformers'. [Link](https://arxiv.org/abs/2103.15808)
+
+- **Model & Configuration**:
+  - Convolutional Vision Transformer (CvT) - used for hyperparameters. [HuggingFace Documentation](https://huggingface.co/docs/transformers/model_doc/cvt#transformers.CvtConfig.embed_dim)
+  - Note: above shows use of pre-trained model
 
 ## License
-
-## References
+This project is licensed under the terms of the MIT license.
