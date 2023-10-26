@@ -59,7 +59,7 @@ def train_model():
         "embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
-        "num_layers": 5,
+        "num_layers": 4,
         "patch_size": 8,
         "num_channels": 3,
         "image_size": image_size,
