@@ -254,23 +254,18 @@ AD_NC/
 ## Predict(Recurrent):
 ![predict](./Images/predict.png)
 
-### You can download the best module from /Best_Modules.
-
 
 ## Dependencies
 
-### Scripts
-- Python==3.11.4
-- Pytorch==2.0.1
-- Tensorboard==2.6.0
+### Dependencies
+- Python 3.11.4
+- Pytorch 2.0.1
+- Tensorboard 2.6.0
 
-Run the following command to install the required packages, note that some other libraries such as 'os' not listed here.
+Run the following command to install the required packages. Note that some other libraries such as 'os' are not listed here as they are part of the Python standard library.
 
 ```bash
-pip install -r python==3.11.4
-pip install -r pytorch==2.0.1
-pip install -r tensorboard==2.6.0
-```
+pip install pytorch==2.0.1 tensorboard==2.6.0
 
 
 ### Hardware
