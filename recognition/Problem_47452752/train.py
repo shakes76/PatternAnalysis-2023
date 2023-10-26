@@ -109,12 +109,11 @@ scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.985)
 
 print("Training loop:")
 
-# Variables used for training feedback:
-if validating:
-    running_loss = 0.0
-    print_every = 10  # Print every 10 batches.
-    best_val_score = 0.0
-    patience = 3  # Number of epochs to wait before stopping
+# Variables used for training feedback and validation:
+running_loss = 0.0
+print_every = 1  # Print every 10 batches.
+best_val_score = 0.0
+patience = 3  # Number of epochs to wait before stopping
 
 for epoch in range(num_epochs):
     # Set the model to training mode
@@ -138,7 +137,6 @@ for epoch in range(num_epochs):
         loss.backward()
         optimizer.step()
 
-    if validating:
         # Keep track of the running loss for testing feedback
         running_loss += loss.item()
         if i % print_every == 0:  # Print every `print_every` batches
@@ -147,6 +145,7 @@ for epoch in range(num_epochs):
             )
             running_loss = 0.0
 
+    if validating:
         # Evaluate the model using the validation set
         dice_similarity, dice_minimum = evaluate_model(model, validation_loader, device)
         val_loss = 1 - dice_similarity
