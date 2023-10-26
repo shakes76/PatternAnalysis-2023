@@ -306,7 +306,7 @@ if __name__ == '__main__':
     # Initialize the start/end epoch, if we need to start from a checkpoint, we can modify it and use a helper function. 
     # I deleted them since there is no need to use.
     starting_epoch = 0
-    ending_epoch = 1001
+    ending_epoch = 201
     main_training_loop(module, starting_epoch, ending_epoch, train_dataloader, test_dataloader, validate_dataloader, optimizer)
 
     # Close the writer
