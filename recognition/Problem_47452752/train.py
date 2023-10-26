@@ -27,9 +27,9 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Conditional parameters used for debugging
 check = False
-debugging = True
+debugging = False
 saving = False
-validating = False
+validating = True
 
 
 def evaluate_model(model, data_loader, device):
