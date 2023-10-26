@@ -62,8 +62,8 @@ def main():
     ADNI_config = {
         "embed_dim": 256,
         "hidden_dim": 512,
-        "num_heads": 6,
-        "num_layers": 6,
+        "num_heads": 8,
+        "num_layers": 7,
         "patch_size": 8,
         "num_channels": 3,
         "image_size": image_size,
