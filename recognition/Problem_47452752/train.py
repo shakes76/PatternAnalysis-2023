@@ -14,7 +14,7 @@ import numpy as np
 from modules import UNet
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import random_split
-from utils import dice_loss, dice_coefficient, DiceLoss
+from utils import dice_loss, dice_coefficient
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
@@ -104,7 +104,6 @@ model = UNet(in_channels=6, num_classes=1)
 model = model.to(device)
 
 # Setup the optimizer
-criterion = DiceLoss() # for debugging
 optimizer = optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-5)
 scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.985)
 
@@ -132,8 +131,7 @@ for epoch in range(num_epochs):
         # print(f"outputs = {outputs.size()}")
         # print(f"masks = {masks.size()}")
 
-        loss = criterion(outputs, masks)
-        # loss = dice_loss(outputs, masks)
+        loss = dice_loss(outputs, masks)
 
         # Backward pass + optimization
         loss.backward()

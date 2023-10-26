@@ -58,45 +58,18 @@ class DictTransform:
         }
 
 
-class DiceLoss(nn.Module):
-    def __init__(self, eps=1e-7):
-        super(DiceLoss, self).__init__()
-        self.eps = eps
-
-    def forward(self, output, target):
-        numerator = 2. * torch.sum(output * target)
-        denominator = torch.sum(output + target)
-        return 1 - (numerator + self.eps) / (denominator + self.eps)
-
-
 # max_dice_loss = max(dice_losses) # Penalize the worst performance
 # dice_loss = sum(dice_losses) / len(dice_losses)
-def dice_loss(predicted, target, epsilon=1e-7):
-    # Compute dice coefficient for all images in the batch
-    intersect = (predicted * target).sum(dim=[2, 3])
-    union = (predicted + target).sum(dim=[2, 3])
-    dice_scores = (2.0 * intersect + epsilon) / (union + epsilon)
-
-    # Penalize losses
-    penalties = torch.where(dice_scores < 0.8, 2.0, 1.0)
-    losses = 1.0 - dice_scores
-    penalized_losses = penalties * losses
-
-    # Average penalized loss
-    average_penalized_loss = penalized_losses.mean()
-
-    return average_penalized_loss
-
-
 def dice_loss(predicted, target, epsilon=1e-7):
     # Compute dice coefficient for each image in the batch
     dice_scores = dice_coefficient(predicted, target)
     # Compute dice loss for each image in the batch
-    dice_losses =  1.0 - dice_scores
+    dice_losses = 1.0 - dice_scores
     # Penalize any images with dice score less than 0.8
     penalized_losses = torch.where(dice_scores < 0.8, dice_losses * 2, dice_losses)
     # Return the average loss
     average_penalized_loss = penalized_losses.mean()
+
     return average_penalized_loss
 
 
@@ -134,4 +107,4 @@ def general_dice_loss(predicted, target):
 # tar = torch.randn(3, 6, 32, 32)
 # x = dice_coefficient(pred, tar)
 # y = dice_loss(pred, tar)
-# 
+#
