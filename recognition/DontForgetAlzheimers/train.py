@@ -20,7 +20,7 @@ def train():
     train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True, num_workers=4)
 
     # Training for 20 epochs
-    num_epochs = 5
+    num_epochs = 20
     for epoch in range(num_epochs):
         print(f"Epoch [{epoch+1}/{num_epochs}]")
         model.train()  
