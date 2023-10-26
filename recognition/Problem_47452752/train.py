@@ -22,7 +22,7 @@ from torch.utils.data import Subset  # for debugging only TODO
 
 
 # Hyper-parameters
-num_epochs = 5
+num_epochs = 50
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Conditional parameters used for debugging
@@ -67,7 +67,7 @@ if check:
 # Construct debugging datasets (small subset for fast tests)
 if debugging:
     num_epochs = 2
-    subset_size = 200
+    subset_size = 500
 
     dataset = ISICDataset(transform)
     subset_indices = list(range(subset_size))
@@ -82,8 +82,8 @@ if debugging:
     )
 
     train_loader = DataLoader(train_dataset, 32, True)
-    validation_loader = DataLoader(val_dataset, 20, False)
-    test_loader = DataLoader(test_dataset, 20, False)
+    validation_loader = DataLoader(val_dataset, 100, False)
+    test_loader = DataLoader(test_dataset, 100, False)
 
 # Construct full datasets
 if not debugging:
