@@ -22,6 +22,7 @@ The losses and metrics will be plotted during training.
  https://huggingface.co/blog/fine-tune-vit
  https://openaccess.thecvf.com/content/CVPR2023W/ECV/papers/Bhattacharyya_DeCAtt_Efficient_Vision_Transformers_With_Decorrelated_Attention_Heads_CVPRW_2023_paper.pdf
  https://ieeexplore.ieee.org/document/9880094
+ https://arxiv.org/pdf/2010.11929.pdf
 
 """
 
@@ -44,7 +45,10 @@ BATCH_SIZE = 32
 
 
 #### File paths: ####
+# Local dataset path
 DATASET_PATH = osp.join("recognition", "TRANSFORMER_43909856", "dataset", "AD_NC")
+# Path to dataset on Rangpur HPC
+# DATASET_PATH = osp.join("/", "home", "groups", "comp3710", "ADNI", "AD_NC")
 OUTPUT_PATH = osp.join("recognition", "TRANSFORMER_43909856", "models")
 
 
@@ -128,8 +132,8 @@ def train_model(save_model_data=True):
             loss.backward()
             optimiser.step()
             
-            # Print/log the training metrics for every 20 steps, and at the end of each epoch
-            if (i+1) % 20 == 0 or i+1 == total_step:
+            # Print/log the training metrics for every 100 steps, and at the end of each epoch
+            if (i+1) % 100 == 0 or i+1 == total_step:
                 print(f"Epoch [{epoch+1}/{N_EPOCHS}] Step [{i+1}/{total_step}] " +
                     f"Training loss: {round(loss.item(), 5)}")
                 train_loss_values += [[epoch+1, i+1, total_step, round(loss.item(), 5)]]
@@ -202,7 +206,7 @@ def train_model(save_model_data=True):
 
 """
 Plot the change in training loss (binary cross-entropy) over the epochs.
-Training loss is reported/updated every 20 training steps, and for the final
+Training loss is reported/updated every 100 training steps, and for the final
 step in each training epoch.
 If a validation set was used, change in validation loss at the end of each
 epoch will also be plotted.
@@ -291,16 +295,63 @@ def load_training_metrics(filename=osp.join(OUTPUT_PATH, 'ADNI_train_loss.csv'))
 
 
 """
+Plot the change in accuracy of the validation set over the epochs.
+
+Params:
+    val_loss_values (array[[int, float, float]]) or None: each entry of the 
+                       array contains the current epoch, the validation loss, 
+                       and the validation set accuracy recorded at this point.
+    show_plot (bool): show the plot in a popup window if True; otherwise, don't
+                    show the plot
+    save_plot (bool): save the plot as a PNG file to the directory "plots" if
+                      True; otherwise, don't save the plot
+"""
+def plot_val_accuracy(val_loss_values, show_plot=False, 
+              save_plot=False):
+    # Set the figure size
+    plt.figure(figsize=(10,5))
+    # Add a title
+    plt.title("ViT Transformer (ADNI classifier) validation set accuracy")
+
+    # Get the validation accuracy
+    val_loss = [val_loss_values[i][2] for i in range(len(val_loss_values))]
+    # Get the validation epochs
+    val_epoch = [val_loss_values[i][0] for i in range(len(val_loss_values))]
+    plt.plot(val_epoch, val_loss, label="Validation set", color="Orange")
+
+    # Add axes titles and a legend
+    plt.xlabel("Number of epochs")
+    plt.ylabel("Accuracy (%)")
+    plt.legend()
+
+    # Save the plot
+    if save_plot:
+        # Create an output folder for the plot, if one doesn't already exist
+        directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'plots')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        # Save the plot in the "plots" directory
+        plt.savefig(os.path.join(directory, "ViT_validation_accuracy.png"), dpi=600)
+        
+    if show_plot:
+        # Show the plot
+        plt.show()
+
+
+"""
 Main method - make sure to run any methods in this file within here.
 Adding this so that multiprocessing runs appropriately/correctly
 on Windows devices.
 """
 def main():
     # Train the model
-    train_model()
-    # Create training loss plots
-    # train_loss_values = load_training_metrics()
-    # plot_loss(train_loss_values=train_loss_values, show_plot=True, save_plot=True)
+    # train_model()
+    # Create training vs validation loss plots
+    train_loss_values = load_training_metrics()
+    val_loss_values = load_training_metrics(filename=osp.join(OUTPUT_PATH, 'ADNI_val_loss.csv'))
+    plot_loss(train_loss_values, val_loss_values, show_plot=True, save_plot=True)
+    # Create validation accuracy plot
+    plot_val_accuracy(val_loss_values, show_plot=True, save_plot=True)
 
 if __name__ == '__main__':    
     main()
