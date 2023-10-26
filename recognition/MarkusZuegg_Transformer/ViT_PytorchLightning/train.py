@@ -57,21 +57,21 @@ def train_model():
 
 def main():
 
-    image_size = [32,32]
-    lr = 3e-4
+    image_size = [256,240]
+    lr = 3e-5
     ADNI_config = {
         "embed_dim": 256,
         "hidden_dim": 512,
         "num_heads": 8,
         "num_layers": 6,
-        "patch_size": 4,
+        "patch_size": 8,
         "num_channels": 3,
         "image_size": image_size,
-        "num_classes": 10,
+        "num_classes": 2,
         "dropout": 0.2,}
     model = ViT(ADNI_config, lr=lr)
 
-    batch_size = 64 #working 16 on hpc
+    batch_size = 32 #working 16 on hpc
     num_workers = 0 #num_workers = 0 if windows
     max_epochs = 20
 
@@ -87,7 +87,7 @@ def main():
                         accelerator='gpu',
                         devices=1)
     
-    trainer.fit(model, CIFAR10)
-    trainer.test(model, CIFAR10)
+    trainer.fit(model, ADNI)
+    trainer.test(model, ADNI)
 
 if __name__ == '__main__': main()

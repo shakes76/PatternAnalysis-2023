@@ -19,7 +19,7 @@ class CIFAR10DataModule(LightningDataModule):
         self, 
         batch_size,
         image_size,
-        num_workers=1):
+        num_workers=0):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
@@ -71,7 +71,7 @@ class ADNIDataModule(LightningDataModule):
         self, 
         batch_size,
         image_size,
-        num_workers=1):
+        num_workers=0):
         super().__init__()
         self.batch_size = batch_size
         self.num_workers = num_workers
