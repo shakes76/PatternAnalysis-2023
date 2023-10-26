@@ -116,7 +116,7 @@ class Segmentation(nn.Module):
 
 
 class UNet(nn.Module):
-    def __init__(self, in_channels, num_classes=2):
+    def __init__(self, in_channels, num_classes=1):
         super(UNet, self).__init__()
 
         # Context modules
@@ -173,7 +173,7 @@ class UNet(nn.Module):
         # if num_classes > 2: return F.softmax(seg_3, dim=1)
 
 # Lil testing
-# model = UNet(6)
+# model = UNet(6, 1)
 # test = torch.randn(1, 6, 32, 32)
 # output = model(test)
 # print(output.size())
