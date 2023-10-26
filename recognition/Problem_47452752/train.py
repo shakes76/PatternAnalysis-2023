@@ -66,7 +66,7 @@ if check:
 
 # Construct smaller debugging datasets
 if debugging:
-    num_epochs = 1
+    num_epochs = 3
     dataset = ISICDataset(transform)
     subset_indices = list(range(40))  # debugging on first 40 samples
     subset = Subset(dataset, subset_indices)
@@ -128,8 +128,8 @@ for epoch in range(num_epochs):
 
         # Forward pass
         outputs = model(images)
-        print(f"outputs = {outputs.size()}")
-        print(f"masks = {masks.size()}")
+        # print(f"outputs = {outputs.size()}")
+        # print(f"masks = {masks.size()}")
 
         loss = dice_loss(outputs, masks)
 
