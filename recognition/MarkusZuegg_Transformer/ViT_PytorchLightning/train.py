@@ -69,7 +69,7 @@ def train_model():
 
     batch_size = 32 #working 16 on hpc
     num_workers = 0 #num_workers = 0 if windows
-    max_epochs = 50
+    max_epochs = 20
 
     # CIFAR10 = CIFAR10DataModule(batch_size=batch_size, 
     #                     image_size=image_size,  
