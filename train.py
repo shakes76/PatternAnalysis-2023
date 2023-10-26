@@ -91,8 +91,6 @@ def model_unet(model_input, in_channel=1, out_channel=1):
     return model_test
 
 
-# passsing this string so that if it's AttU_Net or R2ATTU_Net it doesn't throw an error at torchSummary
-
 
 model_test = model_unet(model_Inputs[-1], 3, 1)
 
@@ -109,7 +107,7 @@ torchsummary.summary(model_test, input_size=(3, 128, 128))
 #######################################################
 
 
-#ISIC2018 data
+# ISIC2018 data
 t_data = './ISIC2018/ISIC2018_Task1-2_Training_Input_x2/'
 l_data = './ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2/'
 test_image = './keras_png_slices_data/keras_png_slices_test/'
