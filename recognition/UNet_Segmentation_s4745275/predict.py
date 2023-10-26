@@ -4,7 +4,6 @@ import os
 import matplotlib as plt
 from matplotlib import pyplot
 from modules import UNet
-# import train
 from dataset import pre_process_image, pre_process_mask
 from PIL import Image
 import torch
@@ -22,8 +21,8 @@ mask_path = (
 if os.path.exists("recognition/UNet_Segmentation_s4745275/best_model.pth"):
     model_path = "recognition/UNet_Segmentation_s4745275/best_model.pth"
 else:
-    # Execute the train.py file, which will create the file
-    pass #os.system("python train.py")
+    # Execute the train.py file, which will create best_model.pth
+    os.system("python train.py")
 
 # Load an instance of the trained model
 model = UNet(in_channels=6, num_classes=1)
@@ -61,4 +60,3 @@ ax[1].imshow(predicted_np, cmap="gray")
 ax[1].set_title("Predicted Mask")
 
 plt.show()
-
