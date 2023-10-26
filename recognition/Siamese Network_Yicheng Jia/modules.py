@@ -24,13 +24,13 @@ class SiameseNetwork(nn.Module):
         # add linear layers to compare between the features of the two images
         self.fc = nn.Sequential(
             nn.Linear(self.fc_in_features * 2, 256),
-            nn.BatchNorm1d(256),  # Add Batch Normalization
-            nn.ReLU(inplace=True),
-            nn.Dropout(p=0.5),
+            nn.BatchNorm1d(256),  # Batch Normalization
+            nn.ReLU(inplace=True),  # Activate function
+            nn.Dropout(p=0.2),  # Dropout
             nn.Linear(256, 1),
         )
 
-        self.sigmoid = nn.Sigmoid()
+        self.sigmoid = nn.Sigmoid()  # Convert the range to [0,1]
 
         # initialize the weights
         self.resnet.apply(init_weights)
