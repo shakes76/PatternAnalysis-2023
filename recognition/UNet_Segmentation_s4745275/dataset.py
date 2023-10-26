@@ -15,7 +15,10 @@ image_path = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1-2_Training_Input_x2"
 mask_path = "/home/groups/comp3710/ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2"
 inconsistent_path = "/home/Student/s4745275/PatternAnalysis-2023/recognition/UNet_Segmentation_s4745275/inconsistent_ids.txt"
 
-def check_consistency(image_dir=image_path, mask_dir=mask_path, inconsistent_path=inconsistent_path):
+
+def check_consistency(
+    image_dir=image_path, mask_dir=mask_path, inconsistent_path=inconsistent_path
+):
     image_ids = {
         img.split(".")[0] for img in os.listdir(image_dir) if img.endswith(".jpg")
     }
@@ -45,7 +48,7 @@ class ISICDataset(Dataset):
         transform,
         image_dir=image_path,
         mask_dir=mask_path,
-        inconsistent_path=inconsistent_path
+        inconsistent_path=inconsistent_path,
     ):
         # Load the inconsistent IDs
         with open(inconsistent_path, "r") as file:
@@ -88,7 +91,7 @@ class ISICDataset(Dataset):
 
                 if self.transform:
                     sample = self.transform(sample)
-                
+
             # Convert mask to binary 0/1 tensor
             sample["mask"] = (torch.tensor(np.array(sample["mask"])) > 0.5).float()
 
@@ -99,8 +102,32 @@ class ISICDataset(Dataset):
             return self.__getitem__(idx)
 
 
-# Transformation pipeline to augment the dataset
-transform = transforms.Compose(
+pre_process_image = transforms.Compose(
+    [
+        transforms.Resize((256, 256)),
+        transforms.ToTensor(),
+        transforms.Lambda(
+            lambda img_tensor: torch.cat(
+                [
+                    img_tensor,
+                    TF.to_tensor(TF.to_pil_image(img_tensor).convert("HSV")),
+                ],
+                dim=0,
+            )
+        ),
+        transforms.Normalize(
+            [0.5, 0.5, 0.5, 0.5, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+        ),
+    ]
+)
+
+pre_process_mask = transforms.Compose(
+    [transforms.Resize((256, 256)), transforms.ToTensor()]
+)
+
+
+# Transformation pipeline to pre-process and augment the dataset
+process_and_augment = transforms.Compose(
     [
         RandomRotate90(),
         RandomCenterCrop(),
