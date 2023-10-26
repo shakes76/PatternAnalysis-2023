@@ -1,6 +1,7 @@
 import torch
 from random import choice
 import torchvision.transforms.functional as TF
+import torch.nn as nn
 
 
 class RandomRotate90:
@@ -57,6 +58,17 @@ class DictTransform:
         }
 
 
+class DiceLoss(nn.Module):
+    def __init__(self, eps=1e-7):
+        super(DiceLoss, self).__init__()
+        self.eps = eps
+
+    def forward(self, output, target):
+        numerator = 2. * torch.sum(output * target)
+        denominator = torch.sum(output + target)
+        return 1 - (numerator + self.eps) / (denominator + self.eps)
+
+
 # max_dice_loss = max(dice_losses) # Penalize the worst performance
 # dice_loss = sum(dice_losses) / len(dice_losses)
 def dice_loss(predicted, target, epsilon=1e-7):
@@ -99,7 +111,6 @@ def dice_coefficient(
     return (2.0 * intersection + epsilon) / (
         predicted.sum(dim=1) + target.sum(dim=1) + epsilon
     )
-
 
 
 def general_dice_loss(predicted, target):

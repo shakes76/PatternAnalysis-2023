@@ -14,7 +14,7 @@ import numpy as np
 from modules import UNet
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import random_split
-from utils import dice_loss, dice_coefficient
+from utils import dice_loss, dice_coefficient, DiceLoss
 import torch
 import torch.optim as optim
 import torch.nn.functional as F
@@ -66,17 +66,17 @@ if check:
 
 # Construct smaller debugging datasets
 if debugging:
-    num_epochs = 3
+    num_epochs = 5
     dataset = ISICDataset(transform)
-    subset_indices = list(range(200))  # debugging on first 40 samples
+    subset_indices = list(range(120))  # debugging on first 40 samples
     subset = Subset(dataset, subset_indices)
 
     test_size = int(0.5 * len(subset))
     train_size = len(subset) - test_size
     train_dataset, test_dataset = random_split(subset, [train_size, test_size])
 
-    train_loader = DataLoader(train_dataset, 50)
-    test_loader = DataLoader(test_dataset, 50)
+    train_loader = DataLoader(train_dataset, 20)
+    test_loader = DataLoader(test_dataset, 20)
 
 # Construct full datasets
 if not debugging:
@@ -104,6 +104,7 @@ model = UNet(in_channels=6, num_classes=1)
 model = model.to(device)
 
 # Setup the optimizer
+criterion = DiceLoss() # for debugging
 optimizer = optim.Adam(model.parameters(), lr=5e-4, weight_decay=1e-5)
 scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.985)
 
@@ -131,7 +132,8 @@ for epoch in range(num_epochs):
         # print(f"outputs = {outputs.size()}")
         # print(f"masks = {masks.size()}")
 
-        loss = dice_loss(outputs, masks)
+        loss = criterion(outputs, masks)
+        # loss = dice_loss(outputs, masks)
 
         # Backward pass + optimization
         loss.backward()
