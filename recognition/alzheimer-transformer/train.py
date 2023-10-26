@@ -16,12 +16,6 @@ class_names = ["AD", "NC"]
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# some hyperparameters to start with, feel free to tweak these!
-lr = 0.001
-num_epochs = 10
-batch_size = 32
-weight_decay = 0
-
 
 def train_epoch(model, dataloader, criterion, optimizer, device):
     """One epoch's worth of training."""
@@ -76,7 +70,7 @@ def main():
     parser = argparse.ArgumentParser()
     
     # Add arguments for hyperparameters
-    parser.add_argument('--lr', type=float, default=0.01, help='Learning rate')
+    parser.add_argument('--lr', type=float, default=0.00005, help='Learning rate')
     parser.add_argument('--weight_decay', type=float, default=0.03, help='Weight decay')
     parser.add_argument('--num_epochs', type=int, default=10, help='Number of training epochs')
     parser.add_argument('--model_size', type=str, default='base', help='base, large, huge')
@@ -107,20 +101,27 @@ def main():
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(params=model.parameters(), lr=lr, weight_decay=weight_decay)
 
+    # initialize best validation accuracy at 0
+    best_val_acc = 0.0
+
     # loop through the number of epochs
     for epoch in range(num_epochs):
         train_loss, train_acc = train_epoch(model, train_loader, criterion, optimizer, device)
         val_loss, val_acc = evaluate(model, val_loader, criterion, device)
-        
+
         print(f"Epoch {epoch+1}/{num_epochs}")
         print(f"Train: Loss {train_loss:.4f}, Accuracy {train_acc:.4f}")
         print(f"Validation: Loss {val_loss:.4f}, Accuracy {val_acc:.4f}")
 
+        # save model if it performs better on the validation set
+        if val_acc > best_val_acc:
+            best_val_acc = val_acc
+            torch.save(model.state_dict(), f'vit-best_val_acc{best_val_acc*100:.2f}%.pth')
+            print(f"New best validation accuracy ({best_val_acc*100:.2f}%) achieved! Model saved.")
+
     # after all epochs, test the model performance on test data
     test_loss, test_acc = evaluate(model, test_loader, criterion, device)
     print(f"Test: Loss {test_loss:.4f}, Accuracy {test_acc:.4f}")
-    torch.save(model.state_dict(), 'vit-test{test_acc}%')
-
 
 if __name__ == "__main__":
     main()
