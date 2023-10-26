@@ -73,7 +73,7 @@ def train_model():
     batch_size = 32 #working 16 on hpc
     num_workers = 0 #issue with multiproccessing pytorch_lightning
                     #must use 0
-    max_epochs = 30
+    max_epochs = 20
     
     # Initialise DataModule class
     ADNI = ADNIDataModule(batch_size=batch_size, 
