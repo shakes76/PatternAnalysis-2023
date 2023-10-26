@@ -36,9 +36,14 @@ pip install einops
 ``````
 
 ### Reproducibility
-Model training was completed on the UQ Rangpur HPC server, using the [insert GPU name here]
+Model training was completed on the UQ Rangpur HPC server, using the vgpu40
 node with the following hardware specifications:
-- **TODO** add list of GPU node specs here
+
+- 8x vCPU cores (AMD Zen 2)
+- 128 GB RAM
+- NVIDIA A100 40GB vGPU
+
+For more information, see [UQ EAIT compute infrastructure.](https://student.eait.uq.edu.au/infrastructure/compute/)
 
 The model was saved after training, and inference was later completed on a local device.
 
@@ -60,11 +65,11 @@ The overall architecture of this ViT was based on the ViT-S/16 model, created in
 The S/16 model variant of the ViT was chosen, as it was believed that it would provide a "good tradeoff" between performance and computational speed/efficiency (Beyer et al., 2022). It was believed that this would be the most appropriate, where hardware resources were partly limited.
 
 Model specs (as specified in Zhai et al, 2022):
-    - **Patch size:** 16x16
-    - **Number of encoder blocks (depth):** 12
-    - **Dimensionality of patch embeddings and self-attention modules (width):** 384
-    - **Number of attention heads:** 6
-    - **Dimension of hidden MLP Linear layers:** 1536
+- **Patch size:** 16x16
+- **Number of encoder blocks (depth):** 12
+- **Dimensionality of patch embeddings and self-attention modules (width):** 384
+- **Number of attention heads:** 6
+- **Dimension of hidden MLP Linear layers:** 1536
 
 The created model differs slightly from the original S/16 ViT model, including modifications as added by Beyere et al. (2022). These include 2-dimensional sinusoids used for positional embeddings, and the use of global average/mean pooling instead of using a class token.
 
@@ -178,11 +183,24 @@ to both the train and validation set.
 
 
 ## Results:
+### Training for 90 epochs:
+To perform hyperparameter tuning for the number of epochs, a large number of epochs (90) was initially chosen. The results from the training and validation sets were saved and plotted:
+
+![90 epochs - training vs. validation loss](plots/ViT_90epochs_loss.png)
+Noticeably, the training and validation set loss appears to reach an optimal point between 40 and 60 epochs, then begins to fluctuate significantly at some points after this, despite reaching what appear to be the optimal loss values. 
+
+Validation set accuracy (per-batch) approaches 100% around this training period:
+
+![90 epochs - tvalidation accuracy](plots/ViT_90epochs_validation_accuracy.png)
+
+ Whilst these values appear optimal, the test set performance for the model trained for 90 epochs was ~60.81%, indicating that the model is overfitting significantly to the training set, and generalising poorly to the test set. The smaller quantity of validation set data points may also be providing misleading information about the model's performance on unseen data - the particular split of data used when training this model contained a large quantity of data points that had similar features to those present in the training set. If this was the case, then 
+
+ To avoid overfitting the model, a shorter, more optimal training duration of 40 epochs was chosen.
+
+### Training for 40 epochs:
 TODO Provide plots of the algorithm (train and validation loss, validation accuracy)
 
 TODO state the achieved test set accuracy and optimal # of epochs
-
-TODO state training and testing times
 
 
 ## Possible improvements?
