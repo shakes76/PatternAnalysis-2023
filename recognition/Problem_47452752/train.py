@@ -27,7 +27,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Conditional parameters used for debugging
 check = False
-debugging = False
+debugging = True
 saving = False
 validating = True
 
@@ -64,19 +64,26 @@ def evaluate_model(model, data_loader, device):
 if check:
     check_consistency()
 
-# Construct smaller debugging datasets
+# Construct debugging datasets (small subset for fast tests)
 if debugging:
-    num_epochs = 3
+    num_epochs = 2
+    subset_size = 200
+
     dataset = ISICDataset(transform)
-    subset_indices = list(range(500))  # debugging on first 500 samples
+    subset_indices = list(range(subset_size))
     subset = Subset(dataset, subset_indices)
 
-    test_size = int(0.2 * len(subset))
-    train_size = len(subset) - test_size
-    train_dataset, test_dataset = random_split(subset, [train_size, test_size])
+    train_size = int(subset_size * 0.6)
+    val_size = int(subset_size * 0.2)
+    test_size = subset_size - train_size - val_size
 
-    train_loader = DataLoader(train_dataset, 40)
-    test_loader = DataLoader(test_dataset, 50)
+    train_dataset, val_dataset, test_dataset = random_split(
+        dataset, [train_size, val_size, test_size]
+    )
+
+    train_loader = DataLoader(train_dataset, 32, True)
+    validation_loader = DataLoader(val_dataset, 20, False)
+    test_loader = DataLoader(test_dataset, 20, False)
 
 # Construct full datasets
 if not debugging:
@@ -111,9 +118,10 @@ print("Training loop:")
 
 # Variables used for training feedback and validation:
 running_loss = 0.0
+no_improvement = 0
 print_every = 1  # Print every 10 batches.
 best_val_score = 0.0
-patience = 3  # Number of epochs to wait before stopping
+patience = 8  # Number of epochs to wait before stopping
 
 for epoch in range(num_epochs):
     # Set the model to training mode
@@ -155,12 +163,16 @@ for epoch in range(num_epochs):
         )
 
         # Model checkpointing
-        if dice_similarity > best_val_score and dice_minimum > 0.7:
+        if dice_similarity > best_val_score and dice_minimum > 0.75:
             best_val_loss = val_loss
             torch.save(model.state_dict(), "best_model.pth")
             no_improvement = 0
         else:
             no_improvement += 1
+
+    # Early stoppage if the model hasn't improved in `patience` epochs
+    if no_improvement > patience:
+        break
 
     scheduler.step()  # Adjust learning rate
 
