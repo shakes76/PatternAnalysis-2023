@@ -9,6 +9,9 @@ from dataset import AlzheimerDataset
 from dataset import transform
 from modules import ViT
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def train():
@@ -21,6 +24,7 @@ def train():
 
     # Training for 20 epochs
     num_epochs = 20
+    all_loss = []
     for epoch in range(num_epochs):
         print(f"Epoch [{epoch+1}/{num_epochs}]")
         model.train()  
@@ -42,6 +46,15 @@ def train():
                 print(f"Batch [{batch_idx}/{len(train_loader)}], Loss: {loss.item():.4f}")
 
         print(f"Epoch Loss: {total_loss / len(train_loader):.4f}")
+        all_loss.append(total_loss / len(train_loader))
+
+    epochs = list(range(1, 4))
+    plt.figure(figsize=(10, 6))
+    plt.plot(epochs, all_loss, color='blue')
+    plt.title("Cross Enthropy Loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
+    plt.show()
     return model
 
     
@@ -51,7 +64,7 @@ if __name__ == '__main__':
     test_loader = DataLoader(test_dataset, batch_size=32, shuffle=False, num_workers=4)  
 
     model = train()
-    torch.save(model.state_dict(), './')
+    torch.save(model.state_dict(), 'model')
     model.eval() 
     correct = 0
     total = 0

@@ -5,7 +5,7 @@ Alzheimer's disease is a brain condition that causes memory loss and makes it ha
 ## Architecture
 The Vision Transformer uses tranformers,originally used for for natural language processing tasks, on image data. It works by first dividing the images into patches, then embeding them as sequences and finally processing them with transformer blocks.
 
-![ViT architecture](https://github.com/bquek00/PatternAnalysis-2023/blob/2c189675d69af3c897474e3076d9c15dc9fa83dd/recognition/DontForgetAlzheimers/Screenshot%202023-10-26%20at%203.52.47%20AM.png)
+![ViT architecture [1]](https://github.com/bquek00/PatternAnalysis-2023/blob/2c189675d69af3c897474e3076d9c15dc9fa83dd/recognition/DontForgetAlzheimers/Screenshot%202023-10-26%20at%203.52.47%20AM.png)
 
 The provided code in this repository uses the ViT architecture to process images. It first divides input images into 16x16 patches, then embeds them into vectors. They are then processed by the transformer encoder which uses a multi-head self-attention mechanism and then a feed-foward neural network for each embedding.  
 
@@ -17,7 +17,7 @@ Data  preprocessing was completed in dataset.py. It uses the ADNI dataset, provi
 - 4540 NC for test
 - 4460 AD for test
 
-Images are first resized to (224 x 224) then a RandomHorizontalFlip is applied. Images are also normalised to have a mean of 0.5 and a standard deviation of 0.5 to help with stability and convergence while training.
+Images are first resized to (224 x 224) then a RandomHorizontalFlip is applied. This is to help expand the dataset and improve performance. Images are also normalised to have a mean of 0.5 and a standard deviation of 0.5 to help with stability and convergence while training.
 
 
 The train set is to be splitted into a training and validation set using patient level splitting to make sure that all data from a patient is in one set and no data leakage occurs.
@@ -63,5 +63,11 @@ This result was based off the accuracy evaluation metric which is calculated by
 - Navigate to DontForgetAlzheimers directory ```cd recognition/DontForgetAlzheimers```
 - Run the predict.py for usage ```python3 predict.py```
 - To test the model accuracy on the whole dataset, run train.py ```python3 train.py```
+
+## References 
+
+[1] A. Dosovitskiy et al., “An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale,” arXiv:2010.11929 [cs], Oct. 2020.
+
+[2] A. Vaswani et al., “Attention Is All You Need,” arXiv.org, Dec. 05, 2017.
 
 
