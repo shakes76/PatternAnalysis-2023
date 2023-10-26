@@ -3,8 +3,9 @@ from torchvision import transforms
 from PIL import Image
 import numpy as np
 
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-def segment_image(model_path, image_path, device='cuda'):
+def segment_image(model_path, image_path, output_path):
 
     # Load the pre-trained model
     model = torch.load(model_path)
@@ -23,6 +24,8 @@ def segment_image(model_path, image_path, device='cuda'):
     # Convert mask to numpy array
     predicted_mask = predicted_mask.squeeze().cpu().numpy()
     predicted_mask_image = (predicted_mask * 255).astype(np.uint8)
+
+    predicted_mask_image.save(output_path)
 
     return predicted_mask_image
 
