@@ -49,7 +49,29 @@ TODO state the achieved test set accuracy and optimal # of epochs
 
 
 ## Preprocessing
-Describe any specific preprocessing used (if any) with references. 
+
+#### Image resizing
+Input images of size 256x240 were resized, then center cropped to a square
+resolution of 224x224, which was used as the image input size for the model.
+As the images were approximately centred (and all positioned similarly), 
+processing them in this manner preserved the position of brains in the MRI slices,
+whilst resizing them to dimensions that could be evenly downsampled multiple times
+by the model network.
+
+#### Normalising the data
+The files were loaded as RGB images. These contained 3 channels, in which each
+channel represents an intensity value in the range [0, 255]. These values were
+standardised such that the means and standard deviations were both changed to
+0.5. This placed intensity values for each channel within the range [-1, 1]. 
+
+#### Data augmentation
+No data augmentation was explicitly applied to the input data. However, all available
+MRI image slices for each patient were used in the data set. As these slices are
+distinct, but all map the same patient's brain (for the same classification), 
+these slices may act similarly to 'augmented' data. This may result in the model being
+more invariant to changes in the different MRI slices provided to it. In some contexts
+where additional unseen data (potentially from different datasets) is tested, 
+the model may prove to be more generalisable as a result.
 
 ### Train, validation, and test splits
 The data was split into a training, validation, and test set. 
@@ -108,3 +130,11 @@ slice) were shuffled within each set. This process ensured that the data was
 appropriately shuffled, whilst preventing images from one patient being allocated 
 to both the train and validation set.
 
+
+## Possible improvements?
+- The use of data augmentation?
+- Changing RGB images to greyscale
+- Trying a different learning rate scheduler
+- Attempting to use different model configurations than the S/16 model listed
+in the ViT paper
+- More hyperparam tuning
