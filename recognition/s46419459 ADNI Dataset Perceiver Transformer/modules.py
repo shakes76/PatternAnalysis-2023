@@ -1,47 +1,39 @@
 import torch
 import torch.nn as nn
 
-import math
+class MLP(nn.Module):
 
-
-class PositionalEncoding(nn.Module):
-    """
-    PositionalEncoding layer sourced from the following source:
-    https://pytorch.org/tutorials/beginner/transformer_tutorial.html
-    """
-
-    def __init__(self, d_model: int, dropout: float = 0.1, max_len: int = 5000):
-        super().__init__()
-        self.dropout = nn.Dropout(p=dropout)
-
-        position = torch.arange(max_len).unsqueeze(1)
-        div_term = torch.exp(torch.arange(0, d_model, 2) * (-math.log(10000.0) / d_model))
-        pe = torch.zeros(max_len, 1, d_model)
-        pe[:, 0, 0::2] = torch.sin(position * div_term)
-        pe[:, 0, 1::2] = torch.cos(position * div_term)
-        self.register_buffer('pe', pe)
+    def __init__(self, d_latent):
+        super(MLP, self).__init__()
+        self.layernorm = nn.LayerNorm(d_latent)
+        self.linear1 = nn.Linear(d_latent, d_latent)
+        self.linear2 = nn.Linear(d_latent, d_latent)
+        self.activation = nn.GELU()
 
     def forward(self, x):
-        x = x + self.pe[:x.size(0)]
-        return self.dropout(x)
-
+        out = self.layernorm(x)
+        out = self.linear1(out)
+        out = self.linear2(out)
+        out = self.activation(out)
+        return out
 
 class CrossAttention(nn.Module):
 
-    def __init__(self, dim_latent, heads):
+    def __init__(self, d_latent, n_latent, heads):
         super(CrossAttention, self).__init__()
-        self.attention = nn.MultiheadAttention(dim_latent, heads)
-        self.linear = nn.Linear(dim_latent, dim_latent)
+        self.normalize = nn.LayerNorm(n_latent)
+        self.attention = nn.MultiheadAttention(n_latent, heads)
 
     def forward(self, kv, q):
         out, _ = self.attention(q, kv, kv)
         out = self.linear(out)
         return out
     
-
+    
 class PerceiverBlock(nn.Module):
 
     def __init__(self, dim_latent, heads, transformer_depth):
+        super(PerceiverBlock, self).__init__()
         self.cross_attention = CrossAttention(dim_latent, heads)
         self.transformer = nn.Transformer(
             d_model = dim_latent, 
@@ -77,13 +69,11 @@ class Perceiver(nn.Module):
     we use the pytorch transformer model as it 
     """
 
-    def __init__(self, dim_latent, heads, transformer_depth, num_blocks, n_classes):
+    def __init__(self, dim_latent, batch_size, heads, transformer_depth, num_blocks, n_classes):
         super(Perceiver, self).__init__()
 
-        self.pe = PositionalEncoding(240 * 240)
-
-        latent = torch.zeros((dim_latent, 1, 1))
-        torch.nn.init.trunc_normal(latent, mean = 0, std = 0.02, a = -2, b = 2)
+        latent = torch.zeros((1, 240*240, dim_latent))
+        torch.nn.init.trunc_normal_(latent, mean = 0, std = 0.02, a = -2, b = 2)
         self.latent = nn.Parameter(latent)
 
         self.blocks = nn.ModuleList(
@@ -94,8 +84,8 @@ class Perceiver(nn.Module):
     def forward(self, x):
         batch_size = x.shape[0]
         
-        out = self.latent.reshape((-1, batch_size, -1))
-        embedded = self.pe(x)
+        out = self.latent.repeat(batch_size, 1, 1)
+        embedded = x
 
         for block in self.blocks:
             out = block(embedded, out)
