@@ -30,9 +30,44 @@
    is treated in the same way as the real data. However, these labels are input as grayscale images with a single channel,
    making them simpler and more focused on the lesion's location and shape.
 
-## Model
-   T
+
+## Data_Loader
+   Class for getting data as a Dict
+   Args:
+   images_dir = path of input images
+   labels_dir = path of labeled images
+   transformI = Input Images transformation
+   transformM = Input Labels transformation 
    
+## Dice_score
+measures the similarity between two sets. 
+Specifically in medical imaging, it's used to quantify the overlap 
+between predicted and ground truth binary segmentations.
+Values range between 0 (no overlap) to 1 (perfect overlap). 
+It's a common metric for evaluating the accuracy of image segmentation models, 
+highlighting the spatial overlap accuracy between prediction and truth.
+
+## Losses
+Quantifies how well a model's predictions match the actual data. 
+In machine learning, it measures the difference between predicted and true values. 
+    Args:
+        prediction = predicted image
+        target = Targeted image
+        metrics = Metrics printed
+        bce_weight = 0.5 (default)
+    Output:
+        loss : dice loss of the epoch
+
+
+## Metrics 
+Dice Coefficient will be calculated 
+It is a statistical measure used to evaluate the similarity between two sets. 
+It is especially popular in medical imaging for quantifying the overlap between 
+predicted and ground truth binary segmentations. 
+The coefficient ranges from 0 (no overlap) to 1 (perfect overlap). 
+
+
+
 
 
 
