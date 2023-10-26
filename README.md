@@ -40,7 +40,10 @@ The core of this model, the transformer section, is structured into stages; each
 
 Unique to this model is the adaptive configuration of attention heads, MLP ratios, and other hyperparameters across different stages, allowing a more customised approach to learn these hierarchical representations. To ensure the model’s resilience against overfitting and facilitate more stabilised learning, the CViT employs specific regularisation techniques, including layer normalisation and dropout strategies.
 
-The final part of the model compresses the transformer’s output, focusing on a CLS token and passes it through a linear layer that acts as a classifier. This translates the information from preceding stages into concrete predictions for
+The final part of the model compresses the transformer’s output, focusing on to a CLS token and passes it through a linear layer that acts as a classifier. This translates the information from preceding stages into concrete predictions for image classifications. 
+
+A visual of this is shown below.
+![Visualisation of CViT](Images/CViT.png)
 
 ## ADNI Brain Dataset & Pre-Processing
 
