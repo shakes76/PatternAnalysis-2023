@@ -66,7 +66,7 @@ if check:
 
 # Construct smaller debugging datasets
 if debugging:
-    num_epochs = 3
+    num_epochs = 15
     dataset = ISICDataset(transform)
     subset_indices = list(range(40))  # debugging on first 40 samples
     subset = Subset(dataset, subset_indices)
