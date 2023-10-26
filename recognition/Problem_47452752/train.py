@@ -43,7 +43,7 @@ if debugging:
 
     test_size = int(0.5 * len(subset))
     train_size = len(subset) - test_size
-    train_dataset, test_dataset = random_split(subset, train_size, test_size)
+    train_dataset, test_dataset = random_split(subset, [train_size, test_size])
 
     train_loader = DataLoader(train_dataset, 50)
     test_loader = DataLoader(test_dataset, 50)
@@ -114,7 +114,7 @@ for epoch in range(num_epochs):
                 f"Epoch {epoch + 1}, Batch {i}: Loss = {running_loss / print_every:.4f}"
             )
             running_loss = 0.0
-            
+
         # Evaluate the model using the validation set
         model.eval()
         val_loss = 0
