@@ -7,7 +7,7 @@ Make sure to plot the losses and metrics during training
 
 from dataset import (
     ISICDataset,
-    transform,
+    process_and_augment,
     check_consistency,
 )
 import numpy as np
@@ -22,7 +22,7 @@ from torch.utils.data import Subset  # for debugging only TODO
 
 
 # Hyper-parameters
-num_epochs = 50
+num_epochs = 25
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Conditional parameters used for debugging
@@ -69,7 +69,7 @@ if debugging:
     num_epochs = 2
     subset_size = 500
 
-    dataset = ISICDataset(transform)
+    dataset = ISICDataset(process_and_augment)
     subset_indices = list(range(subset_size))
     subset = Subset(dataset, subset_indices)
 
@@ -88,7 +88,7 @@ if debugging:
 # Construct full datasets
 if not debugging:
     # Loading up the dataset and applying custom augmentations
-    dataset = ISICDataset(transform)
+    dataset = ISICDataset(process_and_augment)
 
     total_size = len(dataset)
 
@@ -116,10 +116,10 @@ scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.985)
 
 print("Training loop:")
 
-# Variables used for training feedback and validation:
+# Variables used for training and validation:
 running_loss = 0.0
 no_improvement = 0
-print_every = 1  # Print every 10 batches.
+print_every = 20  # Print training feedback every 20 batches
 best_val_similarity = 0.0
 best_val_minimum = 0.0
 patience = 8  # Number of epochs to wait before stopping
