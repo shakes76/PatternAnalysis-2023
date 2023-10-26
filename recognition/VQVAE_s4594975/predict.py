@@ -26,6 +26,16 @@ select = np.random.choice(len(x_test_scaled), 10)
 images =  x_test_scaled[select]
 
 def calculate_ssim(images, recons):
+    """
+    Calculate Structural Similarity Index (SSIM) for image reconstructions and display comparisons.
+
+    Args:
+        images (numpy.ndarray): Original images.
+        recons (numpy.ndarray): Reconstructed images.
+
+    Returns:
+        None
+    """
     sum = 0
     for test_image, reconstructed_image in zip(images, recons):
         test = convert_image_dtype(test_image, tf.float32)
@@ -46,12 +56,26 @@ def calculate_ssim(images, recons):
     print(sum / len(recons))
 
 def test_vqvae():
+    """
+    Test a pre-trained VQ-VAE model by generating reconstructions and calculating SSIM.
+
+    Returns:
+        average_ssim (float): Average SSIM score for the generated reconstructions.
+    """
     reconstructed = vqvae.predict(images)
     ssim = calculate_ssim(images, reconstructed)
     return 0
 
 def show_codes(codebook):
-    
+    """
+    Display original images and their quantized code representations (codebook).
+
+    Args:
+        codebook (numpy.ndarray): Quantized code representations.
+
+    Returns:
+        None
+    """
     for i in range(len(images)):
     
         plt.subplot(1, 2, 1)
@@ -66,6 +90,17 @@ def show_codes(codebook):
         plt.show()
 
 def generate(quantizer, priors, output_enco):
+    """
+    Generate novel images using quantized priors and a VQ-VAE decoder.
+
+    Args:
+        quantizer (keras.Model): The quantizer layer from the VQ-VAE.
+        priors (numpy.ndarray): Quantized priors for image generation.
+        output_enco (numpy.ndarray): Output of the VQ-VAE encoder.
+
+    Returns:
+        None
+    """
     pretrained_embeddings = quantizer.embeddings
     priors_ohe = tf.one_hot(priors.astype("int32"), vqvae.num_embeddings).numpy()
     quantized = tf.matmul(priors_ohe.astype("float32"), pretrained_embeddings, transpose_b=True)
@@ -88,6 +123,13 @@ def generate(quantizer, priors, output_enco):
         plt.show()
 
 def test_pcnn():
+    """
+    Test a pre-trained Pixel-CNN model by generating quantized priors, displaying code representations,
+    and generating novel images.
+
+    Returns:
+        None
+    """
     priors	= np.zeros(shape = (10,) + (pcnn.input_shape)[1:])
     batch, rows, cols = priors.shape
 
