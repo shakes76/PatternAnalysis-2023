@@ -8,9 +8,14 @@ recognition/TRANSFORMER_43909856/__pycache__
 
 # Ignore dataset files
 recognition/TRANSFORMER_43909856/imagenette
+
 recognition/TRANSFORMER_43909856/dataset
+# Keep the dataset dir README
+!*/recognition/TRANSFORMER_43909856/dataset/README.md
 
 # Ignore directory with saved models
 recognition/TRANSFORMER_43909856/models
+# Keep the models dir README
+!*/recognition/TRANSFORMER_43909856/models/README.md
 
 
