@@ -1,10 +1,9 @@
 """
-#! make a file header
+This file contains the main modules and architecture of the ViT
+Attention block / layers of encoder and encoder class
 """
-import pytorch_lightning as pl
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from dataset import img_to_patch
 
 class AttentionBlock(nn.Module):
@@ -60,6 +59,7 @@ class VisionEncoder(nn.Module):
         """
         super().__init__()
 
+        # Initallise variables
         self.patch_size = patch_size
         self.embed_dim = embed_dim
         self.hidden_dim = hidden_dim
@@ -67,11 +67,14 @@ class VisionEncoder(nn.Module):
         self.num_layers = num_layers
         self.num_dropout = dropout
 
+        # Calculating number of patches given patch_size and image dimensions
         num_patches = (image_size[0]//self.patch_size) * (image_size[1]//self.patch_size)
 
-        # Layers/Networks
+        # =====Layers/Networks===== #
         self.input_layer = nn.Linear(num_channels * (patch_size**2), embed_dim)
+        # Encoder layers
         self.encoder = self._make_layers()
+        # MLP head used for classification
         self.mlp_head = nn.Sequential(nn.LayerNorm(embed_dim), nn.Linear(embed_dim, num_classes))
         self.dropout = nn.Dropout(dropout)
 
@@ -90,15 +93,19 @@ class VisionEncoder(nn.Module):
         return nn.Sequential(*layers)
 
     def forward(self, x):
+        """
+        Loop that every img batch will be fed through
+        """
         # Preprocess input
         x = img_to_patch(x, self.patch_size)
         B, T, _ = x.shape
         x = self.input_layer(x)
 
-        #!maybe make positional encoding to sin and cos func
-        # Add CLS token and positional encoding
+        # Add CLS token
         cls_token = self.cls_token.repeat(B, 1, 1)
         x = torch.cat([cls_token, x], dim=1)
+
+        # Add positional encoding
         x = x + self.pos_embedding[:, : T + 1]
 
         # Apply Transforrmer
