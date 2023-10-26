@@ -6,9 +6,10 @@
    Segment the ISIC data set with the Improved UNet
    with all labels having a minimum Dice similarity coefficient of 0.8 on the test set.
 
-## The structure of Improved UNet is based on the paper. 
-   "Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge"
-   https://arxiv.org/abs/1802.10508v1
+## Background
+The structure of Improved UNet is based on the paper. 
+"Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge" 
+https://arxiv.org/abs/1802.10508v1
 
 
 ## Model
@@ -34,12 +35,13 @@
 
 
 ## Data_Loader
-   Class for getting data as a Dict
-   Args:
-   images_dir = path of input images
-   labels_dir = path of labeled images
-   transformI = Input Images transformation
-   transformM = Input Labels transformation 
+Class for getting data as a Dict
+
+    Args: 
+    images_dir = path of input images
+    labels_dir = path of labeled images 
+    transformI = Input Images transformation 
+    transformM = Input Labels transformation 
    
 ## Dice_score
 measures the similarity between two sets. 
@@ -52,6 +54,7 @@ highlighting the spatial overlap accuracy between prediction and truth.
 ## Losses
 Quantifies how well a model's predictions match the actual data. 
 In machine learning, it measures the difference between predicted and true values. 
+
     Args:
         prediction = predicted image
         target = Targeted image
@@ -59,6 +62,16 @@ In machine learning, it measures the difference between predicted and true value
         bce_weight = 0.5 (default)
     Output:
         loss : dice loss of the epoch
+
+## Environment
+    python 3.9    
+    pytorch=2.0.1
+    numpy==1.23.5
+    torchvision=0.15.2
+    matplotlib==3.7.2
+
+    
+    
 
 
 
