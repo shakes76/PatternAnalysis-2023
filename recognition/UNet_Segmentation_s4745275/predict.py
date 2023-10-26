@@ -1,9 +1,78 @@
-# showing example usage of your trained model. Print out any results and / or provide visualisations where applicable
+"""Showing an example useage of the trained model using an image in the images folder. We also compare the prediction to the true mask"""
 
+import matplotlib as plt
 from modules import UNet
+from dataset import pre_process_image, pre_process_mask
+from PIL import Image
 import torch
 
+# If available, its favourable to use the model on a GPU device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = UNet(in_channels=6, num_classes=2)  # Adjust parameters if they've changed
-model.load_state_dict(torch.load("recognition/Problem_47452752/model.pth"))
+
+# Example image and the corrsponding mask is located in the images directory
+example_path = "recognition/UNet_Segmentation_s4745275/images/ISIC_0000000.jpg"
+mask_path = (
+    "recognition/UNet_Segmentation_s4745275/images/ISIC_0000000_segmentation.png"
+)
+
+# Trained model weights and parameters are stored in best_model.pth
+model_path = "recognition/UNet_Segmentation_s4745275/best_model.pth"
+
+# Load an instance of the trained model
+model = UNet(in_channels=6, num_classes=1)
+# model.load_state_dict(torch.load(model_path))
 model = model.to(device)
+
+# Load the input image in RGB mode
+image = Image.open(example_path).convert("RGB")
+# Pre-process the input image
+image = (
+    pre_process_image(image).unsqueeze(0).to(device)
+)  # Add a batch dimension and send to device
+
+with torch.no_grad():
+    prediction = model(image)  # This is the prediction of the algorithm
+    prediction = (prediction > 0.5).float()  # Binarize the output
+
+
+# Visual comparison of the predicted segment to the true segment
+
+# Convert output tensor to numpy array for visualization
+predicted_np = prediction.squeeze().cpu().numpy()
+fix, ax = plt.sub
+fig, ax = plt.subplots(1, 2, figsize=(10, 5))
+
+# Correct Mask
+mask = Image.open(mask_path).convert("L")
+mask = pre_process_mask(mask)
+print(mask.size())
+exit()
+ax[0].imshow(mask.numpy().transpose(1, 2, 0))
+ax[0].set_title("True Mask")
+# Original Image
+ax[0].imshow(image.squeeze().cpu().numpy().transpose(1, 2, 0))
+ax[0].set_title("Original Image")
+
+# Predicted Mask
+ax[1].imshow(predicted_np, cmap="gray")
+ax[1].set_title("Predicted Mask")
+
+plt.show()
+
+exit()
+
+
+mask = Image.open(mask)
+
+
+# Assuming `predicted_masks` contains the model's outputs
+predicted_mask = predicted_masks[0].detach().numpy()
+
+fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+ax[0].imshow(img_rgb)
+ax[0].set_title("RGB Image")
+ax[1].imshow(mask, cmap="gray")
+ax[1].set_title("Ground Truth Mask")
+ax[2].imshow(predicted_mask, cmap="gray")
+ax[2].set_title("Predicted Mask")
+plt.show()

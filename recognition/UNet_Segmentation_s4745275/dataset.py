@@ -4,7 +4,7 @@ File containing the data loaders used for loading and preprocessing the data.
 
 import os
 import torch
-from utils import RandomCenterCrop, RandomRotate90, DictTransform
+from recognition.UNet_Segmentation_s4745275.utils import RandomCenterCrop, RandomRotate90, DictTransform
 from torch.utils.data import Dataset
 from torchvision import transforms
 import torchvision.transforms.functional as TF
