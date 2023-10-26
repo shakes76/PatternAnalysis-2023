@@ -26,16 +26,17 @@ This project uses a Siamese Network to classify Alzheimer's disease based on ima
       
 ## Main Components
 Siamese Network (modules.py)
-The Siamese network is a neural network designed to determine if two input images are similar. It uses ResNet18 as the base model and adds several fully connected layers on top.
+    - The Siamese network is a neural network designed to determine if two input images are similar. It uses ResNet18 as the base model and adds several fully connected layers on top.
 
 Dataset (dataset.py)
-The SiameseNetworkDataset class is used to load image data. It can load images from two categories (AD and NC) and generates a label for each pair of images indicating if they belong to the same category.
+    - The SiameseNetworkDataset class is used to load image data. It can load images from two categories (AD and NC) and generates a label for each pair of images indicating if they belong to the same category.
 
 Training Loop (train.py)
-This script contains the main training, validation, and testing loops for the Siamese network. It includes functions for checking CUDA availability, initializing datasets and dataloaders, defining the loss function and optimizer, and the main training loop with progress bars for training, validation, and testing.
+    - This script contains the main training, validation, and testing loops for the Siamese network. 
+    - It includes functions for checking CUDA availability, initializing datasets and dataloaders, defining the loss function and optimizer, and the main training loop with progress bars for training, validation, and testing.
 
 Recurrent (predict.py)
-This script will use the best module to recurrent the best result. It can also load data and visualize via tensorboard.
+    - This script will use the best module to recurrent the best result. It can also load data and visualize via tensorboard.
 
 ## How to Run:
 
@@ -68,5 +69,8 @@ AD_NC/
 |   |-- NC/
 
 ## Notes
-In the SiameseNetworkDataset class of dataset.py, some data augmentation code is commented out. If you wish to enhance the model's generalization capabilities, consider uncommenting this code.
-Ensure the directory structure for the image data is correct when using the dataset class.
+    - In the SiameseNetworkDataset class of dataset.py, some data augmentation code is commented out. 
+    - If you wish to enhance the model's generalization capabilities, consider uncommenting this code.
+    - Ensure the directory structure for the image data is correct when using the dataset class.
+    - You must run train.py first to get the best module then run predict.py, otherwise there will be an error.
+    
