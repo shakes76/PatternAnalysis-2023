@@ -29,7 +29,10 @@ VQVAE runs alongside pixelcnn which trains to generate encodings. After the trai
 ## DATASET - PREPROCESSING
 Preprocessed dataset was used which contained train, test and validation images. The dataset was normalised to be in the range [-0.5 to 0.5] and pixel size was downsampled to 80x80 from 256x256 to compile faster and less memory resources.
 
-!size of the dataset
+<Test/Test> 
+
+<img width="126" alt="Screen Shot 2023-10-27 at 2 17 11 pm" src="https://github.com/Xodacan/PatternAnalysis-2023/assets/88042327/3673a9ef-1fdb-45a1-a7d6-303921a0c738">
+
 
 ## TRAINING 
 Training the models were executed on a machine with macOS software containing an intel core i5 2015 version. VQVAE and Pixel CNN were trained with 100 epocs each. Every epoch(76 steps) on the VQVAE took about 60s and every epoch(3 steps) on the Pixel CNN took about 4s.
