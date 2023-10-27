@@ -77,7 +77,7 @@ In machine learning, it measures the difference between predicted and true value
 
 ## Training loss vs Epoches
 
-   ![Unet](./additional_images/Train_loss_vs_Epoches.png)
+   ![train_vs_Epoches](./additional_images/Train_loss_vs_Epoches.png)
 
 
 ## Valid loss vs Epoches
