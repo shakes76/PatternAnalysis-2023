@@ -5,7 +5,7 @@ import torch.nn as nn
 import time
 import numpy as np
 from torch.utils.data import DataLoader
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, PrecisionRecallDisplay
 import matplotlib.pyplot as plt
 
 import dataset
@@ -150,6 +150,8 @@ def plot_confusion_matrix(predicted, observed, show_plot=False, save_plot=False)
     # Create a graph/plot of the confusion matrix
     cm_display = ConfusionMatrixDisplay(confusion_matrix=cm, 
                                         display_labels=["AD", "NC"])
+    # Add a title
+    plt.title("ViT Transformer (ADNI classifier) test set confusion matrix")
     
     # Save the plot
     if save_plot:
@@ -159,6 +161,48 @@ def plot_confusion_matrix(predicted, observed, show_plot=False, save_plot=False)
             os.makedirs(directory)
         # Save the plot in the "plots" directory
         cm_display.figure_.savefig(os.path.join(directory, "ViT_test_confusion_matrix.png"), dpi=600)
+        
+    if show_plot:
+        # Show the plot
+        plt.show()
+
+    
+"""
+Plot a Precision-Recall curve, which plots the Recall or
+True Positive rate (True Positives / Positives), against the Precision or 
+Positive Predictive Value (True Positives / Predicted Positives) for the test 
+set predictions.
+A curve for a 'no-skill' classifier is also plotted for comparison - this curve
+indicates the Precision-Recall curve expected for a binary classification model
+that cannot distinguish between the classes, effectively performing a 'random
+guess' for each prediction.
+
+Params:
+    predicted (array[int]): predicted class values for each image in the test set.
+                            Values are either 0 (AD) or 1 (NC)
+    observed (array[int]): empirical/observed class values for each image in the 
+                            test set. Values are either 0 (AD) or 1 (NC)
+    show_plot (bool): show the plot in a popup window if True; otherwise, don't
+                      show the plot
+    save_plot (bool): save the plot as a PNG file to the directory "plots" if
+                      True; otherwise, don't save the plot
+"""
+def plot_pr_curve(predicted, observed, show_plot=False, save_plot=False):
+    # Create a graph/plot of the PR curve
+    pr_display = PrecisionRecallDisplay.from_predictions(observed, predicted, 
+                                                         pos_label=0, 
+                                                         plot_chance_level=True)
+    # Add a title
+    plt.title("ViT Transformer test set Precision-Recall curve")
+    
+    # Save the plot
+    if save_plot:
+        # Create an output folder for the plot, if one doesn't already exist
+        directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'plots')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        # Save the plot in the "plots" directory
+        pr_display.figure_.savefig(os.path.join(directory, "ViT_test_PR_curve.png"), dpi=600)
         
     if show_plot:
         # Show the plot
@@ -178,9 +222,12 @@ def main():
     # predicted = load_test_labels()
     # # Load empirical/observed class labels
     # observed = load_test_labels(osp.join(OUTPUT_PATH, 'ADNI_test_observed.csv'))
-    
+
     # # Plot a confusion matrix
     # plot_confusion_matrix(predicted, observed, show_plot=True, save_plot=True)
+
+    # # Plot a Precision-Recall curve
+    # plot_pr_curve(predicted, observed, show_plot=True, save_plot=True)
 
 if __name__ == '__main__':
     main()
