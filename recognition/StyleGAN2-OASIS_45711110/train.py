@@ -27,6 +27,7 @@ def train_fn(
 
         w     = utils.get_w(cur_batch_size)
         noise = utils.get_noise(cur_batch_size)
+
         with torch.cuda.amp.autocast():
             fake = gen(w, noise)
             critic_fake = critic(fake.detach())
@@ -51,7 +52,7 @@ def train_fn(
             if not torch.isnan(plp):
                 loss_gen = loss_gen + plp
 
-        MappingNetwork.zero_grad()
+        mapping_network.zero_grad()
         gen.zero_grad()
         loss_gen.backward()
         opt_gen.step()

@@ -2,7 +2,6 @@
 
 import torch
 from config import w_dim, device, log_resolution
-from modules import MappingNetwork
 import train
 
 def gradient_penalty(critic, real, fake,device="cpu"):
