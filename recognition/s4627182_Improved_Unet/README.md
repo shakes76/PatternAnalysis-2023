@@ -69,6 +69,9 @@ In machine learning, it measures the difference between predicted and true value
     numpy==1.23.5
     torchvision=0.15.2
     matplotlib==3.7.2
+      Pillow==9.3.0
+      tqdm==4.64.1
+      wandb==0.13.5
 
     
     
