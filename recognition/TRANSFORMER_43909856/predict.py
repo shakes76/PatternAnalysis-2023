@@ -5,6 +5,8 @@ import torch.nn as nn
 import time
 import numpy as np
 from torch.utils.data import DataLoader
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
 
 import dataset
 import modules
@@ -14,8 +16,6 @@ This file is used to test the ViT model trained on the ADNI dataset.
 Any results will be printed out, and visualisations will be provided 
 where applicable.
 """
-# TODO add plots of metrics - could do confusion matrix, ROC or Precision/Recall
-# curve.
 
 #### Set-up GPU device ####
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -114,12 +114,73 @@ def test_model(model_filename=osp.join(OUTPUT_PATH, "ViT_ADNI_model.pt"), save_m
 
 
 """
+Load the predicted classes or the empirical/observed classes, for each image in 
+the test set. These values are loaded from CSV files, which are saved during the
+testing process.
+
+Params:
+    filename (str): the name of the CSV file to load
+Returns:
+    An array, in which each entry is a classification label (either predicted
+    or actual), as predicted by the dataset. Labels are either a 0 (AD) or 1 (NC)
+"""
+def load_test_labels(filename=osp.join(OUTPUT_PATH, 'ADNI_test_predictions.csv')):
+    # Load the file
+    labels = np.loadtxt(filename, dtype=float)
+    # Convert from a numpy array to a python base lib list
+    return labels.tolist()
+
+
+"""
+Plot a confusion matrix, based on the predicted classes and empirical/observed
+classes for the test set data.
+
+Params:
+    predicted (array[int]): predicted class values for each image in the test set.
+                            Values are either 0 (AD) or 1 (NC)
+    observed (array[int]): empirical/observed class values for each image in the 
+                            test set. Values are either 0 (AD) or 1 (NC)
+    show_plot (bool): show the plot in a popup window if True; otherwise, don't
+                      show the plot
+    save_plot (bool): save the plot as a PNG file to the directory "plots" if
+                      True; otherwise, don't save the plot
+"""
+def plot_confusion_matrix(predicted, observed, show_plot=False, save_plot=False):
+    cm = confusion_matrix(observed, predicted)
+    # Create a graph/plot of the confusion matrix
+    cm_display = ConfusionMatrixDisplay(confusion_matrix=cm, 
+                                        display_labels=["AD", "NC"])
+    
+    # Save the plot
+    if save_plot:
+        # Create an output folder for the plot, if one doesn't already exist
+        directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'plots')
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+        # Save the plot in the "plots" directory
+        cm_display.figure_.savefig(os.path.join(directory, "ViT_test_confusion_matrix.png"), dpi=600)
+        
+    if show_plot:
+        # Show the plot
+        plt.show()
+
+
+"""
 Main method - make sure to run any methods in this file within here.
 Adding this so that multiprocessing runs appropriately/correctly
 on Windows devices.
 """
 def main():
+    # Test the model
     test_model()
+
+    # # Load predicted class labels
+    # predicted = load_test_labels()
+    # # Load empirical/observed class labels
+    # observed = load_test_labels(osp.join(OUTPUT_PATH, 'ADNI_test_observed.csv'))
+    
+    # # Plot a confusion matrix
+    # plot_confusion_matrix(predicted, observed, show_plot=True, save_plot=True)
 
 if __name__ == '__main__':
     main()
