@@ -5,12 +5,16 @@ class MLP(nn.Module):
 
     def __init__(self, embed_dim):
         super(MLP, self).__init__()
+        # MLP structure inferred from paper
         self.layernorm = nn.LayerNorm(embed_dim)
         self.linear1 = nn.Linear(embed_dim, embed_dim)
         self.linear2 = nn.Linear(embed_dim, embed_dim)
         self.activation = nn.GELU()
+        # Dropout was used in paper, but found to degrade results
+        # so it was excluded
 
     def forward(self, x):
+        # Attention output passed straight through MLP
         out = self.layernorm(x)
         out = self.linear1(out)
         out = self.linear2(out)
@@ -22,11 +26,14 @@ class CrossAttention(nn.Module):
 
     def __init__(self, embed_dim, heads):
         super(CrossAttention, self).__init__()
+        # Normalization -> Attention -> MLP as suggested in paper
         self.normalize = nn.LayerNorm(embed_dim)
         self.attention = nn.MultiheadAttention(embed_dim, heads)
         self.mlp = MLP(embed_dim)
 
     def forward(self, kv, q):
+        # here, kv is the embedded image with size:
+        # [pixels x batch_size x embed_dim]
         normalQ = self.normalize(q)
         out, _ = self.attention(normalQ, kv, kv)
         out = self.mlp(out)
@@ -35,8 +42,11 @@ class CrossAttention(nn.Module):
     
 class PerceiverBlock(nn.Module):
 
-    def __init__(self, d_latent, embed_dim, heads, transformer_depth):
+    def __init__(self, embed_dim, heads, transformer_depth):
         super(PerceiverBlock, self).__init__()
+        # Each block in the perceiver is made up of 1 cross attention
+        # and one transformer. The transformer used was the pytorch
+        # implementation.
         self.cross_attention = CrossAttention(embed_dim, heads)
         self.transformer = nn.Transformer(
             d_model = embed_dim, 
@@ -59,8 +69,10 @@ class Classifier(nn.Module):
         self.output_layer = nn.Linear(embed_dim, n_classes)
 
     def forward(self, x):
-        averaged = torch.mean(x, dim = 0)
-        out = self.output_layer(averaged)
+        # result of batch is averaged before being passed through final layer
+        out = self.linear_pass(x)
+        out = torch.mean(out, dim = 0)
+        out = self.output_layer(out)
         return out
     
 
@@ -74,21 +86,31 @@ class Perceiver(nn.Module):
 
     def __init__(self, d_latent, embed_dim, heads, transformer_depth, n_perceiver_blocks, n_classes, batch_size):
         super(Perceiver, self).__init__()
-        self.d_latent = d_latent
-        self.embed_dim = embed_dim
-        self.heads = heads
-        self.batch_size = batch_size
 
+        # Initialize the latent array to be a normally distributed 
+        # array of parameters of size [batch_size x d_latent x embed_dim]
+        # with values bound between [-2, 2]
         latent = torch.zeros((batch_size, d_latent, embed_dim))
         torch.nn.init.trunc_normal_(latent, mean = 0, std = 0.02, a = -2, b = 2)
         self.latent = nn.Parameter(latent)
+
+        # Input of height*width size passes through the embed_dim bottleneck
         self.embed_layer = nn.Linear(240 * 240, embed_dim)
+
+        # Stack of perceiver blocks
         self.blocks = nn.ModuleList(
-            [PerceiverBlock(d_latent, embed_dim, heads, transformer_depth) for _ in range(n_perceiver_blocks)]
+            [PerceiverBlock(embed_dim, heads, transformer_depth) for _ in range(n_perceiver_blocks)]
         )
+
+        # Classification layer
         self.classifier = Classifier(embed_dim, n_classes)
 
     def forward(self, x):
+        
+        # Rearrange tensor for attention / transformer modules
+        # that expect shapes of: 
+        # latent array -> [latent_dim x batch_size x embed_dim] 
+        # key and val -> [pixels x batch_size x embed_dim]
 
         embedded = self.embed_layer(x).permute(1, 0, 2)
         out = self.latent.permute(1, 0, 2)

@@ -7,15 +7,17 @@ from modules import *
 path = r"C:\Users\deepp\Documents\Offline Projects\ML Datasets\ADNI" # PC path
 
 image_shape = (240, 240)
+device = "cuda:0" if torch.cuda.is_available() else "cpu"
 d_latent = 256
-embed_dim = 32
+embed_dim = 128
 transformer_depth = 1
 num_heads = 1
-n_perceiver_blocks = 1
+n_perceiver_blocks = 3
 num_epochs = 1
-batch_size = 1
+batch_size = 5
 n_classes = 2
 lr = 0.005
+torch.device(device = device)
 
 if __name__ == "__main__":
     
@@ -26,7 +28,6 @@ if __name__ == "__main__":
         transforms.Lambda(lambda x: torch.flatten(x, start_dim = 1))
     ])
 
-    #  TESTING
     train_dataset = load_train_data(path, batch_size, transforms = transforms)
 
     model = Perceiver(
@@ -37,14 +38,17 @@ if __name__ == "__main__":
         n_perceiver_blocks,
         n_classes,
         batch_size
-    )
+    ).to(device = device)
 
     loss = nn.CrossEntropyLoss()
     optim = torch.optim.Adam(model.parameters(), lr = lr)
 
     for _ in range(num_epochs):
         for i, (samples, labels) in enumerate(train_dataset):
-            
+
+            samples = samples.to(device)
+            labels = labels.to(device)
+
             optim.zero_grad()
             outputs = model(samples)
 
