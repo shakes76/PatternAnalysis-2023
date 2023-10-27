@@ -9,7 +9,4 @@ The library includes the following implemented in Tensorflow:
 * fractals 
 * recognition problems
 
-In the recognition folder, you will find many recognition problems solved including:
-* OASIS brain segmentation
-* Classification
-etc.
+In the recognition folder, you will find the OASIS brain segmentation used by StyleGAN2 to produce realistic fake images.
