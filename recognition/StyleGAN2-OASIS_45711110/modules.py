@@ -34,7 +34,7 @@ class MappingNetwork(nn.Module):
 
 # Define the EqualizedLinear class
 class EqualizedLinear(nn.Module):
-    def __init__(self, in_features, out_features, bias=0.):
+    def __init__(self, in_features, out_features, bias=0):
         super().__init__()
         # Define a linear layer with equalized learning rate
         self.weight = EqualizedWeight([out_features, in_features])
@@ -234,9 +234,7 @@ class DiscriminatorBlock(nn.Module):
     
 class EqualizedConv2d(nn.Module):
 
-    def __init__(self, in_features, out_features,
-                 kernel_size, padding = 0):
-
+    def __init__(self, in_features, out_features, kernel_size, padding = 0):
         super().__init__()
         self.padding = padding
         self.weight = EqualizedWeight([out_features, in_features, kernel_size, kernel_size])
