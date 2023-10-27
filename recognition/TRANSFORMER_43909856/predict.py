@@ -176,15 +176,15 @@ on Windows devices.
 """
 def main():
     # Test the model
-    # test_model()
+    test_model()
 
     # Load predicted class labels
-    predicted = load_test_labels()
-    # Load empirical/observed class labels
-    observed = load_test_labels(osp.join(OUTPUT_PATH, 'ADNI_test_observed.csv'))
+    # predicted = load_test_labels()
+    # # Load empirical/observed class labels
+    # observed = load_test_labels(osp.join(OUTPUT_PATH, 'ADNI_test_observed.csv'))
 
-    # Plot a confusion matrix
-    plot_confusion_matrix(predicted, observed, show_plot=True, save_plot=True)
+    # # Plot a confusion matrix
+    # plot_confusion_matrix(predicted, observed, show_plot=True, save_plot=True)
 
 
 if __name__ == '__main__':

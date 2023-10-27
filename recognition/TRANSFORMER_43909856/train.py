@@ -28,7 +28,7 @@ else:
 
 
 #### Model hyperparameters: ####
-N_EPOCHS = 40
+N_EPOCHS = 30
 LEARNING_RATE = 0.001
 N_CLASSES = 2
 # Dimensions to resize the original 256x240 images to (IMG_SIZE x IMG_SIZE)
@@ -343,10 +343,12 @@ on Windows devices.
 def main():
     # Train the model
     train_model()
-    # Create training vs validation loss plots
+
+    #Create training vs validation loss plots
     # train_loss_values = load_training_metrics()
     # val_loss_values = load_training_metrics(filename=osp.join(OUTPUT_PATH, 'ADNI_val_loss.csv'))
     # plot_loss(train_loss_values, val_loss_values, show_plot=True, save_plot=True)
+
     # # Create validation accuracy plot
     # plot_val_accuracy(val_loss_values, show_plot=True, save_plot=True)
 
