@@ -3,11 +3,11 @@ import torch.nn as nn
 
 class MLP(nn.Module):
 
-    def __init__(self, d_latent):
+    def __init__(self, embed_dim):
         super(MLP, self).__init__()
-        self.layernorm = nn.LayerNorm(d_latent)
-        self.linear1 = nn.Linear(d_latent, d_latent)
-        self.linear2 = nn.Linear(d_latent, d_latent)
+        self.layernorm = nn.LayerNorm(embed_dim)
+        self.linear1 = nn.Linear(embed_dim, embed_dim)
+        self.linear2 = nn.Linear(embed_dim, embed_dim)
         self.activation = nn.GELU()
 
     def forward(self, x):
@@ -17,26 +17,29 @@ class MLP(nn.Module):
         out = self.activation(out)
         return out
 
+
 class CrossAttention(nn.Module):
 
-    def __init__(self, d_latent, n_latent, heads):
+    def __init__(self, embed_dim, heads):
         super(CrossAttention, self).__init__()
-        self.normalize = nn.LayerNorm(n_latent)
-        self.attention = nn.MultiheadAttention(n_latent, heads)
+        self.normalize = nn.LayerNorm(embed_dim)
+        self.attention = nn.MultiheadAttention(embed_dim, heads)
+        self.mlp = MLP(embed_dim)
 
     def forward(self, kv, q):
-        out, _ = self.attention(q, kv, kv)
-        out = self.linear(out)
+        normalQ = self.normalize(q)
+        out, _ = self.attention(normalQ, kv, kv)
+        out = self.mlp(out)
         return out
     
     
 class PerceiverBlock(nn.Module):
 
-    def __init__(self, dim_latent, heads, transformer_depth):
+    def __init__(self, d_latent, embed_dim, heads, transformer_depth):
         super(PerceiverBlock, self).__init__()
-        self.cross_attention = CrossAttention(dim_latent, heads)
+        self.cross_attention = CrossAttention(embed_dim, heads)
         self.transformer = nn.Transformer(
-            d_model = dim_latent, 
+            d_model = embed_dim, 
             nhead = heads,
             num_encoder_layers = transformer_depth,
             num_decoder_layers = transformer_depth
@@ -44,18 +47,19 @@ class PerceiverBlock(nn.Module):
 
     def forward(self, x, y):
         out = self.cross_attention(x, y)
-        out = self.transformer(out)
+        out = self.transformer(out, out)
         return out
     
 
 class Classifier(nn.Module):
 
-    def __init__(self, dim_latent, n_classes):
+    def __init__(self, embed_dim, n_classes):
         super(Classifier, self).__init__()
-        self.output_layer = nn.Linear(dim_latent, n_classes)
+        self.linear_pass = nn.Linear(embed_dim, embed_dim)
+        self.output_layer = nn.Linear(embed_dim, n_classes)
 
     def forward(self, x):
-        averaged = torch.mean(x, dim = 2)
+        averaged = torch.mean(x, dim = 0)
         out = self.output_layer(averaged)
         return out
     
@@ -65,27 +69,29 @@ class Perceiver(nn.Module):
     Architecture and layout of Perceiver adapted from source:
     https://medium.com/@curttigges/the-annotated-perceiver-74752113eefb
 
-    The perceiver model constructed here has a few modifications. Additionally,
-    we use the pytorch transformer model as it 
+    The perceiver model constructed here has a few modifications.
     """
 
-    def __init__(self, dim_latent, batch_size, heads, transformer_depth, num_blocks, n_classes):
+    def __init__(self, d_latent, embed_dim, heads, transformer_depth, n_perceiver_blocks, n_classes, batch_size):
         super(Perceiver, self).__init__()
+        self.d_latent = d_latent
+        self.embed_dim = embed_dim
+        self.heads = heads
+        self.batch_size = batch_size
 
-        latent = torch.zeros((1, 240*240, dim_latent))
+        latent = torch.zeros((batch_size, d_latent, embed_dim))
         torch.nn.init.trunc_normal_(latent, mean = 0, std = 0.02, a = -2, b = 2)
         self.latent = nn.Parameter(latent)
-
+        self.embed_layer = nn.Linear(240 * 240, embed_dim)
         self.blocks = nn.ModuleList(
-            [PerceiverBlock(dim_latent, heads, transformer_depth) for _ in range(num_blocks)]
+            [PerceiverBlock(d_latent, embed_dim, heads, transformer_depth) for _ in range(n_perceiver_blocks)]
         )
-        self.classifier = Classifier(dim_latent, n_classes)
+        self.classifier = Classifier(embed_dim, n_classes)
 
     def forward(self, x):
-        batch_size = x.shape[0]
-        
-        out = self.latent.repeat(batch_size, 1, 1)
-        embedded = x
+
+        embedded = self.embed_layer(x).permute(1, 0, 2)
+        out = self.latent.permute(1, 0, 2)
 
         for block in self.blocks:
             out = block(embedded, out)
