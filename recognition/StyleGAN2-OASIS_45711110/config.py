@@ -3,11 +3,11 @@
 import torch
 
 # Device Config
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+device = torch.device('cuda' if torch.cuda.is_available() else 'mps')
 print('Device: ', device)
 
 # Path
-dataset = "/dev/data/keras_png_slices_data/keras_png_slices_"
+DATA = "/Users/4vir4l/dev/data/keras_png_slices_data"
 
 # Hyper Parameters
 epochs = 300            # Number of epochs to train

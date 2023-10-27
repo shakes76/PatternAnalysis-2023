@@ -2,13 +2,13 @@
 
 import torch
 from torch import optim
-import tqdm
+from tqdm import tqdm
 
 from config import z_dim, w_dim, device, lambda_gp, learning_rate, log_resolution, epochs
-from dataset import get_data
-from modules import MappingNetwork, Generator, Discriminator, PathLengthPenalty
-from predict import generate_examples
-from utils import get_w, get_noise, gradient_penalty
+from dataset import get_data, get_loader
+from modules import *
+import predict
+import utils
 
 def train_fn(
     critic,
@@ -25,14 +25,14 @@ def train_fn(
         real = real.to(device)
         cur_batch_size = real.shape[0]
 
-        w     = get_w(cur_batch_size)
-        noise = get_noise(cur_batch_size)
+        w     = utils.get_w(cur_batch_size)
+        noise = utils.get_noise(cur_batch_size)
         with torch.cuda.amp.autocast():
             fake = gen(w, noise)
             critic_fake = critic(fake.detach())
             
             critic_real = critic(real)
-            gp = gradient_penalty(critic, real, fake, device=device)
+            gp = utils.gradient_penalty(critic, real, fake, device=device)
             loss_critic = (
                 -(torch.mean(critic_real) - torch.mean(critic_fake))
                 + lambda_gp * gp
@@ -62,7 +62,7 @@ def train_fn(
             loss_critic=loss_critic.item(),
         )
 
-loader              = get_data()
+loader              = get_loader()
 
 gen                 = Generator(log_resolution, w_dim).to(device)
 critic              = Discriminator(log_resolution).to(device)
@@ -89,4 +89,4 @@ for epoch in range(epochs):
         opt_mapping_network,
     )
     if epoch % 50 == 0:
-    	generate_examples(gen, epoch)
+    	predict.generate_examples(gen, epoch)

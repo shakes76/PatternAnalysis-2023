@@ -3,6 +3,7 @@
 import torch
 from config import w_dim, device, log_resolution
 from modules import MappingNetwork
+import train
 
 def gradient_penalty(critic, real, fake,device="cpu"):
     BATCH_SIZE, C, H, W = real.shape
@@ -30,7 +31,7 @@ def gradient_penalty(critic, real, fake,device="cpu"):
 def get_w(batch_size):
 
     z = torch.randn(batch_size, w_dim).to(device)
-    w = MappingNetwork(z)
+    w = train.mapping_network(z)
     return w[None, :, :].expand(log_resolution, -1, -1)
 
 # Generates random noise
