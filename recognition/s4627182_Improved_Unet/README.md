@@ -18,7 +18,7 @@ https://arxiv.org/abs/1802.10508v1
    which enables precise localization. Through skip connections, features from the contracting path are concatenated
    with the expansive path, enhancing localization capabilities.
 
-   ![Subnetworks architecture](./additional_images/unet)
+   ![Subnetworks architecture](./additional_images/unet.png)
 
    The activations in the context pathway are computed by context modules. 
    Each context module is in fact a pre-activation residual block with two 3x3x3 convolutional 
@@ -77,21 +77,23 @@ In machine learning, it measures the difference between predicted and true value
 
 ## Training loss vs Epoches
 
-   ![Subnetworks architecture](./additional_images/Train_loss_vs_Epoches)
+   ![Subnetworks architecture](./additional_images/Train_loss_vs_Epoches.png)
 
 
 ## Valid loss vs Epoches
 
-   ![Subnetworks architecture](./additional_images/valid_loss_vs_epoches)
+   ![Subnetworks architecture](./additional_images/valid_loss_vs_epoches.png)
 
 
-## Predict 
-
+## Predict
    The input is 
-   ![Subnetworks architecture](./additional_images/ISIC_0000003)
+
+   ![Subnetworks architecture](./additional_images/ISIC_0000003.jpg)
+
 
    The output is  
-   ![Subnetworks architecture](./additional_images/ISIC_0000003_out)
+
+   ![Subnetworks architecture](./additional_images/ISIC_0000003_out.jpg)
 
 
     
