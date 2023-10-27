@@ -3,10 +3,7 @@
 import torch
 import os
 from config import *
-import train
 from torchvision.utils import save_image
-
-from utils import get_noise, get_w
 
 '''
 def generate_examples(gen, epoch, n=100):
@@ -23,7 +20,6 @@ def generate_examples(gen, epoch, n=100):
             save_image(img*0.5+0.5, f"saved_examples/epoch{epoch}/img_{i}.png")
 
     gen.train()
-'''
 
 def generate_examples(gen, epoch, n=20):
     for epoch in range(epoch):
@@ -38,10 +34,10 @@ def generate_examples(gen, epoch, n=20):
                     w_values = [1, 2, 3, 4, 5]
                     for value in w_values:
                         # Generate random latent vector 'w'
-                        w = get_w(value)
+                        w = utils.get_w(value)
 
                         # Generate random noise
-                        noise = get_noise(1)
+                        noise = utils.get_noise(1)
 
                         # Generate an image using the generator model
                         img = gen(w, noise)
@@ -52,3 +48,5 @@ def generate_examples(gen, epoch, n=20):
 
                         # Save the generated image with appropriate scaling
                         save_image(img*0.5+0.5, f"generated_images/epoch{epoch}/w{value}/img_{i}.png")
+
+'''
