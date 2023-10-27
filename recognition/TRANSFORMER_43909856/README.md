@@ -59,7 +59,7 @@ Here is a diagram illustrating the main components of a ViT:
 ![(Dosovitskiy et al., 2021)](plots/Dosovitskiy_etal_2021_ViT_diagram.PNG)
 *(Dosovitskiy et al., 2021)*
 
-The overall architecture of this ViT was based on the ViT-S/16 model, created in the 2022 IEEE conference paper "Scaling Vision Transformers" (Zhai et al.)
+The overall architecture of this ViT was based on the ViT-S/16 model, as mentioned in the 2022 IEEE conference paper "Scaling Vision Transformers" (Zhai et al.).
 
 ### S/16 model details
 The S/16 model variant of the ViT was chosen, as it was believed that it would provide a "good tradeoff" between performance and computational speed/efficiency (Beyer et al., 2022). It was believed that this would be the most appropriate, where hardware resources were partly limited.
@@ -191,22 +191,62 @@ Noticeably, the training and validation set loss appears to reach an optimal poi
 
 Validation set accuracy (per-batch) approaches 100% around this training period:
 
-![90 epochs - tvalidation accuracy](plots/ViT_90epochs_validation_accuracy.png)
+![90 epochs - validation accuracy](plots/ViT_90epochs_validation_accuracy.png)
 
- Whilst these values appear optimal, the test set performance for the model trained for 90 epochs was ~60.81%, indicating that the model is overfitting significantly to the training set, and generalising poorly to the test set. The smaller quantity of validation set data points may also be providing misleading information about the model's performance on unseen data - the particular split of data used when training this model contained a large quantity of data points that had similar features to those present in the training set. If this was the case, then 
+ These values could appear optimal on paper. However, the test set performance for the model trained for 90 epochs was ~60.32%, indicating that the model is overfitting significantly to the training set, and generalising poorly to the test set.
 
- To avoid overfitting the model, a shorter, more optimal training duration of 40 epochs was chosen.
+ ![90 epochs - confusion matrix on test set](plots/ViT_90epochs_test_confusion_matrix.png)
+ 
+The confusion matrix for the model (based on the test set predictions) shows that
+the model makes a significant number of incorrect predictions. Notably, the model predicts high quantities of False Positives (where AD/Alzheimer's Detected is the positive class), and a signficiantly smaller amount of False Negatives (where NC/Cognitive Normal is the negative class).
+
+ To avoid overfitting the model, a model with a shorter training duration of 40 epochs was created and tested.
 
 ### Training for 40 epochs:
-TODO Provide plots of the algorithm (train and validation loss, validation accuracy)
 
-TODO state the achieved test set accuracy and optimal # of epochs
+![40 epochs - training vs. validation loss](plots/ViT_40epochs_loss.png)
+
+The training and validation loss, and the validation set accuracy indicate that the model reaches the most optimal loss values at the end of training, and this model likely suffers from less overfitting as a result. 
+
+![40 epochs - validation accuracy](plots/ViT_40epochs_validation_accuracy.png)
+
+However, the test set for this model performed only marginally better than the 90 epoch model, with a test accuracy of ~60.98%. This indicates that the model still poorly generalises to unseen data, and this can be seen in the model's confusion matrix:
+
+![40 epochs - confusion matrix on test set](plots/ViT_40epochs_test_confusion_matrix.png)
+
+Conversely to the 90 epoch model, many False Negatives and significantly fewer False Positives are predicted.
+In some contexts, it may be preferable for a model to predict False Positives over False Negatives.
+For medical circumstances, mistakenly predicting the existence of the condition in a healthy person may be preferred over not predicting the condition in a sick person, as high False Negative rates can prevent sick individuals from
+receiving timely preventative treatment. Because of this, the 90 epochs model could be a more optimal choice of the two in some contexts. Even though test set accuracy is higher in the 40 epochs model, the difference in test set performance between the two is relatively minor.
+
+A model trained on 30 epochs was tested, to see if the generalisability of the model could be increased further.
+
+### Training for 30 epochs:
+
+![30 epochs - training vs. validation loss](plots/ViT_loss.png) 
+
+![30 epochs - validation accuracy](plots/ViT_validation_accuracy.png)
+
+This model had an accuracy of ~60.37% on the test set - the performance of this model appeared to be somewhere inbetween the 90 epoch and 40 epoch models, although the difference in performance between these models is incredibly minor (less than 1% difference in test accuracy between any of these models).
+
+![40 epochs - confusion matrix on test set](plots/ViT_test_confusion_matrix.png)
+
+Similarly to the 40 epochs model, a much higher number of the misclassified images were False Negatives, and much less were false positives. 
+
+As the test accuracy for this model is lower than the 40 epochs model, and this model also predicts high quantites of False Negatives, it would likely not be considered the most optimal model, unless the computational efficiency and faster training time of the model were of significant concern.
+
+
+### Summary 
+Depending on the context of the model's use, either the 90 epoch or 40 epoch model may be more contextually appropriate. If arbirarily higher test set performance is desired above anything, and faster/more efficient model training is also preferred, then the 40 epoch model would be the most ideal candidate of these three. If the model was required to predict more False Postives than False Negatives, then the 90 epoch model may be the more ideal choice for this. There may also be a more appropriate length of training time (between 40 and 90 epochs) that results in higher performing models than these three. Some of these models may also be the more optimal choice for saving training time and preferencing certain misclassifications over others.
 
 
 ## Possible improvements?
-Whilst the model's performance is not ideal, it could be improved on or further experimented with, in multiple different ways:
+The model's performance is not ideal in its current state; the test set results illustrate
+that the model is prone to overfitting, and does not generalise well to unseen data.
 
-### Data augmentation
+The model could be improved on or further experimented with, in multiple different ways:
+
+### Data augmentation:
 The majority of the images featured the brains positioned roughly in the middle,
 with an approximate orientation. However, it was noted that the ADNI dataset would
 occasionally contain MRI images that were rotated or positioned differently to others.
@@ -235,8 +275,11 @@ learning rate scheduler, to prevent the learning rate from decaying too quickly 
 This scheduler would include a "warmup" and a "cooldown" period.
 Currently, the PyTorch OneCycleLR scheduler is used to "warmup", then "cooldown" the 
 learning rate in a non-linear fashion. It's possible that a constant or inverse
-square-root scheduler may encourage the model to train more effectively in later
-epochs (when the learning rate decays at a slower rate).
+square-root scheduler may encourage the model to train more effectively, as the learning rate at some points will decay at a slower rate.
+
+### Other regularisation techniques:
+As the model appeared to often suffer from overfitting, some other model-based regularisation techniques such as network dropout could improve the network's generalisability. As well as this, the hyperparameter tuning of the training time (number of epochs) could be utilised to perform early stopping on the model training process, once the loss values have converged to within a given
+threshold.
 
 
 ## References
