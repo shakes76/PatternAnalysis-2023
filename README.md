@@ -14,7 +14,6 @@ In the recognition folder, you will find many recognition problems solved includ
 * Classification
 etc.
 
-## Medical condition, Extended to 27 OCT
    
 
 
