@@ -58,13 +58,14 @@ def get_alzheimer_dataloader(batch_size:int=32, img_size:int=224, path:str="/con
     mean, std = compute_mean_std(sample_loader)
 
     # transformers with normalization as calculated above
-    # no data augmentation 
+    # Random rotations and random sized crop added
     train_transforms = transforms.Compose([
         transforms.Resize((img_size, img_size)),
+        transforms.RandomRotation(10),  # Random rotations in range [-10, 10]
+        transforms.RandomResizedCrop(224, scale=(0.9, 1.1)),
         transforms.ToTensor(),
         transforms.Normalize(mean=mean, std=std)
     ])
-
     test_transforms = transforms.Compose([
         transforms.Resize((img_size, img_size)),
         transforms.ToTensor(),
