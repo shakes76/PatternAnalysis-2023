@@ -10,7 +10,7 @@ losses = []
 accuracies = []
 
 def train(net, dataloader_train, dataloader_val, cross_entropy):
-    optimizer = optim.AdamW(net.parameters(), lr=3e-4)
+    optimizer = optim.Adam(net.parameters(), lr=2e-4)
     epochs = 100
     # training loop
     for epoch in range(epochs): 
