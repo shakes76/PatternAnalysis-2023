@@ -90,3 +90,56 @@ def get_alzheimer_dataloader(batch_size:int=32, img_size:int=224, path:str="/hom
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=4)
 
     return train_loader, val_loader, test_loader
+
+def single_transform(image, train_data_path):
+    # Transformers WITHOUT normalization (used to compute mean and std)
+    pre_transforms = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor()
+    ])
+
+    pre_train_dataset = ImageFolder(root=train_data_path, transform=pre_transforms)
+
+    n_samples = 1000  # Define how many samples you want to use for the estimation
+    sampler = SubsetRandomSampler(torch.randperm(len(pre_train_dataset))[:n_samples])
+    sample_loader = DataLoader(pre_train_dataset, batch_size=32, sampler=sampler)
+
+    # Compute mean and std for the sample dataset
+    mean, std = compute_mean_std(sample_loader)
+
+    test_transforms = transforms.Compose([
+    transforms.Resize((224, 224)),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=mean, std=std)
+    ])
+
+    return test_transforms(image)
+
+
+
+def unnormalise(image, train_data_path):
+    """Untransforms a test image"""
+    
+    # Transformers WITHOUT normalization (used to compute mean and std)
+    pre_transforms = transforms.Compose([
+        transforms.Resize((224, 224)),
+        transforms.ToTensor()
+    ])
+
+    pre_train_dataset = ImageFolder(root=train_data_path, transform=pre_transforms)
+
+    n_samples = 1000  # Define how many samples you want to use for the estimation
+    sampler = SubsetRandomSampler(torch.randperm(len(pre_train_dataset))[:n_samples])
+    sample_loader = DataLoader(pre_train_dataset, batch_size=32, sampler=sampler)
+
+    # Compute mean and std for the sample dataset
+    mean, std = compute_mean_std(sample_loader)
+
+    # Clone the tensor to avoid in-place modifications
+    image = image.clone().detach()
+    
+    # Unnormalize
+    for t, m, s in zip(image, mean, std):
+        t.mul_(s).add_(m)  # Multiply by std and add mean
+
+    return image
