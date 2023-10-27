@@ -4,7 +4,7 @@ import torch
 from torch import optim
 import tqdm
 
-from config import z_dim, w_dim, device, lambda_gp, learning_rate, log_resolution
+from config import z_dim, w_dim, device, lambda_gp, learning_rate, log_resolution, epochs
 from dataset import get_data
 from modules import MappingNetwork, Generator, Discriminator, PathLengthPenalty
 from utils import get_w, get_noise, gradient_penalty
@@ -75,3 +75,17 @@ opt_mapping_network = optim.Adam(mapping_network.parameters(), lr=learning_rate,
 gen.train()
 critic.train()
 mapping_network.train()
+
+
+for epoch in range(epochs):
+    train_fn(
+        critic,
+        gen,
+        path_length_penalty,
+        loader,
+        opt_critic,
+        opt_gen,
+        opt_mapping_network,
+    )
+    if epoch % 50 == 0:
+    	generate_examples(gen, epoch)
