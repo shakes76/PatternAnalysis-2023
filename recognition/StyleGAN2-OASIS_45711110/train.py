@@ -7,6 +7,7 @@ import tqdm
 from config import z_dim, w_dim, device, lambda_gp, learning_rate, log_resolution, epochs
 from dataset import get_data
 from modules import MappingNetwork, Generator, Discriminator, PathLengthPenalty
+from predict import generate_examples
 from utils import get_w, get_noise, gradient_penalty
 
 def train_fn(
