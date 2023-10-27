@@ -1,6 +1,22 @@
 # VQVAE and Pixel CNN - Generative Model of OASIS Dataset
 AIM: The aim of this project is to develop a generative model for OASIS brain dataset using a VQVAE (Vector Quantized Variational Autoencoder) and a PixelCNN (Pixel Convolutional Neural Network) to produce "reasonably clear" medical images with a Structured Similarity Index (SSIM) score exceeding 0.6. The project involves leveraging advanced deep learning techniques to create high-quality, structured, and interpretable medical images, which can be invaluable for medical diagnosis, research, and analysis.
 
+## DEPENDENCIES USED
+
+Python==3.11.5
+
+tensorflow==2.14.0
+
+tensorflow-probability==0.22.1
+
+keras==2.14.0
+
+matplotlib==3.8.0
+
+numpy==1.26.1
+
+Pillow==10.1.0
+
 
 ## OASIS DATASET
 
