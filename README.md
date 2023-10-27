@@ -65,3 +65,5 @@ Key considerations:
 2.  in train.py script imports required libraries, modules, and functions, then loads the data using returnDataLoaders from the dataset.py file. It defines an empty list for storing losses and accuracies, sets up a training function that utilizes the AdamW optimizer and CrossEntropyLoss
 3. In the predict.py script, I plot two separate graphs. The first graph illustrates the accuracy vs epoch, displaying the trend of the model's accuracy over the training epochs. The second graph demonstrates the loss vs epoch, showcasing how the training loss varies throughout the training process.
 4. The modules.py file contains functions and classes for implementing a Vision Transformer model, including an image patching function, an attention block class for multi-head attention, and a VisionTransformer class that applies linear transformations, positional embeddings
+# URL
+https://github.com/HaadiQureshi/VIT-46878467.git
