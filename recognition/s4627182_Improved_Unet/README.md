@@ -18,6 +18,8 @@ https://arxiv.org/abs/1802.10508v1
    which enables precise localization. Through skip connections, features from the contracting path are concatenated
    with the expansive path, enhancing localization capabilities.
 
+   ![Subnetworks architecture](./additional_images/unet)
+
    The activations in the context pathway are computed by context modules. 
    Each context module is in fact a pre-activation residual block with two 3x3x3 convolutional 
    layers and a dropout layer (p_drop = 0.3) in between. Context modules are connected 
@@ -73,8 +75,31 @@ In machine learning, it measures the difference between predicted and true value
       tqdm==4.64.1
       wandb==0.13.5
 
+## Training loss vs Epoches
+
+   ![Subnetworks architecture](./additional_images/Train_loss_vs_Epoches)
+
+
+## Valid loss vs Epoches
+
+   ![Subnetworks architecture](./additional_images/valid_loss_vs_epoches)
+
+
+## Predict 
+
+   The input is 
+   ![Subnetworks architecture](./additional_images/ISIC_0000003)
+
+   The output is  
+   ![Subnetworks architecture](./additional_images/ISIC_0000003_out)
+
+
     
-    
+## Results
+   The final model get a Mean Dice Score : 0.9940897984524689.
+
+
+   
 
 
 
