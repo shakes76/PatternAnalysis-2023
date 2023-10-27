@@ -46,9 +46,16 @@ vit = VisionTransformer(input_dimen=128,
                         predict_num=2,
                         size_patch=(16,16))
 
+## Results
+These are the results:
+loss vs epoch graph- ![image](https://github.com/HaadiQureshi/VIT-46878467/assets/141606798/64605a94-429c-4dc8-b5fd-8e4e10276942)
+
+
+Accuracy vs epoch graph - <img width="596" alt="image" src="https://github.com/HaadiQureshi/VIT-46878467/assets/141606798/4e6fa71b-ec70-482b-bc81-2cf51e819b15">
 
 
 
+## How to use
 The project consists of four essential files, namely dataset.py, modules.py, train.py, and predict.py. The primary files to be executed are train.py and predict.py. The train.py file handles the training and testing of the model, allowing the option to save the model, along with recording the loss and validation accuracy for each epoch. This data is utilized by predict.py. Predict.py evaluates the actual output data as it can generate graphs depicting the loss and accuracy curves using the matplotlib library.
 
 
