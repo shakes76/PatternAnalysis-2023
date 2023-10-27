@@ -77,23 +77,23 @@ In machine learning, it measures the difference between predicted and true value
 
 ## Training loss vs Epoches
 
-   ![train_vs_Epoches](./additional_images/Train_loss_vs_Epoches.png)
+   ![train_vs_Epoches](./additional_Images/Train_loss_vs_Epoches.png)
 
 
 ## Valid loss vs Epoches
 
-   ![valid_vs_epoches](./additional_images/valid_loss_vs_epoches.png)
+   ![valid_vs_epoches](./additional_Images/valid_loss_vs_epoches.png)
 
 
 ## Predict
    The input is 
 
-   ![Input](./additional_images/ISIC_0000003.jpg)
+   ![Input](./additional_Images/ISIC_0000003.jpg)
 
 
    The output is  
 
-   ![Output](./additional_images/ISIC_0000003_out.jpg)
+   ![Output](./additional_Images/ISIC_0000003_out.jpg)
 
 
     
