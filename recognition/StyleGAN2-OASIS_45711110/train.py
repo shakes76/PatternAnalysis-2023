@@ -1,13 +1,12 @@
 "Source code for training, validating, testing and saving the model"
 
 import torch
+from torch import optim
 import tqdm
 
-from utils import get_w, get_noise, gradient_penalty
-import tqdm
-
-from config import device, lambda_gp
-from modules import MappingNetwork
+from config import z_dim, w_dim, device, lambda_gp, learning_rate, log_resolution
+from dataset import get_data
+from modules import MappingNetwork, Generator, Discriminator, PathLengthPenalty
 from utils import get_w, get_noise, gradient_penalty
 
 def train_fn(
@@ -61,3 +60,18 @@ def train_fn(
             gp=gp.item(),
             loss_critic=loss_critic.item(),
         )
+
+loader              = get_data()
+
+gen                 = Generator(log_resolution, w_dim).to(device)
+critic              = Discriminator(log_resolution).to(device)
+mapping_network     = MappingNetwork(z_dim, w_dim).to(device)
+path_length_penalty = PathLengthPenalty(0.99).to(device)
+
+opt_gen             = optim.Adam(gen.parameters(), lr=learning_rate, betas=(0.0, 0.99))
+opt_critic          = optim.Adam(critic.parameters(), lr=learning_rate, betas=(0.0, 0.99))
+opt_mapping_network = optim.Adam(mapping_network.parameters(), lr=learning_rate, betas=(0.0, 0.99))
+
+gen.train()
+critic.train()
+mapping_network.train()
