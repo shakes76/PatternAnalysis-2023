@@ -190,8 +190,7 @@ def main():
 
     # plot training curve if allowed by user
     if args.plot:
-        plot_training(train_epoch_accuracies, val_epoch_accuracies, test_acc, train_loader,
-                       num_epochs, args.train_interval, args.val_interval)
+        plot_training(train_epoch_accuracies, val_epoch_accuracies, test_acc, num_epochs)
 
 if __name__ == "__main__":
     main()
