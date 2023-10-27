@@ -18,7 +18,7 @@ https://arxiv.org/abs/1802.10508v1
    which enables precise localization. Through skip connections, features from the contracting path are concatenated
    with the expansive path, enhancing localization capabilities.
 
-   ![Subnetworks architecture](./additional_images/unet.png)
+   ![Unet](./additional_images/unet.png)
 
    The activations in the context pathway are computed by context modules. 
    Each context module is in fact a pre-activation residual block with two 3x3x3 convolutional 
