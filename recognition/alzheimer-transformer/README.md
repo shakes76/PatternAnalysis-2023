@@ -53,7 +53,7 @@ Test Loss: 0.6060
 
 ### Input 2:
 ```bash
-python predict.py --model_file='vit-valacc71.27.pth' --'/home/groups/comp3710/ADNI/AD_NC/test/AD/388206_78.jpeg'
+python predict.py --model_file='vit-valacc71.27.pth' --image_path='/home/groups/comp3710/ADNI/AD_NC/test/AD/388206_78.jpeg'
 ```
 
 ### Output :
