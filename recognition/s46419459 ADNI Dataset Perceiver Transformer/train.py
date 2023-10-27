@@ -28,12 +28,12 @@ path = r"C:\Users\deepp\Documents\Offline Projects\ML Datasets\ADNI" # PC path
 # Model Parameters
 image_shape = (240, 240)
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-d_latent = 128
-embed_dim = 64
+d_latent = 30
+embed_dim = 10
 transformer_depth = 1
 num_heads = 1
 n_perceiver_blocks = 1
-num_epochs = 10
+num_epochs = 1
 batch_size = 5
 n_classes = 2
 lr = 0.005
@@ -93,29 +93,50 @@ if __name__ == "__main__":
             correct += (predicted == labels).sum().item()
             running_loss += loss.item()
 
-            print(f"Batch {i} / {len(train_dataset)}")
+            # if i % 200 == 0:
+            #     print(f"Batch {i} / {len(train_dataset)}")
 
-        losses.append(running_loss / len(train_dataset))
+        losses.append(100 * (running_loss / len(train_dataset)))
         accuracies.append(100 * (correct / total))
 
         print(f"Epoch {epoch + 1} / {num_epochs}, loss: {losses[-1]}, accuracy: {accuracies[-1]}")
 
+    # Testing the model
+    test_dataset = load_test_data(path, batch_size, transforms = transforms)
+
+    model.eval()
+    correct = 0
+    total = 0
+    for i, (inputs, labels) in enumerate(test_dataset): 
+        inputs = inputs.to(device)
+        labels = labels.to(device)
+
+        outputs = model(inputs)
+        _, predicted = torch.max(outputs.data, 1)
+
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+
+    test_accuracy = 100 * correct / total
+    print(f"Model Test Accuracy: {test_accuracy:.4f}%")
+
 plot_configs()
-fig, ax = plt.subplots(nrows = 1, ncols = 2, figsize = (30, 10))
+fig, axs = plt.subplots(nrows = 1, ncols = 2, figsize = (30, 10))
+
+for ax in axs:
+    ax.set_xlabel('Epochs')
+    ax.set_ylabel('Loss')
+    ax.set_xlim([0, num_epochs])
+    ax.legend()
 
 # Plot training loss vs epoch
-ax[0].plot(losses, label = 'Training Loss')
-ax[0].set_xlabel('Epochs')
-ax[0].set_ylabel('Loss')
-ax[0].set_title('Training Loss vs. Epochs')
-ax[0].legend()
+axs[0].plot(range(1, num_epochs + 1), losses, label = 'Training Loss')
+axs[0].set_title('Training Loss vs. Epochs')
 
 # Plot training accuracy vs epoch
-ax[1].plot(losses, label = 'Training Accuracy')
-ax[1].set_xlabel('Epochs')
-ax[1].set_ylabel('Loss')
-ax[1].set_title('Training Accuracy vs. Epochs')
-ax[1].legend()
+axs[1].plot(range(1, num_epochs + 1), accuracies, label = 'Training Accuracy')
+axs[1].set_title('Training Accuracy vs. Epochs')
+axs[1].set_ylim([0, 100])
 
 plt.show()
 torch.save(model.state_dict(), "./model.pth")
