@@ -75,10 +75,10 @@ def train_model():
     """
 
     # Set up varibles for DataModule class
-    batch_size = 20
+    batch_size = 32
     num_workers = 0 #issue with multiproccessing pytorch_lightning
                     #must use 0
-    max_epochs = 40
+    max_epochs = 20
     
     # Initialise DataModule class
     ADNI = ADNIDataModule(batch_size=batch_size, 
