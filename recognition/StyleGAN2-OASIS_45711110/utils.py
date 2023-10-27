@@ -26,9 +26,27 @@ def gradient_penalty(critic, real, fake,device="cpu"):
     gradient_penalty = torch.mean((gradient_norm - 1) ** 2)
     return gradient_penalty
 
+# fetches w from mapping network
 def get_w(batch_size):
 
     z = torch.randn(batch_size, w_dim).to(device)
     w = MappingNetwork(z)
     return w[None, :, :].expand(log_resolution, -1, -1)
 
+# Generates random noise
+def get_noise(batch_size):
+    
+    noise = []
+    resolution = 4
+
+    for i in range(log_resolution):
+        if i == 0:
+            n1 = None
+        else:
+            n1 = torch.randn(batch_size, 1, resolution, resolution, device=device)
+        n2 = torch.randn(batch_size, 1, resolution, resolution, device=device)
+
+        noise.append((n1, n2))
+        resolution *= 2
+
+    return noise
