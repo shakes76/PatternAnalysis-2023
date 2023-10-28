@@ -46,9 +46,13 @@ There are several factors that could be held accountable. We could have set up t
 
 ### Dependencies
 Python 3.11.3
+
 pytorch 2.0.1+cu117
+
 torchvision 0.15.2+cu117
+
 Pillow 10.0.0
+
 matplotlib 3.8.0
 
 ### References
