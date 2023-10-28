@@ -28,12 +28,12 @@ path = r"C:\Users\deepp\Documents\Offline Projects\ML Datasets\ADNI" # PC path
 # Model Parameters
 image_shape = (240, 240)
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-d_latent = 30
-embed_dim = 10
+d_latent = 256
+embed_dim = 128
 transformer_depth = 1
 num_heads = 1
-n_perceiver_blocks = 1
-num_epochs = 1
+n_perceiver_blocks = 6
+num_epochs = 50
 batch_size = 5
 n_classes = 2
 lr = 0.005
@@ -96,7 +96,7 @@ if __name__ == "__main__":
             # if i % 200 == 0:
             #     print(f"Batch {i} / {len(train_dataset)}")
 
-        losses.append(100 * (running_loss / len(train_dataset)))
+        losses.append(running_loss / len(train_dataset))
         accuracies.append(100 * (correct / total))
 
         print(f"Epoch {epoch + 1} / {num_epochs}, loss: {losses[-1]}, accuracy: {accuracies[-1]}")

@@ -15,12 +15,12 @@ path = r"C:\Users\deepp\Documents\Offline Projects\ML Datasets\ADNI" # PC path
 # Model Parameters
 image_shape = (240, 240)
 device = "cuda:0" if torch.cuda.is_available() else "cpu"
-d_latent = 128
-embed_dim = 64
+d_latent = 256
+embed_dim = 128
 transformer_depth = 1
 num_heads = 1
-n_perceiver_blocks = 1
-num_epochs = 3
+n_perceiver_blocks = 6
+num_epochs = 50
 batch_size = 5
 n_classes = 2
 lr = 0.005
@@ -49,18 +49,20 @@ if __name__ == "__main__":
     model.eval()
 
     # Open a random NC image and try predict it with model
-    nc_image = Image.open(rand.choice(os.listdir(path + "\\test\\NC\\")))
-    nc_tensor = transforms(nc_image).unsqueeze(0).to(device)
+    nc_image = Image.open(path + "/test/NC/" + rand.choice(os.listdir(path + "/test/NC/")))
+    nc_tensor = transforms(nc_image).to(device)
+    nc_tensor = nc_tensor.view(1, 1, 240 * 240).repeat(batch_size, 1, 1)
     nc_output = model(nc_tensor)
-    nc_probs = F.softmax(nc_output, dim = 1)
-    nc_class = torch.argmax(nc_output, dim = 1).item()
+    nc_probs = F.softmax(nc_output[0])
+    print(nc_probs)
+    nc_class = torch.argmax(nc_output[0]).item()
 
     # Open a random NC image and try predict it with model
-    ad_image = Image.open(rand.choice(os.listdir(path + "\\test\\AD\\")))
-    ad_tensor = transforms(ad_image).unsqueeze(0).to(device)
+    ad_image = Image.open(path + "/test/AD/" + rand.choice(os.listdir(path + "/test/AD/")))
+    ad_tensor = transforms(ad_image).to(device)
     ad_output = model(nc_tensor)
-    ad_probs = F.softmax(nc_output, dim = 1)
-    ad_class = torch.argmax(nc_output, dim = 1).item()
+    ad_probs = F.softmax(nc_output[0])
+    ad_class = torch.argmax(nc_output[0]).item()
 
     # Display the images and their prediction probabilities
     fig, axs = plt.subplots(ncols = 2)
@@ -73,4 +75,4 @@ if __name__ == "__main__":
     # Plotting the AD Image
     axs[1].imshow(ad_image)
     axs[1].title(f"AD Brain scan predicted with prob: {ad_probs[0][0]:.4f}")
-    plt.show()
+    plt.show()  
