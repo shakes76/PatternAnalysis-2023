@@ -53,26 +53,29 @@ if __name__ == "__main__":
     nc_tensor = transforms(nc_image).to(device)
     nc_tensor = nc_tensor.view(1, 1, 240 * 240).repeat(batch_size, 1, 1)
     nc_output = model(nc_tensor)
-    nc_probs = F.softmax(nc_output[0])
-    print(nc_probs)
-    nc_class = torch.argmax(nc_output[0]).item()
+    nc_probs = F.softmax(nc_output[0], dim = 0)
+    nc_class = torch.argmax(nc_output[0], dim = 0).item()
 
     # Open a random NC image and try predict it with model
     ad_image = Image.open(path + "/test/AD/" + rand.choice(os.listdir(path + "/test/AD/")))
     ad_tensor = transforms(ad_image).to(device)
     ad_output = model(nc_tensor)
-    ad_probs = F.softmax(nc_output[0])
-    ad_class = torch.argmax(nc_output[0]).item()
+    ad_probs = F.softmax(nc_output[0], dim = 0)
+    ad_class = torch.argmax(nc_output[0], dim = 0).item()
+
+    nc_class_name = "NC" if nc_class == 0 else "AD"
+    ad_class_name = "NC" if ad_class == 0 else "AD"
 
     # Display the images and their prediction probabilities
-    fig, axs = plt.subplots(ncols = 2)
-    plt.axis('off')
+    fig, axs = plt.subplots(ncols = 2, figsize = (15,8))
 
     # Plotting the NC Image
     axs[0].imshow(nc_image)
-    axs[0].title(f"NC Brain scan predicted with prob: {nc_probs[0][0]:.4f}")
+    axs[0].set_title(f"NC Brain scan predicted as {nc_class_name} with prob: {nc_probs[nc_class]:.4f}")
+    axs[0].axis('off')
 
     # Plotting the AD Image
     axs[1].imshow(ad_image)
-    axs[1].title(f"AD Brain scan predicted with prob: {ad_probs[0][0]:.4f}")
+    axs[1].set_title(f"AD Brain scan predicted as {ad_class_name} with prob: {ad_probs[ad_class]:.4f}")
+    axs[1].axis('off')
     plt.show()  
