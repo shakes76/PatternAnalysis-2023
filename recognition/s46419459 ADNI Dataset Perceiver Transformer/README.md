@@ -6,7 +6,7 @@ The ADNI brain scan MRI Dataset splits brain scans (several layers of the brain)
 
 The perceiver in this report was constructed using the pytorch machine learning library. The modules were guided by sources 1 and 2, and the architecture very closely follows that of the original perceiver conceived in the paper "Perceiver: General perception with iterative attention". Below is the general layout of the perceiver. For our test cases we used 6 blocks of attention->transformer modules:
 
-![Perceiver Architecture](image here)
+![Perceiver Architecture](https://github.com/dcpais/PatternAnalysis-2023/blob/topic-recognition/recognition/s46419459%20ADNI%20Dataset%20Perceiver%20Transformer/figures/architecture.png?raw=true)
 
 In the original perceiver architecture, the input image is originally passed through a positional embedding layer. This layer adds information as to where each pixel was in the image. Reason being is that the perceiver has no concept of position for the pixels, as data is passed through simultaneously. Thus positional embedding usually improves performance, as the cross attention modules can relate pixels to their neighbouring pixels. However, for this task there were some difficulties setting up positional embedding and thus it was substituted with a simple linear layer that reduced the image to the embedded dimensions as required for the cross attention blocks.
 
@@ -26,15 +26,18 @@ The data was pre split into a training and test. Training set comprised of ~65% 
 4. To run some predictions, you can go into predict.py and edit path like in train.py. 
 5. Then run the script and you will get one sample of each class and what the model predicted for it.
 
+Below is an example prediction
+![Example prediction](https://github.com/dcpais/PatternAnalysis-2023/blob/topic-recognition/recognition/s46419459%20ADNI%20Dataset%20Perceiver%20Transformer/figures/prediction.png?raw=true)
+
 Note: Data was obtained from blackboard at https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI
 
 ## Results
 Over 50 epochs, the following training results were achieved:
-![Training results](image here)
+![Training results](https://github.com/dcpais/PatternAnalysis-2023/blob/topic-recognition/recognition/s46419459%20ADNI%20Dataset%20Perceiver%20Transformer/figures/lossaccplot.png?raw=true)
 
 Additionally, test results after training were found to be:
 
-![Test results](image here)
+![Test results](https://github.com/dcpais/PatternAnalysis-2023/blob/topic-recognition/recognition/s46419459%20ADNI%20Dataset%20Perceiver%20Transformer/figures/testacc.png?raw=true)
 
 From the results, we see that the training accuracy bounces around 50% over all epochs. This is equivalent to the model randomly guessing the class of the image. 
 Additionally, the loss of the model did not decrease over epochs as per usual, thus showing that over the epochs the model did not really improve or learn anything about the data.
