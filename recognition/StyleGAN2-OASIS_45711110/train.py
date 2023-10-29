@@ -1,4 +1,4 @@
-"Source code for training, validating, testing and saving the model"
+#Source code for training the StyleGAN2
 
 import torch
 import os

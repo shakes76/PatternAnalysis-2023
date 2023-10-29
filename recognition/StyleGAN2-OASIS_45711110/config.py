@@ -1,14 +1,12 @@
 '''contains the hyperparameters and path config'''
 
-
-
 # Path
-DATA = "/Users/4vir4l/dev/data/keras_png_slices_data"
+DATA = "/home/groups/comp3710/OASIS"
 
 # Hyper Parameters
 epochs = 300            # Number of epochs to train
 learning_rate = 1e-3    # Learning rate
-channels = 3            # Number of channels (3 channels as the image is RGB)
+channels = 3            # Number of channels (3 channels for the image if RGB)
 batch_size = 32         # Batch Size
 image_size = 64         # Spatial size of the images - OASIS 256px
 log_resolution = 7      # 256*256 image size as such 2^8 = 256
