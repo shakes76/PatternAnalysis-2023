@@ -1,9 +1,0 @@
-DATA                    = "/home/groups/comp3710/OASIS"  # Path to the dataset  # Use GPU if available, otherwise use CPU
-LOCAL                   = "/Users/4vir4l/dev/data/keras_png_slices_data"
-EPOCHS                  = 300 # Number of training epochs
-LEARNING_RATE           = 1e-3  # Learning rate for optimization
-BATCH_SIZE              = 32  # Batch size for training
-LOG_RES                 = 7  # Logarithmic resolution used for 128*128 images
-Z_DIM                   = 256  # Dimension of the latent space
-W_DIM                   = 256  # Dimension of the mapping network output
-LAMBDA_GP               = 10  # Weight for the gradient penalty term

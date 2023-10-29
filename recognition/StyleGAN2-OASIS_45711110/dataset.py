@@ -1,16 +1,15 @@
-'''Data Loader for loading and preprocessing the OASIS data'''
+'''
+The module reads and loads data.
+The data is augmented and transformed during import for faster training.
+A sample image of the data after loading is shown
 
-import torch
-import torchvision
-import torchvision.transforms as transforms
+v2: Uses 1 channel since img is grayscale
+'''
 
-import torchvision.utils as vutils
-import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-from config import log_resolution, DATA, batch_size, device
+from torchvision import datasets, transforms
+
+import matplotlib.pyplot as plt
 
 '''
 Data Loader
@@ -18,65 +17,32 @@ Data Loader
 Resize: Resize images to the specific resolution
 RandomHorizontalFlip: Augment data by applying random horizontal flips [probability=50%]
 ToTensor: Convert images to PyTorch Tensors
-Normalize: Normalize pixel value to have a mean and standard deviation of 0.5 (for each channels)
+GrayScale: Since the images are black&white, the data is transformed to use 1 channel only
+Normalize: Normalize pixel value to have a mean and standard deviation of 0.5
 '''
+def get_data(data, log_res, batchSize):
 
-def get_data(dataset, imageHeight, imageWidth, batchSize):
-    trainSet = torchvision.datasets.ImageFolder(root=dataset+"train",
-                                                transform=transforms.Compose([
-                                                    transforms.Resize((imageHeight, imageWidth)),
-                                                    transforms.RandomHorizontalFlip(p=0.5),
-                                                    transforms.ToTensor(),
-                                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-                                                ]))
-    
-    validateSet = torchvision.datasets.ImageFolder(root=dataset+"validate",
-                                                transform=transforms.Compose([
-                                                    transforms.Resize((imageHeight, imageWidth)),
-                                                    transforms.RandomHorizontalFlip(p=0.5),
-                                                    transforms.ToTensor(),
-                                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-                                                ]))
-    
-    testSet = torchvision.datasets.ImageFolder(root=dataset+"test",
-                                                transform=transforms.Compose([
-                                                    transforms.Resize((imageHeight, imageWidth)),
-                                                    transforms.RandomHorizontalFlip(p=0.5),
-                                                    transforms.ToTensor(),
-                                                    transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-                                                ]))
-
-    # Data Loader: Forms batch and shuffles the data
-    train_loader = torch.utils.data.DataLoader(trainSet, batch_size=batchSize, shuffle=True)  
-    validate_loader = torch.utils.data.DataLoader(validateSet, batch_size=batchSize, shuffle=True) 
-    test_loader = torch.utils.data.DataLoader(testSet, batch_size=batchSize, shuffle=True)
-
-    return trainSet, train_loader, testSet, test_loader, validateSet, validate_loader
-
-def get_loader():
     transform = transforms.Compose(
-        [
-            transforms.Resize((2 ** log_resolution, 2 ** log_resolution)),
+        [   transforms.Resize(size=(2**log_res, 2**log_res), interpolation=transforms.InterpolationMode.BICUBIC),
             transforms.ToTensor(),
             transforms.RandomHorizontalFlip(p=0.5),
-            transforms.Normalize(
-                [0.5, 0.5, 0.5],
-                [0.5, 0.5, 0.5],
-            ),
-        ]
-    )
-    dataset = datasets.ImageFolder(root=DATA, transform=transform)
-    loader = DataLoader(
-        dataset,
-        batch_size=batch_size,
-        shuffle=True,
+            transforms.Normalize(mean=[0.5], std=[0.5])
+            ]
+        )
 
-    )
+    dataset = datasets.ImageFolder(root=data, transform=transform)
 
-    real_batch = next(iter(loader))
-    plt.figure(figsize=(8,8))
-    plt.axis("off")
-    plt.title("Training Images")
-    plt.imshow(np.transpose(vutils.make_grid(real_batch[0].to(device)[:64], padding=2, normalize=True).cpu(),(1,2,0)))
+    loader = DataLoader(dataset, batchSize, shuffle=True)
+
+    # print an image from the loaded dataset
+    sample_img(loader)
 
     return loader
+
+# Prints a tensor shape and a random image from loader in grayscale
+def sample_img(loader):
+    features, _ = next(iter(loader))
+    print(f"Feature batch shape: {features.size()}")
+    img = features[0].squeeze()
+    plt.imshow(img, cmap="gray")
+    plt.show()
