@@ -5,9 +5,10 @@ import os
 from torch import optim
 from tqdm import tqdm
 from torchvision.utils import save_image
+import matplotlib.pyplot as plt
 
 from config import *
-from dataset import get_data, get_loader
+from dataset import get_data
 from modules import *
 
 '''
@@ -64,7 +65,7 @@ def get_noise(batch_size):
         # For rest of conv layer
         else:
             n1 = torch.randn(batch_size, 1, resolution, resolution, device=device)
-            n2 = torch.randn(batch_size, 1, resolution, resolution, device=device)
+        n2 = torch.randn(batch_size, 1, resolution, resolution, device=device)
 
         # add the noise tensors to the lsit
         noise.append((n1, n2))
@@ -104,6 +105,9 @@ def train_fn(
 ):
     loop = tqdm(loader, leave=True)
 
+    curr_Gloss = []
+    curr_Dloss = []
+
     for batch_idx, (real, _) in enumerate(loop):
         real = real.to(device)
         cur_batch_size = real.shape[0]
@@ -127,6 +131,9 @@ def train_fn(
                 + lambda_gp * gp
                 + (0.001 * torch.mean(critic_real ** 2))
             )
+        
+        # Append the observed Discriminator loss to the list
+        curr_Dloss.append(loss_critic.item())
 
         '''
         Reset gradients for the Discriminator
@@ -146,6 +153,9 @@ def train_fn(
             if not torch.isnan(plp):
                 loss_gen = loss_gen + plp
 
+        # Append the observed Generator loss to the list
+        curr_Gloss.append(loss_gen.item())
+
         '''
         Reset gradients for the mapping network and the generator
         Backpropagate the generator loss
@@ -162,12 +172,15 @@ def train_fn(
             loss_critic=loss_critic.item(),
         )
 
+    return (curr_Dloss, curr_Gloss)
+ 
+
 # Device Config
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print('Device: ', device)
 
 # Module initilization
-loader              = get_data()
+loader              = get_data(LOCAL, log_resolution, batch_size)
 
 gen                 = Generator(log_resolution, w_dim).to(device)
 critic              = Discriminator(log_resolution).to(device)
@@ -184,9 +197,13 @@ gen.train()
 critic.train()
 mapping_network.train()
 
+# Keeps a Log of total loss over the training
+G_Loss = []
+D_Loss = []
+
 # loop over total epcoh.
 for epoch in range(epochs):
-    train_fn(
+    curr_Gloss, curr_Dloss = train_fn(
         critic,
         gen,
         path_length_penalty,
@@ -195,6 +212,30 @@ for epoch in range(epochs):
         opt_gen,
         opt_mapping_network,
     )
+
+    # Append the current loss to the main list
+    G_Loss.extend(curr_Gloss)
+    D_Loss.extend(curr_Dloss)
+
     # Save generator's fake image on every 50th epoch
     if epoch % 50 == 0:
     	generate_examples(gen, epoch)
+
+'''
+Plot a 10x5 graph of the Generator and Discriminator loss during training over iteration
+'''
+plt.figure(figsize=(10,5))
+plt.title("Generator Loss During Training")
+plt.plot(G_Loss, label="G", color="blue")
+plt.xlabel("Iterations")
+plt.ylabel("Loss")
+plt.legend()
+plt.savefig('gen_loss.png')
+
+plt.figure(figsize=(10,5))
+plt.title("Discriminator Loss During Training")
+plt.plot(D_Loss, label="D", color="red")
+plt.xlabel("Iterations")
+plt.ylabel("Loss")
+plt.legend()
+plt.savefig('disc_loss.png')
