@@ -1,10 +1,6 @@
 '''contains the hyperparameters and path config'''
 
-import torch
 
-# Device Config
-device = torch.device('cuda' if torch.cuda.is_available() else 'mps')
-print('Device: ', device)
 
 # Path
 DATA = "/Users/4vir4l/dev/data/keras_png_slices_data"
