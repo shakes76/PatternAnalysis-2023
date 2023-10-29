@@ -62,13 +62,14 @@ These components work together to create a generative model capable of producing
 # Images
 
 The following images were produced by the generator when trained using 3 channels to epoch 50.
-
+![Training RGB Results](../README_assets/rgb.png)
 
 When trained using a single channel in grayscale, the following images were observed.
-
+![Training GRAY Results](../README_assets/gray.png)
 
 The following generator and discriminator loss plot against iteration was produced for the first epoch only.
-
+![Training Generator Loss plot](../README_assets/gen_loss.png)
+![Training Discriminator Loss plot](../README_assets/disc_loss.png)
 
 # Training Result
 
