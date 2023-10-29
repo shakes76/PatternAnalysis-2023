@@ -1,6 +1,12 @@
 # Project Summary
 This project utitlizes StyleGAN2 to produce fake images that are almost indistinguishable from real images. The dataset for the model is portion of the OASIS brain Dataset which includes T1-weighted MRI scans obtained in single scan sessions.
 
+## Run Script
+1. Download OASIS dataset available here to disk.
+2. Set the path to the dataset folder in the Config.py
+3. Ensure you're running python 3 and CUDA if possible.
+4. run ```Python3 train.py```
+
 ## Purpose
 StyleGAN2's application in brain image generation is driven by the need for realistic and versatile synthetic brain scans in medical and research contexts. Its primary purpose is to provide a powerful tool for creating diverse and customizable brain images. By offering fine-grained control and reducing privacy concerns, StyleGAN2 accelerates research, aids in the development of diagnostic tools, and addresses data scarcity issues, ultimately benefiting the field of neuroscience and medical imaging.
 
