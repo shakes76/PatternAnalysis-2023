@@ -1,9 +1,6 @@
 '''
 The module reads and loads data.
 The data is augmented and transformed during import for faster training.
-A sample image of the data after loading is shown
-
-v2: Uses 1 channel since img is grayscale
 '''
 
 from torch.utils.data import DataLoader
@@ -17,7 +14,6 @@ Data Loader
 Resize: Resize images to the specific resolution
 RandomHorizontalFlip: Augment data by applying random horizontal flips [probability=50%]
 ToTensor: Convert images to PyTorch Tensors
-GrayScale: Since the images are black&white, the data is transformed to use 1 channel only
 Normalize: Normalize pixel value to have a mean and standard deviation of 0.5
 '''
 def get_data(data, log_res, batchSize):
@@ -34,15 +30,4 @@ def get_data(data, log_res, batchSize):
 
     loader = DataLoader(dataset, batchSize, shuffle=True)
 
-    # print an image from the loaded dataset
-    sample_img(loader)
-
     return loader
-
-# Prints a tensor shape and a random image from loader in grayscale
-def sample_img(loader):
-    features, _ = next(iter(loader))
-    print(f"Feature batch shape: {features.size()}")
-    img = features[0].squeeze()
-    plt.imshow(img, cmap="gray")
-    plt.show()
