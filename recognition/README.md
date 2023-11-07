@@ -60,6 +60,11 @@ Resnet18 is a pre-trained model, which is trained on the ImageNet dataset and us
 For this project, I use to Resnet18 to extract features from the two images, and then calculate the distance between
 the two features, and use the distance to classify the images.
 
+### Classifier
+The classifier will use the feature extractor portion of the Siamese network (i.e., excluding the final fully-connected 
+layer) to obtain a feature representation of the image, which will then be fed into a new classification layer for binary 
+classification of normal (NC) and Alzheimer's disease (AD).
+
 
 ## Dataset
 The dataset used in this project is ADNI brain data set, which is a public dataset. 
@@ -105,6 +110,10 @@ The training result of 50 epochs are shown below:
 
 The training accuracy shows convergence after 1200 steps.
 
+Here is the Training result for classifier trained 50 epochs:
+
+![classifier_train.png](../Images/classifier_train.png)
+
 ## Testing
 The testing process is similar to the training process, but the testing process is only used to test the Performance.
 The testing result of 50 epochs are shown below:
@@ -116,6 +125,10 @@ There is another model only trained 10 epochs, but does not have the log and
 the testing result of 10 epochs are shown below:
 
 ![Testing_result10.png](../Images/Test_result10.png)
+
+For classifier, here is an example output
+
+![classifier_result.png](../Images/classifier_result.png)
 
 ## Dependencies
 

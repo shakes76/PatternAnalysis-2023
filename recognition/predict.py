@@ -91,10 +91,14 @@ if __name__ == '__main__':
     train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size)
     print("Data loaded.")
 
-    # test(model, device, train_dataloader)
+    test(model, device, train_dataloader)
 
-    images, _, _ = next(iter(train_dataloader))
-    images = images.to(device)
+    # images, _, _ = next(iter(train_dataloader))
+    # images = images.to(device)
+    #
+    # output = predict(model, images)
+    # print(output)
 
-    output = predict(model, images)
-    print(output)
+    outputs = predict_img("E:/comp3710/AD_NC", "../results/classifier_50epochs.pt", device)
+    print(outputs)
+

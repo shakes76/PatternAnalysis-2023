@@ -192,7 +192,6 @@ def train_classifier(device, epochs=50, batch_size=256, learning_rate=0.001):
 
     writer.close()  # Close the TensorBoard writer
 
-
 if __name__ == '__main__':
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # train_siamese(device)
