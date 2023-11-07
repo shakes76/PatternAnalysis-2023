@@ -9,8 +9,8 @@
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
-from dataset import get_test_dataset
-from modules import SiameseNetwork
+from dataset import get_test_dataset, get_classifier_test_dataset
+from modules import SiameseNetwork, ADNIClassifier
 
 
 def test(model, device, test_loader):
@@ -40,6 +40,41 @@ def test(model, device, test_loader):
 
     print("Finished testing.")
 
+def predict(model, image):
+    model.eval()
+    output = model.forward_one(image)
+    return output
+
+
+def predict_img(image_path, model_path, device):
+    # Load the image
+    image = get_classifier_test_dataset(image_path)
+
+    # Load the trained Siamese network
+    siamese_model = SiameseNetwork()
+    siamese_model.load_state_dict(torch.load("../results/siamese_network_50epochs.pt"))
+    siamese_model = siamese_model.to(device)
+
+    # Freeze the Siamese network parameters
+    for param in siamese_model.parameters():
+        param.requires_grad = False
+
+    # Initialize the classifier with the trained Siamese network
+    classifier_model = ADNIClassifier(siamese_model).to(device)
+
+    # Load the trained classifier model
+    classifier_model.load_state_dict(torch.load(model_path, map_location=device))
+    classifier_model = classifier_model.to(device)
+    # Set the model to evaluation mode
+    classifier_model.eval()
+
+    # Predict
+    with torch.no_grad():
+        image = image.to(device)
+        output = classifier_model(image)
+        prediction = torch.sigmoid(output).item()
+
+    return prediction
 
 if __name__ == '__main__':
 
@@ -56,5 +91,10 @@ if __name__ == '__main__':
     train_dataloader = torch.utils.data.DataLoader(train_data, batch_size=batch_size)
     print("Data loaded.")
 
-    test(model, device, train_dataloader)
+    # test(model, device, train_dataloader)
 
+    images, _, _ = next(iter(train_dataloader))
+    images = images.to(device)
+
+    output = predict(model, images)
+    print(output)

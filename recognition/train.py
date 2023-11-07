@@ -12,12 +12,11 @@ import torch
 import torch.optim as optim
 from torch import nn
 from torch.utils.data import DataLoader, Subset
-from modules import SiameseNetwork
-from dataset import get_train_dataset
+from modules import SiameseNetwork, ADNIClassifier
+from dataset import get_train_dataset, get_classifier_train_dataset
 
 
-def train(model, dataloader, device, optimizer, epoch):
-
+def train(model, dataloader, device, optimizer, epoch, writer):
     model.train()
 
     # Using `BCELoss` as the loss function
@@ -28,9 +27,9 @@ def train(model, dataloader, device, optimizer, epoch):
 
     for batch_idx, (images_1, images_2, targets) in enumerate(dataloader):
         images_1, images_2, targets = images_1.to(device), images_2.to(device), targets.to(device)
-        optimizer.zero_grad() # Zero out gradients
+        optimizer.zero_grad()  # Zero out gradients
         outputs = model(images_1, images_2).squeeze()
-        loss = criterion(outputs, targets) # Calculate loss
+        loss = criterion(outputs, targets)  # Calculate loss
         loss.backward()
         optimizer.step()
 
@@ -76,15 +75,10 @@ def validate(model, dataloader, device):
     print("Finished Validation.")
 
 
-if __name__ == '__main__':
+def train_siamese(device, epochs=50, batch_size=256, learning_rate=0.001):
     # Initialize TensorBoard
     writer = SummaryWriter('logs/siamese_experiment')
 
-    epochs = 50
-    batch_size = 256
-    learning_rate = 0.001
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(device)
 
     # Initialize model, criterion, and optimizer
@@ -102,7 +96,7 @@ if __name__ == '__main__':
 
     print("Starting training.")
     for epoch in range(1, epochs + 1):
-        train(model, train_dataloader, device, optimizer, epoch)
+        train(model, train_dataloader, device, optimizer, epoch, writer)
         # validate(model, val_loader, device)
     print("Finished training.")
 
@@ -115,4 +109,93 @@ if __name__ == '__main__':
     torch.save(model.state_dict(), save_path)
 
     writer.close()
+
+
+def train_classifier(device, epochs=50, batch_size=256, learning_rate=0.001):
+    # Initialize TensorBoard writer
+    writer = SummaryWriter('logs/classifier_experiment')
+
+    print(device)
+
+    siamese_model = SiameseNetwork()
+    model_path = "../results/siamese_network_50epochs.pt"
+    siamese_model.load_state_dict(torch.load(model_path))
+    siamese_model = siamese_model.to(device)
+
+    # freeze the parameters of the Siamese Network
+    for param in siamese_model.parameters():
+        param.requires_grad = False
+
+    classifier_model = ADNIClassifier(siamese_model).to(device)
+
+    # define optimizer and criterion
+    # only train the classifier
+    optimizer = optim.Adam(filter(lambda p: p.requires_grad, classifier_model.parameters()), lr=learning_rate)
+
+    # define loss function and optimizer
+    criterion = nn.BCEWithLogitsLoss()  # Use `BCEWithLogitsLoss` as the loss function
+
+    # get classifier dataset
+    classifier_dataset = get_classifier_train_dataset('E:/comp3710/AD_NC')
+    classifier_dataloader = DataLoader(classifier_dataset, batch_size=batch_size, shuffle=True)
+
+    save_directory = "E:/PatternAnalysis-2023/results"
+    save_filename = f"classifier_network_{epochs}epochs2.pt"
+
+    # train the classifier
+    for epoch in range(epochs):
+        classifier_model.train()  # Set the model to training mode
+        running_loss = 0.0
+        correct = 0
+        total = 0
+
+        for batch_idx, (inputs, labels) in enumerate(classifier_dataloader):
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            # Forward pass
+            outputs = classifier_model(inputs)
+            loss = criterion(outputs, labels.unsqueeze(1))  # Make sure labels are the correct shape
+
+            # Backward and optimize
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item()
+            predicted = torch.sigmoid(outputs).round()  # Get predictions from the outputs
+            total += labels.size(0)
+            correct += (predicted == labels.unsqueeze(1)).sum().item()
+
+            if batch_idx % 10 == 0:  # Log after every 10 batches
+                # Calculate accuracy
+                accuracy = 100 * correct / total
+                print('Train Epoch: {} [{}/{} ({:.0f}%)]\tLoss: {:.6f}\tAccuracy: {:.2f}%'.format(
+                    epoch + 1, batch_idx * len(inputs), len(classifier_dataloader.dataset),
+                    100. * batch_idx / len(classifier_dataloader), loss.item(), accuracy))
+
+                # Log loss and accuracy to TensorBoard
+                writer.add_scalar('Loss/train', running_loss / (batch_idx + 1),
+                                  epoch * len(classifier_dataloader) + batch_idx)
+                writer.add_scalar('Accuracy/train', accuracy, epoch * len(classifier_dataloader) + batch_idx)
+
+        # Log epoch metrics
+        writer.add_scalar('Loss/train_epoch', running_loss / len(classifier_dataloader), epoch)
+        writer.add_scalar('Accuracy/train_epoch', 100 * correct / total, epoch)
+
+    # create directory if it doesn't exist
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+
+    # save model
+    save_path = os.path.join(save_directory, save_filename)
+    torch.save(classifier_model.state_dict(), save_path)
+
+    writer.close()  # Close the TensorBoard writer
+
+
+if __name__ == '__main__':
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    # train_siamese(device)
+    train_classifier(device, learning_rate=0.01)
+
 

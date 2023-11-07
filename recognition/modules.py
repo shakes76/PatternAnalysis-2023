@@ -66,3 +66,23 @@ class SiameseNetwork(nn.Module):
         output = self.sigmoid(output)
 
         return output
+
+
+class ADNIClassifier(nn.Module):
+    def __init__(self, siamese_network):
+        super(ADNIClassifier, self).__init__()
+        # Use Siamese Network's feature extractor
+        self.feature_extractor = siamese_network.resnet
+
+        # add linear layers to classify between AD and NC
+        self.classifier = nn.Sequential(
+            # Output from feature extractor to 1 neuron (binary classification)
+            nn.Linear(siamese_network.fc_in_features, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        features = self.feature_extractor(x)
+        features = features.view(features.size(0), -1)
+        output = self.classifier(features)
+        return output
