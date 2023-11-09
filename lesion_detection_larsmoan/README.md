@@ -12,10 +12,12 @@
     - [Core ideas used in the YOLOV1 paper:](#core-ideas-used-in-the-yolov1-paper)
   - [Output](#output)
   - [Training](#training)
+  - [Training discussion](#training-discussion)
   - [Results](#results)
     - [Confusion Matrix](#confusion-matrix)
   - [F1 - curve](#f1---curve)
   - [Precision - Recall curve](#precision---recall-curve)
+  - [Results discussion](#results-discussion)
 
 
 ### Installation
@@ -152,6 +154,8 @@ Training was done on the rangpur cluster using a variety of different GPU's, the
 
 - Hyperparameters that was used is described in: [hyp.scratch.p6.yaml](./hyp.scratch.p6.yaml)
 
+***In the plots below, the term step refers to epoch number***
+
 <figure style="margin-right: 10px; display: inline-block;">
    <img src="./figures/train-boxloss.png" alt="Example Image" width="600" height="300">
   <figcaption>Box loss.</figcaption>
@@ -166,6 +170,13 @@ Training was done on the rangpur cluster using a variety of different GPU's, the
 </figure>
 
 
+### Training discussion
+From the plots showing the box, class and object loss it is clear that they indeed was decreasing when the training was halted. With that said they decreased by small amounts, almost negligible. In the case of the A100 training run, that took about 48 hours.
+
+An interesting observation is the fact that during both runs the model's loss reduced drastically for the first 10 or so epochs, after this the reduction was almost 0. This can be an indication that given the data the models were presented they actually fitted really quickly, but that the data itself might have very complex structures. Hence the model was not able to learn more from the data.
+
+
+### Results
 <figure style="margin-right: 10px; display: inline-block;">
    <img src="./figures/metrics-mAP0.5_0.95.png" alt="Example Image" width="600" height="300">
   <figcaption>mAP 0.5:0.95.</figcaption>
@@ -183,7 +194,7 @@ Training was done on the rangpur cluster using a variety of different GPU's, the
   <figcaption>Recall</figcaption>
 </figure>
 
-### Results
+
 #### Confusion Matrix
 <img src="results/yolov7_b32_p100/confusion_matrix.png" alt="Description" >
 
@@ -193,3 +204,15 @@ Training was done on the rangpur cluster using a variety of different GPU's, the
 
 ### Precision - Recall curve
 <img src="results/yolov7_b32_p100/PR_curve.png" alt="Description">
+
+### Results discussion
+The results are not very good, and far off what I anticipated when first embarking on this project. The best result was an mAP@0.5 of about 0.718 which is quite poor.
+
+An important observation is the instability in training related to precision and recall, we can see that for thease metrics the models doesnt improve much past the 10 first epochs, but it has huge variety from epoch to epoch.
+
+Initially I thought these issues were related to the small batch size, that was the main driver for increasing it to 32 during the second training run.
+However this did not improve the results drastically, although it had a significant effect on mAP@0.5.
+
+I think the reason for the results being as poor as they are is the inherent complexity of the dataset, when I have went through the data personally I often find it really challenging to understand the labels in the ISIC2017 dataset. 
+
+The label unknown / benign is especially tricky to understand as a human because there are a lot of artifacts present in the dataset that is not labeled as benign skin lesions.
