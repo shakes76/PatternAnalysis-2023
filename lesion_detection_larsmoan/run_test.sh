@@ -14,20 +14,20 @@
 conda activate torch-gpu
 module load cuda
 
+#Checks if the weights are present in the directory
+if [ ! -f "best.pt" ]; then
+    echo "File does not exist, downloading..."
+    python3 - <<END
+import gdown
 
-# Define the filename and file URL
-filename="best.pt"
-file_url="https://drive.google.com/uc?id=1NiVwOQVGDGuy39O3KtKdGOj4JEyHlbV5"
+url = "https://drive.google.com/uc?id=1NiVwOQVGDGuy39O3KtKdGOj4JEyHlbV5"
 
-# Check if the file exists in the current directory
-if [ -e "$PWD/$filename" ]; then
-    echo "File '$filename' already exists in the current directory."
+output = "best.pt"
+gdown.download(url, output, quiet=False)
+END
 else
-    # If file doesn't exist, download it
-    echo "Downloading '$filename'..."
-    wget "$file_url"
-    echo "Download complete."
+    echo "File already exists."
 fi
 
 
-python yolov7/test.py --data data/ISIC_2017_0.5/isic.yaml --img 512 --batch 2 --conf 0.001 --iou 0.65 --device 0 --weights 'best.pt' --name yolov7_b32_testing
+python yolov7/test.py --data data/ISIC_2017_0.5/isic.yaml --img 512 --batch 2 --conf 0.001 --iou 0.8 --device 0 --weights 'best.pt' --name yolov7_b32_testing

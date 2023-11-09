@@ -220,10 +220,5 @@ if __name__ == "__main__":
     #Download the preprocessed version of ISIC2017 that has YOLO labels and correct structure
     path_to_dset = "/home/Student/s4827064/PatternAnalysis-2023/lesion_detection_larsmoan/data/"
     download_dataset(path_to_dset)
-
-    #Download pretrained YOLOV7 weights (COCO) for transfer learning purposes
-    weights_url = "https://drive.google.com/uc?id=1mAu29ZlOTn3csjnZ5fmro10kY3XxAddC"
-    yolov7_weights_out = "yolov7_training.pt"
-    gdown.download(weights_url, yolov7_weights_out, quiet=False)
    
     

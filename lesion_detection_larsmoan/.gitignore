@@ -12,3 +12,6 @@ wandb
 .venv
 .env
 *.pt
+
+err_test.txt
+out_test.txt

@@ -135,15 +135,17 @@ In the figure above the core ideas is presented, each grid cell proposing two bo
 
 
 ### Training
-Training was mainly done on the rangpur cluster, 
+Training was mainly done on the rangpur cluster, using the P100 gpu and a batch size of 32
 
-- Details about the training process.
-- Hyperparameters used:
-  - Both p5 and p6 models were trained. 
-- Training time, hardware details (if relevant).
+- Hyperparameters that was used is described in: [hyp.scratch.p6.yaml](./hyp.scratch.p6.yaml)
 
 ### Results
+#### Confusion Matrix
+<img src="results/yolov7_b32_p100/confusion_matrix.png" alt="Description" >
 
-- Summarize the results obtained.
-- Any metrics used (e.g., accuracy, F1-score).
-- Visual results (e.g., plots, graphs) if applicable.
+
+### F1 - curve
+<img src="results/yolov7_b32_p100/F1_curve.png" alt="Description">
+
+### Precision - Recall curve
+<img src="results/yolov7_b32_p100/PR_curve.png" alt="Description">
