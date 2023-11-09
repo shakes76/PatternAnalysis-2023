@@ -30,4 +30,4 @@ else
 fi
 
 
-python yolov7/test.py --data data/ISIC_2017_0.5/isic.yaml --img 512 --batch 9 --conf 0.001 --iou 0.8 --device 0 --weights 'best.pt' --name yolov7_b32_testing
+python yolov7/test.py --data data/ISIC_2017_0.5/isic.yaml --img 512 --batch 9 --conf 0.35 --iou 0.2 --device 0 --weights 'best.pt' --name yolov7_b32_testing
