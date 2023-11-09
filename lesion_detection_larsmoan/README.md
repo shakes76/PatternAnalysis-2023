@@ -10,8 +10,12 @@
   - [Usage](#usage)
   - [Model Architecture: open source YOLOV7 Model](#model-architecture-open-source-yolov7-model)
     - [Core ideas used in the YOLOV1 paper:](#core-ideas-used-in-the-yolov1-paper)
+  - [Output](#output)
   - [Training](#training)
   - [Results](#results)
+    - [Confusion Matrix](#confusion-matrix)
+  - [F1 - curve](#f1---curve)
+  - [Precision - Recall curve](#precision---recall-curve)
 
 
 ### Installation
@@ -116,7 +120,7 @@ YOLOV7 is based on the original YOLO paper: [YOLOV1](https://arxiv.org/abs/1506.
 The original paper was trained on input images of size 448X448 and these images where parsed into a grid of 7x7 grid cells.
 <figure style="margin-right: 10px; display: inline-block;">
    <img src="./figures/grid_cell_yolo.png" alt="Example Image" width="460" height="340">
-   <figcaption>Original grid cells on 448x448 image.</figcaption>
+   <figcaption>Original grid cells on 448x448 image. Source: <a href="http://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf">"You Only Look Once by Joseph Redmon et al., CVPR 2016</a>.</figcaption>
 </figure>
 
 The idea was that each grid cell was responsible for predicting a object if the center of that object was within the given grid cell.
@@ -125,13 +129,22 @@ The idea was that each grid cell was responsible for predicting a object if the 
  In the paper it was also proposed that each grid cell's output was two bounding boxes each with their own confidence / objectness score + a class probability vector. I.e was each grid cell only capable of predicting one detection, altough it could predict two bounding boxes. The bounding box with the highest objectness score was chosen in addition to the class with the highest probability.
 
 <figure style="margin-right: 10px; display: inline-block;">
-   <img src="./figures/yolov1.png" alt="Example Image" width="700" height="340">
-   <figcaption>YOLOV1 object detection [Joseph Redmon et al]</figcaption>
+   <img src="./figures/yolov1.png" alt="Example Image" width="710" height="340">
+  <figcaption>YOLOv1 output tensor. Source: <a href="http://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf">"You Only Look Once by Joseph Redmon et al., CVPR 2016</a>.</figcaption>
 </figure>
 
 In the figure above the core ideas is presented, each grid cell proposing two bounding boxes (in black) but only one class. The "best" box and class over a certain treshold is then used as the final prediction.
 
+### Output
+Following from the description above about what the model outputs. Because the model uses a 7x7 grid, the output is a tensor of shape (batch_size, 7, 7, 30). Where 30 is the number of parameters that is predicted for each grid cell. The 30 parameters per grid cell are:
+[objectness_score, box_x, box_y, width, height] + [objectness_score, box_x, box_y, width, height] + [class_probabilities].
+Two bounding boxes + a vector of class probabilities. In the case of the original YOLO paper, the model was trained on the [PASCAL dataset](http://host.robots.ox.ac.uk/pascal/VOC/) where there are 20 classes present. Hence the 30 parameters per grid cell.
 
+
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/output-tensor-yolov1.png.webp" alt="YOLOv1 Output Tensor Visualization" width="580" height="340">
+   <figcaption>YOLOv1 output tensor. Source: <a href="http://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf">"You Only Look Once by Joseph Redmon et al., CVPR 2016</a>.</figcaption>
+</figure>
 
 
 ### Training
