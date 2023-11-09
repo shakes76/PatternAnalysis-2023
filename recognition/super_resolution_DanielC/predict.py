@@ -20,7 +20,11 @@ if not torch.cuda.is_available():
     print("Warning CUDA not Found. Using CPU")
 
 print("> Loading model")
-model = torch.load(model_path)
+try :
+    model = torch.load(model_path)
+    print("Model loaded successfully")
+except Exception as e:
+    print("Was not able to load the model due to {e}")
 
 model.eval()
 
