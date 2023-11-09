@@ -17,7 +17,7 @@ Attributes:
                     Warning will be printed if gpu is not present.
     - model:        Super-resolution network as defined in modules.py.
     - train_loader: DataLoader containing ADNI training data.
-    - test_loader:  DataLoader containing ADNI testing data.
+    - validate_loader:  DataLoader containing ADNI validation data.
     - criterion:    Mean Squared Error loss.
     - Optimizer:    Adam optimizer with learning rate of 0.001.
 """
@@ -33,7 +33,7 @@ model = SuperResolution().to(device)
 # -------
 # Generate dataloaders
 train_loader = generate_train_loader()
-test_loader = generate_test_loader()
+validate_loader = generate_validation_loader()
 
 # model info
 print("Model No. of Parameters:", sum([param.nelement() 
@@ -90,6 +90,29 @@ elapsed = end - start
 print("Training took " + str(elapsed) + " secs or " 
       + str(elapsed/60) + " mins in total") 
 
+
+# -------
+# Validate the model
+
+print("> Validating")
+valid_start = time.time()
+validation_loss = 0.0
+with torch.no_grad():
+    for images, _ in validate_loader:
+        low_res_images = resize_tensor(images)
+        low_res_images = low_res_images.to(device)
+        images = images.to(device)
+        
+        # Forward pass
+        outputs = model(low_res_images)
+        loss = criterion(outputs, images)
+        validation_loss += loss
+        
+valid_end = time.time()
+valid_elapsed = valid_end - valid_start
+print("Training took " + str(valid_elapsed) + " secs or " 
+      + str(valid_elapsed/60) + " mins in total") 
+
 # New canvas for graph
 plt.figure()
 
@@ -101,5 +124,5 @@ plt.grid(True)
 plt.show()
 
 # Save the model if it performed better than previous models
-if loss_values[-1] < min_loss:
+if validation_loss < min_loss:
     torch.save(model, model_path)
