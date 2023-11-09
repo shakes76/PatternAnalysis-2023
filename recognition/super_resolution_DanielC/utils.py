@@ -32,6 +32,8 @@ batch_size = 30
 
 out_channels = 256
 
+min_loss = 99999999
+
 # Downsample-parameters 
 downsample_size = (60,64)
 

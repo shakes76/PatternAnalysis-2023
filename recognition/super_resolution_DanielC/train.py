@@ -99,4 +99,7 @@ plt.xlabel("Epoch")
 plt.ylabel("Loss")
 plt.grid(True)
 plt.show()
-torch.save(model, model_path)
+
+# Save the model if it performed better than previous models
+if loss_values[-1] < min_loss:
+    torch.save(model, model_path)
