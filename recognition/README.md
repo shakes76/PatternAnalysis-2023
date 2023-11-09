@@ -24,10 +24,16 @@ The Improved UNET architecture utilised was the one proposed in [Brain Tumor Seg
 The proposed UNet architecture is a neural network model used for image segmentation tasks. It consists of an encoder part and a decoder part. The encoder part is composed of several convolutional layers with increasing number of filters, followed by a ContextBlock that applies residual connections and dropout regularization. The decoder part is composed of several upsampling layers that increase the spatial resolution of the feature maps, followed by a LocalisationBlock that combines the feature maps from the encoder and decoder parts. The output of the model is a tensor with the same size as the input image, where each pixel is classified into a specific category. The UNet architecture is known for its ability to handle small datasets and produce accurate segmentation results.
 
 ### Training and Testing
-With the limited time and resources, only 6 epochs were utilised to build the model. However, there are clear signs of the model being correct and being able to reach the targeted Dice loss of 0.8. 
+ 24 epochs of training and validation was conducted on the aforementioned sample of images, with demonstration of the required Dice Similarity Coeeficient of greater than 0.8 by the end of the training. Refer to Fig. 1 and 2 below.
 
 ### Results
 
 <p align="center">
-  <img src="images/proof.png" width="700"/>
+  <img src="s4630051_improved_unet_segmentation/images/train_val_loss.png" width="700"/>
+  Fig. 1: Training and Validation loss demeonstrating that model can for all test images achive a Dice Similarity Coeeficient of >0.8
+</p>
+
+<p align="center">
+  <img src="s4630051_improved_unet_segmentation/images/test_model.png" width="700"/>
+  Fig 2: Demonstration of successful prediction mask from given Lesion Image
 </p>
