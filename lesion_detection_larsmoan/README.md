@@ -18,6 +18,8 @@
   - [F1 - curve](#f1---curve)
   - [Precision - Recall curve](#precision---recall-curve)
   - [Results discussion](#results-discussion)
+  - [Anchor boxes misaligned](#anchor-boxes-misaligned)
+  - [Example outputs](#example-outputs)
 
 
 ### Installation
@@ -216,3 +218,37 @@ However this did not improve the results drastically, although it had a signific
 I think the reason for the results being as poor as they are is the inherent complexity of the dataset, when I have went through the data personally I often find it really challenging to understand the labels in the ISIC2017 dataset. 
 
 The label unknown / benign is especially tricky to understand as a human because there are a lot of artifacts present in the dataset that is not labeled as benign skin lesions.
+
+### Anchor boxes misaligned
+After diving deeper into the intrinsics of the YOLO architecture I have found one major factor which I suspect could enhance the performance by a ton. Using another set of anchor boxes!
+The standard anchor boxes utilized by YOLOV7 does not fit that well with the labels present in the ISIC dataset, where we can see that often a bounding box takes up almost the complete image.
+
+To mitigate this issue I should have performed a custom annchor box analyzis, by doing a clustering on the boxes present in the ISIC dataset and therefore "allow" the model to do bigger predictions. This is something I will try to implement in the future.
+
+### Example outputs
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./results/yolov7_b32_testing8/test_batch0_labels.jpg" alt="Example Image" width="600" height="350">
+  <figcaption>Batch 0 - Labels</figcaption>
+</figure>
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./results/yolov7_b32_testing8/test_batch0_pred.jpg" alt="Example Image" width="600" height="350">
+  <figcaption>Batch 0 - Predictions</figcaption>
+</figure>
+
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./results/yolov7_b32_testing8/test_batch1_labels.jpg" alt="Example Image" width="600" height="350">
+  <figcaption>Batch 1 - Labels</figcaption>
+</figure>
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./results/yolov7_b32_testing8/test_batch1_pred.jpg" alt="Example Image" width="600" height="350">
+  <figcaption>Batch 1 - Predictions</figcaption>
+</figure>
+
+
+In these outputs what I discussed related to anchor boxes above is clear, a lot of the labels take up almost all of the image. This is quite far off from the YOLO standard anchor boxes.
+
+Another way of visualizing this is by the plot below, here we can clearly see an example of how the anchor boxes are misaligned with the labels present in the ISIC dataset.
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/anchor_comparison.png" alt="Example Image" width="600" height="350">
+  <figcaption>Anchor comparison</figcaption>
+</figure>
