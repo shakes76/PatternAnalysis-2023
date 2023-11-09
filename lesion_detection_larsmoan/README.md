@@ -133,10 +133,10 @@ The idea was that each grid cell was responsible for predicting a object if the 
   <figcaption>YOLOv1 output tensor. Source: <a href="http://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf">"You Only Look Once by Joseph Redmon et al., CVPR 2016</a>.</figcaption>
 </figure>
 
-In the figure above the core ideas is presented, each grid cell proposing two bounding boxes (in black) but only one class. The "best" box and class over a certain treshold is then used as the final prediction.
+In the figure above the core ideas is presented, each grid cell proposing two bounding boxes (in black) but only one class. The "best" box and class over a certain treshold is then used as the final prediction. -> Single stage object detection and classification!
 
 ### Output
-Following from the description above about what the model outputs. Because the model uses a 7x7 grid, the output is a tensor of shape (batch_size, 7, 7, 30). Where 30 is the number of parameters that is predicted for each grid cell. The 30 parameters per grid cell are:
+Because the model uses a 7x7 grid, the output is a tensor of shape (batch_size, 7, 7, 30). Where 30 is the number of parameters that is predicted for each grid cell. The 30 parameters per grid cell are:
 [objectness_score, box_x, box_y, width, height] + [objectness_score, box_x, box_y, width, height] + [class_probabilities].
 Two bounding boxes + a vector of class probabilities. In the case of the original YOLO paper, the model was trained on the [PASCAL dataset](http://host.robots.ox.ac.uk/pascal/VOC/) where there are 20 classes present. Hence the 30 parameters per grid cell.
 
@@ -148,9 +148,23 @@ Two bounding boxes + a vector of class probabilities. In the case of the origina
 
 
 ### Training
-Training was mainly done on the rangpur cluster, using the P100 gpu and a batch size of 32
+Training was done on the rangpur cluster using a variety of different GPU's, the two main training runs shown in the plots below was done using the A100 and the P100. (A100 for the batch size of 8 and P100 for the batch size of 32).
 
 - Hyperparameters that was used is described in: [hyp.scratch.p6.yaml](./hyp.scratch.p6.yaml)
+
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/train-boxloss.png" alt="Example Image" width="600" height="300">
+  <figcaption>Box loss.</figcaption>
+</figure>
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/train-clsloss.png" alt="Example Image" width="600" height="300">
+  <figcaption>Class loss.</figcaption>
+</figure>
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/train-objloss.png" alt="Example Image" width="600" height="300">
+  <figcaption>Object loss.</figcaption>
+</figure>
+
 
 ### Results
 #### Confusion Matrix
