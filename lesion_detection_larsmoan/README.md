@@ -1,13 +1,15 @@
 ## Lesion detection and classification using YOLOV7 on the ISIC2017 dataset
 
 ### Table of Contents
-- [Project Title](#project-title)
+- [Lesion detection and classification using YOLOV7 on the ISIC2017 dataset](#lesion-detection-and-classification-using-yolov7-on-the-isic2017-dataset)
   - [Table of Contents](#table-of-contents)
-  - [Todo](#todo)
   - [Installation](#installation)
-  - [Dataset](#dataset)
+- [Dataset](#dataset)
+  - [Overview](#overview)
+  - [Preprocessing](#preprocessing)
   - [Usage](#usage)
-  - [Model Architecture](#model-architecture)
+  - [Model Architecture: open source YOLOV7 Model](#model-architecture-open-source-yolov7-model)
+    - [Core ideas used in the YOLOV1 paper:](#core-ideas-used-in-the-yolov1-paper)
   - [Training](#training)
   - [Results](#results)
 
@@ -106,6 +108,31 @@ https://drive.google.com/uc?id=1YI3pwanX35i7NCIxKnfXBozXiyQZcGbL or from [datase
   ```
 
 ### Model Architecture: open source [YOLOV7 Model](https://github.com/WongKinYiu/yolov7)
+
+YOLOV7 is based on the original YOLO paper: [YOLOV1](https://arxiv.org/abs/1506.02640) which was published in 2015 and presented a leap in inference speed for object detection models. The main reason for this was that it was one of the first models that did object detection in a single stage, hence the name YOLO ( you only look once ) in contrast to the two stage models that were popular at the time. Note that some single stage models were present, such as SSD, but they had relatively accuracy performance.
+
+#### Core ideas used in the YOLOV1 paper:
+
+The original paper was trained on input images of size 448X448 and these images where parsed into a grid of 7x7 grid cells.
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/grid_cell_yolo.png" alt="Example Image" width="460" height="340">
+   <figcaption>Original grid cells on 448x448 image.</figcaption>
+</figure>
+
+The idea was that each grid cell was responsible for predicting a object if the center of that object was within the given grid cell.
+**In this example the red grid cell would be responsible to detecting the car present in the top right corner**
+
+ In the paper it was also proposed that each grid cell's output was two bounding boxes each with their own confidence / objectness score + a class probability vector. I.e was each grid cell only capable of predicting one detection, altough it could predict two bounding boxes. The bounding box with the highest objectness score was chosen in addition to the class with the highest probability.
+
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/yolov1.png" alt="Example Image" width="700" height="340">
+   <figcaption>YOLOV1 object detection [Joseph Redmon et al]</figcaption>
+</figure>
+
+In the figure above the core ideas is presented, each grid cell proposing two bounding boxes (in black) but only one class. The "best" box and class over a certain treshold is then used as the final prediction.
+
+
+
 
 ### Training
 Training was mainly done on the rangpur cluster, 
