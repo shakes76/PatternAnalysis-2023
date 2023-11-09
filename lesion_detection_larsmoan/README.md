@@ -166,6 +166,23 @@ Training was done on the rangpur cluster using a variety of different GPU's, the
 </figure>
 
 
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/metrics-mAP0.5_0.95.png" alt="Example Image" width="600" height="300">
+  <figcaption>mAP 0.5:0.95.</figcaption>
+</figure>
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/metrics-mAP_0.5.png" alt="Example Image" width="600" height="300">
+  <figcaption>mAP@0.5.</figcaption>
+</figure>
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/metrics-precision.png" alt="Example Image" width="600" height="300">
+  <figcaption>Precision</figcaption>
+</figure>
+<figure style="margin-right: 10px; display: inline-block;">
+   <img src="./figures/metrics-recall.png" alt="Example Image" width="600" height="300">
+  <figcaption>Recall</figcaption>
+</figure>
+
 ### Results
 #### Confusion Matrix
 <img src="results/yolov7_b32_p100/confusion_matrix.png" alt="Description" >
