@@ -179,6 +179,12 @@ def plot_training_progress(train_loss_history, val_loss_history, train_dice_hist
     plt.show()
 
 def main():
+    """
+    Main function to train and validate the Improved UNET model.
+
+    This function sets up the training and validation environment, loads the ISIC dataset, initializes the model,
+    and runs the training and validation loops. It also saves sample images and plots of the performance.
+    """
     # Set device
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 

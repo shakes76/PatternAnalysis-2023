@@ -3,14 +3,36 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class ContextModule(nn.Module):
+    """
+    A context module in the UNet architecture that applies convolutions and dropout 
+    to the input features for enhanced feature representation.
+
+    Attributes:
+        conv1 (nn.Conv2d): First convolutional layer.
+        conv2 (nn.Conv2d): Second convolutional layer.
+        dropout (nn.Dropout): Dropout layer for regularization.
+
+    Args:
+        channels (int): Number of channels in the input and output feature maps.
+    """
     def __init__(self, channels):
         super(ContextModule, self).__init__()
         self.conv1 = nn.Conv2d(channels, channels, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(channels, channels, kernel_size=3, padding=1)
         self.dropout = nn.Dropout(p=0.3)
-        
+
 
     def forward(self, x):
+        """
+        Forward pass of the ContextModule.
+
+        Args:
+            x (torch.Tensor): Input feature map.
+
+        Returns:
+            torch.Tensor: Output feature map after applying convolutions and dropout.
+        """
+         
         pre_convolution_x = x
         x = F.relu(self.conv1(x))
         x = self.dropout(x)
@@ -19,29 +41,75 @@ class ContextModule(nn.Module):
     
     
 class UpsampleModule(nn.Module):
+    """
+    An upsampling module in the UNet architecture that increases the spatial 
+    resolution of feature maps.
+
+    Attributes:
+        conv1 (nn.Conv2d): Convolutional layer applied after upsampling.
+
+    Args:
+        in_channels (int): Number of channels in the input feature map.
+        out_channels (int): Number of channels in the output feature map.
+    """
     def __init__(self, in_channels, out_channels):
         super(UpsampleModule, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
     
     def forward(self, x):
-        # Double Voxel Features
+        """
+        Forward pass of the UpsampleModule.
+
+        Args:
+            x (torch.Tensor): Input feature map.
+
+        Returns:
+            torch.Tensor: Upsampled feature map.
+        """
         x = F.interpolate(x, scale_factor=2, mode='nearest')
         x = F.relu(self.conv1(x))
         return x
         
 
 class LocalizationModule(nn.Module):
+    """
+    A localization module in the UNet architecture that refines the upsampled features 
+    by applying convolutions.
+
+    Attributes:
+        conv1 (nn.Conv2d): First convolutional layer.
+        conv2 (nn.Conv2d): Second convolutional layer to produce the final output.
+
+    Args:
+        in_channels (int): Number of channels in the input feature map.
+        out_channels (int): Number of channels in the output feature map.
+    """
     def __init__(self, in_channels, out_channels):
         super(LocalizationModule, self).__init__()
         self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
         self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=1)
 
     def forward(self, x):
+        """
+        Forward pass of the LocalizationModule.
+
+        Args:
+            x (torch.Tensor): Input feature map.
+
+        Returns:
+            torch.Tensor: Refined feature map after applying convolutions.
+        """
         x = F.relu(self.conv1(x))
         x = self.conv2(x)
         return x
 
 class UNETImproved(nn.Module):
+    """
+    An improved version of the U-Net architecture for image segmentation.
+
+    This class defines the entire U-Net model comprising encoding and decoding pathways,
+    context modules for feature enhancement, and final convolutional layers for segmentation.
+    """
     def __init__(self):
         super(UNETImproved, self).__init__()
         self.init_conv = nn.Conv2d(3, 16, kernel_size=3, padding=1)
@@ -75,6 +143,15 @@ class UNETImproved(nn.Module):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
+        """
+        Forward pass of the UNETImproved model.
+
+        Args:
+            x (torch.Tensor): Input image tensor.
+
+        Returns:
+            torch.Tensor: Output segmentation mask.
+        """
 
         # Encoding Pathway
 
