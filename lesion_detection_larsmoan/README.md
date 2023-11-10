@@ -12,14 +12,14 @@
     - [Core ideas used in the YOLOV1 paper:](#core-ideas-used-in-the-yolov1-paper)
   - [Output](#output)
   - [Training](#training)
-  - [Training discussion](#training-discussion)
+    - [Training discussion](#training-discussion)
   - [Results](#results)
     - [Confusion Matrix](#confusion-matrix)
-  - [F1 - curve](#f1---curve)
-  - [Precision - Recall curve](#precision---recall-curve)
+    - [F1 - curve](#f1---curve)
+    - [Precision - Recall curve](#precision---recall-curve)
   - [Results discussion](#results-discussion)
     - [Downsampling](#downsampling)
-  - [Anchor boxes misaligned](#anchor-boxes-misaligned)
+    - [Anchor boxes misaligned](#anchor-boxes-misaligned)
   - [Example outputs](#example-outputs)
 
 
@@ -173,7 +173,7 @@ Training was done on the rangpur cluster using a variety of different GPU's, the
 </figure>
 
 
-### Training discussion
+#### Training discussion
 From the plots showing the box, class and object loss it is clear that they indeed was decreasing when the training was halted. With that said they decreased by small amounts, almost negligible. In the case of the A100 training run, that took about 48 hours.
 
 An interesting observation is the fact that during both runs the model's loss reduced drastically for the first 10 or so epochs, after this the reduction was almost 0. This can be an indication that given the data the models were presented they actually fitted really quickly, but that the data itself might have very complex structures. Hence the model was not able to learn more from the data.
@@ -202,10 +202,10 @@ An interesting observation is the fact that during both runs the model's loss re
 <img src="results/yolov7_b32_p100/confusion_matrix.png" alt="Description" >
 
 
-### F1 - curve
+#### F1 - curve
 <img src="results/yolov7_b32_p100/F1_curve.png" alt="Description">
 
-### Precision - Recall curve
+#### Precision - Recall curve
 <img src="results/yolov7_b32_p100/PR_curve.png" alt="Description">
 
 ### Results discussion
@@ -224,7 +224,7 @@ The label unknown / benign is especially tricky to understand as a human because
 The original dataset too large to fit on a student node at rangpur, since the storage limit there is 16gb. Therefore I dowsampled the dataset by a factor of 2 and used this during both training and testing. Originally I thought this wouldn't pose any problem as the original dataset has images of really high resolution, often in the range og 5MB per image.
 That being said, the downsamplign is in itself a loss of information as the dimensionality is reduced, so it could be a factor that has contributed to the poor results.
 
-### Anchor boxes misaligned
+#### Anchor boxes misaligned
 After diving deeper into the intrinsics of the YOLO architecture I have found one major factor which I suspect could enhance the performance by a ton. Using another set of anchor boxes!
 The standard anchor boxes utilized by YOLOV7 does not fit that well with the labels present in the ISIC dataset, where we can see that often a bounding box takes up almost the complete image.
 
