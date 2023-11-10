@@ -106,12 +106,14 @@ with torch.no_grad():
         # Forward pass
         outputs = model(low_res_images)
         loss = criterion(outputs, images)
-        validation_loss += loss
+        validation_loss += loss.item()
         
 valid_end = time.time()
 valid_elapsed = valid_end - valid_start
-print("Training took " + str(valid_elapsed) + " secs or " 
+print("Validation took " + str(valid_elapsed) + " secs or " 
       + str(valid_elapsed/60) + " mins in total") 
+average_val_loss =  validation_loss / len(validate_loader)
+print("Average validation loss was ", average_val_loss)
 
 # New canvas for graph
 plt.figure()
@@ -126,3 +128,16 @@ plt.show()
 # Save the model if it performed better than previous models
 if validation_loss < min_loss:
     torch.save(model, model_path)
+    
+    with open(abs_file_path, 'r') as util_file:
+        lines = util_file.readlines()
+    with open(abs_file_path, 'w') as util_file:
+        for line in lines:
+            if "min_loss" not in line:
+                util_file.write(line)
+        print("min_loss removed from util.py")
+
+    # Write min_loss to util.py
+    with open(abs_file_path, 'a') as util_file:
+        util_file.write(f"min_loss = {average_val_loss}")
+        print(f"min_loss updated to {average_val_loss} in util.py")

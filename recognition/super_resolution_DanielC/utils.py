@@ -1,4 +1,5 @@
 import torchvision.transforms as transforms
+import os
 """
 IO paths to data and parameters to be tuned.
 
@@ -17,13 +18,16 @@ minutes.
 #replace with path to train directory
 train_dir = "F:/COMP3710/data/AD_NC/train" 
 
-#replace with path to test directory
+# replace with path to test directory
 test_dir = "F:/COMP3710/data/AD_NC/test" 
 
-#replace with where model is saved
+# replace with where model is saved
 model_path = "F:/COMP3710/model/model.pt" 
 
-
+# absolute directory for utils
+script_dir = os.path.dirname(__file__) 
+rel_path = "utils.py"
+abs_file_path = os.path.join(script_dir, rel_path)
 
 # Hyper-parameters
 num_epochs = 40
@@ -32,7 +36,6 @@ batch_size = 30
 
 out_channels = 256
 
-min_loss = 99999999
 
 # Downsample-parameters 
 downsample_size = (60,64)
@@ -50,3 +53,6 @@ def resize_tensor(tensor):
     transform = transforms.Compose([transforms.Resize(downsample_size)])
 
     return transform(tensor)
+
+# loss of best performing model
+min_loss = 0.0023549410682688985
