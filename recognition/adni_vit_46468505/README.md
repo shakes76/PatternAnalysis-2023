@@ -87,3 +87,10 @@ The testing image is also shown before a prediction is made.
 ### Training
 
 Code used to train the vision transformer can be found in `train.py`. 40 epochs were used to train the model, however a 70% validation accuracy was achieved by the 10th epoch. The training loop runs for the number of epochs specified by the user, and saves the model to the working directory. Figures are also generated to show the training history, by plotting the loss and accuracy values for training and validation set for each epoch. Ensure that path variables are changed to align with the directory structure being used.
+
+## References
+Kumar, R., Sarker, M.K., Islam, S.R. (2023). Vision Transformers for Galaxy Morphology Classification: Fine-Tuning Pre-trained Networks vs. Training from Scratch. In: Conte, D., Fred, A., Gusikhin, O., Sansone, C. (eds) Deep Learning Theory and Applications. DeLTA 2023. Communications in Computer and Information Science, vol 1875. Springer, Cham. https://doi.org/10.1007/978-3-031-39059-3_8
+
+Dosovitskiy, A., Beyer, L., Kolesnikov, A., Weissenborn, D., Zhai, X., Unterthiner, T., ... & Houlsby, N. (2020). An image is worth 16x16 words: Transformers for image recognition at scale. arXiv preprint arXiv:2010.11929.
+
+
