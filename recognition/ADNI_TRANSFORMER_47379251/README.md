@@ -24,7 +24,7 @@ The model architecture for this report is inspired by two main research papers, 
 
 The initial model trained and tested was based on vision tranformer with patching; in this architecture the images are broken into patches and then the linear projection of the patches undergoe positional embedding (this is because that, transformers unlike CNN's cannot place the patches in a sequential order hence positional embedding is carried out so that the transformer knows the relative positions). After this part, we now move to the classical transformer encoder block to execute attention mechanism and other neural-network tasks such as normalizing. Finally, the output from the last encoder layer is used for classification task this is achieved by adding a MLP head which assigns class probabilities and classifies the images into their classes (in this case either AD or NC). 
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/image.png)
+![Alt text](assets/image.png)
 
 
 <br>
@@ -33,11 +33,11 @@ Turns out the above described model is no exception to the power of transformers
 
 <br>
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/image-1.png)
+![Alt text](assets/image-1.png)
 
 <br>
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/image-2.png)
+![Alt text](assets/image-2.png)
 
 ## Report structure
 
@@ -149,7 +149,7 @@ various other training were carried out (please refer appendix 1)
 1. **AD:**
 <br>
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/228875_75.jpeg)
+![Alt text](assets/228875_75.jpeg)
 
 <br>
 
@@ -157,7 +157,7 @@ various other training were carried out (please refer appendix 1)
 
 <br>
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/808819_88.jpeg)
+![Alt text](assets/808819_88.jpeg)
 
 #### After pre-processing
 
@@ -165,7 +165,7 @@ various other training were carried out (please refer appendix 1)
 
 <br>
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/image-3.png)
+![Alt text](assets/image-3.png)
 
 <br>
 
@@ -173,14 +173,14 @@ various other training were carried out (please refer appendix 1)
 
 <br>
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/imageData.png)
+![Alt text](assets/imageData.png)
 
 
 ### Plot
 
 #### Train Loss (After Transformation) + Valid Loss (No Transformation)
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/13%EF%80%BA15%EF%80%BA58_Report.png)
+![Alt text](assets/13%EF%80%BA15%EF%80%BA58_Report.png)
 
 * Here X-axis is the number of epochs and Y-axis is Loss.
 * The un-usual plot difference between train and validation is mainly due to the pre-processing effects
@@ -188,13 +188,13 @@ and also depends on the number of training and validation images (since loss for
 
 #### Validation Accuracy
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/13%EF%80%BA15%EF%80%BA59_Accuracy.png)
+![Alt text](assets/13%EF%80%BA15%EF%80%BA59_Accuracy.png)
 
 * Here X-axis is the number of epochs and Y-axis is Accuracy.
 
 #### Confusion Matrix
 
-![Alt text](ADNI_TRANSFORMER_47379251/assets/confusion.png)
+![Alt text](assets/confusion.png)
 
 #### Classification metrics (scores)
 
