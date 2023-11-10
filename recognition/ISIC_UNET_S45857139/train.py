@@ -2,7 +2,7 @@ import os
 import torch
 import torch.optim as optim
 from torch.utils.data import random_split
-from model import UNETImproved   
+from modules import UNETImproved
 from dataset import get_isic_dataloader
 from torchvision.utils import save_image
 import matplotlib.pyplot as plt
@@ -23,10 +23,10 @@ def get_data_loaders(image_dir, mask_dir, batch_size=128):
     train_size = int(0.8 * len(full_loader.dataset))
     val_size = len(full_loader.dataset) - train_size
     train_dataset, val_dataset = random_split(full_loader.dataset, [train_size, val_size])
-    
+
     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
-    
+
     return train_loader, val_loader
 
 def initialize_model(device, lr=0.001):
@@ -40,7 +40,7 @@ def initialize_model(device, lr=0.001):
     Returns:
         - tuple: Model, criterion (loss function), and optimizer.
     """
-    model = UNETImproved(n_classes=2).to(device)
+    model = UNETImproved().to(device)
     criterion = torch.nn.BCELoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     return model, criterion, optimizer
@@ -76,6 +76,7 @@ def train_one_epoch(model, criterion, optimizer, train_loader, device):
     Returns:
         - tuple: Average training loss and average dice coefficient for the epoch.
     """
+    print("Training")
     model.train()
     train_loss = 0.0
     train_dice_total = 0.0
@@ -104,6 +105,7 @@ def validate_one_epoch(model, criterion, val_loader, device):
     Returns:
         - tuple: Average validation loss and average dice coefficient for the epoch.
     """
+    print("Validating...")
     model.eval()
     val_loss = 0.0
     val_dice_total = 0.0
@@ -175,3 +177,54 @@ def plot_training_progress(train_loss_history, val_loss_history, train_dice_hist
     plt.tight_layout()
     plt.savefig(os.path.join(output_dir, 'training_progress.png'))
     plt.show()
+
+def main():
+    # Set device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    # Define directories and parameters
+    image_dir = "/content/drive/My Drive/ISIC/IMAGE"  # Replace with your image directory
+    mask_dir = "/content/drive/My Drive/ISIC/MASK"    # Replace with your mask directory
+    batch_size = 128
+    learning_rate = 0.001
+    num_epochs = 1  # Define the number of epochs
+    output_dir = "/content/drive/My Drive"  # Directory to save output images and plots
+
+    # Create output directory if it doesn't exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Get data loaders
+    train_loader, val_loader = get_data_loaders(image_dir, mask_dir, batch_size)
+
+    # Initialize model, criterion, and optimizer
+    model, criterion, optimizer = initialize_model(device, learning_rate)
+
+    # Lists for storing loss and dice scores for each epoch
+    train_loss_history = []
+    val_loss_history = []
+    train_dice_history = []
+    val_dice_history = []
+
+    for epoch in range(num_epochs):
+        # Training
+        train_loss, train_dice = train_one_epoch(model, criterion, optimizer, train_loader, device)
+        train_loss_history.append(train_loss)
+        train_dice_history.append(train_dice)
+
+        # Validation
+        val_loss, val_dice = validate_one_epoch(model, criterion, val_loader, device)
+        val_loss_history.append(val_loss)
+        val_dice_history.append(val_dice)
+
+        # Save sample images
+        save_sample_images(epoch, val_loader, model, output_dir, device)
+
+        print(f"Epoch [{epoch+1}/{num_epochs}] - Train Loss: {train_loss:.4f}, Train Dice: {train_dice:.4f}, "
+              f"Val Loss: {val_loss:.4f}, Val Dice: {val_dice:.4f}")
+
+    # Plot training progress
+    plot_training_progress(train_loss_history, val_loss_history, train_dice_history, val_dice_history, output_dir)
+
+if __name__ == '__main__':
+    main()
