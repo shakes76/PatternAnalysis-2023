@@ -18,6 +18,7 @@
   - [F1 - curve](#f1---curve)
   - [Precision - Recall curve](#precision---recall-curve)
   - [Results discussion](#results-discussion)
+    - [Downsampling](#downsampling)
   - [Anchor boxes misaligned](#anchor-boxes-misaligned)
   - [Example outputs](#example-outputs)
 
@@ -218,6 +219,10 @@ However this did not improve the results drastically, although it had a signific
 I think the reason for the results being as poor as they are is the inherent complexity of the dataset, when I have went through the data personally I often find it really challenging to understand the labels in the ISIC2017 dataset. 
 
 The label unknown / benign is especially tricky to understand as a human because there are a lot of artifacts present in the dataset that is not labeled as benign skin lesions.
+
+#### Downsampling
+The original dataset too large to fit on a student node at rangpur, since the storage limit there is 16gb. Therefore I dowsampled the dataset by a factor of 2 and used this during both training and testing. Originally I thought this wouldn't pose any problem as the original dataset has images of really high resolution, often in the range og 5MB per image.
+That being said, the downsamplign is in itself a loss of information as the dimensionality is reduced, so it could be a factor that has contributed to the poor results.
 
 ### Anchor boxes misaligned
 After diving deeper into the intrinsics of the YOLO architecture I have found one major factor which I suspect could enhance the performance by a ton. Using another set of anchor boxes!
