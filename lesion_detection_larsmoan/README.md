@@ -117,11 +117,11 @@ https://drive.google.com/uc?id=1YI3pwanX35i7NCIxKnfXBozXiyQZcGbL or from [datase
 
 ### Model Architecture: open source [YOLOV7 Model](https://github.com/WongKinYiu/yolov7)
 
-YOLOV7 is based on the original YOLO paper: [YOLOV1](https://arxiv.org/abs/1506.02640) which was published in 2015 and presented a leap in inference speed for object detection models. The main reason for this was that it was one of the first models that did object detection in a single stage, hence the name YOLO ( you only look once ) in contrast to the two stage models that were popular at the time. Note that some single stage models were present, such as SSD, but they had relatively accuracy performance.
+YOLOV7 is based on the original YOLO paper: [YOLOV1](https://arxiv.org/abs/1506.02640) which was published in 2015 and presented a leap in inference speed for object detection models. The main reason for this was that it was one of the first models that did object detection in a single stage, hence the name YOLO ( you only look once ) in contrast to the two stage models that were popular at the time. Note that some single stage models were present, such as SSD, but they had relatively poor accuracy performance.
 
 #### Core ideas used in the YOLOV1 paper:
 
-The original paper was trained on input images of size 448X448 and these images where parsed into a grid of 7x7 grid cells.
+The original paper was trained on input images of size 448x448 and these images where parsed into a grid of 7x7 grid cells.
 <figure style="margin-right: 10px; display: inline-block;">
    <img src="./figures/grid_cell_yolo.png" alt="Example Image" width="460" height="340">
    <figcaption>Original grid cells on 448x448 image. Source: <a href="http://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf">"You Only Look Once by Joseph Redmon et al., CVPR 2016</a>.</figcaption>
@@ -159,15 +159,15 @@ Training was done on the rangpur cluster using a variety of different GPU's, the
 ***In the plots below, the term step refers to epoch number***
 
 <figure style="margin-right: 10px; display: inline-block;">
-   <img src="./figures/train-boxloss.png" alt="Example Image" width="600" height="300">
+   <img src="./results/train-boxloss.png" alt="Example Image" width="600" height="300">
   <figcaption>Box loss.</figcaption>
 </figure>
 <figure style="margin-right: 10px; display: inline-block;">
-   <img src="./figures/train-clsloss.png" alt="Example Image" width="600" height="300">
+   <img src="./results/train-clsloss.png" alt="Example Image" width="600" height="300">
   <figcaption>Class loss.</figcaption>
 </figure>
 <figure style="margin-right: 10px; display: inline-block;">
-   <img src="./figures/train-objloss.png" alt="Example Image" width="600" height="300">
+   <img src="./results/train-objloss.png" alt="Example Image" width="600" height="300">
   <figcaption>Object loss.</figcaption>
 </figure>
 
@@ -180,19 +180,19 @@ An interesting observation is the fact that during both runs the model's loss re
 
 ### Results
 <figure style="margin-right: 10px; display: inline-block;">
-   <img src="./figures/metrics-mAP0.5_0.95.png" alt="Example Image" width="600" height="300">
+   <img src="./results/metrics-mAP0.5_0.95.png" alt="Example Image" width="600" height="300">
   <figcaption>mAP 0.5:0.95.</figcaption>
 </figure>
 <figure style="margin-right: 10px; display: inline-block;">
-   <img src="./figures/metrics-mAP_0.5.png" alt="Example Image" width="600" height="300">
+   <img src="./results/metrics-mAP_0.5.png" alt="Example Image" width="600" height="300">
   <figcaption>mAP@0.5.</figcaption>
 </figure>
 <figure style="margin-right: 10px; display: inline-block;">
-   <img src="./figures/metrics-precision.png" alt="Example Image" width="600" height="300">
+   <img src="./results/metrics-precision.png" alt="Example Image" width="600" height="300">
   <figcaption>Precision</figcaption>
 </figure>
 <figure style="margin-right: 10px; display: inline-block;">
-   <img src="./figures/metrics-recall.png" alt="Example Image" width="600" height="300">
+   <img src="./results/metrics-recall.png" alt="Example Image" width="600" height="300">
   <figcaption>Recall</figcaption>
 </figure>
 
