@@ -48,6 +48,8 @@ Adam Optimisation with a learning rate of 0.001 and weight decay of 0.0001 were 
 
 30000 images are provided for model training. A split of 70% training images and 30% testing images is chosen. This split provides an optimal trade-off between the maximising the accuracy of the test evaluation, while allowing as much breadth of training data as possible. Within the 70% training set, 20% of the samples were set aside to use to validate the model during training. This validation set allows overfitting to be monitored during training.
 
+The image size and patch size was optimised as a hyperparameter of the model. 256-by-256 images, with 8 patches per ais, were selected as they provided the best accuracy performance within memory constraints of the coding environment.
+
 As pre-processing, the negative space is cropped from the borders of each image, which has the effect of focusing the model on the brain only as well as rescaling and centring the brains in-frame. Each image is analysed in patches.
 
 ![Cropped Brain](images/crop.png) ![Patched Brain](images/patch.png)
