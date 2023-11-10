@@ -1,59 +1,93 @@
-import os
 import torch
-from train import (get_data_loaders, initialize_model, 
-                                train_one_epoch, validate_one_epoch,
-                                save_sample_images, plot_training_progress)
+import torchvision.transforms as transforms
+from PIL import Image
+from modules import UNETImproved
+import matplotlib.pyplot as plt
 
-# Directories 
-output_dir = "C:/users/lombo/Desktop" # Output directory
-image_dir = "C:/Users/lombo/Desktop/3710_report/ISIC2018_Task1-2_Test_Input/ISIC2018_Task1-2_Test_Input" # Image directory
-mask_dir = "C:/Users/lombo/Desktop/3710_report/ISIC2018_Task1_Test_GroundTruth" # Mask directory
+def load_model(model_path):
+    """
+    Loads a pre-trained UNETImproved model from the specified path.
 
-# Parameters
-n_batch = 128
-learning_rate = 0.001
-n_epochs = 30
+    Args:
+        model_path (str): Path to the saved model state file.
 
-# Make sure output directory exists
-os.makedirs(output_dir, exist_ok=True)
+    Returns:
+        torch.nn.Module: Loaded UNETImproved model in evaluation mode.
+    """
+    model = UNETImproved()
+    model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+    model.eval()
+    return model
+
+def preprocess_image(image_path):
+    """
+    Preprocesses an image from the given path for model prediction.
+
+    Args:
+        image_path (str): Path to the image file.
+
+    Returns:
+        torch.Tensor: Preprocessed image tensor.
+    """
+    image = Image.open(image_path)
+    transform = transforms.Compose([
+        transforms.ToTensor(),
+    ])
+    return transform(image).unsqueeze(0)  
+
+def load_mask(mask_path):
+    """
+    Loads a mask image from the specified path.
+
+    Args:
+        mask_path (str): Path to the mask image file.
+
+    Returns:
+        torch.Tensor: Mask image tensor.
+    """
+    mask = Image.open(mask_path)
+    transform = transforms.ToTensor()
+    return transform(mask)
+
+def predict(model, input_tensor):
+    with torch.no_grad():
+        output = model(input_tensor)
+    return output
 
 def main():
-    # Device configuration
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model_path = "/content/drive/My Drive/ISIC/Model/model_state.pth" # Path to the saved trained model
+    image_path = "/content/drive/My Drive/ISIC/IMAGE/ISIC_0036323.jpg" # Path to the corresponding image input path
+    mask_path = "/content/drive/My Drive/ISIC/MASK/ISIC_0036323_segmentation.png"  # Path to the corresponding ground truth mask
 
-    # Data Loaders
-    train_loader, val_loader = get_data_loaders(image_dir, mask_dir, n_batch)
-    
-    # Initialize Model, Criterion, and Optimizer
-    model, criterion, optimizer = initialize_model(device, learning_rate)
-    
-    # Lists to keep track of progress
-    train_loss_history, train_dice_history = [], []
-    val_loss_history, val_dice_history = [], []
+    model = load_model(model_path)
+    input_tensor = preprocess_image(image_path)
+    ground_truth_mask = load_mask(mask_path)
+    output = predict(model, input_tensor)
 
-    # Main Training Loop
-    for epoch in range(n_epochs):
-        print(f"\nEpoch {epoch + 1}/{n_epochs}")
-        print('-' * 20)
-        
-        # Train for one epoch
-        train_loss, train_dice = train_one_epoch(model, criterion, optimizer, train_loader, device)
-        train_loss_history.append(train_loss)
-        train_dice_history.append(train_dice)
-        
-        # Validate for one epoch
-        val_loss, val_dice = validate_one_epoch(model, criterion, val_loader, device)
-        val_loss_history.append(val_loss)
-        val_dice_history.append(val_dice)
-        
-        print(f"Train Loss: {train_loss:.4f} | Train Dice: {train_dice:.4f}")
-        print(f"Val Loss: {val_loss:.4f} | Val Dice: {val_dice:.4f}")
+    # Convert tensors to PIL images
+    input_image = Image.open(image_path)
+    output_image = transforms.ToPILImage()(output.squeeze(0))
+    ground_truth_mask_image = transforms.ToPILImage()(ground_truth_mask)
 
-        # Save some sample images for visualization
-        save_sample_images(epoch, val_loader, model, output_dir, device)
+    # Display the images side by side
+    plt.figure(figsize=(12, 4))
+    plt.subplot(1, 3, 1)
+    plt.imshow(input_image)
+    plt.title('Input Image')
+    plt.axis('off')
 
-    # Plot training progress
-    plot_training_progress(train_loss_history, val_loss_history, train_dice_history, val_dice_history, output_dir)
+    plt.subplot(1, 3, 2)
+    plt.imshow(ground_truth_mask_image, cmap='gray')
+    plt.title('Ground Truth Mask')
+    plt.axis('off')
 
-if __name__ == "__main__":
+    plt.subplot(1, 3, 3)
+    plt.imshow(output_image, cmap='gray')
+    plt.title('Predicted Mask')
+    plt.axis('off')
+
+    plt.tight_layout()
+    plt.show()
+
+if __name__ == '__main__':
     main()
