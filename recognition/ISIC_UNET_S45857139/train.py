@@ -194,7 +194,7 @@ def main():
     save_dir = "/content/drive/My Drive/ISIC/Model" # Replace with your saved model directory
     batch_size = 128
     learning_rate = 0.001
-    num_epochs = 10  # Define the number of epochs
+    num_epochs = 75  # Define the number of epochs
     output_dir = "/content/drive/My Drive"  # Directory to save output images and plots
 
     # Create output directory if it doesn't exist
