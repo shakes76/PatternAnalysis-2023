@@ -38,7 +38,7 @@ The Dice Similarity Coefficient (DSC) was used to evaluate the model. DSC is a s
 (Only can run 15 Epoch due to hardware)  
 Training Dice Similarity Coefficient: 0.746   
 Validation Dice Similarity Coefficient: 0.725
-
+-> Average DC in testing dataset: 0.85765  
 ### Visual PLot:  
 <img width="332" alt="result" src="https://github.com/jyz523/PatternAnalysis-2023/assets/125327045/50862ba9-3cb9-44da-b4ae-6dfb76239ad2">
 
