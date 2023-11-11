@@ -191,9 +191,10 @@ def main():
     # Define directories and parameters
     image_dir = "/content/drive/My Drive/ISIC/IMAGE"  # Replace with your image directory
     mask_dir = "/content/drive/My Drive/ISIC/MASK"    # Replace with your mask directory
+    save_dir = "/content/drive/My Drive/ISIC/Model" # Replace with your saved model directory
     batch_size = 128
     learning_rate = 0.001
-    num_epochs = 1  # Define the number of epochs
+    num_epochs = 10  # Define the number of epochs
     output_dir = "/content/drive/My Drive"  # Directory to save output images and plots
 
     # Create output directory if it doesn't exist
@@ -228,6 +229,16 @@ def main():
 
         print(f"Epoch [{epoch+1}/{num_epochs}] - Train Loss: {train_loss:.4f}, Train Dice: {train_dice:.4f}, "
               f"Val Loss: {val_loss:.4f}, Val Dice: {val_dice:.4f}")
+
+    # Save model
+    model_save_path = os.path.join(save_dir, "model.pth")
+
+    # Create the directory if it does not exist
+    if not os.path.exists(save_dir):
+        os.makedirs(save_dir)
+
+    # Save the model
+    torch.save(model.state_dict(), model_save_path)
 
     # Plot training progress
     plot_training_progress(train_loss_history, val_loss_history, train_dice_history, val_dice_history, output_dir)

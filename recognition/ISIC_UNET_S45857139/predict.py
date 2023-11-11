@@ -33,7 +33,7 @@ def preprocess_image(image_path):
     transform = transforms.Compose([
         transforms.ToTensor(),
     ])
-    return transform(image).unsqueeze(0)  
+    return transform(image).unsqueeze(0)
 
 def load_mask(mask_path):
     """
@@ -59,8 +59,8 @@ def main():
     Main function to load a trained model, preprocess an input image, perform prediction,
     and visualize the results.
     """
-     
-    model_path = "/content/drive/My Drive/ISIC/Model/model_state.pth" # Path to the saved trained model
+
+    model_path = "/content/drive/My Drive/ISIC/Model/model.pth" # Path to the saved trained model
     image_path = "/content/drive/My Drive/ISIC/IMAGE/ISIC_0036323.jpg" # Path to the corresponding image input path
     mask_path = "/content/drive/My Drive/ISIC/MASK/ISIC_0036323_segmentation.png"  # Path to the corresponding ground truth mask
 
