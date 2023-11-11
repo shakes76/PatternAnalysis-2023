@@ -24,6 +24,11 @@ In order to run this model on the OASIS dataset and see the generated images, yo
 In order to generate the sample images you can run the `predict.py` file which imports everything from train.  It will load each of the saved models and generate 20 images for each with 5 different style vectors. 
 
 
+# Dependencies 
+We first will import torch since we will use PyTorch, and from there we import nn. That will help us create and train the networks, and also let us import optim, a package that implements various optimization algorithms (e.g. sgd, adam,..). From torchvision we import datasets and transforms to prepare the data and apply some transforms.
+
+We will import functional as F from torch.nn, DataLoader from torch.utils.data to create mini-batch sizes, save_image from torchvision.utils to save some fake samples, log2 and sqrt form math, Numpy for linear algebra, os for interaction with the operating system, tqdm to show progress bars, and finally matplotlib.pyplot to plot some images.
+
 
 # Understanding the Model 
 ## Introduction to StyleGAN
@@ -166,6 +171,10 @@ This function generates fake images using the generator gen. It does this by sam
 
 # Training Process
 The training process involves training the StyleGAN2 model using the provided discriminator (critic), generator (gen), mapping network (mapping_network), path length penalty (path_length_penalty), data loader (loader), and optimizers (opt_critic, opt_gen, opt_mapping_network).
+
+
+## Data Augmentation
+In order to increase the size of the datasets, data augmentation was used on the images when loaded into the dataset.  As shown in dataset.py, the transform performed on all of the data was it is being fed into the dataloader was to first resize all of the images to the provided resolution (passed in logarithmic form for ease of use), next the images are converted to tensor objects and a random horizontal flip occurs.  This random flip allows for more data to be generated from the same dataset as the direction that the brain is facing is irrelevant to our goals and will provide the models with more datasources.  Finally, the image pixels are normalsied to have a mean and standard deviation of 0.5. This normalization helps in stabilising and accelerating the training process by keeping the input values within an acceptable range. 
 
 
 ## Train Function
