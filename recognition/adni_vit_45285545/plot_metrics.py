@@ -7,13 +7,16 @@ import seaborn as sns
 
 
 def main(args):
+    # Load CSV file containing metrics exported by model during training;
+    # this doesn't include an "epoch" column, so this is manually added
     df = pd.read_csv(args.csvfile)
     df.insert(0, 'epoch',  range(1, len(df) + 1))
 
+    # Set plot colour palette to whatever you like
     sns.set_palette(sns.color_palette('muted'))
 
+    # Plot training and validation losses and accuracies against epoch number
     fig, axs = plt.subplots(1, 2, figsize=(8, 3))
-    fig.tight_layout()
 
     sns.lineplot(df, x='epoch', y='train_loss', ax=axs[0], label='Training')
     sns.lineplot(df, x='epoch', y='valid_loss', ax=axs[0], label='Validation')
@@ -28,6 +31,8 @@ def main(args):
     axs[0].set_ylabel('')
     axs[1].set_ylabel('')
 
+    # Save plot as PNG image with same filename as loaded CSV metrics file
+    fig.tight_layout()
     fname = args.csvfile.split('.csv')[0] + '.png'
     fig.savefig(fname, bbox_inches='tight', dpi=300)
 

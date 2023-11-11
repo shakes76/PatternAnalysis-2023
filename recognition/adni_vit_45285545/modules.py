@@ -25,7 +25,23 @@ from torchvision.models.vision_transformer import MLPBlock
 
 
 class EncoderBlock(nn.Module):
-    '''Transformer encoder block. Implements Figure 2(b) from [1].'''
+    '''
+    Transformer encoder block. Implements Figure 2(b) from [1].
+
+    Args:
+        num_heads (int): Number of parallel attention heads per multi-head
+            self attention.
+        hidden_dim (int): Embedding dimension of multi-head self attention,
+            also input dimension of following feedforward layer.
+        mlp_dim (int): Output dimension of feedforward layer, equal to output
+            dimension of whole EncoderBlock.
+        dropout (float): Dropout probability, applied to feedforward.
+        attention_dropout (float): Dropout probability, applied to attention.
+        norm_layer (callable): Normalisation layer type, applied before both
+            attention and feedforward layers to normalise layer weights.
+            Defaults to LayerNorm.
+
+    '''
 
     def __init__(
         self,
@@ -46,7 +62,7 @@ class EncoderBlock(nn.Module):
         self.self_attention = nn.MultiheadAttention(hidden_dim, num_heads, dropout=attention_dropout, batch_first=True)
         self.dropout = nn.Dropout(dropout)
 
-        # MLP block: layer norm + fully-connected layers
+        # MLP block: layer norm + fully-connected layers (aka feedforward)
         self.ln_2 = norm_layer(hidden_dim)
         self.mlp = MLPBlock(hidden_dim, mlp_dim, dropout)
 
@@ -69,6 +85,23 @@ class Encoder(nn.Module):
     '''
     Transformer Model Encoder for sequence to sequence translation.
     Implements Figure 2(a), "Transformer Encoder", from [1].
+
+    Args:
+        seq_length (int): Number of tokens in Encoder input sequence.
+        num_layers (int): Number of (attention + feedforward) layers in Encoder.
+        num_heads (int): Number of parallel attention heads per multi-head self
+            attention in each EncoderBlock.
+        hidden_dim (int): Embedding dimension of multi-head self attention, also
+            input dimension of following feedforward layer in each EncoderBlock.
+        mlp_dim (int): Output dimension of feedforward layers, equal to output
+            dimension of each EncoderBlock.
+        dropout (float): Dropout probability, applied to feedforward layers.
+        attention_dropout (float): Dropout probability, applied to attention
+            layers.
+        norm_layer (callable): Normalisation layer type, applied before both
+            attention and feedforward layers to normalise layer weights.
+            Defaults to LayerNorm.
+
     '''
 
     def __init__(
@@ -87,6 +120,7 @@ class Encoder(nn.Module):
         # Define positional embedding for relative positions of tokens
         self.pos_embedding = nn.Parameter(torch.empty(1, seq_length, hidden_dim).normal_(std=0.02)) # from BERT
 
+        # Construct dropout layer for feedforward layers of EncoderBlocks
         self.dropout = nn.Dropout(dropout)
 
         # Stack encoder layers; layer names are important for loading pre-trained weights
@@ -113,7 +147,31 @@ class Encoder(nn.Module):
 
 
 class ViT(nn.Module):
-    '''Vision Transformer, as presented by [2].'''
+    '''
+    Vision Transformer, as presented by [2].
+
+    Args:
+        image_size (int): Side length in pixels of square input image.
+        patch_size (int): Side length in pixels of square patches for converting
+            image into sequence of tokens.
+        num_layers (int): Number of (attention + feedforward) layers in Encoder.
+        num_heads (int): Number of parallel attention ehads per multi-head self
+            attention in each EncoderBlock.
+        hidden_dim (int): Embedding dimension of multi-head self attention, also
+            input dimension of following feedforward layer in each EncoderBlock.
+        mlp_dim (int): Output dimension of feedforward layers, equal to output
+            dimension of each EncoderBlock.
+        dropout (float): Dropout probability, applied to feedforward layers.
+            Defaults to no dropout.
+        attention_dropout (float): Dropout probability, applied to attention
+            layers. Defaults to no dropout.
+        num_classes (int): Number of classification output classes. Defaults to
+            2 classes specifically for ADNI dataset.
+        norm_layer (callable): Normalisation layer type, applied before both
+            attention and feedforward layers to normalise layer weights.
+            Defaults to LayerNorm.
+
+    '''
 
     def __init__(
         self,
