@@ -1,239 +1,236 @@
+import os
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
+import torch.optim as optim
+from torch.utils.data import random_split
+from modules import UNETImproved
+from dataset import get_isic_dataloader
+from torchvision.utils import save_image
+import matplotlib.pyplot as plt
 
-class ContextModule(nn.Module):
+def get_data_loaders(image_dir, mask_dir, batch_size=128):
     """
-    A context module in the UNet architecture that applies convolutions and dropout 
-    to the input features for enhanced feature representation.
-
-    Attributes:
-        conv1 (nn.Conv2d): First convolutional layer.
-        conv2 (nn.Conv2d): Second convolutional layer.
-        dropout (nn.Dropout): Dropout layer for regularization.
+    Splits the ISIC dataset into training and validation sets and creates corresponding DataLoaders.
 
     Args:
-        channels (int): Number of channels in the input and output feature maps.
+        - image_dir (str): Path to the directory with image files.
+        - mask_dir (str): Path to the directory with mask files.
+        - batch_size (int, optional): Number of samples per batch. Defaults to 128.
+
+    Returns:
+        - tuple: Training and validation DataLoaders.
     """
-    def __init__(self, channels):
-        super(ContextModule, self).__init__()
-        self.conv1 = nn.Conv2d(channels, channels, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(channels, channels, kernel_size=3, padding=1)
-        self.dropout = nn.Dropout(p=0.3)
+    full_loader = get_isic_dataloader(image_dir, mask_dir, batch_size=batch_size)
+    train_size = int(0.8 * len(full_loader.dataset))
+    val_size = len(full_loader.dataset) - train_size
+    train_dataset, val_dataset = random_split(full_loader.dataset, [train_size, val_size])
 
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-    def forward(self, x):
-        """
-        Forward pass of the ContextModule.
+    return train_loader, val_loader
 
-        Args:
-            x (torch.Tensor): Input feature map.
-
-        Returns:
-            torch.Tensor: Output feature map after applying convolutions and dropout.
-        """
-         
-        pre_convolution_x = x
-        x = F.relu(self.conv1(x))
-        x = self.dropout(x)
-        x = F.relu(self.conv2(x))
-        return x + pre_convolution_x
-    
-    
-class UpsampleModule(nn.Module):
+def initialize_model(device, lr=0.001):
     """
-    An upsampling module in the UNet architecture that increases the spatial 
-    resolution of feature maps.
-
-    Attributes:
-        conv1 (nn.Conv2d): Convolutional layer applied after upsampling.
+    Initializes and returns the UNETImproved model, Binary Cross Entropy loss, and Adam optimizer.
 
     Args:
-        in_channels (int): Number of channels in the input feature map.
-        out_channels (int): Number of channels in the output feature map.
+        - device (torch.device): Device (cpu or cuda) to which the model should be moved.
+        - lr (float, optional): Learning rate for the optimizer. Defaults to 0.001.
+
+    Returns:
+        - tuple: Model, criterion (loss function), and optimizer.
     """
-    def __init__(self, in_channels, out_channels):
-        super(UpsampleModule, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
-    
-    def forward(self, x):
-        """
-        Forward pass of the UpsampleModule.
+    model = UNETImproved().to(device)
+    criterion = torch.nn.BCELoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+    return model, criterion, optimizer
 
-        Args:
-            x (torch.Tensor): Input feature map.
-
-        Returns:
-            torch.Tensor: Upsampled feature map.
-        """
-        x = F.interpolate(x, scale_factor=2, mode='nearest')
-        x = F.relu(self.conv1(x))
-        return x
-        
-
-class LocalizationModule(nn.Module):
+def dice_coefficient(prediction, target):
     """
-    A localization module in the UNet architecture that refines the upsampled features 
-    by applying convolutions.
-
-    Attributes:
-        conv1 (nn.Conv2d): First convolutional layer.
-        conv2 (nn.Conv2d): Second convolutional layer to produce the final output.
+    Computes the Dice coefficient between predicted and target masks.
 
     Args:
-        in_channels (int): Number of channels in the input feature map.
-        out_channels (int): Number of channels in the output feature map.
+        - prediction (torch.Tensor): Predicted mask tensor.
+        - target (torch.Tensor): Ground truth mask tensor.
+
+    Returns:
+        - float: Dice coefficient.
     """
-    def __init__(self, in_channels, out_channels):
-        super(LocalizationModule, self).__init__()
-        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1)
-        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=1)
+    num = prediction.size(0)
+    x = prediction.view(num, -1).float()
+    y = target.view(num, -1).float()
+    intersect = (x * y).sum().float()
+    return (2 * intersect) / (x.sum() + y.sum())
 
-    def forward(self, x):
-        """
-        Forward pass of the LocalizationModule.
-
-        Args:
-            x (torch.Tensor): Input feature map.
-
-        Returns:
-            torch.Tensor: Refined feature map after applying convolutions.
-        """
-        x = F.relu(self.conv1(x))
-        x = self.conv2(x)
-        return x
-
-class UNETImproved(nn.Module):
+def train_one_epoch(model, criterion, optimizer, train_loader, device):
     """
-    An improved version of the U-Net architecture for image segmentation.
+    Performs one epoch of training on the provided model using the training data.
 
-    This class defines the entire U-Net model comprising encoding and decoding pathways,
-    context modules for feature enhancement, and final convolutional layers for segmentation.
+    Args:
+        - model (nn.Module): Model to be trained.
+        - criterion (nn.Module): Loss function.
+        - optimizer (torch.optim.Optimizer): Optimizer.
+        - train_loader (DataLoader): DataLoader for training data.
+        - device (torch.device): Device (cpu or cuda) on which computations should be performed.
+
+    Returns:
+        - tuple: Average training loss and average dice coefficient for the epoch.
     """
-    def __init__(self):
-        super(UNETImproved, self).__init__()
-        self.init_conv = nn.Conv2d(3, 16, kernel_size=3, padding=1)
-        self.down_conv1 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
-        self.down_conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1)
-        self.down_conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1)
-        self.down_conv4 = nn.Conv2d(128, 256, kernel_size=3,stride=2,padding=1)
-        
-        self.context_module1 = ContextModule(16)
-        self.context_module2 = ContextModule(32)
-        self.context_module3 = ContextModule(64)
-        self.context_module4 = ContextModule(128)
-        self.context_module5 = ContextModule(256)
+    print("Training")
+    model.train()
+    train_loss = 0.0
+    train_dice_total = 0.0
+    for i, (inputs, labels) in enumerate(train_loader):
+        inputs, labels = inputs.to(device), labels.to(device)
+        optimizer.zero_grad()
+        outputs = model(inputs)
+        dice_val = dice_coefficient(outputs, labels)
+        train_dice_total += dice_val.item()
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        train_loss += loss.item()
+    return train_loss / len(train_loader), train_dice_total / len(train_loader)
 
-        self.upsample_module1 = UpsampleModule(256, 128)
-        self.upsample_module2 = UpsampleModule(128, 64)
-        self.upsample_module3 = UpsampleModule(64, 32)
-        self.upsample_module4 = UpsampleModule(32, 16)
+def validate_one_epoch(model, criterion, val_loader, device):
+    """
+    Performs one epoch of validation on the provided model using the validation data.
 
-        self.localization_module1 = LocalizationModule(256, 128)
-        self.localization_module2 = LocalizationModule(128, 64)
-        self.localization_module3 = LocalizationModule(64, 32)
+    Args:
+        - model (nn.Module): Model to be validated.
+        - criterion (nn.Module): Loss function.
+        - val_loader (DataLoader): DataLoader for validation data.
+        - device (torch.device): Device (cpu or cuda) on which computations should be performed.
 
-        self.segmentation_layer1 = nn.Conv2d(64, 1, kernel_size=3, padding = 1)
-        self.segmentation_layer2 = nn.Conv2d(32, 1, kernel_size=3, padding = 1)
-        self.segmentation_layer3 = nn.Conv2d(16, 1, kernel_size=3, padding = 1)
+    Returns:
+        - tuple: Average validation loss and average dice coefficient for the epoch.
+    """
+    print("Validating...")
+    model.eval()
+    val_loss = 0.0
+    val_dice_total = 0.0
+    with torch.no_grad():
+        for i, (inputs, labels) in enumerate(val_loader):
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
+            dice_val = dice_coefficient(outputs, labels)
+            val_dice_total += dice_val.item()
+            loss = criterion(outputs, labels)
+            val_loss += loss.item()
+    return val_loss / len(val_loader), val_dice_total / len(val_loader)
 
-        self.second_last_conv = nn.Conv2d(32, 16, kernel_size = 3, padding = 1)
-        self.final_conv = nn.Conv2d(16, 1, kernel_size=1)
-        
-        self.sigmoid = nn.Sigmoid()
+def save_sample_images(epoch, val_loader, model, output_dir, device, samples=3):
+    """
+    Saves sample images (input, label, prediction) for visualization.
 
-    def forward(self, x):
-        """
-        Forward pass of the UNETImproved model.
+    Args:
+        - epoch (int): Current epoch number.
+        - val_loader (DataLoader): DataLoader for validation data.
+        - model (nn.Module): Model used for prediction.
+        - output_dir (str): Directory where images should be saved.
+        - device (torch.device): Device (cpu or cuda) on which computations should be performed.
+        - samples (int, optional): Number of samples to save. Defaults to 3.
+    """
+    with torch.no_grad():
+        for i, (inputs, labels) in enumerate(val_loader):
+            if i == samples:
+                break
+            inputs, labels = inputs.to(device), labels.to(device)
+            outputs = model(inputs)
 
-        Args:
-            x (torch.Tensor): Input image tensor.
+            # Saving input, mask, and output separately
+            save_image(inputs[0].cpu(), os.path.join(output_dir, f"input_{epoch}_{i}.png"))
+            save_image(labels[0].cpu(), os.path.join(output_dir, f"mask_{epoch}_{i}.png"))
+            save_image(outputs[0].cpu(), os.path.join(output_dir, f"output_{epoch}_{i}.png"))
 
-        Returns:
-            torch.Tensor: Output segmentation mask.
-        """
+def plot_training_progress(train_loss_history, val_loss_history, train_dice_history, val_dice_history, output_dir):
+    """
+    Plots and saves training and validation progress in terms of loss and dice coefficient.
 
-        # Encoding Pathway
+    Args:
+        - train_loss_history (list): List of average training losses per epoch.
+        - val_loss_history (list): List of average validation losses per epoch.
+        - train_dice_history (list): List of average training dice coefficients per epoch.
+        - val_dice_history (list): List of average validation dice coefficients per epoch.
+        - output_dir (str): Directory where the plot should be saved.
+    """
+    plt.figure(figsize=(12, 6))
 
-        # Initial Convolution
-        x1 = F.relu(self.init_conv(x))
+    # Plotting Training and Validation Loss
+    plt.subplot(1, 2, 1)
+    plt.plot(train_loss_history, label='Training Loss', color='blue')
+    plt.plot(val_loss_history, label='Validation Loss', color='red')
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.legend()
+    plt.title('Loss per Epoch')
 
-        # Context Module 1
-        x2 = self.context_module1(x1)
+    # Plotting Training and Validation Dice Coefficient
+    plt.subplot(1, 2, 2)
+    plt.plot(train_dice_history, label='Training Dice Coefficient', color='blue')
+    plt.plot(val_dice_history, label='Validation Dice Coefficient', color='red')
+    plt.xlabel('Epoch')
+    plt.ylabel('Dice Coefficient')
+    plt.legend()
+    plt.title('Dice Coefficient per Epoch')
 
-        # Stride 2 Convolution
-        x3 = self.down_conv1(x2)
+    plt.tight_layout()
+    plt.savefig(os.path.join(output_dir, 'training_progress.png'))
+    plt.show()
 
-        # Context Module 2
-        x4 = self.context_module2(x3)
+def main():
+    """
+    Main function to train and validate the Improved UNET model.
 
-        # Stride 2 Convolution
-        x5 = self.down_conv2(x4)
+    This function sets up the training and validation environment, loads the ISIC dataset, initializes the model,
+    and runs the training and validation loops. It also saves sample images and plots of the performance.
+    """
+    # Set device
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-        # Context Module 3
-        x6 = self.context_module3(x5)
+    # Define directories and parameters
+    image_dir = "/content/drive/My Drive/ISIC/IMAGE"  # Replace with your image directory
+    mask_dir = "/content/drive/My Drive/ISIC/MASK"    # Replace with your mask directory
+    batch_size = 128
+    learning_rate = 0.001
+    num_epochs = 3  # Define the number of epochs
+    output_dir = "/content/drive/My Drive"  # Directory to save output images and plots
 
-        # Stride 2 Convolution
-        x7 = self.down_conv3(x6)
+    # Create output directory if it doesn't exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-        # Context Module 4
-        x8 = self.context_module4(x7)
+    # Get data loaders
+    train_loader, val_loader = get_data_loaders(image_dir, mask_dir, batch_size)
 
-        # Stride 2 Convolution
-        x9 = self.down_conv4(x8)
+    # Initialize model, criterion, and optimizer
+    model, criterion, optimizer = initialize_model(device, learning_rate)
 
-        # Context Module 5
-        x10 = self.context_module5(x9)
+    # Lists for storing loss and dice scores for each epoch
+    train_loss_history = []
+    val_loss_history = []
+    train_dice_history = []
+    val_dice_history = []
 
-        # Decoding Pathway 
+    for epoch in range(num_epochs):
+        # Training
+        train_loss, train_dice = train_one_epoch(model, criterion, optimizer, train_loader, device)
+        train_loss_history.append(train_loss)
+        train_dice_history.append(train_dice)
 
-        # Upsample Module 1
-        x = self.upsample_module1(x10)
-        x = torch.cat((x, x8),dim=1)
+        # Validation
+        val_loss, val_dice = validate_one_epoch(model, criterion, val_loader, device)
+        val_loss_history.append(val_loss)
+        val_dice_history.append(val_dice)
 
-        # Localization Module 1
-        x = self.localization_module1(x)
+        # Save sample images
+        save_sample_images(epoch, val_loader, model, output_dir, device)
 
-        # Upsample Module 2
-        x = self.upsample_module2(x)
-        x = torch.cat((x, x6),dim=1)
+        print(f"Epoch [{epoch+1}/{num_epochs}] - Train Loss: {train_loss:.4f}, Train Dice: {train_dice:.4f}, "
+              f"Val Loss: {val_loss:.4f}, Val Dice: {val_dice:.4f}")
 
-        # Localization Module 2
-        x = self.localization_module2(x)
+    # Plot training progress
+    plot_training_progress(train_loss_history, val_loss_history, train_dice_history, val_dice_history, output_dir)
 
-        # Segmentation Layer 1
-        seg1 = self.segmentation_layer1(x)
-
-        # Upsample Module 3
-        x = self.upsample_module3(x)
-        x = torch.cat((x,x4),dim=1)
-
-        # Localization Module 3
-        x = self.localization_module3(x)
-
-        # Segmentation Layer 2
-        seg2 = self.segmentation_layer2(x) 
-
-        seg1_upsample = F.interpolate(seg1, size=seg2.size()[2:], mode='bilinear',align_corners=True)
-        seg2 = seg2 + seg1_upsample
-
-        # Upsample Module 4
-        x = self.upsample_module4(x)
-        x = torch.cat((x, x2), dim=1)
-
-        x = self.second_last_conv(x)
-
-        # Segmentation Layer 3
-        seg3 = self.segmentation_layer3(x) 
-
-        seg2_upsampled = F.interpolate(seg2, size=seg3.size()[2:], mode='bilinear', align_corners=True)
-        seg3 = seg3 + seg2_upsampled
-
-        x  = x + seg3
-
-        x = self.final_conv(x)
-
-        x = self.sigmoid(x)
-        return x
-
-    
+if __name__ == '__main__':
+    main()
