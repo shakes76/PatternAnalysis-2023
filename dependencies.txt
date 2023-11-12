@@ -1,0 +1,14 @@
+##### Dependencies for project #####
+
+### Libraries ###
+python ------- 3.10.4
+numpy -------- 1.24.1
+tensorflow --- 2.13.0
+keras -------- 2.13.1
+matplotlib --- 3.5.1
+sklearn ------ 1.0.2
+
+### Dataset ###
+ADNI Alzheimer's MRI dataset found at:
+https://cloudstor.aarnet.edu.au/plus/s/L6bbssKhUoUdTSI
+
