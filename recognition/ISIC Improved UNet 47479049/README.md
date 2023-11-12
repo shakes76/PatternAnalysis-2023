@@ -4,11 +4,11 @@ This reports the usage of the improved Unet on the idetification of skin lesions
 ## Preprocessed ISIC Data set
 The data set contains 2,594 images of skin lesions along wwith a mask that contains pixel values of 0 (white) and (255) black. The white represetns the area that the skin lession is in and the black is where it does not contain the skin lession.
 
-![segmented](ISIC_0000000.jpg)
+![segmented](./images/ISIC_0000000.jpg)
 
 Figure 1: Original image for ISIC_0000000
 
-![segmented](ISIC_0000000_segmentation.png)
+![segmented](./images/ISIC_0000000_segmentation.png)
 
 Figure 2: Original image for ISIC_0000000_segmentation
 
@@ -18,8 +18,10 @@ Images are scaled down to 96 x 128 comapred to the origional 511 x 384 this way 
 The model is then split into validation and training with a 0.1/0.9 split the test set was given in the database so it will be used in the model.
 
 ### Improved Unet Model
-![segmented](Model.png)
+![segmented](./images/Model.png)
+
 Figure 3: Improved Unet
+
 
 The model is an improvement of the origional Unet model with residual adding, context module and localization modules
 
@@ -40,18 +42,26 @@ Download the dataset place the files within the data folder you chould have the 
 remove the txt files inside run train then run predict
 
 ## Results
-![segmented](Lossgraph.jpg)
-Figure 4: loss curve
+![segmented](./images/Lossgraph.jpg)
 
-The model Achived a dice score of 0.88 after a batch of 16 and 64 epochs however the data set seemed to have stagnated around the 20th epoch so 64 was not needed
+Figure 4: Loss Curve
 
-![segmented](ISIC_0000001.jpg)
+![segmented](./images/Dice_Score.png)
+
+figure 5: Final Dice Scores
+
+The model Achived a dice score of 0.88 after a batch of 16 and 16 epochs however the data set seemed to have stagnated around the 7th epoch so 16 was not needed
+
+![segmented](./images/ISIC_0000001.jpg)
+
 Figure 5: Original ISIC image
 
-![segmented](ISIC_0000001_segmentation.png)
+![segmented](./images/ISIC_0000001_segmentation.png)
+
 figure 6: Original ISIC Mask
 
-![segmented](ISIC_0000001_segmentation_from_model.png)
+![segmented](./images/ISIC_0000001_segmentation_from_model.png)
+
 
 figure 7: ISIC Mask From model
 

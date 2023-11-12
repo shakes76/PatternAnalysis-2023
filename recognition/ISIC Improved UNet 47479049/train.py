@@ -58,7 +58,7 @@ def train(loader, val_loader, model, optimizer, criterion, num_epochs):
 
         total_validation_loss = total_validation_loss/len(val_loader)
 
-        print(f"Epoch [{epoch + 1}/{num_epochs}] - Loss: {avg_loss:.4f}, Total Validation Loss: {total_validation_loss:.4f}")
+        print(f"Epoch [{epoch + 1}/{num_epochs}] - Loss: {avg_loss:.4f}, Total Validation Loss: {total_validation_loss:.4f}, Dice Score of Validation: {(1-total_validation_loss):.4f}")
         validation_loss_history.append(total_validation_loss)
         loss_history.append(avg_loss)
 
