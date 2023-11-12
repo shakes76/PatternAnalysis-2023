@@ -34,7 +34,7 @@ The mapping network aims to disentangle the feature space into linear subspaces.
 ![](Assets/Mapping_Network.png)
 #### Noise Injection
 The noise injection component of StyleGAN implements adds stochastic variation within generated images. This noise contributes to the variation and realism of the generated images without requiring the generator to learn them. As such, the generator can learn the major features of the images and rely on the added noise to generate the smaller differences in each generated image. An example of the effects can be seen below:
-![](Assets/Noise Injection.webp)
+![](Assets/Noise Injection.png)
 ## Training
 ### The OASIS Brain Dataset
 The OASIS brain dataset consists of 457 MRI brain scans with 32 slices taken and two display formats. This results in nearly 30,000 images. The complete dataset can be found on the [OASIS brain website](https://www.oasis-brains.org/).
