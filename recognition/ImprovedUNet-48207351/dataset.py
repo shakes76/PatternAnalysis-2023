@@ -9,6 +9,9 @@ import random
 # Loading the data (source: https://github.com/aladdinpersson/Machine-Learning-Collection/blob/master/ML/Pytorch/image_segmentation/semantic_segmentation_unet/dataset.py)
 class ISICDataLoader(Dataset):
     def __init__(self, image_dir, mask_dir, split=(0.8, 0.1, 0.1), transform=None):
+        """
+        Initializes the ISICDataLoader with the specified parameters and splits the dataset.
+        """
         self.image_dir = image_dir
         self.mask_dir = mask_dir
         self.images = os.listdir(image_dir)
@@ -17,11 +20,20 @@ class ISICDataLoader(Dataset):
         self.split_dataset()
 
     def __len__(self):
-        # denotes the total number of samples in the dataset
+        """
+        Returns the total number of samples in the dataset.
+        """
         return len(self.images)
 
 
     def __getitem__(self, index):
+        """
+        Loads and returns an image and its corresponding mask at the given index.
+        
+        Args: index (int): The index of the sample to retrieve.
+        
+        Returns: tuple: A tuple containing the loaded image and its corresponding mask.
+        """
         img_path = os.path.join(self.image_dir, self.images[index])
         mask_path = os.path.join(self.mask_dir, self.images[index].replace(".png", "_mask.gif"))
 
@@ -45,6 +57,9 @@ class ISICDataLoader(Dataset):
     )
 
     def split_dataset(self):
+        """
+        Splits the dataset into training, validation, and test sets based on the provided split ratios.
+        """
         random.shuffle(self.images)
         total_samples = len(self.images)
         split_idx = [int(total_samples * self.split[0]),
