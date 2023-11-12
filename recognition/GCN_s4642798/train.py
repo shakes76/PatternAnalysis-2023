@@ -42,27 +42,50 @@ def test(mask):
     return test_acc
 
 
-def train(epochs):
+def train(epochs, patience=5):
     """
-    Function to train the GCN model for a specified number of epochs
+    Function to train the GCN model for a specified number of epochs with early stopping
     """
     val_acc = []
     train_acc = []
     val_loss_all = []
     train_loss_all = []
 
+    best_val_acc = 0.0
+    best_epoch = 0
+    patience_counter = 0
+
     # Loop over the specified number of epochs
     for epoch in range(1, epochs + 1):
         train_loss, val_loss = train_epoch()
-        val_acc.append(test(dataset.val_mask))
+        val_acc_value = test(dataset.val_mask)
         train_acc.append(test(dataset.train_mask))
+        val_acc.append(val_acc_value)
         val_loss_all.append(float(val_loss))
         train_loss_all.append(float(train_loss))
-        print(f"Epoch: {epoch:03d}, Loss: {train_loss:.4f}")
+        print(
+            f"Epoch: {epoch:03d}, Loss: {train_loss:.4f}, Validation Accuracy: {val_acc_value:.4f}"
+        )
+
+        # Check for early stopping
+        if val_acc_value > best_val_acc:
+            best_val_acc = val_acc_value
+            best_epoch = epoch
+            patience_counter = 0
+        else:
+            patience_counter += 1
+
+        if patience_counter >= patience:
+            print(
+                f"Early stopping at epoch {epoch}. Best validation accuracy: {best_val_acc:.4f}"
+            )
+            break
 
     # Calculate accuracy on test set
     test_acc = test(dataset.test_mask)
-    print(f"Test Accuracy: {test_acc:.4f}")
+    print(
+        f"Test Accuracy: {test_acc:.4f} (Best validation accuracy at epoch {best_epoch})"
+    )
 
     return val_acc, train_acc, val_loss_all, train_loss_all, test_acc
 
@@ -104,9 +127,9 @@ model = modules.GCN(
 optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 criterion = torch.nn.CrossEntropyLoss()
 
-# train model over 100 epochs and plot accuracy and loss
-val_acc, train_acc, val_loss_all, train_loss_all, test_acc = train(100)
+# Train model over 100 epochs with early stopping (patience=10)
+val_acc, train_acc, val_loss_all, train_loss_all, test_acc = train(100, patience=5)
 plot_accuracy(val_acc, train_acc)
 plot_loss(val_loss_all, train_loss_all)
 
-torch.save(model.state_dict(), "best_model.pt")  # save model for later predictions
+torch.save(model.state_dict(), "best_model.pt")  # Save model for later predictions
