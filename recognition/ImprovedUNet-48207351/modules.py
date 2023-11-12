@@ -6,6 +6,27 @@ import torchvision.transforms.functional as TF
 import numpy as np
     
 class ContextModule(nn.Module):
+    """
+    Context Module in the Improved UNET architecture.
+
+    This module is responsible for processing features in the context pathway.
+
+    Args:
+        in_channels (int): Number of input channels.
+        out_channels (int): Number of output channels.
+        pdrop (float, optional): Dropout probability. Default is 0.3.
+
+    Attributes:
+        conv1 (nn.Conv3d): 3D convolutional layer 1.
+        conv2 (nn.Conv3d): 3D convolutional layer 2.
+        dropout (nn.Dropout3d): 3D dropout layer.
+        norm (nn.LazyInstanceNorm3d): Lazy 3D instance normalization layer.
+        relu (nn.LeakyReLU): Leaky ReLU activation function.
+
+    Methods:
+        forward(x):
+            Forward pass through the context module.
+    """
     def __init__(self, in_channels, out_channels, pdrop=0.3):
             super(ContextModule, self).__init__()
             self.conv1 = nn.Conv3d(in_channels, out_channels, kernel_size=3, padding=1, stride=1)
@@ -23,6 +44,27 @@ class ContextModule(nn.Module):
     
 
 class LocalizationModule(nn.Module):
+    """
+    Localization Module in the Improved UNET architecture.
+
+    This module is responsible for processing features in the localization pathway.
+
+    Args:
+        in_channels (int): Number of input channels.
+        out_channels (int): Number of output channels.
+
+    Attributes:
+        upsample (nn.ConvTranspose3d): 3D transposed convolutional layer for upsampling.
+        conv1 (nn.Conv3d): 3D convolutional layer 1.
+        conv2 (nn.Conv3d): 3D convolutional layer 2.
+        norm (nn.InstanceNorm3d): 3D instance normalization layer.
+        relu (nn.LeakyReLU): Leaky ReLU activation function.
+
+    Methods:
+        forward(x, context_features):
+            Forward pass through the localization module.
+
+    """
     def __init__(self, in_channels, out_channels):
         super(LocalizationModule, self).__init__()
         self.upsample = nn.ConvTranspose3d(in_channels, out_channels, kernel_size=3, stride=2, padding=1, output_padding=1)
@@ -40,6 +82,26 @@ class LocalizationModule(nn.Module):
         return x
 
 class ImprovedUNET(nn.Module):
+    """
+    Improved U-Net Architecture.
+
+    This model consists of a context pathway and a localization pathway.
+
+    Args:
+        in_channels (int): Number of input channels.
+        out_channels (int): Number of output channels.
+        levels (int, optional): Number of levels in the U-Net architecture. Default is 4.
+        features (int, optional): Number of features in each level. Default is 4.
+
+    Attributes:
+        context_ml (nn.ModuleList): List of ContextModules in the context pathway.
+        localization_ml (nn.ModuleList): List of LocalizationModules in the localization pathway.
+        supervision_layers (nn.ModuleList): List of supervision layers for each level.
+
+    Methods:
+        forward(x):
+            Forward pass through the Improved U-Net.
+    """
     def __init__(self, in_channels, out_channels, levels=4, features=4):
 
         super(ImprovedUNET, self).__init__()
