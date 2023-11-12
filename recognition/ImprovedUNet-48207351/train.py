@@ -9,10 +9,19 @@ from dataset import train_images, val_images, test_images
 
 # Dice loss function
 class DiceLoss(nn.Module):
+    """
+    Custom PyTorch module for computing the Dice loss.
+
+    It measures the dissimilarity between the predicted output and the target,
+    based on the overlap between the predicted and target binary masks.
+    """
     def __init__(self):
         super(DiceLoss, self).__init__()
 
     def forward(self, output, target):
+        """
+        Compute the Dice loss between the predicted output and the target.
+        """
         smooth = 1.0
         intersection = torch.sum(output * target)
         union = torch.sum(output) + torch.sum(target)
@@ -26,6 +35,9 @@ if not torch.cuda.is_available():
 
 
 def train_unet_with_dice_loss(data, labels, num_epochs=300, batch_size=2, lr_init=1e-4, weight_decay=1e-5):
+    """
+    Train a U-Net model using the Dice loss.
+    """
     # Create a DataLoader for the dataset
     dataloader = DataLoader(val_images, batch_size=batch_size, shuffle=True)
 
