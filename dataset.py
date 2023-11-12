@@ -21,9 +21,9 @@ def shuffling(x, y):
     x, y = shuffle(x, y, random_state=1)
     return x, y
 
-def load_data(dataset_path, split=0.2):
-    images = sorted(glob(os.path.join(dataset_path, r"path to training images here", "*.jpg")))
-    masks = sorted(glob(os.path.join(dataset_path, r"path to training masks here", "*.png")))
+def load_data(split=0.2):
+    images = sorted(glob(os.path.join(r"ISIC2018_Task1-2_Training_Input_x2", "*.jpg")))
+    masks = sorted(glob(os.path.join(r"ISIC2018_Task1_Training_GroundTruth_x2", "*.png")))
 
     test_size = int(len(images) * split)
 
