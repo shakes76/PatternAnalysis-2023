@@ -191,7 +191,7 @@ def main():
     # Define directories and parameters
     image_dir = "/content/drive/My Drive/ISIC/IMAGE"  # Replace with your image directory
     mask_dir = "/content/drive/My Drive/ISIC/MASK"    # Replace with your mask directory
-    save_dir = "/content/drive/My Drive/ISIC/Model" # Replace with your saved model directory
+    save_dir = "/content/drive/My Drive/ISIC/Model"
     batch_size = 128
     learning_rate = 0.001
     num_epochs = 75  # Define the number of epochs
