@@ -83,9 +83,9 @@ Here the GAN can fool someone into thinking the created images are a part of the
 #### Combination of real data and generated images from epoch 150:
 ![](Assets/1697679243.0313046_combined.png)
 > Hint: the left side is fake.
-### Training Loss
+### Generator Training Loss
 ![](Assets/loss_plot.png)
-### Training Summary
+### GAN Training Summary
 The model was very quickly able to find the shape and colours required to generate the images, however it wasn't until around epoch 100 that the inner details and texturing was enough to fool someone. By epoch 150 I consider the model a success, however, it was starting to generate repeated and similar images. Training the model any longer would most likely cause the model to become overtrained and collapse the training simulation.
 ## External Dependencies
   - pytorch       2.0.1
