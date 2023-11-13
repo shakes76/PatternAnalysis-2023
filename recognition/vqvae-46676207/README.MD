@@ -81,6 +81,12 @@ The PixelSNAIL model has been used in conjunction with the VQ-VAE-2 model to gen
 
 ![Alt text](readme_assets/gen_00008.png)
 
+### Training loss curves
+The training loss curves of VQ-VAE-2 and PixelSNAIL shown below.
+
+![Alt text](readme_assets/vqvae_loss_curve.png)
+![Alt text](readme_assets/pixelsnail_loss_curve.png)
+
 ## References:
 [1] A. Razavi, A. van den Oord, and O. Vinyals, “Generating Diverse High-Fidelity Images with VQ-VAE-2,” arXiv.org, Jun. 02, 2019. http://arxiv.org/abs/1906.00446
 

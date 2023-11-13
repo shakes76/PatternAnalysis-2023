@@ -16,6 +16,7 @@ from modules import VQVAE, PixelSNAIL
 # IO Paths
 CHECKPOINT_PATH = "checkpoint/"     # dir saving model snapshots
 MODEL_PATH = './vqvae2.pt'          # trained model
+LOG_PATH = 'train_log.txt'
 
 # Configuration
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu') # use gpu when cuda is available
@@ -79,6 +80,9 @@ def train_pixelsnail(args, epoch, loader, model_vqvae: VQVAE, model: PixelSNAIL,
             )
         )
 
+    with open(LOG_PATH, 'a') as f:
+        f.write(f"{epoch+1} {loss.item()} {accuracy}\n")
+
 
 def train_vqvae(epoch, loader: DataLoader, model: VQVAE, optimizer, device):
     """
@@ -137,6 +141,9 @@ def train_vqvae(epoch, loader: DataLoader, model: VQVAE, optimizer, device):
             )
 
             model.train()                           # back to training
+    
+    with open(LOG_PATH, 'a') as f:
+        f.write(f"{epoch+1} {recon_loss.item()} {latent_loss.item()} {mse_sum / mse_n}\n")
 
 
 def main_vqvae(args):
@@ -247,6 +254,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     print(args)
 
+    args.hier = 'bottom'
     if not args.hier:
         main_vqvae(args)
     else:
