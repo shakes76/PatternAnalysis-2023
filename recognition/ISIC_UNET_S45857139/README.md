@@ -20,7 +20,7 @@ In terms of dataset allocation, 80% is designated for training, while the remain
 ## Dependencies/Libraries:
 - PyTorch
 - Python
-- PIL
+- PIL   
 - os
 
 ## Training Details
@@ -28,6 +28,6 @@ The model underwent training on the Google Colab V100 GPU, spanning 75 epochs. I
 
 The results are as follows:
 
-**Sample Prediction:** [![Sample Prediction](/images/prediction.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/prediction.png)
+**Sample Prediction:** [![Sample Prediction](/recognition/ISIC_UNET_S45857139/images/prediction.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/recognition/ISIC_UNET_S45857139/images/prediction.png)
 
-**Metrics**: Loss per Epoch and Average Dice Coefficient per Epoch: [![Results](/images/results.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/results.png)
+**Metrics**: Loss per Epoch and Average Dice Coefficient per Epoch: [![Results](/images/results.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/recognition/ISIC_UNET_S45857139/images/results.png)
