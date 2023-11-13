@@ -31,16 +31,20 @@ The project's primary output is the segmentation of medical images, which is sav
 
 Training and Validation results: 
 
-- Epoch 1 - 1586s 4s/step - loss: 0.4144 - dice_coef: 0.3622 - val_loss: 0.3933 - val_dice_coef: 0.4268
-- Epoch 2 - 1529s 4s/step - loss: 0.2700 - dice_coef: 0.6042 - val_loss: 0.2441 - val_dice_coef: 0.6430
-- Epoch 3 - 1625s 4s/step - loss: 0.2202 - dice_coef: 0.6772 - val_loss: 0.2154 - val_dice_coef: 0.6990
-- Epoch 4 - 1645s 4s/step - loss: 0.1968 - dice_coef: 0.7096 - val_loss: 0.1865 - val_dice_coef: 0.7222
-- Epoch 5 - 1776s 5s/step - loss: 0.1838 - dice_coef: 0.7274 - val_loss: 0.1795 - val_dice_coef: 0.7383
+Epoch 1/10 - 1835s 4s/step - loss: 0.4112 - dice_coef: 0.3725 - val_loss: 0.3663 - val_dice_coef: 0.3975
+Epoch 2/10 - 1854s 4s/step - loss: 0.3495 - dice_coef: 0.4902 - val_loss: 0.2826 - val_dice_coef: 0.5648
+Epoch 3/10 - 1809s 4s/step - loss: 0.2666 - dice_coef: 0.6294 - val_loss: 0.2219 - val_dice_coef: 0.6705
+Epoch 4/10 - 1833s 4s/step - loss: 0.2257 - dice_coef: 0.6868 - val_loss: 0.2304 - val_dice_coef: 0.7107
+Epoch 5/10 - 1898s 4s/step - loss: 0.1891 - dice_coef: 0.7366 - val_loss: 0.2077 - val_dice_coef: 0.7663
+Epoch 6/10 - 2053s 5s/step - loss: 0.1755 - dice_coef: 0.7567 - val_loss: 0.2010 - val_dice_coef: 0.7650
+Epoch 7/10 - 2867s 6s/step - loss: 0.1610 - dice_coef: 0.7741 - val_loss: 0.1861 - val_dice_coef: 0.7921
+Epoch 8/10 - 3356s 7s/step - loss: 0.1578 - dice_coef: 0.7785 - val_loss: 0.1870 - val_dice_coef: 0.7903
+Epoch 9/10 - 4022s 9s/step - loss: 0.1512 - dice_coef: 0.7876 - val_loss: 0.1644 - val_dice_coef: 0.7932
+Epoch 10/10 - 4703s 10s/step - loss: 0.1442 - dice_coef: 0.7968 - val_loss: 0.1673 - val_dice_coef: 0.7999
 
 
 Testing results:
-Mean Dice Coefficient: 72.16
-
+Mean Dice Coefficient: 75.47
 
 ## Discussion
 
