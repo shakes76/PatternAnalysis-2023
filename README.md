@@ -52,7 +52,10 @@ Epoch 9/10 - 4022s 9s/step - loss: 0.1512 - dice_coef: 0.7876 - val_loss: 0.1644
 Epoch 10/10 - 4703s 10s/step - loss: 0.1442 - dice_coef: 0.7968 - val_loss: 0.1673 - val_dice_coef: 0.7999
 
 
+
+
 Testing results:
+
 Mean Dice Coefficient: 75.47
 
 ## Discussion
