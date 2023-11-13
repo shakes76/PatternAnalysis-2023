@@ -52,10 +52,26 @@ def read_mask(path):
     x = np.expand_dims(x, axis=-1)
     return x  # (256, 256, 1)
 
-def tf_parse(x, y):
+def data_augmentation(image, mask):
+    # Add your data augmentation here using tf.image functions
+    # Example: Random horizontal flip
+    if tf.random.uniform(()) > 0.5:
+        image = tf.image.flip_left_right(image)
+        mask = tf.image.flip_left_right(mask)
+
+    # Add more augmentation techniques as needed
+
+    return image, mask
+
+def tf_parse(x, y, augment=True):
     def _parse(x, y):
         x = read_image(x)
         y = read_mask(y)
+
+        if augment:
+            # Apply data augmentation
+            x, y = data_augmentation(x, y)
+
         return x, y
 
     x, y = tf.numpy_function(_parse, [x, y], [tf.float32, tf.float32])
@@ -63,9 +79,9 @@ def tf_parse(x, y):
     y.set_shape([H, W, 1])
     return x, y
 
-def tf_dataset(X, Y, batch):
+def tf_dataset(X, Y, batch, augment=True):
     dataset = tf.data.Dataset.from_tensor_slices((X, Y))
-    dataset = dataset.map(tf_parse)
+    dataset = dataset.map(lambda x, y: tf_parse(x, y, augment), num_parallel_calls=tf.data.experimental.AUTOTUNE)
     dataset = dataset.batch(batch)
-    dataset = dataset.prefetch(10)
+    dataset = dataset.prefetch(tf.data.experimental.AUTOTUNE)
     return dataset
