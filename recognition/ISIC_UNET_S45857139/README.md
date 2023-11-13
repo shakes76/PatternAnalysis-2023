@@ -24,29 +24,10 @@ In terms of dataset allocation, 80% is designated for training, while the remain
 - os
 
 ## Training Details
-The model underwent training on the Google Colab V100 GPU, spanning 30 epochs. In order to replicate the training, run the predict.py script with the default parameters (n_epochs=30). To run on google colab, I commented out the lines that import functions from other python scripts, and instead, simply pasted my code in the notebook and ran in order. Although, instead, you can just run the predict script with all other files in the same directory.
+The model underwent training on the Google Colab V100 GPU, spanning 75 epochs. In order to replicate the training, run the predict.py script with the default parameters (n_epochs=75). To run on google colab, I commented out the lines that import functions from other python scripts, and instead, simply pasted my code in the notebook and ran in order. Although, instead, you can just run the predict script with all other files in the same directory.
 
 The results are as follows:
 
-**Sample Predictions:**
-
-**Sample 1 Input:**
-[![Sample 1 Input](/images/input_sample1.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/input_sample1.png)
-
-**Sample 1 Mask:**
-[![Sample 1 Mask](/images/mask_sample1.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/mask_sample1.png)
-
-**Sample 1 Output:**
-[![Sample 1 Output](/images/output_sample1.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/output_sample1.png)
-
-**Sample 2 Input:**
-[![Sample 2 Input](/images/input_sample2.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/input_sample2.png)
-
-**Sample 2 Mask:**
-[![Sample 2 Mask](/images/mask_sample2.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/mask_sample2.png)
-
-**Sample 2 Output:**
-[![Sample 2 Output](/images/output_sample2.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/output_sample2.png)
-
+**Sample Predictions:** [![Results](/images/prediction.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/prediction.png)
 
 **Metrics**: Loss per Epoch and Average Dice Coefficient per Epoch: [![Results](/images/results.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/results.png)
