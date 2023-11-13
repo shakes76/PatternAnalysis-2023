@@ -2,6 +2,10 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+#This code was inspired by the Improved UNET model created in the paper: 
+#F. Isensee, P. Kickingereder, W. Wick, M. Bendszus, and K. H. Maier-Hein, “Brain Tumor Segmentation
+#and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge,” Feb. 2018. [Online]
+
 class ContextModule(nn.Module):
     """
     A context module in the UNet architecture that applies convolutions and dropout

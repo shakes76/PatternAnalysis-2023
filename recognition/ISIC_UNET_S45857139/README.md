@@ -28,6 +28,6 @@ The model underwent training on the Google Colab V100 GPU, spanning 75 epochs. I
 
 The results are as follows:
 
-**Sample Predictions:** [![Results](/images/prediction.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/prediction.png)
+**Sample Prediction:** [![Sample Prediction](/images/prediction.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/prediction.png)
 
 **Metrics**: Loss per Epoch and Average Dice Coefficient per Epoch: [![Results](/images/results.png)](https://github.com/lombo9/PatternAnalysis-2023/blob/topic-recognition/images/results.png)
