@@ -4,7 +4,7 @@
 ## Introduction
 A typical UNET algorithm is characterized by an encoding path that captures the context of an input image, and a decoding path that restores the spatial details. Skip connections between the two paths enhance performance.
 
-My improved UNET implementation, inspired by [this paper](https://arxiv.org/abs/1802.10508v1), uses residual blocks instead of standard convolutions. These residual blocks consist of two convolution layers followed by instance normalization and a dropout layer set to 0.3. The resultant output is added to the residual to create the final output. Furthermore, the improved UNet incorporates a localization module for the decoding path. This module features a 3x3 convolution succeeded by a 1x1 convolution, effectively reducing the channel count by half.
+My improved UNET implementation, inspired by [this paper](https://arxiv.org/abs/1802.10508v1), uses residual blocks instead of standard convolutions. These residual blocks consist of two convolution layers followed by instance normalization and a dropout layer set to 0.3. The resultant output is added to the residual to create the final output. Furthermore, the improved UNet incorporates a localization module for the decoding path. This module features a 3x3 convolution succeeded by a 1x1 convolution.
 
 ## Task Overview
 The goal was to segment the ISIC dataset using the improved UNet, ensuring all labels attain a minimum dice similarity coefficient of 0.8 on the test set. The dataset encompasses images of skin lesions and their corresponding segmented mask images. The model's purpose is to accurately predict the segmented mask for an unseen skin lesion image.
