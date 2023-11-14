@@ -21,6 +21,49 @@ Vision Transformer is a type of neural network that uses Transformer architectur
 
 ### About Vision Transformer algorithm
 
+#### Algorithm Overview
+
+The core idea behind ViT is to treat image patches as tokens (similar to words in NLP) and apply the Transformer model to these tokens. The process involves the following steps:
+
+1. **Image Tokenization**: An input image is divided into fixed-size patches. These patches are then flattened and linearly transformed into a 1D token vector. If an image of size H x W x C (height, width, color channels) is divided into N patches each of size P x P, then each patch is reshaped into a 1D vector of size $P^2 \times C$.
+
+2. **Positional Encoding**: Since the Transformer architecture doesn’t have a notion of the order of tokens, positional encodings are added to the patch embeddings to retain positional information. These encodings can be learned or fixed and are of the same dimension as the patch embeddings.
+
+3. **Transformer Encoder**: The sequence of patch embeddings is fed into a standard Transformer encoder, which comprises alternating layers of multi-head self-attention and feed-forward networks.
+
+    - **Multi-Head Self-Attention (MSA)**: This mechanism allows the model to focus on different parts of the image. The attention function for a single head can be described as:
+
+      
+      $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+      
+
+      where Q, K, and V are the query, key, and value matrices derived from the input, and $d_k$ is the dimension of the key.
+
+    - **Feed-Forward Networks (FFN)**: These are fully connected layers applied to each position separately and identically. Each layer consists of two linear transformations with a ReLU activation in between.
+
+4. **Classification Head**: The Transformer output corresponding to the first token (often referred to as the “class token”) is passed through a linear layer to obtain the final class predictions.
+
+#### Mathematical Formulation
+
+Let's denote the patch embeddings as $X \in \mathbb{R}^{(N+1) \times D}$, where N is the number of patches, and D is the embedding dimension. The Transformer encoder processes X through multiple layers of self-attention and FFNs.
+
+The self-attention mechanism in each head of the MSA can be mathematically represented as:
+
+$$\text{Attention}(X) = \text{softmax}\left(\frac{XW^Q(XW^K)^T}{\sqrt{d_k}}\right)(XW^V)$$
+
+where $W^Q$, $W^K$, and $W^V$ are weight matrices for queries, keys, and values, respectively.
+
+The output of the MSA is then passed through FFNs, which can be represented as:
+
+$$\text{FFN}(x) = \max(0, xW_1 + b_1)W_2 + b_2$$
+
+where $W_1$, $W_2$, $b_1$, and $b_2$ are the weights and biases of the FFN.
+
+#### Conclusion
+
+In summary, the Vision Transformer applies the principles of the Transformer architecture to computer vision, treating image patches as a sequence of tokens. This approach allows ViT to capture global dependencies across the entire image, leading to its effectiveness in various image-related tasks.
+
+
 ### __Application of ViT[2]__
 1.	Image classification
 2.	Object detection
