@@ -4,7 +4,7 @@
 This project uses Unet-3D to train the [Prostate 3D](https://data.csiro.au/collection/csiro:51392v2) dataset to achieve medical volumetric image segmentation, using dice similarity coefficient for evaluation. Image segmentation is to convert an image into a collection of pixel areas represented by masks segmentation maps according to the labels. These segmentation maps can be used for medical condition analysis, symptom prediction, etc.
 
 ### Unet-3D
-3D Unet is transformed from Unet. Unet is convolutional neural network structure used for segmenting 2D images, while 3D Unet can segmenting video and 3D images while being compatible with Unet.The network structure in this project as following:
+3D Unet is transformed from Unet. Unet is convolutional neural network structure used for segmenting 2D images, while 3D Unet can segmenting video and 3D images while being compatible with Unet. U-Net is a convolutional neural network developed for biomedical image segmentation. U-Net complements usual contracting networks with successive layers, where max pooling is replaced by upper-sampling, thereby greatly improving the accuracy of the output segmentation maps. This network is a type of autoencoder, including encoder and decoder.The network structure in this project as following:
 
 ![image](https://github.com/Cipher0x0/PatternAnalysis-2023/assets/57138168/b2c6ddf4-d5af-4272-9ec5-c3e45f17c0a6)
 
