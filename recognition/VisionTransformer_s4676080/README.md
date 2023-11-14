@@ -17,6 +17,10 @@ Vision Transformer is a type of neural network that uses Transformer architectur
 3.	__Transformer encoder__:  Process the embeddings using multi-head self-attention and feed-forward networks.
 4.	__Classification head__: A linear layer is used for image classification 
 
+## __Incorporating feedback__
+
+### About Vision Transformer algorithm
+
 ### __Application of ViT[2]__
 1.	Image classification
 2.	Object detection
