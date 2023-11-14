@@ -18,7 +18,7 @@ The VQ-VAE does not generate novel images, and instead a GAN is used, trained on
 
 ![](./images/gan_architecture.jpg)
 
-## OASIS Dataset and Pre-processing
+## Image Pre-processing for the OASIS Dataset
 The OASIS Dataset is an open source project aimed at making neuroimaging datasets freely available to the scientific community [3](https://www.oasis-brains.org/#about). The datasets used in the project were split into two primary classes - segmented and original. The original datasets were used, as they are a more accurate representation of an MRI image, however, the data path can be edited to change to the segmented datasets. The data class was separated into train, test and validate, with 9664, 544 and 1120 image samples respectively. A custom data class (see ```dataset.py```) was used to separate out the train, test and validate sub directories into their respective loaders. The scikit-image libary was used to get each image, and automatically converted the image from RGB (3 channel) to grayscale (1 channel). The only other transform needed was to convert the image to a tensor before passing it to the dataloader. 
 
 ## VQ-VAE Training 
@@ -62,7 +62,7 @@ As seen, the images are quite blurry and contain some amounts of noise, due to t
 
 ![](./images/better_img_zoomed.png)
 
-## Reproduction 
+## Usage
 To generate the images shown above, ensure the OASIS data path is either specified or in the working directory, install all necessary dependencies, ensure that you are in a conda environment, and run ```driver.py```. This will generate the ```log``` and ```model``` directories in the workspace, which save the various models, logs and tensorboard logfiles for each time the training script is run.
 
 ## Model Dependencies
