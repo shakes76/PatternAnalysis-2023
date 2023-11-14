@@ -1,10 +1,17 @@
 # ***Generative model of the OASIS brain dataset using StyleGAN***
 
+Author: Ethan Jones, 44829531
+
 ## Task
 For this project, I will attempt to artificially generate a “reasonably clear 
-image” of an Magnetic Resonance Imaging (MRI) brain scan, where the training 
-data will be that of the [OASIS brain dataset](https://www.oasis-brains.org/). 
-This will be done using a Style Generative Adversarial Network (StyleGAN).
+image” of a Magnetic Resonance Imaging (MRI) brain scan using artificial 
+generation techniques. The training data for this project will be that of the 
+[OASIS brain dataset](https://www.oasis-brains.org/). The rationale behind 
+selecting StyleGAN for this task lies in its superior capability for 
+synthesising high-quality images compared to conventional GANs. Having the 
+ability to take advantage of key features such as Adaptive Instance Normalisation
+(AdaIN) will allow for more control over the distribution of latent variables and
+ultimately allow for a higher quality image result.
 
 # StyleGAN Architecture
 ## Generative Adversarial Network (GAN)
@@ -96,11 +103,14 @@ The OASIS brain dataset consists of roughly 10,000 MRI brain scans with
 differing vertical slices. The complete dataset can be found on the [OASIS 
 brain website](https://www.oasis-brains.org/).
 
-
 ## Preprocessing
 The OASIS brain dataset consists of roughly 10,000 MRI brain scans, which 
 have already been preprocessed. All images are grayscale and scaled to [0,
 1] for computational efficiency.
+
+## Input Visualisation
+Below is a visualisation of the input data.
+![Input](images/Input.png)
 
 ## Configuration
 **Batch Size:** 32 \
@@ -157,8 +167,17 @@ following hardware;
 **GPU:** NVIDIA GeForce RTX 3050 Ti Laptop (4GB GDDR6 memory).
 
 # Usage
+To use this model, first clone this repository to your local machine. You will
+then need to install the dependencies listed below. Once this is done, you can
+update the input image filepath located in the predict.py file to your dataset of
+choice. Optionally, you can adjust the hyperparameters to better fit your needs.
+Now, you can then run the predict.py file to generate images.
 
-**Test Driver:** Predict.py
+*Note: For the best results, it is recommended that your dataset contains a minimum
+of 10,000 images.*
+
+**Test Driver:** Predict.py \
+
 
 ## Dependencies
 Python: 3.9 \
