@@ -9,15 +9,17 @@ Data loader and transformer for StyleGAN model
 
 # Define data transformations
 transform = transforms.Compose([
-    transforms.Resize((utils.IMAGE_SIZE, utils.IMAGE_SIZE)),
-    transforms.RandomHorizontalFlip(),
-    transforms.Grayscale(3),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.5], std=[0.5])
+    transforms.Resize((utils.IMAGE_SIZE, utils.IMAGE_SIZE)), # Resize image to match the size being trained on
+    transforms.RandomHorizontalFlip(), # Randomly flip images to expand dataset artificially
+    transforms.Grayscale(3), # Convert the data to greyscale in three channels as the model is expecting
+    transforms.ToTensor(), # Convert the data into a tensor format
+    transforms.Normalize(mean=[0.5], std=[0.5]) # Normalise the image data
 ])
 
+# Directories storing the images
 data_dir = "keras_png_slices_data/"
 subfolder = "keras_png_slices_"
+# Modifiers used in the data set for different data types
 folder_suffix = "seg_"
 folder_type = {"test", "train", "validate"}
 
@@ -33,8 +35,10 @@ class FolderLoader(dataset.Dataset):
         image_paths = []
         directories = [self.root_dir]
         if self.includeSeg:
+            # Include seg data types if requested
             directories.append(self.root_dir.replace('data/' + subfolder, 'data/' + subfolder+folder_suffix))
         for directory in directories:
+            # DIscover png images in the directories given
             for subdir, _, files in os.walk(directory):
                 for file in files:
                     if file.endswith(".png"):
@@ -45,18 +49,23 @@ class FolderLoader(dataset.Dataset):
         return len(self.image_paths)
 
     def __getitem__(self, index):
+        # REtrieve an item at the requested index
         image_path = self.image_paths[index]
         image = Image.open(image_path)
 
         if self.transform:
+            # Apply transformations to the requested image
             image = self.transform(image)
         return image
 
 def create_data_loader(dataset_type, transform_override = None):
+    # Ensure we have access to the data type requested 
     assert dataset_type in folder_type
     if transform_override:
+        # Return a dataloader with the requested transforms instead of the default
         dataset = FolderLoader(root=data_dir+subfolder+dataset_type, transform=transform_override, includeSeg=True)
     else:
         dataset = FolderLoader(root=data_dir+subfolder+dataset_type, transform=transform, includeSeg=True)
+    #Generate a loader to encapsulate the data
     loader = DataLoader(dataset, batch_size=utils.BATCH_SIZE, shuffle=True)
     return loader

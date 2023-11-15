@@ -16,21 +16,29 @@ def train_fn(
     opt_gen,
     opt_mapping_network,
 ):
+    # Set models to train
     gen.train()
     critic.train()
-    mapping_network.train() # Set model to train
+    mapping_network.train()
+    # Generate fancy loader visualiser
     loop = tqdm(loader, leave=True)
     for batch_idx, real in enumerate(loop):
+        # Load testing images
         real = real.to(utils.DEVICE)
         cur_batch_size = real.shape[0]
 
+        # Generate noise inputs for generator
         w     = utils.get_w(mapping_network, cur_batch_size)
         noise = utils.get_noise(cur_batch_size)
         with torch.cuda.amp.autocast():
+            # Generate fake images
             fake = gen(w, noise)
-            critic_fake = critic(fake.detach())
             
+            # Critique fake images and real images
+            critic_fake = critic(fake.detach())
             critic_real = critic(real)
+
+            # Score overall model with adversarial loss function
             gp = utils.gradient_penalty(critic, real, fake, device=utils.DEVICE)
             loss_critic = (
                 -(torch.mean(critic_real) - torch.mean(critic_fake))
@@ -38,6 +46,7 @@ def train_fn(
                 + (0.001 * torch.mean(critic_real ** 2))
             )
 
+        # Backstep process
         critic.zero_grad()
         loss_critic.backward()
         opt_critic.step()
@@ -56,9 +65,9 @@ def train_fn(
         opt_gen.step()
         opt_mapping_network.step()
 
+        # Store first loss value for logging
         if batch_idx == 0:
             loss = loss_critic.item()
-            #store first loss value for logging
 
         loop.set_postfix(
             gp=gp.item(),
@@ -72,6 +81,7 @@ def eval_fn(
     mapping_network,
     loader
 ):
+    # Switch models to evaluation mode
     gen.eval()
     critic.eval()
     mapping_network.eval()
@@ -79,16 +89,22 @@ def eval_fn(
     samples_validated = 0
 
     for real in loader:
+        # Load validation images
         real = real.to(utils.DEVICE)
         cur_batch_size = real.shape[0]
 
+        # Generate noise inputs for generator
         w     = utils.get_w(mapping_network, cur_batch_size)
         noise = utils.get_noise(cur_batch_size)
         with torch.cuda.amp.autocast():
+            # Generate fake images
             fake = gen(w, noise)
-            critic_fake = critic(fake.detach())
             
+            # Critique fake images and real images
+            critic_fake = critic(fake.detach())
             critic_real = critic(real)
+
+            # Score overall model with adversarial loss function
             gp = utils.gradient_penalty(critic, real, fake, device=utils.DEVICE)
             loss_critic = (
                 -(torch.mean(critic_real) - torch.mean(critic_fake))
@@ -96,22 +112,27 @@ def eval_fn(
                 + (0.001 * torch.mean(critic_real ** 2))
             )
 
+        # Log loss function
         total_loss += loss_critic.item()
         samples_validated += 1
     return total_loss / samples_validated
 
+# Loaders for training and validation image sets
 loader_train        = dataset.create_data_loader("train")
 loader_validate        = dataset.create_data_loader("validate")
 
+# Individual models for StyleGAN
 gen                 = modules.Generator(utils.LOG_RESOLUTION, utils.W_DIM).to(utils.DEVICE)
 critic              = modules.Discriminator(utils.LOG_RESOLUTION).to(utils.DEVICE)
 mapping_network     = modules.MappingNetwork(utils.Z_DIM, utils.W_DIM).to(utils.DEVICE)
 path_length_penalty = modules.PathLengthPenalty(0.99).to(utils.DEVICE)
 
+# Model optimisers
 opt_gen             = torch.optim.Adam(gen.parameters(), lr=utils.LEARNING_RATE, betas=(0.0, 0.99))
 opt_critic          = torch.optim.Adam(critic.parameters(), lr=utils.LEARNING_RATE, betas=(0.0, 0.99))
 opt_mapping_network = torch.optim.Adam(mapping_network.parameters(), lr=utils.LEARNING_RATE, betas=(0.0, 0.99))
 
+# Logging variables
 losses = []
 best_loss = float('inf')
 validate_every_n_epochs = 5
@@ -125,6 +146,7 @@ old_epoch = 0
 
 starting_epoch = 1
 if load_checkpoint:
+    # Resume from previous training process
     start_time = 1697679243.0313046
     if load_best:
         gen.load_state_dict(torch.load(f"best_gen_{start_time}.pth"))
@@ -156,7 +178,7 @@ for epoch in tqdm(range(starting_epoch, utils.epochs + 1)):
             opt_gen,
             opt_mapping_network,
         )
-        # Save losses obtained from training the model
+        # Save losses obtained from training the models
         losses.append(loss)
 
         print(f"Epoch {epoch:03d} | Training Loss: {loss}")
@@ -167,6 +189,7 @@ for epoch in tqdm(range(starting_epoch, utils.epochs + 1)):
                 mapping_network,
                 loader_validate,
             )
+            # Validate the model and generate training examples
 
             utils.generate_examples(mapping_network, gen, epoch, start_time)
 

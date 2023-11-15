@@ -17,7 +17,9 @@ epochs = 100
 
 DEVICE                  = "cuda" if torch.cuda.is_available() else "cpu"
 LEARNING_RATE           = 1e-3
+# Scale of image size
 LOG_RESOLUTION          = int(math.log2(IMAGE_SIZE))
+# Image dimensions
 Z_DIM                   = IMAGE_SIZE
 W_DIM                   = IMAGE_SIZE
 LAMBDA_GP               = 10
@@ -50,10 +52,12 @@ def get_w(mapping_network, batch_size):
     return w[None, :, :].expand(LOG_RESOLUTION, -1, -1)
 
 def get_noise(batch_size):
+    # Generate noise images for the network
         noise = []
         resolution = 4
 
         for i in range(LOG_RESOLUTION):
+            # Generate nosie at each layer size
             if i == 0:
                 n1 = None
             else:
@@ -67,6 +71,7 @@ def get_noise(batch_size):
         return noise
         
 def generate_examples(mapping_network, gen, epoch, start_time, n=100):
+    # Save an example list of images
     for i in range(n):
         img = generate_images(mapping_network, gen)
         if not os.path.exists(f'saved_examples/{start_time}_epoch{epoch}'):
@@ -76,15 +81,18 @@ def generate_examples(mapping_network, gen, epoch, start_time, n=100):
 def generate_images(mapping_network, gen, n=1):
     gen.eval()
     with torch.no_grad():
+        # Generate output images
         w     = get_w(mapping_network, n)
         noise = get_noise(n)
         img   = gen(w, noise)
     gen.train()
+    # Offset normalisation
     return img*0.5+0.5
 
 def generate_noise_images(n=1):
     images = []
     for _ in range(n):
+        # Select last biggest noise image for demo
         img = get_noise(1)[-1][0][0]
         images.append(img)
     images = torch.stack(images, dim=0)
