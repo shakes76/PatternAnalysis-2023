@@ -2,23 +2,67 @@ from tensorflow.keras.layers import Conv2D, BatchNormalization, Activation, MaxP
 from tensorflow.keras.models import Model
 
 def conv_block(inputs, num_filters, dropout_rate=0.3):
+    """
+    Create a convolutional block consisting of two convolutional layers with dropout.
+
+    Parameters:
+    - inputs: Input tensor.
+    - num_filters (int): Number of filters in the convolutional layers.
+    - dropout_rate (float): Dropout rate for the dropout layer.
+
+    Returns:
+    - Tensor: Output tensor after the convolutional block.
+    """
     x = Conv2D(num_filters, 3, padding="same", activation='relu')(inputs)
     x = Dropout(dropout_rate)(x)
     x = Conv2D(num_filters, 3, padding="same", activation='relu')(x)
     return x
 
 def encoder_block(inputs, num_filters, dropout_rate=0.3):
+    """
+    Create an encoder block consisting of a convolutional block followed by max pooling.
+
+    Parameters:
+    - inputs: Input tensor.
+    - num_filters (int): Number of filters in the convolutional layers.
+    - dropout_rate (float): Dropout rate for the dropout layer.
+
+    Returns:
+    - Tuple: Two tensors - the output tensor of the convolutional block and the max-pooled tensor.
+    """
     x = conv_block(inputs, num_filters, dropout_rate)
     p = MaxPool2D((2, 2))(x)
     return x, p
 
 def decoder_block(inputs, skip_features, num_filters, dropout_rate=0.3):
+    """
+    Create a decoder block consisting of a transposed convolutional layer and concatenation with skip connections.
+
+    Parameters:
+    - inputs: Input tensor.
+    - skip_features: Skip connection tensor from the encoder block.
+    - num_filters (int): Number of filters in the transposed convolutional layer.
+    - dropout_rate (float): Dropout rate for the dropout layer.
+
+    Returns:
+    - Tensor: Output tensor after the decoder block.
+    """
     x = Conv2DTranspose(num_filters, (2, 2), strides=2, padding="same")(inputs)
     x = Concatenate()([x, skip_features])
     x = conv_block(x, num_filters, dropout_rate)
     return x
 
 def build_unet(input_shape, dropout_rate=0.3):
+    """
+    Build a U-Net model architecture.
+
+    Parameters:
+    - input_shape (tuple): Shape of the input tensor (height, width, channels).
+    - dropout_rate (float): Dropout rate for the dropout layers.
+
+    Returns:
+    - Model: U-Net model.
+    """
     inputs = Input(input_shape)
 
     """ Encoder """
