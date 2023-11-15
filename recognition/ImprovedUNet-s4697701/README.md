@@ -13,7 +13,7 @@ To process the images, all images were converted from a PIL image to a tensor an
 ## Architecture
 The structure followed was presented in 2018 [1], which improves upon the initial U-Net
 
-![Model Overview](./recognition/plots/model_overview.png)
+![Model Overview](./plots/model_overview.png)
 
 __Figure 2 (above): The Improved U-Net Architecture [1]__
 
@@ -42,17 +42,17 @@ The performance of the model was evaluated with the Dice Similarity Coefficient 
 
 ## Training & Validation: DSC and Loss Plots over Epochs
 
-![Dice Plot](./recognition/plots/results_dice.png)
-![Loss Plot](./recognition/plots/results_loss.png)
+![Dice Plot](./plots/results_dice.png)
+![Loss Plot](./plots/results_loss.png)
 
 ## Validation Visuals For Epochs
-![ValidationSegEpoch1Plot](./recognition/plots/ValidationSegmentsEpoch1.png)
-![ValidationSegEpoch5Plot](./recognition/plots/ValidationSegmentsEpoch5.png)
-![ValidationSegEpoch15Plot](./recognition/plots/ValidationSegmentsEpoch15.png)
-![ValidationSegEpoch30Plot](./recognition/plots/ValidationSegmentsEpoch30.png)
+![ValidationSegEpoch1Plot](./plots/ValidationSegmentsEpoch1.png)
+![ValidationSegEpoch5Plot](./plots/ValidationSegmentsEpoch5.png)
+![ValidationSegEpoch15Plot](./plots/ValidationSegmentsEpoch15.png)
+![ValidationSegEpoch30Plot](./plots/ValidationSegmentsEpoch30.png)
 
 ## Test Visuals & Predictions For Final Model
-![Test Plot](./recognition/plots/test_plot.png)
+![Test Plot](./plots/test_plot.png)
 Average Test Loss: 0.6384
 Average Dice Coefficient: 0.6579
 
