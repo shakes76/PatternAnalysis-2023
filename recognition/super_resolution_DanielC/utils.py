@@ -55,4 +55,4 @@ def resize_tensor(tensor):
     return transform(tensor)
 
 # loss of best performing model
-min_loss = 0.0023549410682688985
+min_loss = 99999999999
