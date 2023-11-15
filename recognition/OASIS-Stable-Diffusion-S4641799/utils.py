@@ -81,3 +81,11 @@ def generate_images(mapping_network, gen, n=1):
         img   = gen(w, noise)
     gen.train()
     return img*0.5+0.5
+
+def generate_noise_images(n=1):
+    images = []
+    for _ in range(n):
+        img = get_noise(1)[-1][0][0]
+        images.append(img)
+    images = torch.stack(images, dim=0)
+    return images

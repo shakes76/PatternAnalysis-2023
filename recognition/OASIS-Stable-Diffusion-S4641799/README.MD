@@ -78,11 +78,14 @@ Here the GAN can fool someone into thinking the created images are a part of the
 ![](Assets/epoch_150.png) ![](Assets/epoch_150_seg.png)
 ##### Epoch 150 Batch:
 ![](Assets/1697679243.0313046_predicted.png)
-#### Real Examples:
+#### Real Examples From the Training Set:
 ![](Assets/1697679243.0313046_comparison.png)
-#### Combination of real data and generated images from epoch 150:
+#### Combination of Real Fata and Generated Images From Epoch 150:
 ![](Assets/1697679243.0313046_combined.png)
 > Hint: the left side is fake.
+#### Noise Input:
+![](Assets/1697679243.0313046_noise.png)
+> Examples of noise used to generate the output images.
 ### Generator Training Loss
 ![](Assets/loss_plot.png)
 ### GAN Training Summary

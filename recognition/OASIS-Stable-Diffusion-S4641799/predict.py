@@ -34,22 +34,29 @@ if compare:
         transforms.ToTensor(),
     ]))
     valid = next(iter(loader))
-    predicted = utils.generate_images(mapping_network, gen, 32)
-    valid = make_grid(valid, nrow=8)
+    # Generate comparison noise
+    noise = utils.generate_noise_images(32)
+predicted = utils.generate_images(mapping_network, gen, 32)
 
 # Generate MRIs in one image
 predicted = make_grid(predicted, nrow=8)
 predicted = predicted.cpu()
 if compare:
+    valid = make_grid(valid, nrow=8)
+    noise = make_grid(noise, nrow=8)
+    noise = noise.cpu()
     img = make_grid([predicted, valid], nrow = 2)
     save_image(valid, f"{start_time}_comparison.png")
     save_image(img, f"{start_time}_combined.png")
+    save_image(noise, f"{start_time}_noise.png")
 save_image(predicted, f"{start_time}_predicted.png")
 
 
 # Show images
 if compare:
     plt.imshow(img.permute(1, 2, 0))
+    plt.show()
+    plt.imshow(noise.permute(1, 2, 0))
     plt.show()
 else:
     plt.imshow(predicted.permute(1, 2, 0))
