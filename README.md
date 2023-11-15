@@ -2,28 +2,27 @@
 
 ## Introduction
 
-The conducted project attempted the following: Segment the ISIC 2017/8 data set with the Improved UNet with all labels having a minimum Dice similarity coefficient of 0.8 on the test set.
+The conducted project attempted the following: Segment the ISIC 2018 data set with the Improved UNet with all labels having a minimum Dice similarity coefficient of 0.8 on the test set.
 
-This project aims to perform medical image segmentation using the UNet architecture. Image segmentation is a crucial task in medical imaging, where the goal is to identify and outline regions of interest in images, such as tumors, blood vessels, or organs. In this project, we use the UNet architecture, which is known for its effectiveness in biomedical image segmentation tasks. In this case the model was used to analyse data from the ISIC 2017 dataset returning the regions of interest on images of skin lesions.
+This project aims to perform medical image segmentation using the UNet architecture. Image segmentation is a crucial task in medical imaging, where the goal is to identify and outline regions of interest in images, such as tumors, blood vessels, or organs. In this project, we use the UNet architecture, which is known for its effectiveness in biomedical image segmentation tasks. In this case the model was used to analyse data from the ISIC 2018 dataset returning the regions of interest on images of skin lesions. The ISIC 2018 dataset can be found at https://challenge.isic-archive.com/data/#2018.
 
 ## Model Architecture
 
-The core of our project is the UNet architecture, which consists of an encoder and a decoder. The encoder captures the essential features of the input images, while the decoder generates pixel-wise segmentation masks. The architecture includes convolutional layers, batch normalization, and max-pooling for down-sampling, as well as transposed convolutional layers for up-sampling. The model architecture is implemented in the `modules.py` file.
+The core of our project is the UNet architecture, which consists of an encoder and a decoder. The encoder captures the essential features of the input images, while the decoder generates pixel-wise segmentation masks. The architecture includes convolutional layers, batch normalization, dropout, and max-pooling for down-sampling, as well as transposed convolutional layers for up-sampling. The model architecture is implemented in the `modules.py` file.
 
 ## Data Preprocessing
 
-I used the ISIC 2017 dataset. This dataset can be swapped out with any other custom dataset when running the `dataset.py` file, to load and preprocess the training data. The dataset includes image and mask pairs, where masks represent ground-truth segmentations. Data preprocessing involves resizing images and normalizing masks to facilitate model training. The data images must be stored as .jpgs while the masks must have the same name as the corresponding image file except with _segmentation following the name and it must be stored as a png.
+I used the ISIC 2018 dataset. This dataset can be swapped out with any other custom dataset when running the `dataset.py` file, to load and preprocess the training data. The dataset includes image and mask pairs, where masks represent ground-truth segmentations. Data preprocessing involves resizing images and normalizing masks to facilitate model training. The data images must be stored as .jpgs while the masks must have the same name as the corresponding image file except with _segmentation following the name and it must be stored as a png.
 
 ## Training
 
-The training process is defined in the `train.py` file. Key components of the training process include loss computation (Dice loss), backpropagation, and optimization using the Adam optimizer. Training is executed over multiple epochs, with periodic validation to track the model's performance. This code does run the validation and tests on the same training data by splitting the data up, 60% for testing, 20% for validation and 20% for testing. This was done because some work was done on the 2018 ISIC dataset as well which doesnt have a seperate validation set. This can be changed with some minor tweaking of the code, but for the sake of using this data you only need to supply 1 set of data for training, validation and testing.
+The training process is defined in the `train.py` file. Key components of the training process include loss computation (Dice loss), backpropagation, and optimization using the Adam optimizer. Training is executed over multiple epochs, with periodic validation to track the model's performance. This code runs the validation and tests on the same training data by splitting the data up, 70% for testing, 15% for validation, and 15% for testing. This was done because some work was done on the 2018 ISIC dataset as well which doesn't have a separate validation set. This can be changed with some minor tweaking of the code, but for the sake of using this data, you only need to supply 1 set of data for training, validation, and testing.
 
 ### Training Evidence
 
-- Training Input Directory: `ISIC-2017_Training_Data` - contains the images and the masks.
 - Batch Size: 4
 - Learning Rate: 0.0001
-- Number of Epochs: 5
+- Number of Epochs: 11
 
 ## Results
 
@@ -67,7 +66,7 @@ When I started this project, I started it in another repository. For all the com
 ## Test Driver Script
 
 To run the model:
-1. Insert the dataset locations into all .py files that require it (dataset.py, train.py and predict.py)
+1. Save the ISIC 2018 dataset into the downloaded PatternAnalysis-2023 folder.
 2. Run 'python train.py'
    - This will train the model and save the model to the desired location.
 3. Run 'python predict.py'
@@ -82,7 +81,6 @@ To run the model:
 - glob
 - sklearn
 
-- Directories must be inserted into 'dataset.py', `train.py` and `predict.py` files.
 
 ## References
 
