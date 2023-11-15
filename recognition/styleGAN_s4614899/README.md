@@ -84,6 +84,12 @@ Future work can be done on this styleGAN model for potential improvement on its 
   - Test with SGD optimizer using learning rate scheduler;
   - Adapt advanced features from styleGAN2.
 
+## Description of Usage
+- dataset.py: imports the dataset, apply certain transformtations to it, and generates sample images from it;
+- modules.py: constructs the architecture of the styleGAN model, including structures of the generator and the discriminator, along with their constituent components;
+- train.py: progressively trains the styleGAN model and generates the losses plot;
+- predict.py: utilizes the trained model to generate fake images and plots of a sample of them.
+
 ## Dependencies
   - pytorch                   2.0.1
   - torchvision               0.15.2
