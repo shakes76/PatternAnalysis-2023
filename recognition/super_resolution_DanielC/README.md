@@ -16,6 +16,7 @@ The Super-resolution network is designed to present a plausible high-resolution 
 
 ### 1.1 Core functionality
 The core component of this network is the efficient sub-pixel layer, which is defined within pytorch as ``PixelShuffle``. This layer upscales the image by reducing the number of channels of features, in our case, it upscales by a factor of 4. The network learns the mapping between the low-resolution and their high-resolution version through the various convolution layers by using the mean squared error loss function represented in pytorch as ``torch.nn.MSELoss``. The Adam optimizer is used as per the guide which adjusts learning rate to adapt throughout training. 
+The train dataset is split into 75% train set and 25% validation set as validation images are not provided in the ADNI dataset.
 
 ## 2. Required Dependencies
 Dependency | Version |
@@ -76,6 +77,9 @@ Furthermore, graphing the total training loss per epoch is shown as below.
 ![graph of loss per iteration](https://github.com/DHyunC/PatternAnalysis/blob/topic-recognition/recognition/super_resolution_DanielC/readme_resources/newerExampleFigure.PNG)
 
 As shown in the graph, the rate at which the total loss decreases drastically slows down between 10-15 epochs thus, if a user desired for time effective tranining which yielded acceptable results, stopping at 10-15 epochs would result in similar predictions as 15+ epochs. However to minimize loss and retain practicality, I have chosen to go with a middle ground of 40 epochs.
+
+Afterwards, if the model has performed better than the saved model, it will save the model.
+
 
 ## 6. Appendix
 1. Where to download the dataset: [ADNI dataset for Alzheimer's disease](https://adni.loni.usc.edu/)
