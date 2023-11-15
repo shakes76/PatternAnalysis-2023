@@ -43,7 +43,7 @@ Rather than directly importing the dataset, the *dataset.py* file specifically h
 The transformations applied here are straightforward and commonly used:
 - firstly resize all images to ensure the sizes are all consistent;
 - convert the images to Pytorch Tensor;
-- randomly and horizontally flip the images with a probablity of 0.5, as a data augmentaion method;
+- randomly and horizontally flip the images with a probablity of 0.5, as a data augmentation method;
 - finally normalize the Tensor images by setting their means and standard deviations to 0.5 for all channels.
 
 Note that due to the limitation of GPU memory, the batch size used is 16, but could be further optimized with more memory allocated.
@@ -88,7 +88,7 @@ Future work can be done on this styleGAN model for potential improvement on its 
 - dataset.py: imports the dataset, apply certain transformtations to it, and generates sample images from it;
 - modules.py: constructs the architecture of the styleGAN model, including structures of the generator and the discriminator, along with their constituent components;
 - train.py: progressively trains the styleGAN model and generates the losses plot;
-- predict.py: utilizes the trained model to generate fake images and plots of a sample of them.
+- predict.py: utilizes the trained model to generate fake images and plots a sample of them.
 
 ## Dependencies
   - pytorch                   2.0.1
