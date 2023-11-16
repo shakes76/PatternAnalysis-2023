@@ -9,7 +9,7 @@ The Perciever Transformer is an iteration of the transformer model released by G
 
 it solves the quadratic bottleneck by projecting the input information into a lower dimention latent array through cross attention layers similar to those in traditional transformers. The array is then processed through multiple self attention layers to extract features. This process also allows the perciever to make less structural assumptions about the input data allowing for many different modes of data as inputs including text, audio, video etc. 
 
-![PercieverTransformer](../plots/perciever_transformer.jpg)
+![PercieverTransformer](./plots/perciever_transformer.jpg)
 
 
 ## Set-Up and Dependencies
@@ -47,7 +47,7 @@ The data split given was 70% train and 30% test. There were a total of 30,000 im
 
 Example Brains without random augmentations:  
 Note, matplotlib automatically adds contrast colour when displaying image as the colour dimention is only 1
-![SampleBrains](../plots/sample_brains.png)
+![SampleBrains](./plots/sample_brains.png)
 
 ### Perceiver Modules
 The perceiver consists of multiple modules that can be effectively modeled with object oriented programming. The components of the perciever include cross-attention and multi head latent transformers (self attention). A generic attention block was made with the same layers as mentioned in the paper. Nomalisation, attention, linear layers and GELU. Skip connections were added between attention blocks as mentioned in the paper. Cross attention implements the attention layer with a single head between the latent and the image as specified in the paper. The latent transformer implements 8 latent heads with 4 total attention layers for self attention. The cross attention and Latent transformer together make one perceiver block in the model of which 3 were used.  
@@ -61,7 +61,7 @@ The classification layer reduces the 32x32x64 latent tensor to a 32x1 tensor for
 ## Results and Discussion
 After 50 epochs the model achieved an accruacy slightly above 57% on the testing set and around 65% on validation set whcih is slightly better than random guessing. I attempted many different hyperparameters to in order to get the accuracy up but each time test accuracy would plateu around 56 - 57 percent. Though the loss implies the model converges appropriately it is not general enough to score highly on the test set. The loss plot also indicates an inability for the model to learn adeptly and overfitting was not seen to be an issue.
 
-![Loss Plot for 50 Epochs](../plots/loss_plot.png)![Validation Accuracy for 50 Epochs](../plots/accuracy.png)
+![Loss Plot for 50 Epochs](./plots/loss_plot.png)![Validation Accuracy for 50 Epochs](./plots/accuracy.png)
 
 I suspect this is in due part to the small size of the dataset, the training set had slightly less than 20000 images which is considered quite small when training transformer models whcih require very large amounts of data to generalise. As each patient had 20 sliced images in the dataset, the train set effectively only had 1000 unique brains to train on which may be why it struggles on completelty new brains in the test set. 
 
