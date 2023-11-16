@@ -1,0 +1,1506 @@
+cuda
+train/, len(self._loader) = 1345, self._dataset.class_to_idx = {'AD': 0, 'NC': 1}
+generator params: 23196
+discriminator params: 4249
+training...
+epoch: 1/300, step: 300/1345, d loss: 0.87711, g loss: 0.41283
+epoch: 1/300, step: 600/1345, d loss: 0.75850, g loss: 0.57725
+epoch: 1/300, step: 900/1345, d loss: 0.74809, g loss: 0.60250
+epoch: 1/300, step: 1200/1345, d loss: 0.66645, g loss: 0.68639
+d lr: 0.000019200, g lr: 0.000028500
+epoch: 2/300, step: 300/1345, d loss: 0.70651, g loss: 0.66056
+epoch: 2/300, step: 600/1345, d loss: 0.71865, g loss: 0.67753
+epoch: 2/300, step: 900/1345, d loss: 0.69768, g loss: 0.69030
+epoch: 2/300, step: 1200/1345, d loss: 0.71202, g loss: 0.74631
+d lr: 0.000018432, g lr: 0.000027075
+epoch: 3/300, step: 300/1345, d loss: 0.67633, g loss: 0.69689
+epoch: 3/300, step: 600/1345, d loss: 0.67460, g loss: 0.70205
+epoch: 3/300, step: 900/1345, d loss: 0.70323, g loss: 0.73951
+epoch: 3/300, step: 1200/1345, d loss: 0.60172, g loss: 0.81890
+d lr: 0.000017695, g lr: 0.000025721
+epoch: 4/300, step: 300/1345, d loss: 0.47733, g loss: 0.98454
+epoch: 4/300, step: 600/1345, d loss: 0.41888, g loss: 0.88291
+epoch: 4/300, step: 900/1345, d loss: 0.62067, g loss: 0.84399
+epoch: 4/300, step: 1200/1345, d loss: 0.46602, g loss: 1.02736
+d lr: 0.000016987, g lr: 0.000024435
+epoch: 5/300, step: 300/1345, d loss: 0.21834, g loss: 1.60417
+epoch: 5/300, step: 600/1345, d loss: 0.50120, g loss: 1.06790
+epoch: 5/300, step: 900/1345, d loss: 0.27158, g loss: 1.53956
+epoch: 5/300, step: 1200/1345, d loss: 0.29565, g loss: 1.51935
+d lr: 0.000016307, g lr: 0.000023213
+epoch: 6/300, step: 300/1345, d loss: 0.28104, g loss: 1.74186
+epoch: 6/300, step: 600/1345, d loss: 0.32473, g loss: 1.45799
+epoch: 6/300, step: 900/1345, d loss: 0.38283, g loss: 1.35730
+epoch: 6/300, step: 1200/1345, d loss: 0.19872, g loss: 1.72570
+d lr: 0.000015655, g lr: 0.000022053
+epoch: 7/300, step: 300/1345, d loss: 0.22908, g loss: 1.92917
+epoch: 7/300, step: 600/1345, d loss: 0.19365, g loss: 1.89191
+epoch: 7/300, step: 900/1345, d loss: 0.28892, g loss: 1.90771
+epoch: 7/300, step: 1200/1345, d loss: 0.38343, g loss: 1.29684
+d lr: 0.000015029, g lr: 0.000020950
+epoch: 8/300, step: 300/1345, d loss: 0.21379, g loss: 2.18786
+epoch: 8/300, step: 600/1345, d loss: 0.24198, g loss: 1.76505
+epoch: 8/300, step: 900/1345, d loss: 0.24791, g loss: 1.61258
+epoch: 8/300, step: 1200/1345, d loss: 0.25667, g loss: 1.92420
+d lr: 0.000014428, g lr: 0.000019903
+epoch: 9/300, step: 300/1345, d loss: 0.22707, g loss: 2.11991
+epoch: 9/300, step: 600/1345, d loss: 0.36484, g loss: 2.04779
+epoch: 9/300, step: 900/1345, d loss: 0.26016, g loss: 1.97841
+epoch: 9/300, step: 1200/1345, d loss: 0.43922, g loss: 1.03964
+d lr: 0.000013851, g lr: 0.000018907
+epoch: 10/300, step: 300/1345, d loss: 0.44864, g loss: 1.73854
+epoch: 10/300, step: 600/1345, d loss: 0.43698, g loss: 1.52965
+epoch: 10/300, step: 900/1345, d loss: 0.57902, g loss: 0.93662
+epoch: 10/300, step: 1200/1345, d loss: 0.53858, g loss: 0.91938
+d lr: 0.000013297, g lr: 0.000017962
+epoch: 11/300, step: 300/1345, d loss: 0.32565, g loss: 1.76440
+epoch: 11/300, step: 600/1345, d loss: 0.28005, g loss: 1.62813
+epoch: 11/300, step: 900/1345, d loss: 0.21535, g loss: 2.34190
+epoch: 11/300, step: 1200/1345, d loss: 0.16976, g loss: 2.44140
+d lr: 0.000012765, g lr: 0.000017064
+epoch: 12/300, step: 300/1345, d loss: 0.15371, g loss: 2.85371
+epoch: 12/300, step: 600/1345, d loss: 0.50352, g loss: 1.31929
+epoch: 12/300, step: 900/1345, d loss: 0.29099, g loss: 1.52208
+epoch: 12/300, step: 1200/1345, d loss: 0.40926, g loss: 1.09356
+d lr: 0.000012254, g lr: 0.000016211
+epoch: 13/300, step: 300/1345, d loss: 0.29816, g loss: 1.74082
+epoch: 13/300, step: 600/1345, d loss: 0.39053, g loss: 1.28833
+epoch: 13/300, step: 900/1345, d loss: 0.54834, g loss: 1.33587
+epoch: 13/300, step: 1200/1345, d loss: 0.41308, g loss: 1.31019
+d lr: 0.000011764, g lr: 0.000015400
+epoch: 14/300, step: 300/1345, d loss: 0.23507, g loss: 1.89597
+epoch: 14/300, step: 600/1345, d loss: 0.23766, g loss: 2.74254
+epoch: 14/300, step: 900/1345, d loss: 0.13723, g loss: 2.27766
+epoch: 14/300, step: 1200/1345, d loss: 0.23302, g loss: 2.00163
+d lr: 0.000011293, g lr: 0.000014630
+epoch: 15/300, step: 300/1345, d loss: 0.11665, g loss: 2.47562
+epoch: 15/300, step: 600/1345, d loss: 0.17493, g loss: 1.83016
+epoch: 15/300, step: 900/1345, d loss: 0.10733, g loss: 2.44767
+epoch: 15/300, step: 1200/1345, d loss: 0.15765, g loss: 2.01680
+d lr: 0.000010842, g lr: 0.000013899
+epoch: 16/300, step: 300/1345, d loss: 0.16892, g loss: 2.21941
+epoch: 16/300, step: 600/1345, d loss: 0.13482, g loss: 2.24670
+epoch: 16/300, step: 900/1345, d loss: 0.05602, g loss: 3.47598
+epoch: 16/300, step: 1200/1345, d loss: 0.07004, g loss: 2.98594
+d lr: 0.000010408, g lr: 0.000013204
+epoch: 17/300, step: 300/1345, d loss: 0.10693, g loss: 2.79538
+epoch: 17/300, step: 600/1345, d loss: 0.09559, g loss: 2.26619
+epoch: 17/300, step: 900/1345, d loss: 0.20835, g loss: 2.08599
+epoch: 17/300, step: 1200/1345, d loss: 0.13199, g loss: 2.68365
+d lr: 0.000009992, g lr: 0.000012544
+epoch: 18/300, step: 300/1345, d loss: 0.05142, g loss: 3.12550
+epoch: 18/300, step: 600/1345, d loss: 0.09804, g loss: 3.57544
+epoch: 18/300, step: 900/1345, d loss: 0.11481, g loss: 2.51825
+epoch: 18/300, step: 1200/1345, d loss: 0.08317, g loss: 2.59023
+d lr: 0.000009592, g lr: 0.000011916
+epoch: 19/300, step: 300/1345, d loss: 0.12017, g loss: 2.65357
+epoch: 19/300, step: 600/1345, d loss: 0.26460, g loss: 2.99041
+epoch: 19/300, step: 900/1345, d loss: 0.10240, g loss: 3.08974
+epoch: 19/300, step: 1200/1345, d loss: 0.08303, g loss: 3.79122
+d lr: 0.000009208, g lr: 0.000011321
+epoch: 20/300, step: 300/1345, d loss: 0.19656, g loss: 2.36188
+epoch: 20/300, step: 600/1345, d loss: 0.13044, g loss: 2.16947
+epoch: 20/300, step: 900/1345, d loss: 0.10638, g loss: 2.77152
+epoch: 20/300, step: 1200/1345, d loss: 0.06896, g loss: 2.87803
+d lr: 0.000008840, g lr: 0.000010755
+epoch: 21/300, step: 300/1345, d loss: 0.14554, g loss: 2.43647
+epoch: 21/300, step: 600/1345, d loss: 0.22609, g loss: 1.98690
+epoch: 21/300, step: 900/1345, d loss: 0.08868, g loss: 2.66217
+epoch: 21/300, step: 1200/1345, d loss: 0.13906, g loss: 2.48818
+d lr: 0.000008486, g lr: 0.000010217
+epoch: 22/300, step: 300/1345, d loss: 0.24732, g loss: 1.75829
+epoch: 22/300, step: 600/1345, d loss: 0.26454, g loss: 2.20769
+epoch: 22/300, step: 900/1345, d loss: 0.33654, g loss: 1.58674
+epoch: 22/300, step: 1200/1345, d loss: 0.59216, g loss: 1.31134
+d lr: 0.000008147, g lr: 0.000009706
+epoch: 23/300, step: 300/1345, d loss: 1.00815, g loss: 0.83653
+epoch: 23/300, step: 600/1345, d loss: 0.66658, g loss: 0.79424
+epoch: 23/300, step: 900/1345, d loss: 0.78943, g loss: 0.91782
+epoch: 23/300, step: 1200/1345, d loss: 0.92958, g loss: 0.74288
+d lr: 0.000007821, g lr: 0.000009221
+epoch: 24/300, step: 300/1345, d loss: 0.82419, g loss: 0.72004
+epoch: 24/300, step: 600/1345, d loss: 1.05790, g loss: 0.59146
+epoch: 24/300, step: 900/1345, d loss: 0.72757, g loss: 0.84016
+epoch: 24/300, step: 1200/1345, d loss: 0.81619, g loss: 0.85611
+d lr: 0.000007508, g lr: 0.000008760
+epoch: 25/300, step: 300/1345, d loss: 0.82644, g loss: 0.77677
+epoch: 25/300, step: 600/1345, d loss: 0.75196, g loss: 0.77918
+epoch: 25/300, step: 900/1345, d loss: 0.86196, g loss: 0.71012
+epoch: 25/300, step: 1200/1345, d loss: 1.09012, g loss: 0.68915
+d lr: 0.000007208, g lr: 0.000008322
+epoch: 26/300, step: 300/1345, d loss: 0.84708, g loss: 0.57911
+epoch: 26/300, step: 600/1345, d loss: 0.88784, g loss: 0.64377
+epoch: 26/300, step: 900/1345, d loss: 0.97458, g loss: 0.48740
+epoch: 26/300, step: 1200/1345, d loss: 0.79283, g loss: 0.64371
+d lr: 0.000006920, g lr: 0.000007906
+epoch: 27/300, step: 300/1345, d loss: 1.27005, g loss: 0.60888
+epoch: 27/300, step: 600/1345, d loss: 1.05682, g loss: 0.51552
+epoch: 27/300, step: 900/1345, d loss: 0.76861, g loss: 0.65797
+epoch: 27/300, step: 1200/1345, d loss: 0.94121, g loss: 0.66428
+d lr: 0.000006643, g lr: 0.000007510
+epoch: 28/300, step: 300/1345, d loss: 0.92053, g loss: 0.51570
+epoch: 28/300, step: 600/1345, d loss: 0.79897, g loss: 0.64794
+epoch: 28/300, step: 900/1345, d loss: 0.71165, g loss: 0.79437
+epoch: 28/300, step: 1200/1345, d loss: 0.79951, g loss: 0.63769
+d lr: 0.000006377, g lr: 0.000007135
+epoch: 29/300, step: 300/1345, d loss: 0.85234, g loss: 0.54951
+epoch: 29/300, step: 600/1345, d loss: 0.87489, g loss: 0.61281
+epoch: 29/300, step: 900/1345, d loss: 0.90679, g loss: 0.54258
+epoch: 29/300, step: 1200/1345, d loss: 0.93274, g loss: 0.55593
+d lr: 0.000006122, g lr: 0.000006778
+epoch: 30/300, step: 300/1345, d loss: 0.81116, g loss: 0.72043
+epoch: 30/300, step: 600/1345, d loss: 0.87942, g loss: 0.48512
+epoch: 30/300, step: 900/1345, d loss: 0.81185, g loss: 0.57024
+epoch: 30/300, step: 1200/1345, d loss: 0.82759, g loss: 0.56631
+d lr: 0.000005877, g lr: 0.000006439
+epoch: 31/300, step: 300/1345, d loss: 0.75003, g loss: 0.67680
+epoch: 31/300, step: 600/1345, d loss: 0.81226, g loss: 0.60408
+epoch: 31/300, step: 900/1345, d loss: 0.88014, g loss: 0.60722
+epoch: 31/300, step: 1200/1345, d loss: 0.75337, g loss: 0.70382
+d lr: 0.000005642, g lr: 0.000006117
+epoch: 32/300, step: 300/1345, d loss: 0.72943, g loss: 0.67885
+epoch: 32/300, step: 600/1345, d loss: 0.78505, g loss: 0.67453
+epoch: 32/300, step: 900/1345, d loss: 0.70298, g loss: 0.72129
+epoch: 32/300, step: 1200/1345, d loss: 0.77889, g loss: 0.64931
+d lr: 0.000005416, g lr: 0.000005811
+epoch: 33/300, step: 300/1345, d loss: 0.79560, g loss: 0.58843
+epoch: 33/300, step: 600/1345, d loss: 0.79192, g loss: 0.62260
+epoch: 33/300, step: 900/1345, d loss: 0.74635, g loss: 0.67875
+epoch: 33/300, step: 1200/1345, d loss: 0.73429, g loss: 0.73821
+d lr: 0.000005200, g lr: 0.000005521
+epoch: 34/300, step: 300/1345, d loss: 0.71947, g loss: 0.65661
+epoch: 34/300, step: 600/1345, d loss: 0.70929, g loss: 0.69705
+epoch: 34/300, step: 900/1345, d loss: 0.73482, g loss: 0.66592
+epoch: 34/300, step: 1200/1345, d loss: 0.72256, g loss: 0.66693
+d lr: 0.000004992, g lr: 0.000005245
+epoch: 35/300, step: 300/1345, d loss: 0.76825, g loss: 0.69316
+epoch: 35/300, step: 600/1345, d loss: 0.71034, g loss: 0.71429
+epoch: 35/300, step: 900/1345, d loss: 0.73432, g loss: 0.65569
+epoch: 35/300, step: 1200/1345, d loss: 0.81716, g loss: 0.70294
+d lr: 0.000004792, g lr: 0.000004983
+epoch: 36/300, step: 300/1345, d loss: 0.76539, g loss: 0.63299
+epoch: 36/300, step: 600/1345, d loss: 0.73848, g loss: 0.64939
+epoch: 36/300, step: 900/1345, d loss: 0.68411, g loss: 0.68667
+epoch: 36/300, step: 1200/1345, d loss: 0.75849, g loss: 0.74449
+d lr: 0.000004600, g lr: 0.000004733
+epoch: 37/300, step: 300/1345, d loss: 0.69532, g loss: 0.73706
+epoch: 37/300, step: 600/1345, d loss: 0.69768, g loss: 0.70065
+epoch: 37/300, step: 900/1345, d loss: 0.71269, g loss: 0.71259
+epoch: 37/300, step: 1200/1345, d loss: 0.69686, g loss: 0.71873
+d lr: 0.000004416, g lr: 0.000004497
+epoch: 38/300, step: 300/1345, d loss: 0.70949, g loss: 0.71622
+epoch: 38/300, step: 600/1345, d loss: 0.74095, g loss: 0.78298
+epoch: 38/300, step: 900/1345, d loss: 0.71087, g loss: 0.67213
+epoch: 38/300, step: 1200/1345, d loss: 0.70595, g loss: 0.69491
+d lr: 0.000004240, g lr: 0.000004272
+epoch: 39/300, step: 300/1345, d loss: 0.75813, g loss: 0.57579
+epoch: 39/300, step: 600/1345, d loss: 0.67496, g loss: 0.80053
+epoch: 39/300, step: 900/1345, d loss: 0.70607, g loss: 0.74050
+epoch: 39/300, step: 1200/1345, d loss: 0.74397, g loss: 0.68174
+d lr: 0.000004070, g lr: 0.000004058
+epoch: 40/300, step: 300/1345, d loss: 0.80053, g loss: 0.63066
+epoch: 40/300, step: 600/1345, d loss: 0.67220, g loss: 0.81488
+epoch: 40/300, step: 900/1345, d loss: 0.75142, g loss: 0.65895
+epoch: 40/300, step: 1200/1345, d loss: 0.70670, g loss: 0.73305
+d lr: 0.000003907, g lr: 0.000003855
+epoch: 41/300, step: 300/1345, d loss: 0.71963, g loss: 0.65670
+epoch: 41/300, step: 600/1345, d loss: 0.70059, g loss: 0.65543
+epoch: 41/300, step: 900/1345, d loss: 0.73699, g loss: 0.66332
+epoch: 41/300, step: 1200/1345, d loss: 0.72224, g loss: 0.64053
+d lr: 0.000003751, g lr: 0.000003663
+epoch: 42/300, step: 300/1345, d loss: 0.70651, g loss: 0.70986
+epoch: 42/300, step: 600/1345, d loss: 0.69929, g loss: 0.67799
+epoch: 42/300, step: 900/1345, d loss: 0.72442, g loss: 0.65598
+epoch: 42/300, step: 1200/1345, d loss: 0.74630, g loss: 0.65955
+d lr: 0.000003601, g lr: 0.000003479
+epoch: 43/300, step: 300/1345, d loss: 0.70006, g loss: 0.77464
+epoch: 43/300, step: 600/1345, d loss: 0.77144, g loss: 0.69170
+epoch: 43/300, step: 900/1345, d loss: 0.74863, g loss: 0.65386
+epoch: 43/300, step: 1200/1345, d loss: 0.73243, g loss: 0.70976
+d lr: 0.000003457, g lr: 0.000003305
+epoch: 44/300, step: 300/1345, d loss: 0.72264, g loss: 0.65018
+epoch: 44/300, step: 600/1345, d loss: 0.71773, g loss: 0.66005
+epoch: 44/300, step: 900/1345, d loss: 0.76485, g loss: 0.64175
+epoch: 44/300, step: 1200/1345, d loss: 0.71182, g loss: 0.67043
+d lr: 0.000003319, g lr: 0.000003140
+epoch: 45/300, step: 300/1345, d loss: 0.74332, g loss: 0.65433
+epoch: 45/300, step: 600/1345, d loss: 0.73466, g loss: 0.66222
+epoch: 45/300, step: 900/1345, d loss: 0.72037, g loss: 0.75656
+epoch: 45/300, step: 1200/1345, d loss: 0.70979, g loss: 0.69160
+d lr: 0.000003186, g lr: 0.000002983
+epoch: 46/300, step: 300/1345, d loss: 0.77268, g loss: 0.65254
+epoch: 46/300, step: 600/1345, d loss: 0.70959, g loss: 0.67829
+epoch: 46/300, step: 900/1345, d loss: 0.74267, g loss: 0.67949
+epoch: 46/300, step: 1200/1345, d loss: 0.73289, g loss: 0.63564
+d lr: 0.000003058, g lr: 0.000002834
+epoch: 47/300, step: 300/1345, d loss: 0.71731, g loss: 0.67654
+epoch: 47/300, step: 600/1345, d loss: 0.74941, g loss: 0.66188
+epoch: 47/300, step: 900/1345, d loss: 0.73820, g loss: 0.63101
+epoch: 47/300, step: 1200/1345, d loss: 0.69452, g loss: 0.76282
+d lr: 0.000002936, g lr: 0.000002692
+epoch: 48/300, step: 300/1345, d loss: 0.70719, g loss: 0.66605
+epoch: 48/300, step: 600/1345, d loss: 0.72443, g loss: 0.70083
+epoch: 48/300, step: 900/1345, d loss: 0.71145, g loss: 0.72665
+epoch: 48/300, step: 1200/1345, d loss: 0.75125, g loss: 0.68897
+d lr: 0.000002819, g lr: 0.000002558
+epoch: 49/300, step: 300/1345, d loss: 0.71912, g loss: 0.68146
+epoch: 49/300, step: 600/1345, d loss: 0.70817, g loss: 0.71842
+epoch: 49/300, step: 900/1345, d loss: 0.68017, g loss: 0.76352
+epoch: 49/300, step: 1200/1345, d loss: 0.70240, g loss: 0.74238
+d lr: 0.000002706, g lr: 0.000002430
+epoch: 50/300, step: 300/1345, d loss: 0.72915, g loss: 0.69804
+epoch: 50/300, step: 600/1345, d loss: 0.70394, g loss: 0.70988
+epoch: 50/300, step: 900/1345, d loss: 0.72472, g loss: 0.69579
+epoch: 50/300, step: 1200/1345, d loss: 0.70846, g loss: 0.69554
+d lr: 0.000002598, g lr: 0.000002308
+epoch: 51/300, step: 300/1345, d loss: 0.71740, g loss: 0.65481
+epoch: 51/300, step: 600/1345, d loss: 0.69460, g loss: 0.67723
+epoch: 51/300, step: 900/1345, d loss: 0.70065, g loss: 0.67366
+epoch: 51/300, step: 1200/1345, d loss: 0.68546, g loss: 0.68194
+d lr: 0.000002494, g lr: 0.000002193
+epoch: 52/300, step: 300/1345, d loss: 0.67834, g loss: 0.79995
+epoch: 52/300, step: 600/1345, d loss: 0.71583, g loss: 0.67024
+epoch: 52/300, step: 900/1345, d loss: 0.72147, g loss: 0.73508
+epoch: 52/300, step: 1200/1345, d loss: 0.68831, g loss: 0.73431
+d lr: 0.000002394, g lr: 0.000002083
+epoch: 53/300, step: 300/1345, d loss: 0.71771, g loss: 0.71761
+epoch: 53/300, step: 600/1345, d loss: 0.65828, g loss: 0.76479
+epoch: 53/300, step: 900/1345, d loss: 0.69978, g loss: 0.69216
+epoch: 53/300, step: 1200/1345, d loss: 0.67617, g loss: 0.75081
+d lr: 0.000002298, g lr: 0.000001979
+epoch: 54/300, step: 300/1345, d loss: 0.69298, g loss: 0.69832
+epoch: 54/300, step: 600/1345, d loss: 0.71245, g loss: 0.63012
+epoch: 54/300, step: 900/1345, d loss: 0.67943, g loss: 0.76256
+epoch: 54/300, step: 1200/1345, d loss: 0.69322, g loss: 0.73441
+d lr: 0.000002206, g lr: 0.000001880
+epoch: 55/300, step: 300/1345, d loss: 0.74515, g loss: 0.65948
+epoch: 55/300, step: 600/1345, d loss: 0.68482, g loss: 0.77663
+epoch: 55/300, step: 900/1345, d loss: 0.70984, g loss: 0.72049
+epoch: 55/300, step: 1200/1345, d loss: 0.67628, g loss: 0.72347
+d lr: 0.000002118, g lr: 0.000001786
+epoch: 56/300, step: 300/1345, d loss: 0.69779, g loss: 0.66028
+epoch: 56/300, step: 600/1345, d loss: 0.67835, g loss: 0.73384
+epoch: 56/300, step: 900/1345, d loss: 0.70231, g loss: 0.70147
+epoch: 56/300, step: 1200/1345, d loss: 0.68964, g loss: 0.69372
+d lr: 0.000002033, g lr: 0.000001697
+epoch: 57/300, step: 300/1345, d loss: 0.69818, g loss: 0.67518
+epoch: 57/300, step: 600/1345, d loss: 0.69324, g loss: 0.67840
+epoch: 57/300, step: 900/1345, d loss: 0.68942, g loss: 0.68648
+epoch: 57/300, step: 1200/1345, d loss: 0.71293, g loss: 0.62738
+d lr: 0.000001952, g lr: 0.000001612
+epoch: 58/300, step: 300/1345, d loss: 0.71753, g loss: 0.64496
+epoch: 58/300, step: 600/1345, d loss: 0.70419, g loss: 0.70714
+epoch: 58/300, step: 900/1345, d loss: 0.74288, g loss: 0.65208
+epoch: 58/300, step: 1200/1345, d loss: 0.71028, g loss: 0.75274
+d lr: 0.000001874, g lr: 0.000001531
+epoch: 59/300, step: 300/1345, d loss: 0.71063, g loss: 0.69210
+epoch: 59/300, step: 600/1345, d loss: 0.67618, g loss: 0.72382
+epoch: 59/300, step: 900/1345, d loss: 0.69331, g loss: 0.72120
+epoch: 59/300, step: 1200/1345, d loss: 0.72815, g loss: 0.65965
+d lr: 0.000001799, g lr: 0.000001455
+epoch: 60/300, step: 300/1345, d loss: 0.71013, g loss: 0.69343
+epoch: 60/300, step: 600/1345, d loss: 0.69580, g loss: 0.72007
+epoch: 60/300, step: 900/1345, d loss: 0.69789, g loss: 0.69996
+epoch: 60/300, step: 1200/1345, d loss: 0.70234, g loss: 0.70937
+d lr: 0.000001727, g lr: 0.000001382
+epoch: 61/300, step: 300/1345, d loss: 0.72740, g loss: 0.69294
+epoch: 61/300, step: 600/1345, d loss: 0.73831, g loss: 0.72391
+epoch: 61/300, step: 900/1345, d loss: 0.71705, g loss: 0.72386
+epoch: 61/300, step: 1200/1345, d loss: 0.72024, g loss: 0.67327
+d lr: 0.000001658, g lr: 0.000001313
+epoch: 62/300, step: 300/1345, d loss: 0.70306, g loss: 0.74090
+epoch: 62/300, step: 600/1345, d loss: 0.70333, g loss: 0.64150
+epoch: 62/300, step: 900/1345, d loss: 0.70096, g loss: 0.71934
+epoch: 62/300, step: 1200/1345, d loss: 0.71362, g loss: 0.70180
+d lr: 0.000001592, g lr: 0.000001247
+epoch: 63/300, step: 300/1345, d loss: 0.71028, g loss: 0.71869
+epoch: 63/300, step: 600/1345, d loss: 0.71199, g loss: 0.68832
+epoch: 63/300, step: 900/1345, d loss: 0.69829, g loss: 0.66307
+epoch: 63/300, step: 1200/1345, d loss: 0.70059, g loss: 0.73238
+d lr: 0.000001528, g lr: 0.000001185
+epoch: 64/300, step: 300/1345, d loss: 0.72022, g loss: 0.72884
+epoch: 64/300, step: 600/1345, d loss: 0.69984, g loss: 0.73146
+epoch: 64/300, step: 900/1345, d loss: 0.71263, g loss: 0.70011
+epoch: 64/300, step: 1200/1345, d loss: 0.69798, g loss: 0.72839
+d lr: 0.000001467, g lr: 0.000001126
+epoch: 65/300, step: 300/1345, d loss: 0.71360, g loss: 0.69528
+epoch: 65/300, step: 600/1345, d loss: 0.71924, g loss: 0.72169
+epoch: 65/300, step: 900/1345, d loss: 0.71047, g loss: 0.70246
+epoch: 65/300, step: 1200/1345, d loss: 0.70457, g loss: 0.63129
+d lr: 0.000001408, g lr: 0.000001069
+epoch: 66/300, step: 300/1345, d loss: 0.73622, g loss: 0.62848
+epoch: 66/300, step: 600/1345, d loss: 0.70490, g loss: 0.67122
+epoch: 66/300, step: 900/1345, d loss: 0.68713, g loss: 0.70617
+epoch: 66/300, step: 1200/1345, d loss: 0.69532, g loss: 0.69049
+d lr: 0.000001352, g lr: 0.000001016
+epoch: 67/300, step: 300/1345, d loss: 0.70046, g loss: 0.71823
+epoch: 67/300, step: 600/1345, d loss: 0.72849, g loss: 0.68053
+epoch: 67/300, step: 900/1345, d loss: 0.70215, g loss: 0.66473
+epoch: 67/300, step: 1200/1345, d loss: 0.69996, g loss: 0.65444
+d lr: 0.000001298, g lr: 0.000000965
+epoch: 68/300, step: 300/1345, d loss: 0.72305, g loss: 0.70700
+epoch: 68/300, step: 600/1345, d loss: 0.71431, g loss: 0.65628
+epoch: 68/300, step: 900/1345, d loss: 0.71543, g loss: 0.66473
+epoch: 68/300, step: 1200/1345, d loss: 0.73137, g loss: 0.66374
+d lr: 0.000001246, g lr: 0.000000917
+epoch: 69/300, step: 300/1345, d loss: 0.73088, g loss: 0.65797
+epoch: 69/300, step: 600/1345, d loss: 0.67711, g loss: 0.70788
+epoch: 69/300, step: 900/1345, d loss: 0.69184, g loss: 0.69644
+epoch: 69/300, step: 1200/1345, d loss: 0.70687, g loss: 0.71888
+d lr: 0.000001196, g lr: 0.000000871
+epoch: 70/300, step: 300/1345, d loss: 0.68270, g loss: 0.70934
+epoch: 70/300, step: 600/1345, d loss: 0.70272, g loss: 0.70084
+epoch: 70/300, step: 900/1345, d loss: 0.72959, g loss: 0.64288
+epoch: 70/300, step: 1200/1345, d loss: 0.69852, g loss: 0.66142
+d lr: 0.000001148, g lr: 0.000000828
+epoch: 71/300, step: 300/1345, d loss: 0.70128, g loss: 0.70393
+epoch: 71/300, step: 600/1345, d loss: 0.71612, g loss: 0.72606
+epoch: 71/300, step: 900/1345, d loss: 0.66898, g loss: 0.76382
+epoch: 71/300, step: 1200/1345, d loss: 0.69825, g loss: 0.67574
+d lr: 0.000001102, g lr: 0.000000786
+epoch: 72/300, step: 300/1345, d loss: 0.71067, g loss: 0.70654
+epoch: 72/300, step: 600/1345, d loss: 0.71865, g loss: 0.70225
+epoch: 72/300, step: 900/1345, d loss: 0.71107, g loss: 0.69210
+epoch: 72/300, step: 1200/1345, d loss: 0.71871, g loss: 0.68734
+d lr: 0.000001058, g lr: 0.000000747
+epoch: 73/300, step: 300/1345, d loss: 0.70460, g loss: 0.70769
+epoch: 73/300, step: 600/1345, d loss: 0.69091, g loss: 0.67735
+epoch: 73/300, step: 900/1345, d loss: 0.69841, g loss: 0.71519
+epoch: 73/300, step: 1200/1345, d loss: 0.72120, g loss: 0.68691
+d lr: 0.000001016, g lr: 0.000000709
+epoch: 74/300, step: 300/1345, d loss: 0.70892, g loss: 0.69014
+epoch: 74/300, step: 600/1345, d loss: 0.69302, g loss: 0.67775
+epoch: 74/300, step: 900/1345, d loss: 0.70129, g loss: 0.74419
+epoch: 74/300, step: 1200/1345, d loss: 0.67661, g loss: 0.65498
+d lr: 0.000000975, g lr: 0.000000674
+epoch: 75/300, step: 300/1345, d loss: 0.67943, g loss: 0.72729
+epoch: 75/300, step: 600/1345, d loss: 0.71487, g loss: 0.64344
+epoch: 75/300, step: 900/1345, d loss: 0.69786, g loss: 0.68937
+epoch: 75/300, step: 1200/1345, d loss: 0.68715, g loss: 0.69516
+d lr: 0.000000936, g lr: 0.000000640
+epoch: 76/300, step: 300/1345, d loss: 0.70291, g loss: 0.68742
+epoch: 76/300, step: 600/1345, d loss: 0.72765, g loss: 0.69212
+epoch: 76/300, step: 900/1345, d loss: 0.70158, g loss: 0.67409
+epoch: 76/300, step: 1200/1345, d loss: 0.69671, g loss: 0.68289
+d lr: 0.000000899, g lr: 0.000000608
+epoch: 77/300, step: 300/1345, d loss: 0.70694, g loss: 0.67393
+epoch: 77/300, step: 600/1345, d loss: 0.68882, g loss: 0.71121
+epoch: 77/300, step: 900/1345, d loss: 0.70545, g loss: 0.69774
+epoch: 77/300, step: 1200/1345, d loss: 0.70854, g loss: 0.66820
+d lr: 0.000000863, g lr: 0.000000578
+epoch: 78/300, step: 300/1345, d loss: 0.68564, g loss: 0.72214
+epoch: 78/300, step: 600/1345, d loss: 0.69723, g loss: 0.70014
+epoch: 78/300, step: 900/1345, d loss: 0.70183, g loss: 0.69101
+epoch: 78/300, step: 1200/1345, d loss: 0.71084, g loss: 0.68508
+d lr: 0.000000828, g lr: 0.000000549
+epoch: 79/300, step: 300/1345, d loss: 0.68958, g loss: 0.69295
+epoch: 79/300, step: 600/1345, d loss: 0.73850, g loss: 0.66298
+epoch: 79/300, step: 900/1345, d loss: 0.71623, g loss: 0.67139
+epoch: 79/300, step: 1200/1345, d loss: 0.72404, g loss: 0.70809
+d lr: 0.000000795, g lr: 0.000000522
+epoch: 80/300, step: 300/1345, d loss: 0.69336, g loss: 0.69416
+epoch: 80/300, step: 600/1345, d loss: 0.69094, g loss: 0.70877
+epoch: 80/300, step: 900/1345, d loss: 0.71782, g loss: 0.68322
+epoch: 80/300, step: 1200/1345, d loss: 0.71503, g loss: 0.62073
+d lr: 0.000000763, g lr: 0.000000495
+epoch: 81/300, step: 300/1345, d loss: 0.69803, g loss: 0.70983
+epoch: 81/300, step: 600/1345, d loss: 0.70857, g loss: 0.68251
+epoch: 81/300, step: 900/1345, d loss: 0.71930, g loss: 0.66458
+epoch: 81/300, step: 1200/1345, d loss: 0.69980, g loss: 0.68394
+d lr: 0.000000733, g lr: 0.000000471
+epoch: 82/300, step: 300/1345, d loss: 0.72327, g loss: 0.69655
+epoch: 82/300, step: 600/1345, d loss: 0.68106, g loss: 0.74430
+epoch: 82/300, step: 900/1345, d loss: 0.69653, g loss: 0.68333
+epoch: 82/300, step: 1200/1345, d loss: 0.71082, g loss: 0.69017
+d lr: 0.000000704, g lr: 0.000000447
+epoch: 83/300, step: 300/1345, d loss: 0.70241, g loss: 0.71464
+epoch: 83/300, step: 600/1345, d loss: 0.68596, g loss: 0.70289
+epoch: 83/300, step: 900/1345, d loss: 0.71637, g loss: 0.66341
+epoch: 83/300, step: 1200/1345, d loss: 0.69339, g loss: 0.71645
+d lr: 0.000000675, g lr: 0.000000425
+epoch: 84/300, step: 300/1345, d loss: 0.74930, g loss: 0.68821
+epoch: 84/300, step: 600/1345, d loss: 0.73180, g loss: 0.71785
+epoch: 84/300, step: 900/1345, d loss: 0.71270, g loss: 0.67150
+epoch: 84/300, step: 1200/1345, d loss: 0.70409, g loss: 0.68417
+d lr: 0.000000648, g lr: 0.000000404
+epoch: 85/300, step: 300/1345, d loss: 0.70786, g loss: 0.65885
+epoch: 85/300, step: 600/1345, d loss: 0.70610, g loss: 0.69675
+epoch: 85/300, step: 900/1345, d loss: 0.71246, g loss: 0.72116
+epoch: 85/300, step: 1200/1345, d loss: 0.68494, g loss: 0.70156
+d lr: 0.000000622, g lr: 0.000000383
+epoch: 86/300, step: 300/1345, d loss: 0.71135, g loss: 0.72525
+epoch: 86/300, step: 600/1345, d loss: 0.69345, g loss: 0.67615
+epoch: 86/300, step: 900/1345, d loss: 0.71310, g loss: 0.65925
+epoch: 86/300, step: 1200/1345, d loss: 0.69954, g loss: 0.70815
+d lr: 0.000000598, g lr: 0.000000364
+epoch: 87/300, step: 300/1345, d loss: 0.73481, g loss: 0.65789
+epoch: 87/300, step: 600/1345, d loss: 0.70369, g loss: 0.74624
+epoch: 87/300, step: 900/1345, d loss: 0.70696, g loss: 0.65951
+epoch: 87/300, step: 1200/1345, d loss: 0.70992, g loss: 0.65956
+d lr: 0.000000574, g lr: 0.000000346
+epoch: 88/300, step: 300/1345, d loss: 0.69199, g loss: 0.70806
+epoch: 88/300, step: 600/1345, d loss: 0.69437, g loss: 0.67399
+epoch: 88/300, step: 900/1345, d loss: 0.70253, g loss: 0.71626
+epoch: 88/300, step: 1200/1345, d loss: 0.70593, g loss: 0.65276
+d lr: 0.000000551, g lr: 0.000000329
+epoch: 89/300, step: 300/1345, d loss: 0.71860, g loss: 0.74200
+epoch: 89/300, step: 600/1345, d loss: 0.72237, g loss: 0.68693
+epoch: 89/300, step: 900/1345, d loss: 0.69820, g loss: 0.71407
+epoch: 89/300, step: 1200/1345, d loss: 0.70002, g loss: 0.68602
+d lr: 0.000000529, g lr: 0.000000312
+epoch: 90/300, step: 300/1345, d loss: 0.68741, g loss: 0.70631
+epoch: 90/300, step: 600/1345, d loss: 0.68781, g loss: 0.71898
+epoch: 90/300, step: 900/1345, d loss: 0.70949, g loss: 0.77227
+epoch: 90/300, step: 1200/1345, d loss: 0.70238, g loss: 0.72333
+d lr: 0.000000508, g lr: 0.000000297
+epoch: 91/300, step: 300/1345, d loss: 0.69092, g loss: 0.68436
+epoch: 91/300, step: 600/1345, d loss: 0.70919, g loss: 0.71640
+epoch: 91/300, step: 900/1345, d loss: 0.70406, g loss: 0.70417
+epoch: 91/300, step: 1200/1345, d loss: 0.70026, g loss: 0.72195
+d lr: 0.000000487, g lr: 0.000000282
+epoch: 92/300, step: 300/1345, d loss: 0.71963, g loss: 0.67442
+epoch: 92/300, step: 600/1345, d loss: 0.70692, g loss: 0.69626
+epoch: 92/300, step: 900/1345, d loss: 0.69406, g loss: 0.66483
+epoch: 92/300, step: 1200/1345, d loss: 0.71735, g loss: 0.72166
+d lr: 0.000000468, g lr: 0.000000268
+epoch: 93/300, step: 300/1345, d loss: 0.71489, g loss: 0.73396
+epoch: 93/300, step: 600/1345, d loss: 0.71318, g loss: 0.69483
+epoch: 93/300, step: 900/1345, d loss: 0.68595, g loss: 0.73278
+epoch: 93/300, step: 1200/1345, d loss: 0.71104, g loss: 0.72170
+d lr: 0.000000449, g lr: 0.000000254
+epoch: 94/300, step: 300/1345, d loss: 0.69419, g loss: 0.73460
+epoch: 94/300, step: 600/1345, d loss: 0.71331, g loss: 0.71843
+epoch: 94/300, step: 900/1345, d loss: 0.69991, g loss: 0.68716
+epoch: 94/300, step: 1200/1345, d loss: 0.70673, g loss: 0.66852
+d lr: 0.000000431, g lr: 0.000000242
+epoch: 95/300, step: 300/1345, d loss: 0.68152, g loss: 0.75657
+epoch: 95/300, step: 600/1345, d loss: 0.71227, g loss: 0.68657
+epoch: 95/300, step: 900/1345, d loss: 0.71036, g loss: 0.70878
+epoch: 95/300, step: 1200/1345, d loss: 0.69730, g loss: 0.72671
+d lr: 0.000000414, g lr: 0.000000230
+epoch: 96/300, step: 300/1345, d loss: 0.71060, g loss: 0.65416
+epoch: 96/300, step: 600/1345, d loss: 0.69001, g loss: 0.68662
+epoch: 96/300, step: 900/1345, d loss: 0.69361, g loss: 0.72329
+epoch: 96/300, step: 1200/1345, d loss: 0.66614, g loss: 0.74443
+d lr: 0.000000397, g lr: 0.000000218
+epoch: 97/300, step: 300/1345, d loss: 0.68733, g loss: 0.70959
+epoch: 97/300, step: 600/1345, d loss: 0.69209, g loss: 0.69122
+epoch: 97/300, step: 900/1345, d loss: 0.67353, g loss: 0.66937
+epoch: 97/300, step: 1200/1345, d loss: 0.69181, g loss: 0.71308
+d lr: 0.000000381, g lr: 0.000000207
+epoch: 98/300, step: 300/1345, d loss: 0.71260, g loss: 0.70578
+epoch: 98/300, step: 600/1345, d loss: 0.70312, g loss: 0.70909
+epoch: 98/300, step: 900/1345, d loss: 0.70442, g loss: 0.70240
+epoch: 98/300, step: 1200/1345, d loss: 0.69700, g loss: 0.76470
+d lr: 0.000000366, g lr: 0.000000197
+epoch: 99/300, step: 300/1345, d loss: 0.71216, g loss: 0.67251
+epoch: 99/300, step: 600/1345, d loss: 0.70879, g loss: 0.72269
+epoch: 99/300, step: 900/1345, d loss: 0.69465, g loss: 0.66175
+epoch: 99/300, step: 1200/1345, d loss: 0.70414, g loss: 0.64718
+d lr: 0.000000351, g lr: 0.000000187
+epoch: 100/300, step: 300/1345, d loss: 0.71167, g loss: 0.73664
+epoch: 100/300, step: 600/1345, d loss: 0.71046, g loss: 0.78564
+epoch: 100/300, step: 900/1345, d loss: 0.66695, g loss: 0.70411
+epoch: 100/300, step: 1200/1345, d loss: 0.70509, g loss: 0.63692
+d lr: 0.000000337, g lr: 0.000000178
+epoch: 101/300, step: 300/1345, d loss: 0.70553, g loss: 0.69795
+epoch: 101/300, step: 600/1345, d loss: 0.68292, g loss: 0.66552
+epoch: 101/300, step: 900/1345, d loss: 0.71081, g loss: 0.70813
+epoch: 101/300, step: 1200/1345, d loss: 0.71325, g loss: 0.66553
+d lr: 0.000000324, g lr: 0.000000169
+epoch: 102/300, step: 300/1345, d loss: 0.66860, g loss: 0.69482
+epoch: 102/300, step: 600/1345, d loss: 0.67616, g loss: 0.73796
+epoch: 102/300, step: 900/1345, d loss: 0.74206, g loss: 0.71810
+epoch: 102/300, step: 1200/1345, d loss: 0.70384, g loss: 0.68110
+d lr: 0.000000311, g lr: 0.000000160
+epoch: 103/300, step: 300/1345, d loss: 0.71295, g loss: 0.67457
+epoch: 103/300, step: 600/1345, d loss: 0.71783, g loss: 0.70086
+epoch: 103/300, step: 900/1345, d loss: 0.69905, g loss: 0.67884
+epoch: 103/300, step: 1200/1345, d loss: 0.72739, g loss: 0.65724
+d lr: 0.000000299, g lr: 0.000000152
+epoch: 104/300, step: 300/1345, d loss: 0.71687, g loss: 0.64387
+epoch: 104/300, step: 600/1345, d loss: 0.70598, g loss: 0.70923
+epoch: 104/300, step: 900/1345, d loss: 0.71459, g loss: 0.66925
+epoch: 104/300, step: 1200/1345, d loss: 0.71157, g loss: 0.67712
+d lr: 0.000000287, g lr: 0.000000145
+epoch: 105/300, step: 300/1345, d loss: 0.71099, g loss: 0.66953
+epoch: 105/300, step: 600/1345, d loss: 0.68472, g loss: 0.67225
+epoch: 105/300, step: 900/1345, d loss: 0.71090, g loss: 0.77502
+epoch: 105/300, step: 1200/1345, d loss: 0.71673, g loss: 0.72732
+d lr: 0.000000275, g lr: 0.000000137
+epoch: 106/300, step: 300/1345, d loss: 0.70218, g loss: 0.69066
+epoch: 106/300, step: 600/1345, d loss: 0.69750, g loss: 0.73298
+epoch: 106/300, step: 900/1345, d loss: 0.69420, g loss: 0.67440
+epoch: 106/300, step: 1200/1345, d loss: 0.69597, g loss: 0.65749
+d lr: 0.000000264, g lr: 0.000000131
+epoch: 107/300, step: 300/1345, d loss: 0.70512, g loss: 0.66785
+epoch: 107/300, step: 600/1345, d loss: 0.69307, g loss: 0.68413
+epoch: 107/300, step: 900/1345, d loss: 0.70311, g loss: 0.64597
+epoch: 107/300, step: 1200/1345, d loss: 0.72153, g loss: 0.69811
+d lr: 0.000000254, g lr: 0.000000124
+epoch: 108/300, step: 300/1345, d loss: 0.70405, g loss: 0.72439
+epoch: 108/300, step: 600/1345, d loss: 0.68978, g loss: 0.68103
+epoch: 108/300, step: 900/1345, d loss: 0.69704, g loss: 0.73532
+epoch: 108/300, step: 1200/1345, d loss: 0.70324, g loss: 0.71361
+d lr: 0.000000243, g lr: 0.000000118
+epoch: 109/300, step: 300/1345, d loss: 0.70187, g loss: 0.70528
+epoch: 109/300, step: 600/1345, d loss: 0.69380, g loss: 0.73492
+epoch: 109/300, step: 900/1345, d loss: 0.68058, g loss: 0.76420
+epoch: 109/300, step: 1200/1345, d loss: 0.70813, g loss: 0.69622
+d lr: 0.000000234, g lr: 0.000000112
+epoch: 110/300, step: 300/1345, d loss: 0.71067, g loss: 0.71456
+epoch: 110/300, step: 600/1345, d loss: 0.70589, g loss: 0.66753
+epoch: 110/300, step: 900/1345, d loss: 0.66302, g loss: 0.67847
+epoch: 110/300, step: 1200/1345, d loss: 0.68419, g loss: 0.70286
+d lr: 0.000000224, g lr: 0.000000106
+epoch: 111/300, step: 300/1345, d loss: 0.71296, g loss: 0.66649
+epoch: 111/300, step: 600/1345, d loss: 0.70495, g loss: 0.71030
+epoch: 111/300, step: 900/1345, d loss: 0.70875, g loss: 0.62887
+epoch: 111/300, step: 1200/1345, d loss: 0.68173, g loss: 0.69734
+d lr: 0.000000215, g lr: 0.000000101
+epoch: 112/300, step: 300/1345, d loss: 0.68856, g loss: 0.67650
+epoch: 112/300, step: 600/1345, d loss: 0.69665, g loss: 0.71211
+epoch: 112/300, step: 900/1345, d loss: 0.69398, g loss: 0.73634
+epoch: 112/300, step: 1200/1345, d loss: 0.68782, g loss: 0.69733
+d lr: 0.000000207, g lr: 0.000000096
+epoch: 113/300, step: 300/1345, d loss: 0.72629, g loss: 0.68542
+epoch: 113/300, step: 600/1345, d loss: 0.69615, g loss: 0.69484
+epoch: 113/300, step: 900/1345, d loss: 0.69069, g loss: 0.78337
+epoch: 113/300, step: 1200/1345, d loss: 0.67669, g loss: 0.72228
+d lr: 0.000000198, g lr: 0.000000091
+epoch: 114/300, step: 300/1345, d loss: 0.70680, g loss: 0.71019
+epoch: 114/300, step: 600/1345, d loss: 0.69404, g loss: 0.71230
+epoch: 114/300, step: 900/1345, d loss: 0.69984, g loss: 0.73463
+epoch: 114/300, step: 1200/1345, d loss: 0.69543, g loss: 0.69847
+d lr: 0.000000191, g lr: 0.000000087
+epoch: 115/300, step: 300/1345, d loss: 0.69625, g loss: 0.69808
+epoch: 115/300, step: 600/1345, d loss: 0.70655, g loss: 0.68731
+epoch: 115/300, step: 900/1345, d loss: 0.70640, g loss: 0.72720
+epoch: 115/300, step: 1200/1345, d loss: 0.69582, g loss: 0.73174
+d lr: 0.000000183, g lr: 0.000000082
+epoch: 116/300, step: 300/1345, d loss: 0.68214, g loss: 0.66135
+epoch: 116/300, step: 600/1345, d loss: 0.70181, g loss: 0.67129
+epoch: 116/300, step: 900/1345, d loss: 0.68506, g loss: 0.71220
+epoch: 116/300, step: 1200/1345, d loss: 0.67479, g loss: 0.72167
+d lr: 0.000000176, g lr: 0.000000078
+epoch: 117/300, step: 300/1345, d loss: 0.69876, g loss: 0.68429
+epoch: 117/300, step: 600/1345, d loss: 0.69983, g loss: 0.72329
+epoch: 117/300, step: 900/1345, d loss: 0.71542, g loss: 0.66437
+epoch: 117/300, step: 1200/1345, d loss: 0.68916, g loss: 0.71766
+d lr: 0.000000169, g lr: 0.000000074
+epoch: 118/300, step: 300/1345, d loss: 0.69508, g loss: 0.68193
+epoch: 118/300, step: 600/1345, d loss: 0.69268, g loss: 0.70183
+epoch: 118/300, step: 900/1345, d loss: 0.70021, g loss: 0.70455
+epoch: 118/300, step: 1200/1345, d loss: 0.68724, g loss: 0.71732
+d lr: 0.000000162, g lr: 0.000000071
+epoch: 119/300, step: 300/1345, d loss: 0.67860, g loss: 0.71325
+epoch: 119/300, step: 600/1345, d loss: 0.71290, g loss: 0.66698
+epoch: 119/300, step: 900/1345, d loss: 0.70698, g loss: 0.73173
+epoch: 119/300, step: 1200/1345, d loss: 0.71263, g loss: 0.69478
+d lr: 0.000000155, g lr: 0.000000067
+epoch: 120/300, step: 300/1345, d loss: 0.69789, g loss: 0.67851
+epoch: 120/300, step: 600/1345, d loss: 0.70156, g loss: 0.69072
+epoch: 120/300, step: 900/1345, d loss: 0.68560, g loss: 0.71297
+epoch: 120/300, step: 1200/1345, d loss: 0.69102, g loss: 0.74719
+d lr: 0.000000149, g lr: 0.000000064
+epoch: 121/300, step: 300/1345, d loss: 0.68566, g loss: 0.71593
+epoch: 121/300, step: 600/1345, d loss: 0.67426, g loss: 0.68785
+epoch: 121/300, step: 900/1345, d loss: 0.68616, g loss: 0.68134
+epoch: 121/300, step: 1200/1345, d loss: 0.69143, g loss: 0.72287
+d lr: 0.000000143, g lr: 0.000000060
+epoch: 122/300, step: 300/1345, d loss: 0.69753, g loss: 0.71149
+epoch: 122/300, step: 600/1345, d loss: 0.69063, g loss: 0.70157
+epoch: 122/300, step: 900/1345, d loss: 0.67943, g loss: 0.68646
+epoch: 122/300, step: 1200/1345, d loss: 0.69951, g loss: 0.74013
+d lr: 0.000000137, g lr: 0.000000057
+epoch: 123/300, step: 300/1345, d loss: 0.69809, g loss: 0.68964
+epoch: 123/300, step: 600/1345, d loss: 0.68557, g loss: 0.73713
+epoch: 123/300, step: 900/1345, d loss: 0.68802, g loss: 0.68930
+epoch: 123/300, step: 1200/1345, d loss: 0.68695, g loss: 0.69454
+d lr: 0.000000132, g lr: 0.000000055
+epoch: 124/300, step: 300/1345, d loss: 0.68556, g loss: 0.72714
+epoch: 124/300, step: 600/1345, d loss: 0.67988, g loss: 0.71667
+epoch: 124/300, step: 900/1345, d loss: 0.67929, g loss: 0.75922
+epoch: 124/300, step: 1200/1345, d loss: 0.69284, g loss: 0.71936
+d lr: 0.000000127, g lr: 0.000000052
+epoch: 125/300, step: 300/1345, d loss: 0.70239, g loss: 0.71721
+epoch: 125/300, step: 600/1345, d loss: 0.69915, g loss: 0.68398
+epoch: 125/300, step: 900/1345, d loss: 0.68558, g loss: 0.75923
+epoch: 125/300, step: 1200/1345, d loss: 0.67840, g loss: 0.73757
+d lr: 0.000000122, g lr: 0.000000049
+epoch: 126/300, step: 300/1345, d loss: 0.67832, g loss: 0.74781
+epoch: 126/300, step: 600/1345, d loss: 0.69278, g loss: 0.71782
+epoch: 126/300, step: 900/1345, d loss: 0.67333, g loss: 0.71213
+epoch: 126/300, step: 1200/1345, d loss: 0.69766, g loss: 0.71668
+d lr: 0.000000117, g lr: 0.000000047
+epoch: 127/300, step: 300/1345, d loss: 0.68805, g loss: 0.72385
+epoch: 127/300, step: 600/1345, d loss: 0.66526, g loss: 0.74267
+epoch: 127/300, step: 900/1345, d loss: 0.69284, g loss: 0.69461
+epoch: 127/300, step: 1200/1345, d loss: 0.69781, g loss: 0.67747
+d lr: 0.000000112, g lr: 0.000000044
+epoch: 128/300, step: 300/1345, d loss: 0.70948, g loss: 0.65387
+epoch: 128/300, step: 600/1345, d loss: 0.69321, g loss: 0.68299
+epoch: 128/300, step: 900/1345, d loss: 0.69261, g loss: 0.72178
+epoch: 128/300, step: 1200/1345, d loss: 0.69353, g loss: 0.71001
+d lr: 0.000000108, g lr: 0.000000042
+epoch: 129/300, step: 300/1345, d loss: 0.68910, g loss: 0.69968
+epoch: 129/300, step: 600/1345, d loss: 0.69588, g loss: 0.72807
+epoch: 129/300, step: 900/1345, d loss: 0.70275, g loss: 0.69444
+epoch: 129/300, step: 1200/1345, d loss: 0.68919, g loss: 0.65736
+d lr: 0.000000103, g lr: 0.000000040
+epoch: 130/300, step: 300/1345, d loss: 0.68844, g loss: 0.73556
+epoch: 130/300, step: 600/1345, d loss: 0.68949, g loss: 0.72687
+epoch: 130/300, step: 900/1345, d loss: 0.68801, g loss: 0.67342
+epoch: 130/300, step: 1200/1345, d loss: 0.67185, g loss: 0.74083
+d lr: 0.000000099, g lr: 0.000000038
+epoch: 131/300, step: 300/1345, d loss: 0.68200, g loss: 0.74360
+epoch: 131/300, step: 600/1345, d loss: 0.68655, g loss: 0.68199
+epoch: 131/300, step: 900/1345, d loss: 0.70317, g loss: 0.72269
+epoch: 131/300, step: 1200/1345, d loss: 0.70127, g loss: 0.70128
+d lr: 0.000000095, g lr: 0.000000036
+epoch: 132/300, step: 300/1345, d loss: 0.70647, g loss: 0.71043
+epoch: 132/300, step: 600/1345, d loss: 0.68583, g loss: 0.75639
+epoch: 132/300, step: 900/1345, d loss: 0.70844, g loss: 0.63890
+epoch: 132/300, step: 1200/1345, d loss: 0.67502, g loss: 0.74993
+d lr: 0.000000091, g lr: 0.000000034
+epoch: 133/300, step: 300/1345, d loss: 0.67434, g loss: 0.70946
+epoch: 133/300, step: 600/1345, d loss: 0.71897, g loss: 0.76712
+epoch: 133/300, step: 900/1345, d loss: 0.68522, g loss: 0.73302
+epoch: 133/300, step: 1200/1345, d loss: 0.69257, g loss: 0.71082
+d lr: 0.000000088, g lr: 0.000000033
+epoch: 134/300, step: 300/1345, d loss: 0.70325, g loss: 0.66786
+epoch: 134/300, step: 600/1345, d loss: 0.69096, g loss: 0.77228
+epoch: 134/300, step: 900/1345, d loss: 0.69300, g loss: 0.75204
+epoch: 134/300, step: 1200/1345, d loss: 0.69441, g loss: 0.70431
+d lr: 0.000000084, g lr: 0.000000031
+epoch: 135/300, step: 300/1345, d loss: 0.69618, g loss: 0.70977
+epoch: 135/300, step: 600/1345, d loss: 0.68931, g loss: 0.72645
+epoch: 135/300, step: 900/1345, d loss: 0.70934, g loss: 0.68691
+epoch: 135/300, step: 1200/1345, d loss: 0.70560, g loss: 0.72974
+d lr: 0.000000081, g lr: 0.000000029
+epoch: 136/300, step: 300/1345, d loss: 0.66886, g loss: 0.74803
+epoch: 136/300, step: 600/1345, d loss: 0.70820, g loss: 0.75620
+epoch: 136/300, step: 900/1345, d loss: 0.69272, g loss: 0.75990
+epoch: 136/300, step: 1200/1345, d loss: 0.72258, g loss: 0.67284
+d lr: 0.000000078, g lr: 0.000000028
+epoch: 137/300, step: 300/1345, d loss: 0.68622, g loss: 0.73149
+epoch: 137/300, step: 600/1345, d loss: 0.71495, g loss: 0.69912
+epoch: 137/300, step: 900/1345, d loss: 0.67989, g loss: 0.69842
+epoch: 137/300, step: 1200/1345, d loss: 0.69971, g loss: 0.71278
+d lr: 0.000000075, g lr: 0.000000027
+epoch: 138/300, step: 300/1345, d loss: 0.68736, g loss: 0.73015
+epoch: 138/300, step: 600/1345, d loss: 0.70955, g loss: 0.71650
+epoch: 138/300, step: 900/1345, d loss: 0.68224, g loss: 0.64802
+epoch: 138/300, step: 1200/1345, d loss: 0.71792, g loss: 0.70012
+d lr: 0.000000072, g lr: 0.000000025
+epoch: 139/300, step: 300/1345, d loss: 0.69302, g loss: 0.67816
+epoch: 139/300, step: 600/1345, d loss: 0.69213, g loss: 0.74614
+epoch: 139/300, step: 900/1345, d loss: 0.71144, g loss: 0.70373
+epoch: 139/300, step: 1200/1345, d loss: 0.69346, g loss: 0.66617
+d lr: 0.000000069, g lr: 0.000000024
+epoch: 140/300, step: 300/1345, d loss: 0.68677, g loss: 0.76034
+epoch: 140/300, step: 600/1345, d loss: 0.69062, g loss: 0.69706
+epoch: 140/300, step: 900/1345, d loss: 0.69072, g loss: 0.66003
+epoch: 140/300, step: 1200/1345, d loss: 0.70314, g loss: 0.71605
+d lr: 0.000000066, g lr: 0.000000023
+epoch: 141/300, step: 300/1345, d loss: 0.69151, g loss: 0.74411
+epoch: 141/300, step: 600/1345, d loss: 0.68558, g loss: 0.70171
+epoch: 141/300, step: 900/1345, d loss: 0.69162, g loss: 0.72157
+epoch: 141/300, step: 1200/1345, d loss: 0.70959, g loss: 0.69351
+d lr: 0.000000063, g lr: 0.000000022
+epoch: 142/300, step: 300/1345, d loss: 0.70266, g loss: 0.67929
+epoch: 142/300, step: 600/1345, d loss: 0.68854, g loss: 0.71829
+epoch: 142/300, step: 900/1345, d loss: 0.66830, g loss: 0.71578
+epoch: 142/300, step: 1200/1345, d loss: 0.69363, g loss: 0.66581
+d lr: 0.000000061, g lr: 0.000000021
+epoch: 143/300, step: 300/1345, d loss: 0.70205, g loss: 0.70266
+epoch: 143/300, step: 600/1345, d loss: 0.68730, g loss: 0.71234
+epoch: 143/300, step: 900/1345, d loss: 0.65884, g loss: 0.72966
+epoch: 143/300, step: 1200/1345, d loss: 0.68726, g loss: 0.75208
+d lr: 0.000000058, g lr: 0.000000020
+epoch: 144/300, step: 300/1345, d loss: 0.71817, g loss: 0.69406
+epoch: 144/300, step: 600/1345, d loss: 0.69066, g loss: 0.72677
+epoch: 144/300, step: 900/1345, d loss: 0.68891, g loss: 0.67158
+epoch: 144/300, step: 1200/1345, d loss: 0.69722, g loss: 0.72685
+d lr: 0.000000056, g lr: 0.000000019
+epoch: 145/300, step: 300/1345, d loss: 0.68133, g loss: 0.76377
+epoch: 145/300, step: 600/1345, d loss: 0.69473, g loss: 0.71272
+epoch: 145/300, step: 900/1345, d loss: 0.70091, g loss: 0.75926
+epoch: 145/300, step: 1200/1345, d loss: 0.71171, g loss: 0.72390
+d lr: 0.000000054, g lr: 0.000000018
+epoch: 146/300, step: 300/1345, d loss: 0.71259, g loss: 0.66905
+epoch: 146/300, step: 600/1345, d loss: 0.69474, g loss: 0.76103
+epoch: 146/300, step: 900/1345, d loss: 0.70769, g loss: 0.67706
+epoch: 146/300, step: 1200/1345, d loss: 0.68132, g loss: 0.79136
+d lr: 0.000000052, g lr: 0.000000017
+epoch: 147/300, step: 300/1345, d loss: 0.68574, g loss: 0.72536
+epoch: 147/300, step: 600/1345, d loss: 0.68986, g loss: 0.75243
+epoch: 147/300, step: 900/1345, d loss: 0.70142, g loss: 0.64213
+epoch: 147/300, step: 1200/1345, d loss: 0.67191, g loss: 0.70720
+d lr: 0.000000050, g lr: 0.000000016
+epoch: 148/300, step: 300/1345, d loss: 0.69667, g loss: 0.67919
+epoch: 148/300, step: 600/1345, d loss: 0.70649, g loss: 0.71254
+epoch: 148/300, step: 900/1345, d loss: 0.68730, g loss: 0.70804
+epoch: 148/300, step: 1200/1345, d loss: 0.70806, g loss: 0.73460
+d lr: 0.000000048, g lr: 0.000000015
+epoch: 149/300, step: 300/1345, d loss: 0.69067, g loss: 0.70118
+epoch: 149/300, step: 600/1345, d loss: 0.69980, g loss: 0.67629
+epoch: 149/300, step: 900/1345, d loss: 0.71343, g loss: 0.71545
+epoch: 149/300, step: 1200/1345, d loss: 0.70057, g loss: 0.69650
+d lr: 0.000000046, g lr: 0.000000014
+epoch: 150/300, step: 300/1345, d loss: 0.68694, g loss: 0.73266
+epoch: 150/300, step: 600/1345, d loss: 0.69064, g loss: 0.69909
+epoch: 150/300, step: 900/1345, d loss: 0.67283, g loss: 0.68259
+epoch: 150/300, step: 1200/1345, d loss: 0.69237, g loss: 0.70046
+d lr: 0.000000044, g lr: 0.000000014
+epoch: 151/300, step: 300/1345, d loss: 0.69409, g loss: 0.73225
+epoch: 151/300, step: 600/1345, d loss: 0.69696, g loss: 0.69929
+epoch: 151/300, step: 900/1345, d loss: 0.70325, g loss: 0.71217
+epoch: 151/300, step: 1200/1345, d loss: 0.72290, g loss: 0.65459
+d lr: 0.000000042, g lr: 0.000000013
+epoch: 152/300, step: 300/1345, d loss: 0.70020, g loss: 0.69818
+epoch: 152/300, step: 600/1345, d loss: 0.66703, g loss: 0.77055
+epoch: 152/300, step: 900/1345, d loss: 0.67379, g loss: 0.70861
+epoch: 152/300, step: 1200/1345, d loss: 0.68678, g loss: 0.68686
+d lr: 0.000000040, g lr: 0.000000012
+epoch: 153/300, step: 300/1345, d loss: 0.70302, g loss: 0.69593
+epoch: 153/300, step: 600/1345, d loss: 0.68320, g loss: 0.70233
+epoch: 153/300, step: 900/1345, d loss: 0.69609, g loss: 0.64452
+epoch: 153/300, step: 1200/1345, d loss: 0.68081, g loss: 0.67603
+d lr: 0.000000039, g lr: 0.000000012
+epoch: 154/300, step: 300/1345, d loss: 0.68138, g loss: 0.72722
+epoch: 154/300, step: 600/1345, d loss: 0.68051, g loss: 0.71127
+epoch: 154/300, step: 900/1345, d loss: 0.68405, g loss: 0.74267
+epoch: 154/300, step: 1200/1345, d loss: 0.69031, g loss: 0.71521
+d lr: 0.000000037, g lr: 0.000000011
+epoch: 155/300, step: 300/1345, d loss: 0.68175, g loss: 0.75445
+epoch: 155/300, step: 600/1345, d loss: 0.71910, g loss: 0.65910
+epoch: 155/300, step: 900/1345, d loss: 0.70858, g loss: 0.67428
+epoch: 155/300, step: 1200/1345, d loss: 0.69593, g loss: 0.74839
+d lr: 0.000000036, g lr: 0.000000011
+epoch: 156/300, step: 300/1345, d loss: 0.67136, g loss: 0.69358
+epoch: 156/300, step: 600/1345, d loss: 0.69970, g loss: 0.67480
+epoch: 156/300, step: 900/1345, d loss: 0.68520, g loss: 0.69102
+epoch: 156/300, step: 1200/1345, d loss: 0.70037, g loss: 0.73016
+d lr: 0.000000034, g lr: 0.000000010
+epoch: 157/300, step: 300/1345, d loss: 0.68492, g loss: 0.74487
+epoch: 157/300, step: 600/1345, d loss: 0.69920, g loss: 0.70056
+epoch: 157/300, step: 900/1345, d loss: 0.70152, g loss: 0.70616
+epoch: 157/300, step: 1200/1345, d loss: 0.69692, g loss: 0.69212
+d lr: 0.000000033, g lr: 0.000000010
+epoch: 158/300, step: 300/1345, d loss: 0.66987, g loss: 0.73035
+epoch: 158/300, step: 600/1345, d loss: 0.69741, g loss: 0.71761
+epoch: 158/300, step: 900/1345, d loss: 0.69323, g loss: 0.72970
+epoch: 158/300, step: 1200/1345, d loss: 0.67491, g loss: 0.74012
+d lr: 0.000000032, g lr: 0.000000009
+epoch: 159/300, step: 300/1345, d loss: 0.72222, g loss: 0.68712
+epoch: 159/300, step: 600/1345, d loss: 0.67208, g loss: 0.75510
+epoch: 159/300, step: 900/1345, d loss: 0.68945, g loss: 0.73167
+epoch: 159/300, step: 1200/1345, d loss: 0.73867, g loss: 0.70870
+d lr: 0.000000030, g lr: 0.000000009
+epoch: 160/300, step: 300/1345, d loss: 0.68800, g loss: 0.72070
+epoch: 160/300, step: 600/1345, d loss: 0.66784, g loss: 0.72342
+epoch: 160/300, step: 900/1345, d loss: 0.69576, g loss: 0.69015
+epoch: 160/300, step: 1200/1345, d loss: 0.70706, g loss: 0.70874
+d lr: 0.000000029, g lr: 0.000000008
+epoch: 161/300, step: 300/1345, d loss: 0.68080, g loss: 0.70588
+epoch: 161/300, step: 600/1345, d loss: 0.71217, g loss: 0.68508
+epoch: 161/300, step: 900/1345, d loss: 0.65331, g loss: 0.74192
+epoch: 161/300, step: 1200/1345, d loss: 0.70753, g loss: 0.71031
+d lr: 0.000000028, g lr: 0.000000008
+epoch: 162/300, step: 300/1345, d loss: 0.68965, g loss: 0.74700
+epoch: 162/300, step: 600/1345, d loss: 0.66491, g loss: 0.74605
+epoch: 162/300, step: 900/1345, d loss: 0.68739, g loss: 0.68362
+epoch: 162/300, step: 1200/1345, d loss: 0.68509, g loss: 0.66955
+d lr: 0.000000027, g lr: 0.000000007
+epoch: 163/300, step: 300/1345, d loss: 0.68915, g loss: 0.65811
+epoch: 163/300, step: 600/1345, d loss: 0.68376, g loss: 0.71543
+epoch: 163/300, step: 900/1345, d loss: 0.66618, g loss: 0.72309
+epoch: 163/300, step: 1200/1345, d loss: 0.68785, g loss: 0.66420
+d lr: 0.000000026, g lr: 0.000000007
+epoch: 164/300, step: 300/1345, d loss: 0.68520, g loss: 0.77917
+epoch: 164/300, step: 600/1345, d loss: 0.67721, g loss: 0.76674
+epoch: 164/300, step: 900/1345, d loss: 0.66469, g loss: 0.74994
+epoch: 164/300, step: 1200/1345, d loss: 0.71508, g loss: 0.68608
+d lr: 0.000000025, g lr: 0.000000007
+epoch: 165/300, step: 300/1345, d loss: 0.68043, g loss: 0.70114
+epoch: 165/300, step: 600/1345, d loss: 0.69708, g loss: 0.69625
+epoch: 165/300, step: 900/1345, d loss: 0.67781, g loss: 0.72935
+epoch: 165/300, step: 1200/1345, d loss: 0.68208, g loss: 0.71330
+d lr: 0.000000024, g lr: 0.000000006
+epoch: 166/300, step: 300/1345, d loss: 0.69733, g loss: 0.69973
+epoch: 166/300, step: 600/1345, d loss: 0.72029, g loss: 0.66852
+epoch: 166/300, step: 900/1345, d loss: 0.68028, g loss: 0.70152
+epoch: 166/300, step: 1200/1345, d loss: 0.66666, g loss: 0.72027
+d lr: 0.000000023, g lr: 0.000000006
+epoch: 167/300, step: 300/1345, d loss: 0.68660, g loss: 0.72952
+epoch: 167/300, step: 600/1345, d loss: 0.71151, g loss: 0.73884
+epoch: 167/300, step: 900/1345, d loss: 0.67549, g loss: 0.70502
+epoch: 167/300, step: 1200/1345, d loss: 0.68285, g loss: 0.69802
+d lr: 0.000000022, g lr: 0.000000006
+epoch: 168/300, step: 300/1345, d loss: 0.66491, g loss: 0.73933
+epoch: 168/300, step: 600/1345, d loss: 0.66653, g loss: 0.70781
+epoch: 168/300, step: 900/1345, d loss: 0.69771, g loss: 0.73149
+epoch: 168/300, step: 1200/1345, d loss: 0.68552, g loss: 0.71926
+d lr: 0.000000021, g lr: 0.000000005
+epoch: 169/300, step: 300/1345, d loss: 0.69582, g loss: 0.70443
+epoch: 169/300, step: 600/1345, d loss: 0.70396, g loss: 0.69508
+epoch: 169/300, step: 900/1345, d loss: 0.69645, g loss: 0.65440
+epoch: 169/300, step: 1200/1345, d loss: 0.70046, g loss: 0.67679
+d lr: 0.000000020, g lr: 0.000000005
+epoch: 170/300, step: 300/1345, d loss: 0.70328, g loss: 0.70662
+epoch: 170/300, step: 600/1345, d loss: 0.69607, g loss: 0.70878
+epoch: 170/300, step: 900/1345, d loss: 0.67100, g loss: 0.73881
+epoch: 170/300, step: 1200/1345, d loss: 0.68549, g loss: 0.65258
+d lr: 0.000000019, g lr: 0.000000005
+epoch: 171/300, step: 300/1345, d loss: 0.69236, g loss: 0.77809
+epoch: 171/300, step: 600/1345, d loss: 0.68514, g loss: 0.69386
+epoch: 171/300, step: 900/1345, d loss: 0.67798, g loss: 0.68251
+epoch: 171/300, step: 1200/1345, d loss: 0.67926, g loss: 0.76113
+d lr: 0.000000019, g lr: 0.000000005
+epoch: 172/300, step: 300/1345, d loss: 0.68859, g loss: 0.70370
+epoch: 172/300, step: 600/1345, d loss: 0.69313, g loss: 0.71257
+epoch: 172/300, step: 900/1345, d loss: 0.68229, g loss: 0.74454
+epoch: 172/300, step: 1200/1345, d loss: 0.71591, g loss: 0.68309
+d lr: 0.000000018, g lr: 0.000000004
+epoch: 173/300, step: 300/1345, d loss: 0.70760, g loss: 0.72359
+epoch: 173/300, step: 600/1345, d loss: 0.70097, g loss: 0.72599
+epoch: 173/300, step: 900/1345, d loss: 0.70056, g loss: 0.66450
+epoch: 173/300, step: 1200/1345, d loss: 0.69904, g loss: 0.70967
+d lr: 0.000000017, g lr: 0.000000004
+epoch: 174/300, step: 300/1345, d loss: 0.68781, g loss: 0.76529
+epoch: 174/300, step: 600/1345, d loss: 0.70086, g loss: 0.72660
+epoch: 174/300, step: 900/1345, d loss: 0.68384, g loss: 0.75516
+epoch: 174/300, step: 1200/1345, d loss: 0.68727, g loss: 0.70716
+d lr: 0.000000016, g lr: 0.000000004
+epoch: 175/300, step: 300/1345, d loss: 0.66872, g loss: 0.75190
+epoch: 175/300, step: 600/1345, d loss: 0.70471, g loss: 0.67965
+epoch: 175/300, step: 900/1345, d loss: 0.67924, g loss: 0.70216
+epoch: 175/300, step: 1200/1345, d loss: 0.68535, g loss: 0.69762
+d lr: 0.000000016, g lr: 0.000000004
+epoch: 176/300, step: 300/1345, d loss: 0.68165, g loss: 0.69508
+epoch: 176/300, step: 600/1345, d loss: 0.67809, g loss: 0.68703
+epoch: 176/300, step: 900/1345, d loss: 0.70431, g loss: 0.65568
+epoch: 176/300, step: 1200/1345, d loss: 0.68253, g loss: 0.69772
+d lr: 0.000000015, g lr: 0.000000004
+epoch: 177/300, step: 300/1345, d loss: 0.69787, g loss: 0.72505
+epoch: 177/300, step: 600/1345, d loss: 0.69410, g loss: 0.70382
+epoch: 177/300, step: 900/1345, d loss: 0.68798, g loss: 0.70255
+epoch: 177/300, step: 1200/1345, d loss: 0.68801, g loss: 0.69199
+d lr: 0.000000015, g lr: 0.000000003
+epoch: 178/300, step: 300/1345, d loss: 0.67171, g loss: 0.69655
+epoch: 178/300, step: 600/1345, d loss: 0.65715, g loss: 0.74878
+epoch: 178/300, step: 900/1345, d loss: 0.69138, g loss: 0.70102
+epoch: 178/300, step: 1200/1345, d loss: 0.69637, g loss: 0.76027
+d lr: 0.000000014, g lr: 0.000000003
+epoch: 179/300, step: 300/1345, d loss: 0.70609, g loss: 0.65978
+epoch: 179/300, step: 600/1345, d loss: 0.68846, g loss: 0.70455
+epoch: 179/300, step: 900/1345, d loss: 0.69470, g loss: 0.65699
+epoch: 179/300, step: 1200/1345, d loss: 0.68772, g loss: 0.66161
+d lr: 0.000000013, g lr: 0.000000003
+epoch: 180/300, step: 300/1345, d loss: 0.71322, g loss: 0.66707
+epoch: 180/300, step: 600/1345, d loss: 0.72217, g loss: 0.67478
+epoch: 180/300, step: 900/1345, d loss: 0.70205, g loss: 0.71241
+epoch: 180/300, step: 1200/1345, d loss: 0.71087, g loss: 0.66297
+d lr: 0.000000013, g lr: 0.000000003
+epoch: 181/300, step: 300/1345, d loss: 0.69106, g loss: 0.78220
+epoch: 181/300, step: 600/1345, d loss: 0.67292, g loss: 0.68281
+epoch: 181/300, step: 900/1345, d loss: 0.67551, g loss: 0.76224
+epoch: 181/300, step: 1200/1345, d loss: 0.68783, g loss: 0.69343
+d lr: 0.000000012, g lr: 0.000000003
+epoch: 182/300, step: 300/1345, d loss: 0.69659, g loss: 0.69551
+epoch: 182/300, step: 600/1345, d loss: 0.67941, g loss: 0.69449
+epoch: 182/300, step: 900/1345, d loss: 0.70349, g loss: 0.68976
+epoch: 182/300, step: 1200/1345, d loss: 0.70208, g loss: 0.76364
+d lr: 0.000000012, g lr: 0.000000003
+epoch: 183/300, step: 300/1345, d loss: 0.69322, g loss: 0.66905
+epoch: 183/300, step: 600/1345, d loss: 0.68376, g loss: 0.74456
+epoch: 183/300, step: 900/1345, d loss: 0.71175, g loss: 0.71716
+epoch: 183/300, step: 1200/1345, d loss: 0.70186, g loss: 0.73688
+d lr: 0.000000011, g lr: 0.000000003
+epoch: 184/300, step: 300/1345, d loss: 0.71233, g loss: 0.68813
+epoch: 184/300, step: 600/1345, d loss: 0.67239, g loss: 0.69178
+epoch: 184/300, step: 900/1345, d loss: 0.67239, g loss: 0.73993
+epoch: 184/300, step: 1200/1345, d loss: 0.68983, g loss: 0.69683
+d lr: 0.000000011, g lr: 0.000000002
+epoch: 185/300, step: 300/1345, d loss: 0.69862, g loss: 0.69883
+epoch: 185/300, step: 600/1345, d loss: 0.70649, g loss: 0.72024
+epoch: 185/300, step: 900/1345, d loss: 0.71071, g loss: 0.70050
+epoch: 185/300, step: 1200/1345, d loss: 0.68308, g loss: 0.69167
+d lr: 0.000000011, g lr: 0.000000002
+epoch: 186/300, step: 300/1345, d loss: 0.69124, g loss: 0.73430
+epoch: 186/300, step: 600/1345, d loss: 0.68071, g loss: 0.70549
+epoch: 186/300, step: 900/1345, d loss: 0.69635, g loss: 0.68532
+epoch: 186/300, step: 1200/1345, d loss: 0.71193, g loss: 0.72472
+d lr: 0.000000010, g lr: 0.000000002
+epoch: 187/300, step: 300/1345, d loss: 0.67942, g loss: 0.72835
+epoch: 187/300, step: 600/1345, d loss: 0.70809, g loss: 0.67605
+epoch: 187/300, step: 900/1345, d loss: 0.69911, g loss: 0.75166
+epoch: 187/300, step: 1200/1345, d loss: 0.69624, g loss: 0.69115
+d lr: 0.000000010, g lr: 0.000000002
+epoch: 188/300, step: 300/1345, d loss: 0.67635, g loss: 0.76373
+epoch: 188/300, step: 600/1345, d loss: 0.69275, g loss: 0.73626
+epoch: 188/300, step: 900/1345, d loss: 0.68370, g loss: 0.69928
+epoch: 188/300, step: 1200/1345, d loss: 0.72086, g loss: 0.67280
+d lr: 0.000000009, g lr: 0.000000002
+epoch: 189/300, step: 300/1345, d loss: 0.69574, g loss: 0.69910
+epoch: 189/300, step: 600/1345, d loss: 0.69237, g loss: 0.70182
+epoch: 189/300, step: 900/1345, d loss: 0.67450, g loss: 0.72764
+epoch: 189/300, step: 1200/1345, d loss: 0.69914, g loss: 0.68140
+d lr: 0.000000009, g lr: 0.000000002
+epoch: 190/300, step: 300/1345, d loss: 0.70789, g loss: 0.70498
+epoch: 190/300, step: 600/1345, d loss: 0.68936, g loss: 0.70797
+epoch: 190/300, step: 900/1345, d loss: 0.70559, g loss: 0.67572
+epoch: 190/300, step: 1200/1345, d loss: 0.70289, g loss: 0.72213
+d lr: 0.000000009, g lr: 0.000000002
+epoch: 191/300, step: 300/1345, d loss: 0.67107, g loss: 0.75721
+epoch: 191/300, step: 600/1345, d loss: 0.70543, g loss: 0.76007
+epoch: 191/300, step: 900/1345, d loss: 0.70010, g loss: 0.69682
+epoch: 191/300, step: 1200/1345, d loss: 0.68723, g loss: 0.71116
+d lr: 0.000000008, g lr: 0.000000002
+epoch: 192/300, step: 300/1345, d loss: 0.69308, g loss: 0.68342
+epoch: 192/300, step: 600/1345, d loss: 0.68178, g loss: 0.68622
+epoch: 192/300, step: 900/1345, d loss: 0.69113, g loss: 0.66949
+epoch: 192/300, step: 1200/1345, d loss: 0.68324, g loss: 0.68825
+d lr: 0.000000008, g lr: 0.000000002
+epoch: 193/300, step: 300/1345, d loss: 0.67560, g loss: 0.68373
+epoch: 193/300, step: 600/1345, d loss: 0.70705, g loss: 0.66068
+epoch: 193/300, step: 900/1345, d loss: 0.68526, g loss: 0.68747
+epoch: 193/300, step: 1200/1345, d loss: 0.70037, g loss: 0.70033
+d lr: 0.000000008, g lr: 0.000000002
+epoch: 194/300, step: 300/1345, d loss: 0.70007, g loss: 0.68089
+epoch: 194/300, step: 600/1345, d loss: 0.68092, g loss: 0.76196
+epoch: 194/300, step: 900/1345, d loss: 0.67216, g loss: 0.72368
+epoch: 194/300, step: 1200/1345, d loss: 0.66593, g loss: 0.69989
+d lr: 0.000000007, g lr: 0.000000001
+epoch: 195/300, step: 300/1345, d loss: 0.67872, g loss: 0.69730
+epoch: 195/300, step: 600/1345, d loss: 0.67295, g loss: 0.70389
+epoch: 195/300, step: 900/1345, d loss: 0.68940, g loss: 0.76814
+epoch: 195/300, step: 1200/1345, d loss: 0.67219, g loss: 0.70725
+d lr: 0.000000007, g lr: 0.000000001
+epoch: 196/300, step: 300/1345, d loss: 0.69180, g loss: 0.66076
+epoch: 196/300, step: 600/1345, d loss: 0.68755, g loss: 0.68566
+epoch: 196/300, step: 900/1345, d loss: 0.67067, g loss: 0.69969
+epoch: 196/300, step: 1200/1345, d loss: 0.70046, g loss: 0.71402
+d lr: 0.000000007, g lr: 0.000000001
+epoch: 197/300, step: 300/1345, d loss: 0.70196, g loss: 0.70774
+epoch: 197/300, step: 600/1345, d loss: 0.69530, g loss: 0.70348
+epoch: 197/300, step: 900/1345, d loss: 0.68946, g loss: 0.74519
+epoch: 197/300, step: 1200/1345, d loss: 0.70387, g loss: 0.67035
+d lr: 0.000000006, g lr: 0.000000001
+epoch: 198/300, step: 300/1345, d loss: 0.68422, g loss: 0.68585
+epoch: 198/300, step: 600/1345, d loss: 0.69604, g loss: 0.68930
+epoch: 198/300, step: 900/1345, d loss: 0.70059, g loss: 0.71586
+epoch: 198/300, step: 1200/1345, d loss: 0.68514, g loss: 0.72251
+d lr: 0.000000006, g lr: 0.000000001
+epoch: 199/300, step: 300/1345, d loss: 0.69976, g loss: 0.64981
+epoch: 199/300, step: 600/1345, d loss: 0.70387, g loss: 0.71807
+epoch: 199/300, step: 900/1345, d loss: 0.70536, g loss: 0.71051
+epoch: 199/300, step: 1200/1345, d loss: 0.70186, g loss: 0.68606
+d lr: 0.000000006, g lr: 0.000000001
+epoch: 200/300, step: 300/1345, d loss: 0.69011, g loss: 0.75106
+epoch: 200/300, step: 600/1345, d loss: 0.67695, g loss: 0.73422
+epoch: 200/300, step: 900/1345, d loss: 0.66539, g loss: 0.70865
+epoch: 200/300, step: 1200/1345, d loss: 0.66916, g loss: 0.74054
+d lr: 0.000000006, g lr: 0.000000001
+epoch: 201/300, step: 300/1345, d loss: 0.68827, g loss: 0.73018
+epoch: 201/300, step: 600/1345, d loss: 0.68348, g loss: 0.71969
+epoch: 201/300, step: 900/1345, d loss: 0.71079, g loss: 0.68630
+epoch: 201/300, step: 1200/1345, d loss: 0.70563, g loss: 0.70125
+d lr: 0.000000005, g lr: 0.000000001
+epoch: 202/300, step: 300/1345, d loss: 0.69049, g loss: 0.70595
+epoch: 202/300, step: 600/1345, d loss: 0.70849, g loss: 0.70077
+epoch: 202/300, step: 900/1345, d loss: 0.67954, g loss: 0.69413
+epoch: 202/300, step: 1200/1345, d loss: 0.69146, g loss: 0.70950
+d lr: 0.000000005, g lr: 0.000000001
+epoch: 203/300, step: 300/1345, d loss: 0.68129, g loss: 0.70129
+epoch: 203/300, step: 600/1345, d loss: 0.69490, g loss: 0.67951
+epoch: 203/300, step: 900/1345, d loss: 0.67925, g loss: 0.69118
+epoch: 203/300, step: 1200/1345, d loss: 0.68300, g loss: 0.71384
+d lr: 0.000000005, g lr: 0.000000001
+epoch: 204/300, step: 300/1345, d loss: 0.69086, g loss: 0.67583
+epoch: 204/300, step: 600/1345, d loss: 0.70149, g loss: 0.69418
+epoch: 204/300, step: 900/1345, d loss: 0.66863, g loss: 0.69526
+epoch: 204/300, step: 1200/1345, d loss: 0.70121, g loss: 0.74101
+d lr: 0.000000005, g lr: 0.000000001
+epoch: 205/300, step: 300/1345, d loss: 0.73942, g loss: 0.71453
+epoch: 205/300, step: 600/1345, d loss: 0.70760, g loss: 0.71700
+epoch: 205/300, step: 900/1345, d loss: 0.67491, g loss: 0.74279
+epoch: 205/300, step: 1200/1345, d loss: 0.70215, g loss: 0.74388
+d lr: 0.000000005, g lr: 0.000000001
+epoch: 206/300, step: 300/1345, d loss: 0.69318, g loss: 0.76393
+epoch: 206/300, step: 600/1345, d loss: 0.67114, g loss: 0.72826
+epoch: 206/300, step: 900/1345, d loss: 0.69034, g loss: 0.73163
+epoch: 206/300, step: 1200/1345, d loss: 0.68850, g loss: 0.69025
+d lr: 0.000000004, g lr: 0.000000001
+epoch: 207/300, step: 300/1345, d loss: 0.68786, g loss: 0.72423
+epoch: 207/300, step: 600/1345, d loss: 0.67593, g loss: 0.74147
+epoch: 207/300, step: 900/1345, d loss: 0.67970, g loss: 0.74134
+epoch: 207/300, step: 1200/1345, d loss: 0.71281, g loss: 0.68098
+d lr: 0.000000004, g lr: 0.000000001
+epoch: 208/300, step: 300/1345, d loss: 0.68094, g loss: 0.76439
+epoch: 208/300, step: 600/1345, d loss: 0.68589, g loss: 0.68301
+epoch: 208/300, step: 900/1345, d loss: 0.70326, g loss: 0.62858
+epoch: 208/300, step: 1200/1345, d loss: 0.70304, g loss: 0.65204
+d lr: 0.000000004, g lr: 0.000000001
+epoch: 209/300, step: 300/1345, d loss: 0.66828, g loss: 0.73379
+epoch: 209/300, step: 600/1345, d loss: 0.68810, g loss: 0.74283
+epoch: 209/300, step: 900/1345, d loss: 0.69613, g loss: 0.67502
+epoch: 209/300, step: 1200/1345, d loss: 0.67574, g loss: 0.71304
+d lr: 0.000000004, g lr: 0.000000001
+epoch: 210/300, step: 300/1345, d loss: 0.68495, g loss: 0.68730
+epoch: 210/300, step: 600/1345, d loss: 0.69846, g loss: 0.69734
+epoch: 210/300, step: 900/1345, d loss: 0.66930, g loss: 0.78016
+epoch: 210/300, step: 1200/1345, d loss: 0.71295, g loss: 0.71246
+d lr: 0.000000004, g lr: 0.000000001
+epoch: 211/300, step: 300/1345, d loss: 0.69855, g loss: 0.72305
+epoch: 211/300, step: 600/1345, d loss: 0.70342, g loss: 0.71005
+epoch: 211/300, step: 900/1345, d loss: 0.68862, g loss: 0.72038
+epoch: 211/300, step: 1200/1345, d loss: 0.69191, g loss: 0.74694
+d lr: 0.000000004, g lr: 0.000000001
+epoch: 212/300, step: 300/1345, d loss: 0.67011, g loss: 0.76856
+epoch: 212/300, step: 600/1345, d loss: 0.68114, g loss: 0.73286
+epoch: 212/300, step: 900/1345, d loss: 0.69468, g loss: 0.70969
+epoch: 212/300, step: 1200/1345, d loss: 0.69572, g loss: 0.69751
+d lr: 0.000000003, g lr: 0.000000001
+epoch: 213/300, step: 300/1345, d loss: 0.65626, g loss: 0.74916
+epoch: 213/300, step: 600/1345, d loss: 0.68305, g loss: 0.71862
+epoch: 213/300, step: 900/1345, d loss: 0.68291, g loss: 0.72069
+epoch: 213/300, step: 1200/1345, d loss: 0.70559, g loss: 0.70400
+d lr: 0.000000003, g lr: 0.000000001
+epoch: 214/300, step: 300/1345, d loss: 0.67778, g loss: 0.72666
+epoch: 214/300, step: 600/1345, d loss: 0.69198, g loss: 0.68695
+epoch: 214/300, step: 900/1345, d loss: 0.68546, g loss: 0.72820
+epoch: 214/300, step: 1200/1345, d loss: 0.69076, g loss: 0.70895
+d lr: 0.000000003, g lr: 0.000000001
+epoch: 215/300, step: 300/1345, d loss: 0.68116, g loss: 0.73158
+epoch: 215/300, step: 600/1345, d loss: 0.68422, g loss: 0.75536
+epoch: 215/300, step: 900/1345, d loss: 0.67178, g loss: 0.75929
+epoch: 215/300, step: 1200/1345, d loss: 0.73374, g loss: 0.69626
+d lr: 0.000000003, g lr: 0.000000000
+epoch: 216/300, step: 300/1345, d loss: 0.69075, g loss: 0.71930
+epoch: 216/300, step: 600/1345, d loss: 0.70492, g loss: 0.71848
+epoch: 216/300, step: 900/1345, d loss: 0.68557, g loss: 0.73643
+epoch: 216/300, step: 1200/1345, d loss: 0.71461, g loss: 0.71681
+d lr: 0.000000003, g lr: 0.000000000
+epoch: 217/300, step: 300/1345, d loss: 0.70292, g loss: 0.67916
+epoch: 217/300, step: 600/1345, d loss: 0.68514, g loss: 0.68173
+epoch: 217/300, step: 900/1345, d loss: 0.68140, g loss: 0.71639
+epoch: 217/300, step: 1200/1345, d loss: 0.68767, g loss: 0.73121
+d lr: 0.000000003, g lr: 0.000000000
+epoch: 218/300, step: 300/1345, d loss: 0.69844, g loss: 0.71708
+epoch: 218/300, step: 600/1345, d loss: 0.69215, g loss: 0.73942
+epoch: 218/300, step: 900/1345, d loss: 0.69321, g loss: 0.66268
+epoch: 218/300, step: 1200/1345, d loss: 0.70157, g loss: 0.70072
+d lr: 0.000000003, g lr: 0.000000000
+epoch: 219/300, step: 300/1345, d loss: 0.68200, g loss: 0.74131
+epoch: 219/300, step: 600/1345, d loss: 0.70253, g loss: 0.65351
+epoch: 219/300, step: 900/1345, d loss: 0.70790, g loss: 0.67029
+epoch: 219/300, step: 1200/1345, d loss: 0.68751, g loss: 0.68297
+d lr: 0.000000003, g lr: 0.000000000
+epoch: 220/300, step: 300/1345, d loss: 0.70982, g loss: 0.72048
+epoch: 220/300, step: 600/1345, d loss: 0.68761, g loss: 0.70512
+epoch: 220/300, step: 900/1345, d loss: 0.70412, g loss: 0.71271
+epoch: 220/300, step: 1200/1345, d loss: 0.70299, g loss: 0.67040
+d lr: 0.000000003, g lr: 0.000000000
+epoch: 221/300, step: 300/1345, d loss: 0.69557, g loss: 0.67511
+epoch: 221/300, step: 600/1345, d loss: 0.71943, g loss: 0.64727
+epoch: 221/300, step: 900/1345, d loss: 0.68518, g loss: 0.70840
+epoch: 221/300, step: 1200/1345, d loss: 0.68909, g loss: 0.66401
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 222/300, step: 300/1345, d loss: 0.69520, g loss: 0.68369
+epoch: 222/300, step: 600/1345, d loss: 0.68223, g loss: 0.75345
+epoch: 222/300, step: 900/1345, d loss: 0.70316, g loss: 0.67125
+epoch: 222/300, step: 1200/1345, d loss: 0.67866, g loss: 0.67174
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 223/300, step: 300/1345, d loss: 0.69241, g loss: 0.72263
+epoch: 223/300, step: 600/1345, d loss: 0.67496, g loss: 0.68776
+epoch: 223/300, step: 900/1345, d loss: 0.69590, g loss: 0.71145
+epoch: 223/300, step: 1200/1345, d loss: 0.67007, g loss: 0.75258
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 224/300, step: 300/1345, d loss: 0.68733, g loss: 0.74204
+epoch: 224/300, step: 600/1345, d loss: 0.67455, g loss: 0.71767
+epoch: 224/300, step: 900/1345, d loss: 0.69389, g loss: 0.69995
+epoch: 224/300, step: 1200/1345, d loss: 0.70772, g loss: 0.70969
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 225/300, step: 300/1345, d loss: 0.69091, g loss: 0.73073
+epoch: 225/300, step: 600/1345, d loss: 0.67908, g loss: 0.67269
+epoch: 225/300, step: 900/1345, d loss: 0.68393, g loss: 0.71612
+epoch: 225/300, step: 1200/1345, d loss: 0.67509, g loss: 0.70096
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 226/300, step: 300/1345, d loss: 0.67832, g loss: 0.71544
+epoch: 226/300, step: 600/1345, d loss: 0.67770, g loss: 0.71520
+epoch: 226/300, step: 900/1345, d loss: 0.69698, g loss: 0.70817
+epoch: 226/300, step: 1200/1345, d loss: 0.70213, g loss: 0.70953
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 227/300, step: 300/1345, d loss: 0.67081, g loss: 0.70976
+epoch: 227/300, step: 600/1345, d loss: 0.67427, g loss: 0.72572
+epoch: 227/300, step: 900/1345, d loss: 0.69672, g loss: 0.67502
+epoch: 227/300, step: 1200/1345, d loss: 0.68042, g loss: 0.71326
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 228/300, step: 300/1345, d loss: 0.68019, g loss: 0.68417
+epoch: 228/300, step: 600/1345, d loss: 0.69157, g loss: 0.73765
+epoch: 228/300, step: 900/1345, d loss: 0.71879, g loss: 0.68326
+epoch: 228/300, step: 1200/1345, d loss: 0.67334, g loss: 0.71940
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 229/300, step: 300/1345, d loss: 0.67820, g loss: 0.70755
+epoch: 229/300, step: 600/1345, d loss: 0.67157, g loss: 0.73137
+epoch: 229/300, step: 900/1345, d loss: 0.70063, g loss: 0.66157
+epoch: 229/300, step: 1200/1345, d loss: 0.69565, g loss: 0.71667
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 230/300, step: 300/1345, d loss: 0.67865, g loss: 0.73702
+epoch: 230/300, step: 600/1345, d loss: 0.70213, g loss: 0.70654
+epoch: 230/300, step: 900/1345, d loss: 0.69917, g loss: 0.75258
+epoch: 230/300, step: 1200/1345, d loss: 0.70859, g loss: 0.69658
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 231/300, step: 300/1345, d loss: 0.68974, g loss: 0.70225
+epoch: 231/300, step: 600/1345, d loss: 0.68271, g loss: 0.72121
+epoch: 231/300, step: 900/1345, d loss: 0.67972, g loss: 0.66591
+epoch: 231/300, step: 1200/1345, d loss: 0.72080, g loss: 0.68528
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 232/300, step: 300/1345, d loss: 0.69295, g loss: 0.67623
+epoch: 232/300, step: 600/1345, d loss: 0.71630, g loss: 0.68766
+epoch: 232/300, step: 900/1345, d loss: 0.69955, g loss: 0.71589
+epoch: 232/300, step: 1200/1345, d loss: 0.66355, g loss: 0.70850
+d lr: 0.000000002, g lr: 0.000000000
+epoch: 233/300, step: 300/1345, d loss: 0.67618, g loss: 0.68853
+epoch: 233/300, step: 600/1345, d loss: 0.69406, g loss: 0.69594
+epoch: 233/300, step: 900/1345, d loss: 0.68511, g loss: 0.69403
+epoch: 233/300, step: 1200/1345, d loss: 0.69234, g loss: 0.66253
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 234/300, step: 300/1345, d loss: 0.68763, g loss: 0.69193
+epoch: 234/300, step: 600/1345, d loss: 0.68560, g loss: 0.69420
+epoch: 234/300, step: 900/1345, d loss: 0.69954, g loss: 0.65107
+epoch: 234/300, step: 1200/1345, d loss: 0.69722, g loss: 0.64669
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 235/300, step: 300/1345, d loss: 0.71499, g loss: 0.67422
+epoch: 235/300, step: 600/1345, d loss: 0.70594, g loss: 0.68532
+epoch: 235/300, step: 900/1345, d loss: 0.70650, g loss: 0.62561
+epoch: 235/300, step: 1200/1345, d loss: 0.69302, g loss: 0.69858
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 236/300, step: 300/1345, d loss: 0.69328, g loss: 0.69780
+epoch: 236/300, step: 600/1345, d loss: 0.69093, g loss: 0.73147
+epoch: 236/300, step: 900/1345, d loss: 0.66561, g loss: 0.78276
+epoch: 236/300, step: 1200/1345, d loss: 0.66749, g loss: 0.72251
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 237/300, step: 300/1345, d loss: 0.68028, g loss: 0.68653
+epoch: 237/300, step: 600/1345, d loss: 0.66470, g loss: 0.73657
+epoch: 237/300, step: 900/1345, d loss: 0.72355, g loss: 0.67921
+epoch: 237/300, step: 1200/1345, d loss: 0.69498, g loss: 0.69260
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 238/300, step: 300/1345, d loss: 0.69770, g loss: 0.66169
+epoch: 238/300, step: 600/1345, d loss: 0.68434, g loss: 0.66164
+epoch: 238/300, step: 900/1345, d loss: 0.68772, g loss: 0.69729
+epoch: 238/300, step: 1200/1345, d loss: 0.69233, g loss: 0.71935
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 239/300, step: 300/1345, d loss: 0.67334, g loss: 0.71730
+epoch: 239/300, step: 600/1345, d loss: 0.67901, g loss: 0.69565
+epoch: 239/300, step: 900/1345, d loss: 0.68931, g loss: 0.66007
+epoch: 239/300, step: 1200/1345, d loss: 0.72540, g loss: 0.67165
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 240/300, step: 300/1345, d loss: 0.72049, g loss: 0.65051
+epoch: 240/300, step: 600/1345, d loss: 0.67422, g loss: 0.73282
+epoch: 240/300, step: 900/1345, d loss: 0.68880, g loss: 0.75382
+epoch: 240/300, step: 1200/1345, d loss: 0.69477, g loss: 0.70783
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 241/300, step: 300/1345, d loss: 0.69577, g loss: 0.66992
+epoch: 241/300, step: 600/1345, d loss: 0.68828, g loss: 0.72074
+epoch: 241/300, step: 900/1345, d loss: 0.69218, g loss: 0.77067
+epoch: 241/300, step: 1200/1345, d loss: 0.70850, g loss: 0.65747
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 242/300, step: 300/1345, d loss: 0.69199, g loss: 0.68514
+epoch: 242/300, step: 600/1345, d loss: 0.68156, g loss: 0.71322
+epoch: 242/300, step: 900/1345, d loss: 0.67263, g loss: 0.75805
+epoch: 242/300, step: 1200/1345, d loss: 0.70235, g loss: 0.69388
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 243/300, step: 300/1345, d loss: 0.69731, g loss: 0.70180
+epoch: 243/300, step: 600/1345, d loss: 0.70448, g loss: 0.66949
+epoch: 243/300, step: 900/1345, d loss: 0.71380, g loss: 0.66870
+epoch: 243/300, step: 1200/1345, d loss: 0.68364, g loss: 0.73724
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 244/300, step: 300/1345, d loss: 0.72054, g loss: 0.74207
+epoch: 244/300, step: 600/1345, d loss: 0.68781, g loss: 0.73860
+epoch: 244/300, step: 900/1345, d loss: 0.72642, g loss: 0.66498
+epoch: 244/300, step: 1200/1345, d loss: 0.69789, g loss: 0.70555
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 245/300, step: 300/1345, d loss: 0.68160, g loss: 0.72897
+epoch: 245/300, step: 600/1345, d loss: 0.69148, g loss: 0.70118
+epoch: 245/300, step: 900/1345, d loss: 0.71342, g loss: 0.66146
+epoch: 245/300, step: 1200/1345, d loss: 0.71285, g loss: 0.69988
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 246/300, step: 300/1345, d loss: 0.66750, g loss: 0.74080
+epoch: 246/300, step: 600/1345, d loss: 0.68251, g loss: 0.79200
+epoch: 246/300, step: 900/1345, d loss: 0.69799, g loss: 0.68774
+epoch: 246/300, step: 1200/1345, d loss: 0.68559, g loss: 0.70535
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 247/300, step: 300/1345, d loss: 0.70686, g loss: 0.66401
+epoch: 247/300, step: 600/1345, d loss: 0.68400, g loss: 0.71067
+epoch: 247/300, step: 900/1345, d loss: 0.70748, g loss: 0.62403
+epoch: 247/300, step: 1200/1345, d loss: 0.70705, g loss: 0.70183
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 248/300, step: 300/1345, d loss: 0.69687, g loss: 0.72050
+epoch: 248/300, step: 600/1345, d loss: 0.67503, g loss: 0.70575
+epoch: 248/300, step: 900/1345, d loss: 0.72244, g loss: 0.61976
+epoch: 248/300, step: 1200/1345, d loss: 0.70479, g loss: 0.69363
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 249/300, step: 300/1345, d loss: 0.70372, g loss: 0.72453
+epoch: 249/300, step: 600/1345, d loss: 0.67399, g loss: 0.71740
+epoch: 249/300, step: 900/1345, d loss: 0.69020, g loss: 0.67487
+epoch: 249/300, step: 1200/1345, d loss: 0.69581, g loss: 0.73675
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 250/300, step: 300/1345, d loss: 0.69084, g loss: 0.69263
+epoch: 250/300, step: 600/1345, d loss: 0.68879, g loss: 0.69590
+epoch: 250/300, step: 900/1345, d loss: 0.68592, g loss: 0.74379
+epoch: 250/300, step: 1200/1345, d loss: 0.68338, g loss: 0.75084
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 251/300, step: 300/1345, d loss: 0.68538, g loss: 0.71073
+epoch: 251/300, step: 600/1345, d loss: 0.70122, g loss: 0.71424
+epoch: 251/300, step: 900/1345, d loss: 0.69032, g loss: 0.69053
+epoch: 251/300, step: 1200/1345, d loss: 0.70296, g loss: 0.69552
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 252/300, step: 300/1345, d loss: 0.69151, g loss: 0.67154
+epoch: 252/300, step: 600/1345, d loss: 0.68525, g loss: 0.72195
+epoch: 252/300, step: 900/1345, d loss: 0.65611, g loss: 0.73485
+epoch: 252/300, step: 1200/1345, d loss: 0.70093, g loss: 0.68426
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 253/300, step: 300/1345, d loss: 0.69355, g loss: 0.71550
+epoch: 253/300, step: 600/1345, d loss: 0.68969, g loss: 0.67045
+epoch: 253/300, step: 900/1345, d loss: 0.66688, g loss: 0.79070
+epoch: 253/300, step: 1200/1345, d loss: 0.70089, g loss: 0.67942
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 254/300, step: 300/1345, d loss: 0.67124, g loss: 0.74488
+epoch: 254/300, step: 600/1345, d loss: 0.67794, g loss: 0.73701
+epoch: 254/300, step: 900/1345, d loss: 0.69562, g loss: 0.67608
+epoch: 254/300, step: 1200/1345, d loss: 0.69315, g loss: 0.69341
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 255/300, step: 300/1345, d loss: 0.69303, g loss: 0.69969
+epoch: 255/300, step: 600/1345, d loss: 0.68098, g loss: 0.70647
+epoch: 255/300, step: 900/1345, d loss: 0.68019, g loss: 0.68668
+epoch: 255/300, step: 1200/1345, d loss: 0.70510, g loss: 0.71577
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 256/300, step: 300/1345, d loss: 0.69757, g loss: 0.67888
+epoch: 256/300, step: 600/1345, d loss: 0.68566, g loss: 0.70770
+epoch: 256/300, step: 900/1345, d loss: 0.67199, g loss: 0.71319
+epoch: 256/300, step: 1200/1345, d loss: 0.68400, g loss: 0.74887
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 257/300, step: 300/1345, d loss: 0.66777, g loss: 0.73176
+epoch: 257/300, step: 600/1345, d loss: 0.69432, g loss: 0.69110
+epoch: 257/300, step: 900/1345, d loss: 0.69352, g loss: 0.67549
+epoch: 257/300, step: 1200/1345, d loss: 0.68619, g loss: 0.75758
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 258/300, step: 300/1345, d loss: 0.72172, g loss: 0.66182
+epoch: 258/300, step: 600/1345, d loss: 0.69058, g loss: 0.77270
+epoch: 258/300, step: 900/1345, d loss: 0.65345, g loss: 0.78938
+epoch: 258/300, step: 1200/1345, d loss: 0.70296, g loss: 0.69770
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 259/300, step: 300/1345, d loss: 0.69885, g loss: 0.68523
+epoch: 259/300, step: 600/1345, d loss: 0.70676, g loss: 0.67143
+epoch: 259/300, step: 900/1345, d loss: 0.68987, g loss: 0.69330
+epoch: 259/300, step: 1200/1345, d loss: 0.67316, g loss: 0.67797
+d lr: 0.000000001, g lr: 0.000000000
+epoch: 260/300, step: 300/1345, d loss: 0.73153, g loss: 0.69210
+epoch: 260/300, step: 600/1345, d loss: 0.67355, g loss: 0.72192
+epoch: 260/300, step: 900/1345, d loss: 0.69555, g loss: 0.70282
+epoch: 260/300, step: 1200/1345, d loss: 0.68529, g loss: 0.73229
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 261/300, step: 300/1345, d loss: 0.71266, g loss: 0.69455
+epoch: 261/300, step: 600/1345, d loss: 0.69521, g loss: 0.69399
+epoch: 261/300, step: 900/1345, d loss: 0.70417, g loss: 0.70197
+epoch: 261/300, step: 1200/1345, d loss: 0.68078, g loss: 0.71033
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 262/300, step: 300/1345, d loss: 0.69340, g loss: 0.68442
+epoch: 262/300, step: 600/1345, d loss: 0.68376, g loss: 0.82115
+epoch: 262/300, step: 900/1345, d loss: 0.69270, g loss: 0.72104
+epoch: 262/300, step: 1200/1345, d loss: 0.69862, g loss: 0.70167
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 263/300, step: 300/1345, d loss: 0.67566, g loss: 0.69743
+epoch: 263/300, step: 600/1345, d loss: 0.68352, g loss: 0.76729
+epoch: 263/300, step: 900/1345, d loss: 0.68541, g loss: 0.75989
+epoch: 263/300, step: 1200/1345, d loss: 0.70168, g loss: 0.75281
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 264/300, step: 300/1345, d loss: 0.69023, g loss: 0.75503
+epoch: 264/300, step: 600/1345, d loss: 0.69922, g loss: 0.68849
+epoch: 264/300, step: 900/1345, d loss: 0.69981, g loss: 0.70349
+epoch: 264/300, step: 1200/1345, d loss: 0.71339, g loss: 0.69775
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 265/300, step: 300/1345, d loss: 0.66687, g loss: 0.70673
+epoch: 265/300, step: 600/1345, d loss: 0.68398, g loss: 0.69359
+epoch: 265/300, step: 900/1345, d loss: 0.67441, g loss: 0.71022
+epoch: 265/300, step: 1200/1345, d loss: 0.70927, g loss: 0.66098
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 266/300, step: 300/1345, d loss: 0.67849, g loss: 0.72565
+epoch: 266/300, step: 600/1345, d loss: 0.71831, g loss: 0.67531
+epoch: 266/300, step: 900/1345, d loss: 0.69645, g loss: 0.72969
+epoch: 266/300, step: 1200/1345, d loss: 0.69568, g loss: 0.73148
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 267/300, step: 300/1345, d loss: 0.69102, g loss: 0.72857
+epoch: 267/300, step: 600/1345, d loss: 0.69176, g loss: 0.65281
+epoch: 267/300, step: 900/1345, d loss: 0.68873, g loss: 0.65553
+epoch: 267/300, step: 1200/1345, d loss: 0.69324, g loss: 0.68964
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 268/300, step: 300/1345, d loss: 0.70279, g loss: 0.67149
+epoch: 268/300, step: 600/1345, d loss: 0.69099, g loss: 0.69930
+epoch: 268/300, step: 900/1345, d loss: 0.70882, g loss: 0.67378
+epoch: 268/300, step: 1200/1345, d loss: 0.70113, g loss: 0.67278
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 269/300, step: 300/1345, d loss: 0.69634, g loss: 0.67645
+epoch: 269/300, step: 600/1345, d loss: 0.68736, g loss: 0.75387
+epoch: 269/300, step: 900/1345, d loss: 0.68831, g loss: 0.73547
+epoch: 269/300, step: 1200/1345, d loss: 0.66831, g loss: 0.74118
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 270/300, step: 300/1345, d loss: 0.68328, g loss: 0.68311
+epoch: 270/300, step: 600/1345, d loss: 0.70878, g loss: 0.71193
+epoch: 270/300, step: 900/1345, d loss: 0.69160, g loss: 0.75567
+epoch: 270/300, step: 1200/1345, d loss: 0.69551, g loss: 0.69370
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 271/300, step: 300/1345, d loss: 0.71384, g loss: 0.70958
+epoch: 271/300, step: 600/1345, d loss: 0.69252, g loss: 0.68460
+epoch: 271/300, step: 900/1345, d loss: 0.70253, g loss: 0.71637
+epoch: 271/300, step: 1200/1345, d loss: 0.72003, g loss: 0.68897
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 272/300, step: 300/1345, d loss: 0.67085, g loss: 0.72029
+epoch: 272/300, step: 600/1345, d loss: 0.68063, g loss: 0.69461
+epoch: 272/300, step: 900/1345, d loss: 0.68490, g loss: 0.74186
+epoch: 272/300, step: 1200/1345, d loss: 0.68600, g loss: 0.71498
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 273/300, step: 300/1345, d loss: 0.67951, g loss: 0.75360
+epoch: 273/300, step: 600/1345, d loss: 0.68905, g loss: 0.74811
+epoch: 273/300, step: 900/1345, d loss: 0.70325, g loss: 0.70843
+epoch: 273/300, step: 1200/1345, d loss: 0.66217, g loss: 0.75160
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 274/300, step: 300/1345, d loss: 0.73287, g loss: 0.67248
+epoch: 274/300, step: 600/1345, d loss: 0.68394, g loss: 0.74253
+epoch: 274/300, step: 900/1345, d loss: 0.68596, g loss: 0.68686
+epoch: 274/300, step: 1200/1345, d loss: 0.70315, g loss: 0.63881
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 275/300, step: 300/1345, d loss: 0.70703, g loss: 0.69271
+epoch: 275/300, step: 600/1345, d loss: 0.67361, g loss: 0.71327
+epoch: 275/300, step: 900/1345, d loss: 0.70124, g loss: 0.67819
+epoch: 275/300, step: 1200/1345, d loss: 0.67878, g loss: 0.70978
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 276/300, step: 300/1345, d loss: 0.69147, g loss: 0.66496
+epoch: 276/300, step: 600/1345, d loss: 0.70121, g loss: 0.66545
+epoch: 276/300, step: 900/1345, d loss: 0.70551, g loss: 0.74040
+epoch: 276/300, step: 1200/1345, d loss: 0.70069, g loss: 0.67766
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 277/300, step: 300/1345, d loss: 0.70897, g loss: 0.66602
+epoch: 277/300, step: 600/1345, d loss: 0.69444, g loss: 0.72314
+epoch: 277/300, step: 900/1345, d loss: 0.72394, g loss: 0.73615
+epoch: 277/300, step: 1200/1345, d loss: 0.68656, g loss: 0.68291
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 278/300, step: 300/1345, d loss: 0.69902, g loss: 0.65906
+epoch: 278/300, step: 600/1345, d loss: 0.68382, g loss: 0.74314
+epoch: 278/300, step: 900/1345, d loss: 0.70585, g loss: 0.74190
+epoch: 278/300, step: 1200/1345, d loss: 0.66552, g loss: 0.79445
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 279/300, step: 300/1345, d loss: 0.68173, g loss: 0.66868
+epoch: 279/300, step: 600/1345, d loss: 0.65562, g loss: 0.75719
+epoch: 279/300, step: 900/1345, d loss: 0.69732, g loss: 0.66665
+epoch: 279/300, step: 1200/1345, d loss: 0.67920, g loss: 0.72922
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 280/300, step: 300/1345, d loss: 0.69849, g loss: 0.71045
+epoch: 280/300, step: 600/1345, d loss: 0.71208, g loss: 0.73376
+epoch: 280/300, step: 900/1345, d loss: 0.70575, g loss: 0.68741
+epoch: 280/300, step: 1200/1345, d loss: 0.71496, g loss: 0.73014
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 281/300, step: 300/1345, d loss: 0.68899, g loss: 0.72864
+epoch: 281/300, step: 600/1345, d loss: 0.70255, g loss: 0.70460
+epoch: 281/300, step: 900/1345, d loss: 0.69609, g loss: 0.68679
+epoch: 281/300, step: 1200/1345, d loss: 0.68288, g loss: 0.72328
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 282/300, step: 300/1345, d loss: 0.68007, g loss: 0.71613
+epoch: 282/300, step: 600/1345, d loss: 0.69297, g loss: 0.73919
+epoch: 282/300, step: 900/1345, d loss: 0.68268, g loss: 0.72168
+epoch: 282/300, step: 1200/1345, d loss: 0.67664, g loss: 0.73527
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 283/300, step: 300/1345, d loss: 0.69933, g loss: 0.71660
+epoch: 283/300, step: 600/1345, d loss: 0.68543, g loss: 0.69998
+epoch: 283/300, step: 900/1345, d loss: 0.68300, g loss: 0.68593
+epoch: 283/300, step: 1200/1345, d loss: 0.67758, g loss: 0.71045
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 284/300, step: 300/1345, d loss: 0.69690, g loss: 0.69780
+epoch: 284/300, step: 600/1345, d loss: 0.67754, g loss: 0.66522
+epoch: 284/300, step: 900/1345, d loss: 0.69268, g loss: 0.67182
+epoch: 284/300, step: 1200/1345, d loss: 0.67173, g loss: 0.73965
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 285/300, step: 300/1345, d loss: 0.69647, g loss: 0.71256
+epoch: 285/300, step: 600/1345, d loss: 0.68729, g loss: 0.74811
+epoch: 285/300, step: 900/1345, d loss: 0.68789, g loss: 0.72697
+epoch: 285/300, step: 1200/1345, d loss: 0.69941, g loss: 0.72203
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 286/300, step: 300/1345, d loss: 0.70176, g loss: 0.75760
+epoch: 286/300, step: 600/1345, d loss: 0.70977, g loss: 0.73396
+epoch: 286/300, step: 900/1345, d loss: 0.70840, g loss: 0.67711
+epoch: 286/300, step: 1200/1345, d loss: 0.68729, g loss: 0.69533
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 287/300, step: 300/1345, d loss: 0.71010, g loss: 0.68653
+epoch: 287/300, step: 600/1345, d loss: 0.67879, g loss: 0.71909
+epoch: 287/300, step: 900/1345, d loss: 0.70282, g loss: 0.69591
+epoch: 287/300, step: 1200/1345, d loss: 0.68550, g loss: 0.68705
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 288/300, step: 300/1345, d loss: 0.70788, g loss: 0.69039
+epoch: 288/300, step: 600/1345, d loss: 0.66642, g loss: 0.73415
+epoch: 288/300, step: 900/1345, d loss: 0.69974, g loss: 0.68935
+epoch: 288/300, step: 1200/1345, d loss: 0.70468, g loss: 0.67416
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 289/300, step: 300/1345, d loss: 0.70349, g loss: 0.68960
+epoch: 289/300, step: 600/1345, d loss: 0.69430, g loss: 0.69046
+epoch: 289/300, step: 900/1345, d loss: 0.70598, g loss: 0.66709
+epoch: 289/300, step: 1200/1345, d loss: 0.68514, g loss: 0.74716
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 290/300, step: 300/1345, d loss: 0.67111, g loss: 0.78403
+epoch: 290/300, step: 600/1345, d loss: 0.70904, g loss: 0.71515
+epoch: 290/300, step: 900/1345, d loss: 0.67591, g loss: 0.68623
+epoch: 290/300, step: 1200/1345, d loss: 0.68248, g loss: 0.74101
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 291/300, step: 300/1345, d loss: 0.70117, g loss: 0.73974
+epoch: 291/300, step: 600/1345, d loss: 0.68474, g loss: 0.75104
+epoch: 291/300, step: 900/1345, d loss: 0.70367, g loss: 0.70688
+epoch: 291/300, step: 1200/1345, d loss: 0.69027, g loss: 0.71724
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 292/300, step: 300/1345, d loss: 0.68835, g loss: 0.70063
+epoch: 292/300, step: 600/1345, d loss: 0.67779, g loss: 0.74955
+epoch: 292/300, step: 900/1345, d loss: 0.68589, g loss: 0.73390
+epoch: 292/300, step: 1200/1345, d loss: 0.69847, g loss: 0.65382
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 293/300, step: 300/1345, d loss: 0.70078, g loss: 0.66506
+epoch: 293/300, step: 600/1345, d loss: 0.68402, g loss: 0.70350
+epoch: 293/300, step: 900/1345, d loss: 0.71541, g loss: 0.72226
+epoch: 293/300, step: 1200/1345, d loss: 0.68263, g loss: 0.76471
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 294/300, step: 300/1345, d loss: 0.67645, g loss: 0.71172
+epoch: 294/300, step: 600/1345, d loss: 0.67189, g loss: 0.70915
+epoch: 294/300, step: 900/1345, d loss: 0.68852, g loss: 0.67002
+epoch: 294/300, step: 1200/1345, d loss: 0.69602, g loss: 0.69268
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 295/300, step: 300/1345, d loss: 0.69800, g loss: 0.68905
+epoch: 295/300, step: 600/1345, d loss: 0.70308, g loss: 0.73308
+epoch: 295/300, step: 900/1345, d loss: 0.68786, g loss: 0.65433
+epoch: 295/300, step: 1200/1345, d loss: 0.71235, g loss: 0.66537
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 296/300, step: 300/1345, d loss: 0.70515, g loss: 0.66148
+epoch: 296/300, step: 600/1345, d loss: 0.67021, g loss: 0.76516
+epoch: 296/300, step: 900/1345, d loss: 0.68666, g loss: 0.70024
+epoch: 296/300, step: 1200/1345, d loss: 0.68649, g loss: 0.67119
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 297/300, step: 300/1345, d loss: 0.69725, g loss: 0.75215
+epoch: 297/300, step: 600/1345, d loss: 0.70164, g loss: 0.64643
+epoch: 297/300, step: 900/1345, d loss: 0.69381, g loss: 0.74002
+epoch: 297/300, step: 1200/1345, d loss: 0.69169, g loss: 0.72635
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 298/300, step: 300/1345, d loss: 0.68019, g loss: 0.73545
+epoch: 298/300, step: 600/1345, d loss: 0.70616, g loss: 0.68449
+epoch: 298/300, step: 900/1345, d loss: 0.68490, g loss: 0.73364
+epoch: 298/300, step: 1200/1345, d loss: 0.69160, g loss: 0.68895
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 299/300, step: 300/1345, d loss: 0.68947, g loss: 0.69765
+epoch: 299/300, step: 600/1345, d loss: 0.68857, g loss: 0.74508
+epoch: 299/300, step: 900/1345, d loss: 0.69015, g loss: 0.73498
+epoch: 299/300, step: 1200/1345, d loss: 0.69381, g loss: 0.68797
+d lr: 0.000000000, g lr: 0.000000000
+epoch: 300/300, step: 300/1345, d loss: 0.67945, g loss: 0.68424
+epoch: 300/300, step: 600/1345, d loss: 0.69504, g loss: 0.72552
+epoch: 300/300, step: 900/1345, d loss: 0.68842, g loss: 0.69306
+epoch: 300/300, step: 1200/1345, d loss: 0.69498, g loss: 0.72781
+d lr: 0.000000000, g lr: 0.000000000
+training time: 258 mins
