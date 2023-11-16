@@ -1,4 +1,5 @@
 # 3D Unet for medical volumetric image segmentation
+sid:46949750
 
 ## Introduction
 This project uses Unet-3D to train the [Prostate 3D](https://data.csiro.au/collection/csiro:51392v2) dataset to achieve medical volumetric image segmentation, using dice similarity coefficient for evaluation. Image segmentation is to convert an image into a collection of pixel areas represented by masks segmentation maps according to the labels. These segmentation maps can be used for medical condition analysis, symptom prediction, etc.
