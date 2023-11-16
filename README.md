@@ -63,7 +63,8 @@ The model was trained for 10 epochs. The loss during training and validation acc
 ![Figure_1](https://github.com/STommy64/PatternAnalysis-2023/assets/141542365/11a85dd8-5bc1-48e2-b84c-23ff07284bc2)
 A steady decrease in loss can be seen during training, but a decrease in validation accuracy in the middle epochs suggests overfitting during training.
 The model with the highest validation accuracy was saved and used for the test set.
-The model achieved a test accuracy of 61.62222222222222%. More hyperparameters fine-tuning to balance regularisation and learning rate is required to yield higher accuracy.
+The model achieved a test accuracy of 61.62222222222222%, which was slightly below the final validation test accuracy. This suggests slight overfitting at the end of training.
+More hyperparameters fine-tuning to balance regularisation and learning rate is required to yield higher accuracy.
 
 ## References
 An image is worth 16x16 words: https://arxiv.org/abs/2010.11929
