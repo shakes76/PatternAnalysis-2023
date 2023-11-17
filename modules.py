@@ -2,6 +2,16 @@ import torch
 import torch.nn as nn
 
 class UNet(nn.Module):
+    """
+    U-Net model for image segmentation.
+
+    Args:
+        in_channels (int): Number of input channels.
+        out_channels (int): Number of output channels.
+        depth (int): Depth of the U-Net architecture.
+        base_filters (int): Number of filters in the first layer. It doubles with each layer.
+        dropout_prob (float): Dropout probability.
+    """
     def __init__(self, in_channels, out_channels, depth=4, base_filters=64, dropout_prob=0.3):
         super(UNet, self).__init__()
 
@@ -28,7 +38,16 @@ class UNet(nn.Module):
         self.out_conv = nn.Conv2d(base_filters, out_channels, kernel_size=1)
         self.sigmoid = nn.Sigmoid()
 
-    def forward(self, x):
+        def forward(self, x):
+        """
+        Forward pass of the U-Net.
+
+        Args:
+            x (Tensor): Input tensor.
+
+        Returns:
+            Tensor: Output tensor of the network.
+        """
         skips = []
         for enc in self.encoders:
             x = enc(x)
@@ -46,7 +65,17 @@ class UNet(nn.Module):
         x = self.out_conv(x)
         return self.sigmoid(x)
 
-    def conv_block(self, in_channels, out_channels):
+def conv_block(self, in_channels, out_channels):
+        """
+        Creates a convolutional block with two convolutional layers, each followed by batch normalization and ReLU.
+
+        Args:
+            in_channels (int): Number of input channels for the block.
+            out_channels (int): Number of output channels for the block.
+
+        Returns:
+            Sequential: A sequential container with convolutional layers, batch normalization, and ReLU activations.
+        """
         return nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
