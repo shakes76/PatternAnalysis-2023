@@ -1,4 +1,2 @@
-/recognition/OASIS-Style-GAN2-s4696807/OASIS
-/recognition/OASIS-Style-GAN2-s4696807/generated_images
-/recognition/OASIS-Style-GAN2-s4696807/image_print.py
-/recognition/OASIS-Style-GAN2-s4696807/slurm_script.sh
+*.pyc
+
