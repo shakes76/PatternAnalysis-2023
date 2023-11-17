@@ -31,7 +31,7 @@ All the relevant code is under the Siamese folder.
 3. **Distance Metric**: The extracted features are compared using some form of distance function like Euclidean distance or cosine similarity.
 4. **Output**: The network outputs a similarity score between these two inputs.
 
-![Siamese_structure.png](../Images/Siamese-Architecture.png)
+![Siamese_structure.png](./Images/Siamese-Architecture.png)
 
 ### Applications
 
@@ -55,7 +55,7 @@ In this case the subnetwork is the Resnet18, which is a convolutional neural net
 Resnet18 is a pre-trained model, which is trained on the ImageNet dataset and used to extract features from the images. 
 
 ### Resnet18 architecture:
-![resnet18.jpeg](../Images/ResNet-18-Architecture.png)
+![resnet18.jpeg](./Images/ResNet-18-Architecture.png)
 
 For this project, I use to Resnet18 to extract features from the two images, and then calculate the distance between
 the two features, and use the distance to classify the images.
@@ -73,8 +73,8 @@ The dataset contains 4,424 images of brain MRI scans, which are divided into  2,
 
 Here is an example of AD (left) and NC (right) images:
 
-![AD_example.jpeg](../Images/AD_example.jpeg)
-![NC_example.jpeg](../Images/NC_example.jpeg)
+![AD_example.jpeg](./Images/AD_example.jpeg)
+![NC_example.jpeg](./Images/NC_example.jpeg)
 
 The dataset have been preprocessed, they are all in same size (256 * 240) and in gray scale.
 And all the images have the same naming format, which is "1182968_94.jpeg", the first part is the patient's unique ID, 
@@ -105,30 +105,30 @@ and the optimizer I use is Adam with a 0.001 learning rate.
 
 The training result of 50 epochs are shown below:
 
-![Traning_Accuracy.png](../Images/Traning_Accuracy.png)
-![Traning_Loss.png](../Images/Traning_Loss.png)
+![Traning_Accuracy.png](./Images/Traning_Accuracy.png)
+![Traning_Loss.png](./Images/Traning_Loss.png)
 
 The training accuracy shows convergence after 1200 steps.
 
 Here is the Training result for classifier trained 50 epochs:
 
-![classifier_train.png](../Images/classifier_train.png)
+![classifier_train.png](./Images/classifier_train.png)
 
 ## Testing
 The testing process is similar to the training process, but the testing process is only used to test the Performance.
 The testing result of 50 epochs are shown below:
 
-![Testing_result50.png](../Images/Test_result50.png)
+![Testing_result50.png](./Images/Test_result50.png)
 
 
 There is another model only trained 10 epochs, but does not have the log and 
 the testing result of 10 epochs are shown below:
 
-![Testing_result10.png](../Images/Test_result10.png)
+![Testing_result10.png](./Images/Test_result10.png)
 
 For classifier, here is an example output
 
-![classifier_result.png](../Images/classifier_result.png)
+![classifier_result.png](./Images/classifier_result.png)
 
 ## Dependencies
 
