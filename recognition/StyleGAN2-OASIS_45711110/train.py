@@ -88,9 +88,9 @@ def generate_examples(gen, epoch, n=100):
             w     = get_w(1)
             noise = get_noise(1)
             img = gen(w, noise)
-            if not os.path.exists(f'saved_examples_{test}/epoch{epoch}'):
-                os.makedirs(f'saved_examples_{test}/epoch{epoch}')
-            save_image(img*0.5+0.5, f"saved_examples_{test}/epoch{epoch}/img_{i}.png")
+            if not os.path.exists(f'saved_examples_{save}/epoch{epoch}'):
+                os.makedirs(f'saved_examples_{save}/epoch{epoch}')
+            save_image(img*0.5+0.5, f"saved_examples_{save}/epoch{epoch}/img_{i}.png")
 
 '''
 Main training loop
