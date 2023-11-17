@@ -10,6 +10,8 @@ import torch.nn.functional as F
 from math import sqrt #math sqrt is about 7 times faster than numpy sqrt
 import numpy as np
 
+from config import channels, interpolation
+
 '''
 MLP with 8 Equalised Linear layers
 The mapping network maps the latent vector z to an intermediate latent space w.
@@ -80,7 +82,7 @@ The generator starts with a learned constant.
 Then it has a series of blocks (5 in this case). The feature map resolution may be doubled at each block (in this instance it has repeated features)
 Uses a broadcast and scaling operation (noise is a single channel for the first layer).
 Each block outputs an RGB image and they are scaled up and summed to get the final RGB image.
-The image is scaled using bilinear interpolation.
+The image is scaled using interpolation from the config file
 '''
 class Generator(nn.Module):
 
@@ -113,11 +115,11 @@ class Generator(nn.Module):
         x = self.style_block(x, w[0], input_noise[0][1])
         rgb = self.to_rgb(x, w[0])
 
-        # Rest of the blocks upsample the img using bilinear interpolation and add to the rgb from the block
+        # Rest of the blocks upsample the img using interpolation set in the config file and add to the rgb from the block
         for i in range(1, self.n_blocks):
-            x = F.interpolate(x, scale_factor=2, mode="bilinear")
+            x = F.interpolate(x, scale_factor=2, mode=interpolation)
             x, rgb_new = self.blocks[i - 1](x, w[i], input_noise[i])
-            rgb = F.interpolate(rgb, scale_factor=2, mode="bilinear") + rgb_new
+            rgb = F.interpolate(rgb, scale_factor=2, mode=interpolation) + rgb_new
 
         # tanh is used to output rgb pixel values form -1 to 1
         return torch.tanh(rgb)
@@ -178,12 +180,12 @@ Uses the style vector from the mapping network through the Equalized Linear laye
 class ToRGB(nn.Module):
 
     def __init__(self, W_DIM, features):
+
         super().__init__()
         self.to_style = EqualizedLinear(W_DIM, features, bias=1.0)
-
         # Weight modulated conv layer without demodulation
-        self.conv = Conv2dWeightModulate(features, 3, kernel_size=1, demodulate=False)
-        self.bias = nn.Parameter(torch.zeros(3))
+        self.conv = Conv2dWeightModulate(features, channels, kernel_size=1, demodulate=False)
+        self.bias = nn.Parameter(torch.zeros(channels))
         self.activation = nn.LeakyReLU(0.2, True)
 
     def forward(self, x, w):
@@ -251,7 +253,7 @@ class Discriminator(nn.Module):
 
         # Layer to convert RGB image to a feature map with `n_features`.
         self.from_rgb = nn.Sequential(
-            EqualizedConv2d(3, n_features, 1),
+            EqualizedConv2d(channels, n_features, 1),
             nn.LeakyReLU(0.2, True),
         )
         n_blocks = len(features) - 1

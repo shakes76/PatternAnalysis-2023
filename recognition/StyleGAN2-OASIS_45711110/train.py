@@ -43,7 +43,7 @@ def gradient_penalty(critic, real, fake,device="cpu"):
 
     return gradient_penalty
 
-# Samples z on random and fetches w from mapping network
+# Samples z (noise) on random and fetches w (latent vectors) from mapping network
 def get_w(batch_size):
 
     z = torch.randn(batch_size, w_dim).to(device)
@@ -85,12 +85,12 @@ def generate_examples(gen, epoch, n=100):
     
     for i in range(n):
         with torch.no_grad():
-            w     = train.get_w(1)
-            noise = train.get_noise(1)
+            w     = get_w(1)
+            noise = get_noise(1)
             img = gen(w, noise)
-            if not os.path.exists(f'saved_examples/epoch{epoch}'):
-                os.makedirs(f'saved_examples/epoch{epoch}')
-            save_image(img*0.5+0.5, f"saved_examples/epoch{epoch}/img_{i}.png")
+            if not os.path.exists(f'saved_examples_{test}/epoch{epoch}'):
+                os.makedirs(f'saved_examples_{test}/epoch{epoch}')
+            save_image(img*0.5+0.5, f"saved_examples_{test}/epoch{epoch}/img_{i}.png")
 
 '''
 Main training loop
@@ -219,7 +219,7 @@ for epoch in range(epochs):
     D_Loss.extend(curr_Dloss)
 
     # Save generator's fake image on every 50th epoch
-    if epoch % 50 == 0:
+    if epoch % 10 == 0:
     	generate_examples(gen, epoch)
 
 predict.plot_loss(G_Loss, D_Loss)
