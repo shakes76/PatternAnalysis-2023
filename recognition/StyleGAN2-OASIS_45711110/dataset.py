@@ -11,7 +11,7 @@ from config import channels, image_height, image_width
 '''
 Data Loader
 
-Resize: Resize images to the specific resolution
+Resize: Resize images to a lower resolution as set in config, uses bicubic interpolation
 RandomHorizontalFlip: Augment data by applying random horizontal flips [probability=50%]
 ToTensor: Convert images to PyTorch Tensors
 Normalize: Normalize pixel value to have a mean and standard deviation of 0.5
