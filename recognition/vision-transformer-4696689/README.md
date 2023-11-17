@@ -5,7 +5,7 @@
 Goal of the project is to classify Alzheimer's disease (normal or AD) of the ADNI 
 brain data using a Vision Transformer. Each sample consists of 20 slices of 240x256 
 greyscale image corresponding to a patient, which is to be classified as either NC 
-or AD. In later versions, 
+or AD. Experiments were also done with data augmentation.
 
 ## How to use
 
@@ -39,13 +39,26 @@ for transformer models.
 
 ![Basic Transformer Model](extra/ViT.png)
 
+The standard vision transformer works by inputting embeddings of patches of images, along 
+with a positional encoding, into a transformer model. Only the encoder is used, and 
+cross entropy loss is used for the classification. Switching the order of normalisation
+allows for better propagation of gradient and training stability. If using this patch based
+model it is important to use 3D patches for both speed and performance. The later design
+used a CNN to instead reduce the image into channels (similar sized to patches) which are
+inputted. This further improves speed without impacting performance.
+
 ## Training
 
-Training is done for 175 epochs which was found experimentally to be long enough. 
+Training is done for 100 epochs which was found experimentally to be long enough. 
 AdamW optimiser is used with a learning rate of 3e-4, this was decreased from 1e-3 
 (which did not train well) but also increased from 1e-4. The data is split into train, 
 validation and test sets. Majority of the data is in train set, and the validation and
 test sets are of equal size.
+
+Hyperparameter tuning was done manually. Learning rate schedulers eg. cyclic, warm up
+were found to be ineffective. A learning rate of 1e-3 didn't permit training, but 1e-4
+was too slow and didn't perform as good as the final 3e-4. The 20 slices for each image
+correspond to the patient-level split.
 
 ## Result
 
@@ -57,5 +70,10 @@ not generalising. This was the key motivator for data augmentation. However, it 
 also indicate that the learning rate is too small and stuck in a local optima. This 
 is the key motivator for increasing the learnign rate from 1e-4 to 3e-4.
 
+![Trianing accuracy and epoch](extra/train.png)
 ![Validation accuracy and epoch](extra/acc.png)
-![Loss and epoch](extra/loss.png)
+![Training Loss and epoch](extra/loss.png)
+
+## References
+
+Dosovitskiy, A. (2021) An Image is Worth 16x16 Words: Transformers for Image Recognition at Scale, Papers with code. Available at: https://paperswithcode.com/paper/an-image-is-worth-16x16-words-transformers-1 (Accessed: 18 November 2023). 

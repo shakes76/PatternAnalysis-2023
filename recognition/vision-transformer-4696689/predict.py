@@ -17,10 +17,10 @@ try:
     plt.plot(steps, LOSS)
     plt.ylabel('LOSS')
     plt.xlabel('epoch')
+    plt.title('Training Loss')
     plt.show()
 except:
-    print("No loss!")
-    
+    print("No training loss!")
 
 #try load and plot accuracy curve
 try:
@@ -29,9 +29,22 @@ try:
     plt.plot(steps, LOSS)
     plt.ylabel('ACCURACY')
     plt.xlabel('epoch')
+    plt.title('Validation Accuracy')
     plt.show()
 except:
     print("No accuracy!")
+    
+#try load and plot train accuracy curve
+try:
+    loss = loadtxt('train.txt')
+    steps = len(loss)
+    plt.plot(steps, LOSS)
+    plt.ylabel('ACCURACY')
+    plt.xlabel('epoch')
+    plt.title('Training Accuracy')
+    plt.show()
+except:
+    print("No training accuracy")
 
 """train models on datasets"""
 # train_acc = test(model, trainloader) #test on train set
