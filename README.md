@@ -114,7 +114,16 @@ NC
 
 <img width="100" alt="image" src="https://github.com/gaurikadiwan/PatternAnalysis-2023/assets/140461356/b6f54325-7fe2-423c-8da2-c65c12d1c429">
 
-                     
+### Validation Data:
+
+AD (Alzheimer's Disease)
+
+This category contains 2,000 images.
+
+ NC (Normal Control)
+
+This category contains 2,240 images.
+
 ### Testing Data:
 
 AD (Alzheimer's Disease): This category contains 4,460 images.
