@@ -5,8 +5,21 @@ The data is augmented and transformed during import for faster training.
 
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
+from torchvision.utils import save_image
 
 from config import channels, image_height, image_width
+
+'''
+Saves 5 images after the data transformation/augmentation and loading is complete 
+'''
+def show_imgs(loader):    
+    
+    for i in range(5):
+        features, _ = next(iter(loader))
+        print(f"Feature batch shape: {features.size()}")
+        img = features[0].squeeze()
+        plt.imshow(img, cmap="gray")
+        save_image(img*0.5+0.5, f"aug_img_{i}.png")
 
 '''
 Data Loader
@@ -38,4 +51,7 @@ def get_data(data, log_res, batchSize):
 
     loader = DataLoader(dataset, batchSize, shuffle=True)
 
+    if channels == 1:
+        show_imgs(loader)
+        
     return loader
