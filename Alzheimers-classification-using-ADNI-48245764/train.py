@@ -2,12 +2,12 @@ import dataset
 import tensorflow as tf
 from tensorflow import keras
 
-num_epochs = 80
-learning_rate = 0.005
+num_epochs = 120
+learning_rate = 0.001
 weight_decay = 0.0001
 num_classes = 2
 image_size = 140
-batch_size = 140
+batch_size = 70
 
 def run_model(model):
     """
