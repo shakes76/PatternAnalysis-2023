@@ -9,7 +9,7 @@ from parameters import *
 
 # Define hyperparameters
 input_shape = (128, 128, 3)  # Adjust image size 
-epochs = 3
+epochs = 50
 model_save_path = 'alzheimer_model.h5'
 
 # Load and preprocess the data
