@@ -6,7 +6,7 @@ import os
 import matplotlib.pyplot as plt
 from torchvision.utils import save_image
 from utils import get_w, get_noise
-from config import test
+from config import save
 
 '''
 Plot a 10x5 graph of the Generator and Discriminator loss during training over iteration
@@ -42,6 +42,6 @@ def generate_examples(gen, mapping_network, epoch, device):
             w     = get_w(1, mapping_network, device)
             noise = get_noise(1, device)
             img = gen(w, noise)
-            if not os.path.exists(f'saved_examples_{test}'):
-                os.makedirs(f'saved_examples_{test}')
-            save_image(img*0.5+0.5, f"saved_examples_{test}/epoch{epoch}_img_{i}.png")
+            if not os.path.exists(f'saved_examples_{save}'):
+                os.makedirs(f'saved_examples_{save}')
+            save_image(img*0.5+0.5, f"saved_examples_{save}/epoch{epoch}_img_{i}.png")
