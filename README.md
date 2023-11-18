@@ -165,10 +165,11 @@ This code can be re-run in Rangpur server with an even large number of epochs to
 
 
 
-## Future Enhancements- 
+## Changes to Accomodate Feedback- 
 
-Fine-tuning of the hyperparameters of the Visual Transformer model to further improve its performance. This includes adjusting learning rates, batch sizes, and the number of attention heads and layers.
-Explore additional data augmentation techniques to increase the diversity of the dataset, which can lead to better generalization. Techniques like elastic deformations and intensity transformations can be applied.
+Updated the hyperparameters in the the training model to increase the overall accuracy of the model. Increased the number of epochs fom 80 to 120. Decreased the learning rate for smoother convergence. Decreased batch size from 140 to 70 for potentially better convergence. Decreased weight decay for less regularization. This resulted in an increase in overall increase in accuracy from 67.2 to 74.4%. 
+
+To accomodate the patient level split `dataset.py` will be updated to include patient information along with the image data. Creatae a `patient_id` = `extract_patient_id(filename)` function in dataset.py to extract and associate a patient id label with the images. The `modules.py` and `predict.py` files may be updated to accomodate the `extract_patient_id` function.
 
 
 
