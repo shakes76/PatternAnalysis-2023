@@ -13,7 +13,3 @@ In the recognition folder, you will find many recognition problems solved includ
 * OASIS brain segmentation
 * Classification
 etc.
-
-
-# Introduction
-This is a test version to check fork and bench
