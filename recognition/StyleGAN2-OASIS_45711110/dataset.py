@@ -10,7 +10,7 @@ from torchvision.utils import save_image
 from config import channels, image_height, image_width
 
 '''
-Saves 5 images after the data transformation/augmentation and loading is complete 
+Saves 5 images after the data transformation/augmentation and loading is complete and wrapped using dataloader.
 '''
 def show_imgs(loader):    
     
