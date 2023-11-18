@@ -1,4 +1,6 @@
-# Overview
+# Generating MRI Brain Scans using StyleGAN2 from OASIS brain dataset [PyTorch]
+
+## Overview
 StyleGAN2's application in brain image generation is driven by the need for realistic and versatile synthetic brain scans in medical and research contexts. Its primary purpose is to provide a powerful tool for creating perse and customizable brain images. By offering fine-grained control and reducing privacy concerns, StyleGAN2 not only accelerates research and aids in the development of diagnostic tools by helping understand the variability and anomility in the scans, but also addresses data scarcity issues, ultimately benefiting the field of neuroscience and medical imaging.
 
 This project leverages StyleGAN2 to generate synthetic MRI scan images that closely resemble authentic ones. The model is trained on the subset of the OASIS brain dataset.
@@ -183,14 +185,14 @@ The model was trained using different parameters for first 1-20 epochs to assess
 
 ### 1. Interpolation Mode
 
-The model was trained for 1 epoch using Linear interpolation during upscaling vs Bilinear interpolation.
+The model was trained for 1 epoch using Bilinear interpolation during upscaling vs Bicubic interpolation.
 <p align="center">
     <img src="assets/bilinear.png" alt="Left Image" width="24%; height="24%">
     <img src="assets/bicubic.png" alt="Left Image" width="24%; height="24%">
     <img src="assets/bilinear_crop1.png" alt="Left Image" width="24%; height="24%">
     <img src="assets/bicubic_crop.png" alt="Left Image" width="24%; height="24%">
     <br>
-    From left -  Linear Interpolation, Bilinear interpolation, crop zoom of 10x10px of both respectively
+    From left -  Bilinear Interpolation, Bicubic Interpolation, crop zoom of 10x10px of both respectively
 </p>
 
 The image displayed above demonstrates that when upscaled, **the bicubic interpolation produces smoother edges compared to bilinear interpolation**. Given the inherently curved nature of MRI scans, bicubic interpolation was selected.
