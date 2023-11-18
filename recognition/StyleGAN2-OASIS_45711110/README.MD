@@ -92,7 +92,8 @@ Few images from the dataset is shown below.
 
 <p align="center">
     <img src="assets/raw_data.png" alt="raw data" width="80%">
-    <p style="text-align: center;">Images from dataset</p>
+    <br>
+    Images from dataset
 </p>
 
 
@@ -107,7 +108,8 @@ Few examples of images after augmentation is shown in the figure below.
 
 <p align="center">
     <img src="assets/augmented_images.png" alt="augmented images" width="80%">
-    <p style="text-align: center;">Images after augmenting dataset</p>
+    <br>
+    Images after augmenting dataset
 </p>
 
 ## File Structure
@@ -130,7 +132,8 @@ StyleGAN2 introduced several improvements, including a two-part generator archit
 
 <p align="center">
     <img src="assets/manifold.png" alt="augmented images" width="50%">
-    <p style="text-align: center;">Maniform mapping</p>
+    <br>
+    Maniform mapping
 </p>
 
 **1. Mapping Network:** 
@@ -141,14 +144,16 @@ Latent space dimension is initialized using pixel norm.
 
 <p align="center">
     <img src="assets/generator.png" alt="augmented images" width="35%">
-    <p style="text-align: center;">Generator's architecture</p>
+    <br>
+    Generator's architecture
 </p>
 
 **3. Generator Network:** The generator network is responsible for creating synthetic images. It takes a random noise vector as input and produces an image as output. StyleGAN uses a progressive growing approach, where the generator consists of multiple layers that increase in resolution gradually. Each layer uses a convolutional neural network (CNN) architecture to transform the input noise into an image.
 
 <p align="center">
     <img src="assets/discriminator.png" alt="augmented images" width="35%">
-    <p style="text-align: center;">Discriminator's architecture</p>
+    <br>
+    Discriminator's architecture
 </p>
 
 **4. Discriminator Network:** The discriminator network is used to distinguish between real and generated images. It is also a CNN, and its role is to assess the authenticity of the images produced by the generator. The discriminator is trained to minimize the distinguishability of generated images from real ones.
@@ -183,7 +188,8 @@ The model was trained for 1 epoch using Linear interpolation during upscaling vs
     <img src="assets/bicubic.png" alt="Left Image" width="24%; height="24%">
     <img src="assets/bilinear_crop.png" alt="Left Image" width="24%; height="24%">
     <img src="assets/bicubic_crop.png" alt="Left Image" width="24%; height="24%">
-    <p style="text-align: center:">From left -  Linear Interpolation, Bilinear interpolation, crop zoom of 10x10px of both respectively</p>
+    <br>
+    From left -  Linear Interpolation, Bilinear interpolation, crop zoom of 10x10px of both respectively
 </p>
 
 The image displayed above demonstrates that when upscaled, **the bicubic interpolation produces smoother edges compared to bilinear interpolation**. Given the inherently curved nature of MRI scans, bicubic interpolation was selected.
@@ -196,7 +202,8 @@ The model was trained for 15 epoch using learning rate of 0.01
 <p align="center">
     <img src="assets/lr=0.01.png" alt="raw data" width="20%">
     <img src="assets/control.png" alt="raw data" width="20%">
-    <p style="text-align: center;">Image generated using lr=0.01 (left) and lr=0.001</p>
+    <br>
+    Image generated using lr=0.01 (left) and lr=0.001
 </p>
 
 The generator produces a black image. Using high learning can result in overshooting optimal points, as styling requires fine tuning when traversing latent space.
@@ -210,12 +217,14 @@ The model was trained using 3 channels vs 1 channels. This was configured by tra
 <p align="center">
     <img src="assets/rgb_vs.png" alt="raw data" width="30%">
     <img src="assets/gray_vs.png" alt="raw data" width="30.3%">
-    <p style="text-align: center;">Image generated using channels=3 (left) and channel=1</p>
+    <br>
+    Image generated using channels=3 (left) and channel=1
 </p>
 <p align="center">
     <img src="assets/rgb_e50.png" alt="raw data" width="20%">
     <img src="assets/gray_e50.png" alt="raw data" width="20%">
-    <p style="text-align: center;">Image generated using channels=3 (left) and channel=1 at 50 epoch</p>
+    <br>
+    Image generated using channels=3 (left) and channel=1 at 50 epoch
 </p>
 
 Using 3 channels for grayscale images converge faster than using a single channel. This may be due to conv2d kernel generating more features resulting in quicker improvement in generated image quality. This however increases the number of tensor multiplication thereby increasing the iterations per second from 2.75 it/s for 1 channel to 3.55 it/s for 3 channel.
@@ -230,7 +239,8 @@ Since this project implements single GPU implementation, **a single channel was 
     <img src="assets/inputRes.png" alt="raw data" width="25%">
     <img src="assets/zw_dim.png" alt="raw data" width="25%">
     <img src="assets/peak.png" alt="raw data" width="25%">
-    <p style="text-align: center;">Image generated using 256x256px resolution (left), 512x512 vector space for latent and style vector (center) and both combined at 15, 15 and 45 epochs respectively</p>
+    <br>
+    Image generated using 256x256px resolution (left), 512x512 vector space for latent and style vector (center) and both combined at 15, 15 and 45 epochs respectively
 </p>
 
 Using higher resolution for image vector produces better result than increasing the dimensional complexity of latent and style vectors. These settings were set low (img res = 128x128px) (z_dim & w_dim to 256) to prioritise the computational speed.
@@ -240,13 +250,15 @@ Using higher resolution for image vector produces better result than increasing 
 <p align="center">
     <img src="assets/disc_loss.png" alt="raw data" width="45%">
     <img src="assets/gen_loss.png" alt="raw data" width="45%">
-    <p style="text-align: center;">loss over iteration for Discriminator (left) and Generator over epoch</p>
+    <br>
+    loss over iteration for Discriminator (left) and Generator over epoch
 </p>
 The Generator and Discriminator's loss can be observed from the plot above.
 
 <p align="center">
     <img src="assets/normalized_combined_loss.png" alt="raw data" width="50%">
-    <p style="text-align: center;"> Normalized loss values over epochs</p>
+    <br>
+    Normalized loss values over epochs
 </p>
 
 The plot for loss vs iterations shows expected learning where both Generator and Discriminator engages in the zero-sum game. The Discriminator get progressively worse at distinguising the fake image from real, And the Generator progressively get better at producing better image. 
@@ -254,14 +266,16 @@ This could perhaps be illustrated better with a combined plot with normalised va
 
 <p align="center">
     <img src="assets/standardized.png" alt="raw data" width="50%">
-    <p style="text-align: center;">Standardized loss values over epochs</p>
+    <br>
+    Standardized loss values over epochs
 </p>
 
 By standardising the loss values and plotting the graph (above) we can see the model convergence acceptably by 50th epoch. After which the generator fine tunes the model and the improvement in the generated images are minimal.
 
 <p align="center">
     <img src="assets/styleGAN2.png" alt="raw data" width="50%">
-    <p style="text-align: center;"> Generated images arranged in 8x8 grid configuration with epoch interval of 10</p>
+    <br>
+    Generated images arranged in 8x8 grid configuration with epoch interval of 10
 </p>
 
 Overall, Using StyleGAN2 we are able to produce resonably good images from just the 50th epoch and realistic looking images at 150 epoch.
