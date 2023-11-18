@@ -1,7 +1,7 @@
 # Overview
 StyleGAN2's application in brain image generation is driven by the need for realistic and versatile synthetic brain scans in medical and research contexts. Its primary purpose is to provide a powerful tool for creating perse and customizable brain images. By offering fine-grained control and reducing privacy concerns, StyleGAN2 not only accelerates research and aids in the development of diagnostic tools by helping understand the variability and anomility in the scans, but also addresses data scarcity issues, ultimately benefiting the field of neuroscience and medical imaging.
 
-    This project leverages StyleGAN2 to generate synthetic MRI scan images that closely resemble authentic ones. The model is trained on the subset of the OASIS brain dataset.
+This project leverages StyleGAN2 to generate synthetic MRI scan images that closely resemble authentic ones. The model is trained on the subset of the OASIS brain dataset.
 
 <p align="left">
   <img src="assets/gan.gif" width="45%" />
@@ -9,6 +9,7 @@ StyleGAN2's application in brain image generation is driven by the need for real
 </p>
 
 ## Table of Contents
+
 - [Installation](#Installation)
 - [Requirements](#Requirements)
 - [Usage](#Usage)
@@ -26,7 +27,7 @@ StyleGAN2's application in brain image generation is driven by the need for real
 ## Installation
 1. Download [OASIS dataset](https://www.oasis-brains.org)
 2. Set the path of the dataset folder in [config.py](config.py) 
-3. Ensure you have all the neccessary [dependencies](#Dependencies) installed.
+3. Ensure you have all the neccessary [requirements](#Requirements) are satisfied.
 
 ## Requirements
 - Both Linux and Windows are supported, Linux is recommended due to its performance and compatitibity.
@@ -102,7 +103,7 @@ Few images from the dataset is shown below.
 **Resize**: The imported images were resized to lower resolution (128x128) for faster computation. \
 **RandomVerticalFlip**: The images were flipped vertically randomly at 50% probability to introduce variabiliity in data. \
 **Normalise**: Images were normalised with mean 0.5 and standard deviation of 0.5 for each channels. \
-**Grayscale**: Since the default import for img dataset is 3 channels, when using 1 channel the images are transformed to grayscale. \
+**Grayscale**: Since the default import for img dataset is 3 channels, when using 1 channel the images are transformed to grayscale.
 
 Few examples of images after augmentation is shown in the figure below.
 
@@ -253,6 +254,7 @@ Using higher resolution for image vector produces better result than increasing 
     <br>
     loss over iteration for Discriminator (left) and Generator over epoch
 </p>
+
 The Generator and Discriminator's loss can be observed from the plot above.
 
 <p align="center">
