@@ -1,0 +1,8 @@
+/AD_NC
+/__pycache__/
+siamese.pt
+classifier.pt
+file.txt
+train.txt
+validate.txt
+.vscode
