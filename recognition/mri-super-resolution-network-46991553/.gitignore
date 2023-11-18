@@ -1,0 +1,6 @@
+data/
+imgs/*output.png
+
+__pycache__/
+
+helper.ipynb # Used for generating images for README
