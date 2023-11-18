@@ -7,7 +7,7 @@ LEARNING_RATE = 0.001  # The initial learning rate for optimization
 ATTENTION_HEADS = 5  # The number of attention heads in the multi-head self-attention mechanism
 DROPOUT_RATE = 0.2  # The dropout rate used within the model
 TRANSFORMER_LAYERS = 5  # The number of transformer encoder blocks in the architecture
-WEIGHT_DECAY = 0.001  # The weight decay applied to model parameters during optimization
+WEIGHT_DECAY = 0.0001  # The weight decay applied to model parameters during optimization
 MLP_HEAD_UNITS = [256, 128]  # The sizes of the Multi-Layer Perceptron head layers
 
 # Automatically Calculated Variables
