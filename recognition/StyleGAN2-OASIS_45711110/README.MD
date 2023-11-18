@@ -33,15 +33,15 @@ StyleGAN2's application in brain image generation is driven by the need for real
 - 64-bit Python 3.10 or later installation. Anaconda3 is recommended due to its intra-library compatibility installation.
 - Additional libaries include -
 
-    | |  Libaries         | | | |Version           | |
-    |-|-----------------  |-|-|-|------------------|-|
-    | |  pytorch          | | | |2.0.1             | |
-    | |  torchvision      | | | |0.15.2            | |
-    | |  pytorch-cuda     | | | |11.8              | |
-    | |  cudatoolkit      | | | |10.1              | |
-    | |  numpy            | | | |1.22.3            | |
-    | |  matplotlib       | | | |3.7.2             | |
-    | |  tqdm             | | | |4.66.1            | |
+    |  Libaries       |Version           |
+    |-----------------|------------------|
+    |  pytorch        |2.0.1             |
+    |  torchvision    |0.15.2            |
+    |  pytorch-cuda   |11.8              |
+    |  cudatoolkit    |10.1              |
+    |  numpy          |1.22.3            |
+    |  matplotlib     |3.7.2             |
+    |  tqdm           |4.66.1            |
 
     Note: Libaries may use newer version. If using conda, install pytorch, torchvision and cuda [together](https://pytorch.org).
 - An NVIDIA GPU is required. For high dimension picture generation, higher GPU may be required. The training was performed on NVIDIA A100 40GB vGPU with 128GB of DRAM.
@@ -79,12 +79,12 @@ The OASIS datasets hosted by central.xnat.org provides open access to a signific
 The subset of OASIS dataset used for this project uses T1-weighted MRI scans. \
 The dataset specification can be found below.
 
-| |  Attributes       | | | | Values           | |
-|-|-----------------  |-|-|-|------------------|-|
-| |  Inpiduals      | | | | 1,298            | |
-| |  Total images     | | | | 22,662           | |
-| |  Image size       | | | | 256x256          | |
-| |  Image color      | | | | Grayscale        | |
+|  Attributes     | Values           |
+|-----------------|------------------|
+|  Inpiduals      |  1,298           |
+|  Total images   | 22,662           |
+|  Image size     | 256x256          |
+|  Image color    | Grayscale        |
 
 All data is available via [OASIS-BRAINS](www.oasis-brains.org).
 
