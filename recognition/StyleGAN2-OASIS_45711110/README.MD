@@ -187,15 +187,13 @@ The model was trained for 1 epoch using Linear interpolation during upscaling vs
 <p align="center">
     <img src="assets/bilinear.png" alt="Left Image" width="24%; height="24%">
     <img src="assets/bicubic.png" alt="Left Image" width="24%; height="24%">
-    <img src="assets/bilinear_crop.png" alt="Left Image" width="24%; height="24%">
+    <img src="assets/bilinear_crop1.png" alt="Left Image" width="24%; height="24%">
     <img src="assets/bicubic_crop.png" alt="Left Image" width="24%; height="24%">
     <br>
     From left -  Linear Interpolation, Bilinear interpolation, crop zoom of 10x10px of both respectively
 </p>
 
 The image displayed above demonstrates that when upscaled, **the bicubic interpolation produces smoother edges compared to bilinear interpolation**. Given the inherently curved nature of MRI scans, bicubic interpolation was selected.
-
-Note: the crop zoom of images shown in above fig uses interpolation when upscaled on markdown. Check out the files [bilinear crop](bilinear_crop.png) and [bicubic crop](bicubic_crop.png) for actual difference.
 
 ### 2. Learning Rate
 

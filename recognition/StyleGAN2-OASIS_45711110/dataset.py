@@ -6,6 +6,7 @@ The data is augmented and transformed during import for faster training.
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 from torchvision.utils import save_image
+import matplotlib.pyplot as plt
 
 from config import channels, image_height, image_width
 
