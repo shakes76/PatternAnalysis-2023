@@ -1,26 +1,6 @@
 import torch
 import torch.nn as nn
 
-batch_size = 128
-workers = 1
-
-# Images are 256 by 240 pixels. Resize them to 224 by 224; must be divisible by 16
-image_size = 224  # Resized 2D image input
-patch_size = 16  # Dimension of a patch
-num_patches = (image_size // patch_size) ** 2  # Number of patches in total
-num_channels = 3  # 3 channels for RGB
-embed_dim = 768  # Hidden size D of ViT-Base model from paper, equal to [(patch_size ** 2) * num_channels]
-num_heads = 12  # Number of self attention blocks
-num_layers = 12  # Number of Transformer encoder layers
-mlp_size = 3072  # Number of hidden units between each linear layer
-dropout_size = 0.1
-num_classes = 2  # Number of different classes to classify (i.e. AD and NC)
-num_epochs = 3
-
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-if not torch.cuda.is_available():
-    print("Warning CUDA not found. Using CPU")
-
 # ------------------------------------------------------------------
 # Patch Embedding
 class PatchEmbedding(nn.Module):
@@ -31,9 +11,8 @@ class PatchEmbedding(nn.Module):
     N is the number of patches, 
     and P is the dimension of each patch; P^2 represents a flattened patch.
     """
-    def __init__(self, ngpu):
+    def __init__(self, num_channels: int, embed_dim: int, patch_size: int):
         super(PatchEmbedding, self).__init__()
-        self.ngpu = ngpu
         # Puts image through Conv2D layer with kernel_size = stride to ensure no patches overlap.
         # This will split image into fixed-sized patches; each patch has the same dimensions
         # Then, each patch is flattened, including all channels for each patch.
@@ -56,9 +35,8 @@ class TransformerEncoder(nn.Module):
     One transformer encoder layer consists of layer normalisation, multi-head self attention layer, 
     a residual connection, another layer normalisation, an mlp block, and another residual connection.
     """
-    def __init__(self, ngpu):
+    def __init__(self, embed_dim: int, num_heads: int, mlp_size: int, dropout_size: float, num_layers: int):
         super(TransformerEncoder, self).__init__()
-        self.ngpu = ngpu
 
         self.transformer_encoder_layer = nn.TransformerEncoderLayer(d_model=embed_dim,
                                                                     nhead=num_heads,
@@ -82,11 +60,10 @@ class TransformerEncoder(nn.Module):
 class MLPHead(nn.Module):
     """Creates an MLP head.
     Consists of a layer normalisation and a linear layer.
+    Used for classficiation.
     """
-    def __init__(self, ngpu):
+    def __init__(self, embed_dim: int, num_classes: int):
         super(MLPHead, self).__init__()
-        self.ngpu = ngpu
-
         self.main = nn.Sequential(nn.LayerNorm(normalized_shape=embed_dim),
                                     nn.Linear(in_features=embed_dim,
                                                 out_features=num_classes)
@@ -98,25 +75,56 @@ class MLPHead(nn.Module):
 # ------------------------------------------------------------------
 # Visual Transformer
 class ViT(nn.Module):
-    """Creates a vision transformer model."""
-    def __init__(self, ngpu):
+    """Creates a vision transformer model.
+    Contains patch embedding, position embedding, transformer encoder layers, and MLP head for classification.
+    Can initiate with default values for ADNI dataset.
+    """
+    def __init__(self, num_channels: int = 1, embed_dim: int = 768, patch_size: int = 16, num_heads: int = 12, 
+                    mlp_size: int = 3072, dropout_size: float = 0.1, num_layers: int = 12, num_classes: int = 2,
+                    image_size: int = 224):
         super(ViT, self).__init__()
-        self.ngpu = ngpu
+        
+        # Initiate patch embedding
+        self.patch_embedding = PatchEmbedding(num_channels=num_channels, embed_dim=embed_dim, patch_size=patch_size)
 
-        self.patch_embedding = PatchEmbedding(workers)
+        # Prepare the class token
         self.prepend_embed_token = nn.Parameter(torch.randn(1, 1, embed_dim), requires_grad=True)
+
+        # Prepare the position embedding
+        num_patches = (image_size // patch_size) ** 2
         self.position_embed_token = nn.Parameter(torch.randn(1, num_patches + 1, embed_dim), requires_grad=True)
-        self.embedding_dropout = nn.Dropout(p=dropout_size)  # Apply dropout after positional embedding as well
-        self.transformer_encoder = TransformerEncoder(workers)
-        self.mlp_head = MLPHead(workers)
+
+        # Apply dropout after positional embedding
+        self.embedding_dropout = nn.Dropout(p=dropout_size)
+
+        # Initiate TransformerEncoder layers
+        self.transformer_encoder = TransformerEncoder(embed_dim=embed_dim, num_heads=num_heads, mlp_size=mlp_size, 
+                                                      dropout_size=dropout_size, num_layers=num_layers)
+        
+        # Initiate MLPHead
+        self.mlp_head = MLPHead(embed_dim=embed_dim, num_classes=num_classes)
 
     def forward(self, input):
         current_batch_size = input.size(0)
+
+        # Expand the class token to batch size
         prepend_embed_token_expanded = self.prepend_embed_token.expand(current_batch_size, -1, -1)
-        input = self.patch_embedding(input)  # Patch embedding
-        input = torch.cat((prepend_embed_token_expanded, input), dim=1)  # Prepend class token
-        input = input + self.position_embed_token  # Add position embedding
-        input = self.embedding_dropout(input)  # Apply dropout
-        input = self.transformer_encoder(input)  # Feed into transformer encoder layers
-        input = self.mlp_head(input[:, 0])  # Get final classificaiton from MLP head
+
+        # Apply Patch embedding
+        input = self.patch_embedding(input) 
+
+        # Prepend class token
+        input = torch.cat((prepend_embed_token_expanded, input), dim=1)  
+
+        # Add position embedding
+        input = input + self.position_embed_token  
+
+        # Apply dropout
+        input = self.embedding_dropout(input)  
+
+        # Feed into transformer encoder layers
+        input = self.transformer_encoder(input)  
+
+        # Get final classificaiton from MLP head
+        input = self.mlp_head(input[:, 0])  
         return input
