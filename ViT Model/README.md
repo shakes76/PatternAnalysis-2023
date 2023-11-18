@@ -59,6 +59,23 @@ The ADNI dataset comes in the 'train' and 'test' folders. A validation set was c
 All images were resized to 224 by 224 as per the seminar paper. All images were also transformed into grayscale since the MRI images are naturally grayscale.
 
 ## Results
+The model was trained for 10 epochs. The loss during training and validation accuracy have been plotted.
+![Figure_1](https://github.com/STommy64/PatternAnalysis-2023/assets/141542365/11a85dd8-5bc1-48e2-b84c-23ff07284bc2)
+A steady decrease in loss can be seen during training, but a decrease in validation accuracy in the middle epochs suggests overfitting during training.
+The model with the highest validation accuracy was saved and used for the test set.
+The model achieved a test accuracy of 61.62222222222222%, which was slightly below the final validation test accuracy. This suggests slight overfitting at the end of training.
+More hyperparameters fine-tuning to balance regularisation and learning rate is required to yield higher accuracy.
 
+## References
+An image is worth 16x16 words: https://arxiv.org/abs/2010.11929
+
+Validation logic: https://pytorch.org/tutorials/beginner/introyt/trainingyt.html
+
+Conv2D layer logic for patch embedding: https://github.com/nachiket273/Vision_transformer_pytorch
+
+## Old commits
+Project was started before forking. Please see older commits here:
+https://github.com/STommy64/ViT-Report-COMP3710
+![image](https://github.com/STommy64/PatternAnalysis-2023/assets/141542365/aec0f8ef-d0d4-4f49-8698-7ddf1e3a03e7)
 
 
