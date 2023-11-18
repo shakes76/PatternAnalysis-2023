@@ -102,8 +102,9 @@ The dataset comprises 21,500 grayscale images, each with dimensions 256x240, div
 
 
 ## RESULTS:
-- Test Set Accuracy: 57.63%
-- Training Accuracy: 60.52%
+- Test Set Accuracy: 61.65%
+- Training Accuracy: 65.59%
+  
 
 ### Model Configuration
 
