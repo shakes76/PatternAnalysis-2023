@@ -43,7 +43,9 @@ predict(image_path, model)
 ![predict_image](https://github.com/LazyScribble/PatternAnalysis-2023/assets/141600341/7be53da0-7473-403f-817d-6a417ca70eda)
 
 ### Results
-Whether a box is accurate or not can be determined by using the intersection over uniou (IoU) score. This determines how much of the predicted box overlaps with the true box. The average IoU score for this algorithm was determined to be 0.47 in the testing phase. This is lower than the desired outcome of 0.80. The main issue is believed to stem from the custom loss function. YOLO uses the squared error of three different terms in order to determine loss. The implementation of these formulas may be incorrect leading to the lack of improvement in the train step. 
+Whether a box is accurate or not can be determined by using the intersection over uniou (IoU) score. This determines how much of the predicted box overlaps with the true box. The average IoU score for this algorithm was determined to be 0.47 in the testing phase. This is lower than the desired outcome of 0.80. The main issue is believed to stem from the custom loss function. YOLO uses the squared error of three different terms in order to determine loss. The implementation of these formulas may be incorrect leading to the lack of improvement in the train step. The average accuracy for prediction was 15%
+Here is a graph of the training results:
+![train graph](https://github.com/LazyScribble/PatternAnalysis-2023/assets/141600341/9cbc1b7b-fae0-4730-a53a-74758136247b)
 
 ## References
 1. Fang, Wei & Wang, Lin & Ren, Peiming. (2019). Tinier-YOLO: A Real-time Object Detection Method for Constrained Environments. IEEE Access. PP. 1-1. 10.1109/ACCESS.2019.2961959. https://www.researchgate.net/figure/The-network-structure-of-Tiny-YOLO-V3_fig1_338162578
