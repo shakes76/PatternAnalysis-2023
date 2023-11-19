@@ -19,8 +19,15 @@
 Alzheimer's disease is a neurodegenerative condition affecting millions worldwide, making early and accurate diagnosis critical for patient care and research. Extracting meaningful features from medical images is challenging due to the subtlety of disease-related patterns. The Swin Transformer, a state-of-the-art deep learning architecture, excels at capturing fine-grained details and long-range dependencies within images. This capability significantly enhances the accuracy of Alzheimer's disease classification, contributing to early diagnosis and research efforts. The Swin Transformer's hierarchical structure allows it to efficiently process the large and complex medical images commonly used in this field.
 
 ![Swin Transformer](images/swin_transformer.png)
-
 ## Working 🪛 <a name="working"></a>
+### Swin Transformer Working 🏋️‍♀️
+
+1. For Computer Vision purposes. we use Swin Transformer Architecture. In contrast to traditional transformer architectures, they can handle large image resolutions.
+2. It utilizes the process of dividing images into several non-overlapping patches instead of processing a single image.
+Swin transformer follows a hierarchical architecture beginning with a small transformer operating on the patch level, eventually followed by larger ones on higher spatial resolutions.
+3. To capture more spatial resolution, the Swin transformer uses a shifted window strategy. It alternatively shifts the position of patches, allowing more scope for capturing information from neighboring patches.
+4. Swin transformer aggregates information from both local and global contexts by token mixing.
+
 ### Data Preprocessing 🖥️
 
 Data preprocessing plays a pivotal role in preparing input images for classification. The key steps include:
