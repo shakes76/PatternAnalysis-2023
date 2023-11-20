@@ -171,14 +171,14 @@ Recurrent (predict.py)
 ## How to Run:
 
 1. Ensure you have all the required libraries installed.
-2. Make sure the path of the dataset we need has been set correctly, the folder will be named "AD_NC" and be placed together with all of the py files. 
+2. Make sure the path of the dataset we need has been set correctly, the folder will be named "ADNI_AD_NC_2D/AD_NC" and be placed together with all of the py files. 
 3. Run the scripts in the following order:
     - `train.py`: This will train the model and save the best weights.
     - `predict.py`: This will use the best trained model to recurrent the best result on the test set.
-4. After running the `train.py`, your AD_NC directory structure should be as follows:
+4. After running the `train.py`, your ADNI_AD_NC_2D/AD_NC directory structure should be as follows:
 
 
-AD_NC/
+ADNI_AD_NC_2D/AD_NC/
 
 |-- test/
 
