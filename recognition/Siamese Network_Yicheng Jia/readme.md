@@ -262,7 +262,7 @@ ADNI_AD_NC_2D/AD_NC/
 
 
 ## Classifier Result:
-![classifer](./Images/classifer.jpg)
+![classifer](./Images/classifier.jpg)
 
 
 ## Dependencies
