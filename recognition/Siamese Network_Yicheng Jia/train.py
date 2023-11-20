@@ -2,7 +2,7 @@
     File name: train.py
     Author: Yicheng Jia
     Date created: 27/09/2023
-    Date last modified: 26/10/2023
+    Date last modified: 21/11/2023
     Python Version: 3.11.04
 """
 
@@ -18,7 +18,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 import dataset
-from modules import SiameseNetwork
+from modules import SiameseNetwork, SiameseNetworkClassifier
 
 
 def check_CUDA():
@@ -52,7 +52,7 @@ def instantiate_datasets_and_dataloaders():
     dataloader_batch_size = 256
     number_of_workers = 4
     # Instantiate the datasets and dataloaders
-    new_train_dataset, new_test_dataset, new_val_dataset = dataset.get_datasets('AD_NC')
+    new_train_dataset, new_test_dataset, new_val_dataset = dataset.get_datasets('ADNI_AD_NC_2D/AD_NC')
 
     new_train_dataloader = DataLoader(new_train_dataset, num_workers=number_of_workers, batch_size=dataloader_batch_size)
     new_test_dataloader = DataLoader(new_test_dataset, num_workers=number_of_workers, batch_size=dataloader_batch_size)
@@ -64,8 +64,8 @@ def instantiate_datasets_and_dataloaders():
 def validate_process():
     print("Start to check or create validating set...")
     # Define source and validation directories
-    train_path = "AD_NC/train"
-    validate_path = "AD_NC/val"
+    train_path = "ADNI_AD_NC_2D/AD_NC/train"
+    validate_path = "ADNI_AD_NC_2D/AD_NC/val"
 
     # Check if validation set already exists
     if not os.path.exists(validate_path) or len(os.listdir(validate_path)) == 0:
@@ -290,6 +290,77 @@ def write_to_file(file_path_to_save, content):
         file.write(content + '\n')
 
 
+def train_classifier(device):
+    # Initialize TensorBoard writer
+    classifier_writer = SummaryWriter('logs/classifier_experiment')
+
+    print("Start classifier progress in ", device)
+    # Extract the resnet part from the SiameseNetwork instance
+    siamese_network = SiameseNetwork().to(device)
+    # Assuming the saved checkpoint is for the entire SiameseNetwork
+    model_checkpoint = torch.load('module_best_test_accuracy.pth')
+    siamese_network.load_state_dict(model_checkpoint['module_state_dict'])
+
+    # Freeze the feature extractor
+    for param in siamese_network.parameters():
+        param.requires_grad = False
+
+    # Create the classifier model
+    classifier_model = SiameseNetworkClassifier(siamese_network).to(device)
+    classifier_optimizer = optim.Adam(classifier_model.parameters(), lr=0.001)
+    classifier_criterion = nn.BCEWithLogitsLoss()
+
+    # get classifier dataset
+    classifier_dataset = dataset.get_classifier_train_dataset('ADNI_AD_NC_2D/AD_NC')
+    classifier_dataloader = DataLoader(classifier_dataset, num_workers=4, batch_size=256, shuffle=True)
+
+    save_directory = "/results"
+    save_filename = f"classifier_network_{1001}epochs.pth"
+
+    # train the classifier
+    for epoch in range(1001):
+        classifier_model.train()  # Set the model to training mode
+        classifier_running_loss = 0.0
+        classifier_correct_numbers = 0
+        classifier_total_labels = 0
+
+        progress_bar = tqdm(enumerate(classifier_dataloader), total=len(classifier_dataloader), desc=f"Epoch {epoch+1}")
+        for batch_idx, (inputs, labels) in progress_bar:
+            inputs, labels = inputs.to(device), labels.to(device)
+
+            # Forward pass
+            classifier_total_outputs = classifier_model(inputs)
+            classifier_loss = classifier_criterion(classifier_total_outputs, labels.unsqueeze(1))
+
+            # Backward and optimize
+            classifier_optimizer.zero_grad()
+            classifier_loss.backward()
+            classifier_optimizer.step()
+
+            classifier_running_loss += classifier_loss.item()
+            predicted_label = torch.sigmoid(classifier_total_outputs).round()
+            classifier_correct_numbers += predicted_label.eq(labels.view_as(predicted_label)).sum().item()
+            classifier_total_labels += len(labels)
+
+        # Calculate accuracy
+        classifier_average_accuracy = 100 * classifier_correct_numbers / classifier_total_labels
+        print(f"Epoch {epoch+1}: Classifier loss = {classifier_running_loss / len(classifier_dataloader):.4f}, Classifier accuracy = {classifier_average_accuracy:4f}%")
+
+        # Optionally, log loss and accuracy to TensorBoard
+        classifier_writer.add_scalar('Classifier loss/train_epoch', classifier_running_loss / len(classifier_dataloader), epoch)
+        classifier_writer.add_scalar('Classifier accuracy/train_epoch', classifier_average_accuracy, epoch)
+
+    # create directory if it doesn't exist
+    if not os.path.exists(save_directory):
+        os.makedirs(save_directory)
+
+    # save model
+    save_path = os.path.join(save_directory, save_filename)
+    torch.save(classifier_model.state_dict(), save_path)
+
+    classifier_writer.close()  # Close the TensorBoard writer
+
+
 if __name__ == '__main__':
     # check whether CUDA is available
     device = check_CUDA()
@@ -312,11 +383,13 @@ if __name__ == '__main__':
     # Instantiate datasets and dataloaders
     train_dataset, train_dataloader, test_dataloader, validate_dataset, validate_dataloader = instantiate_datasets_and_dataloaders()
 
-    # Initialize the start/end epoch, if we need to start from a checkpoint, we can modify it and use a helper function. 
-    # I deleted them since there is no need to use.
+    # Initialize the start/end epoch, if we need to start from a checkpoint, we can modify it and use a helper function.
     starting_epoch = 0
-    ending_epoch = 201
+    ending_epoch = 1001
     main_training_loop(module, starting_epoch, ending_epoch, train_dataloader, test_dataloader, validate_dataloader, optimizer)
 
     # Close the writer
     writer.close()
+
+    train_classifier(device)
+
