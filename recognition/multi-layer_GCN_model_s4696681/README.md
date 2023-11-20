@@ -66,10 +66,10 @@ The outcome of this hyperparameter tuning showed that the best hyperparameters t
 Doing 10-fold cross validation on the model with these hyperparameters yielded an accuracy of 91.046%
 
 To gain more insight on the performance of the model, A TSNE plot was created to visualise the data before and after being inputted into the model. This is how the dataset looked before:
-![TSNE Before Model Training](multi-layer_GCN_model_s4696681/tsne_before.png)
+![TSNE Before Model Training](tsne_before.png)
 
 And this is the TSNE visualisation after being trained by the model:
-![TSNE After Model Training](multi-layer_GCN_model_s4696681/tsne_after.png)
+![TSNE After Model Training](tsne_after.png)
 
 As can be seen, the model has transformed the data into four distinct regions representing the four classes of the dataset. Though there are some outliers that exist in other classes decision regions, the overwhelming majority of the datapoints have been clustered into the correct class region. This clearly shows that my GCN model is effective at node classification.
 
