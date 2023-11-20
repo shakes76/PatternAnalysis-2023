@@ -2,7 +2,7 @@
     File name: dataset.py
     Author: Yicheng Jia
     Date created: 27/09/2023
-    Date last modified: 26/10/2023
+    Date last modified: 21/11/2023
     Python Version: 3.11.04
 """
 
@@ -15,8 +15,10 @@ from torch.utils.data import Dataset
 
 
 class SiameseNetworkDataset(Dataset):
-    def __init__(self, root_dir):
+    def __init__(self, root_dir, classifier=False):
         super(SiameseNetworkDataset, self).__init__()
+
+        self.classifier = classifier
 
         """
         I used to use the following ways to increase the generalization ability of module.
@@ -53,21 +55,33 @@ class SiameseNetworkDataset(Dataset):
 
     # Get the length of dataset
     def __len__(self):
-        return min(len(self.images['AD']), len(self.images['NC']))
+        if not self.classifier:
+            return min(len(self.images['AD']), len(self.images['NC']))
+        else:
+            return 2 * min(len(self.images['AD']), len(self.images['NC']))
 
     def __getitem__(self, index):
-        if index % 2 == 0:
-            # Positive example (both images are AD)
-            img1 = self.images['AD'][index % len(self.images['AD'])]
-            img2 = self.images['AD'][index % len(self.images['AD'])]
-            label = torch.tensor(1, dtype=torch.float)
-        else:
-            # Negative example (one image is AD, the other is NC)
-            img1 = self.images['AD'][index % len(self.images['AD'])]
-            img2 = self.images['NC'][index % len(self.images['NC'])]
-            label = torch.tensor(0, dtype=torch.float)
+        if not self.classifier:
+            if index % 2 == 0:
+                # Positive example (both images are AD)
+                img1 = self.images['AD'][index % len(self.images['AD'])]
+                img2 = self.images['AD'][index % len(self.images['AD'])]
+                label = torch.tensor(1, dtype=torch.float)
+            else:
+                # Negative example (one image is AD, the other is NC)
+                img1 = self.images['AD'][index % len(self.images['AD'])]
+                img2 = self.images['NC'][index % len(self.images['NC'])]
+                label = torch.tensor(0, dtype=torch.float)
 
-        return img1, img2, label
+            return img1, img2, label
+        else:
+            if index % 2 == 0:
+                img = self.images['AD'][index % len(self.images['AD'])]
+                label = torch.tensor(1, dtype=torch.float)
+            else:
+                img = self.images['NC'][index % len(self.images['NC'])]
+                label = torch.tensor(0, dtype=torch.float)
+            return img, label
 
 
 def get_datasets(root_dir):
@@ -76,3 +90,15 @@ def get_datasets(root_dir):
     test_dataset = SiameseNetworkDataset(os.path.join(root_dir, 'test'))
     val_dataset = SiameseNetworkDataset(os.path.join(root_dir, 'val'))
     return train_dataset, test_dataset, val_dataset
+
+
+def get_classifier_train_dataset(data_path):
+    # Get the classifier dataset
+    classifier_train_dataset = SiameseNetworkDataset(os.path.join(data_path, 'train'), classifier=True)
+    return classifier_train_dataset
+
+
+def get_classifier_test_dataset(data_path):
+    # Get the classifier dataset
+    classifier_test_dataset = SiameseNetworkDataset(os.path.join(data_path, 'test'), classifier=True)
+    return classifier_test_dataset
