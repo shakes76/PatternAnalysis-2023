@@ -261,6 +261,10 @@ ADNI_AD_NC_2D/AD_NC/
 ![predict](./Images/predict.png)
 
 
+## Classifier Result:
+![classifer](./Images/classifer.png)
+
+
 ## Dependencies
 
 ### Dependencies
