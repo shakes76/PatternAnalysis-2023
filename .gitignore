@@ -1,6 +1,0 @@
-# Ignore ADNI dataset images
-/recognition/AD_NC
-/recognition/jobscript.sh
-/recognition/jobscript.txt
-/recognition/Untitled.ipynb
-/recognition/.ipynb_checkpoints
