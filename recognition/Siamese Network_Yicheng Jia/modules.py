@@ -66,3 +66,25 @@ class SiameseNetwork(nn.Module):
         output = self.sigmoid(output)
 
         return output
+
+
+class SiameseNetworkClassifier(nn.Module):
+    def __init__(self, siamese_network):
+        super(SiameseNetworkClassifier, self).__init__()
+
+        # Use the 'resnet' part of the SiameseNetwork for feature extraction
+        self.feature_extractor = nn.Sequential(
+            *list(siamese_network.children())[:-2]  # Exclude the last two layers (fc and sigmoid)
+        )
+
+        # Add the classification layer
+        self.classifier = nn.Linear(512, 1)  # Assuming the output of the feature extractor is 512
+
+    def forward(self, x):
+        x = self.feature_extractor(x)
+        x = torch.flatten(x, 1)
+        x = self.classifier(x)
+        return x
+
+
+
