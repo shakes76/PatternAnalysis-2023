@@ -1,8 +1,0 @@
-ISIC_data.zip
-ISIC_data/
-__MACOSX/
-checkpoints/
-wandb/
-err.txt
-out.txt
-__pycache/
