@@ -13,7 +13,7 @@ Batch of images sent through the model side by side with original images.
 
 ### Dataset
 The ISIC 2018 dataset used for this project is part of a public data repository. This dataset includes training data in the form of png and jpg images of skin lesions as well as their ground-truth segmentation. The training data has been preprocessed by resizing the images to 256x256, followed by a normalization with the data's respective mean and standard deviation (which had to be calculated).
-Dataset source: [ISIC 2018](https://challenge.isic-archive.com/data/#2018)
+Dataset source: [ISIC challenge](https://challenge.isic-archive.com/data/#2018)
 - Training set: 2075
 - Validation set: 519
 - Test set: 1000
@@ -21,7 +21,7 @@ Dataset source: [ISIC 2018](https://challenge.isic-archive.com/data/#2018)
 The images in the test set did not have masks and are therefore not part of any of the logged metrics. For these, the training and validation sets were used. Based on lectures in COMP3710, the split between training and validation set seems reasonable.
 
 ### UNET Architecture
-The UNET architecture is based on the architecture proposed by [ISIC_paper](https://arxiv.org/pdf/1802.10508v1.pdf). The network was originally used to do 3D image segmentation on the BRATS 2017 dataset, but has been restructured in accordance with the task at hand. It consists of four downsampling blocks, one bottom layer and four upsampling blocks:
+The UNET architecture is based on the architecture proposed by [Isensee et al., n.d.](https://arxiv.org/pdf/1802.10508v1.pdf). The network was originally used to do 3D image segmentation on the BRATS 2017 dataset, but has been restructured in accordance with the task at hand. It consists of four downsampling blocks, one bottom layer and four upsampling blocks:
 
 #### Downsamling block
 - Stride convolution: doubles the amount of features in the map and downsamples the image by a factor of two.
@@ -60,9 +60,14 @@ As proposed in the paper, a dice similarity loss function is used to train the n
 - Min loss: 0.1976
 - Max accuracy: 0.911 (in hindsight this is not as useful a metric)
 
-### Usage 
-This 
 ### Dependencies
 - python 3.11.4
 - conda 23.5.2
 - cuda 11.7.99
+
+### References
+ISIC Challenge. (n.d.). Challenge.isic-Archive.com. Retrieved November 21, 2023, from https://challenge.isic-archive.com/data/#2018
+
+‌Isensee, F., Kickingereder, P., Wick, W., Bendszus, M., & Maier-Hein, K. (n.d.). Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge. Retrieved November 21, 2023, from https://arxiv.org/pdf/1802.10508v1.pdf
+
+‌
