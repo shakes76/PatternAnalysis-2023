@@ -1,3 +1,26 @@
+# --------------------------------------------------------------------------------
+# File: train.py
+# Author: Indira Devi Rusvandy
+# Date: 2023-10-20
+# Description:
+#   This script is dedicated to training a Vector Quantized Variational Autoencoder (VQ-VAE) 
+#   using PyTorch. It includes the setup of the VQ-VAE model, its loss function, and the 
+#   training loop. The script also incorporates evaluation metrics such as Structural Similarity 
+#   Index Measure (SSIM) and performs KMeans initialization on the encoder outputs.
+#
+#   The script assumes the availability of 'dataset.py' for data loading and 'modules.py' for
+#   model components (like Encoder, Decoder, etc.). It also visualizes reconstructions from the
+#   VQ-VAE during training and validation phases.
+#
+# Usage:
+#   Run this script to train the VQ-VAE model. Adjust the hyperparameters and model configuration 
+#   as needed for your specific dataset and training requirements. The script outputs training and 
+#   validation losses, SSIM values, and reconstructed images for visual inspection.
+#
+#   Example:
+#       python train.py
+# --------------------------------------------------------------------------------
+
 import torch
 import torch.optim as optim
 import matplotlib.pyplot as plt

@@ -1,3 +1,27 @@
+# --------------------------------------------------------------------------------
+# File: predict.py
+# Author: Indira Devi Rusvandy
+# Date: 2023-10-20
+# Description: 
+#   This script is used for evaluating a trained Vector Quantized Variational Autoencoder 
+#   (VQ-VAE) model and generating new samples based on estimated latent distributions using histograms.
+#   The evaluation is done using Structural Similarity Index Measure (SSIM) on the test 
+#   dataset. Additionally, the script includes functions for encoding images into discrete 
+#   latents, visualizing images, generating new samples by sampling from the learned 
+#   probability distribution over latent space, and showing the generated images.
+#
+#   The script leverages PyTorch for model handling and the `pytorch_msssim` library for 
+#   SSIM calculation. It assumes the presence of 'dataset.py' for data loading and 'train.py' 
+#   for visualization utilities.
+#
+# Usage:
+#   To use this script, ensure you have a trained VQ-VAE model saved as 'model_path.pth'.
+#   The script will load the model, perform evaluations on the test dataset, and generate 
+#   new samples. Modify the 'model_path.pth' and other configurations as needed for your setup.
+# Example:
+#       python predict.py
+# --------------------------------------------------------------------------------
+
 import torch
 from pytorch_msssim import ssim
 import matplotlib.pyplot as plt

@@ -1,3 +1,31 @@
+# --------------------------------------------------------------------------------
+# File: modules.py
+# Author: Indira Devi Rusvandy
+# Date: 2023-10-20
+# Description: 
+#   This script implements a Vector Quantized Variational Autoencoder (VQ-VAE) using PyTorch.
+#   The implementation includes the definition of the Encoder, Decoder, VectorQuantizer, 
+#   ResidualStack, and the complete VQVAEModel. The VQ-VAE is a generative model that 
+#   quantizes the representations of the input data, which can be beneficial for various 
+#   tasks like image generation, compression, etc.
+#
+#   The Encoder module compresses the input into a lower-dimensional space, the VectorQuantizer 
+#   performs the quantization of these representations, and the Decoder module reconstructs 
+#   the input from these quantized representations. The ResidualStack is used within the Encoder 
+#   and Decoder to aid in learning complex representations.
+#
+# Usage:
+#   This script is designed to be used as a module in machine learning projects where VQ-VAEs are
+#   applicable. Instantiate the VQVAEModel with the desired configuration and use it in your training.
+#
+#   Example:
+#       encoder = Encoder(...)
+#       decoder = Decoder(...)
+#       vq = VectorQuantizer(...)
+#       vqvae_model = VQVAEModel(encoder, decoder, vq, ...)
+#       # Train the model
+# --------------------------------------------------------------------------------
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

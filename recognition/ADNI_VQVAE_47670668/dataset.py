@@ -1,3 +1,23 @@
+# --------------------------------------------------------------------------------
+# File: dataset.py
+# Author: Indira Devi Rusvandy
+# Date: 2023-10-20
+# Description: 
+#   This script is designed for loading and preprocessing the ADNI dataset for a VQVAE. 
+#   It includes functionality for loading training and test datasets from specified directories, 
+#   generating a validation dataset from the training dataset, applying transformations, and 
+#   visualizing a subset of the training images.
+# 
+#   The script uses PyTorch's torchvision for dataset handling and transforms. It 
+#   also provides a utility function for displaying images in the dataset.
+#
+# Usage:
+#   This script is intended to be imported as a module in a larger project where
+#   machine learning models are trained on image data. The DataLoader objects
+#   created at the end of the script can be directly used for training and 
+#   evaluating models.
+# --------------------------------------------------------------------------------
+
 from torchvision import transforms
 from torchvision.datasets import ImageFolder
 from torch.utils.data import DataLoader, random_split
