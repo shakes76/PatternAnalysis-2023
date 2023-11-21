@@ -84,7 +84,7 @@ The dataset specification can be found below.
 
 |  Attributes     | Values           |
 |-----------------|------------------|
-|  Inpiduals      |  1,298           |
+|  Individuals    | 1,298            |
 |  Total images   | 22,662           |
 |  Image size     | 256x256          |
 |  Image color    | Grayscale        |
