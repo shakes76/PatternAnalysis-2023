@@ -9,6 +9,7 @@ The library includes the following implemented in Tensorflow:
 * fractals 
 * recognition problems
 
-In the recognition folder, you will find the OASIS brain segmentation used by StyleGAN2 to produce realistic fake images.
-
-*please refer to StyleGAN2-OASIS_45711110 for the better model. v2:1 channel - grayscale uses single channel as MRI scans are grayscale but the observed result was poor so wasn't persued further.
+In the recognition folder, you will find many recognition problems solved including:
+* OASIS brain segmentation
+* Classification
+etc.
