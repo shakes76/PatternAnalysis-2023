@@ -1,0 +1,4 @@
+ViT_PytorchLightning/Data/
+ViT_PytorchLightning/lightning_logs
+ViT_PytorchLightning/__pycache__
+ViT_PytorchLightning/checkpoints

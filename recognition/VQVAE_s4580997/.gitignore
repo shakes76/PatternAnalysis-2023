@@ -1,0 +1,4 @@
+AD_NC/
+models/
+__pycache__
+slurm.sh
