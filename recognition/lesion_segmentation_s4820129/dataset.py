@@ -12,12 +12,12 @@ class ISICdataset(Dataset):
         self.target_size = target_size
         self.images = os.listdir(image_dir)
 
-        #filter all other files
+        #filter all other files that are not images
         self.images = [f for f in os.listdir(image_dir) if f.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp', '.gif'))]
 
     def __getitem__(self, index):
       img_path = os.path.join(self.image_dir, self.images[index])
-      #extraxt the 
+      #extraxt the image path
       truth_path = os.path.join(self.truth_dir, self.images[index].replace('.jpg', '_segmentation.png'))
 
       #open and resize the image to the target size
@@ -28,7 +28,7 @@ class ISICdataset(Dataset):
       truth = Image.open(truth_path).convert('L')
       truth = transforms.Resize(self.target_size)(truth)
 
-      #data augmentation
+      #normalizing the data with values gotten from the statistics function in utilities.py
       image = transforms.ToTensor()(image)
       truth = transforms.ToTensor()(truth)
       image = transforms.Normalize([0.7084, 0.5822, 0.5361], [0.0948, 0.1099, 0.1240])(image) #values gotten from get_statistics function
@@ -37,6 +37,7 @@ class ISICdataset(Dataset):
     def __len__(self):
         return len(self.images)
     
+#Dataset used for testing images     
 class TestDataset(Dataset):
     def __init__(self, image_dir, target_size=(256, 256)):
         self.image_dir = image_dir
@@ -48,7 +49,7 @@ class TestDataset(Dataset):
     def __getitem__(self, index):
       img_path = os.path.join(self.image_dir, self.images[index])
 
-      #open and do data augmentation
+      #open and convert to tensor
       image = Image.open(img_path).convert('RGB')
       image = transforms.Resize(self.target_size)(image)
       image = transforms.ToTensor()(image)

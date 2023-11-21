@@ -44,13 +44,13 @@ for epoch in range(num_epochs):
         truth = truth.to(device).float()
         optimizer.zero_grad()
         
-        # Forward pass
+        # Get predictions from the model for a batch
         pred = model(image)
         
-        # Calculate loss
+        # Calculate loss of that batch using the dice loss
         loss = criterion(pred, truth)
         
-        # Backpropagation
+        # Adjust weights according to the loss gradient
         loss.backward()
         optimizer.step()
 
@@ -60,7 +60,10 @@ for epoch in range(num_epochs):
         truth = truth.to(device)
         pred = model(image)
 
-        with torch.no_grad():
+        '''
+        Want to make sure that the gradients are not affected while evaluating the model
+        all the metrics are calculated for the validation set.'''
+        with torch.no_grad(): 
             loss = criterion(pred,truth)
 
             acc = accuracy(pred, truth)
@@ -72,10 +75,12 @@ for epoch in range(num_epochs):
             wandb.log({'Batch loss': loss.item(), 'Batch accuracy': acc, 'Batch dice_score': 1-loss.item()})
         
     scheduler.step()
+    #saving a checkpoint and logging metrics to wandb for plots
     torch.save(model.state_dict(), f'checkpoints/checkpoint{epoch}.pth')
     wandb.log({'Epoch loss': epoch_loss/len(train_dataloader), 'Epoch accuracy': epoch_acc/len(train_dataloader), 'Epoch dice score': epoch_dice/len(train_dataloader)}) 
     print(f'Epoch {epoch+1}, Avg Loss {epoch_loss/len(train_dataloader)}')
 
+#saving the final model
 torch.save(model.state_dict(), 'checkpoints/final.pth')
 
 

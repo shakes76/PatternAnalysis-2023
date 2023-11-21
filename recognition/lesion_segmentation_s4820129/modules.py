@@ -3,6 +3,12 @@ from torch import nn
 import torch.nn.functional as F
 import torchvision.transforms as tt
 
+'''
+This module implements the architecture of the improved UNET model, based on the paper referenced in 
+the README file. It consists of four residual, down-sampling layers and their corresponding upsampling 
+blocks. 
+'''
+
 class ImprovedUNET(nn.Module):
   def __init__(self, n_channels, n_classes):
     super(ImprovedUNET, self).__init__()
@@ -18,7 +24,7 @@ class ImprovedUNET(nn.Module):
     #fourth layer down
     self._64_to_128_d = stride_layer(64, 128)
     self._128_to_128_d = context_block(128, 128)
-    #fifth layer down
+    #bottom layer
     self._128_to_256_b = stride_layer(128, 256)
     self._256_to_256_b = context_block(256, 256)
     self._256_to_128_b = upsampling_block(256, 128)
@@ -89,6 +95,11 @@ class ImprovedUNET(nn.Module):
 
     return x
 
+'''
+A context block is similar to a common residual block, but switches the batch norm for an instance norm.
+Here a dropout layer is placed between the two convolutional layers is used to prevent the model from overfitting.
+As in the paper, LeakyReLU is used instead of the regular ReLU.
+'''
 def context_block(in_channels, out_channels):
   return nn.Sequential(
 
@@ -103,6 +114,10 @@ def context_block(in_channels, out_channels):
       nn.Conv2d(out_channels, out_channels, kernel_size=3, stride=1, padding=1),
   )
 
+'''
+The localization block is used to concatenate the feature maps from the context path and the feature maps
+from the layer below. 
+'''
 def localization_block(in_channels, out_channels):
   return nn.Sequential(
       nn.LeakyReLU(negative_slope=0.01, inplace=True),
@@ -113,6 +128,9 @@ def localization_block(in_channels, out_channels):
       nn.BatchNorm2d(out_channels),
   )
 
+'''
+The upsampling block is used to upsample the feature maps by a factor of two, while halfing the number of feature maps
+'''
 def upsampling_block(in_channels, out_channels, scale_factor=2,kernel_size=3,padding=1):
   return nn.Sequential(
       nn.Upsample(scale_factor=scale_factor, mode='nearest'),

@@ -4,6 +4,7 @@ from torch import nn
 import gdown
 import zipfile
 
+#dice loss function for comparison between the model predictions and the ground truth masks
 class DiceLoss(nn.Module):
   def __init__(self, smooth = 0.001):
     super(DiceLoss, self).__init__()
@@ -18,9 +19,12 @@ class DiceLoss(nn.Module):
     dice = (2*overlap+self.smooth)/(pred_f.sum()+truth_f.sum()+self.smooth)
     return 1-dice
 
+'''
+accuracy metric that measures how accurate the model is if we accept all pixels with >0.5 as 1. 
+'''
 def accuracy(preds, truths):
   with torch.no_grad():
-    preds = (preds > 0.5).float() #if a pixel has value > 0.5, we accept it as a skin lesion
+    preds = (preds > 0.5).float() 
     correct = (preds==truths).sum()
     pixels = torch.numel(preds)
     accuracy = correct / pixels + 1e-8
