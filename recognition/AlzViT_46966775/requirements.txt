@@ -1,0 +1,6 @@
+torch>=1.7.0
+torchvision>=0.11.1
+Pillow>=8.2.0
+scikit-learn>=0.24.2
+matplotlib>=3.4.2
+PIL>=7.2.0

@@ -1,0 +1,4 @@
+SSIM mean: 0.7041
+Min SSIM score: 0.5730
+Max SSIM score: 0.7698
+Number of images with SSIM >= 0.6: 535, 98.35%.

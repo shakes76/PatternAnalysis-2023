@@ -1,0 +1,8 @@
+#train: /home/Student/s4529683/COMP3710/train
+#val: /home/Student/s4529683/COMP3710/val
+#test: /home/Student/s4529683/COMP3710/test
+train: "C:/Users/clark/OneDrive/Documents/2023/COMP3710/test/"
+val: "C:/Users/clark/OneDrive/Documents/2023/COMP3710/val"
+
+nc: 1
+names: ['Lesion']
