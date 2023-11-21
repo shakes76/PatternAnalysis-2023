@@ -75,6 +75,54 @@ The graph below plots the training loss throughout training the VQVAE <br>
 - pytorch-msssim
 - copy
 
+## Usage
+
+### Installation
+Ensure that you have Python 3.x and all the dependencies listed above installed. Clone this repository to your local machine and navigate to the cloned directory.
+
+### Using Custom Datasets
+
+The `dataset.py` script is currently set up to work with the ADNI dataset. If you wish to use a different dataset, you may need to make a few adjustments to the script.
+
+#### For ADNI Dataset
+To use the ADNI dataset:
+
+1. Download the ADNI brain dataset from the [ADNI website](http://adni.loni.usc.edu/data-samples/access-data/).
+2. Place the dataset in an appropriate directory (e.g., `./AD_NC/`).
+3. The script assumes the following directory structure:<br>
+/AD_NC/<br>
+├── train/<br>
+│ ├── class1/<br>
+│ ├── class2/<br>
+│ ...<br>
+└── test/<br>
+├── class1/<br>
+├── class2/<br>
+...<br>
+
+
+
+#### For Other Datasets
+To adapt `dataset.py` for a different dataset:
+
+1. **Data Directory**: Ensure your data is structured in a similar way to the ADNI dataset, with separate folders for training and testing.
+2. **Modifications in `dataset.py`**: You may need to modify the data loading and preprocessing steps. Specifically, pay attention to:
+- The path to your dataset in the script.
+- Image preprocessing steps such as resizing, normalization, or augmentation methods to match the characteristics of your new dataset.
+- The split ratio between training and validation datasets, if different from the current setup.
+3. **Adjusting the Model**: Depending on the nature of your new dataset, you might need to adjust the input channel size in the model architecture.
+
+After making these changes, you can proceed with training and evaluating the model on your custom dataset as described in the next section.
+
+### Running the Code
+To train the model with the default settings, simply run:
+<br>
+`python train.py`
+
+For testing the model and generating new images, use:
+<br>
+`python predict.py`
+
 
 ## Example Inputs, Outputs, and Generated Images
 ### Reconstructed MRI Image by VQVAE
@@ -90,4 +138,10 @@ The image below is the generated images from the samples fetched from the histog
 ![Generated Images](assets/generated.png)
 
 
+## References
 
+This project was inspired by and based on the following works:
+
+- Oord, A. van den, Vinyals, O., & Kavukcuoglu, K. (2017). [Neural Discrete Representation Learning](https://arxiv.org/abs/1711.00937). 
+- [Official VQ-VAE implementation in TensorFlow](https://github.com/google-deepmind/sonnet/blob/v2/sonnet/src/nets/vqvae.py) by DeepMind.
+- [Vector Quantised-Variational AutoEncoder (VQ-VAE) PyTorch Implementation](https://github.com/airalcorn2/vqvae-pytorch) by [airalcorn2](https://github.com/airalcorn2).
