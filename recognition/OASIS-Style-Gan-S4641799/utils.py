@@ -3,6 +3,9 @@ from torchvision.utils import save_image
 
 
 """
+Author name: Eli Cox
+File name: utils.py
+Last modified: 22/11/2023
 Util file of functions and global variables needed for other scripts.
 """
 
