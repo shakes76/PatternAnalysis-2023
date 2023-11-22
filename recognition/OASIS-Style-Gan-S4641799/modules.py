@@ -3,6 +3,9 @@ import numpy as np
 from torch import nn
 
 """
+Author name: Eli Cox
+File name: modules.py
+Last modified: 22/11/2023
 Torch modules for the StyleGan networks, including the discriminator and generator
 """
 
