@@ -1,0 +1,2 @@
+# Since I am taking a pre-trained model and doing transfer learning to obtain a model suited to the ViT classification task, specifying the model is
+# simple enough that putting the code in a separate file would be an unnecessary level of misdirection and bloat.
