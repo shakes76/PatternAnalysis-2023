@@ -1,4 +1,4 @@
-<h3 align="center">Siamese Neural Network for AD/NC Classification </h3>
+<h3 align="center">Vision Transformers for AD/NC Classification </h3>
 
 
 ---
