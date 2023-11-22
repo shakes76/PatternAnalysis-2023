@@ -73,9 +73,9 @@ Training and testing can be done by running train.py with `--train` to train and
 
 Below are example graphs of training, validation and testing loss.
 
-![Training, validation loss example](results/losses_12-39-16.png)
+![Training, validation loss example](training_valid_loss.png)
 
-![Test loss example](results/test_loss_22-47-21.png)
+![Test loss example](test_loss.png)
 
 
 
