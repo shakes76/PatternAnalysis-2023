@@ -4,6 +4,9 @@ from torchvision.utils import make_grid, save_image
 from torchvision import transforms
 
 """
+Author name: Eli Cox
+File name: predict.py
+Last modified: 22/11/2023
 Generate and save images from the supplied trained model
 """
 
