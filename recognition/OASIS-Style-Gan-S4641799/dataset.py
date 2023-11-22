@@ -4,6 +4,9 @@ from torch.utils.data import DataLoader, dataset
 from PIL import Image
 
 """
+Author name: Eli Cox
+File name: dataset.py
+Last modified: 22/11/2023
 Data loader classes and image transformer for the StyleGAN model
 """
 
