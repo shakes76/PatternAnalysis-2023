@@ -4,6 +4,8 @@ from tqdm import tqdm
 
 """
 Create a new model or continue to train a previously created one.
+This will be trained up to 100 epochs and validated every 5 epochs.
+The process wil use stylegan to train a model to generate MRIs based on the OASIS dataset.
 """
 
 def train_fn(

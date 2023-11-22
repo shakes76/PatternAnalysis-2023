@@ -3,7 +3,7 @@ import numpy as np
 from torch import nn
 
 """
-torch modules for the stylegan network
+Torch modules for the StyleGan networks, including the discriminator and generator
 """
 
 IMAGE_SIZE = 256
@@ -12,7 +12,9 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 ## Stylegan2 source:https://blog.paperspace.com/implementation-stylegan2-from-scratch/
 
-# Equalise the weights in a module (layer) to ensure the learning speed is the same for all weights. 
+"""
+Equalise the weights in a module (layer) to ensure the learning speed is the same for all weights. 
+"""
 class EqualizedWeight(nn.Module):
 
     def __init__(self, shape):
@@ -25,7 +27,9 @@ class EqualizedWeight(nn.Module):
     def forward(self):
         return self.weight * self.c
 
-# Equalises the weights, as above, and the activation function
+"""
+Equalises the weights, as above, and the activation function
+"""
 class EqualizedLinear(nn.Module):
 
     def __init__(self, in_features, out_features, bias = 0.):
@@ -37,7 +41,9 @@ class EqualizedLinear(nn.Module):
     def forward(self, x: torch.Tensor):
         return torch.nn.functional.linear(x, self.weight(), bias=self.bias)
 
-# Equalises the weights, as above, for a convolution layer
+"""
+Equalises the weights, as above, for a convolution layer
+"""
 class EqualizedConv2d(nn.Module):
 
     def __init__(self, in_features, out_features,
@@ -51,8 +57,10 @@ class EqualizedConv2d(nn.Module):
     def forward(self, x: torch.Tensor):
         return torch.nn.functional.conv2d(x, self.weight(), bias=self.bias, padding=self.padding)
 
-# Mapping network for the latent vector.
-# This will convert the latent space into the style code needed to generate an image.
+"""
+Mapping network for the latent vector.
+This will convert the latent space into the style code needed to generate an image.
+"""
 class MappingNetwork(nn.Module):
     def __init__(self, z_dim, w_dim):
         super().__init__()
@@ -78,7 +86,9 @@ class MappingNetwork(nn.Module):
         x = x / torch.sqrt(torch.mean(x ** 2, dim=1, keepdim=True) + 1e-8)  # for PixelNorm 
         return self.mapping(x)
 
-# Path length penalty to encourage a fixed step size and a fixed magnitude of change to the image. 
+"""
+Path length penalty to encourage a fixed step size and a fixed magnitude of change to the image.
+"""
 class PathLengthPenalty(nn.Module):
 
     def __init__(self, beta):
@@ -120,7 +130,9 @@ class PathLengthPenalty(nn.Module):
 
         return loss
 
-# Scales the convolution weights by the style vector and normalises it
+"""
+Scales the convolution weights by the style vector and normalises it
+"""
 class Conv2dWeightModulate(nn.Module):
 
     def __init__(self, in_features, out_features, kernel_size,
@@ -155,7 +167,9 @@ class Conv2dWeightModulate(nn.Module):
 
         return x.reshape(-1, self.out_features, h, w)
 
-# Converts the input layer or output layer into 3 dimensions
+"""
+Converts the input layer or output layer into 3 dimensions
+"""
 class ToRGB(nn.Module):
 
     def __init__(self, W_DIM, features):
@@ -173,7 +187,9 @@ class ToRGB(nn.Module):
         x = self.conv(x, style)
         return self.activation(x + self.bias[None, :, None, None])
 
-# Style block for generator
+"""
+Style block for generator
+"""
 class StyleBlock(nn.Module):
 
     def __init__(self, W_DIM, in_features, out_features):
@@ -195,7 +211,9 @@ class StyleBlock(nn.Module):
             x = x + self.scale_noise[None, :, None, None] * noise
         return self.activation(x + self.bias[None, :, None, None])
 
-# Generator block casing for style blocks in generator
+"""
+Generator block casing for style blocks in generator
+"""
 class GeneratorBlock(nn.Module):
 
     def __init__(self, W_DIM, in_features, out_features):
@@ -216,7 +234,9 @@ class GeneratorBlock(nn.Module):
 
         return x, rgb
 
-# StyleGan2 generator model
+"""
+StyleGan2 generator model
+"""
 class Generator(nn.Module):
 
     def __init__(self, log_resolution, W_DIM, n_features = 32, max_features = IMAGE_SIZE):
@@ -253,7 +273,9 @@ class Generator(nn.Module):
 
         return torch.tanh(rgb)
 
-#Block for Discriminator Model
+"""
+Block for Discriminator Model
+"""
 class DiscriminatorBlock(nn.Module):
 
     def __init__(self, in_features, out_features):
@@ -282,7 +304,9 @@ class DiscriminatorBlock(nn.Module):
 
         return (x + residual) * self.scale
 
-# Discriminator model for StyleGAN2
+"""
+Discriminator model for StyleGAN2
+"""
 class Discriminator(nn.Module):
 
     def __init__(self, log_resolution, n_features = 32, max_features = IMAGE_SIZE):

@@ -4,7 +4,7 @@ from torchvision.utils import make_grid, save_image
 from torchvision import transforms
 
 """
-Generate images from the supplied trained model
+Generate and save images from the supplied trained model
 """
 
 gen                 = modules.Generator(utils.LOG_RESOLUTION, utils.W_DIM).to(utils.DEVICE)
