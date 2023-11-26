@@ -10,9 +10,6 @@ The UNet model can segment any type of image if it has enough traing data for bo
 ### ISIC 2017/8 dataset
 The dataset consits of 2000 lesion images and 2000 ground truth masks. Preview of the first 10 images and their respective ground truth masks below.
 
-In this task I split the dataset in a 60/20/20 split having 60% of the data training, 20 % validiating and 20% testing. If trying to achive a higher dice_coef aswell as training the model on a more deverse training set you can set up the ISIC testing set to test and train on a 60/40 or 80/20 split. However in this case 2000 images was enough to train validate and test for the given critera.
-
- <img width="435" alt="first photos" src="https://github.com/mraula/PatternAnalysis-2023/assets/96328895/47b7a4ef-abae-4622-a5a9-0ab5065ca35d"> 
 
 <img width="440" alt="first masks" src="https://github.com/mraula/PatternAnalysis-2023/assets/96328895/28c63790-50c7-40c7-94fd-443d288bfbb1">
 
