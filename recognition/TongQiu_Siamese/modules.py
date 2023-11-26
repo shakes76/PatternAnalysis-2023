@@ -1,3 +1,10 @@
+"""
+File: modules.py
+Author: Tong Qiu
+Date: 2023-11-26
+Description: contains model components, including embedding net, contrastive net and triplet net.
+"""
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

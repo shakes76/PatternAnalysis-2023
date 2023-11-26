@@ -1,3 +1,10 @@
+"""
+File: predict.py
+Author: Tong Qiu
+Date: 2023-11-26
+Description: containing the code to get test accuracies, image-level prediction, and patient-level predictions.
+"""
+
 import torch
 from tqdm.auto import tqdm
 from torch.utils.data import DataLoader

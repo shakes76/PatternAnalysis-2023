@@ -1,3 +1,10 @@
+"""
+File: train.py
+Author: Tong Qiu
+Date: 2023-11-26
+Description: containing the source code for training, validating, testing and saving models.
+"""
+
 import numpy as np
 import torch
 import torch.nn.functional as F

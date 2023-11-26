@@ -1,3 +1,11 @@
+"""
+File: dataset.py
+Author: Tong Qiu
+Date: 2023-11-26
+Description: contains self-defined dataset classes for contrastive and triplet model.
+"""
+
+
 import torch
 from torch.utils.data import Dataset
 from torchvision.io import read_image, ImageReadMode

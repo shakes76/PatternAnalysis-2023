@@ -1,3 +1,10 @@
+"""
+File: utils.py
+Author: Tong Qiu
+Date: 2023-11-26
+Description: contains training configurations, such as data pths, log pth, model pth, and device.
+"""
+
 import torch
 from pathlib import Path
 
