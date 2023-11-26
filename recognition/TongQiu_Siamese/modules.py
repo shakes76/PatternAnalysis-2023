@@ -5,15 +5,12 @@ Date: 2023-11-26
 Description: contains model components, including embedding net, contrastive net and triplet net.
 """
 
+# packages
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-"""
-Base Line Model
-"""
-
-
+# Baseline embedding network
 class Embedding_Baseline(nn.Module):
     def __init__(self):
         super(Embedding_Baseline, self).__init__()
@@ -34,7 +31,7 @@ class Embedding_Baseline(nn.Module):
     def forward(self, x):
         return self.conv(x)
 
-
+# Siamese network for contrastive learning
 class SiameseContrastive(nn.Module):
     def __init__(self, embedding_net):
         super(SiameseContrastive, self).__init__()
@@ -61,6 +58,7 @@ class SiameseContrastive(nn.Module):
         return out
 
 
+# Siamese network for triplet learning
 class SiameseTriplet(nn.Module):
     def __init__(self, embedding_net):
         super(SiameseTriplet, self).__init__()
@@ -85,6 +83,7 @@ class SiameseTriplet(nn.Module):
         return out
 
 
+# Classification network using the same embedding network
 class ClassificationNet(nn.Module):
     def __init__(self, embedding_net):
         super(ClassificationNet, self).__init__()

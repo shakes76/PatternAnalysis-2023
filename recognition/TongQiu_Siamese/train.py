@@ -23,7 +23,7 @@ import argparse
 Trining process for Contrastive loss
 """
 
-
+# Function for training the Siamese model with Contrastive loss
 def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epochs):
     print('---------Siamese(Contrastive) Train on: ' + Config.DEVICE + '----------')
 
@@ -80,6 +80,7 @@ def main_contrastive(model, train_loader, val_loader, criterion, optimizer, epoc
     np.save(save_val_path, val_losses)
 
 
+# Function for training a single batch with Contrastive loss
 def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
     model.train()
     train_loss_lis = np.array([])
@@ -123,7 +124,7 @@ def train_contrastive(model, train_loader, optimizer, criterion, epoch, epochs):
         f"[ Train | {epoch + 1:03d}/{epochs:03d} ] margin = {criterion.margin}, loss = {train_loss:.5f}")
     return train_loss
 
-
+# Function for validating the Siamese model with Contrastive loss
 def validate_contrastive(model, val_loader, criterion, epoch, epochs):
     model.eval()
     total_loss = 0.0
@@ -146,6 +147,7 @@ def validate_contrastive(model, val_loader, criterion, epoch, epochs):
     return average_loss
 
 
+# Customised Contrastive loss class
 class ContrastiveLoss(torch.nn.Module):
     def __init__(self, margin=2.0):
         super(ContrastiveLoss, self).__init__()
@@ -158,11 +160,13 @@ class ContrastiveLoss(torch.nn.Module):
         return loss_contrastive
 
 
+
 """
 Training process for Triplet loss
 """
 
 
+# unction for training the Siamese model with Triplet loss
 def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
     print('---------Siamese(Triplet) Train on: ' + Config.DEVICE + '----------')
 
@@ -218,6 +222,7 @@ def main_triplet(model, train_loader, val_loader, criterion, optimizer, epochs):
     np.save(save_val_path, val_losses)
 
 
+# Function for training a single batch with Triplet loss
 def train_triplet(model, train_loader, optimizer, criterion, epoch, epochs):
     model.train()
     train_loss_lis = np.array([])
@@ -250,11 +255,10 @@ def train_triplet(model, train_loader, optimizer, criterion, epoch, epochs):
     return train_loss
 
 
+# Function for validating the Siamese model with Triplet loss
 def validate_triplet(model, val_loader, criterion, epoch, epochs):
     model.eval()
     total_loss = 0.0
-
-    n=0
 
     with torch.no_grad():
         for batch in tqdm(val_loader):
@@ -266,10 +270,6 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
 
             total_loss += loss.item()
 
-            n+=1
-            if n>2:
-                break
-
     average_loss = total_loss / len(val_loader)
 
     # Print the information.
@@ -278,9 +278,12 @@ def validate_triplet(model, val_loader, criterion, epoch, epochs):
 
     return average_loss
 
+
 """
 Train Classifier
 """
+
+# Function for training a classifier
 def main_classifier(model, train_loader, val_loader, criterion, optimizer, epochs):
     print('---------Classifier Train on: ' + Config.DEVICE + '----------')
 
@@ -346,6 +349,8 @@ def main_classifier(model, train_loader, val_loader, criterion, optimizer, epoch
     np.save(train_accs_path, train_accs)
     np.save(val_accs_path, val_accs)
 
+
+# Function for training a single batch with the classifier
 def train_classifier(model, train_loader, optimizer, criterion, epoch, epochs):
     model.train()
     train_loss_lis = np.array([])
@@ -378,6 +383,8 @@ def train_classifier(model, train_loader, optimizer, criterion, epoch, epochs):
         f"[ Train | {epoch + 1:03d}/{epochs:03d} ] loss = {train_loss:.5f}, acc = {train_acc:.5f}")
     return train_loss, train_acc
 
+
+# Function for validating the classifier
 def validate_classifier(model, val_loader, criterion, epoch, epochs):
     model.eval()
     total_loss = 0.0
@@ -407,6 +414,7 @@ def validate_classifier(model, val_loader, criterion, epoch, epochs):
         f"[ Validation | {epoch + 1:03d}/{epochs:03d} ] loss = {average_loss:.5f}, acc = {average_acc:.5f}")
 
     return average_loss, average_acc
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Training script for Contrastive/Triplet/Classification network')

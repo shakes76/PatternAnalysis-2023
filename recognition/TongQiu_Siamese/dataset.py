@@ -5,7 +5,7 @@ Date: 2023-11-26
 Description: contains self-defined dataset classes for contrastive and triplet model.
 """
 
-
+# packages
 import torch
 from torch.utils.data import Dataset
 from torchvision.io import read_image, ImageReadMode
@@ -16,6 +16,7 @@ import torchvision.transforms as tf
 from utils import Config
 
 
+# Function to discover the directory structure and collect data
 def discover_directory(root_dir):
     classes = ['AD', 'NC']
     data = []
@@ -28,6 +29,7 @@ def discover_directory(root_dir):
     return data
 
 
+# Function to split data at the patient level for training and validation
 def patient_level_split(full_data, ratio_train=0.8):
     unique_patients = list(set(patient_id for _, _, patient_id in full_data))
     random.shuffle(unique_patients)
@@ -42,6 +44,7 @@ def patient_level_split(full_data, ratio_train=0.8):
     return train_data, val_data
 
 
+# Dataset class for contrastive learning
 class ContrastiveDataset(Dataset):
     def __init__(self, data_lst, transform=None):
         self.data_lst = data_lst
@@ -53,16 +56,20 @@ class ContrastiveDataset(Dataset):
 
     def __getitem__(self, idx):
         img_path, cls, patient_id = self.data_lst[idx]
+        # Randomly choose whether to create a positive or negative pair
         same_class = random.random() > 0.5
+
         if same_class:
+            # For a positive pair, select an image of the same class but a different patient
             other_patients = [(i, c, p) for i, c, p in self.data_lst if c == cls and p != patient_id]
             other_img_path, _, other_patient_id = random.choice(other_patients)
         else:
+            # For a negative pair, select an image of a different class
             other_cls = 'NC' if cls == 'AD' else 'AD'
             other_patients = [(i, c, p) for i, c, p in self.data_lst if c == other_cls and p != patient_id]
             other_img_path, _, other_patient_id = random.choice(other_patients)
 
-        # Read images
+        # Read images and apply transformations
         img1 = read_image(img_path, ImageReadMode.GRAY).float()/255.
         img2 = read_image(other_img_path, ImageReadMode.GRAY).float()/255.
         if self.transform:
@@ -73,6 +80,7 @@ class ContrastiveDataset(Dataset):
         return img1, img2, label
 
 
+# Dataset class for triplet learning
 class TripletDataset(Dataset):
     def __init__(self, data_lst, transform=None):
         self.data_lst = data_lst
@@ -85,16 +93,16 @@ class TripletDataset(Dataset):
     def __getitem__(self, idx):
         anchor_img_path, anchor_cls, anchor_patient_id = self.data_lst[idx]
 
-        # Positive selection
+        # Positive selection: Select an image of the same class but a different patient
         positive_samples = [(i, c, p) for i, c, p in self.data_lst if c == anchor_cls and p != anchor_patient_id]
         positive_img_path, _, positive_patient_id = random.choice(positive_samples)
 
-        # Negative selection
+        # Negative selection: Select an image of a different class
         negative_cls = 'NC' if anchor_cls == 'AD' else 'AD'
         negative_samples = [(i, c, p) for i, c, p in self.data_lst if c == negative_cls and p != anchor_patient_id]
         negative_img_path, _, negative_patient_id = random.choice(negative_samples)
 
-        # Read images
+        # Read images and apply transformations
         anchor_img = read_image(anchor_img_path, ImageReadMode.GRAY).float() / 255.
         positive_img = read_image(positive_img_path, ImageReadMode.GRAY).float() / 255.
         negative_img = read_image(negative_img_path, ImageReadMode.GRAY).float() / 255.
@@ -108,6 +116,7 @@ class TripletDataset(Dataset):
         return anchor_img, positive_img, negative_img, label
 
 
+# Dataset class for image classification
 class ClassificationDataset(Dataset):
     def __init__(self, data_lst, transform=None):
         self.data_lst = data_lst
@@ -122,7 +131,7 @@ class ClassificationDataset(Dataset):
         anchor_img_path, anchor_cls, anchor_patient_id = self.data_lst[idx]
         anchor_cls_tensor = self.class_to_tensor[anchor_cls]
 
-        # Read images
+        # Read images and apply transformations
         anchor_img = read_image(anchor_img_path, ImageReadMode.GRAY).float() / 255.
         if self.transform:
             anchor_img = self.transform(anchor_img)

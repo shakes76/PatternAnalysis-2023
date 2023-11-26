@@ -5,6 +5,7 @@ Date: 2023-11-26
 Description: containing the code to get test accuracies, image-level prediction, and patient-level predictions.
 """
 
+# packages
 import torch
 from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
@@ -17,7 +18,7 @@ from modules import Embedding_Baseline, ClassificationNet
 from dataset import discover_directory, ClassificationDataset
 
 
-# test acc
+# Function for test acc
 def test(model, val_loader):
     model_name = type(model).__name__
     model.to(Config.DEVICE)
@@ -40,6 +41,8 @@ def test(model, val_loader):
     # Print the information.
     print(f"[ test {model_name:}] acc = {average_acc:.5f}")
 
+
+# Function to predict an image
 def predict_img(model, img_path, transform = None):
     model.eval()
     model.to(Config.DEVICE)
@@ -56,7 +59,6 @@ def predict_img(model, img_path, transform = None):
     plt.title(f"img: {img_name}, Truth: {label}, Prediction: {pred}")
     plt.axis('off')  # To not display axis values
     plt.show()
-
 
 
 if __name__ == '__main__':
