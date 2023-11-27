@@ -28,6 +28,7 @@ from Losses import calc_loss, dice_loss, threshold_predictions_v, threshold_pred
 from Ploting import plot_kernels, LayerActivations, input_images, plot_grad_flow, draw_loss
 from Metrics import dice_coeff, accuracy_score
 import time
+from torch.utils.data import random_split
 
 # from ploting import VisdomLinePlotter
 # from visdom import Visdom
@@ -117,9 +118,12 @@ test_folderL = './ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2/*'
 valid_image = './ISIC2018/ISIC2018_Task1-2_Training_Input_x2/'
 valid_lable = './ISIC2018/ISIC2018_Task1_Training_GroundTruth_x2/'
 
-Training_Data = Images_Dataset_folder(t_data, l_data)
+Training_Data_Whole = Images_Dataset_folder(t_data, l_data)
 
-Validing_Data = Images_Dataset_folder(valid_image, valid_lable)
+train_size = int(0.8 * len(Training_Data_Whole))
+val_size = len(Training_Data_Whole) - train_size
+
+Training_Data, Validing_Data = random_split(Training_Data_Whole, [train_size, val_size])
 
 #######################################################
 # Giving a transformation for input data
