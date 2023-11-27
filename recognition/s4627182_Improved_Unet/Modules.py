@@ -211,39 +211,39 @@ class UNet_For_Brain(nn.Module):
         super(UNet_For_Brain, self).__init__()
 
         # Encoder
-        self.enc1 = nn.Conv2d(in_channels, 16 * 4, kernel_size=3, stride=1, padding=1)
-        self.context1 = ContextModule(16 * 4, 16 * 4)
-        self.enc2 = nn.Conv2d(16 * 4, 32 * 4, kernel_size=3, stride=2, padding=1)
-        self.context2 = ContextModule(32 * 4, 32 * 4)
-        self.enc3 = nn.Conv2d(32 * 4, 64 * 4, kernel_size=3, stride=2, padding=1)
-        self.context3 = ContextModule(64 * 4, 64 * 4)
-        self.enc4 = nn.Conv2d(64 * 4, 128 * 4, kernel_size=3, stride=2, padding=1)
-        self.context4 = ContextModule(128 * 4, 128 * 4)
+        self.enc1 = nn.Conv2d(in_channels, 16, kernel_size=3, stride=1, padding=1)
+        self.context1 = ContextModule(16, 16)
+        self.enc2 = nn.Conv2d(16, 32, kernel_size=3, stride=2, padding=1)
+        self.context2 = ContextModule(32, 32)
+        self.enc3 = nn.Conv2d(32, 64, kernel_size=3, stride=2, padding=1)
+        self.context3 = ContextModule(64, 64)
+        self.enc4 = nn.Conv2d(64, 128, kernel_size=3, stride=2, padding=1)
+        self.context4 = ContextModule(128, 128)
 
         # Bottleneck
-        self.bottleneck = nn.Conv2d(128 * 4, 256 * 4, kernel_size=3, stride=2, padding=1)
-        self.bottleneck_context = ContextModule(256 * 4, 256 * 4)
-        self.up_bottleneck = UpsamplingModule(256 * 4, 128 * 4)
+        self.bottleneck = nn.Conv2d(128, 256, kernel_size=3, stride=2, padding=1)
+        self.bottleneck_context = ContextModule(256, 256)
+        self.up_bottleneck = UpsamplingModule(256, 128)
 
         # Decoder
-        self.local1 = LocalisationModule(256 * 4, 128 * 4)
-        self.up1 = UpsamplingModule(128 * 4, 64 * 4)
+        self.local1 = LocalisationModule(256, 128)
+        self.up1 = UpsamplingModule(128, 64)
 
-        self.local2 = LocalisationModule(128 * 4, 64 * 4)
-        self.up2 = UpsamplingModule(64 * 4, 32 * 4)
+        self.local2 = LocalisationModule(128, 64)
+        self.up2 = UpsamplingModule(64, 32)
 
-        self.seg1 = SegmentationLayer(64 * 4, num_classes)
+        self.seg1 = SegmentationLayer(64, num_classes)
         self.upsample_seg1 = UpscalingLayer()
 
-        self.local3 = LocalisationModule(64 * 4, 32 * 4)
-        self.up3 = UpsamplingModule(32 * 4, 16 * 4)
+        self.local3 = LocalisationModule(64, 32)
+        self.up3 = UpsamplingModule(32, 16)
 
-        self.seg2 = SegmentationLayer(32 * 4, num_classes)
+        self.seg2 = SegmentationLayer(32, num_classes)
         self.upsample_seg2 = UpscalingLayer()
 
-        self.final_conv = nn.Conv2d(32 * 4, 32 * 4, kernel_size=3, stride=1, padding=1)
+        self.final_conv = nn.Conv2d(32, 32, kernel_size=3, stride=1, padding=1)
 
-        self.seg3 = SegmentationLayer(32 * 4, num_classes)
+        self.seg3 = SegmentationLayer(32, num_classes)
         self.upsample_seg3 = UpscalingLayer()
 
     def forward(self, x):
