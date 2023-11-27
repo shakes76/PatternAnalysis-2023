@@ -224,6 +224,14 @@ python3 predict.py -m ./model/Classifier_t.pth -t test
 python3 predict.py -m ./model/Classifier_cf.pth -t test
 python3 predict.py -m ./model/Classifier_tf.pth -t test
 ```
+### UMAPs
+
+As shown below, the embeddings tend to cluster same-labeled data more tightly than the original data, 
+and they also disperse differently-labeled data further apart in comparison to the original data.
+
+![prediction for ad](./readme_imgs/umaps.png)
+
+
 
 ### Conclusion 
 
