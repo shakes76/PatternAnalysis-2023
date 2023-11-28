@@ -1,17 +1,9 @@
 ## COMP_3710_Report
-
-## Medical condition, Extended to 27 OCT
+( Medical condition, Extended to 27 OCT)
 
 ## This report is focused on the first task (a)
    Segment the ISIC data set with the Improved UNet
    with all labels having a minimum Dice similarity coefficient of 0.8 on the test set.
-
-
-## Background
-The structure of Improved UNet is based on the paper. 
-"Brain Tumor Segmentation and Radiomics Survival Prediction: Contribution to the BRATS 2017 Challenge" 
-https://arxiv.org/abs/1802.10508v1
-
 
 ## Model
 U-Net is a convolutional neural network architecture primarily used for biomedical image segmentation. 
@@ -19,7 +11,7 @@ Its U-shaped structure consists of a contracting path, which captures context, a
 which enables precise localization. Through skip connections, features from the contracting path are concatenated
 with the expansive path, enhancing localization capabilities.
 
-![Unet](./additional_images/unet.png)
+   ![Unet](./additional_images/unet.png)
 
 The improved U-Net architecture introduces several key enhancements over the original U-Net architecture:
 
@@ -66,7 +58,7 @@ Values range between 0 (no overlap) to 1 (perfect overlap).
 It's a common metric for evaluating the accuracy of image segmentation models, 
 highlighting the spatial overlap accuracy between prediction and truth.
 
-![dice_score](./additional_images/dice_score.png)
+   ![dice_score](./additional_images/dice_score.png)
 
 ### example usage:
 ```
