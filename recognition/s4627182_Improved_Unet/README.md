@@ -1,6 +1,7 @@
 ## COMP_3710_Report
 ( Medical condition, Extended to 27 OCT)
 
+
 ## This report is focused on the first task (a)
    Segment the ISIC data set with the Improved UNet
    with all labels having a minimum Dice similarity coefficient of 0.8 on the test set.
