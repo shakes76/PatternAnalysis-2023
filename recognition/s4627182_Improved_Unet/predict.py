@@ -29,6 +29,7 @@ def segment_image(model_path, image_path, output_path):
 
     return predicted_mask_image
 
-# Example usage:
-# segmented_img = segment_image("path_to_model.pth", "path_to_image.jpg")
-# Image.fromarray(segmented_img).save("segmented_output.png")
+path_to_model = './model/Unet_D_400_16.pth'
+path_to_image = './ISIC2018/ISIC2018_Task1-2_Training_Input_x2/ISIC_0000003.jpg'
+segmented_img = segment_image(path_to_model, path_to_image)
+Image.fromarray(segmented_img).save("ISIC_0000003_out.png")
