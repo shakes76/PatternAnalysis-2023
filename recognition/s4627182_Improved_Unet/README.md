@@ -12,7 +12,7 @@ Its U-shaped structure consists of a contracting path, which captures context, a
 which enables precise localization. Through skip connections, features from the contracting path are concatenated
 with the expansive path, enhancing localization capabilities.
 
-![Unet_Structure](./additional_images/unet.png)
+![Unet_Structure](./additional_Images/unet.png)
 
 The improved U-Net architecture introduces several key enhancements over the original U-Net architecture:
 
