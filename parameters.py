@@ -1,0 +1,20 @@
+# Hyperparameters
+IMG_SIZE = 128
+PATCH_SIZE = 8
+BATCH_SIZE = 32
+EPOCHS = 10
+WEIGHT_DECAY = 0.0001
+PROJECTION_DIM = 512 # MLP-blocks depth
+LEARN_RATE = 0.0005
+TRANSF_LAYERS = 5 # No. of transformer-encoder-blocks
+DROPOUT_RATE = 0.2
+ATTENTION_HEADS = 5
+MLP_HEAD_UNITS = [256, 128]
+DATA_LOAD_DEST = "/content"
+MODEL_SAVE_DEST = "/content/vision_transformer"
+
+
+#Calculating automat
+INPUT_SHAPE = (IMG_SIZE, IMG_SIZE, 3)
+HIDDEN_UNITS = [PROJECTION_DIM * 2, PROJECTION_DIM]
+NUM_PATCHES = int((IMG_SIZE/PATCH_SIZE) ** 2)
