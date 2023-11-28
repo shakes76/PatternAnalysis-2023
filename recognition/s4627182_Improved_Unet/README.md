@@ -12,7 +12,7 @@ Its U-shaped structure consists of a contracting path, which captures context, a
 which enables precise localization. Through skip connections, features from the contracting path are concatenated
 with the expansive path, enhancing localization capabilities.
 
-   ![Unet](./additional_images/unet.png)
+![Unet_Structure](./additional_images/unet.png)
 
 The improved U-Net architecture introduces several key enhancements over the original U-Net architecture:
 
@@ -59,8 +59,7 @@ Values range between 0 (no overlap) to 1 (perfect overlap).
 It's a common metric for evaluating the accuracy of image segmentation models, 
 highlighting the spatial overlap accuracy between prediction and truth.
 
-   ![dice_score](./additional_images/dice_score.png)
-
+![dice_score_img](./additional_Images/dice_score.png)
 ### example usage:
 ```
 dice_score = dice_coeff(s, s3)
