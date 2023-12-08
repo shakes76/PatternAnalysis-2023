@@ -1,0 +1,171 @@
+After 100 batches, Train Average Loss (last 100 batches): 0.6967, Average Accuracy (last 100 batches): 0.5594
+After 200 batches, Train Average Loss (last 100 batches): 0.6896, Average Accuracy (last 100 batches): 0.5609
+After 300 batches, Train Average Loss (last 100 batches): 0.6773, Average Accuracy (last 100 batches): 0.5744
+After 400 batches, Train Average Loss (last 100 batches): 0.6868, Average Accuracy (last 100 batches): 0.5569
+After 500 batches, Train Average Loss (last 100 batches): 0.6734, Average Accuracy (last 100 batches): 0.5750
+Epoch 1/20
+Train: Loss 0.6846, Accuracy 0.5662
+Validation: Loss 0.6478, Accuracy 0.6484
+New best validation accuracy (0.65%) achieved! Model saved.
+After 100 batches, Train Average Loss (last 100 batches): 0.6699, Average Accuracy (last 100 batches): 0.5959
+After 200 batches, Train Average Loss (last 100 batches): 0.6735, Average Accuracy (last 100 batches): 0.5769
+After 300 batches, Train Average Loss (last 100 batches): 0.6713, Average Accuracy (last 100 batches): 0.5781
+After 400 batches, Train Average Loss (last 100 batches): 0.6709, Average Accuracy (last 100 batches): 0.5800
+After 500 batches, Train Average Loss (last 100 batches): 0.6750, Average Accuracy (last 100 batches): 0.5766
+Epoch 2/20
+Train: Loss 0.6724, Accuracy 0.5816
+Validation: Loss 0.6342, Accuracy 0.6572
+New best validation accuracy (0.66%) achieved! Model saved.
+After 100 batches, Train Average Loss (last 100 batches): 0.6735, Average Accuracy (last 100 batches): 0.5781
+After 200 batches, Train Average Loss (last 100 batches): 0.6595, Average Accuracy (last 100 batches): 0.6047
+After 300 batches, Train Average Loss (last 100 batches): 0.6551, Average Accuracy (last 100 batches): 0.6056
+After 400 batches, Train Average Loss (last 100 batches): 0.6462, Average Accuracy (last 100 batches): 0.6159
+After 500 batches, Train Average Loss (last 100 batches): 0.6425, Average Accuracy (last 100 batches): 0.6334
+Epoch 3/20
+Train: Loss 0.6530, Accuracy 0.6105
+Validation: Loss 0.5898, Accuracy 0.6956
+New best validation accuracy (0.70%) achieved! Model saved.
+After 100 batches, Train Average Loss (last 100 batches): 0.6238, Average Accuracy (last 100 batches): 0.6444
+After 200 batches, Train Average Loss (last 100 batches): 0.6261, Average Accuracy (last 100 batches): 0.6444
+After 300 batches, Train Average Loss (last 100 batches): 0.6369, Average Accuracy (last 100 batches): 0.6334
+After 400 batches, Train Average Loss (last 100 batches): 0.6200, Average Accuracy (last 100 batches): 0.6534
+After 500 batches, Train Average Loss (last 100 batches): 0.6230, Average Accuracy (last 100 batches): 0.6669
+Epoch 4/20
+Train: Loss 0.6255, Accuracy 0.6490
+Validation: Loss 0.5903, Accuracy 0.6808
+After 100 batches, Train Average Loss (last 100 batches): 0.6280, Average Accuracy (last 100 batches): 0.6525
+After 200 batches, Train Average Loss (last 100 batches): 0.6254, Average Accuracy (last 100 batches): 0.6484
+After 300 batches, Train Average Loss (last 100 batches): 0.6262, Average Accuracy (last 100 batches): 0.6525
+After 400 batches, Train Average Loss (last 100 batches): 0.6029, Average Accuracy (last 100 batches): 0.6684
+After 500 batches, Train Average Loss (last 100 batches): 0.6171, Average Accuracy (last 100 batches): 0.6478
+Epoch 5/20
+Train: Loss 0.6195, Accuracy 0.6545
+Validation: Loss 0.5917, Accuracy 0.6799
+After 100 batches, Train Average Loss (last 100 batches): 0.6118, Average Accuracy (last 100 batches): 0.6713
+After 200 batches, Train Average Loss (last 100 batches): 0.6158, Average Accuracy (last 100 batches): 0.6650
+After 300 batches, Train Average Loss (last 100 batches): 0.6229, Average Accuracy (last 100 batches): 0.6553
+After 400 batches, Train Average Loss (last 100 batches): 0.6003, Average Accuracy (last 100 batches): 0.6756
+After 500 batches, Train Average Loss (last 100 batches): 0.6078, Average Accuracy (last 100 batches): 0.6672
+Epoch 6/20
+Train: Loss 0.6134, Accuracy 0.6654
+Validation: Loss 0.5577, Accuracy 0.7127
+New best validation accuracy (0.71%) achieved! Model saved.
+After 100 batches, Train Average Loss (last 100 batches): 0.5949, Average Accuracy (last 100 batches): 0.6787
+After 200 batches, Train Average Loss (last 100 batches): 0.6095, Average Accuracy (last 100 batches): 0.6681
+After 300 batches, Train Average Loss (last 100 batches): 0.6127, Average Accuracy (last 100 batches): 0.6600
+After 400 batches, Train Average Loss (last 100 batches): 0.6081, Average Accuracy (last 100 batches): 0.6634
+After 500 batches, Train Average Loss (last 100 batches): 0.6201, Average Accuracy (last 100 batches): 0.6522
+Epoch 7/20
+Train: Loss 0.6094, Accuracy 0.6639
+Validation: Loss 0.5736, Accuracy 0.6940
+After 100 batches, Train Average Loss (last 100 batches): 0.6031, Average Accuracy (last 100 batches): 0.6725
+After 200 batches, Train Average Loss (last 100 batches): 0.6100, Average Accuracy (last 100 batches): 0.6703
+After 300 batches, Train Average Loss (last 100 batches): 0.6075, Average Accuracy (last 100 batches): 0.6794
+After 400 batches, Train Average Loss (last 100 batches): 0.6043, Average Accuracy (last 100 batches): 0.6813
+After 500 batches, Train Average Loss (last 100 batches): 0.5924, Average Accuracy (last 100 batches): 0.6813
+Epoch 8/20
+Train: Loss 0.6029, Accuracy 0.6767
+Validation: Loss 0.5704, Accuracy 0.6977
+After 100 batches, Train Average Loss (last 100 batches): 0.5869, Average Accuracy (last 100 batches): 0.6825
+After 200 batches, Train Average Loss (last 100 batches): 0.6053, Average Accuracy (last 100 batches): 0.6809
+After 300 batches, Train Average Loss (last 100 batches): 0.5861, Average Accuracy (last 100 batches): 0.6953
+After 400 batches, Train Average Loss (last 100 batches): 0.6087, Average Accuracy (last 100 batches): 0.6778
+After 500 batches, Train Average Loss (last 100 batches): 0.6050, Average Accuracy (last 100 batches): 0.6616
+Epoch 9/20
+Train: Loss 0.5999, Accuracy 0.6774
+Validation: Loss 0.5447, Accuracy 0.7262
+New best validation accuracy (0.73%) achieved! Model saved.
+After 100 batches, Train Average Loss (last 100 batches): 0.5964, Average Accuracy (last 100 batches): 0.6778
+After 200 batches, Train Average Loss (last 100 batches): 0.6141, Average Accuracy (last 100 batches): 0.6559
+After 300 batches, Train Average Loss (last 100 batches): 0.5981, Average Accuracy (last 100 batches): 0.6800
+After 400 batches, Train Average Loss (last 100 batches): 0.5948, Average Accuracy (last 100 batches): 0.6834
+After 500 batches, Train Average Loss (last 100 batches): 0.6018, Average Accuracy (last 100 batches): 0.6875
+Epoch 10/20
+Train: Loss 0.6006, Accuracy 0.6760
+Validation: Loss 0.5674, Accuracy 0.7023
+After 100 batches, Train Average Loss (last 100 batches): 0.5971, Average Accuracy (last 100 batches): 0.6722
+After 200 batches, Train Average Loss (last 100 batches): 0.5903, Average Accuracy (last 100 batches): 0.6916
+After 300 batches, Train Average Loss (last 100 batches): 0.5873, Average Accuracy (last 100 batches): 0.6837
+After 400 batches, Train Average Loss (last 100 batches): 0.5867, Average Accuracy (last 100 batches): 0.6903
+After 500 batches, Train Average Loss (last 100 batches): 0.5907, Average Accuracy (last 100 batches): 0.6803
+Epoch 11/20
+Train: Loss 0.5903, Accuracy 0.6849
+Validation: Loss 0.5300, Accuracy 0.7347
+New best validation accuracy (0.73%) achieved! Model saved.
+After 100 batches, Train Average Loss (last 100 batches): 0.5812, Average Accuracy (last 100 batches): 0.6953
+After 200 batches, Train Average Loss (last 100 batches): 0.5872, Average Accuracy (last 100 batches): 0.6819
+After 300 batches, Train Average Loss (last 100 batches): 0.5864, Average Accuracy (last 100 batches): 0.6869
+After 400 batches, Train Average Loss (last 100 batches): 0.5882, Average Accuracy (last 100 batches): 0.6922
+After 500 batches, Train Average Loss (last 100 batches): 0.5875, Average Accuracy (last 100 batches): 0.6834
+Epoch 12/20
+Train: Loss 0.5855, Accuracy 0.6888
+Validation: Loss 0.5511, Accuracy 0.7188
+After 100 batches, Train Average Loss (last 100 batches): 0.5866, Average Accuracy (last 100 batches): 0.6822
+After 200 batches, Train Average Loss (last 100 batches): 0.5853, Average Accuracy (last 100 batches): 0.6881
+After 300 batches, Train Average Loss (last 100 batches): 0.5929, Average Accuracy (last 100 batches): 0.6863
+After 400 batches, Train Average Loss (last 100 batches): 0.5749, Average Accuracy (last 100 batches): 0.6956
+After 500 batches, Train Average Loss (last 100 batches): 0.5823, Average Accuracy (last 100 batches): 0.6941
+Epoch 13/20
+Train: Loss 0.5841, Accuracy 0.6895
+Validation: Loss 0.5226, Accuracy 0.7356
+New best validation accuracy (0.74%) achieved! Model saved.
+After 100 batches, Train Average Loss (last 100 batches): 0.5873, Average Accuracy (last 100 batches): 0.6887
+After 200 batches, Train Average Loss (last 100 batches): 0.5667, Average Accuracy (last 100 batches): 0.7100
+After 300 batches, Train Average Loss (last 100 batches): 0.5894, Average Accuracy (last 100 batches): 0.6872
+After 400 batches, Train Average Loss (last 100 batches): 0.5718, Average Accuracy (last 100 batches): 0.7066
+After 500 batches, Train Average Loss (last 100 batches): 0.5812, Average Accuracy (last 100 batches): 0.6950
+Epoch 14/20
+Train: Loss 0.5796, Accuracy 0.6970
+Validation: Loss 0.5295, Accuracy 0.7336
+After 100 batches, Train Average Loss (last 100 batches): 0.5849, Average Accuracy (last 100 batches): 0.6950
+After 200 batches, Train Average Loss (last 100 batches): 0.5762, Average Accuracy (last 100 batches): 0.6953
+After 300 batches, Train Average Loss (last 100 batches): 0.5756, Average Accuracy (last 100 batches): 0.6953
+After 400 batches, Train Average Loss (last 100 batches): 0.5778, Average Accuracy (last 100 batches): 0.7041
+After 500 batches, Train Average Loss (last 100 batches): 0.5802, Average Accuracy (last 100 batches): 0.7019
+Epoch 15/20
+Train: Loss 0.5787, Accuracy 0.6982
+Validation: Loss 0.5137, Accuracy 0.7438
+New best validation accuracy (0.74%) achieved! Model saved.
+After 100 batches, Train Average Loss (last 100 batches): 0.5704, Average Accuracy (last 100 batches): 0.7109
+After 200 batches, Train Average Loss (last 100 batches): 0.5886, Average Accuracy (last 100 batches): 0.6913
+After 300 batches, Train Average Loss (last 100 batches): 0.5843, Average Accuracy (last 100 batches): 0.6894
+After 400 batches, Train Average Loss (last 100 batches): 0.5687, Average Accuracy (last 100 batches): 0.7041
+After 500 batches, Train Average Loss (last 100 batches): 0.5616, Average Accuracy (last 100 batches): 0.7091
+Epoch 16/20
+Train: Loss 0.5733, Accuracy 0.7027
+Validation: Loss 0.5185, Accuracy 0.7398
+After 100 batches, Train Average Loss (last 100 batches): 0.5686, Average Accuracy (last 100 batches): 0.7047
+After 200 batches, Train Average Loss (last 100 batches): 0.5573, Average Accuracy (last 100 batches): 0.7147
+After 300 batches, Train Average Loss (last 100 batches): 0.5765, Average Accuracy (last 100 batches): 0.7069
+After 400 batches, Train Average Loss (last 100 batches): 0.5622, Average Accuracy (last 100 batches): 0.7106
+After 500 batches, Train Average Loss (last 100 batches): 0.5825, Average Accuracy (last 100 batches): 0.6966
+Epoch 17/20
+Train: Loss 0.5692, Accuracy 0.7066
+Validation: Loss 0.5101, Accuracy 0.7502
+New best validation accuracy (0.75%) achieved! Model saved.
+After 100 batches, Train Average Loss (last 100 batches): 0.5732, Average Accuracy (last 100 batches): 0.7066
+After 200 batches, Train Average Loss (last 100 batches): 0.5533, Average Accuracy (last 100 batches): 0.7200
+After 300 batches, Train Average Loss (last 100 batches): 0.5736, Average Accuracy (last 100 batches): 0.6972
+After 400 batches, Train Average Loss (last 100 batches): 0.5634, Average Accuracy (last 100 batches): 0.7094
+After 500 batches, Train Average Loss (last 100 batches): 0.5719, Average Accuracy (last 100 batches): 0.7078
+Epoch 18/20
+Train: Loss 0.5695, Accuracy 0.7064
+Validation: Loss 0.5087, Accuracy 0.7542
+New best validation accuracy (0.75%) achieved! Model saved.
+After 100 batches, Train Average Loss (last 100 batches): 0.5723, Average Accuracy (last 100 batches): 0.6950
+After 200 batches, Train Average Loss (last 100 batches): 0.5688, Average Accuracy (last 100 batches): 0.7025
+After 300 batches, Train Average Loss (last 100 batches): 0.5621, Average Accuracy (last 100 batches): 0.7069
+After 400 batches, Train Average Loss (last 100 batches): 0.5573, Average Accuracy (last 100 batches): 0.7075
+After 500 batches, Train Average Loss (last 100 batches): 0.5674, Average Accuracy (last 100 batches): 0.6997
+Epoch 19/20
+Train: Loss 0.5656, Accuracy 0.7025
+Validation: Loss 0.5049, Accuracy 0.7528
+After 100 batches, Train Average Loss (last 100 batches): 0.5743, Average Accuracy (last 100 batches): 0.7003
+After 200 batches, Train Average Loss (last 100 batches): 0.5663, Average Accuracy (last 100 batches): 0.7091
+After 300 batches, Train Average Loss (last 100 batches): 0.5528, Average Accuracy (last 100 batches): 0.7219
+After 400 batches, Train Average Loss (last 100 batches): 0.5528, Average Accuracy (last 100 batches): 0.7100
+After 500 batches, Train Average Loss (last 100 batches): 0.5527, Average Accuracy (last 100 batches): 0.7184
+Epoch 20/20
+Train: Loss 0.5615, Accuracy 0.7106
+Validation: Loss 0.5108, Accuracy 0.7484
+Test: Loss 0.7010, Accuracy 0.6004
