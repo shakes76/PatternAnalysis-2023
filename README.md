@@ -41,7 +41,7 @@ etc.
 
 
 
-nhances it with a sub-pixel convolution layer. Finally, a deconvolution layer produces the high-resolution image.
+Enhances it with a sub-pixel convolution layer. Finally, a deconvolution layer produces the high-resolution image.
 
 
 
